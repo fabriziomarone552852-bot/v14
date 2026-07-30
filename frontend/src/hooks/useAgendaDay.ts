@@ -103,11 +103,14 @@ export const useAgendaDay = (dateStr: string) => {
   const saveHabitMutation = useMutation({
     mutationFn: async (payload: SaveHabitPayload) => {
       const { data_inizio, target_completamenti, data_fine, periodId, periods, ...baseData } = payload.data;
+      const initialPeriods = periods && periods.length > 0 
+        ? periods 
+        : [{ data_inizio: data_inizio || dateStr, target: target_completamenti || 1 }];
       const result = payload.existingId
         ? await api.patch<Habit>(`/habits/${payload.existingId}`, baseData)
         : await api.post<Habit>('/habits', {
             ...baseData,
-            periods: [{ data_inizio: dateStr, target: 1 }]
+            periods: initialPeriods
           });
           
       if (!result) throw new Error("Errore nel salvataggio dell'abitudine");

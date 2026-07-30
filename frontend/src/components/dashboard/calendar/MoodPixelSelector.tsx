@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { CategoryGenre, type Category } from '@/types'; 
 import { useOutsideClick } from '@/hooks/useOutsideClick'; 
 import { DropdownIcon, CloseIcon } from '@/components/shared/utils/Icons'; 
-import { useCategories } from '@/hooks/useCategories'; 
+import { useCategories, useCreateCategory } from '@/hooks/useCategories'; 
 
 interface MoodPixelSelectorProps {
   selectedCategoryId: number | null;
@@ -19,8 +19,9 @@ export const MoodPixelSelector: React.FC<MoodPixelSelectorProps> = ({
   selectedCategoryId, 
   onChange 
 }) => {
-  // 1. CHIAMATA AL SERVER: Scarichiamo tutte le categorie[cite: 10]
-  const { addCategory, dbCategories } = useCategories();
+  // 1. CHIAMATA AL SERVER: Scarichiamo tutte le categorie
+  const { data: dbCategories = [] } = useCategories();
+  const { mutateAsync: addCategory } = useCreateCategory();
 
   // 2. LOGICA FRONTEND: Filtriamo solo quelle di tipo MOOD (Genere 4)
   const moodCategories: Category[] = dbCategories.filter(

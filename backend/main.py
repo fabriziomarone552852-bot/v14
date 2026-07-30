@@ -35,6 +35,8 @@ from backend.domains.monthly_entries.router import router as monthly_entries_rou
 
 app = FastAPI(title="Smart Agenda API", version="4.0")
 
+app.middleware("http")(system_boot_guard)
+
 origins = [
     "http://localhost:5173",
     "http://127.0.0.1:5173",
@@ -45,12 +47,11 @@ origins = [
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
+    allow_origin_regex=r"http://(localhost|127\.0\.0\.1)(:\d+)?",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-app.middleware("http")(system_boot_guard)
 
 app.include_router(system_boot_router)
 app.include_router(auth_router, prefix="/auth")

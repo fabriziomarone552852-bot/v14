@@ -31,7 +31,7 @@ const HomePage: React.FC = () => {
   const [currentMonth, setCurrentMonth] = useState<Date>(new Date());
   const today = useMemo(() => new Date(), []);
 
-  const { dbCategories } = useCategories();
+  const { data: dbCategories = [] } = useCategories();
   const { events: eventiDalServer, tasks, isLoading, isFetching, isError } = useAgendaHome(currentMonth);
   const { toggleTask } = useTaskMutations(['tasks']);
 

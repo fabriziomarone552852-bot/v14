@@ -7,7 +7,7 @@ from __future__ import annotations
 from datetime import datetime, timezone
 from typing import Generic, List, Optional, TypeVar
 
-from pydantic import Field, field_validator, model_validator
+from pydantic import ConfigDict, Field, field_validator, model_validator
 
 from backend.core.schemas import ORMBaseModel, StrictBaseModel
 from backend.domains.categories.schemas import CategoryResponse
@@ -28,6 +28,15 @@ class TaskCreate(StrictBaseModel):
     luogo: Optional[str] = Field(None, max_length=255)
     parent_id: Optional[int] = None
 
+    @field_validator("data_start", "data_scadenza", mode="after")
+    @classmethod
+    def ensure_tz_aware(cls, value: Optional[datetime]) -> Optional[datetime]:
+        if value is None:
+            return value
+        if value.tzinfo is None:
+            return value.replace(tzinfo=timezone.utc)
+        return value.astimezone(timezone.utc)
+
     @field_validator("titolo")
     @classmethod
     def normalize_title(cls, value: str) -> str:
@@ -46,6 +55,8 @@ class TaskCreate(StrictBaseModel):
 class TaskUpdate(StrictBaseModel):
     """Request model for updating tasks."""
 
+    model_config = ConfigDict(extra="ignore")
+
     titolo: Optional[str] = Field(None, min_length=1, max_length=255)
     descrizione: Optional[str] = None
     data_start: Optional[datetime] = None
@@ -56,6 +67,15 @@ class TaskUpdate(StrictBaseModel):
     fatto: Optional[bool] = None
     data_fatto: Optional[datetime] = None
     parent_id: Optional[int] = None
+
+    @field_validator("data_start", "data_scadenza", "data_fatto", mode="after")
+    @classmethod
+    def ensure_tz_aware(cls, value: Optional[datetime]) -> Optional[datetime]:
+        if value is None:
+            return value
+        if value.tzinfo is None:
+            return value.replace(tzinfo=timezone.utc)
+        return value.astimezone(timezone.utc)
 
     @field_validator("titolo")
     @classmethod

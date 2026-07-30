@@ -28,7 +28,7 @@ const MonthPage: React.FC = () => {
   
   const { state, modals, apiData, handlers } = useMonthPageLogic();
 
-  const { dbCategories } = useCategories();
+  const { data: dbCategories = [] } = useCategories();
 
   const displayName = format(state.monthTargetDate, 'MMMM', { locale: it }).toUpperCase();
   const formattedDate = format(state.monthTargetDate, 'yyyy', { locale: it });

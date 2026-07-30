@@ -28,7 +28,7 @@ const TaskNewModal: React.FC<TaskNewModalProps> = ({ isOpen, onClose, taskToEdit
   const {  user } = useAuth();
   const { saveTask } = useTaskMutations(['tasks']);
   const [isSaving, setIsSaving] = useState(false);
-  const { dbCategories } = useCategories();
+  const { data: dbCategories = [] } = useCategories();
 
   const api = useApi();
   const queryClient = useQueryClient();
