@@ -1,66 +1,25 @@
 """
 Central model registry for SQLAlchemy.
-This module imports all domain models to ensure SQLAlchemy can resolve
-string references in relationships. It MUST be imported before any
-database operations.
 
-Usage in main.py or app initialization:
-    from backend.core.models import *  # noqa
+Importa esplicitamente tutti i modelli di dominio così che SQLAlchemy
+possa risolvere correttamente relationship e mapper string-based.
 """
 from __future__ import annotations
 
-# Import all domain models to register them with SQLAlchemy
-# This enables string references in relationships
-from backend.domains.audit.models import SharedActivityLog  # noqa
-from backend.domains.categories.models import Category  # noqa
-from backend.domains.catalogs.models import Config, ConfigCode  # noqa
-from backend.domains.countdowns.models import Countdown  # noqa
-from backend.domains.events.models import Event  # noqa
-from backend.domains.habits.models import Habit, HabitLog, HabitPeriod  # noqa
-from backend.domains.notifications.models import Notification  # noqa
-from backend.domains.planning.models import DailyEntry  # noqa
-from backend.domains.shopping.models import (  # noqa
-    ShoppingGroup,
-    ShoppingGroupMember,
-    ShoppingList,
-    ShoppingListItem,
-    ShoppingProduct,      # AGGIUNTO: mancava
-    ShoppingSupplier,
-    InventoryBatch,       # MODIFICATO: rimpiazza ShoppingPrice
-)
-from backend.domains.tasks.models import Task  # noqa
-from backend.domains.users.models import User  # noqa
 
-__all__ = [
-    # Config
-    "Config",
-    "ConfigCode",
-    # Users
-    "User",
-    # Categories
-    "Category",
-    # Tasks
-    "Task",
-    # Events
-    "Event",
-    # Shopping
-    "ShoppingGroup",
-    "ShoppingGroupMember",
-    "ShoppingList",
-    "ShoppingListItem",
-    "ShoppingProduct",    # AGGIUNTO
-    "ShoppingSupplier",
-    "InventoryBatch",     # MODIFICATO
-    # Audit
-    "SharedActivityLog",
-    # Notifications
-    "Notification",
-    # Planning
-    "DailyEntry",
-    # Countdowns
-    "Countdown",
-    # Habits
-    "Habit",
-    "HabitPeriod",
-    "HabitLog",
-]
+def import_all_models() -> None:
+    import backend.domains.audit.models  # noqa: F401
+    import backend.domains.categories.models  # noqa: F401
+    import backend.domains.config.models  # noqa: F401
+    import backend.domains.countdowns.models  # noqa: F401
+    import backend.domains.events.models  # noqa: F401
+    import backend.domains.habits.models  # noqa: F401
+    import backend.domains.monthly_entries.models  # noqa: F401
+    import backend.domains.notifications.models  # noqa: F401
+    import backend.domains.planning.models  # noqa: F401
+    import backend.domains.shopping.models  # noqa: F401
+    import backend.domains.tasks.models  # noqa: F401
+    import backend.domains.users.models  # noqa: F401
+
+
+__all__ = ["import_all_models"]

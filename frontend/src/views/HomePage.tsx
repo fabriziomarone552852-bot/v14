@@ -2,63 +2,49 @@
 import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-// I tuoi "attrezzi" (Hooks)
+// Hooks
 import { useAgendaHome } from '@/hooks/useAgendaHome';
 import { useTaskMutations } from '@/hooks/mutations/useTaskMutations';
-import { useEventMutations } from '@/hooks/mutations/useEventMutations';
 import { useTaskModals } from '@/context/TaskModalContext';
 import { useEventModals } from '@/context/EventModalContext';
+import { useCategories } from '@/hooks/useCategories';
 
-// I "blocchi" visivi della pagina (Componenti)
+// Componenti visivi
 import CalendarColumn from '@/components/dashboard/CalendarColumn';
 import TaskColumn from '@/components/shared/tasks/TaskColumn';
 import EventsColumn from '@/components/shared/events/EventsColumn';
-import NewEventModal from '@/components/shared/events/EventNewModal';
-import EventDetailModal, { type EventDeletePayload } from '@/components/shared/events/EventDetailModal';
 import { YearProgressWidget } from '@/components/dashboard/YearProgressWidget';
 import { UpcomingTasksWidget } from '@/components/dashboard/UpcomingTasksWidget';
 import { LoadingIcon } from '@/components/shared/utils/Icons';
 
-// Regole e logiche
+// Utilities
 import { calculateYearProgress } from '@/utils/dateUtils';
 import { buildTaskTree, filterAndSortTree, getUpcomingTasks } from '@/utils/taskUtils';
 import { mapDbEventsToCalendarEvents } from '@/utils/eventUtils';
 
-// Le definizioni di come sono fatti i dati (Tipi)
-import type { CalendarEvent, DbEvent, TaskSummary, UITask } from '@/types';
+// Tipi rigorosi (Zero any)
+import type { CalendarEvent, TaskSummary, UITask } from '@/types';
 
 const HomePage: React.FC = () => {
   const navigate = useNavigate();
   
-  // Memorizziamo il mese attuale (il tipo è palesemente Date)
   const [currentMonth, setCurrentMonth] = useState<Date>(new Date());
   const today = useMemo(() => new Date(), []);
 
-  // Recuperiamo tutte le carte dal server
+  const { dbCategories } = useCategories();
   const { events: eventiDalServer, tasks, isLoading, isFetching, isError } = useAgendaHome(currentMonth);
   const { toggleTask } = useTaskMutations(['tasks']);
-  const { deleteRecurringEvent } = useEventMutations(['events']);
 
-  // Logica delle finestre a comparsa (Modali)
   const { openTaskDetail, openTaskForm } = useTaskModals();
-  const {
-    isDetailOpen,
-    selectedEvent,
-    isFormOpen,
-    eventToEdit,
-    initialDate,
-    openEventDetail,
-    closeEventDetail,
-    openEventForm,
-    closeEventForm,
-  } = useEventModals();
+  
+  // 🪄 MAGIA: Teniamo solo i comandi per aprire i modali, il resto lo fa il Context!
+  const { openEventDetail, openEventForm } = useEventModals();
 
-  // --- FILTRAGGIO DELLE CARTE (Tutto rigorosamente in locale) ---
+  // --- FILTRAGGIO DATI (Frontend) ---
   
   const yearProgress: number = useMemo(() => calculateYearProgress(), []);
   
   const taskTree: UITask[] = useMemo(() => {
-    // I due punti interrogativi evitano errori se 'tasks' non è ancora arrivato
     const rawTree = buildTaskTree(tasks ?? []); 
     return filterAndSortTree(rawTree, false, 'priority');
   }, [tasks]);
@@ -67,13 +53,12 @@ const HomePage: React.FC = () => {
     return mapDbEventsToCalendarEvents(eventiDalServer ?? []);
   }, [eventiDalServer]);
 
-  // Usiamo il numero fisso 30 come limite di giorni
   const next30DaysTasks: TaskSummary[] = useMemo(
     () => getUpcomingTasks(tasks ?? [], 30), 
     [tasks]
   );
 
-  // --- AZIONI AL CLICK (Handlers) ---
+  // --- HANDLERS ---
 
   const handleGoToDay = (dateStr: string): void => {
     navigate('/giorno', { state: { selectedDate: dateStr } }); 
@@ -82,19 +67,6 @@ const HomePage: React.FC = () => {
   const handleToggleTask = (id: number, currentStatus: boolean, e?: React.MouseEvent): void => {
     e?.stopPropagation();
     toggleTask({ id, isDone: !currentStatus });
-  };
-
-  // Niente ambiguità: l'ID deve essere un numero
-  const handleDeleteEvent = (payload: EventDeletePayload): void => {
-    deleteRecurringEvent(payload);
-    closeEventDetail(); 
-  };
-
-  const handleEditEvent = (): void => {
-    if (selectedEvent) {
-      openEventForm(selectedEvent, null); // 🪄 Cambiato con la funzione globale
-      closeEventDetail(); 
-    }
   };
 
   const isInitialLoad: boolean = isLoading && (!tasks || tasks.length === 0) && (!eventiDalServer || eventiDalServer.length === 0);
@@ -144,11 +116,12 @@ const HomePage: React.FC = () => {
             hideHeader={false}
             events={calendarEvents} 
             tasks={tasks ?? []}
+            allCategories={dbCategories} 
             onMonthChange={setCurrentMonth}
-            onSelectEvent={(event: CalendarEvent) => openEventDetail(event)} // 🪄 Usiamo la funzione del context
+            onSelectEvent={(event: CalendarEvent) => openEventDetail(event)} 
             onDayClick={handleGoToDay} 
             onAddEventClick={(dataCliccata?: string) => {
-              openEventForm(null, dataCliccata ?? null); // 🪄 Usiamo la funzione del context
+              openEventForm(null, dataCliccata ?? null); 
             }} 
           />
         </div>
@@ -157,29 +130,13 @@ const HomePage: React.FC = () => {
           <EventsColumn 
             events={calendarEvents} 
             selectedDate={today} 
-            onSelectEvent={(event: CalendarEvent) => openEventDetail(event)} // 🪄 Usiamo la funzione del context
+            onSelectEvent={(event: CalendarEvent) => openEventDetail(event)} 
           />
         </div>
       </div>
 
+      {/* Lasciamo l'elenco delle task previste nei prossimi 30 giorni in basso */}
       <UpcomingTasksWidget tasks={next30DaysTasks} />
-
-      {/* --- MODALS ADATTATI AI VALORI DEL CONTEXT --- */}
-      <EventDetailModal 
-        isOpen={isDetailOpen} 
-        onClose={closeEventDetail} 
-        selectedEvent={selectedEvent} 
-        onDeleteClick={handleDeleteEvent} 
-        onEditClick={handleEditEvent} 
-      />
-
-      <NewEventModal 
-        isOpen={isFormOpen} 
-        onClose={closeEventForm} 
-        eventToEdit={eventToEdit} 
-        initialDate={initialDate}
-        onEventSaved={() => {}}  
-      />
     </div>
   );
 };

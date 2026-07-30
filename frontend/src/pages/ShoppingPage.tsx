@@ -16,6 +16,7 @@ const ShoppingPage: React.FC = () => {
 
   const {
     lists,
+    groups,
     items,
     suppliers,
     config,
@@ -25,39 +26,41 @@ const ShoppingPage: React.FC = () => {
     listsLoading,
     itemsLoading,
     isInitialLoading,
-  } = useShoppingData();
+  } = useShoppingData() as any;
 
   const unitOptions = config?.unitOptions ?? [];
-  const itemStatusOptions = config?.itemStatusOptions ?? [];
   const currencyOptions = config?.currencyOptions ?? [];
   const offerFlagOptions = config?.offerFlagOptions ?? [];
   const listVisibilityOptions = config?.visibilityOptions ?? [];
   const listStatusOptions = config?.listStatusOptions ?? [];
 
+  const groupVisibilityId = useMemo(() => {
+    const opt = listVisibilityOptions.find(
+      (o: any) =>
+        o.codeValue?.toLowerCase() === 'group' ||
+        o.codeName?.toLowerCase() === 'group'
+    );
+    return opt?.id ?? null;
+  }, [listVisibilityOptions]);
+
   const filteredItems = useMemo<ShoppingListItem[]>(() => {
-    // Anti-Corruption Layer (ACL): Normalizziamo i dati dal backend (snake_case)
-    // al formato atteso dal frontend (camelCase) in un unico punto.
-    // Questo garantisce coerenza a tutti i componenti figli.
     const mappedItems = items.map((item: any) => ({
       ...item,
-      shoppingListId: item.shopping_list_id,
-      productName: item.product_name,
-      isPurchased: item.is_purchased,
-      unitId: item.unit_id,
-      unitCodeName: item.unit_code_name,
-      statusId: item.status_id,
-      productId: item.product_id,
+      shoppingListId: item.shopping_list_id ?? item.shoppingListId,
+      productName: item.product_name ?? item.productName,
+      isPurchased: item.is_purchased ?? item.isPurchased,
+      unitId: item.unit_id ?? item.unitId,
+      unitCodeName: item.unit_code_name ?? item.unitCodeName,
+      statusId: item.status_id ?? item.statusId,
+      productId: item.product_id ?? item.productId,
     }));
 
-    if (!searchQuery) {
-      return mappedItems;
-    }
+    if (!searchQuery) return mappedItems;
 
     const q = searchQuery.trim().toLowerCase();
-    return mappedItems.filter((item) => {
-      const name = (item.productName ?? '').trim().toLowerCase();
-      return name.includes(q);
-    });
+    return mappedItems.filter((item) =>
+      String(item.productName ?? '').trim().toLowerCase().includes(q)
+    );
   }, [items, searchQuery]);
 
   const openItems = useMemo(
@@ -76,8 +79,11 @@ const ShoppingPage: React.FC = () => {
 
   const listModeLabel = useMemo(() => {
     if (!activeList) return null;
-    return activeList.groupId ? 'Gruppo' : 'Privata';
-  }, [activeList]);
+    const isGroup =
+      groupVisibilityId != null &&
+      Number(activeList.visibilityId) === Number(groupVisibilityId);
+    return isGroup ? 'Gruppo' : 'Privata';
+  }, [activeList, groupVisibilityId]);
 
   const hasLists = lists.length > 0;
   const hasActiveList = activeListId != null && activeList != null;
@@ -108,9 +114,7 @@ const ShoppingPage: React.FC = () => {
         viewMode={viewMode}
         onViewModeChange={setViewMode}
         onAddItem={handleAddItem}
-        onOpenActions={() => {
-          // TODO: collegare drawer azioni lista quando disponibile
-        }}
+        onOpenActions={() => {}}
       />
 
       <div className="flex min-h-0 flex-1 overflow-hidden">
@@ -121,7 +125,7 @@ const ShoppingPage: React.FC = () => {
               loadingLists={listsLoading}
               activeListId={activeListId}
               setActiveListId={handleSelectList}
-              groups={[]}
+              groups={groups ?? []}
               listVisibilityOptions={listVisibilityOptions}
               listStatusOptions={listStatusOptions}
             />
@@ -133,36 +137,19 @@ const ShoppingPage: React.FC = () => {
             {isInitialLoading ? (
               <div className="flex min-h-0 flex-1 items-center justify-center rounded-2xl border border-slate-200 bg-white p-8 text-center shadow-sm ring-1 ring-slate-200">
                 <div className="max-w-md">
-                  <h2 className="text-lg font-semibold text-slate-900">
-                    Caricamento shopping
-                  </h2>
-                  <p className="mt-2 text-sm text-slate-500">
-                    Sto caricando liste e articoli della lista attiva.
-                  </p>
+                  <h2 className="text-lg font-semibold text-slate-900">Caricamento shopping</h2>
                 </div>
               </div>
             ) : !hasLists ? (
               <div className="flex min-h-0 flex-1 items-center justify-center rounded-2xl border border-dashed border-slate-300 bg-white p-8 text-center">
                 <div className="max-w-md">
-                  <h2 className="text-lg font-semibold text-slate-900">
-                    Nessuna lista disponibile
-                  </h2>
-                  <p className="mt-2 text-sm text-slate-500">
-                    Crea una nuova lista per iniziare ad aggiungere articoli e
-                    registrare gli acquisti.
-                  </p>
+                  <h2 className="text-lg font-semibold text-slate-900">Nessuna lista disponibile</h2>
                 </div>
               </div>
             ) : !hasActiveList ? (
               <div className="flex min-h-0 flex-1 items-center justify-center rounded-2xl border border-dashed border-slate-300 bg-white p-8 text-center">
                 <div className="max-w-md">
-                  <h2 className="text-lg font-semibold text-slate-900">
-                    Nessuna lista selezionata
-                  </h2>
-                  <p className="mt-2 text-sm text-slate-500">
-                    Seleziona una lista dalla colonna laterale per visualizzare
-                    gli articoli e registrare gli acquisti.
-                  </p>
+                  <h2 className="text-lg font-semibold text-slate-900">Nessuna lista selezionata</h2>
                 </div>
               </div>
             ) : viewMode === 'bulk-purchase' ? (

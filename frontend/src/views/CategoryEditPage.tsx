@@ -1,92 +1,35 @@
-// src/views/CategoryEditPage.tsx
-import React, { useEffect, useMemo, useState } from 'react';
+import React from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { apiUrl } from '@/api/client';
-import { useAuth } from '@/context/AuthContext';
 import CategoryForm, { type CategoryFormValues } from '@/components/CategoryForm';
-import type { Category } from '@/CategoriesPage';
+import { useCategory, useUpdateCategory } from '@/hooks/useCategories';
+import type { CategoryUpdatePayload } from '@/types';
 
 const CategoryEditPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const categoryId = Number(id);
-  const { token } = useAuth();
   const navigate = useNavigate();
 
-  const [initialValues, setInitialValues] = useState<CategoryFormValues | null>(
-    null
-  );
-  const [loading, setLoading] = useState(true);
+  const {
+    data: category,
+    isPending,
+    isError,
+    error,
+  } = useCategory(categoryId);
 
-  const authHeaderObj = useMemo(
-    () => ({
-      Authorization: `Bearer ${token}`,
-    }),
-    [token]
-  );
-
-  useEffect(() => {
-    const fetchCategory = async () => {
-      if (!categoryId) return;
-      setLoading(true);
-      try {
-        const url = apiUrl(`/categories/${categoryId}`);
-        console.log('GET /categories/{id} URL', url);
-
-        const res = await fetch(url, {
-          headers: authHeaderObj,
-        });
-        console.log('GET /categories/{id} status', res.status);
-
-        if (!res.ok) {
-          const text = await res.text();
-          console.error('Errore GET /categories/{id} body:', text);
-          return;
-        }
-
-        const data = (await res.json()) as Category;
-        setInitialValues({
-          name: data.name,
-          colore: data.colore || '#cccccc',
-          genre: data.genre,
-        });
-      } catch (err) {
-        console.error('Exception in fetchCategory', err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchCategory();
-  }, [categoryId, authHeaderObj]);
+  const updateCategoryMutation = useUpdateCategory();
 
   const handleUpdate = async (values: CategoryFormValues) => {
-    const payload: Partial<CategoryFormValues> = {
-      name: values.name,
-      colore: values.colore || undefined,
+    const payload: CategoryUpdatePayload = {
+      category_name: values.name.trim(),
+      colore: values.color || null,
       genre: values.genre,
     };
 
-    const url = apiUrl(`/categories/${categoryId}`);
-    console.log('PATCH /categories/{id} URL', url, 'payload', payload);
-
     try {
-      const res = await fetch(url, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          ...authHeaderObj,
-        },
-        body: JSON.stringify(payload),
+      await updateCategoryMutation.mutateAsync({
+        id: categoryId,
+        data: payload,
       });
-
-      console.log('PATCH /categories/{id} status', res.status);
-      const text = await res.text();
-      console.log('PATCH /categories/{id} response text:', text);
-
-      if (!res.ok) {
-        console.error('Errore PATCH /categories/{id} body:', text);
-        return;
-      }
 
       navigate('/categories');
     } catch (err) {
@@ -98,22 +41,51 @@ const CategoryEditPage: React.FC = () => {
     return <p>ID categoria non valido.</p>;
   }
 
-  if (loading || !initialValues) {
+  if (isPending) {
     return <p>Caricamento categoria...</p>;
   }
+
+  if (isError || !category) {
+    return (
+      <div style={{ padding: 24 }}>
+        <h1>Modifica categoria</h1>
+        <p>
+          Errore nel caricamento della categoria:{' '}
+          {error instanceof Error ? error.message : 'errore sconosciuto'}
+        </p>
+        <button
+          type="button"
+          style={{ marginTop: 16 }}
+          onClick={() => navigate(-1)}
+        >
+          Torna indietro
+        </button>
+      </div>
+    );
+  }
+
+  const initialValues: CategoryFormValues = {
+    name: category.category_name,
+    color: category.colore || '#cccccc',
+    genre: category.genre,
+  };
 
   return (
     <div style={{ padding: 24 }}>
       <h1>Modifica categoria</h1>
+
       <CategoryForm
         mode="edit"
         initialValues={initialValues}
         onSubmit={handleUpdate}
+        isSubmitting={updateCategoryMutation.isPending}
       />
+
       <button
         type="button"
         style={{ marginTop: 16 }}
         onClick={() => navigate(-1)}
+        disabled={updateCategoryMutation.isPending}
       >
         Annulla
       </button>

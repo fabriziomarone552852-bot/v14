@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 from datetime import datetime, timedelta, timezone
-from typing import Optional
+from typing import Any, Generator
 
 from argon2 import PasswordHasher
 from argon2.exceptions import InvalidHashError, VerifyMismatchError
@@ -9,17 +11,18 @@ from jose import JWTError, jwt
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
-from backend.core import models
+from backend.core.database import SessionLocal
 from backend.core.settings import get_settings
-from backend.database import SessionLocal
+from backend.domains.config import Config
+from backend.domains.tasks.models import Task
+from backend.domains.users.models import User
 
 settings = get_settings()
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
+password_hasher = PasswordHasher()
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/login")
-ph = PasswordHasher()
 
-
-def get_db():
+def get_db() -> Generator[Session, None, None]:
     db = SessionLocal()
     try:
         yield db
@@ -28,75 +31,145 @@ def get_db():
 
 
 def get_password_hash(password: str) -> str:
-    return ph.hash(password)
+    return password_hasher.hash(password)
 
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
     try:
-        return ph.verify(hashed_password, plain_password)
+        return password_hasher.verify(hashed_password, plain_password)
     except (VerifyMismatchError, InvalidHashError):
         return False
 
 
-def create_access_token(
-    data: dict,
-    expire_minutes: int = settings.access_token_expire_minutes,
-) -> str:
+def create_access_token(data: dict[str, Any], expire_minutes: int | None = None) -> str:
     to_encode = data.copy()
-    expire = datetime.now(timezone.utc) + timedelta(minutes=expire_minutes)
-    to_encode.update({"exp": expire})
-    return jwt.encode(to_encode, settings.secret_key, algorithm=settings.algorithm)
+    expire = datetime.now(timezone.utc) + timedelta(
+        minutes=expire_minutes or settings.access_token_expire_minutes
+    )
+    to_encode.update({"exp": expire, "type": "access"})
+    return jwt.encode(
+        to_encode,
+        settings.secret_key.get_secret_value(),
+        algorithm=settings.algorithm,
+    )
 
 
-def create_refresh_token(data: dict) -> str:
+def create_refresh_token(data: dict[str, Any]) -> str:
     to_encode = data.copy()
     expire = datetime.now(timezone.utc) + timedelta(days=settings.refresh_token_expire_days)
     to_encode.update({"exp": expire, "type": "refresh"})
-    return jwt.encode(to_encode, settings.secret_key, algorithm=settings.algorithm)
+    return jwt.encode(
+        to_encode,
+        settings.secret_key.get_secret_value(),
+        algorithm=settings.algorithm,
+    )
 
 
-def verify_refresh_token(token: str) -> Optional[str]:
+def decode_token(token: str) -> dict[str, Any]:
     try:
-        payload = jwt.decode(token, settings.secret_key, algorithms=[settings.algorithm])
-        if payload.get("type") != "refresh":
-            return None
-        return payload.get("sub")
+        return jwt.decode(
+            token,
+            settings.secret_key.get_secret_value(),
+            algorithms=[settings.algorithm],
+        )
     except JWTError:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Credenziali non valide",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
+
+def verify_refresh_token(token: str) -> str | None:
+    payload = decode_token(token)
+    if payload.get("type") != "refresh":
         return None
+    subject = payload.get("sub")
+    return str(subject) if subject is not None else None
 
 
-def get_current_user(
-    token: str = Depends(oauth2_scheme),
-    db: Session = Depends(get_db),
-) -> models.User:
-    credentials_exception = HTTPException(
-        status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="Credenziali non valide",
-        headers={"WWW-Authenticate": "Bearer"},
+def get_token_payload(token: str = Depends(oauth2_scheme)) -> dict[str, Any]:
+    payload = decode_token(token)
+    if payload.get("type") != "access":
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Token di accesso non valido",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
+    subject = payload.get("sub")
+    if not isinstance(subject, str) or not subject.strip():
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Credenziali non valide",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
+    return payload
+
+
+def _get_user_from_payload(payload: dict[str, Any], db: Session) -> User:
+    username = str(payload["sub"]).strip().lower()
+
+    stmt = (
+        select(User)
+        .where(func.lower(User.username) == username)
+        .where(User.deleted_at.is_(None))
     )
+    user = db.execute(stmt).scalar_one_or_none()
 
-    try:
-        payload = jwt.decode(token, settings.secret_key, algorithms=[settings.algorithm])
-        username: Optional[str] = payload.get("sub")
-        if username is None:
-            raise credentials_exception
-    except JWTError:
-        raise credentials_exception
-
-    user = (
-        db.query(models.User)
-        .filter(func.lower(models.User.username) == username.lower())
-        .filter(models.User.deleted_at.is_(None))
-        .first()
-    )
     if user is None:
-        raise credentials_exception
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Credenziali non valide",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
     return user
 
 
-def require_superuser(
-    current_user: models.User = Depends(get_current_user),
-) -> models.User:
+def get_current_user(
+    payload: dict[str, Any] = Depends(get_token_payload),
+    db: Session = Depends(get_db),
+) -> User:
+    return _get_user_from_payload(payload, db)
+
+
+def require_app_scope(payload: dict[str, Any] = Depends(get_token_payload)) -> dict[str, Any]:
+    if payload.get("scope") != "app":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="PASSWORD_CHANGE_REQUIRED",
+        )
+    return payload
+
+
+def require_password_change_scope(
+    payload: dict[str, Any] = Depends(get_token_payload),
+) -> dict[str, Any]:
+    if payload.get("scope") != "password_change":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Invalid scope for required password change flow",
+        )
+    return payload
+
+
+def get_current_app_user(
+    payload: dict[str, Any] = Depends(require_app_scope),
+    db: Session = Depends(get_db),
+) -> User:
+    return _get_user_from_payload(payload, db)
+
+
+def get_current_password_change_user(
+    payload: dict[str, Any] = Depends(require_password_change_scope),
+    db: Session = Depends(get_db),
+) -> User:
+    return _get_user_from_payload(payload, db)
+
+
+def require_superuser(current_user: User = Depends(get_current_app_user)) -> User:
     if not current_user.is_superuser:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
@@ -106,15 +179,12 @@ def require_superuser(
 
 
 def get_admin_max_depth(db: Session) -> int:
-    config_db = (
-        db.query(models.Config)
-        .filter(models.Config.key == "max_subtask_depth")
-        .first()
-    )
+    stmt = select(Config).where(Config.key == "maxsubtaskdepth")
+    config_db = db.execute(stmt).scalar_one_or_none()
     return int(config_db.value) if config_db else settings.default_max_subtask_depth
 
 
-def get_effective_max_depth(user: models.User, db: Session) -> int:
+def get_effective_max_depth(user: User, db: Session) -> int:
     admin_limit = get_admin_max_depth(db)
     user_limit = (
         user.max_subtask_depth_user
@@ -124,97 +194,67 @@ def get_effective_max_depth(user: models.User, db: Session) -> int:
     return min(user_limit, admin_limit)
 
 
-def _get_accessible_category(
-    category_id: Optional[int],
-    current_user: models.User,
-    db: Session,
-) -> Optional[models.Category]:
-    if not category_id:
-        return None
+def get_task_owned(task_id: int, current_user: User, db: Session) -> Task:
+    stmt = select(Task).where(Task.id == task_id, Task.userid == current_user.id)
+    task = db.execute(stmt).scalar_one_or_none()
 
-    category = (
-        db.query(models.Category)
-        .filter(
-            models.Category.id == category_id,
-            models.Category.user_id.is_(None) | (models.Category.user_id == current_user.id),
+    if task is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Task non trovato o non accessibile",
         )
-        .first()
-    )
-    if not category:
-        raise HTTPException(status_code=400, detail="Categoria non valida")
-    return category
 
-
-def validate_task_category(
-    category_id: Optional[int],
-    current_user: models.User,
-    db: Session,
-):
-    category = _get_accessible_category(category_id, current_user, db)
-    if not category:
-        return
-
-    if category.genre == 2:
-        category.genre = 3
-        db.add(category)
-
-
-def validate_event_category(
-    category_id: Optional[int],
-    current_user: models.User,
-    db: Session,
-):
-    category = _get_accessible_category(category_id, current_user, db)
-    if not category:
-        return
-
-    if category.genre == 1:
-        category.genre = 3
-        db.add(category)
-
-
-def get_task_owned(
-    task_id: int,
-    current_user: models.User,
-    db: Session,
-) -> models.Task:
-    task = (
-        db.query(models.Task)
-        .filter(models.Task.id == task_id, models.Task.user_id == current_user.id)
-        .first()
-    )
-    if not task:
-        raise HTTPException(status_code=404, detail="Task non trovato o non accessibile")
     return task
 
 
 def would_create_cycle(
     task_id: int,
-    new_parent_id: Optional[int],
-    current_user: models.User,
+    new_parent_id: int | None,
+    current_user: User,
     db: Session,
 ) -> bool:
     if new_parent_id is None:
         return False
+
     if task_id == new_parent_id:
         return True
 
     ancestor_cte = (
-        select(models.Task.id, models.Task.parent_id)
-        .filter(
-            models.Task.id == new_parent_id,
-            models.Task.user_id == current_user.id,
-        )
+        select(Task.id, Task.parentid)
+        .where(Task.id == new_parent_id, Task.userid == current_user.id)
         .cte(name="cycle_ancestors", recursive=True)
     )
 
     recursive_part = (
-        select(models.Task.id, models.Task.parent_id)
-        .join(ancestor_cte, models.Task.id == ancestor_cte.c.parent_id)
-        .filter(models.Task.user_id == current_user.id)
+        select(Task.id, Task.parentid)
+        .join(ancestor_cte, Task.id == ancestor_cte.c.parentid)
+        .where(Task.userid == current_user.id)
     )
 
     ancestor_cte = ancestor_cte.union_all(recursive_part)
-    cycle_query = select(ancestor_cte.c.id).filter(ancestor_cte.c.id == task_id)
-    result = db.execute(cycle_query).first()
-    return result is not None
+    cycle_query = select(ancestor_cte.c.id).where(ancestor_cte.c.id == task_id)
+
+    return db.execute(cycle_query).first() is not None
+
+
+__all__ = [
+    "oauth2_scheme",
+    "get_db",
+    "get_password_hash",
+    "verify_password",
+    "create_access_token",
+    "create_refresh_token",
+    "verify_refresh_token",
+    "decode_token",
+    "get_token_payload",
+    "get_current_user",
+    "get_current_app_user",
+    "get_current_password_change_user",
+    "require_app_scope",
+    "require_password_change_scope",
+    "require_superuser",
+    "get_admin_max_depth",
+    "get_effective_max_depth",
+    "get_task_owned",
+    "would_create_cycle",
+]

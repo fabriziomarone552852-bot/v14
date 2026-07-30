@@ -13,8 +13,13 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from backend.core.database import Base
 
 if TYPE_CHECKING:
-    from backend.domains.tasks.models import Task
+    from backend.domains.audit.models import SharedActivityLog
+    from backend.domains.categories.models import UserCategory
+    from backend.domains.countdowns.models import Countdown
     from backend.domains.events.models import Event
+    from backend.domains.habits.models import Habit
+    from backend.domains.notifications.models import Notification
+    from backend.domains.planning.models import DailyEntry
     from backend.domains.shopping.models import (
         InventoryBatch,
         ShoppingGroup,
@@ -24,11 +29,7 @@ if TYPE_CHECKING:
         ShoppingProduct,
         ShoppingSupplier,
     )
-    from backend.domains.audit.models import SharedActivityLog
-    from backend.domains.notifications.models import Notification
-    from backend.domains.planning.models import DailyEntry
-    from backend.domains.countdowns.models import Countdown
-    from backend.domains.habits.models import Habit
+    from backend.domains.tasks.models import Task
 
 
 class User(Base):
@@ -40,6 +41,7 @@ class User(Base):
     username: Mapped[str] = mapped_column(String(50), nullable=False, index=True)
     email: Mapped[str] = mapped_column(String(100), nullable=False, index=True)
     password_hash: Mapped[str] = mapped_column(String(255), nullable=False)
+
     max_subtask_depth_user: Mapped[Optional[int]] = mapped_column(
         Integer,
         nullable=True,
@@ -92,11 +94,16 @@ class User(Base):
         back_populates="user",
         cascade="all, delete-orphan",
     )
+    user_categories: Mapped[List["UserCategory"]] = relationship(
+        "UserCategory",
+        back_populates="user",
+        cascade="all, delete-orphan",
+    )
 
     shopping_groups: Mapped[List["ShoppingGroup"]] = relationship(
         "ShoppingGroup",
-        back_populates="owner",
         foreign_keys="ShoppingGroup.owner_id",
+        back_populates="owner",
     )
     shopping_group_memberships: Mapped[List["ShoppingGroupMember"]] = relationship(
         "ShoppingGroupMember",
@@ -111,8 +118,8 @@ class User(Base):
 
     shopping_lists: Mapped[List["ShoppingList"]] = relationship(
         "ShoppingList",
-        back_populates="owner",
         foreign_keys="ShoppingList.owner_id",
+        back_populates="owner",
     )
 
     shopping_items_created: Mapped[List["ShoppingListItem"]] = relationship(
@@ -171,7 +178,7 @@ class User(Base):
 
     shared_logs: Mapped[List["SharedActivityLog"]] = relationship(
         "SharedActivityLog",
-        foreign_keys="SharedActivityLog.performed_by_user_id",
+        back_populates="performed_by_user",
     )
     notifications: Mapped[List["Notification"]] = relationship(
         "Notification",
@@ -196,7 +203,7 @@ class User(Base):
 
     def __repr__(self) -> str:
         return (
-            f"<User username={self.username!r} email={self.email!r} "
+            f"<User id={self.id} username={self.username!r} email={self.email!r} "
             f"deleted_at={self.deleted_at!r} "
             f"max_subtask_depth_user={self.max_subtask_depth_user}>"
         )

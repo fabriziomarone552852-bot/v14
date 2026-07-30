@@ -1,29 +1,31 @@
 // src/components/CategoryForm.tsx
 import React, { useEffect, useState } from 'react';
-import type { Category } from '@/views/CategoriesPage';
+import { CategoryGenre } from '@/types';
 
 export interface CategoryFormValues {
   name: string;
-  colore: string;
-  genre: number; // 1=Tasks, 2=Events, 3=Comuni
+  color: string;
+  genre: CategoryGenre;
 }
 
 interface CategoryFormProps {
   mode: 'create' | 'edit';
   initialValues?: CategoryFormValues;
   onSubmit: (values: CategoryFormValues) => Promise<void> | void;
+  isSubmitting?: boolean;
 }
 
 const defaultValues: CategoryFormValues = {
   name: '',
-  colore: '#cccccc',
-  genre: 1,
+  color: '#cccccc',
+  genre: CategoryGenre.TASKS,
 };
 
 const CategoryForm: React.FC<CategoryFormProps> = ({
   mode,
   initialValues,
   onSubmit,
+  isSubmitting = false,
 }) => {
   const [values, setValues] = useState<CategoryFormValues>(defaultValues);
   const [submitting, setSubmitting] = useState(false);
@@ -40,7 +42,10 @@ const CategoryForm: React.FC<CategoryFormProps> = ({
     (field: keyof CategoryFormValues) =>
     (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
       const value =
-        field === 'genre' ? Number(e.target.value) : e.target.value;
+        field === 'genre'
+          ? Number(e.target.value) as CategoryGenre
+          : e.target.value;
+
       setValues((prev) => ({ ...prev, [field]: value }));
     };
 
@@ -53,12 +58,15 @@ const CategoryForm: React.FC<CategoryFormProps> = ({
       await onSubmit({
         ...values,
         name: values.name.trim(),
-        colore: values.colore || '#cccccc',
+        color: values.color || '#cccccc',
       });
     } finally {
       setSubmitting(false);
     }
   };
+
+  const isBusy = submitting || isSubmitting;
+  const isInvalid = !values.name.trim();
 
   return (
     <form
@@ -80,6 +88,7 @@ const CategoryForm: React.FC<CategoryFormProps> = ({
           onChange={handleChange('name')}
           placeholder="Es. Casa, Lavoro..."
           required
+          disabled={isBusy}
         />
       </div>
 
@@ -95,8 +104,9 @@ const CategoryForm: React.FC<CategoryFormProps> = ({
         </label>
         <input
           type="color"
-          value={values.colore}
-          onChange={handleChange('colore')}
+          value={values.color}
+          onChange={handleChange('color')}
+          disabled={isBusy}
         />
       </div>
 
@@ -113,15 +123,20 @@ const CategoryForm: React.FC<CategoryFormProps> = ({
         <select
           value={values.genre}
           onChange={handleChange('genre')}
+          disabled={isBusy}
         >
-          <option value={1}>Tasks</option>
-          <option value={2}>Events</option>
-          <option value={3}>Comune</option>
+          <option value={CategoryGenre.TASKS}>Tasks</option>
+          <option value={CategoryGenre.EVENTS}>Events</option>
+          <option value={CategoryGenre.COMMON}>Comune</option>
         </select>
       </div>
 
-      <button type="submit" disabled={submitting}>
-        {mode === 'create' ? 'Salva categoria' : 'Salva modifiche'}
+      <button type="submit" disabled={isBusy || isInvalid}>
+        {isBusy
+          ? 'Salvataggio...'
+          : mode === 'create'
+            ? 'Salva categoria'
+            : 'Salva modifiche'}
       </button>
     </form>
   );

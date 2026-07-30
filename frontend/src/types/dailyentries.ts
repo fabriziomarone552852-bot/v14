@@ -1,6 +1,8 @@
+import type { Category } from './categories';
+
 export type MoodEventType = 'EP' | 'EN';
 export type NoteVariant = 'N1' | 'N2' | 'N3' | 'N4';
-export type DailyEntryType = 'OD' | 'PD' | 'OW' | 'PW' | MoodEventType | NoteVariant;
+export type DailyEntryType = 'OD' | 'PD' | 'OW' | 'PW' | 'OM' | 'PM' | 'PX' | MoodEventType | NoteVariant;
 
 export interface DailyEntry {
   id: number;
@@ -9,32 +11,17 @@ export interface DailyEntry {
   tipo: DailyEntryType;
   testo: string;
   immagine_url?: string | null;
+  category_id?: number | null; 
+  category?: Category | null; 
 }
+
 export interface LocalNoteEntry extends DailyEntry {
   isNew?: boolean;
 }
 
-export interface MoodEvent {
-  id: number;
-  title: string;
-  type: MoodEventType;
-  date: string;
-}
-
-// Struttura del payload per la creazione
-export interface CreateMoodPayload {
-  tipo: MoodEventType;
-  testo: string;
-  data_riferimento: string;
-}
-
-export interface NoteItem {
-  id: number;
-  text: string;
-  dateStr: string;
-  variant: NoteVariant;
-  isNew?: boolean; 
-}
+// Definiamo le opzioni per i colori del pixel, niente stringhe libere
+// ANCHE SE SARANNO FORMULATI I COLORIN NEL BACKEND IN USER_CATEGORIES TABLE
+export type PixelColor = 'blu' | 'giallo' | 'rosso' | 'verde' | 'viola' | 'transparent';
 
 export const isNoteVariant = (tipo: string): tipo is NoteVariant => {
   return ['N1', 'N2', 'N3', 'N4'].includes(tipo);

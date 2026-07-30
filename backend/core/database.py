@@ -1,49 +1,82 @@
 """
 Core database infrastructure.
-Contains shared database configuration and the SQLAlchemy Base class.
+
+Contiene:
+- Base dichiarativa SQLAlchemy condivisa
+- Engine applicativo
+- Session factory condivisa
+- Factory esplicite per engine/session multi-ambiente
 """
 from __future__ import annotations
 
-# IMPORTANTE: la config tipizzata carica il file .env corretto (in base ad APP_ENV)
-# e valida le variabili obbligatorie (es. DATABASE_URL) all'avvio.
-from backend.core.settings import get_settings
+from typing import Any
 
 from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker, DeclarativeBase
+from sqlalchemy.engine import Engine
+from sqlalchemy.orm import DeclarativeBase, sessionmaker
+
+from backend.core.settings import get_settings, Settings
 
 
 class Base(DeclarativeBase):
-    """Classe base per tutti i modelli SQLAlchemy (stile 2.0)."""
+    """Classe base per tutti i modelli SQLAlchemy (stile 2.x)."""
     pass
 
 
-_settings = get_settings()
+def _build_engine_kwargs(database_url: str, settings: Settings) -> dict[str, Any]:
+    engine_kwargs: dict[str, Any] = {
+        "pool_pre_ping": True,
+    }
 
-# DATABASE_URL validato dalla config tipizzata (manca -> errore chiaro all'avvio).
-DATABASE_URL = _settings.database_url
+    if database_url.startswith("sqlite"):
+        engine_kwargs["connect_args"] = {"check_same_thread": False}
+    else:
+        engine_kwargs.update(
+            {
+                "pool_size": settings.db_pool_size,
+                "max_overflow": settings.db_max_overflow,
+                "pool_recycle": settings.db_pool_recycle,
+                "pool_timeout": settings.db_pool_timeout,
+            }
+        )
 
-engine_kwargs = {
-    "pool_pre_ping": True,
-    "future": True,
-}
+    return engine_kwargs
 
-if DATABASE_URL.startswith("sqlite"):
-    engine_kwargs["connect_args"] = {"check_same_thread": False}
-else:
-    engine_kwargs.update(
-        {
-            "pool_size": _settings.db_pool_size,
-            "max_overflow": _settings.db_max_overflow,
-            "pool_recycle": _settings.db_pool_recycle,
-            "pool_timeout": _settings.db_pool_timeout,
-        }
+
+def build_engine(database_url: str, settings: Settings | None = None) -> Engine:
+    """
+    Costruisce un Engine SQLAlchemy esplicito per la URL passata.
+
+    Usare questa factory negli script multi-ambiente (BOOTDB/SEEDDB),
+    così non dipendono dall'engine globale risolto a import time.
+    """
+    resolved_settings = settings or get_settings()
+    normalized_url = database_url.strip()
+    engine_kwargs = _build_engine_kwargs(normalized_url, resolved_settings)
+    return create_engine(normalized_url, **engine_kwargs)
+
+
+def build_session_factory(engine: Engine) -> sessionmaker:
+    """
+    Costruisce una session factory legata all'engine passato.
+    """
+    return sessionmaker(
+        autocommit=False,
+        autoflush=False,
+        bind=engine,
     )
 
-engine = create_engine(DATABASE_URL, **engine_kwargs)
 
-SessionLocal = sessionmaker(
-    autocommit=False,
-    autoflush=False,
-    bind=engine,
-    future=True,
-)
+settings = get_settings()
+database_url = settings.database_url.strip()
+
+engine = build_engine(database_url, settings=settings)
+SessionLocal = build_session_factory(engine)
+
+__all__ = [
+    "Base",
+    "engine",
+    "SessionLocal",
+    "build_engine",
+    "build_session_factory",
+]

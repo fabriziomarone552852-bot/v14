@@ -5,12 +5,14 @@ Pydantic models for event API validation and serialization.
 from __future__ import annotations
 
 from datetime import datetime
-from typing import Optional
+from typing import Generic, List, Optional, TypeVar
 
 from pydantic import Field, field_validator, model_validator
 
 from backend.core.schemas import ORMBaseModel, StrictBaseModel
 from backend.domains.categories.schemas import CategoryResponse
+
+T = TypeVar("T")
 
 
 class EventCreate(StrictBaseModel):
@@ -22,7 +24,7 @@ class EventCreate(StrictBaseModel):
     data_fine: Optional[datetime] = None
     tutto_il_giorno: bool = False
     luogo: Optional[str] = Field(None, max_length=255)
-    category_id: Optional[int] = None
+    user_category_id: Optional[int] = None
     rrule: Optional[str] = Field(None, max_length=255)
 
     @field_validator("titolo")
@@ -49,7 +51,7 @@ class EventUpdate(StrictBaseModel):
     data_fine: Optional[datetime] = None
     tutto_il_giorno: Optional[bool] = None
     luogo: Optional[str] = Field(None, max_length=255)
-    category_id: Optional[int] = None
+    user_category_id: Optional[int] = None
     rrule: Optional[str] = Field(None, max_length=255)
     esclusioni: Optional[str] = None
 
@@ -81,8 +83,24 @@ class EventResponse(ORMBaseModel):
     tutto_il_giorno: bool
     luogo: Optional[str] = None
     user_id: int
-    category_id: Optional[int] = None
+    user_category_id: Optional[int] = None
     category: Optional[CategoryResponse] = None
     category_name: Optional[str] = None
     rrule: Optional[str] = Field(None, max_length=255)
     esclusioni: Optional[str] = None
+
+
+class PaginatedBase(ORMBaseModel, Generic[T]):
+    """Generic paginated response."""
+
+    items: List[T] = Field(default_factory=list)
+    total: int = Field(..., ge=0)
+    limit: int = Field(..., ge=1)
+    offset: int = Field(..., ge=0)
+
+
+class PaginatedEvents(PaginatedBase[EventResponse]):
+    """Paginated event response."""
+
+
+PaginatedEvents.model_rebuild()

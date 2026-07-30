@@ -1,134 +1,63 @@
-// src/views/CategoriesPage.tsx
-import React, { useEffect, useMemo, useState } from 'react';
+import React from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { apiUrl } from '@/api/client';
-import { useAuth } from '@/context/AuthContext';
 import CategoryForm, { type CategoryFormValues } from '@/components/CategoryForm';
-
-export interface Category {
-  id: number;
-  name: string;
-  colore?: string | null;
-  genre: number; // 1=Tasks, 2=Events, 3=Comuni
-}
+import type { Category } from '@/types/categories';
+import { useCategories, useCreateCategory } from '@/hooks/useCategories';
 
 interface LocationState {
   from?: 'tasks' | 'events';
   genreHint?: 1 | 2;
 }
 
+const genreLabel = (genre: number): string => {
+  switch (genre) {
+    case 1:
+      return 'Tasks';
+    case 2:
+      return 'Events';
+    case 3:
+      return 'Comune';
+    case 4:
+      return 'Mood';
+    default:
+      return `Tipo ${genre}`;
+  }
+};
+
 const CategoriesPage: React.FC = () => {
-  const { token } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const state = (location.state || {}) as LocationState;
 
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [genre, setGenre] = useState<number>(state.genreHint || 1);
-  const [loading, setLoading] = useState(false);
+  const {
+    data: categories = [],
+    isLoading,
+    isError,
+    error,
+  } = useCategories();
 
-  const authHeaderObj = useMemo(
-    () => ({
-      Authorization: `Bearer ${token}`,
-    }),
-    [token]
-  );
-
-  useEffect(() => {
-    if (state.genreHint === 1 || state.genreHint === 2) {
-      setGenre(state.genreHint);
-    }
-  }, [state.genreHint]);
-
-  const fetchCategories = async () => {
-    setLoading(true);
-    try {
-      const params = new URLSearchParams();
-      if (genre) params.set('genre', String(genre));
-      const url = apiUrl(`/categories?${params.toString()}`);
-      console.log('GET /categories URL', url);
-
-      const res = await fetch(url, {
-        headers: authHeaderObj,
-      });
-      console.log('GET /categories status', res.status);
-
-      if (!res.ok) {
-        const text = await res.text();
-        console.error('Errore /categories body:', text);
-        return;
-      }
-
-      const contentType = res.headers.get('content-type') || '';
-      if (!contentType.includes('application/json')) {
-        const text = await res.text();
-        console.error('Risposta non JSON da /categories:', text);
-        return;
-      }
-
-      const data = await res.json();
-      console.log('data /categories', data);
-
-      const list = Array.isArray(data) ? data : data.items ?? [];
-      setCategories(list);
-    } catch (err) {
-      console.error('Exception in fetchCategories', err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchCategories();
-  }, [authHeaderObj, genre]);
+  const createCategoryMutation = useCreateCategory();
 
   const handleCreate = async (values: CategoryFormValues) => {
     const payload = {
-      name: values.name,
-      colore: values.colore || null,
+      category_name: values.name,
+      colore: values.color || null,
       genre: values.genre,
     };
 
-    const url = apiUrl('/categories');
-    console.log('POST /categories URL', url, 'payload', payload);
+    const created = await createCategoryMutation.mutateAsync(payload);
 
-    try {
-      const res = await fetch(url, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          ...authHeaderObj,
-        },
-        body: JSON.stringify(payload),
+    if (state.from === 'tasks') {
+      navigate('/tasks', {
+        state: { createdCategory: created },
       });
+      return;
+    }
 
-      console.log('POST /categories status', res.status);
-      const text = await res.text();
-      console.log('POST /categories response text:', text);
-
-      if (!res.ok) {
-        console.error('Errore POST /categories body:', text);
-        return;
-      }
-
-      const created = JSON.parse(text) as Category;
-
-      if (state.from === 'tasks') {
-        navigate('/tasks', {
-          state: { createdCategory: created },
-        });
-        return;
-      }
-      if (state.from === 'events') {
-        navigate('/events', {
-          state: { createdCategory: created },
-        });
-        return;
-      }
-
-      await fetchCategories();
-    } catch (err) {
-      console.error('Exception in handleCreate', err);
+    if (state.from === 'events') {
+      navigate('/events', {
+        state: { createdCategory: created },
+      });
     }
   };
 
@@ -138,13 +67,33 @@ const CategoriesPage: React.FC = () => {
 
       <section style={{ marginBottom: 24 }}>
         <h2>Nuova categoria</h2>
-        <CategoryForm mode="create" onSubmit={handleCreate} />
+        <CategoryForm
+          mode="create"
+          initialValues={
+            state.genreHint
+              ? {
+                  name: '',
+                  color: '#cccccc',
+                  genre: state.genreHint,
+                }
+              : undefined
+          }
+          onSubmit={handleCreate}
+        />
       </section>
 
       <section>
         <h2>Categorie esistenti</h2>
-        {loading ? (
+
+        {isLoading ? (
           <p>Caricamento...</p>
+        ) : isError ? (
+          <p>
+            Errore nel caricamento:{' '}
+            {error instanceof Error ? error.message : 'errore sconosciuto'}
+          </p>
+        ) : categories.length === 0 ? (
+          <p>Nessuna categoria trovata.</p>
         ) : (
           <table
             style={{
@@ -155,19 +104,20 @@ const CategoriesPage: React.FC = () => {
           >
             <thead>
               <tr>
-                <th>Nome</th>
-                <th>Colore</th>
-                <th>Tipo</th>
-                <th>Azioni</th>
+                <th style={{ textAlign: 'left', padding: '8px 12px' }}>Nome</th>
+                <th style={{ textAlign: 'left', padding: '8px 12px' }}>Colore</th>
+                <th style={{ textAlign: 'left', padding: '8px 12px' }}>Tipo</th>
+                <th style={{ textAlign: 'left', padding: '8px 12px' }}>Azioni</th>
               </tr>
             </thead>
             <tbody>
-              {categories.map((c) => (
+              {categories.map((c: Category) => (
                 <tr key={c.id}>
-                  <td>{c.name}</td>
-                  <td>
+                  <td style={{ padding: '8px 12px' }}>{c.category_name}</td>
+                  <td style={{ padding: '8px 12px' }}>
                     {c.colore ? (
                       <span
+                        title={c.colore}
                         style={{
                           display: 'inline-block',
                           width: 16,
@@ -175,20 +125,15 @@ const CategoriesPage: React.FC = () => {
                           borderRadius: 4,
                           background: c.colore,
                           border: '1px solid #ccc',
+                          verticalAlign: 'middle',
                         }}
                       />
                     ) : (
                       '-'
                     )}
                   </td>
-                  <td>
-                    {c.genre === 1
-                      ? 'Tasks'
-                      : c.genre === 2
-                      ? 'Events'
-                      : 'Comune'}
-                  </td>
-                  <td>
+                  <td style={{ padding: '8px 12px' }}>{genreLabel(c.genre)}</td>
+                  <td style={{ padding: '8px 12px' }}>
                     <button
                       type="button"
                       onClick={() => {

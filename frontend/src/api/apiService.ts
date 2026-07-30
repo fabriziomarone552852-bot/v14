@@ -11,7 +11,7 @@ export interface ApiErrorData {
 // Funzione centralizzata per la gestione degli errori (Pura e Type-Safe)
 const handleAxiosError = (error: unknown): never => {
   if (axios.isAxiosError(error)) {
-    const axiosError = error as AxiosError<ApiErrorData>; 
+    const axiosError = error as AxiosError<ApiErrorData>;
     
     if (axiosError.response) {
       const errorData = axiosError.response.data;

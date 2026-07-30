@@ -13,7 +13,6 @@ export const getTextColorForBackground = (hexColor?: string) => {
   return luminosita > 128 ? 'text-gray-900' : 'text-white';
 };
 
-// Da aggiungere a uiUtils.ts
 export const getHexColor = (colorValue?: string) => {
   if (!colorValue) return '#9ca3af'; 
   if (colorValue.startsWith('#')) return colorValue; 
@@ -33,4 +32,33 @@ export const getDynamicStyles = (hexColor: string) => {
     border: hexColor, 
     text: `rgba(${Math.max(0, r-40)}, ${Math.max(0, g-40)}, ${Math.max(0, b-40)}, 1)` 
   };
+};
+
+
+export const getGridClasses = (count: number) => {
+      if (count === 1) return 'grid-cols-1 grid-rows-1';
+      if (count === 2) return 'grid-cols-2 grid-rows-1';
+      if (count === 3) return 'grid-cols-3 grid-rows-1';
+      if (count === 4) return 'grid-cols-2 grid-rows-2';
+      if (count === 5 || count === 6) return 'grid-cols-3 grid-rows-2';
+      return 'grid-cols-3 grid-rows-3'; 
+};
+
+export const getNumCols = (count: number) => {
+      if (count === 1) return 1;
+      if (count === 2 || count === 4) return 2;
+      return 3;
+};
+
+export const getOriginClass = (index: number, cols: number) => {
+      if (cols <= 1) return 'origin-bottom';
+      const colIndex = index % cols;
+      if (colIndex === 0) return 'origin-bottom-left'; // Elemento tutto a sinistra, si espande verso destra
+      if (colIndex === cols - 1) return 'origin-bottom-right'; // Elemento tutto a destra, si espande verso sinistra
+      return 'origin-bottom'; // Elemento centrale, si espande ai lati
+};
+
+export const formatName = (name: string): string => {
+  if (!name) return '';
+  return name.charAt(0).toUpperCase() + name.slice(1);
 };

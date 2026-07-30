@@ -3,6 +3,7 @@ import type { Habit } from './habits';
 import type { DbEvent } from './events';
 import type { Countdown } from './countdowns';
 import type { DailyEntry } from './dailyentries';
+import type { DbMonthlyEntry } from './monthlyentries';
 
 export interface SyncDayResponse {
   tasks: DbTask[];
@@ -24,4 +25,13 @@ export interface SyncWeekResponse {
   note: DailyEntry[];
   events: DbEvent[]; 
   tasks: DbTask[];
+}
+
+export interface SyncMonthResponse {
+  start_date: string;
+  end_date: string;
+  events: DbEvent[];
+  tasks: DbTask[];
+  daily_entries: DailyEntry[];
+  monthly_entries: DbMonthlyEntry[];
 }

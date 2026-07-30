@@ -1,12 +1,18 @@
 # Selezione ambiente + caricamento .env in base ad APP_ENV (nessuna scrittura su disco).
 # DEVE stare in cima, prima di qualsiasi import che legga le variabili d'ambiente.
-from backend.core import config as _config  # noqa: F401
+import backend.core.env as _env  # noqa: F401
+from backend.core.models import import_all_models
+
+import_all_models()
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 # Import all models to register them with SQLAlchemy
 # This MUST be done before any API imports that use models
-from backend.core.models import *  # noqa: F401, F403
+# from backend.core.models import *  # noqa: F401, F403
+
+from backend.domains.system_boot import router as system_boot_router
+from backend.domains.system_boot.guards import system_boot_guard
 
 # Router migrati ai dominio (architettura modulare router/service/repository)
 from backend.domains.categories.router import router as categories_router
@@ -24,9 +30,10 @@ from backend.domains.shopping.router import router as shopping_router
 from backend.domains.sync.router import router as sync_router
 from backend.domains.catalogs.router_public import router as catalogs_router
 from backend.domains.catalogs.router_admin import router as admin_catalogs_router
+from backend.domains.monthly_entries.router import router as monthly_entries_router
 
 
-app = FastAPI(title="Smart Agenda API", version="3.0")
+app = FastAPI(title="Smart Agenda API", version="4.0")
 
 origins = [
     "http://localhost:5173",
@@ -43,6 +50,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+app.middleware("http")(system_boot_guard)
+
+app.include_router(system_boot_router)
 app.include_router(auth_router, prefix="/auth")
 app.include_router(users_router, prefix="/users")
 app.include_router(tasks_router)
@@ -58,3 +68,4 @@ app.include_router(habit_log_router)
 app.include_router(sync_router)
 app.include_router(catalogs_router)
 app.include_router(admin_catalogs_router)
+app.include_router(monthly_entries_router)
