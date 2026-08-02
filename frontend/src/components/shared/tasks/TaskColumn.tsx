@@ -3,7 +3,7 @@ import React, { useState, useRef, useMemo } from 'react';
 import { Pagination } from '@/components/shared/utils/Pagination';
 import { EmptyState } from '@/components/shared/utils/EmptyState';
 import { AddButton } from '@/components/shared/utils/AddButton';
-import { filterAndSortTree } from '@/utils/taskUtils';
+import { filterAndSortTree, filterTreeByDeadlineMode } from '@/utils/taskUtils';
 import { formatToItalianShortDate, getLocalTodayStr } from '@/utils/dateUtils';
 import { useAutoFitPagination } from '@/hooks/useAutoFitPagination';
 import { CalendarIcon, CalendarXIcon, SwitchIcon } from '@/components/shared/utils/Icons';
@@ -46,10 +46,9 @@ const TaskColumn: React.FC<TaskColumnProps> = ({
 
   // 🪄 Ottimizzazione del filtro e dell'ordinamento
   const sortedTasks = useMemo(() => {
-    const filteredTasks = tasks.filter(task => showWithDeadline ? !!task.deadline : !task.deadline);
-    
-    return filterAndSortTree(filteredTasks, false, selectedDate ? 'priority' : sortMode, refDateStr);
-  }, [tasks, showWithDeadline, selectedDate, sortMode, refDateStr]);
+    const deadlineFiltered = filterTreeByDeadlineMode(tasks, showWithDeadline);
+    return filterAndSortTree(deadlineFiltered, false, sortMode, refDateStr);
+  }, [tasks, showWithDeadline, sortMode, refDateStr]);
 
   const { 
     visibleItems: visibleTasks, 
@@ -92,15 +91,13 @@ const TaskColumn: React.FC<TaskColumnProps> = ({
               )}
             </div>
 
-            {!selectedDate && (
-              <button 
-                onClick={handleToggleSortMode} 
-                className="p-1.5 rounded-lg border transition-all flex items-center justify-center w-8 h-8 bg-white border-gray-200 text-gray-400 hover:bg-gray-50 hover:text-blue-500" 
-                title={sortMode === 'priority' ? "Ordinato per Priorità" : "Ordinato Cronologicamente"}
-              >
-                <SwitchIcon sortMode={sortMode} />
-              </button>
-            )}
+            <button 
+              onClick={handleToggleSortMode} 
+              className="p-1.5 rounded-lg border transition-all flex items-center justify-center w-8 h-8 bg-white border-gray-200 text-gray-400 hover:bg-gray-50 hover:text-blue-500" 
+              title={sortMode === 'priority' ? "Ordinato per Priorità" : "Ordinato Cronologicamente"}
+            >
+              <SwitchIcon sortMode={sortMode} />
+            </button>
           </div>
         </div>
         

@@ -34,4 +34,5 @@ export interface SyncMonthResponse {
   tasks: DbTask[];
   daily_entries: DailyEntry[];
   monthly_entries: DbMonthlyEntry[];
+  prev_monthly_entries?: DbMonthlyEntry[];
 }

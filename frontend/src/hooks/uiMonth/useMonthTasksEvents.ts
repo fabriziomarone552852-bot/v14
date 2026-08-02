@@ -4,7 +4,7 @@ import { useTaskModals } from '@/context/TaskModalContext';
 import { useEventModals } from '@/context/EventModalContext';
 import { mapDbEventsToCalendarEvents } from '@/utils/eventUtils';
 // 🪄 Importiamo la funzione per costruire l'albero e il tipo corretto
-import { buildTaskTree } from '@/utils/taskUtils'; 
+import { buildTaskTreeForMonth } from '@/utils/taskUtils'; 
 import type { DbTask, CalendarEvent, UITask } from '@/types';
 import type { SyncMonthResponse } from '@/types';
 
@@ -19,20 +19,22 @@ export const useMonthTasksEvents = (
   const { openTaskDetail } = useTaskModals(); 
   const { openEventDetail } = useEventModals();
 
+  const firstDayStr = useMemo(() => firstDay.toISOString().substring(0, 10), [firstDay]);
+  const lastDayStr = useMemo(() => lastDay.toISOString().substring(0, 10), [lastDay]);
+
   const filteredTasks = useMemo((): DbTask[] => {
     if (!monthData?.tasks) return [];
     return monthData.tasks.filter((t: DbTask) => {
       if (!t.data_scadenza) return true;
-      const taskDate = new Date(t.data_scadenza);
-      return taskDate >= firstDay && taskDate <= lastDay;
+      const taskDateStr = t.data_scadenza.substring(0, 10);
+      return taskDateStr >= firstDayStr && taskDateStr <= lastDayStr;
     });
-  }, [monthData?.tasks, firstDay, lastDay]);
+  }, [monthData?.tasks, firstDayStr, lastDayStr]);
 
-  // 🪄 TRADUZIONE RIGOROSA: Da DbTask (piatto) a UITask (ad albero con subtasks)
+  // 🪄 TRADUZIONE RIGOROSA PER MONTHPAGE: Applica l'albero di famiglia con scadenza più imminente
   const mappedTasks = useMemo((): UITask[] => {
-    // buildTaskTree si occuperà di creare la gerarchia in RAM
-    return buildTaskTree(filteredTasks);
-  }, [filteredTasks]);
+    return buildTaskTreeForMonth(monthData?.tasks, firstDayStr, lastDayStr);
+  }, [monthData?.tasks, firstDayStr, lastDayStr]);
 
   const mappedEvents = useMemo((): CalendarEvent[] => {
     return mapDbEventsToCalendarEvents(monthData?.events ?? [], firstDay.toISOString());

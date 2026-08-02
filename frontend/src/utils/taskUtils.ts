@@ -55,7 +55,42 @@ export const getUpcomingTasks = (tasks: DbTask[] | undefined, days: number = 30,
     .map(item => item.task);
 };
 
-// 4. ALBERO DEI TASK
+const getCleanDate = (isoStr?: string | null): string => {
+  if (!isoStr) return '';
+  return isoStr.substring(0, 10);
+};
+
+// Helper per raggruppare i task in famiglie (Task radice + tutti i suoi discendenti)
+const getFamilyTrees = (flatTasks: DbTask[]): DbTask[][] => {
+  const dbMap = new Map<number, DbTask>();
+  flatTasks.forEach((t) => dbMap.set(t.id, t));
+
+  const childrenMap = new Map<number, DbTask[]>();
+  const roots: DbTask[] = [];
+
+  flatTasks.forEach((t) => {
+    if (t.parent_id && dbMap.has(t.parent_id)) {
+      const list = childrenMap.get(t.parent_id) || [];
+      list.push(t);
+      childrenMap.set(t.parent_id, list);
+    } else {
+      roots.push(t);
+    }
+  });
+
+  const getDescendants = (task: DbTask): DbTask[] => {
+    const result: DbTask[] = [task];
+    const children = childrenMap.get(task.id) || [];
+    children.forEach((child) => {
+      result.push(...getDescendants(child));
+    });
+    return result;
+  };
+
+  return roots.map((root) => getDescendants(root));
+};
+
+// 4. ALBERO DEI TASK STANDARD
 export const buildTaskTree = (flatTasks: DbTask[] | undefined): UITask[] => {
   if (!flatTasks || !Array.isArray(flatTasks) || flatTasks.length === 0) return [];
 
@@ -71,7 +106,7 @@ export const buildTaskTree = (flatTasks: DbTask[] | undefined): UITask[] => {
     if (!uiTask) return;
 
     if (task.parent_id && taskMap.has(task.parent_id)) {
-      const parent = taskMap.get(task.parent_id)!; 
+      const parent = taskMap.get(task.parent_id)!;
       parent.subtasks.push(uiTask);
       if (!uiTask.done) {
         parent.hasActiveSubtasks = true;
@@ -84,6 +119,218 @@ export const buildTaskTree = (flatTasks: DbTask[] | undefined): UITask[] => {
   return roots;
 };
 
+// 4.1. ALBERO DEI TASK PER HOMEPAGE
+export const buildTaskTreeForHome = (
+  flatTasks: DbTask[] | undefined,
+  todayStr: string
+): UITask[] => {
+  if (!flatTasks || !Array.isArray(flatTasks) || flatTasks.length === 0) return [];
+
+  // Regola HomePage:
+  // Task completate: mostrate SOLO se completate OGGI
+  const eligibleTasks = flatTasks.filter((t) => {
+    if (t.fatto) {
+      const dataFatto = getLocalDateStr(t.data_fatto);
+      return dataFatto === todayStr;
+    }
+    return true;
+  });
+
+  const families = getFamilyTrees(eligibleTasks);
+  const resultRoots: UITask[] = [];
+
+  families.forEach((family) => {
+    const activeWithDeadline = family.filter(
+      (t) => !t.fatto && getCleanDate(t.data_scadenza) !== ''
+    );
+
+    if (activeWithDeadline.length > 0) {
+      // 1. Trova la scadenza minima (più imminente) dell'intero albero di famiglia
+      let minDeadline = getCleanDate(activeWithDeadline[0].data_scadenza);
+      activeWithDeadline.forEach((t) => {
+        const d = getCleanDate(t.data_scadenza);
+        if (d < minDeadline) minDeadline = d;
+      });
+
+      // 2. Seleziona SOLO le task dell'albero che hanno quella precisa scadenza minima
+      const earliestTasks = activeWithDeadline.filter(
+        (t) => getCleanDate(t.data_scadenza) === minDeadline
+      );
+
+      // 3. Mostra le task imminenti. Se sono sottotask (parent_id != null), imposta isPromotedSubtask = true
+      earliestTasks.forEach((task) => {
+        const uiTask: UITask = {
+          ...mapTaskToSummary(task),
+          isPromotedSubtask: !!task.parent_id,
+          subtasks: []
+        };
+        resultRoots.push(uiTask);
+      });
+    } else {
+      // Nessuna task con data nell'albero -> usa la gerarchia standard dell'albero di famiglia
+      const familyTree = buildTaskTree(family);
+      resultRoots.push(...familyTree);
+    }
+  });
+
+  return resultRoots;
+};
+
+// 4.2. ALBERO DEI TASK PER DAYPAGE
+export const buildTaskTreeForDay = (
+  flatTasks: DbTask[] | undefined,
+  targetDateStr: string
+): UITask[] => {
+  if (!flatTasks || !Array.isArray(flatTasks) || flatTasks.length === 0) return [];
+
+  const getLocalTodayStr = () => {
+    const d = new Date();
+    const offset = d.getTimezoneOffset() * 60000;
+    return new Date(d.getTime() - offset).toISOString().substring(0, 10);
+  };
+
+  const todayStr = getLocalTodayStr();
+  const isPastDay = targetDateStr < todayStr;
+
+  // Se è un giorno passato: mostra SOLO ed ESCLUSIVAMENTE le task completate in quel giorno
+  if (isPastDay) {
+    const completedOnPastDay = flatTasks.filter(
+      (t) => t.fatto && getLocalDateStr(t.data_fatto) === targetDateStr
+    );
+    return buildTaskTree(completedOnPastDay);
+  }
+
+  // Per Oggi o Giorni Futuri:
+  const eligibleTasks = flatTasks.filter((t) => {
+    if (t.fatto) {
+      const dataFatto = getLocalDateStr(t.data_fatto);
+      return dataFatto === targetDateStr;
+    }
+    return true;
+  });
+
+  const families = getFamilyTrees(eligibleTasks);
+  const resultRoots: UITask[] = [];
+
+  families.forEach((family) => {
+    const activeWithDeadline = family.filter(
+      (t) => !t.fatto && getCleanDate(t.data_scadenza) !== ''
+    );
+
+    if (activeWithDeadline.length > 0) {
+      // Trova la scadenza minima nell'albero di famiglia
+      let minDeadline = getCleanDate(activeWithDeadline[0].data_scadenza);
+      activeWithDeadline.forEach((t) => {
+        const d = getCleanDate(t.data_scadenza);
+        if (d < minDeadline) minDeadline = d;
+      });
+
+      // La task imminente viene mostrata solo se la sua data di scadenza è <= targetDateStr (oggi o scaduta)
+      if (minDeadline <= targetDateStr) {
+        const earliestTasks = activeWithDeadline.filter(
+          (t) => getCleanDate(t.data_scadenza) === minDeadline
+        );
+        earliestTasks.forEach((task) => {
+          const uiTask: UITask = {
+            ...mapTaskToSummary(task),
+            isPromotedSubtask: !!task.parent_id,
+            subtasks: []
+          };
+          resultRoots.push(uiTask);
+        });
+      }
+    } else {
+      // Nessuna task con data nell'albero -> mostra l'albero di famiglia se le task non hanno scadenza
+      const familyTree = buildTaskTree(family);
+      resultRoots.push(...familyTree);
+    }
+  });
+
+  return resultRoots;
+};
+
+// 4.3. ALBERO DEI TASK PER MONTHPAGE
+export const buildTaskTreeForMonth = (
+  flatTasks: DbTask[] | undefined,
+  firstDayStr: string,
+  lastDayStr: string
+): UITask[] => {
+  if (!flatTasks || !Array.isArray(flatTasks) || flatTasks.length === 0) return [];
+
+  const getLocalTodayStr = () => {
+    const d = new Date();
+    const offset = d.getTimezoneOffset() * 60000;
+    return new Date(d.getTime() - offset).toISOString().substring(0, 10);
+  };
+
+  const todayStr = getLocalTodayStr();
+  const isPastMonth = lastDayStr < todayStr;
+
+  // Se il mese osservato è nel PASSATO (< oggi): mostra SOLO ed ESCLUSIVAMENTE le task completate in quel mese!
+  if (isPastMonth) {
+    const completedInMonth = flatTasks.filter((t) => {
+      if (!t.fatto) return false;
+      const dataFatto = getLocalDateStr(t.data_fatto);
+      return dataFatto >= firstDayStr && dataFatto <= lastDayStr;
+    });
+    return buildTaskTree(completedInMonth);
+  }
+
+  const isCurrentMonth = todayStr >= firstDayStr && todayStr <= lastDayStr;
+
+  // Per Mese Corrente o Futuro:
+  const eligibleTasks = flatTasks.filter((t) => {
+    if (t.fatto) {
+      const dataFatto = getLocalDateStr(t.data_fatto);
+      if (isCurrentMonth) {
+        // Mese corrente: mostra SOLO le task completate OGGI per non intasare la colonna
+        return dataFatto === todayStr;
+      }
+      return dataFatto >= firstDayStr && dataFatto <= lastDayStr;
+    }
+    return true;
+  });
+
+  const families = getFamilyTrees(eligibleTasks);
+  const resultRoots: UITask[] = [];
+
+  families.forEach((family) => {
+    const activeWithDeadline = family.filter(
+      (t) => !t.fatto && getCleanDate(t.data_scadenza) !== ''
+    );
+
+    if (activeWithDeadline.length > 0) {
+      // 1. Trova la scadenza minima (più imminente) dell'intero albero di famiglia
+      let minDeadline = getCleanDate(activeWithDeadline[0].data_scadenza);
+      activeWithDeadline.forEach((t) => {
+        const d = getCleanDate(t.data_scadenza);
+        if (d < minDeadline) minDeadline = d;
+      });
+
+      // 2. La task con la scadenza più imminente viene mostrata solo se la sua scadenza è <= lastDayStr (scade nel mese o prima)
+      if (minDeadline <= lastDayStr) {
+        const earliestTasks = activeWithDeadline.filter(
+          (t) => getCleanDate(t.data_scadenza) === minDeadline
+        );
+        earliestTasks.forEach((task) => {
+          const uiTask: UITask = {
+            ...mapTaskToSummary(task),
+            isPromotedSubtask: !!task.parent_id,
+            subtasks: []
+          };
+          resultRoots.push(uiTask);
+        });
+      }
+    } else {
+      // Nessuna task con data nell'albero -> mostra l'albero di famiglia se le task non hanno scadenza
+      const familyTree = buildTaskTree(family);
+      resultRoots.push(...familyTree);
+    }
+  });
+
+  return resultRoots;
+};
+
 const getLocalDateStr = (isoString?: string | null): string => {
   if (!isoString) return '';
   const d = new Date(isoString);
@@ -91,6 +338,28 @@ const getLocalDateStr = (isoString?: string | null): string => {
   if (isNaN(d.getTime())) return isoString.substring(0, 10); 
   const offset = d.getTimezoneOffset() * 60000;
   return new Date(d.getTime() - offset).toISOString().substring(0, 10);
+};
+
+// 4.3. FILTRAGGIO PER MODALITÀ "CON DATA" VS "SENZA DATA"
+export const filterTreeByDeadlineMode = (
+  tasks: UITask[] | undefined,
+  showWithDeadline: boolean
+): UITask[] => {
+  if (!tasks) return [];
+
+  return tasks.reduce<UITask[]>((acc, task) => {
+    const filteredSubtasks = filterTreeByDeadlineMode(task.subtasks, showWithDeadline);
+    const matchesMode = showWithDeadline ? !!task.deadline : !task.deadline;
+
+    if (matchesMode || filteredSubtasks.length > 0) {
+      acc.push({
+        ...task,
+        subtasks: filteredSubtasks
+      });
+    }
+
+    return acc;
+  }, []);
 };
 
 // 5. FILTRAGGIO ED ORDINAMENTO ALBERO
@@ -150,15 +419,30 @@ export const filterAndSortTree = (
   .sort((a, b) => {
     if (a.done !== b.done) return a.done ? 1 : -1;
 
+    const getTaskTime = (t: UITask) => {
+      const dStr = t.deadline || t.dateStr;
+      return dStr ? new Date(dStr).getTime() : Infinity;
+    };
+
     if (sortMode === 'priority') {
       const weightA = priorityWeights[a.priority] ?? 0;
       const weightB = priorityWeights[b.priority] ?? 0;
       const diff = weightB - weightA;
       if (diff !== 0) return diff;
+
+      // Fallback a data (dalla più vicina alla più remota)
+      return getTaskTime(a) - getTaskTime(b);
+    } else {
+      // sortMode === 'chrono': dalla più vicina alla più remota
+      const timeA = getTaskTime(a);
+      const timeB = getTaskTime(b);
+      const diff = timeA - timeB;
+      if (diff !== 0) return diff;
+
+      // Fallback a priorità se stessa data
+      const weightA = priorityWeights[a.priority] ?? 0;
+      const weightB = priorityWeights[b.priority] ?? 0;
+      return weightB - weightA;
     }
-    
-    const dateA = a.dateStr ? new Date(a.dateStr).getTime() : Infinity;
-    const dateB = b.dateStr ? new Date(b.dateStr).getTime() : Infinity;
-    return dateA - dateB;
   });
 };

@@ -14,7 +14,7 @@ import { HabitsRoutinesSection } from '@/components/day/views/HabitsRoutinesSect
 import { useDay } from '@/context/DayContext';
 import { useAgendaDay } from '@/hooks/useAgendaDay';
 import { formatDateString, getAgendaDateLabels } from '@/utils/dateUtils';
-import { buildTaskTree, filterAndSortTree } from '@/utils/taskUtils';
+import { buildTaskTreeForDay, filterAndSortTree } from '@/utils/taskUtils';
 import { mapDbEventsToCalendarEvents } from '@/utils/eventUtils';
 import { mapHabitsToRoutines, mapHabitsToItems } from '@/utils/habitUtils';
 import { mapToCountdownItems } from '@/utils/countdownUtils';
@@ -54,7 +54,7 @@ const DayPage: React.FC = () => {
   // --- 3. MAPPATURA DEI DATI (Delegata alle Utils sicure) ---
 
   const taskTree = useMemo(() => {
-    const rawTree = buildTaskTree(dayData?.tasks);
+    const rawTree = buildTaskTreeForDay(dayData?.tasks, targetDateStr);
     return filterAndSortTree(rawTree, false, 'priority', targetDateStr); 
   }, [dayData?.tasks, targetDateStr]);
 

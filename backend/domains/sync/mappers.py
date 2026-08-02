@@ -91,5 +91,6 @@ def to_month_response(
         events=[EventResponse.model_validate(x) for x in bundle.events],
         tasks=[TaskResponse.model_validate(x) for x in bundle.tasks],
         daily_entries=_daily_entries_to_response(bundle.daily_entries),
-        monthly_entries=_monthly_entries_to_response(bundle.monthly_entries)
+        monthly_entries=_monthly_entries_to_response(bundle.monthly_entries),
+        prev_monthly_entries=_monthly_entries_to_response(bundle.prev_monthly_entries)
     )

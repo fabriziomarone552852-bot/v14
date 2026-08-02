@@ -18,8 +18,8 @@ import { UpcomingTasksWidget } from '@/components/dashboard/UpcomingTasksWidget'
 import { LoadingIcon } from '@/components/shared/utils/Icons';
 
 // Utilities
-import { calculateYearProgress } from '@/utils/dateUtils';
-import { buildTaskTree, filterAndSortTree, getUpcomingTasks } from '@/utils/taskUtils';
+import { buildTaskTreeForHome, filterAndSortTree, getUpcomingTasks } from '@/utils/taskUtils';
+import { calculateYearProgress, formatDateString } from '@/utils/dateUtils';
 import { mapDbEventsToCalendarEvents } from '@/utils/eventUtils';
 
 // Tipi rigorosi (Zero any)
@@ -45,9 +45,10 @@ const HomePage: React.FC = () => {
   const yearProgress: number = useMemo(() => calculateYearProgress(), []);
   
   const taskTree: UITask[] = useMemo(() => {
-    const rawTree = buildTaskTree(tasks ?? []); 
-    return filterAndSortTree(rawTree, false, 'priority');
-  }, [tasks]);
+    const todayStr = formatDateString(today);
+    const rawTree = buildTaskTreeForHome(tasks ?? [], todayStr);
+    return filterAndSortTree(rawTree, false, 'priority', todayStr);
+  }, [tasks, today]);
   
   const calendarEvents: CalendarEvent[] = useMemo(() => {
     return mapDbEventsToCalendarEvents(eventiDalServer ?? []);

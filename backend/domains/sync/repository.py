@@ -49,6 +49,7 @@ class MonthSyncBundle:
     tasks: list[Task] = field(default_factory=list)
     events: list[Event] = field(default_factory=list)
     monthly_entries: list[MonthlyEntry] = field(default_factory=list)
+    prev_monthly_entries: list[MonthlyEntry] = field(default_factory=list)
 
 
 def _recent_task_threshold() -> datetime:
@@ -191,10 +192,14 @@ def build_month_bundle(
     target_date = start_date + timedelta(days=15)
     
     month_entries = get_monthly_entries(db, user_id, year=target_date.year, month=target_date.month)
+    
+    prev_target_date = target_date.replace(day=1) - timedelta(days=1)
+    prev_month_entries = get_monthly_entries(db, user_id, year=prev_target_date.year, month=prev_target_date.month)
 
     return MonthSyncBundle(
         daily_entries=get_daily_entries_for_range(db, user_id, start_date, end_date),
         tasks=get_recent_tasks(db, user_id),
         events=get_expanded_events(db, user_id, start_date, end_date),
-        monthly_entries=month_entries
+        monthly_entries=month_entries,
+        prev_monthly_entries=prev_month_entries
     )

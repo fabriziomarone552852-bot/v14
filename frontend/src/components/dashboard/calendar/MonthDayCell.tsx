@@ -132,7 +132,7 @@ export const MonthDayCell: React.FC<MonthDayCellProps> = ({
                   style={{ backgroundColor: activeMood.colore || '#9CA3AF' }} 
                 />
               ) : (
-                <span className="text-gray-400 font-bold leading-none">+</span>
+                <span className="text-xs leading-none grayscale">😀</span>
               )}
             </button>
 

@@ -115,7 +115,10 @@ const CategorySelect: React.FC<CategorySelectProps> = ({
         </label>
         <button
           type="button"
-          onClick={() => setIsNewModalOpen(true)}
+          onClick={() => {
+            setIsDropdownOpen(false);
+            setIsNewModalOpen(true);
+          }}
           className="hover:bg-blue-100 text-gray-500 hover:text-blue-500 rounded p-0.5 transition-colors"
         >
           <PlusIcon className="h-4 w-4" />
