@@ -6,14 +6,19 @@ import type { LocalNoteEntry, NoteVariant, DailyEntry } from '@/types';
 // Il "contratto": la cache che usa questo hook DEVE avere un array 'note'
 export interface CacheWithNotes {
   note?: DailyEntry[];
+  eventi_positivi?: DailyEntry[];
+  eventi_negativi?: DailyEntry[];
 }
 
 // 1. IL CONTRATTO DEI DATI INVIATI (Perfettamente allineato al Backend)
 export interface SaveNotePayload {
   id?: number;
-  data_riferimento: string; 
-  testo: string;            
-  tipo: NoteVariant;        
+  data_riferimento?: string; 
+  dateStr?: string;
+  testo?: string;            
+  text?: string;
+  tipo?: NoteVariant;        
+  variant?: NoteVariant;
   isNew?: boolean;
 }
 
@@ -34,12 +39,13 @@ export function useNoteMutations<T extends CacheWithNotes>(queryKey: QueryKey) {
     NoteMutationContext<T>  // TContext
   >({
     mutationFn: async (note) => {
-      if (!note.testo.trim()) return Promise.resolve(null);
+      const textVal = (note.testo || note.text || '').trim();
+      if (!textVal) return Promise.resolve(null);
 
       const payload = { 
-        data_riferimento: note.data_riferimento, 
-        tipo: note.tipo, 
-        testo: note.testo 
+        data_riferimento: note.data_riferimento || note.dateStr || '', 
+        tipo: note.tipo || note.variant || 'N1', 
+        testo: textVal 
       };
       
       const result = note.id && !note.isNew 
@@ -63,9 +69,9 @@ export function useNoteMutations<T extends CacheWithNotes>(queryKey: QueryKey) {
         
         const noteEntry: LocalNoteEntry = {
           id: tempId, 
-          data_riferimento: newNote.data_riferimento,
-          tipo: newNote.tipo,
-          testo: newNote.testo,
+          data_riferimento: newNote.data_riferimento || newNote.dateStr || '',
+          tipo: newNote.tipo || newNote.variant || 'N1',
+          testo: newNote.testo || newNote.text || '',
           user_id: 0,
           isNew: newNote.isNew
         };
@@ -129,7 +135,9 @@ export function useNoteMutations<T extends CacheWithNotes>(queryKey: QueryKey) {
         if (!old) return old;
         return {
           ...old,
-          note: (old.note || []).filter(n => n.id !== deletedId)
+          ...(old.note && { note: old.note.filter(n => n.id !== deletedId) }),
+          ...(old.eventi_positivi && { eventi_positivi: old.eventi_positivi.filter(e => e.id !== deletedId) }),
+          ...(old.eventi_negativi && { eventi_negativi: old.eventi_negativi.filter(e => e.id !== deletedId) }),
         };
       });
 

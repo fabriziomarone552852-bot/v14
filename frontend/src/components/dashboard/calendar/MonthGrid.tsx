@@ -29,9 +29,11 @@ interface MonthGridProps {
   tasks: DbTask[];
   onDayClick?: (dateStr: string) => void;
   onAddEventClick?: (dateStr: string) => void;
+  onSelectTask?: (task: DbTask) => void;
+  onToggleTask?: (task: DbTask, newStatus: boolean) => void;
 }
 
-const MonthGrid: React.FC<MonthGridProps> = ({ state, events, tasks, onDayClick, onAddEventClick }) => {
+const MonthGrid: React.FC<MonthGridProps> = ({ state, events, tasks, onDayClick, onAddEventClick, onSelectTask, onToggleTask }) => {
   const { monthYear, monthIndex, mainFirstDayIndex, mainDaysInMonth, todayStr } = state;
 
   // 2. MOTORE DI PERFORMANCE: Calcoliamo la griglia una sola volta
@@ -57,9 +59,9 @@ const MonthGrid: React.FC<MonthGridProps> = ({ state, events, tasks, onDayClick,
             id: `task-${t.id}`,
             title: t.titolo, 
             type: 'task', 
-            category: t.category?.name || 'Generico',
+            category: t.category?.category_name || t.category?.category_name || 'Generico',
             isMultiDay: false, 
-            categoryColor: t.category?.color || '#9CA3AF', 
+            categoryColor: t.category?.colore || t.category?.colore || '#3B82F6', 
             done: !!t.fatto
           });
         }

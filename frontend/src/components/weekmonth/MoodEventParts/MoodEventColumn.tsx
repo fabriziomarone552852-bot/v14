@@ -27,7 +27,6 @@ export const MoodEventColumn: React.FC<MoodEventColumnProps> = ({
 
   const limitedEvents = events.slice(0, 9);
   const isEditingHere = events.some(ev => ev.id === editingId);
-  const isSectionActive = isHovered || isAdding || isEditingHere;
   
   const showAddBlock = isHovered || isAdding || limitedEvents.length === 0;
   const hasRoomForMore = limitedEvents.length < 9;
@@ -60,8 +59,8 @@ export const MoodEventColumn: React.FC<MoodEventColumnProps> = ({
   const isHorizontal = layout === 'horizontal';
 
   const containerClasses = isHorizontal
-    ? `relative w-full grid grid-cols-4 bg-white rounded-xl shadow-sm border border-gray-200 min-h-[12rem] transition-all duration-300 ${isSectionActive ? 'z-50' : 'z-10'}`
-    : `relative flex flex-col w-full bg-white rounded-xl shadow-sm border border-gray-200 min-h-[14rem] transition-all duration-300 ${isSectionActive ? 'z-50' : 'z-10'}`;
+    ? `relative w-full grid grid-cols-4 bg-white rounded-xl shadow-sm border border-gray-200 min-h-[12rem] transition-all duration-300 ${isHovered || isAdding || isEditingHere ? 'z-50' : 'z-10'}`
+    : `relative flex flex-col w-full bg-white rounded-xl shadow-sm border border-gray-200 min-h-[14rem] transition-all duration-300 z-10`;
 
   const titleContainerClasses = isHorizontal
     ? "col-span-1 flex flex-col items-center justify-center text-center p-3"
@@ -98,13 +97,14 @@ export const MoodEventColumn: React.FC<MoodEventColumnProps> = ({
             onCancelEdit={() => setEditingId(null)}
             onSave={(id, val) => { onUpdate(id, val); setEditingId(null); }}
             onDelete={onDelete}
+            layout={layout}
           />
         ))}
 
         {showAddBlock && hasRoomForMore && (
-          <div className={`relative w-full h-full @container ${isAdding ? 'z-50' : 'group z-10 hover:z-50'}`}>
+          <div className={`relative w-full h-full @container ${isAdding ? 'z-[100]' : 'group z-10 hover:z-[100]'}`}>
             {isAdding ? (
-               <div className={`absolute bottom-0 left-0 right-0 flex flex-col justify-center items-center text-center rounded-lg border-2 shadow-2xl transition-all duration-300 ease-out w-full min-h-full h-auto max-h-[250px] overflow-y-auto custom-scrollbar z-50 scale-[1.10] p-4 ${getOriginClass(limitedEvents.length, getNumCols(totalBlocks))} ${themeColor === 'green' ? 'bg-green-50 border-green-400 text-green-900' : 'bg-red-50 border-red-400 text-red-900'}`}>
+               <div className={`absolute bottom-0 left-0 right-0 flex flex-col justify-center items-center text-center rounded-lg border-2 shadow-2xl transition-all duration-300 ease-out w-full min-h-full h-auto max-h-[250px] ${!isHorizontal ? 'w-[130px] max-w-[85vw]' : ''} overflow-y-auto custom-scrollbar z-[100] scale-[1.10] p-4 ${getOriginClass(limitedEvents.length, getNumCols(totalBlocks))} ${themeColor === 'green' ? 'bg-green-50 border-green-400 text-green-900' : 'bg-red-50 border-red-400 text-red-900'}`}>
                  <AutoExpandingTextarea 
                     initialValue="" onBlur={(e) => handleSaveNew(e.target.value)}
                     onKeyDown={(e) => {

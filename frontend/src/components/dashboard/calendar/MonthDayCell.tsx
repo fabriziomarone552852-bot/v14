@@ -177,7 +177,7 @@ export const MonthDayCell: React.FC<MonthDayCellProps> = ({
         )}
       </div>
       
-      {/* SEZIONE MULTI/SINGLE DAY ITEMS (Invariata) */}
+      {/* SEZIONE MULTI/SINGLE DAY ITEMS (Invariata con i pallini originari per HomePage) */}
       <div className="flex flex-col gap-1 justify-center items-center mt-auto h-5 mb-0.5 pointer-events-none">
         {multiDayItems.length > 0 && (
           <div className="flex gap-1 justify-center items-center w-full">

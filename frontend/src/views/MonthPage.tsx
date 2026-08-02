@@ -1,5 +1,5 @@
 // frontend/src/pages/MonthPage.tsx
-import React, { useMemo } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
 import { it } from 'date-fns/locale';
@@ -52,7 +52,7 @@ const MonthPage: React.FC = () => {
       
       {/* 🪄 CORREZIONE 1: Aggiunto 'relative z-50' al contenitore dell'header. 
           Questo garantisce che l'header e il suo DatePicker siano fisicamente "sopra" la Sidebar (che ha z-40). */}
-      <div className="flex flex-col xl:flex-row gap-6 shrink-0 items-stretch justify-between w-full relative z-50">
+      <div className="flex flex-col xl:flex-row gap-6 shrink-0 items-stretch justify-between w-full relative z-10">
         <SharedAgendaHeader 
           title={displayName} 
           subtitle={formattedDate} 
@@ -92,9 +92,7 @@ const MonthPage: React.FC = () => {
              <button className={`flex-1 py-3 text-xl transition-all flex items-center justify-center ${state.activeSidebarTab === 'reflections' ? 'bg-white border-b-2 border-blue-500 opacity-100 scale-110' : 'hover:bg-gray-100 opacity-40 grayscale hover:grayscale-0'}`} onClick={() => state.setActiveSidebarTab('reflections')} title="Cose Positive / Negative">❤️</button>
            </div>
            
-           {/* 🪄 CORREZIONE 3: Aggiunto 'relative z-10' al contenitore dei pannelli.
-               Essendo z-10, tutto il suo contenuto (inclusa la finestra degli eventi) non potrà mai coprire i tab (che sono z-20). */}
-           <div className="flex-1 flex flex-col min-h-0 bg-gray-50/50 rounded-b-xl overflow-visible relative z-10">
+           <div className="flex-1 flex flex-col min-h-0 bg-gray-50/50 rounded-b-xl overflow-visible relative">
               {state.activeSidebarTab === 'moods' && (
                 <TrackerPanel titleTop="Come mi sento" titleBottom="Review Mese Scorso" items={state.moodsUI} onUpdateValue={handlers.handleUpdateMood} />
               )}
@@ -112,12 +110,19 @@ const MonthPage: React.FC = () => {
                 </div>
               )}
               {state.activeSidebarTab === 'reflections' && (
-                <MoodEventsBoard layout="vertical" positiveEvents={apiData?.eventi_positivi || []} negativeEvents={apiData?.eventi_negativi || []} onAddMoodEvent={()=>{}} onUpdateMoodEvent={()=>{}} onDeleteMoodEvent={()=>{}} />
+                <MoodEventsBoard 
+                  layout="vertical" 
+                  positiveEvents={apiData?.eventi_positivi || []} 
+                  negativeEvents={apiData?.eventi_negativi || []} 
+                  onAddMoodEvent={handlers.handleAddMoodEvent} 
+                  onUpdateMoodEvent={handlers.handleUpdateMoodEvent} 
+                  onDeleteMoodEvent={handlers.handleDeleteMoodEvent} 
+                />
               )}
            </div>
         </div>
 
-        <div className="xl:col-span-3 h-full flex flex-col bg-white rounded-xl shadow-sm border border-gray-200 p-4 min-h-0 w-full min-w-0 overflow-visible relative z-10">
+        <div className="xl:col-span-3 h-full flex flex-col bg-white rounded-xl shadow-sm border border-gray-200 p-4 min-h-0 w-full min-w-0 overflow-visible relative z-30">
           <CalendarColumn 
             events={mappedEvents} 
             tasks={apiData?.tasks || []}
@@ -128,6 +133,7 @@ const MonthPage: React.FC = () => {
             variant="detailed"    
             onDayClick={handlers.handleGoToDay} 
             onToggleTask={handlers.handleToggleTaskGrid}
+            onSelectTask={handlers.handleSelectTask}
             onSelectEvent={modals.openEventDetail} 
             onAddEventClick={(dataCliccata) => modals.openEventForm(null, dataCliccata ?? null)} 
             onMoodChange={(dateStr, categoryId) => {

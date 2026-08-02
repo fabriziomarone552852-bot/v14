@@ -18,8 +18,8 @@ export const mapTaskToSummary = (
     data_fatto: t.data_fatto,
     priority: t.priorita,
     // 🪄 MAGIA: Sostituiti tutti i || con ??
-    category: t.category?.name ?? t.category_name ?? 'Generico',
-    categoryColor: t.category?.color ?? '#9ca3af',
+    category: t.category?.category_name ?? t.category_name ?? 'Generico',
+    categoryColor: t.category?.colore ?? '#9ca3af',
     description: t.descrizione ?? "",
     location: t.luogo ?? "",
     parent_id: t.parent_id,

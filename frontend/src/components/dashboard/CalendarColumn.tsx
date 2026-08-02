@@ -70,6 +70,8 @@ const CalendarColumn: React.FC<CalendarColumnProps> = ({
             onDayClick={onDayClick} 
             onAddEventClick={onAddEventClick} 
             onMoodChange={onMoodChange}
+            onSelectTask={onSelectTask}
+            onToggleTask={onToggleTask}
           />
         ) : (
           <MonthGrid 
@@ -78,6 +80,8 @@ const CalendarColumn: React.FC<CalendarColumnProps> = ({
             tasks={tasks}
             onDayClick={onDayClick} 
             onAddEventClick={onAddEventClick} 
+            onSelectTask={onSelectTask}
+            onToggleTask={onToggleTask}
           />
         )
       ) : variant === 'detailed' ? (

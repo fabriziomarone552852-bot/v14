@@ -45,8 +45,8 @@ export const useAgendaMonth = (startStr: string, endStr: string) => {
         note: entries.filter(e => ['N1', 'N2', 'N3', 'N4'].includes(e.tipo)),
         obiettivi: entries.filter(e => e.tipo === 'OM'),
         priorita: entries.filter(e => e.tipo === 'PM'),
-        eventi_positivi: entries.filter(e => e.tipo === 'EP'),
-        eventi_negativi: entries.filter(e => e.tipo === 'EN'),
+        eventi_positivi: entries.filter(e => e.tipo === 'EPM'),
+        eventi_negativi: entries.filter(e => e.tipo === 'ENM'),
       };
     },
     staleTime: 5 * 60 * 1000,

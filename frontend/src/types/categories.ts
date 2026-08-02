@@ -20,3 +20,5 @@ export interface CategoryCreatePayload {
   colore?: string | null;
   genre?: number;
 }
+
+export type CategoryUpdatePayload = Partial<CategoryCreatePayload>;

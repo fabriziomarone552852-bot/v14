@@ -28,12 +28,12 @@ const MoodEventsBoard: React.FC<MoodEventsBoardProps> = ({
       <MoodEventColumn 
         title="Cose Positive" type="EP" events={positiveEvents} themeColor="green"
         onAdd={onAddMoodEvent} onUpdate={onUpdateMoodEvent} onDelete={onDeleteMoodEvent}
-        layout={layout} // Trasmettiamo il layout alla colonna!
+        layout={layout}
       />
       <MoodEventColumn 
         title="Cose Negative" type="EN" events={negativeEvents} themeColor="red"
         onAdd={onAddMoodEvent} onUpdate={onUpdateMoodEvent} onDelete={onDeleteMoodEvent}
-        layout={layout} // Trasmettiamo il layout alla colonna!
+        layout={layout}
       />
     </div>
   );

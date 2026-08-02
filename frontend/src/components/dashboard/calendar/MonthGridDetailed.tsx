@@ -4,7 +4,7 @@ import type { CalendarState } from '@/hooks/useCalendarState';
 import type { CalendarEvent, DbTask, Category } from '@/types';
 import { pad } from '@/utils/dateUtils';
 import { isEventInDay } from '@/utils/eventUtils';
-import { MonthDayCell } from './MonthDayCell';
+import { MonthPageDayCell } from './MonthPageDayCell';
 
 import type { CalendarGridItem } from './MonthGrid';
 
@@ -16,6 +16,8 @@ interface MonthGridDetailedProps {
   onDayClick?: (dateStr: string) => void;
   onAddEventClick?: (dateStr: string) => void;
   onMoodChange?: (dateStr: string, categoryId: number | null) => void;
+  onSelectTask?: (task: DbTask) => void;
+  onToggleTask?: (task: DbTask, newStatus: boolean) => void;
 }
 
 const MonthGridDetailed: React.FC<MonthGridDetailedProps> = ({
@@ -25,9 +27,24 @@ const MonthGridDetailed: React.FC<MonthGridDetailedProps> = ({
   allCategories = [],
   onDayClick,
   onAddEventClick,
-  onMoodChange
+  onMoodChange,
+  onSelectTask,
+  onToggleTask
 }) => {
   const { monthYear, monthIndex, mainFirstDayIndex, mainDaysInMonth, todayStr } = state;
+
+  const dayTasksByDate = useMemo(() => {
+    const map: Record<string, DbTask[]> = {};
+    const safeTasks: DbTask[] = Array.isArray(tasks) ? tasks : [];
+    safeTasks.forEach(t => {
+      if (t.data_scadenza) {
+        const dateStr = t.data_scadenza.substring(0, 10);
+        if (!map[dateStr]) map[dateStr] = [];
+        map[dateStr].push(t);
+      }
+    });
+    return map;
+  }, [tasks]);
 
   // 2. SCUDO DI PERFORMANCE FRONTEND (Zero 'any' e Lookup O(1))
   const itemsByDate = useMemo(() => {
@@ -52,9 +69,9 @@ const MonthGridDetailed: React.FC<MonthGridDetailedProps> = ({
             id: `task-${t.id}`,
             title: t.titolo, 
             type: 'task', 
-            category: t.category?.category_name || 'Generico',
+            category: t.category?.category_name || t.category?.category_name || 'Generico',
             isMultiDay: false, 
-            categoryColor: t.category?.colore || '#9CA3AF', // Fallback sicuro
+            categoryColor: t.category?.colore || t.category?.colore || '#3B82F6', 
             done: !!t.fatto // Assicura che sia un booleano
           });
         }
@@ -120,19 +137,24 @@ const MonthGridDetailed: React.FC<MonthGridDetailedProps> = ({
         {Array.from({ length: mainDaysInMonth }).map((_, i) => {
           const dayNum = i + 1;
           const dateKey = `${monthYear}-${pad(monthIndex + 1)}-${pad(dayNum)}`;
+          const colIndex = (mainFirstDayIndex + i) % 7;
           
           return (
-            <MonthDayCell 
+            <MonthPageDayCell 
               key={dateKey}
               dateKey={dateKey}
               dayNum={dayNum}
+              colIndex={colIndex}
               isToday={dateKey === todayStr}
               items={itemsByDate[dateKey] || []}
+              dayTasks={dayTasksByDate[dateKey] || []}
               onDayClick={onDayClick}
               onAddEventClick={onAddEventClick}
               showMoodSelector={true} 
               onMoodChange={onMoodChange}
               allCategories={allCategories} 
+              onSelectTask={onSelectTask}
+              onToggleTask={onToggleTask}
             />
           );
         })}

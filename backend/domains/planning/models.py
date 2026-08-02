@@ -47,14 +47,14 @@ class DailyEntry(Base):
 
     data_riferimento: Mapped[date] = mapped_column(Date, nullable=False, index=True)
 
-    # Tipi ammessi: PX, OD, PD, N1, N2, N3, N4, OW, PW, OM, PM, EP, EN
+    # Tipi ammessi: PX, OD, PD, N1, N2, N3, N4, OW, PW, OM, PM, EP, EN, EPM, ENM
     # Regole di unicità per user_id + data_riferimento:
     #   OD -> massimo 1 record/giorno (indipendente da PX)
     #   PX -> massimo 1 record/giorno (indipendente da OD)
     #   OW -> massimo 1 record/settimana (stessa data_riferimento usata come ancora settimana)
     #   OM -> massimo 1 record/mese (stessa data_riferimento usata come ancora mese)
     #   altri -> ripetibili senza limite
-    tipo: Mapped[str] = mapped_column(String(2), nullable=False)
+    tipo: Mapped[str] = mapped_column(String(4), nullable=False)
 
     testo: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     completato: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)

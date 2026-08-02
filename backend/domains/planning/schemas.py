@@ -25,6 +25,8 @@ VALID_DAILY_ENTRY_TYPES = {
     "PM",
     "EP",
     "EN",
+    "EPM",
+    "ENM",
 }
 
 
@@ -32,7 +34,7 @@ class DailyEntryBase(StrictBaseModel):
     """Base schema for planning entries."""
 
     data_riferimento: date
-    tipo: str = Field(..., min_length=2, max_length=2)
+    tipo: str = Field(..., min_length=2, max_length=4)
     testo: Optional[str] = None
     completato: bool = False
     category_id: Optional[int] = Field(
@@ -66,7 +68,7 @@ class DailyEntryUpdate(StrictBaseModel):
     """Schema for partial update."""
 
     data_riferimento: Optional[date] = None
-    tipo: Optional[str] = Field(default=None, min_length=2, max_length=2)
+    tipo: Optional[str] = Field(default=None, min_length=2, max_length=4)
     testo: Optional[str] = None
     completato: Optional[bool] = None
     category_id: Optional[int] = None

@@ -5,6 +5,19 @@ from backend.core.models import import_all_models
 
 import_all_models()
 
+from backend.core.database import SessionLocal
+from sqlalchemy import text
+
+def _migrate_db_schema():
+    with SessionLocal() as db:
+        try:
+            db.execute(text("ALTER TABLE daily_entries ALTER COLUMN tipo TYPE VARCHAR(10);"))
+            db.commit()
+        except Exception as e:
+            db.rollback()
+
+_migrate_db_schema()
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 # Import all models to register them with SQLAlchemy

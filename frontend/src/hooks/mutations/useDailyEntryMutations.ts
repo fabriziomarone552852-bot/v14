@@ -69,8 +69,10 @@ export function useDailyEntryMutations<T extends CacheWithDailyEntries>(queryKey
           case 'PD': return { ...old, priorita: updateArray(old.priorita) };
           case 'OW': return { ...old, obiettivo_settimanale: isDelete ? null : entry };
           case 'PW': return { ...old, priorita_settimanali: updateArray(old.priorita_settimanali) };
-          case 'EP': return { ...old, eventi_positivi: updateArray(old.eventi_positivi) };
-          case 'EN': return { ...old, eventi_negativi: updateArray(old.eventi_negativi) };
+          case 'EP': 
+          case 'EPM': return { ...old, eventi_positivi: updateArray(old.eventi_positivi) };
+          case 'EN': 
+          case 'ENM': return { ...old, eventi_negativi: updateArray(old.eventi_negativi) };
           default: return old;
         }
       });
@@ -111,8 +113,10 @@ export function useDailyEntryMutations<T extends CacheWithDailyEntries>(queryKey
             
             // Eventi
             case 'EP': 
+            case 'EPM': 
               return { ...old, eventi_positivi: swapEntry(old.eventi_positivi) };
             case 'EN': 
+            case 'ENM': 
               return { ...old, eventi_negativi: swapEntry(old.eventi_negativi) };
               
             default: 

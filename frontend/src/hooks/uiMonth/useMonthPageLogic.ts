@@ -6,7 +6,7 @@ import { useMonthTasksEvents } from './useMonthTasksEvents';
 import { useMonthNotes } from './useMonthNotes';
 import { useMonthSidebar } from './useMonthSidebar';
 import { useMonthModals } from './useMonthModals';
-import type { DbTask, NoteVariant } from '@/types'; 
+import type { DbTask, NoteVariant, MoodEventType } from '@/types'; 
 
 // IL CONTRATTO DEFINITIVO: Nessun 'any'
 export interface UseMonthPageLogicResult {
@@ -40,6 +40,7 @@ export interface UseMonthPageLogicResult {
     handleNextMonth: () => void;
     handleResetCurrentMonth: () => void;
     handleGoToDay: (dateStr: string) => void;
+    handleSelectTask: (task: { id: number } | DbTask) => void;
     
     // 🪄 CORREZIONE 2: Dichiariamo i due handler specifici che la vista richiede
     handleToggleTaskGrid: (task: DbTask, newStatus: boolean) => Promise<void>;
@@ -52,6 +53,9 @@ export interface UseMonthPageLogicResult {
     handleUpdateSphere: (id: string, val: number) => void;
     handleSaveGoal: (testo: string) => void;
     handleSavePriority: (id: number | undefined, testo: string) => void;
+    handleAddMoodEvent: (tipo: MoodEventType, title: string) => void;
+    handleUpdateMoodEvent: (id: number, newTitle: string) => void;
+    handleDeleteMoodEvent: (id: number) => void;
   };
 }
 
@@ -94,6 +98,30 @@ export const useMonthPageLogic = (): UseMonthPageLogicResult => {
     });
   }, [agenda, nav.firstDayStr]);
 
+  const handleAddMoodEvent = useCallback((tipo: MoodEventType, title: string) => {
+    const monthlyTipo = tipo === 'EP' ? 'EPM' : 'ENM';
+    agenda.saveDailyEntry({
+      text: title,
+      tipo: monthlyTipo,
+      dateStr: nav.firstDayStr
+    });
+  }, [agenda, nav.firstDayStr]);
+
+  const handleUpdateMoodEvent = useCallback((id: number, newTitle: string) => {
+    const existingEP = agenda.monthData?.eventi_positivi?.find(e => e.id === id);
+    const tipo = existingEP ? 'EPM' : 'ENM';
+    agenda.saveDailyEntry({
+      id,
+      text: newTitle,
+      tipo,
+      dateStr: nav.firstDayStr
+    });
+  }, [agenda, nav.firstDayStr]);
+
+  const handleDeleteMoodEvent = useCallback((id: number) => {
+    agenda.deleteNote(id);
+  }, [agenda]);
+
   // 🪄 CREIAMO L'HANDLER MANCANTE PER LA SIDEBAR (riceve solo ID e Stato)
   const handleToggleTaskSidebar = useCallback((id: number, currentStatus: boolean) => {
     agenda.toggleTask({ id, isDone: currentStatus });
@@ -125,6 +153,7 @@ export const useMonthPageLogic = (): UseMonthPageLogicResult => {
       handleNextMonth: nav.handleNextMonth,
       handleResetCurrentMonth: nav.handleResetCurrentMonth,
       handleGoToDay: nav.handleGoToDay,
+      handleSelectTask: tasksAndEvents.handleSelectTask,
       handleToggleTaskGrid: tasksAndEvents.handleToggleTaskFromGrid, // 🪄 Handler per il calendario
       handleToggleTaskSidebar, // 🪄 Handler per la colonna laterale
       handleAddNote: notes.handleAddNote,
@@ -133,7 +162,10 @@ export const useMonthPageLogic = (): UseMonthPageLogicResult => {
       handleUpdateMood: sidebar.handleUpdateMood,
       handleUpdateSphere: sidebar.handleUpdateSphere,
       handleSaveGoal,
-      handleSavePriority
+      handleSavePriority,
+      handleAddMoodEvent,
+      handleUpdateMoodEvent,
+      handleDeleteMoodEvent
     }
   };
 };
