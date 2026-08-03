@@ -68,7 +68,8 @@ const MonthPage: React.FC = () => {
         <div className="flex-1 max-w-[1200px]">
           <GoalsAndPrioritiesPanel
             goalTitle="Obiettivo del Mese"
-            prioritiesTitle="Priorità Mensili"
+            placeholder="Qual è il tuo obiettivo per il mese?"
+            prioritiesTitle="Top 3 Priorità Mensili"
             dateKey={state.startStr}
             goalEntry={apiData?.obiettivi?.[0]}
             prioritiesEntries={apiData?.priorita}
@@ -88,36 +89,31 @@ const MonthPage: React.FC = () => {
            <div className="flex bg-gray-50 border-b border-gray-200 shrink-0 rounded-t-xl relative z-20 shadow-sm">
              <button className={`flex-1 py-3 text-xl transition-all flex items-center justify-center ${state.activeSidebarTab === 'moods' ? 'bg-white border-b-2 border-blue-500 opacity-100 scale-110' : 'hover:bg-gray-100 opacity-40 grayscale hover:grayscale-0'}`} onClick={() => state.setActiveSidebarTab('moods')} title="Umori">😊</button>
              <button className={`flex-1 py-3 text-xl transition-all flex items-center justify-center ${state.activeSidebarTab === 'spheres' ? 'bg-white border-b-2 border-blue-500 opacity-100 scale-110' : 'hover:bg-gray-100 opacity-40 grayscale hover:grayscale-0'}`} onClick={() => state.setActiveSidebarTab('spheres')} title="Sfere">🎯</button>
-             <button className={`flex-1 py-3 text-xl transition-all flex items-center justify-center ${state.activeSidebarTab === 'todos' ? 'bg-white border-b-2 border-blue-500 opacity-100 scale-110' : 'hover:bg-gray-100 opacity-40 grayscale hover:grayscale-0'}`} onClick={() => state.setActiveSidebarTab('todos')} title="To-Do">✅</button>
              <button className={`flex-1 py-3 text-xl transition-all flex items-center justify-center ${state.activeSidebarTab === 'reflections' ? 'bg-white border-b-2 border-blue-500 opacity-100 scale-110' : 'hover:bg-gray-100 opacity-40 grayscale hover:grayscale-0'}`} onClick={() => state.setActiveSidebarTab('reflections')} title="Cose Positive / Negative">❤️</button>
            </div>
            
-           <div className="flex-1 flex flex-col min-h-0 bg-gray-50/50 rounded-b-xl overflow-visible relative">
+           <div className="flex-1 flex flex-col min-h-0 bg-white rounded-b-xl overflow-visible relative">
               {state.activeSidebarTab === 'moods' && (
-                <TrackerPanel titleTop="Come mi sento" titleBottom="Review Mese Scorso" items={state.moodsUI} onUpdateValue={handlers.handleUpdateMood} />
+                <div className="p-4 h-full flex flex-col">
+                  <TrackerPanel titleTop="Come mi sento" titleBottom="Review Mese Scorso" items={state.moodsUI} onUpdateValue={handlers.handleUpdateMood} />
+                </div>
               )}
               {state.activeSidebarTab === 'spheres' && (
-                <TrackerPanel titleTop="Sfere di Influenza" titleBottom="Review Mese Scorso" items={state.spheresUI} onUpdateValue={handlers.handleUpdateSphere} />
-              )}
-              {state.activeSidebarTab === 'todos' && (
-                <div className="p-3 h-full">
-                  <TaskColumn 
-                    tasks={state.monthTasksUI} 
-                    onToggleTask={handlers.handleToggleTaskSidebar}
-                    onSelectTask={modals.openTaskDetail} 
-                    onAddTaskClick={() => modals.openTaskForm()} 
-                  />
+                <div className="p-4 h-full flex flex-col">
+                  <TrackerPanel titleTop="Sfere di Influenza" titleBottom="Review Mese Scorso" items={state.spheresUI} onUpdateValue={handlers.handleUpdateSphere} />
                 </div>
               )}
               {state.activeSidebarTab === 'reflections' && (
-                <MoodEventsBoard 
-                  layout="vertical" 
-                  positiveEvents={apiData?.eventi_positivi || []} 
-                  negativeEvents={apiData?.eventi_negativi || []} 
-                  onAddMoodEvent={handlers.handleAddMoodEvent} 
-                  onUpdateMoodEvent={handlers.handleUpdateMoodEvent} 
-                  onDeleteMoodEvent={handlers.handleDeleteMoodEvent} 
-                />
+                <div className="p-4 flex-1 min-h-0 overflow-visible relative">
+                  <MoodEventsBoard 
+                    layout="vertical" 
+                    positiveEvents={apiData?.eventi_positivi || []} 
+                    negativeEvents={apiData?.eventi_negativi || []} 
+                    onAddMoodEvent={handlers.handleAddMoodEvent} 
+                    onUpdateMoodEvent={handlers.handleUpdateMoodEvent} 
+                    onDeleteMoodEvent={handlers.handleDeleteMoodEvent} 
+                  />
+                </div>
               )}
            </div>
         </div>
@@ -127,6 +123,7 @@ const MonthPage: React.FC = () => {
             events={mappedEvents} 
             tasks={apiData?.tasks || []}
             allCategories={dbCategories}
+            dailyEntries={apiData?.daily_entries || []}
             hideHeader={true}        
             forceView="Mese"   
             targetDate={state.monthTargetDate} 
@@ -136,9 +133,8 @@ const MonthPage: React.FC = () => {
             onSelectTask={handlers.handleSelectTask}
             onSelectEvent={modals.openEventDetail} 
             onAddEventClick={(dataCliccata) => modals.openEventForm(null, dataCliccata ?? null)} 
-            onMoodChange={(dateStr, categoryId) => {
-              console.log(`Salva PX: Data ${dateStr}, Categoria ID: ${categoryId}`);
-            }}
+            onAddTaskClick={(dataCliccata) => modals.openTaskForm(null, dataCliccata ?? null)}
+            onMoodChange={handlers.handleMoodChange}
           />
          </div>    
       </div>
@@ -154,11 +150,6 @@ const MonthPage: React.FC = () => {
         onDeleteNote={handlers.handleDeleteNote}
         clearEditingNoteId={() => state.setEditingNoteId(null)} 
       />
-
-      <div className="relative z-[9999]">
-        <EventDetailModal isOpen={modals.isDetailOpen} onClose={modals.closeEventDetail} selectedEvent={modals.selectedEvent} onDeleteClick={()=>{}} onEditClick={()=>{}} />
-        <NewEventModal isOpen={modals.isFormOpen} onClose={modals.closeEventForm} eventToEdit={modals.eventToEdit} initialDate={modals.initialDate} onEventSaved={() => {}} />
-      </div>
 
     </div>
   );

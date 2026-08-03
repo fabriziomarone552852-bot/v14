@@ -6,8 +6,9 @@ import type { DailyEntry } from '@/types';
 export interface SaveDailyEntryPayload {
   id?: number;
   tipo: DailyEntry['tipo'];
-  text: string;
+  text?: string;
   dateStr: string;
+  category_id?: number | null;
 }
 
 export interface CacheWithDailyEntries {
@@ -24,16 +25,20 @@ export function useDailyEntryMutations<T extends CacheWithDailyEntries>(queryKey
 
   const saveEntryMutation = useMutation({
     mutationFn: async (payload: SaveDailyEntryPayload) => {
-      const data = { data_riferimento: payload.dateStr, tipo: payload.tipo, testo: payload.text };
-      if (payload.id && !payload.text.trim()) {
+      const data: Record<string, unknown> = {
+        data_riferimento: payload.dateStr,
+        tipo: payload.tipo,
+        testo: payload.text ?? null
+      };
+      if (payload.category_id !== undefined) {
+        data.category_id = payload.category_id;
+      }
+      
+      if (payload.id && !payload.text?.trim() && payload.category_id === undefined) {
         await api.delete(`/daily-entries/${payload.id}`);
         return { deleted: true, id: payload.id };
       }
       
-      if (!payload.text.trim()) return null;
-      
-      // Essendo che api.patch/post ora ritornano Promise<T | null>, 
-      // si incastra perfettamente con il tuo onSuccess!
       const result = payload.id 
         ? await api.patch<DailyEntry>(`/daily-entries/${payload.id}`, data)
         : await api.post<DailyEntry>('/daily-entries', data);
@@ -45,13 +50,15 @@ export function useDailyEntryMutations<T extends CacheWithDailyEntries>(queryKey
       const previousData = queryClient.getQueryData<T>(queryKey);
 
       const tempId = payload.id || Date.now();
-      const isDelete = !payload.text.trim() && payload.id;
+      const textVal = payload.text ? payload.text.trim() : '';
+      const isDelete = !textVal && payload.category_id === undefined && payload.id;
       
       const entry: DailyEntry = {
         id: tempId,
         data_riferimento: payload.dateStr,
         tipo: payload.tipo,
-        testo: payload.text,
+        testo: payload.text ?? '',
+        category_id: payload.category_id ?? null,
         user_id: 0
       };
 
@@ -63,6 +70,22 @@ export function useDailyEntryMutations<T extends CacheWithDailyEntries>(queryKey
           const exists = list.some(item => item.id === tempId);
           return exists ? list.map(item => item.id === tempId ? entry : item) : [...list, entry];
         };
+
+        if (payload.tipo === 'PX') {
+          const oldDailyEntries = (old as unknown as { daily_entries?: DailyEntry[] }).daily_entries || [];
+          let updatedPX: DailyEntry[];
+          if (payload.category_id === null) {
+            updatedPX = oldDailyEntries.filter(item => !(item.tipo === 'PX' && item.data_riferimento === payload.dateStr));
+          } else {
+            const existingIndex = oldDailyEntries.findIndex(item => item.tipo === 'PX' && item.data_riferimento === payload.dateStr);
+            if (existingIndex >= 0) {
+              updatedPX = oldDailyEntries.map((item, idx) => idx === existingIndex ? { ...item, category_id: payload.category_id } : item);
+            } else {
+              updatedPX = [...oldDailyEntries, entry];
+            }
+          }
+          return { ...old, daily_entries: updatedPX };
+        }
 
         switch (payload.tipo) {
           case 'OD': return { ...old, obiettivi: updateArray(old.obiettivi) };

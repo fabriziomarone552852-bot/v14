@@ -1,7 +1,7 @@
 // frontend/src/components/dashboard/calendar/MonthGridDetailed.tsx
 import React, { useMemo } from 'react';
 import type { CalendarState } from '@/hooks/useCalendarState';
-import type { CalendarEvent, DbTask, Category } from '@/types';
+import type { CalendarEvent, DbTask, Category, DailyEntry } from '@/types';
 import { pad } from '@/utils/dateUtils';
 import { isEventInDay } from '@/utils/eventUtils';
 import { MonthPageDayCell } from './MonthPageDayCell';
@@ -13,8 +13,11 @@ interface MonthGridDetailedProps {
   events: CalendarEvent[];
   tasks?: DbTask[];
   allCategories?: Category[];
+  dailyEntries?: DailyEntry[];
   onDayClick?: (dateStr: string) => void;
   onAddEventClick?: (dateStr: string) => void;
+  onAddTaskClick?: (dateStr?: string) => void;
+  onSelectEvent?: (event: CalendarEvent) => void;
   onMoodChange?: (dateStr: string, categoryId: number | null) => void;
   onSelectTask?: (task: DbTask) => void;
   onToggleTask?: (task: DbTask, newStatus: boolean) => void;
@@ -25,13 +28,31 @@ const MonthGridDetailed: React.FC<MonthGridDetailedProps> = ({
   events,
   tasks = [],
   allCategories = [],
+  dailyEntries = [],
   onDayClick,
   onAddEventClick,
+  onAddTaskClick,
+  onSelectEvent,
   onMoodChange,
   onSelectTask,
   onToggleTask
 }) => {
   const { monthYear, monthIndex, mainFirstDayIndex, mainDaysInMonth, todayStr } = state;
+
+  const moodsByDate = useMemo(() => {
+    const map: Record<string, number | null> = {};
+    if (dailyEntries && Array.isArray(dailyEntries)) {
+      dailyEntries.forEach(entry => {
+        if (entry.tipo === 'PX') {
+          const d = entry.data_riferimento || (entry as unknown as { dateStr?: string }).dateStr;
+          if (d) {
+            map[d] = entry.category_id ?? null;
+          }
+        }
+      });
+    }
+    return map;
+  }, [dailyEntries]);
 
   const dayTasksByDate = useMemo(() => {
     const map: Record<string, DbTask[]> = {};
@@ -95,7 +116,8 @@ const MonthGridDetailed: React.FC<MonthGridDetailedProps> = ({
             isMultiDay: !!e.tutto_il_giorno || (!!e.endDateStr && e.endDateStr !== e.dateStr),
             // CORREZIONE ERRORE TYPESCRIPT: Fallback per categoryColor
             categoryColor: e.categoryColor || '#3B82F6', 
-            done: false
+            done: false,
+            originalItem: e
           });
         }
       }
@@ -148,8 +170,11 @@ const MonthGridDetailed: React.FC<MonthGridDetailedProps> = ({
               isToday={dateKey === todayStr}
               items={itemsByDate[dateKey] || []}
               dayTasks={dayTasksByDate[dateKey] || []}
+              moodCategoryId={moodsByDate[dateKey]}
               onDayClick={onDayClick}
               onAddEventClick={onAddEventClick}
+              onAddTaskClick={onAddTaskClick}
+              onSelectEvent={onSelectEvent}
               showMoodSelector={true} 
               onMoodChange={onMoodChange}
               allCategories={allCategories} 

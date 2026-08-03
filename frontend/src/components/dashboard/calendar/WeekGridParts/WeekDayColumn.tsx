@@ -13,6 +13,7 @@ interface WeekDayColumnProps {
   onSelectEvent: (event: CalendarEvent) => void;
   onSelectTask?: (task: DbTask) => void;
   onToggleTask?: (task: DbTask, newStatus: boolean) => void;
+  onAddTaskClick?: (dateStr?: string) => void;
   onHoverColumn: (dateStr: string | null, rect: DOMRect | null) => void;
 }
 
@@ -22,6 +23,7 @@ export const WeekDayColumn: React.FC<WeekDayColumnProps> = ({
   onSelectEvent,
   onSelectTask,
   onToggleTask,
+  onAddTaskClick,
   onHoverColumn,
 }) => {
   const { day, multiDayEvents, positionedEvents, dayTasks } = dayData;
@@ -84,9 +86,11 @@ export const WeekDayColumn: React.FC<WeekDayColumnProps> = ({
 
       {/* TASKS IN SCADENZA POPOVER */}
       <DayTasksPopover
+        dateStr={day.dateStr}
         dayTasks={dayTasks}
         onSelectTask={onSelectTask}
         onToggleTask={onToggleTask}
+        onAddTaskClick={onAddTaskClick}
       />
     </div>
   );

@@ -19,7 +19,8 @@ interface SmartObiettivoTextareaProps {
 
 export const SmartObiettivoTextarea: React.FC<SmartObiettivoTextareaProps> = ({ 
   initialText, 
-  onSave 
+  onSave,
+  placeholder
 }) => {
   // Lo stato interno che protegge il testo durante la digitazione
   const [text, setText] = useState(initialText);
@@ -29,7 +30,7 @@ export const SmartObiettivoTextarea: React.FC<SmartObiettivoTextareaProps> = ({
       value={text} 
       onChange={(e) => setText(e.target.value)} 
       onBlur={() => onSave(text)} 
-      placeholder="Qual è il tuo obiettivo principale?" 
+      placeholder={placeholder}
       className={`w-full h-24 font-bold text-gray-800 border-none focus:ring-0 p-0 bg-transparent placeholder-gray-300 resize-none overflow-y-auto custom-scrollbar leading-tight transition-all duration-200 ${getObiettivoFontSize(text)}`}
     />
   );

@@ -8,12 +8,17 @@ import { useTaskMutations } from '@/hooks/mutations/useTaskMutations';
 interface TaskFormModalState {
   taskToEdit?: TaskSummary | null;
   initialParentId?: number | null;
+  initialDate?: string | null;
 }
 
 interface TaskModalContextProps {
   openTaskDetail: (task: TaskSummary) => void;
   closeTaskDetail: () => void;
-  openTaskForm: (taskToEdit?: TaskSummary | null, initialParentId?: number | null) => void;
+  openTaskForm: (
+    taskToEdit?: TaskSummary | null, 
+    initialParentIdOrDate?: number | string | null, 
+    initialDate?: string | null
+  ) => void;
   closeTaskForm: () => void;
 }
 
@@ -46,8 +51,24 @@ export const TaskModalProvider: React.FC<{ children: ReactNode }> = ({ children 
     <TaskModalContext.Provider value={{
       openTaskDetail: (task) => detailModal.open(task),
       closeTaskDetail: detailModal.close,
-      // Se non passi parametri, aprirà una nuova task vuota
-      openTaskForm: (taskToEdit = null, initialParentId = null) => formModal.open({ taskToEdit, initialParentId }),
+      openTaskForm: (taskToEdit = null, initialParentIdOrDate = null, initialDate = null) => {
+        let parentId: number | null = null;
+        let dateVal: string | null = null;
+
+        if (typeof initialParentIdOrDate === 'number') {
+          parentId = initialParentIdOrDate;
+        } else if (typeof initialParentIdOrDate === 'string' && initialParentIdOrDate.includes('-')) {
+          dateVal = initialParentIdOrDate;
+        } else if (typeof initialParentIdOrDate === 'string' && !isNaN(Number(initialParentIdOrDate))) {
+          parentId = Number(initialParentIdOrDate);
+        }
+
+        if (initialDate) {
+          dateVal = initialDate;
+        }
+
+        formModal.open({ taskToEdit, initialParentId: parentId, initialDate: dateVal });
+      },
       closeTaskForm: formModal.close,
     }}>
       {children}
@@ -72,6 +93,7 @@ export const TaskModalProvider: React.FC<{ children: ReactNode }> = ({ children 
         onClose={formModal.close}
         taskToEdit={formModal.data?.taskToEdit}
         initialParentId={formModal.data?.initialParentId}
+        initialDate={formModal.data?.initialDate}
       />
     </TaskModalContext.Provider>
   );

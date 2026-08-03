@@ -11,11 +11,13 @@ interface GoalsAndPrioritiesPanelProps {
   prioritiesEntries?: (DailyEntry | null)[] | null; 
   onSaveGoal: (text: string) => void;
   onSavePriority: (id: number | undefined, text: string) => void;
+  placeholder?: string;
 }
 
 export const GoalsAndPrioritiesPanel: React.FC<GoalsAndPrioritiesPanelProps> = ({
   goalTitle,
   prioritiesTitle,
+  placeholder,
   dateKey,
   goalEntry,
   prioritiesEntries, 
@@ -33,6 +35,7 @@ export const GoalsAndPrioritiesPanel: React.FC<GoalsAndPrioritiesPanelProps> = (
           key={`goal-${goalEntry?.id || 'empty'}-${dateKey}`}
           initialText={goalEntry?.testo || ""}
           onSave={onSaveGoal}
+          placeholder={placeholder}
         />
       </div>
 

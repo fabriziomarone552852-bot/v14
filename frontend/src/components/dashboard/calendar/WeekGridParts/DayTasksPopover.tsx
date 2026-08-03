@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import type { DbTask } from '@/types';
 import { getHexColor } from '@/utils/uiUtils';
+import { AddButton } from '@/components/shared/utils/AddButton';
 
 interface TaskCategoryFields {
   colore?: string;
@@ -17,9 +18,11 @@ type SafeTask = DbTask & {
 };
 
 interface DayTasksPopoverProps {
+  dateStr?: string;
   dayTasks: DbTask[];
   onSelectTask?: (task: DbTask) => void;
   onToggleTask?: (task: DbTask, newStatus: boolean) => void;
+  onAddTaskClick?: (dateStr?: string) => void;
 }
 
 const getTaskColorHex = (task: SafeTask): string => {
@@ -34,9 +37,11 @@ const getTaskColorHex = (task: SafeTask): string => {
 };
 
 export const DayTasksPopover: React.FC<DayTasksPopoverProps> = ({ 
+  dateStr,
   dayTasks, 
   onSelectTask, 
-  onToggleTask 
+  onToggleTask,
+  onAddTaskClick
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
 
@@ -48,6 +53,19 @@ export const DayTasksPopover: React.FC<DayTasksPopoverProps> = ({
       {/* PANNELLO LISTA TASK */}
       {isExpanded && (
         <div className="w-full max-h-[250px] overflow-y-auto custom-scrollbar pointer-events-auto bg-gray-50/90 backdrop-blur-md p-1.5 rounded-lg shadow-xl border border-gray-200 flex flex-col gap-1 transition-all">
+          
+          {/* BOTTONE NUOVA TASK (Prima voce in cima a tutte le task) */}
+          <div className="pb-1 border-b border-gray-200/80">
+            <AddButton 
+              label="Nuova Task" 
+              compact={true}
+              onClick={() => {
+                setIsExpanded(false);
+                onAddTaskClick?.(dateStr);
+              }} 
+            />
+          </div>
+
           {(dayTasks as SafeTask[]).map(task => {
             const taskColor = getTaskColorHex(task);
             return (

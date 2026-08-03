@@ -3,7 +3,7 @@ import React, { useEffect } from 'react';
 import { useCalendarState } from '../../hooks/useCalendarState';
 import CalendarHeader from './calendar/CalendarHeader';
 import { PlusIcon } from '@/components/shared/utils/Icons';
-import type { DbTask, CalendarEvent, Category } from '@/types';
+import type { DbTask, CalendarEvent, Category, DailyEntry } from '@/types';
 
 import WeekGridClassic from './calendar/WeekGridClassic';
 import WeekGridDetailed from './calendar/WeekGridDetailed';
@@ -14,6 +14,7 @@ interface CalendarColumnProps {
   events: CalendarEvent[];
   tasks: DbTask[];
   allCategories?: Category[];
+  dailyEntries?: DailyEntry[];
   onSelectEvent: (event: CalendarEvent) => void;
   onAddEventClick?: (dateStr?: string) => void; 
   onDayClick?: (dateStr: string) => void;
@@ -24,13 +25,14 @@ interface CalendarColumnProps {
   variant?: 'classic' | 'detailed';
   onSelectTask?: (task: DbTask) => void;
   onToggleTask?: (task: DbTask, newStatus: boolean) => void;
+  onAddTaskClick?: (dateStr?: string) => void;
   onMoodChange?: (dateStr: string, categoryId: number | null) => void;
 }
 
 const CalendarColumn: React.FC<CalendarColumnProps> = ({ 
-  events, tasks, allCategories, onSelectEvent, onAddEventClick, onDayClick, onMonthChange,
+  events, tasks, allCategories, dailyEntries, onSelectEvent, onAddEventClick, onDayClick, onMonthChange,
   hideHeader, forceView, targetDate, variant = 'classic', onSelectTask,
-  onToggleTask, onMoodChange
+  onToggleTask, onAddTaskClick, onMoodChange
 }) => {
   const baseState = useCalendarState();
   const { setCurrentWeekDate, setCurrentMonthDate } = baseState;
@@ -67,8 +69,12 @@ const CalendarColumn: React.FC<CalendarColumnProps> = ({
             state={state} 
             events={events} 
             tasks={tasks}
+            allCategories={allCategories}
+            dailyEntries={dailyEntries}
             onDayClick={onDayClick} 
             onAddEventClick={onAddEventClick} 
+            onAddTaskClick={onAddTaskClick}
+            onSelectEvent={onSelectEvent}
             onMoodChange={onMoodChange}
             onSelectTask={onSelectTask}
             onToggleTask={onToggleTask}
@@ -90,6 +96,8 @@ const CalendarColumn: React.FC<CalendarColumnProps> = ({
           events={events} 
           tasks={tasks}
           onDayClick={onDayClick} 
+          onAddEventClick={onAddEventClick}
+          onAddTaskClick={onAddTaskClick}
           onSelectEvent={onSelectEvent} 
           onSelectTask={onSelectTask}
           onToggleTask={onToggleTask}

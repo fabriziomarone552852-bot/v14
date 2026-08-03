@@ -160,7 +160,7 @@ export const MonthDayCell: React.FC<MonthDayCellProps> = ({
                     onClick={(e) => { e.stopPropagation(); setIsMoodMenuOpen(false); if(onCreateNewMood) onCreateNewMood(dateKey); }} 
                     className="px-3 py-1.5 text-[11px] hover:bg-blue-50 cursor-pointer flex items-center justify-center transition-colors text-blue-600 font-bold"
                   >
-                    + Crea Nuovo
+                    + Nuova Emozione
                   </div>
                   {activeMood && (
                     <div 

@@ -20,11 +20,12 @@ interface TaskNewModalProps {
   onClose: () => void;
   taskToEdit?: TaskSummary | null;
   initialParentId?: number | null;
+  initialDate?: string | null;
   onTaskSaved?: (savedTask?: DbTask) => void;
 }
 
 // ✅ AGGIUNTO onTaskSaved ALLE PROPS DEL COMPONENTE
-const TaskNewModal: React.FC<TaskNewModalProps> = ({ isOpen, onClose, taskToEdit, initialParentId, onTaskSaved }) => {
+const TaskNewModal: React.FC<TaskNewModalProps> = ({ isOpen, onClose, taskToEdit, initialParentId, initialDate, onTaskSaved }) => {
   const {  user } = useAuth();
   const { saveTask } = useTaskMutations(['tasks']);
   const [isSaving, setIsSaving] = useState(false);
@@ -91,11 +92,12 @@ const TaskNewModal: React.FC<TaskNewModalProps> = ({ isOpen, onClose, taskToEdit
         });
         setIsSubtaskPanelOpen(!!taskToEdit.parent_id);
       } else {
+        const defaultDate = initialDate || new Date().toISOString().slice(0, 10);
         setNewTaskForm({
           titolo: '', 
           descrizione: '', 
-          data_start: new Date().toISOString().slice(0, 10),
-          data_scadenza: '', 
+          data_start: defaultDate,
+          data_scadenza: initialDate || '', 
           priorita: 'Bassa', 
           category: '', 
           luogo: '', 
@@ -107,7 +109,7 @@ const TaskNewModal: React.FC<TaskNewModalProps> = ({ isOpen, onClose, taskToEdit
       setIsDatePickerOpen(false);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isOpen, taskToEdit, initialParentId]);
+  }, [isOpen, taskToEdit, initialParentId, initialDate]);
 
 
   const handleSalvaNuovaTask = async (e: React.FormEvent) => {

@@ -73,6 +73,7 @@ export function useEventMutations<T extends CacheWithEvents>(queryKey: QueryKey)
 
       queryClient.setQueriesData<EventCacheData>({ queryKey: ['daySync'] }, updateGlobalCache);
       queryClient.setQueriesData<EventCacheData>({ queryKey: ['weekSync'] }, updateGlobalCache);
+      queryClient.setQueriesData<EventCacheData>({ queryKey: ['monthSync'] }, updateGlobalCache);
 
       return { tempId };
     },
@@ -96,12 +97,12 @@ export function useEventMutations<T extends CacheWithEvents>(queryKey: QueryKey)
         
         queryClient.setQueriesData<EventCacheData>({ queryKey: ['daySync'] }, swapId);
         queryClient.setQueriesData<EventCacheData>({ queryKey: ['weekSync'] }, swapId);
+        queryClient.setQueriesData<EventCacheData>({ queryKey: ['monthSync'] }, swapId);
       }
     },
 
     onSettled: () => {
-      queryClient.invalidateQueries({ predicate: (query) => query.queryKey[0] === 'daySync' });
-      queryClient.invalidateQueries({ predicate: (query) => query.queryKey[0] === 'weekSync' });
+      queryClient.invalidateQueries({ predicate: (query) => ['daySync', 'weekSync', 'monthSync'].includes(query.queryKey[0] as string) });
       queryClient.invalidateQueries({ queryKey: ['events'] });
     }
   });
@@ -134,8 +135,7 @@ export function useEventMutations<T extends CacheWithEvents>(queryKey: QueryKey)
       if (context?.previousData) queryClient.setQueryData(queryKey, context.previousData);
     },
     onSettled: () => {
-      queryClient.invalidateQueries({ predicate: (query) => query.queryKey[0] === 'daySync' });
-      queryClient.invalidateQueries({ predicate: (query) => query.queryKey[0] === 'weekSync' });
+      queryClient.invalidateQueries({ predicate: (query) => ['daySync', 'weekSync', 'monthSync'].includes(query.queryKey[0] as string) });
       queryClient.invalidateQueries({ queryKey: ['events'] });
     }
   });
@@ -165,7 +165,7 @@ export function useEventMutations<T extends CacheWithEvents>(queryKey: QueryKey)
     
     onMutate: async (payload) => {
       await queryClient.cancelQueries({ 
-        predicate: (query) => ['events', 'daySync', 'weekSync'].includes(query.queryKey[0] as string) 
+        predicate: (query) => ['events', 'daySync', 'weekSync', 'monthSync'].includes(query.queryKey[0] as string) 
       });
 
       // 🪄 Funzione completamente Type-Safe
@@ -201,13 +201,13 @@ export function useEventMutations<T extends CacheWithEvents>(queryKey: QueryKey)
       };
 
       queryClient.setQueriesData<EventCacheData>({ 
-        predicate: (query) => ['events', 'daySync', 'weekSync'].includes(query.queryKey[0] as string) 
+        predicate: (query) => ['events', 'daySync', 'weekSync', 'monthSync'].includes(query.queryKey[0] as string) 
       }, updateCache);
     },
 
     onSettled: () => {
       queryClient.invalidateQueries({ 
-        predicate: (query) => ['events', 'daySync', 'weekSync'].includes(query.queryKey[0] as string) 
+        predicate: (query) => ['events', 'daySync', 'weekSync', 'monthSync'].includes(query.queryKey[0] as string) 
       });
     },
     
@@ -215,7 +215,7 @@ export function useEventMutations<T extends CacheWithEvents>(queryKey: QueryKey)
       console.error("Errore durante l'eliminazione dell'evento:", error);
       alert("Si è verificato un errore durante l'eliminazione.");
       queryClient.invalidateQueries({ 
-        predicate: (query) => ['events', 'daySync', 'weekSync'].includes(query.queryKey[0] as string) 
+        predicate: (query) => ['events', 'daySync', 'weekSync', 'monthSync'].includes(query.queryKey[0] as string) 
       });
     }
   });

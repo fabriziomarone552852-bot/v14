@@ -56,6 +56,7 @@ export interface UseMonthPageLogicResult {
     handleAddMoodEvent: (tipo: MoodEventType, title: string) => void;
     handleUpdateMoodEvent: (id: number, newTitle: string) => void;
     handleDeleteMoodEvent: (id: number) => void;
+    handleMoodChange: (dateStr: string, categoryId: number | null) => void;
   };
 }
 
@@ -122,6 +123,16 @@ export const useMonthPageLogic = (): UseMonthPageLogicResult => {
     agenda.deleteNote(id);
   }, [agenda]);
 
+  const handleMoodChange = useCallback((dateStr: string, categoryId: number | null) => {
+    const existingPX = agenda.monthData?.daily_entries?.find(e => e.tipo === 'PX' && (e.data_riferimento === dateStr || (e as unknown as { dateStr?: string }).dateStr === dateStr));
+    agenda.saveDailyEntry({
+      id: existingPX?.id,
+      tipo: 'PX',
+      dateStr,
+      category_id: categoryId
+    });
+  }, [agenda]);
+
   // 🪄 CREIAMO L'HANDLER MANCANTE PER LA SIDEBAR (riceve solo ID e Stato)
   const handleToggleTaskSidebar = useCallback((id: number, currentStatus: boolean) => {
     agenda.toggleTask({ id, isDone: currentStatus });
@@ -165,7 +176,8 @@ export const useMonthPageLogic = (): UseMonthPageLogicResult => {
       handleSavePriority,
       handleAddMoodEvent,
       handleUpdateMoodEvent,
-      handleDeleteMoodEvent
+      handleDeleteMoodEvent,
+      handleMoodChange
     }
   };
 };

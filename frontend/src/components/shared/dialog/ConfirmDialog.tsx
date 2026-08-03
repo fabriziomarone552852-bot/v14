@@ -20,7 +20,7 @@ const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
 
   return (
     <div 
-      className="fixed inset-0 bg-gray-900/60 backdrop-blur-md flex items-center justify-center z-[70] p-4 pointer-events-auto"
+      className="fixed inset-0 bg-gray-900/60 backdrop-blur-md flex items-center justify-center z-[10010] p-4 pointer-events-auto"
       onClick={(e) => { e.stopPropagation(); onCancel(); }}
     >
       <div 

@@ -57,6 +57,7 @@ export function useTaskMutations(queryKey: QueryKey) {
       // 🪄 3. Diciamo a setQueriesData l'esatto tipo in ingresso: <TaskCacheData>
       queryClient.setQueriesData<TaskCacheData>({ queryKey: ['daySync'] }, (old) => updateCacheSafely(old, toggleUpdater));
       queryClient.setQueriesData<TaskCacheData>({ queryKey: ['weekSync'] }, (old) => updateCacheSafely(old, toggleUpdater));
+      queryClient.setQueriesData<TaskCacheData>({ queryKey: ['monthSync'] }, (old) => updateCacheSafely(old, toggleUpdater));
       queryClient.setQueriesData<TaskCacheData>({ queryKey: ['tasks'] }, (old) => updateCacheSafely(old, toggleUpdater));
 
       return { id };
@@ -64,14 +65,12 @@ export function useTaskMutations(queryKey: QueryKey) {
     
     onError: (err) => {
       console.error("Errore durante il toggle del task:", err);
-      queryClient.invalidateQueries({ predicate: (query) => query.queryKey[0] === 'daySync' });
-      queryClient.invalidateQueries({ predicate: (query) => query.queryKey[0] === 'weekSync' });
+      queryClient.invalidateQueries({ predicate: (query) => ['daySync', 'weekSync', 'monthSync'].includes(query.queryKey[0] as string) });
       queryClient.invalidateQueries({ queryKey: ['tasks'] });
     },
     
     onSettled: () => {
-      queryClient.invalidateQueries({ predicate: (query) => query.queryKey[0] === 'daySync' });
-      queryClient.invalidateQueries({ predicate: (query) => query.queryKey[0] === 'weekSync' });
+      queryClient.invalidateQueries({ predicate: (query) => ['daySync', 'weekSync', 'monthSync'].includes(query.queryKey[0] as string) });
       queryClient.invalidateQueries({ queryKey: ['tasks'] });
     }
   });
@@ -120,6 +119,7 @@ export function useTaskMutations(queryKey: QueryKey) {
 
       queryClient.setQueriesData<TaskCacheData>({ queryKey: ['daySync'] }, (old) => updateCacheSafely(old, saveUpdater));
       queryClient.setQueriesData<TaskCacheData>({ queryKey: ['weekSync'] }, (old) => updateCacheSafely(old, saveUpdater));
+      queryClient.setQueriesData<TaskCacheData>({ queryKey: ['monthSync'] }, (old) => updateCacheSafely(old, saveUpdater));
       queryClient.setQueriesData<TaskCacheData>({ queryKey: ['tasks'] }, (old) => updateCacheSafely(old, saveUpdater));
 
       return { tempId };
@@ -133,13 +133,13 @@ export function useTaskMutations(queryKey: QueryKey) {
         
         queryClient.setQueriesData<TaskCacheData>({ queryKey: ['daySync'] }, (old) => updateCacheSafely(old, swapIdUpdater));
         queryClient.setQueriesData<TaskCacheData>({ queryKey: ['weekSync'] }, (old) => updateCacheSafely(old, swapIdUpdater));
+        queryClient.setQueriesData<TaskCacheData>({ queryKey: ['monthSync'] }, (old) => updateCacheSafely(old, swapIdUpdater));
         queryClient.setQueriesData<TaskCacheData>({ queryKey: ['tasks'] }, (old) => updateCacheSafely(old, swapIdUpdater));
       }
     },
 
     onSettled: () => {
-      queryClient.invalidateQueries({ predicate: (query) => query.queryKey[0] === 'daySync' });
-      queryClient.invalidateQueries({ predicate: (query) => query.queryKey[0] === 'weekSync' });
+      queryClient.invalidateQueries({ predicate: (query) => ['daySync', 'weekSync', 'monthSync'].includes(query.queryKey[0] as string) });
       queryClient.invalidateQueries({ queryKey: ['tasks'] });
     }
   });
@@ -157,6 +157,7 @@ export function useTaskMutations(queryKey: QueryKey) {
 
       queryClient.setQueriesData<TaskCacheData>({ queryKey: ['daySync'] }, (old) => updateCacheSafely(old, deleteUpdater));
       queryClient.setQueriesData<TaskCacheData>({ queryKey: ['weekSync'] }, (old) => updateCacheSafely(old, deleteUpdater));
+      queryClient.setQueriesData<TaskCacheData>({ queryKey: ['monthSync'] }, (old) => updateCacheSafely(old, deleteUpdater));
       queryClient.setQueriesData<TaskCacheData>({ queryKey: ['tasks'] }, (old) => updateCacheSafely(old, deleteUpdater));
 
       return { taskId };
@@ -164,14 +165,12 @@ export function useTaskMutations(queryKey: QueryKey) {
     
     onError: (err) => {
       console.error("Errore eliminazione task:", err);
-      queryClient.invalidateQueries({ predicate: (query) => query.queryKey[0] === 'daySync' });
-      queryClient.invalidateQueries({ predicate: (query) => query.queryKey[0] === 'weekSync' });
+      queryClient.invalidateQueries({ predicate: (query) => ['daySync', 'weekSync', 'monthSync'].includes(query.queryKey[0] as string) });
       queryClient.invalidateQueries({ queryKey: ['tasks'] });
     },
     
     onSettled: () => {
-      queryClient.invalidateQueries({ predicate: (query) => query.queryKey[0] === 'daySync' });
-      queryClient.invalidateQueries({ predicate: (query) => query.queryKey[0] === 'weekSync' });
+      queryClient.invalidateQueries({ predicate: (query) => ['daySync', 'weekSync', 'monthSync'].includes(query.queryKey[0] as string) });
       queryClient.invalidateQueries({ queryKey: ['tasks'] });
     }
   });

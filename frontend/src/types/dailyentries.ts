@@ -9,7 +9,7 @@ export interface DailyEntry {
   user_id: number;
   data_riferimento: string; 
   tipo: DailyEntryType;
-  testo: string;
+  testo?: string | null;
   immagine_url?: string | null;
   category_id?: number | null; 
   category?: Category | null; 

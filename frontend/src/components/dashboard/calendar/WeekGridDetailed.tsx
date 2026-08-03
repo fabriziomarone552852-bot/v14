@@ -1,5 +1,4 @@
-// src/components/dashboard/calendar/WeekGridDetailed.tsx
-import React, { useMemo } from 'react';
+import React, { useMemo, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import type { CalendarState } from '@/hooks/useCalendarState';
 import type { CalendarEvent, DbTask } from '@/types';
@@ -12,6 +11,8 @@ interface WeekGridDetailedProps {
   events: CalendarEvent[];
   tasks?: DbTask[];
   onDayClick?: (dateStr: string) => void;
+  onAddEventClick?: (dateStr?: string) => void;
+  onAddTaskClick?: (dateStr?: string) => void;
   onSelectEvent: (event: CalendarEvent) => void;
   onSelectTask?: (task: DbTask) => void;
   onToggleTask?: (task: DbTask, newStatus: boolean) => void;
@@ -22,6 +23,8 @@ const WeekGridDetailed: React.FC<WeekGridDetailedProps> = ({
   events,
   tasks = [],
   onDayClick,
+  onAddEventClick,
+  onAddTaskClick,
   onSelectEvent,
   onSelectTask,
   onToggleTask,
@@ -37,11 +40,9 @@ const WeekGridDetailed: React.FC<WeekGridDetailedProps> = ({
   } = state;
 
   const navigate = useNavigate();
+  const clickTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const gridLayoutClass = 'grid-cols-[40px_repeat(7,_1fr)]';
 
-  // SCUDO DI PERFORMANCE CRITICO:
-  // L'algoritmo gira SOLO se cambiano i giorni, gli eventi o i task reali.
-  // I movimenti del mouse (hoveredDay) non intaccano più la CPU!
   const weeksComputedData = useMemo(() => {
     return computeWeekLayout(daysOfWeekData, events, tasks);
   }, [daysOfWeekData, events, tasks]);
@@ -50,6 +51,30 @@ const WeekGridDetailed: React.FC<WeekGridDetailedProps> = ({
     setIsSelectingDate(false);
     setHoveredDay(dateStr);
     setPopupRect(rect);
+  };
+
+  const handleHeaderClick = (e: React.MouseEvent, dateStr: string) => {
+    e.stopPropagation();
+    if (clickTimeoutRef.current) return;
+    clickTimeoutRef.current = setTimeout(() => {
+      clickTimeoutRef.current = null;
+      if (onDayClick) {
+        onDayClick(dateStr);
+      } else {
+        navigate('/giorno', { state: { selectedDate: dateStr } });
+      }
+    }, 250);
+  };
+
+  const handleHeaderDoubleClick = (e: React.MouseEvent, dateStr: string) => {
+    e.stopPropagation();
+    if (clickTimeoutRef.current) {
+      clearTimeout(clickTimeoutRef.current);
+      clickTimeoutRef.current = null;
+    }
+    if (onAddEventClick) {
+      onAddEventClick(dateStr);
+    }
   };
 
   return (
@@ -64,15 +89,9 @@ const WeekGridDetailed: React.FC<WeekGridDetailedProps> = ({
             return (
               <div
                 key={day.dateStr}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  if (onDayClick) {
-                    onDayClick(day.dateStr);
-                  } else {
-                    navigate('/giorno', { state: { selectedDate: day.dateStr } });
-                  }
-                }}
-                className={`bg-gray-50 px-1 border-l border-gray-200 flex items-center justify-center cursor-pointer hover:bg-gray-100 transition-colors flex-row py-1.5 gap-1.5
+                onClick={(e) => handleHeaderClick(e, day.dateStr)}
+                onDoubleClick={(e) => handleHeaderDoubleClick(e, day.dateStr)}
+                className={`bg-gray-50 px-1 border-l border-gray-200 flex items-center justify-center cursor-pointer hover:bg-gray-100 transition-colors flex-row py-1.5 gap-1.5 select-none
                   ${isToday ? 'border-b-2 border-b-amber-400 bg-amber-50/20 hover:bg-amber-100' : ''}`}
               >
                 <span className={isToday ? 'text-amber-500 font-extrabold' : ''}>
@@ -111,6 +130,7 @@ const WeekGridDetailed: React.FC<WeekGridDetailedProps> = ({
               onSelectEvent={onSelectEvent}
               onSelectTask={onSelectTask}
               onToggleTask={onToggleTask}
+              onAddTaskClick={onAddTaskClick}
               onHoverColumn={handleHoverColumn}
             />
           ))}

@@ -10,6 +10,8 @@ import MoodEventsBoard from '@/components/weekmonth/MoodEventsBoard';
 
 // --- LOGICA E HOOKS ---
 import { useWeekPageLogic } from '@/hooks/uiWeek/useWeekPageLogic';
+import { useTaskModals } from '@/context/TaskModalContext';
+import { useEventModals } from '@/context/EventModalContext';
 
 // Componente locale isolato per il caricamento delle viste
 const WeekPageLoading: React.FC = () => (
@@ -21,6 +23,8 @@ const WeekPageLoading: React.FC = () => (
 const WeekPage: React.FC = () => {
   // Consumiamo lo stato centralizzato e tipizzato dal nostro custom hook esterno
   const { state, data, moodBoard, handlers, goals } = useWeekPageLogic();
+  const { openTaskForm } = useTaskModals();
+  const { openEventForm } = useEventModals();
 
   if (state.isLoading && !state.weekData) {
     return <WeekPageLoading />;
@@ -60,7 +64,8 @@ const WeekPage: React.FC = () => {
 
         <GoalsAndPrioritiesPanel
           goalTitle="Obiettivo della Settimana"
-          prioritiesTitle="3 Priorità Settimanali"
+          placeholder="Qual è il tuo obiettivo per la settimana?"
+          prioritiesTitle="Top 3 Priorità Settimanali"
           dateKey={state.mondayStr}
           goalEntry={goals.goalEntry}
           prioritiesEntries={goals.prioritiesEntries}
@@ -83,6 +88,8 @@ const WeekPage: React.FC = () => {
              onToggleTask={handlers.handleToggleTaskFromGrid}
              onSelectEvent={handlers.handleSelectEvent}
              onSelectTask={handlers.handleSelectTask}
+             onAddEventClick={(dateStr) => openEventForm(null, dateStr ?? null)}
+             onAddTaskClick={(dateStr) => openTaskForm(null, dateStr ?? null)}
            />
         </div>
       </div>

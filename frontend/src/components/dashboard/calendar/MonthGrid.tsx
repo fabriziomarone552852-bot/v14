@@ -21,6 +21,7 @@ export interface CalendarGridItem {
   endTime?: string;
   dateStr?: string;
   endDateStr?: string;
+  originalItem?: CalendarEvent | DbTask;
 }
 
 interface MonthGridProps {
@@ -84,7 +85,8 @@ const MonthGrid: React.FC<MonthGridProps> = ({ state, events, tasks, onDayClick,
             endDateStr: e.endDateStr,
             isMultiDay: !!e.tutto_il_giorno || (!!e.endDateStr && e.endDateStr !== e.dateStr),
             categoryColor: e.categoryColor || '#3B82F6', 
-            done: false
+            done: false,
+            originalItem: e
           });
         }
       }

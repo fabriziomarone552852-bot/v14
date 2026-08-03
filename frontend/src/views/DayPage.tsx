@@ -153,7 +153,8 @@ const DayPage: React.FC = () => {
       <div className="flex-1 max-w-[1200px]">
         <GoalsAndPrioritiesPanel
           goalTitle="Obiettivo del Giorno"
-          prioritiesTitle="Top 3 Priorità"
+          placeholder="Qual è il tuo obiettivo per oggi?"
+          prioritiesTitle="Top 3 Priorità per il Giorno"
           dateKey={targetDateStr}
           goalEntry={dayData?.obiettivi?.[0]}
           prioritiesEntries={dayData?.priorita}
