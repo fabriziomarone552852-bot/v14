@@ -1,5 +1,5 @@
-// src/components/shared/shopping/shoppingItems.utils.ts
 import type { ConfigOption } from '../../../types/shopping';
+import { getLocalTodayStr } from '../../../utils/dateUtils';
 
 export interface ItemFormState {
   shoppingListId: string;
@@ -31,7 +31,7 @@ export const emptyPurchaseForm = (
 ): PurchaseFormState => ({
   supplierId: '',
   price: '',
-  purchaseDate: new Date().toISOString().slice(0, 10),
+  purchaseDate: getLocalTodayStr(),
   currencyId: defaultCurrencyId,
   offerFlagId: '',
 });

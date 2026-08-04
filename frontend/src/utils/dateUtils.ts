@@ -82,7 +82,7 @@ export const formatDateString = (date: Date) => {
   return `${yyyy}-${mm}-${dd}`;
 };
 
-export const getLocalDateString = () => formatDateString(new Date());
+
 
 export const smontaOrario = (timeStr: string) => {
   if (!timeStr || !timeStr.includes(':')) return { ore: '', minuti: '' };
@@ -157,6 +157,9 @@ export const getLocalTodayStr = () => {
     const day = String(d.getDate()).padStart(2, '0');
     return `${year}-${month}-${day}`;
   };
+
+/** @deprecated Use getLocalTodayStr instead */
+export const getLocalDateString = getLocalTodayStr;
 
   export const generateWeeksGrid = (
   firstDayIdx: number, 

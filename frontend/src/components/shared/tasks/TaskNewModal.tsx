@@ -10,10 +10,12 @@ import { useConfirm } from '@/context/ConfirmContext';
 import { CloseIcon, CheckCircleIcon } from '@/components/shared/utils/Icons';
 import TaskTreeSelector from '@/components/shared/utils/TaskTreeSelector';
 import PrioritySelect from '@/components/shared/utils/PrioritySelect';
+import { getLocalTodayStr } from '@/utils/dateUtils';
 import { useCategories } from '@/hooks/useCategories';
 import { useTaskMutations } from '@/hooks/mutations/useTaskMutations';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { useApi } from '@/hooks/useApi';
+import { api } from '@/api/apiService';
+import { FormInput, FormTextarea } from '@/components/shared/form';
 
 interface TaskNewModalProps {
   isOpen: boolean;
@@ -31,7 +33,7 @@ const TaskNewModal: React.FC<TaskNewModalProps> = ({ isOpen, onClose, taskToEdit
   const [isSaving, setIsSaving] = useState(false);
   const { data: dbCategories = [] } = useCategories();
 
-  const api = useApi();
+
   const queryClient = useQueryClient();
 
   const { data: tasks = [] } = useQuery({ 
@@ -47,7 +49,7 @@ const TaskNewModal: React.FC<TaskNewModalProps> = ({ isOpen, onClose, taskToEdit
   const [newTaskForm, setNewTaskForm] = useState({
     titolo: '',
     descrizione: '',
-    data_start: new Date().toISOString().slice(0, 10),
+    data_start: getLocalTodayStr(),
     data_scadenza: '',
     priorita: 'Bassa' as 'Alta' | 'Media' | 'Bassa',
     category: '',
@@ -82,7 +84,7 @@ const TaskNewModal: React.FC<TaskNewModalProps> = ({ isOpen, onClose, taskToEdit
           titolo: taskToEdit.title || '',
           descrizione: taskToEdit.description || '',
           // 1. Usiamo la data grezza. Se manca, proviamo la stringa solo se è ISO, sennò oggi.
-          data_start: rawTask?.data_start || (isIsoDate(taskToEdit.dateStr) ? taskToEdit.dateStr : new Date().toISOString().slice(0, 10)),
+          data_start: rawTask?.data_start || (isIsoDate(taskToEdit.dateStr) ? taskToEdit.dateStr : getLocalTodayStr()),
           // 2. Stessa cosa per la scadenza! Niente più "15 Ago" nel form.
           data_scadenza: rawTask?.data_scadenza || (isIsoDate(taskToEdit.deadline) ? taskToEdit.deadline : ''),
           priorita: taskToEdit.priority || 'Bassa',
@@ -92,7 +94,7 @@ const TaskNewModal: React.FC<TaskNewModalProps> = ({ isOpen, onClose, taskToEdit
         });
         setIsSubtaskPanelOpen(!!taskToEdit.parent_id);
       } else {
-        const defaultDate = initialDate || new Date().toISOString().slice(0, 10);
+        const defaultDate = initialDate || getLocalTodayStr();
         setNewTaskForm({
           titolo: '', 
           descrizione: '', 
@@ -207,15 +209,22 @@ const TaskNewModal: React.FC<TaskNewModalProps> = ({ isOpen, onClose, taskToEdit
         overflowVisible={true}
       >
         <form id="task-form" onSubmit={handleSalvaNuovaTask} className="space-y-4">
-        <div>
-          <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Titolo Task</label>
-          <input type="text" required placeholder="Es. Comprare il pane..." value={newTaskForm.titolo} onChange={(e) => setNewTaskForm({...newTaskForm, titolo: e.target.value})} className="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-blue-500" />
-        </div>
+        <FormInput
+          label="Titolo Task"
+          type="text"
+          required
+          placeholder="Es. Comprare il pane..."
+          value={newTaskForm.titolo}
+          onChange={(e) => setNewTaskForm({...newTaskForm, titolo: e.target.value})}
+        />
 
-        <div>
-          <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Descrizione</label>
-          <textarea placeholder="Aggiungi dettagli..." value={newTaskForm.descrizione} onChange={(e) => setNewTaskForm({...newTaskForm, descrizione: e.target.value})} className="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-blue-500 h-20 resize-none" />
-        </div>
+        <FormTextarea
+          label="Descrizione"
+          placeholder="Aggiungi dettagli..."
+          value={newTaskForm.descrizione}
+          onChange={(e) => setNewTaskForm({...newTaskForm, descrizione: e.target.value})}
+          className="h-20"
+        />
 
         <div className="bg-gray-50 p-3 rounded-xl border border-gray-100">
           <div className="flex items-center gap-2">
@@ -261,10 +270,13 @@ const TaskNewModal: React.FC<TaskNewModalProps> = ({ isOpen, onClose, taskToEdit
             />
           </div>
 
-          <div className="w-full">
-            <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Luogo</label>
-            <input type="text" placeholder="Es. Scrivania..." value={newTaskForm.luogo} onChange={(e) => setNewTaskForm({...newTaskForm, luogo: e.target.value})} className="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-blue-500" />
-          </div>
+            <FormInput
+              label="Luogo"
+              type="text"
+              placeholder="Es. Scrivania..."
+              value={newTaskForm.luogo}
+              onChange={(e) => setNewTaskForm({...newTaskForm, luogo: e.target.value})}
+            />
         </div>
 
         </form>

@@ -1,6 +1,7 @@
 // src/components/tasks/TaskFamilyPanel.tsx
 import React from "react";
 import type { Task, Priorita } from "../../types/tasks"; // se non puoi importare da qui, ti dico dopo come estrarre i tipi
+import type { UITask } from '@/types';
 
 type ToggleFattoFn = (task: Task) => Promise<void> | void;
 
@@ -28,12 +29,13 @@ const TaskFamilyPanel: React.FC<TaskFamilyPanelProps> = ({
   loading,
 }) => {
   const renderFamilyTree = (task: Task): React.ReactNode => {
+    const uiTask = task as unknown as UITask;
     const hasChildren =
-      (task as any).subtasks && Array.isArray((task as any).subtasks)
-        ? (task as any).subtasks.length > 0
+      uiTask.subtasks && Array.isArray(uiTask.subtasks)
+        ? uiTask.subtasks.length > 0
         : false;
 
-    const subtasks: Task[] = hasChildren ? (task as any).subtasks : [];
+    const subtasks: Task[] = hasChildren ? (uiTask.subtasks as unknown as Task[]) : [];
 
     return (
       <li key={task.id} style={{ marginBottom: 4 }}>

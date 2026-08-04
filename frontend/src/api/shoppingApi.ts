@@ -1,5 +1,6 @@
 // src/api/shoppingApi.ts
 import { apiClient } from './client';
+import type { InventoryBatchRow } from '@/types';
 import type {
   ShoppingConfigBundle,
   ShoppingGroup,
@@ -34,7 +35,7 @@ type ShoppingListItemApi = {
   unit_code_name?: string | null;
   notes?: string | null;
   is_purchased: boolean;
-  inventory_batches?: any[]; // FIX: Il backend ora invia i lotti di acquisto
+  inventory_batches?: InventoryBatchRow[]; // FIX: Il backend ora invia i lotti di acquisto
   
   created_at?: string;
   updated_at?: string | null;

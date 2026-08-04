@@ -26,7 +26,7 @@ const ShoppingPage: React.FC = () => {
     listsLoading,
     itemsLoading,
     isInitialLoading,
-  } = useShoppingData() as any;
+  } = useShoppingData();
 
   const unitOptions = config?.unitOptions ?? [];
   const currencyOptions = config?.currencyOptions ?? [];
@@ -36,15 +36,32 @@ const ShoppingPage: React.FC = () => {
 
   const groupVisibilityId = useMemo(() => {
     const opt = listVisibilityOptions.find(
-      (o: any) =>
+      (o: { codeValue?: string; codeName?: string; id?: number }) =>
         o.codeValue?.toLowerCase() === 'group' ||
         o.codeName?.toLowerCase() === 'group'
     );
     return opt?.id ?? null;
   }, [listVisibilityOptions]);
 
+  interface RawShoppingItem {
+    shopping_list_id?: number;
+    shoppingListId?: number;
+    product_name?: string;
+    productName?: string;
+    is_purchased?: boolean;
+    isPurchased?: boolean;
+    unit_id?: number;
+    unitId?: number;
+    unit_code_name?: string;
+    unitCodeName?: string;
+    status_id?: number;
+    statusId?: number;
+    product_id?: number;
+    productId?: number;
+  }
+
   const filteredItems = useMemo<ShoppingListItem[]>(() => {
-    const mappedItems = items.map((item: any) => ({
+    const mappedItems = items.map((item: RawShoppingItem) => ({
       ...item,
       shoppingListId: item.shopping_list_id ?? item.shoppingListId,
       productName: item.product_name ?? item.productName,

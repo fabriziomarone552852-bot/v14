@@ -4,9 +4,17 @@ import { getLocalTodayStr } from '@/utils/dateUtils';
 import { useAgendaWeek } from '@/hooks/useAgendaWeek'; 
 import type { NoteVariant } from '@/types';
 
+export interface DraftNote {
+  id: number;
+  testo: string;
+  data_riferimento: string;
+  tipo: NoteVariant;
+  isNew: boolean;
+}
+
 export const useWeeklyNotesUI = (mondayStr: string, sundayStr: string) => {
   // 1. Spostiamo qui lo State locale delle bozze!
-  const [drafts, setDrafts] = useState<any[]>([]); 
+  const [drafts, setDrafts] = useState<DraftNote[]>([]); 
   
   // 2. Importiamo la mutazione di rete
   const { saveNote } = useAgendaWeek(mondayStr, sundayStr);

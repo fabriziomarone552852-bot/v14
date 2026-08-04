@@ -7,3 +7,4 @@ export * from './habits';
 export * from './sync';
 export * from './ui';
 export * from './monthlyentries';
+export * from './auth';

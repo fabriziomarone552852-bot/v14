@@ -7,6 +7,7 @@ import React, {
 } from 'react';
 import { useShoppingMutations } from '@/hooks/shopping/useShoppingMutations';
 import { useModal } from '@/hooks/useModals';
+import { getLocalTodayStr } from '@/utils/dateUtils';
 
 import type {
   ConfigOption,
@@ -249,7 +250,7 @@ const ShoppingItemsColumn = forwardRef<
     const handleOpenPurchase = (item: ShoppingListItem) => {
       setPurchaseForm({
         ...emptyPurchaseForm(eurCurrencyId),
-        purchaseDate: new Date().toISOString().slice(0, 10),
+        purchaseDate: getLocalTodayStr(),
       });
       purchaseModal.open(item);
     };

@@ -21,7 +21,7 @@ const SmartNoteCard: React.FC<{
   clearNewStatus: () => void;
 }> = ({ nota, isInitiallyEditing, onAutoSave, onDelete, clearNewStatus }) => {
   const [isEditing, setIsEditing] = useState(isInitiallyEditing);
-  const [testoLocal, setTestoLocal] = useState(nota.testo);
+  const [testoLocal, setTestoLocal] = useState(nota.testo ?? '');
   
   const debouncedText = useDebounce(testoLocal, 1000);
   const textareaRef = useAutoResizeTextArea(testoLocal);
@@ -33,6 +33,7 @@ const SmartNoteCard: React.FC<{
   const styles = NOTE_STYLES[safeVariant];
 
   useEffect(() => {
+    if (debouncedText == null) return;
     if (debouncedText !== nota.testo) {
       if (debouncedText.trim() === "") {
         onDelete(nota.id, nota.isNew);
@@ -45,10 +46,11 @@ const SmartNoteCard: React.FC<{
 
   const handleBlur = () => {
     setIsEditing(false);
-    if (testoLocal.trim() === "") {
+    const text = testoLocal ?? '';
+    if (text.trim() === "") {
       onDelete(nota.id, nota.isNew);
-    } else if (testoLocal !== nota.testo) {
-      onAutoSave(nota.id, testoLocal, safeVariant, nota.isNew);
+    } else if (text !== nota.testo) {
+      onAutoSave(nota.id, text, safeVariant, nota.isNew);
       clearNewStatus();
     }
   };

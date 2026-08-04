@@ -64,7 +64,7 @@ export const MoodEventCard: React.FC<MoodEventCardProps> = ({
         <div className="w-full flex flex-col items-center justify-center min-w-0 flex-1">
           {isEditing ? (
             <AutoExpandingTextarea 
-              initialValue={ev.testo}
+              initialValue={ev.testo ?? ''}
               onBlur={(e) => handleSave(e.target.value)} 
               onKeyDown={(e) => {
                 if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSave(e.currentTarget.value); }

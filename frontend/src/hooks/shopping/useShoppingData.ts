@@ -3,6 +3,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 
 import {
   fetchShoppingConfig,
+  fetchShoppingGroups,
   fetchShoppingListItems,
   fetchShoppingLists,
   fetchShoppingProducts,
@@ -12,6 +13,7 @@ import {
 
 import type {
   ShoppingConfigBundle,
+  ShoppingGroup,
   ShoppingListItem,
   ShoppingListSummary,
   ShoppingProductOption,
@@ -51,6 +53,13 @@ export const useShoppingData = (): UseShoppingDataResult => {
     gcTime: 30 * 60_000,
   });
 
+  const groupsQuery = useQuery<ShoppingGroup[]>({
+    queryKey: shoppingQueryKeys.groups(),
+    queryFn: ({ signal }) => fetchShoppingGroups(signal),
+    staleTime: 10 * 60_000,
+    gcTime: 30 * 60_000,
+  });
+
   const resolvedActiveListId = useMemo(() => {
     const lists = listsQuery.data ?? [];
     if (lists.length === 0) return null;
@@ -81,6 +90,7 @@ export const useShoppingData = (): UseShoppingDataResult => {
   const items = itemsQuery.data ?? [];
   const suppliers = suppliersQuery.data ?? [];
   const products = productsQuery.data ?? [];
+  const groups = groupsQuery.data ?? [];
   const config = configQuery.data ?? null;
 
   const activeList = useMemo(
@@ -124,6 +134,7 @@ export const useShoppingData = (): UseShoppingDataResult => {
 
   return {
     lists,
+    groups,
     activeListId: resolvedActiveListId,
     activeList,
     items,

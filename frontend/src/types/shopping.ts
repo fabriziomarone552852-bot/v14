@@ -276,6 +276,7 @@ export interface UpdateShoppingPriceArgs {
 
 export interface UseShoppingDataResult {
   lists: ShoppingListSummary[];
+  groups: ShoppingGroup[];
   activeListId: number | null;
   activeList: ShoppingListSummary | null;
   items: ShoppingListItem[];
@@ -342,12 +343,24 @@ export interface UseShoppingMutationsResult {
   deletePrice: (priceId: number) => Promise<void>;
 }
 
+export interface InventoryBatchCreatePayload {
+  supplierId?: number | null;
+  quantity?: number | null;
+  unitId?: number | null;
+  purchasePrice: number;
+  currencyId?: number | null;
+  offerFlagId?: number | null;
+  purchaseDate: string;
+  expirationDate?: string | null;
+}
+
 export interface AddInventoryBatchArgs {
   itemId: number;
   listId: number;
   data: InventoryBatchCreatePayload;
-  
-  export interface DeleteInventoryBatchArgs {
+}
+
+export interface DeleteInventoryBatchArgs {
   batchId: number;
   listId: number;
 }

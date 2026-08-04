@@ -1,5 +1,6 @@
 // frontend/src/utils/taskUtils.ts
 import type { DbTask, TaskSummary, UITask } from '@/types';
+import { getLocalTodayStr, formatDateString } from '@/utils/dateUtils';
 
 // 2. MAPPATURA SINGOLA SICURA
 export const mapTaskToSummary = (
@@ -183,12 +184,6 @@ export const buildTaskTreeForDay = (
 ): UITask[] => {
   if (!flatTasks || !Array.isArray(flatTasks) || flatTasks.length === 0) return [];
 
-  const getLocalTodayStr = () => {
-    const d = new Date();
-    const offset = d.getTimezoneOffset() * 60000;
-    return new Date(d.getTime() - offset).toISOString().substring(0, 10);
-  };
-
   const todayStr = getLocalTodayStr();
   const isPastDay = targetDateStr < todayStr;
 
@@ -337,7 +332,7 @@ const getLocalDateStr = (isoString?: string | null): string => {
   // Se per caso la data non è valida, facciamo un fallback sicuro
   if (isNaN(d.getTime())) return isoString.substring(0, 10); 
   const offset = d.getTimezoneOffset() * 60000;
-  return new Date(d.getTime() - offset).toISOString().substring(0, 10);
+  return formatDateString(new Date(d.getTime() - offset));
 };
 
 // 4.3. FILTRAGGIO PER MODALITÀ "CON DATA" VS "SENZA DATA"

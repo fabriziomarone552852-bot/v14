@@ -18,7 +18,7 @@ export interface MonthCacheData extends SyncMonthResponse {
 }
 
 export const useAgendaMonth = (startStr: string, endStr: string) => {
-  const queryKey = ['monthSync', startStr];
+  const queryKey = ['monthSync', startStr, endStr];
 
   const taskMutations = useTaskMutations(['tasks']);
   
@@ -50,6 +50,8 @@ export const useAgendaMonth = (startStr: string, endStr: string) => {
       };
     },
     staleTime: 5 * 60 * 1000,
+    gcTime: 30 * 60 * 1000,
+    placeholderData: (previousData) => previousData,
   });
 
   return {

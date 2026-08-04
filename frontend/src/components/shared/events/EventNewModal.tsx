@@ -13,6 +13,7 @@ import { RecurrenceEditor } from '@/components/shared/utils/RecurrenceEditor';
 import { useCategories } from '@/hooks/useCategories';
 import { useEventMutations } from '@/hooks/mutations/useEventMutations';
 import TimeInput from '@/components/shared/utils/TimeInput';
+import { FormInput, FormTextarea } from '@/components/shared/form';
 
 interface NewEventModalProps {
   isOpen: boolean;
@@ -227,35 +228,26 @@ const NewEventModal: React.FC<NewEventModalProps> = ({
         onSubmit={handleSalvaNuovoEvento}
         className="space-y-4"
       >
-        <div>
-          <label className="block text-xs font-bold text-gray-500 uppercase mb-1">
-            Titolo Evento
-          </label>
-          <input
-            type="text"
-            required
-            placeholder="Es. Visita Medica, Riunione..."
-            value={newEventForm.titolo}
-            onChange={(e) =>
-              setNewEventForm({ ...newEventForm, titolo: e.target.value })
-            }
-            className="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-blue-500"
-          />
-        </div>
+        <FormInput
+          label="Titolo Evento"
+          type="text"
+          required
+          placeholder="Es. Visita Medica, Riunione..."
+          value={newEventForm.titolo}
+          onChange={(e) =>
+            setNewEventForm({ ...newEventForm, titolo: e.target.value })
+          }
+        />
 
-        <div>
-          <label className="block text-xs font-bold text-gray-500 uppercase mb-1">
-            Descrizione
-          </label>
-          <textarea
-            placeholder="Aggiungi dettagli..."
-            value={newEventForm.descrizione}
-            onChange={(e) =>
-              setNewEventForm({ ...newEventForm, descrizione: e.target.value })
-            }
-            className="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-blue-500 h-20 resize-none"
-          />
-        </div>
+        <FormTextarea
+          label="Descrizione"
+          placeholder="Aggiungi dettagli..."
+          value={newEventForm.descrizione}
+          onChange={(e) =>
+            setNewEventForm({ ...newEventForm, descrizione: e.target.value })
+          }
+          className="h-20"
+        />
 
         <div className="bg-gray-50 p-3 rounded-xl border border-gray-100">
           <div className="flex items-center gap-2">
@@ -385,17 +377,14 @@ const NewEventModal: React.FC<NewEventModalProps> = ({
           </div>
 
           <div className="w-full">
-            <label className="block text-xs font-bold text-gray-500 uppercase mb-1">
-              Luogo
-            </label>
-            <input
+            <FormInput
+              label="Luogo"
               type="text"
               placeholder="Es. Ufficio, Roma..."
               value={newEventForm.luogo}
               onChange={(e) =>
                 setNewEventForm({ ...newEventForm, luogo: e.target.value })
               }
-              className="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-blue-500"
             />
           </div>
         </div>

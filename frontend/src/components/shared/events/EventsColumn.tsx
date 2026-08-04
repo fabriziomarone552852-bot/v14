@@ -4,8 +4,9 @@ import type { CalendarEvent } from '@/types';
 import { TruncatedTitle } from '@/components/shared/utils/TruncatedTitle';
 import { Pagination } from '@/components/shared/utils/Pagination';
 import { EmptyState } from '@/components/shared/utils/EmptyState';
-import { AddButton } from '@/components/shared/utils/AddButton';
 import { ArrowDownIcon } from '@/components/shared/utils/Icons';
+import { AddButton } from '@/components/shared/utils/AddButton';
+import { formatDateString } from '@/utils/dateUtils';
 
 import { useAutoFitPagination } from '@/hooks/useAutoFitPagination';
 
@@ -18,7 +19,7 @@ interface EventsColumnProps {
 
 const getFormattedDateString = (date: Date) => {
   const offset = date.getTimezoneOffset() * 60000;
-  return new Date(date.getTime() - offset).toISOString().substring(0, 10);
+  return formatDateString(new Date(date.getTime() - offset));
 };
 
 const EventsColumn: React.FC<EventsColumnProps> = ({ events, selectedDate, onSelectEvent, onAddEventClick }) => {

@@ -52,7 +52,10 @@ export const useAgendaDay = (dateStr: string) => {
           logs: h.logs ?? []        
         }))
       };
-    }
+    },
+    staleTime: 5 * 60 * 1000,
+    gcTime: 30 * 60 * 1000,
+    placeholderData: (previousData) => previousData,
   });
 
   // --- COUNTDOWN ---

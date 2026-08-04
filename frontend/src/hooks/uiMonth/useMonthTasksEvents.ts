@@ -5,6 +5,7 @@ import { useEventModals } from '@/context/EventModalContext';
 import { mapDbEventsToCalendarEvents } from '@/utils/eventUtils';
 // 🪄 Importiamo la funzione per costruire l'albero e il tipo corretto
 import { buildTaskTreeForMonth } from '@/utils/taskUtils'; 
+import { formatDateString } from '@/utils/dateUtils'; 
 import type { DbTask, CalendarEvent, UITask } from '@/types';
 import type { SyncMonthResponse } from '@/types';
 
@@ -19,8 +20,8 @@ export const useMonthTasksEvents = (
   const { openTaskDetail } = useTaskModals(); 
   const { openEventDetail } = useEventModals();
 
-  const firstDayStr = useMemo(() => firstDay.toISOString().substring(0, 10), [firstDay]);
-  const lastDayStr = useMemo(() => lastDay.toISOString().substring(0, 10), [lastDay]);
+  const firstDayStr = useMemo(() => formatDateString(firstDay), [firstDay]);
+  const lastDayStr = useMemo(() => formatDateString(lastDay), [lastDay]);
 
   const filteredTasks = useMemo((): DbTask[] => {
     if (!monthData?.tasks) return [];

@@ -1,6 +1,7 @@
 // src/components/shared/shopping/ShoppingBulkPurchasePanel.tsx
 import React, { useEffect, useId, useMemo, useState } from 'react';
 import { useShoppingMutations } from '../../../hooks/shopping/useShoppingMutations';
+import { getLocalTodayStr } from '../../../utils/dateUtils';
 import type {
   ConfigOption,
   ShoppingListItem,
@@ -219,7 +220,7 @@ const ShoppingBulkPurchasePanel: React.FC<ShoppingBulkPurchasePanelProps> = ({
     [currencyOptions]
   );
 
-  const today = useMemo(() => new Date().toISOString().slice(0, 10), []);
+  const today = getLocalTodayStr();
 
   const openItems = useMemo(
     () => items.filter((item) => !item.isPurchased),

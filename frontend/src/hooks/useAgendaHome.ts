@@ -26,7 +26,9 @@ export const useAgendaHome = (currentMonth: Date) => {
       if (!data) return [];
       return Array.isArray(data) ? data : (data?.items ?? []);
     },
-    placeholderData: keepPreviousData
+    placeholderData: keepPreviousData,
+    staleTime: 5 * 60 * 1000,
+    gcTime: 30 * 60 * 1000
   });
 
   // 2. QUERY DEGLI EVENTI DI OGGI (Per avere sempre il giorno corrente ultra-aggiornato)

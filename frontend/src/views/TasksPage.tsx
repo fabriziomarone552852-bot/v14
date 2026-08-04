@@ -3,6 +3,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { apiUrl } from '@/api/client';
 import { useAuth } from '@/context/AuthContext';
 import { useDebounce } from '@/hooks/useDebounce';
+import { getLocalTodayStr } from '@/utils/dateUtils';
 import TaskFamilyPanel from '@/components/tasks/TaskFamilyPanel';
 import TaskFilters from '@/components/tasks/TaskFilters';
 import TaskCreateForm from '@/components/tasks/TaskCreateForm';
@@ -21,7 +22,7 @@ interface LocationState {
   createdCategory?: Category;
 }
 
-const todayString = () => new Date().toISOString().slice(0, 10);
+const todayString = getLocalTodayStr;
 const normalizeDate = (value: string | null | undefined) => (value ? value.slice(0, 10) : '');
 
 const makeEmptyTaskForm = (defaultCategoryId: string = ''): TaskCreateFormState => ({

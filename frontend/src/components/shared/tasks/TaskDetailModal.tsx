@@ -7,7 +7,7 @@ import { Badge } from '@/components/shared/utils/Badges';
 import { TrashIcon, EditIcon, LocationIcon } from '@/components/shared/utils/Icons';
 import { useTaskMutations } from '@/hooks/mutations/useTaskMutations';
 import { useQuery } from '@tanstack/react-query';
-import { useApi } from '@/hooks/useApi';
+import { api } from '@/api/apiService';
 import { useAuth } from '@/context/AuthContext';
 import { TaskTreeNode } from '../utils/TaskTreeNode';
 import { buildTaskTree } from '@/utils/taskUtils';
@@ -30,7 +30,7 @@ const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
   isOpen, onClose, selectedTask, onToggleTask, onSelectTask, onEditClick, onAddSubtask, onTaskDeleted
 }) => {
   const { toggleTask, deleteTask } = useTaskMutations(['tasks']);
-  const api = useApi();
+
   const { confirm } = useConfirm();
   const { user } = useAuth();
 
@@ -39,7 +39,7 @@ const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
   const { data: tasks = [] } = useQuery({ 
     queryKey: ['tasks'], 
     queryFn: async () => {
-      const data = await api.get('/tasks');
+      const data = await api.get<DbTask[] | { items: DbTask[] }>('/tasks');
       return Array.isArray(data) ? data : (data?.items || []);
     }
   });

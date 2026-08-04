@@ -4,7 +4,7 @@ import { Pagination } from '@/components/shared/utils/Pagination';
 import { EmptyState } from '@/components/shared/utils/EmptyState';
 import { AddButton } from '@/components/shared/utils/AddButton';
 import { filterAndSortTree, filterTreeByDeadlineMode } from '@/utils/taskUtils';
-import { formatToItalianShortDate, getLocalTodayStr } from '@/utils/dateUtils';
+import { formatToItalianShortDate, getLocalTodayStr, formatDateString } from '@/utils/dateUtils';
 import { useAutoFitPagination } from '@/hooks/useAutoFitPagination';
 import { CalendarIcon, CalendarXIcon, SwitchIcon } from '@/components/shared/utils/Icons';
 import type { UITask, TaskSummary } from '@/types';
@@ -40,7 +40,7 @@ const TaskColumn: React.FC<TaskColumnProps> = ({
   }, [tasks, showWithDeadline]);
 
   const refDateStr = selectedDate 
-    ? new Date(selectedDate.getTime() - selectedDate.getTimezoneOffset() * 60000).toISOString().substring(0, 10)
+    ? formatDateString(new Date(selectedDate.getTime() - selectedDate.getTimezoneOffset() * 60000))
     : getLocalTodayStr();
     const isPastDay = selectedDate ? refDateStr < getLocalTodayStr() : false;
 

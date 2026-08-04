@@ -15,7 +15,7 @@ export interface SaveWeeklyEntryPayload {
 }
 
 export const useAgendaWeek = (mondayStr: string, sundayStr: string) => {
-  const queryKey = ['weekSync', mondayStr];
+  const queryKey = ['weekSync', mondayStr, sundayStr];
 
   const taskMutations = useTaskMutations(['tasks']);
   const noteMutations = useNoteMutations<SyncWeekResponse>(queryKey);
@@ -45,6 +45,8 @@ export const useAgendaWeek = (mondayStr: string, sundayStr: string) => {
       };
     },
     staleTime: 5 * 60 * 1000,
+    gcTime: 30 * 60 * 1000,
+    placeholderData: (previousData) => previousData,
   });
 
   return {

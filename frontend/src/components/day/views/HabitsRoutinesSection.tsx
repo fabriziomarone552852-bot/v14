@@ -8,6 +8,7 @@ import RoutineDetailModal from '@/components/day/RoutineDetailModal';
 import { useModal } from '@/hooks/useModals';
 import { useRoutineManager } from '@/hooks/useRoutineManager';
 import type { SaveHabitPayload } from '@/types';
+import { getLocalTodayStr } from '@/utils/dateUtils';
 
 export interface SaveHabitData {
   titolo?: string;
@@ -127,7 +128,7 @@ export const HabitsRoutinesSection: React.FC<HabitsRoutinesSectionProps> = ({
               tipo: 'H', 
               immagine_url: newHabit.immagine_url, 
               rrule: 'FREQ=DAILY;INTERVAL=1', 
-              data_inizio: new Date().toISOString().substring(0, 10), 
+              data_inizio: getLocalTodayStr(),
               target_completamenti: 1 
             }
           });

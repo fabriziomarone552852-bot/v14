@@ -1,5 +1,7 @@
 import { useMutation, useQueryClient, type QueryKey } from '@tanstack/react-query';
 import { api } from '@/api/apiService';
+import { updateAllSyncCaches } from '@/utils/cacheUtils';
+import { invalidateAllViewsAndEvents } from '@/utils/queryUtils';
 import type { DbEvent } from '@/types';
 import type { EventDeletePayload } from '@/components/shared/events/EventDetailModal';
 
@@ -71,9 +73,7 @@ export function useEventMutations<T extends CacheWithEvents>(queryKey: QueryKey)
         return { ...oldData, events: newEvents } as C;
       };
 
-      queryClient.setQueriesData<EventCacheData>({ queryKey: ['daySync'] }, updateGlobalCache);
-      queryClient.setQueriesData<EventCacheData>({ queryKey: ['weekSync'] }, updateGlobalCache);
-      queryClient.setQueriesData<EventCacheData>({ queryKey: ['monthSync'] }, updateGlobalCache);
+      updateAllSyncCaches<EventCacheData>(queryClient, updateGlobalCache);
 
       return { tempId };
     },
@@ -95,15 +95,12 @@ export function useEventMutations<T extends CacheWithEvents>(queryKey: QueryKey)
           return { ...oldData, events: newEvents } as C;
         };
         
-        queryClient.setQueriesData<EventCacheData>({ queryKey: ['daySync'] }, swapId);
-        queryClient.setQueriesData<EventCacheData>({ queryKey: ['weekSync'] }, swapId);
-        queryClient.setQueriesData<EventCacheData>({ queryKey: ['monthSync'] }, swapId);
+        updateAllSyncCaches<EventCacheData>(queryClient, swapId);
       }
     },
 
     onSettled: () => {
-      queryClient.invalidateQueries({ predicate: (query) => ['daySync', 'weekSync', 'monthSync'].includes(query.queryKey[0] as string) });
-      queryClient.invalidateQueries({ queryKey: ['events'] });
+      invalidateAllViewsAndEvents(queryClient);
     }
   });
 
@@ -135,8 +132,7 @@ export function useEventMutations<T extends CacheWithEvents>(queryKey: QueryKey)
       if (context?.previousData) queryClient.setQueryData(queryKey, context.previousData);
     },
     onSettled: () => {
-      queryClient.invalidateQueries({ predicate: (query) => ['daySync', 'weekSync', 'monthSync'].includes(query.queryKey[0] as string) });
-      queryClient.invalidateQueries({ queryKey: ['events'] });
+      invalidateAllViewsAndEvents(queryClient);
     }
   });
 
@@ -206,17 +202,13 @@ export function useEventMutations<T extends CacheWithEvents>(queryKey: QueryKey)
     },
 
     onSettled: () => {
-      queryClient.invalidateQueries({ 
-        predicate: (query) => ['events', 'daySync', 'weekSync', 'monthSync'].includes(query.queryKey[0] as string) 
-      });
+      invalidateAllViewsAndEvents(queryClient);
     },
     
     onError: (error) => {
       console.error("Errore durante l'eliminazione dell'evento:", error);
       alert("Si è verificato un errore durante l'eliminazione.");
-      queryClient.invalidateQueries({ 
-        predicate: (query) => ['events', 'daySync', 'weekSync', 'monthSync'].includes(query.queryKey[0] as string) 
-      });
+      invalidateAllViewsAndEvents(queryClient);
     }
   });
 

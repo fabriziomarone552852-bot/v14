@@ -3,6 +3,7 @@ import { useState } from 'react';
 import type { RoutineItem } from '@/components/day/RoutineColumn';
 import type { RoutineSavePayload } from '@/components/day/RoutineNewModal';
 import type { SaveHabitPayload } from '@/types';
+import { formatDateString } from '@/utils/dateUtils';
 
 interface UseRoutineManagerProps {
   targetDateStr: string;
@@ -38,7 +39,7 @@ export const useRoutineManager = ({
     suspendRoutine({ 
       habitId: routine.id, 
       periodId: sortedPeriods[0].id, 
-      endDate: ieri.toISOString().substring(0, 10) 
+      endDate: formatDateString(ieri)
     });
   };
 

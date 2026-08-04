@@ -2,8 +2,8 @@
 import type {
   CatalogOption,
   ItemFormState,
-  PurchaseFormState,
 } from '../../../types/shopping';
+import { getLocalTodayStr } from '../../../utils/dateUtils';
 
 export const emptyItemForm = (shoppingListId = ''): ItemFormState => ({
   shopping_list_id: shoppingListId,
@@ -17,7 +17,7 @@ export const emptyItemForm = (shoppingListId = ''): ItemFormState => ({
 export const emptyPurchaseForm = (defaultCurrencyId = ''): PurchaseFormState => ({
   supplier_id: '',
   price: '',
-  purchase_date: new Date().toISOString().slice(0, 10),
+  purchase_date: getLocalTodayStr(),
   currency_id: defaultCurrencyId,
   offer_flag_id: '',
 });
