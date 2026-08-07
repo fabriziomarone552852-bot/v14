@@ -10,26 +10,38 @@ interface AuthContextValue {
   loading: boolean;
   error: string | null;
   isAuthenticated: boolean;
+  /** true se il token corrente ha scope "password_change" */
+  mustChangePassword: boolean;
   login: (username: string, password: string) => Promise<void>;
   register: (username: string, email: string, password: string) => Promise<void>;
   logout: () => void;
   clearError: () => void;
+  /**
+   * Chiama POST /auth/change-password-required con il token password_change.
+   * In caso di successo aggiorna i token con quelli "normali" restituiti dal server.
+   */
+  changePassword: (currentPassword: string, newPassword: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [token, setToken] = useState<string | null>(() => localStorage.getItem('token'));
-  
+
   const [user, setUser] = useState<UserResponse | null>(() => {
     const savedUser = localStorage.getItem('user');
     return savedUser ? JSON.parse(savedUser) : null;
   });
 
+  const [mustChangePassword, setMustChangePassword] = useState<boolean>(
+    () => localStorage.getItem('mustChangePassword') === 'true'
+  );
+
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const isAuthenticated = !!token;
+  // L'utente è "autenticato" solo se ha un token con scope normale (non password_change)
+  const isAuthenticated = !!token && !mustChangePassword;
 
   const persistTokens = (accessToken: string | null, refToken: string | null) => {
     setToken(accessToken);
@@ -51,11 +63,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const persistMustChangePassword = (value: boolean) => {
+    setMustChangePassword(value);
+    if (value) {
+      localStorage.setItem('mustChangePassword', 'true');
+    } else {
+      localStorage.removeItem('mustChangePassword');
+    }
+  };
+
   const clearError = () => setError(null);
 
   const logout = useCallback(() => {
     persistTokens(null, null);
     persistUser(null);
+    persistMustChangePassword(false);
     clearError();
 
     if (window.location.pathname !== '/login') {
@@ -81,34 +103,43 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       body.append('username', normalizedUsername);
       body.append('password', password);
 
-      // 1. Chiamata Axios BASE per il login (Senza interceptor, prende solo i Token)
+      // Chiamata Axios BASE (senza interceptor) per il login
       const res = await axios.post<TokenResponse>(apiUrl('/auth/login'), body, {
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       });
 
       const tokenData = res.data;
-      
-      // ⚠️ IMPORTANTE: Questo salva i token in localStorage in modo SINCRONO
+
+      // ⚠️ Salva il token (anche se è un password_change token)
       persistTokens(tokenData.access_token, tokenData.refresh_token ?? null);
 
-      // 2. Chiamata con IL TUO apiClient per ottenere i dati dell'utente
-      // Non c'è più bisogno di apiUrl() né di passare l'Authorization header a mano!
-      const userRes = await apiClient.get<UserResponse>('/users/me');
-      
-      persistUser(userRes.data);
+      // Rileva se l'utente deve cambiare la password
+      const needsPasswordChange =
+        tokenData.must_change_password === true ||
+        tokenData.access_scope === 'password_change';
 
-    } catch (e: unknown) { 
+      persistMustChangePassword(needsPasswordChange);
+
+      if (!needsPasswordChange) {
+        // Flusso normale: recupera i dati utente
+        const userRes = await apiClient.get<UserResponse>('/users/me');
+        persistUser(userRes.data);
+      }
+      // Se needsPasswordChange, il redirect viene gestito dall'AppRouter
+
+    } catch (e: unknown) {
       let msg = 'Errore di login';
-      
+
       if (axios.isAxiosError(e)) {
         msg = e.response?.data?.detail || e.message || 'Errore del server';
       } else if (e instanceof Error) {
         msg = e.message;
       }
-      
+
       setError(msg);
       persistTokens(null, null);
       persistUser(null);
+      persistMustChangePassword(false);
       throw e;
     } finally {
       setLoading(false);
@@ -122,23 +153,59 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const normalizedUsername = username.trim().toLowerCase();
       const normalizedEmail = email.trim().toLowerCase();
 
-      await axios.post(apiUrl('/auth/register'), { 
-        username: normalizedUsername, 
-        email: normalizedEmail, 
-        password 
+      await axios.post(apiUrl('/auth/register'), {
+        username: normalizedUsername,
+        email: normalizedEmail,
+        password,
       });
 
-      // Login automatico dopo la registrazione!
+      // Login automatico dopo la registrazione
       await login(normalizedUsername, password);
-    } catch (e: unknown) { // 🪄 TYPE NARROWING PERFETTO ANCHE QUI
+    } catch (e: unknown) {
       let msg = 'Errore di registrazione';
-      
+
       if (axios.isAxiosError(e)) {
         msg = e.response?.data?.detail || e.message || 'Errore del server';
       } else if (e instanceof Error) {
         msg = e.message;
       }
-      
+
+      setError(msg);
+      throw e;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const changePassword = async (currentPassword: string, newPassword: string) => {
+    setLoading(true);
+    clearError();
+    try {
+      // Il token corrente è il password_change token, già nel localStorage
+      const res = await apiClient.post<TokenResponse>('/auth/change-password-required', {
+        current_password: currentPassword,
+        new_password: newPassword,
+      });
+
+      const tokenData = res.data;
+
+      // Salva i nuovi token "normali"
+      persistTokens(tokenData.access_token, tokenData.refresh_token ?? null);
+      persistMustChangePassword(false);
+
+      // Recupera i dati utente con il nuovo token normale
+      const userRes = await apiClient.get<UserResponse>('/users/me');
+      persistUser(userRes.data);
+
+    } catch (e: unknown) {
+      let msg = 'Errore nel cambio password';
+
+      if (axios.isAxiosError(e)) {
+        msg = e.response?.data?.detail || e.message || 'Errore del server';
+      } else if (e instanceof Error) {
+        msg = e.message;
+      }
+
       setError(msg);
       throw e;
     } finally {
@@ -147,7 +214,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const value: AuthContextValue = {
-    token, user, loading, error, isAuthenticated, login, register, logout, clearError,
+    token,
+    user,
+    loading,
+    error,
+    isAuthenticated,
+    mustChangePassword,
+    login,
+    register,
+    logout,
+    clearError,
+    changePassword,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

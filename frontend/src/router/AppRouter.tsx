@@ -14,13 +14,26 @@ import CategoriesPage from '@/views/CategoriesPage';
 import CategoryEditPage from '@/views/CategoryEditPage';
 import UserSettingsPage from '@/views/UserSettingsPage';
 import LoginScreen from '@/views/LoginScreen';
+import PasswordChangeScreen from '@/views/PasswordChangeScreen';
 import ShoppingPage from '@/pages/ShoppingPage';
 
 // Layout
 import AppShellLayout from '@/components/AppShellLayout';
 
 const AppRouter: React.FC = () => {
-  const { isAuthenticated, logout } = useAuth();
+  const { isAuthenticated, mustChangePassword, logout } = useAuth();
+
+  // Priorità 1: cambio password obbligatorio
+  if (mustChangePassword) {
+    return (
+      <BrowserRouter>
+        <Routes>
+          <Route path="/change-password" element={<PasswordChangeScreen />} />
+          <Route path="*" element={<Navigate to="/change-password" replace />} />
+        </Routes>
+      </BrowserRouter>
+    );
+  }
 
   return (
     <BrowserRouter>
