@@ -126,3 +126,16 @@ class SystemBootRepository:
                 "notes": notes,
             },
         )
+
+    def update_superuser_in_system_metadata(self, user_id: int) -> None:
+        self.db.execute(
+            text(
+                """
+                UPDATE system_metadata
+                SET initialized_by_user_id = :user_id,
+                    updated_at = NOW()
+                WHERE id = 1
+                """
+            ),
+            {"user_id": user_id},
+        )

@@ -284,6 +284,8 @@ class SystemBootService:
         self.db.refresh(user)
         seed_default_user_categories_for_user(self.db, user.id)
         seed_default_shopping_suppliers_for_user(self.db, user.id)
+        self.repo.update_superuser_in_system_metadata(user.id)
+        self.db.commit()
 
         return SuperUserBootstrapResponse(
             status="ok",
