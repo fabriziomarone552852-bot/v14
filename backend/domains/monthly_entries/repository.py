@@ -34,6 +34,15 @@ def create_feeling(db: Session, feeling: MonthlyFeeling) -> MonthlyFeeling:
     return feeling
 
 
+def bulk_create_feelings_if_missing(db: Session, feelings: List[dict]) -> None:
+    for feeling in feelings:
+        feel_name = feeling["feel_name"].strip()
+        existing = get_feeling_by_name(db, feel_name)
+        if existing is None:
+            db.add(MonthlyFeeling(feel_name=feel_name))
+    db.commit()
+
+
 def update_feeling(db: Session, feeling: MonthlyFeeling) -> MonthlyFeeling:
     db.commit()
     db.refresh(feeling)

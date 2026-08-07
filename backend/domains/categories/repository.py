@@ -88,3 +88,23 @@ def delete_user_category(db: Session, user_category: UserCategory) -> None:
     """Elimina una categoria utente."""
     db.delete(user_category)
     db.commit()
+
+
+def bulk_create_user_categories_if_missing(db: Session, user_id: int, templates: List[dict]) -> None:
+    """Inserisce le categorie di default per l'utente in modo idempotente."""
+    for template in templates:
+        existing = get_user_category_by_name(db, template["category_name"], user_id)
+        if existing:
+            existing.colore = template["colore"]
+            existing.genre = template["genre"]
+            continue
+
+        obj = UserCategory(
+            user_id=user_id,
+            category_name=template["category_name"],
+            colore=template["colore"],
+            genre=template["genre"],
+        )
+        db.add(obj)
+
+    db.commit()

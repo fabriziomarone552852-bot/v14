@@ -715,3 +715,25 @@ def delete(db: Session, obj) -> None:
         db.delete(obj)
 
     db.commit()
+
+
+def get_supplier_by_normalized_name(db: Session, name_normalized: str) -> Optional[ShoppingSupplier]:
+    return (
+        db.query(ShoppingSupplier)
+        .filter(ShoppingSupplier.name_normalized == name_normalized)
+        .first()
+    )
+
+
+def bulk_create_suppliers_if_missing(db: Session, supplier_names: List[str]) -> None:
+    for supplier_name in supplier_names:
+        normalized = normalize_name(supplier_name)
+        existing = get_supplier_by_normalized_name(db, normalized)
+        if existing is None:
+            db.add(
+                ShoppingSupplier(
+                    name=supplier_name,
+                    name_normalized=normalized,
+                )
+            )
+    db.commit()

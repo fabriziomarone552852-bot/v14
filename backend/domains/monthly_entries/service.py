@@ -6,10 +6,33 @@ from fastapi import HTTPException, status
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
+from backend.core.seeders import register_seeder
 from backend.domains.monthly_entries import repository as repo
 from backend.domains.monthly_entries import schemas
 from backend.domains.monthly_entries.models import MonthlyEntry, MonthlyFeeling
 from backend.domains.users.models import User
+
+DEFAULT_MONTHLY_FEELINGS = [
+    {"feel_name": "Gioia"},
+    {"feel_name": "Tristezza"},
+    {"feel_name": "Rabbia"},
+    {"feel_name": "Disgusto"},
+    {"feel_name": "Paura"},
+    {"feel_name": "Famiglia"},
+    {"feel_name": "Coppia"},
+    {"feel_name": "Salute"},
+    {"feel_name": "Mente"},
+    {"feel_name": "Amici"},
+    {"feel_name": "Finanze"},
+    {"feel_name": "Divertimento"},
+    {"feel_name": "Lavoro"},
+]
+
+
+@register_seeder
+def seed_default_monthly_feelings(db: Session) -> None:
+    """Popola i sentimenti/emozioni mensili di default se assenti."""
+    repo.bulk_create_feelings_if_missing(db, DEFAULT_MONTHLY_FEELINGS)
 
 
 def _validate_monthly_year_month(year: int, month: int) -> None:

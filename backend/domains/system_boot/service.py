@@ -3,11 +3,19 @@ from sqlalchemy import func, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
+from backend.core.database import Base
 from backend.core.deps import get_password_hash
+from backend.core.models import import_all_models
+from backend.core.seeders import run_all_system_seeders
 from backend.domains.categories.service import seed_default_user_categories_for_user
 from backend.domains.users.models import User
 
+import backend.domains.config.service  # noqa: F401
+import backend.domains.monthly_entries.service  # noqa: F401
+import backend.domains.shopping.service  # noqa: F401
+
 from .checks import SystemBootChecks
+from .migrations import run_alembic_upgrade
 from .constants import (
     BOOT_STATUS_EMPTY,
     BOOT_STATUS_ERROR,
@@ -144,6 +152,7 @@ class SystemBootService:
         payload: BootMetadataInitRequest,
     ) -> BootMetadataInitResponse:
         try:
+            run_alembic_upgrade()
             self.repo.create_system_metadata_table()
             self.repo.insert_initial_system_metadata(
                 environment=payload.environment,
@@ -163,12 +172,35 @@ class SystemBootService:
         )
 
     def run_bootstrap(self, payload: BootInitRequest) -> BootRunResponse:
+        try:
+            import_all_models()
+            Base.metadata.create_all(bind=self.db.get_bind())
+            run_alembic_upgrade()
+
+            # Attiva la registrazione dei seeder
+            import backend.core.bootstrap_seeders  # noqa: F401
+
+            run_all_system_seeders(self.db)
+
+            self.repo.create_system_metadata_table()
+            if not self.repo.get_system_metadata():
+                self.repo.insert_initial_system_metadata(
+                    environment=payload.environment,
+                    schema_version="1.0",
+                    seed_version="1.0",
+                    notes="Automated system bootstrap via system_boot domain",
+                )
+            self.db.commit()
+        except Exception:
+            self.db.rollback()
+            raise
+
         return BootRunResponse(
-            boot_status="BOOT_METADATA_REQUIRED",
-            schema_created=False,
-            seed_applied=False,
-            superuser_required=False,
-            message="Full bootstrap not implemented yet.",
+            boot_status=BOOT_STATUS_SUPERUSER_REQUIRED,
+            schema_created=True,
+            seed_applied=True,
+            superuser_required=True,
+            message="Full system bootstrap completed successfully. Initial superuser creation is required.",
         )
 
     def create_initial_superuser(

@@ -10,6 +10,7 @@ from fastapi import HTTPException
 from sqlalchemy.orm import Session, selectinload
 
 from backend.core import models
+from backend.domains.analytics import repository as repo
 from backend.domains.shopping import (
     InventoryBatch,
     ShoppingListItem,
@@ -26,15 +27,7 @@ class SupplierPriceMetrics:
 
 
 def _get_item_owned(db: Session, shopping_list_item_id: int, user_id: int) -> ShoppingListItem:
-    item = (
-        db.query(ShoppingListItem)
-        .options(
-            selectinload(ShoppingListItem.product),
-            selectinload(ShoppingListItem.shopping_list),
-        )
-        .filter(ShoppingListItem.id == shopping_list_item_id)
-        .first()
-    )
+    item = repo.get_shopping_item_with_relations(db, shopping_list_item_id)
 
     if not item:
         raise HTTPException(status_code=404, detail="Item non trovato")
@@ -49,17 +42,7 @@ def _get_product_batches(
     db: Session,
     product_id: int,
 ) -> List[InventoryBatch]:
-    return (
-        db.query(InventoryBatch)
-        .options(
-            selectinload(InventoryBatch.supplier),
-            selectinload(InventoryBatch.product),
-        )
-        .filter(InventoryBatch.product_id == product_id)
-        .filter(InventoryBatch.deleted_at.is_(None))
-        .order_by(InventoryBatch.purchase_date.desc(), InventoryBatch.id.desc())
-        .all()
-    )
+    return repo.get_product_batches(db, product_id)
 
 
 def _group_metrics_by_supplier(

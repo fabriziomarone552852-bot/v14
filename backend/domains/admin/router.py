@@ -2,6 +2,7 @@
 from fastapi import APIRouter, Depends
 
 from backend.core import deps
+from backend.domains.admin import service
 
 router = APIRouter(
     prefix="/admin",
@@ -12,4 +13,4 @@ router = APIRouter(
 
 @router.get("/ping")
 def admin_ping():
-    return {"message": "admin ok"}
+    return service.get_admin_ping()

@@ -9,7 +9,7 @@ echo Backend: APP_ENV=%APP_ENV%
 echo Frontend: VITE_API_BASE_URL=%VITE_API_BASE_URL%
 echo.
 
-start "Backend (dev)" cmd /c "set APP_ENV=dev && uvicorn backend.main:app --reload"
+start "Backend (dev)" cmd /c "set APP_ENV=dev && uv run uvicorn backend.main:app --reload"
 
 pushd frontend
 call npm run dev

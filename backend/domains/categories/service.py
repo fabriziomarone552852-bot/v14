@@ -31,30 +31,7 @@ def seed_default_user_categories_for_user(db: Session, user_id: int) -> None:
     Inserisce le nove categorie di default per il nuovo utente.
     La funzione è idempotente: se richiamata più volte non duplica le categorie.
     """
-    for template in DEFAULT_USER_CATEGORY_TEMPLATES:
-        existing = (
-            db.query(UserCategory)
-            .filter(
-                UserCategory.user_id == user_id,
-                UserCategory.category_name == template["category_name"],
-            )
-            .first()
-        )
-
-        if existing:
-            existing.colore = template["colore"]
-            existing.genre = template["genre"]
-            continue
-
-        obj = UserCategory(
-            user_id=user_id,
-            category_name=template["category_name"],
-            colore=template["colore"],
-            genre=template["genre"],
-        )
-        db.add(obj)
-
-    db.commit()
+    repo.bulk_create_user_categories_if_missing(db, user_id, DEFAULT_USER_CATEGORY_TEMPLATES)
 
 
 def _to_response(user_category: UserCategory) -> schemas.CategoryResponse:

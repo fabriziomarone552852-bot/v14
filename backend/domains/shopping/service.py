@@ -8,8 +8,17 @@ from typing import List, Optional
 from fastapi import HTTPException
 from sqlalchemy.orm import Session
 
+from backend.core.seeders import register_seeder
 from backend.domains.shopping import repository as repo
 from backend.domains.shopping.models.catalog import ShoppingProduct, ShoppingSupplier
+
+DEFAULT_SUPPLIERS = ["Coop", "Carni e Affini", "MD", "Lidl", "Eurospin", "Famila"]
+
+
+@register_seeder
+def seed_default_shopping_suppliers(db: Session) -> None:
+    """Popola i fornitori di spesa di default se assenti."""
+    repo.bulk_create_suppliers_if_missing(db, DEFAULT_SUPPLIERS)
 from backend.domains.shopping.models.groups import ShoppingGroup, ShoppingGroupMember
 from backend.domains.shopping.models.inventory import InventoryBatch
 from backend.domains.shopping.models.lists import ShoppingList, ShoppingListItem

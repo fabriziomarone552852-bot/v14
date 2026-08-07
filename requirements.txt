@@ -1,3 +1,9 @@
+# Smart Agenda - Dependenze di Backend (Python)
+# Compatibile sia con pip standard che con uv:
+#   - pip install -r requirements.txt
+#   - uv pip install -r requirements.txt
+
+alembic==1.18.5
 annotated-doc==0.0.5
 annotated-types==0.8.0
 anyio==4.14.2
@@ -23,6 +29,7 @@ httptools==0.8.0
 httpx==0.28.1
 idna==3.18
 Jinja2==3.1.6
+mako==1.3.12
 markdown-it-py==4.2.0
 MarkupSafe==3.0.3
 mdurl==0.1.2
