@@ -267,7 +267,7 @@ class SystemBootService:
             email=normalized_email,
             password_hash=get_password_hash(payload.password),
             is_superuser=True,
-            must_change_password=True,
+            must_change_password=False,
         )
 
         self.db.add(user)
@@ -289,9 +289,9 @@ class SystemBootService:
 
         return SuperUserBootstrapResponse(
             status="ok",
-            boot_status=BOOT_STATUS_SUPERUSER_PASSWORD_CHANGE_REQUIRED,
+            boot_status=BOOT_STATUS_READY,
             message=(
                 f"Initial superuser '{user.username}' created successfully. "
-                "The first login must complete the required password change before entering the app."
+                "The system is now ready."
             ),
         )

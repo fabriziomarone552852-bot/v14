@@ -135,6 +135,7 @@ def get_current_user(
     return _get_user_from_payload(payload, db)
 
 
+
 def require_app_scope(payload: dict[str, Any] = Depends(get_token_payload)) -> dict[str, Any]:
     if payload.get("scope") != "app":
         raise HTTPException(

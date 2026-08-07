@@ -103,17 +103,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       body.append('username', normalizedUsername);
       body.append('password', password);
 
-      // Chiamata Axios BASE (senza interceptor) per il login
       const res = await axios.post<TokenResponse>(apiUrl('/auth/login'), body, {
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       });
 
       const tokenData = res.data;
 
-      // ⚠️ Salva il token (anche se è un password_change token)
       persistTokens(tokenData.access_token, tokenData.refresh_token ?? null);
 
-      // Rileva se l'utente deve cambiare la password
       const needsPasswordChange =
         tokenData.must_change_password === true ||
         tokenData.access_scope === 'password_change';
@@ -121,11 +118,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       persistMustChangePassword(needsPasswordChange);
 
       if (!needsPasswordChange) {
-        // Flusso normale: recupera i dati utente
         const userRes = await apiClient.get<UserResponse>('/users/me');
         persistUser(userRes.data);
       }
-      // Se needsPasswordChange, il redirect viene gestito dall'AppRouter
 
     } catch (e: unknown) {
       let msg = 'Errore di login';
@@ -159,7 +154,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         password,
       });
 
-      // Login automatico dopo la registrazione
       await login(normalizedUsername, password);
     } catch (e: unknown) {
       let msg = 'Errore di registrazione';
@@ -181,7 +175,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setLoading(true);
     clearError();
     try {
-      // Il token corrente è il password_change token, già nel localStorage
       const res = await apiClient.post<TokenResponse>('/auth/change-password-required', {
         current_password: currentPassword,
         new_password: newPassword,
@@ -189,11 +182,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       const tokenData = res.data;
 
-      // Salva i nuovi token "normali"
       persistTokens(tokenData.access_token, tokenData.refresh_token ?? null);
       persistMustChangePassword(false);
 
-      // Recupera i dati utente con il nuovo token normale
       const userRes = await apiClient.get<UserResponse>('/users/me');
       persistUser(userRes.data);
 

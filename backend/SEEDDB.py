@@ -105,7 +105,7 @@ def _get_default_users(default_max_subtask_depth: int) -> list[dict]:
             "email": "amedeo@sinasce.lol",
             "password": "amedeo",
             "is_superuser": True,
-            "must_change_password": True,
+            "must_change_password": False,
             "max_subtask_depth_user": default_max_subtask_depth,
         },
         {
@@ -114,7 +114,7 @@ def _get_default_users(default_max_subtask_depth: int) -> list[dict]:
             "email": "marcello@sinasce.lol",
             "password": "marcello",
             "is_superuser": True,
-            "must_change_password": True,
+            "must_change_password": False,
             "max_subtask_depth_user": default_max_subtask_depth,
         },
         {
@@ -123,7 +123,7 @@ def _get_default_users(default_max_subtask_depth: int) -> list[dict]:
             "email": "signore@sinasce.lol",
             "password": "signore",
             "is_superuser": False,
-            "must_change_password": True,
+            "must_change_password": False,
             "max_subtask_depth_user": default_max_subtask_depth,
         },
         {
@@ -132,7 +132,7 @@ def _get_default_users(default_max_subtask_depth: int) -> list[dict]:
             "email": "signori@sinasce.lol",
             "password": "signori",
             "is_superuser": False,
-            "must_change_password": True,
+            "must_change_password": False,
             "max_subtask_depth_user": default_max_subtask_depth,
         },
     ]
@@ -306,7 +306,7 @@ def _insert_default_user_if_missing(db, payload: dict) -> User:
         password_hash=_build_password_hash(payload["password"]),
         max_subtask_depth_user=payload["max_subtask_depth_user"],
         is_superuser=payload.get("is_superuser", False),
-        must_change_password=payload.get("must_change_password", True),
+        must_change_password=payload.get("must_change_password", False),
     )
     db.add(user)
     db.flush()

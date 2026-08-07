@@ -58,8 +58,8 @@ class User(Base):
     must_change_password: Mapped[bool] = mapped_column(
         Boolean,
         nullable=False,
-        default=True,
-        server_default=text("true"),
+        default=False,
+        server_default=text("false"),
     )
 
     deleted_at: Mapped[Optional[datetime]] = mapped_column(

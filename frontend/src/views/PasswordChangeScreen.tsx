@@ -35,14 +35,12 @@ const PasswordChangeScreen: React.FC = () => {
   const [localError, setLocalError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
 
-  // Se l'utente non deve più cambiare la password (es. dopo cambio avvenuto) → vai alla home
   useEffect(() => {
     if (isAuthenticated && !mustChangePassword) {
       navigate('/', { replace: true });
     }
   }, [isAuthenticated, mustChangePassword, navigate]);
 
-  // Resetta errori locali al variare dei campi
   useEffect(() => {
     setLocalError(null);
   }, [currentPassword, newPassword, confirmPassword]);
@@ -68,7 +66,6 @@ const PasswordChangeScreen: React.FC = () => {
     try {
       await changePassword(currentPassword, newPassword);
       setSuccess(true);
-      // Il redirect avviene tramite l'useEffect su isAuthenticated / mustChangePassword
     } catch {
       // error gestito dal context
     }
@@ -78,7 +75,6 @@ const PasswordChangeScreen: React.FC = () => {
     <div className="min-h-screen flex items-center justify-center bg-gray-900 text-white font-sans">
       <div className="max-w-md w-full bg-gray-800 rounded-xl shadow-2xl p-8 border border-gray-700">
 
-        {/* Intestazione */}
         <div className="text-center mb-8">
           <div className="flex justify-center mb-4">
             <div className="p-3 bg-blue-500/10 rounded-full border border-blue-500/20">
@@ -93,16 +89,14 @@ const PasswordChangeScreen: React.FC = () => {
           </p>
         </div>
 
-        {/* Banner informativo */}
         <div className="mb-6 p-3 bg-blue-900/30 border border-blue-500/30 rounded-lg">
           <p className="text-xs text-blue-300 text-center">
-            🔐 Questo è il tuo primo accesso. Scegli una password sicura e non condividerla con nessuno.
+            🔐 Questo è il tuo primo accesso. Scegli una password e non condividerla con nessuno.
           </p>
         </div>
 
         <form onSubmit={onSubmit} className="space-y-5">
 
-          {/* Password attuale */}
           <div>
             <label className="block text-sm font-medium text-gray-300">
               Password attuale
@@ -122,14 +116,12 @@ const PasswordChangeScreen: React.FC = () => {
                 type="button"
                 onClick={() => setShowCurrentPw(!showCurrentPw)}
                 className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-200 focus:outline-none"
-                title={showCurrentPw ? 'Nascondi password' : 'Mostra password'}
               >
                 {showCurrentPw ? <EyeOff /> : <EyeOpen />}
               </button>
             </div>
           </div>
 
-          {/* Nuova password */}
           <div>
             <label className="block text-sm font-medium text-gray-300">
               Nuova password
@@ -149,14 +141,12 @@ const PasswordChangeScreen: React.FC = () => {
                 type="button"
                 onClick={() => setShowNewPw(!showNewPw)}
                 className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-200 focus:outline-none"
-                title={showNewPw ? 'Nascondi password' : 'Mostra password'}
               >
                 {showNewPw ? <EyeOff /> : <EyeOpen />}
               </button>
             </div>
           </div>
 
-          {/* Conferma nuova password */}
           <div>
             <label className="block text-sm font-medium text-gray-300">
               Conferma nuova password
@@ -169,13 +159,12 @@ const PasswordChangeScreen: React.FC = () => {
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 required
                 autoComplete="new-password"
-                className="appearance-none block w-full px-3 py-2 pr-10 border border-gray-600 rounded-md shadow-sm bg-gray-700 text-white placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                className="appearance-none block w-full px-3 py-2 border border-gray-600 rounded-md shadow-sm bg-gray-700 text-white placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                 placeholder="Ripeti la nuova password"
               />
             </div>
           </div>
 
-          {/* Indicatore forza password */}
           {newPassword.length > 0 && (
             <div className="space-y-1">
               <div className="flex gap-1">
@@ -186,13 +175,10 @@ const PasswordChangeScreen: React.FC = () => {
                       key={level}
                       className={`h-1 flex-1 rounded-full transition-colors duration-300 ${
                         strength >= level
-                          ? level <= 1
-                            ? 'bg-red-500'
-                            : level <= 2
-                            ? 'bg-orange-400'
-                            : level <= 3
-                            ? 'bg-yellow-400'
-                            : 'bg-green-500'
+                          ? level <= 1 ? 'bg-red-500'
+                          : level <= 2 ? 'bg-orange-400'
+                          : level <= 3 ? 'bg-yellow-400'
+                          : 'bg-green-500'
                           : 'bg-gray-600'
                       }`}
                     />
@@ -205,7 +191,6 @@ const PasswordChangeScreen: React.FC = () => {
             </div>
           )}
 
-          {/* Errori */}
           {localError && (
             <div className="p-3 bg-red-900/50 border border-red-500 rounded text-red-200 text-sm">
               {localError}
@@ -222,7 +207,6 @@ const PasswordChangeScreen: React.FC = () => {
             </div>
           )}
 
-          {/* Submit */}
           <div>
             <button
               type="submit"
@@ -238,7 +222,6 @@ const PasswordChangeScreen: React.FC = () => {
           </div>
         </form>
 
-        {/* Link logout */}
         <div className="mt-6 text-center">
           <button
             type="button"
@@ -254,11 +237,10 @@ const PasswordChangeScreen: React.FC = () => {
   );
 };
 
-// Calcola forza password (1–4)
 function getPasswordStrength(pw: string): number {
   let score = 0;
-  if (pw.length >= 8) score++;
-  if (pw.length >= 12) score++;
+  if (pw.length >= 5) score++;
+  if (pw.length >= 10) score++;
   if (/[A-Z]/.test(pw) && /[a-z]/.test(pw)) score++;
   if (/[0-9]/.test(pw) && /[^A-Za-z0-9]/.test(pw)) score++;
   return Math.min(score, 4);
