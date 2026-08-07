@@ -725,7 +725,12 @@ def get_supplier_by_normalized_name(db: Session, name_normalized: str) -> Option
     )
 
 
-def bulk_create_suppliers_if_missing(db: Session, supplier_names: List[str]) -> None:
+def bulk_create_suppliers_if_missing(
+    db: Session,
+    supplier_names: List[str],
+    created_by_user_id: int,
+    status_id: int,
+) -> None:
     for supplier_name in supplier_names:
         normalized = normalize_name(supplier_name)
         existing = get_supplier_by_normalized_name(db, normalized)
@@ -734,6 +739,8 @@ def bulk_create_suppliers_if_missing(db: Session, supplier_names: List[str]) -> 
                 ShoppingSupplier(
                     name=supplier_name,
                     name_normalized=normalized,
+                    status_id=status_id,
+                    created_by_user_id=created_by_user_id,
                 )
             )
     db.commit()

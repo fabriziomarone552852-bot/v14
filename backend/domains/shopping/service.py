@@ -15,10 +15,20 @@ from backend.domains.shopping.models.catalog import ShoppingProduct, ShoppingSup
 DEFAULT_SUPPLIERS = ["Coop", "Carni e Affini", "MD", "Lidl", "Eurospin", "Famila"]
 
 
-@register_seeder
-def seed_default_shopping_suppliers(db: Session) -> None:
-    """Popola i fornitori di spesa di default se assenti."""
-    repo.bulk_create_suppliers_if_missing(db, DEFAULT_SUPPLIERS)
+def seed_default_shopping_suppliers_for_user(db: Session, user_id: int) -> None:
+    """Popola i fornitori di spesa di default per l'utente specificato."""
+    from backend.domains.config import repository as config_repo
+
+    supplier_status_code = config_repo.get_config_code(db, "supplier_status", "active")
+    if supplier_status_code is None:
+        return
+
+    repo.bulk_create_suppliers_if_missing(
+        db=db,
+        supplier_names=DEFAULT_SUPPLIERS,
+        created_by_user_id=user_id,
+        status_id=supplier_status_code.id,
+    )
 from backend.domains.shopping.models.groups import ShoppingGroup, ShoppingGroupMember
 from backend.domains.shopping.models.inventory import InventoryBatch
 from backend.domains.shopping.models.lists import ShoppingList, ShoppingListItem

@@ -8,6 +8,7 @@ from backend.core.deps import get_password_hash
 from backend.core.models import import_all_models
 from backend.core.seeders import run_all_system_seeders
 from backend.domains.categories.service import seed_default_user_categories_for_user
+from backend.domains.shopping.service import seed_default_shopping_suppliers_for_user
 from backend.domains.users.models import User
 
 import backend.domains.config.service  # noqa: F401
@@ -281,6 +282,7 @@ class SystemBootService:
 
         self.db.refresh(user)
         seed_default_user_categories_for_user(self.db, user.id)
+        seed_default_shopping_suppliers_for_user(self.db, user.id)
 
         return SuperUserBootstrapResponse(
             status="ok",
