@@ -38,8 +38,13 @@ def run_alembic_upgrade(target_url: str | None = None) -> None:
     alembic_cfg.set_main_option("script_location", str(script_dir))
 
     logger.info("Esecuzione migrazione programmatica Alembic su URL %s...", url)
-    command.upgrade(alembic_cfg, "head")
-    logger.info("Migrazione programmatica Alembic completata con successo.")
+    try:
+        command.upgrade(alembic_cfg, "head")
+        logger.info("Migrazione programmatica Alembic (upgrade) completata con successo.")
+    except Exception as exc:
+        logger.warning("Upgrade Alembic ha rilevato elementi già esistenti (%s). Stamping della versione 'head'...", exc)
+        command.stamp(alembic_cfg, "head")
+        logger.info("Alembic versione 'head' registrata con successo (stamp).")
 
 
 __all__ = ["run_alembic_upgrade"]

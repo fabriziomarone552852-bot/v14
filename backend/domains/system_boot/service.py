@@ -176,6 +176,7 @@ class SystemBootService:
         try:
             import_all_models()
             Base.metadata.create_all(bind=self.db.get_bind())
+            self.db.commit()  # Rilascia la transazione per evitare deadlock con la connessione Alembic
             run_alembic_upgrade()
 
             # Attiva la registrazione dei seeder
