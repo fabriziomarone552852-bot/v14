@@ -3,7 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from datetime import date, datetime, timedelta, timezone
 
-from sqlalchemy import and_, or_
+from sqlalchemy import and_, or_, func, extract
 from sqlalchemy.orm import Session, selectinload, with_loader_criteria
 
 from backend.core.settings import get_settings
@@ -51,6 +51,14 @@ class MonthSyncBundle:
     monthly_entries: list[MonthlyEntry] = field(default_factory=list)
     prev_monthly_entries: list[MonthlyEntry] = field(default_factory=list)
 
+
+@dataclass
+class MonthReviewBundle:
+    habits: list[Habit] = field(default_factory=list)
+    weekly_positive_events: list[DailyEntry] = field(default_factory=list)
+    weekly_negative_events: list[DailyEntry] = field(default_factory=list)
+    tasks_completed: int = 0
+    tasks_total: int = 0
 
 def _recent_task_threshold() -> datetime:
     return datetime.now(UTC) - timedelta(days=DEFAULT_COMPLETED_TASK_LOOKBACK_DAYS)
@@ -202,4 +210,88 @@ def build_month_bundle(
         events=get_expanded_events(db, user_id, start_date, end_date),
         monthly_entries=month_entries,
         prev_monthly_entries=prev_month_entries
+    )
+
+
+def build_month_review_bundle(
+    db: Session,
+    user_id: int,
+    year: int,
+    month: int,
+) -> MonthReviewBundle:
+    from calendar import monthrange
+    first_day = date(year, month, 1)
+    last_day = date(year, month, monthrange(year, month)[1])
+    
+    # Habits con tutti i log del mese
+    habits = (
+        db.query(Habit)
+        .options(
+            selectinload(Habit.periods),
+            selectinload(Habit.logs.and_(HabitLog.data_riferimento >= first_day, HabitLog.data_riferimento <= last_day)),
+        )
+        .filter(Habit.user_id == user_id)
+        .join(HabitPeriod)
+        .filter(
+            HabitPeriod.data_inizio <= last_day,
+            or_(HabitPeriod.data_fine.is_(None), HabitPeriod.data_fine >= first_day)
+        )
+        .distinct()
+        .order_by(Habit.id.desc())
+        .all()
+    )
+    
+    # Weekly EP/EN events dal daily_entries nel range del mese
+    weekly_ep = (
+        db.query(DailyEntry)
+        .filter(
+            DailyEntry.user_id == user_id,
+            DailyEntry.data_riferimento >= first_day,
+            DailyEntry.data_riferimento <= last_day,
+            DailyEntry.tipo == 'EP',
+        )
+        .order_by(DailyEntry.data_riferimento.asc())
+        .all()
+    )
+    
+    weekly_en = (
+        db.query(DailyEntry)
+        .filter(
+            DailyEntry.user_id == user_id,
+            DailyEntry.data_riferimento >= first_day,
+            DailyEntry.data_riferimento <= last_day,
+            DailyEntry.tipo == 'EN',
+        )
+        .order_by(DailyEntry.data_riferimento.asc())
+        .all()
+    )
+    
+    # Task stats del mese
+    tasks_total = (
+        db.query(func.count(Task.id))
+        .filter(
+            Task.user_id == user_id,
+            Task.data_start >= str(first_day),
+            Task.data_start <= str(last_day),
+        )
+        .scalar() or 0
+    )
+    
+    tasks_completed = (
+        db.query(func.count(Task.id))
+        .filter(
+            Task.user_id == user_id,
+            Task.fatto.is_(True),
+            Task.data_fatto >= str(first_day),
+            Task.data_fatto <= str(last_day),
+        )
+        .scalar() or 0
+    )
+    
+    return MonthReviewBundle(
+        habits=habits,
+        weekly_positive_events=weekly_ep,
+        weekly_negative_events=weekly_en,
+        tasks_completed=tasks_completed,
+        tasks_total=tasks_total,
     )

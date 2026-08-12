@@ -4,7 +4,7 @@
 script_location = %(here)s/alembic
 prepend_sys_path = .
 path_separator = os
-sqlalchemy.url = postgresql+psycopg://postgres:postgres@192.168.187.87:5433/family_smart
+sqlalchemy.url = postgresql+psycopg://postgres:postgres@192.168.11.20:5432/family_smart
 
 [post_write_hooks]
 

@@ -105,8 +105,14 @@ export const useMoodEvents = (mondayStr: string, sundayStr: string) => {
     positiveEvents: data?.positive ?? [],
     negativeEvents: data?.negative ?? [],
     isLoadingMoods: isLoading,
-    addMood: (type: MoodEventType, text: string) => 
-      addMoodMutation.mutateAsync({ tipo: type, testo: text, data_riferimento: mondayStr }),
+    addMood: (type: MoodEventType, text: string) => {
+      // Se oggi è dentro la settimana visualizzata, salva con la data di oggi.
+      // Altrimenti (settimana passata/futura), salva al lunedì della settimana visualizzata.
+      const today = new Date();
+      const todayStr = today.toISOString().slice(0, 10);
+      const dateToSave = (todayStr >= mondayStr && todayStr <= sundayStr) ? todayStr : mondayStr;
+      return addMoodMutation.mutateAsync({ tipo: type, testo: text, data_riferimento: dateToSave });
+    },
     updateMood: (id: number, title: string) => 
       updateMoodMutation.mutate({ id, title }),
     deleteMood: (id: number) => 

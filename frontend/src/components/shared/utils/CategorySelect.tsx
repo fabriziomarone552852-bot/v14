@@ -80,14 +80,21 @@ const CategorySelect: React.FC<CategorySelectProps> = ({
           return;
         }
 
-        const promotedCat = await updateCategoryMutation.mutateAsync({
-          id: existingCat.id,
-          data: { genre: CategoryGenre.COMMON },
-        });
+        // Promozione a COMMON solo tra TASKS (1) e EVENTS (2).
+        // MOOD (4) e TAG (5) sono indipendenti e non vanno mai uniti.
+        const mergeable = [CategoryGenre.TASKS, CategoryGenre.EVENTS];
+        if (mergeable.includes(existingCat.genre) && mergeable.includes(genreType)) {
+          const promotedCat = await updateCategoryMutation.mutateAsync({
+            id: existingCat.id,
+            data: { genre: CategoryGenre.COMMON },
+          });
 
-        onChange(promotedCat.category_name || nomePulito);
-        resetNewCategoryState();
-        return;
+          onChange(promotedCat.category_name || nomePulito);
+          resetNewCategoryState();
+          return;
+        }
+
+        // Se arriviamo qui, il nome esiste con genre incompatibile (4 o 5) — creiamo un nuovo record
       }
 
       const cat = await createCategoryMutation.mutateAsync({

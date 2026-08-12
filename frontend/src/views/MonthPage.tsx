@@ -14,6 +14,7 @@ import MoodEventsBoard from '@/components/weekmonth/MoodEventsBoard';
 import { TrackerPanel } from '@/components/weekmonth/TrackerPanel';
 import NewEventModal from '@/components/shared/events/EventNewModal';
 import EventDetailModal from '@/components/shared/events/EventDetailModal';
+import { MonthReviewModal } from '@/components/weekmonth/review/MonthReviewModal';
 
 // --- HOOKS LOGICI E DATI ---
 import { useMonthPageLogic } from '@/hooks/uiMonth/useMonthPageLogic';
@@ -26,7 +27,7 @@ const MonthPage: React.FC = () => {
   
   const { changeDate: setTargetDate } = useDay();
   
-  const { state, modals, apiData, handlers } = useMonthPageLogic();
+  const { state, modals, apiData, handlers, review } = useMonthPageLogic();
 
   const { data: dbCategories = [] } = useCategories();
 
@@ -62,7 +63,9 @@ const MonthPage: React.FC = () => {
           onNext={handlers.handleNextMonth} 
           onResetToday={handlers.handleResetCurrentMonth} 
           onChangeDate={setTargetDate}
-          viewMode="month" 
+          viewMode="month"
+          reviewStatus={review.reviewStatus}
+          onOpenReview={review.openReview}
         />
 
         <div className="flex-1 max-w-[1200px]">
@@ -149,6 +152,17 @@ const MonthPage: React.FC = () => {
         onAutoSaveNote={handlers.handleAutoSaveNote}
         onDeleteNote={handlers.handleDeleteNote}
         clearEditingNoteId={() => state.setEditingNoteId(null)} 
+      />
+      <MonthReviewModal
+        isOpen={review.isOpen}
+        onClose={review.closeReview}
+        monthDate={state.monthTargetDate}
+        reviewData={review.reviewData}
+        activeTab={review.activeTab}
+        onSetTab={review.setActiveTab}
+        moodsUI={review.moodsUI}
+        spheresUI={review.spheresUI}
+        onSaveAnswer={review.handleSaveAnswer}
       />
 
     </div>

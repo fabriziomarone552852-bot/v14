@@ -1,106 +1,62 @@
-"""
-Monthly entries HTTP router.
-"""
-from __future__ import annotations
-
-from typing import List, Optional
-
-from fastapi import APIRouter, Depends, Query, Response, status
+from typing import Optional
+from fastapi import APIRouter, Depends, Query, status
 from sqlalchemy.orm import Session
-
 from backend.core import deps
-from backend.domains.monthly_entries import schemas, service
 from backend.domains.users.models import User
+from backend.domains.monthly_entries.schemas import (
+    MonthlyEntryCreate,
+    MonthlyEntryResponse,
+    MonthlyEntryUpdate,
+)
+from backend.domains.monthly_entries import service
 
 router = APIRouter(prefix="/monthly-entries", tags=["monthly-entries"])
 
-
-@router.get("/feelings", response_model=List[schemas.MonthlyFeelingResponse])
-def list_feelings(db: Session = Depends(deps.get_db)):
-    return service.list_feelings(db)
-
-
-@router.post(
-    "/feelings",
-    response_model=schemas.MonthlyFeelingResponse,
-    status_code=status.HTTP_201_CREATED,
-)
-def create_feeling(
-    feeling_in: schemas.MonthlyFeelingCreate,
+@router.get("", response_model=list[MonthlyEntryResponse])
+def get_monthly_entries(
+    year: Optional[int] = Query(None, description="Anno della registrazione"),
+    month: Optional[int] = Query(None, ge=1, le=12, description="Mese della registrazione"),
+    monthly_type: Optional[str] = Query(None, description="Tipo di registrazione"),
     db: Session = Depends(deps.get_db),
-    current_user: User = Depends(deps.require_superuser),
+    current_user: User = Depends(deps.get_current_app_user)
 ):
-    return service.create_feeling(db, current_user, feeling_in)
+    """Recupera le registrazioni mensili con filtri opzionali."""
+    return service.list_entries(db, current_user, year=year, month=month, monthly_type=monthly_type)
 
-
-@router.patch("/feelings/{feeling_id}", response_model=schemas.MonthlyFeelingResponse)
-def update_feeling(
-    feeling_id: int,
-    feeling_in: schemas.MonthlyFeelingUpdate,
-    db: Session = Depends(deps.get_db),
-    current_user: User = Depends(deps.require_superuser),
-):
-    return service.update_feeling(db, current_user, feeling_id, feeling_in)
-
-
-@router.delete("/feelings/{feeling_id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_feeling(
-    feeling_id: int,
-    db: Session = Depends(deps.get_db),
-    current_user: User = Depends(deps.require_superuser),
-):
-    service.delete_feeling(db, current_user, feeling_id)
-    return Response(status_code=status.HTTP_204_NO_CONTENT)
-
-
-@router.get("", response_model=List[schemas.MonthlyEntryResponse])
-def list_entries(
-    year: Optional[int] = Query(default=None),
-    month: Optional[int] = Query(default=None),
-    db: Session = Depends(deps.get_db),
-    current_user: User = Depends(deps.get_current_app_user),
-):
-    return service.list_entries(db, current_user, year, month)
-
-
-@router.get("/{year}/{month}", response_model=List[schemas.MonthlyEntryResponse])
-def list_entries_by_month(
+@router.get("/{year}/{month}", response_model=list[MonthlyEntryResponse])
+def get_monthly_entries_by_date(
     year: int,
     month: int,
     db: Session = Depends(deps.get_db),
-    current_user: User = Depends(deps.get_current_app_user),
+    current_user: User = Depends(deps.get_current_app_user)
 ):
-    return service.list_entries(db, current_user, year, month)
+    """Recupera le registrazioni mensili per un mese specifico."""
+    return service.list_entries(db, current_user, year=year, month=month)
 
-
-@router.post(
-    "",
-    response_model=schemas.MonthlyEntryResponse,
-    status_code=status.HTTP_201_CREATED,
-)
-def create_entry(
-    entry_in: schemas.MonthlyEntryCreate,
+@router.post("", response_model=MonthlyEntryResponse, status_code=status.HTTP_201_CREATED)
+def create_monthly_entry(
+    entry_in: MonthlyEntryCreate,
     db: Session = Depends(deps.get_db),
-    current_user: User = Depends(deps.get_current_app_user),
+    current_user: User = Depends(deps.get_current_app_user)
 ):
+    """Crea una nuova registrazione mensile."""
     return service.create_entry(db, current_user, entry_in)
 
-
-@router.patch("/{entry_id}", response_model=schemas.MonthlyEntryResponse)
-def update_entry(
+@router.patch("/{entry_id}", response_model=MonthlyEntryResponse)
+def update_monthly_entry(
     entry_id: int,
-    entry_in: schemas.MonthlyEntryUpdate,
+    entry_in: MonthlyEntryUpdate,
     db: Session = Depends(deps.get_db),
-    current_user: User = Depends(deps.get_current_app_user),
+    current_user: User = Depends(deps.get_current_app_user)
 ):
+    """Aggiorna una registrazione mensile esistente."""
     return service.update_entry(db, current_user, entry_id, entry_in)
 
-
 @router.delete("/{entry_id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_entry(
+def delete_monthly_entry(
     entry_id: int,
     db: Session = Depends(deps.get_db),
-    current_user: User = Depends(deps.get_current_app_user),
+    current_user: User = Depends(deps.get_current_app_user)
 ):
+    """Elimina una registrazione mensile."""
     service.delete_entry(db, current_user, entry_id)
-    return Response(status_code=status.HTTP_204_NO_CONTENT)

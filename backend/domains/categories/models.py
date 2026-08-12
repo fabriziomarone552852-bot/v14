@@ -27,6 +27,7 @@ class CategoryGenre(IntEnum):
     EVENTS = 2
     COMMON = 3
     MOOD = 4
+    TAG = 5
 
 
 class UserCategory(Base):
@@ -58,7 +59,7 @@ class UserCategory(Base):
     )
 
     __table_args__ = (
-        UniqueConstraint("user_id", "category_name", name="uq_user_category_name"),
+        UniqueConstraint("user_id", "category_name", "genre", name="uq_user_category_name_genre"),
     )
 
     user: Mapped["User"] = relationship(

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { BackIcon, ForwardIcon, UndoIcon } from '@/components/shared/utils/Icons';
+import { BackIcon, ForwardIcon, UndoIcon, QuillIcon, ScrollIcon } from '@/components/shared/utils/Icons';
 import DatePicker from '@/components/shared/utils/DatePicker/DatePicker';
 import { formatDateString } from '@/utils/dateUtils';
 
@@ -12,7 +12,10 @@ interface SharedAgendaHeaderProps {
   onNext: () => void;
   onResetToday: () => void;
   onChangeDate: (newDate: Date) => void;
-  viewMode?: 'day' | 'week' | 'month'; // <-- Aggiunto per controllare il DatePicker
+  viewMode?: 'day' | 'week' | 'month';
+  /** 'none' = non mostrare, 'empty' = piuma, 'filled' = pergamena */
+  reviewStatus?: 'none' | 'empty' | 'filled';
+  onOpenReview?: () => void;
 }
 
 export const SharedAgendaHeader: React.FC<SharedAgendaHeaderProps> = ({
@@ -24,11 +27,12 @@ export const SharedAgendaHeader: React.FC<SharedAgendaHeaderProps> = ({
   onNext,
   onResetToday,
   onChangeDate,
-  viewMode = 'day', // Default su day
+  viewMode = 'day',
+  reviewStatus = 'none',
+  onOpenReview,
 }) => {
   const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
 
-  // Il DatePicker ti restituisce "YYYY-MM-DD", qui lo convertiamo comodamente in Date()
   const handleDatePickerChange = (newDateStr: string) => {
     const [yyyy, mm, dd] = newDateStr.split('-');
     onChangeDate(new Date(Number(yyyy), Number(mm) - 1, Number(dd)));
@@ -44,7 +48,6 @@ export const SharedAgendaHeader: React.FC<SharedAgendaHeaderProps> = ({
         </button>
         
         <div className="flex-1 flex justify-center min-w-0 px-2">
-          {/* USIAMO IL TUO DATEPICKER! */}
           <DatePicker
             value={formatDateString(currentDate)} 
             onChange={handleDatePickerChange}
@@ -52,7 +55,7 @@ export const SharedAgendaHeader: React.FC<SharedAgendaHeaderProps> = ({
             onClose={() => setIsDatePickerOpen(false)}
             onToggle={() => setIsDatePickerOpen((prev) => !prev)}
             align="center" 
-            selectionMode={viewMode} // <-- "day" o "week" passato dalla pagina genitore
+            selectionMode={viewMode}
             customTrigger={
               <div className="text-center flex items-center justify-center py-1 overflow-hidden w-full">
                 <h1 className="text-3xl xl:text-4xl font-extrabold text-gray-900 uppercase cursor-pointer hover:text-blue-600 transition-colors select-none text-center truncate">
@@ -70,10 +73,23 @@ export const SharedAgendaHeader: React.FC<SharedAgendaHeaderProps> = ({
       
       <p className="text-lg xl:text-xl font-medium text-gray-500 mt-1 text-center">{subtitle}</p>
       
-      <div className="h-8 mt-2 flex items-center justify-center w-full">
+      <div className="h-8 mt-2 flex items-center justify-center gap-3 w-full">
         {!isToday && (
           <button onClick={onResetToday} className="p-1.5 text-black hover:bg-gray-200 hover:text-black rounded-full transition-all animate-fadeIn focus:outline-none" title="Ritorna ad Oggi">
             <UndoIcon className="w-5 h-5" />
+          </button>
+        )}
+        {reviewStatus !== 'none' && onOpenReview && (
+          <button 
+            onClick={onOpenReview} 
+            className={`p-1.5 rounded-full transition-all animate-fadeIn focus:outline-none ${
+              reviewStatus === 'filled' 
+                ? 'text-amber-600 hover:bg-amber-100 hover:text-amber-800' 
+                : 'text-blue-500 hover:bg-blue-100 hover:text-blue-700'
+            }`} 
+            title={reviewStatus === 'filled' ? 'Rivedi Analisi del Mese' : 'Scrivi Analisi del Mese'}
+          >
+            {reviewStatus === 'filled' ? <ScrollIcon className="w-5 h-5" /> : <QuillIcon className="w-5 h-5" />}
           </button>
         )}
       </div>

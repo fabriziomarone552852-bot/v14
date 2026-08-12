@@ -8,8 +8,8 @@ from backend.domains.events.schemas import EventResponse
 from backend.domains.habits.schemas import HabitResponse
 from backend.domains.planning.schemas import DailyEntryResponse
 from backend.domains.shopping.schemas import ShoppingListResponse
-from backend.domains.sync.repository import DaySyncBundle, MonthSyncBundle, WeekSyncBundle
-from backend.domains.sync.schemas import SyncDayResponse, SyncMonthResponse, SyncWeekResponse
+from backend.domains.sync.repository import DaySyncBundle, MonthSyncBundle, WeekSyncBundle, MonthReviewBundle
+from backend.domains.sync.schemas import SyncDayResponse, SyncMonthResponse, SyncWeekResponse, MonthReviewResponse
 from backend.domains.tasks.schemas import TaskResponse
 from backend.domains.monthly_entries.schemas import MonthlyEntryResponse
 
@@ -93,4 +93,15 @@ def to_month_response(
         daily_entries=_daily_entries_to_response(bundle.daily_entries),
         monthly_entries=_monthly_entries_to_response(bundle.monthly_entries),
         prev_monthly_entries=_monthly_entries_to_response(bundle.prev_monthly_entries)
+    )
+
+def to_month_review_response(bundle: MonthReviewBundle, year: int, month: int) -> MonthReviewResponse:
+    return MonthReviewResponse(
+        year=year,
+        month=month,
+        habits=[HabitResponse.model_validate(x) for x in bundle.habits],
+        weekly_positive_events=_daily_entries_to_response(bundle.weekly_positive_events),
+        weekly_negative_events=_daily_entries_to_response(bundle.weekly_negative_events),
+        tasks_completed=bundle.tasks_completed,
+        tasks_total=bundle.tasks_total,
     )

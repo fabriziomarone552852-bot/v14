@@ -11,6 +11,7 @@ export const CategoryGenre = {
   EVENTS: 2,
   COMMON: 3,
   MOOD: 4,
+  TAG: 5,
 } as const;
 
 export type CategoryGenre = typeof CategoryGenre[keyof typeof CategoryGenre];

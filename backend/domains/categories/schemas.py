@@ -21,6 +21,7 @@ class CategoryGenre(IntEnum):
     EVENTS = 2
     COMMON = 3
     MOOD = 4
+    TAG = 5
 
 
 def _normalize_name(value: str) -> str:
@@ -56,7 +57,7 @@ class CategoryBase(StrictBaseModel):
     )
     genre: CategoryGenre = Field(
         CategoryGenre.COMMON,
-        description="1=solo tasks, 2=solo events, 3=comune, 4=mood",
+        description="1=solo tasks, 2=solo events, 3=comune, 4=mood, 5=tag",
     )
 
     @field_validator("category_name")
@@ -83,7 +84,7 @@ class CategoryUpdate(StrictBaseModel):
     )
     genre: Optional[CategoryGenre] = Field(
         None,
-        description="1=solo tasks, 2=solo events, 3=comune, 4=mood",
+        description="1=solo tasks, 2=solo events, 3=comune, 4=mood, 5=tag",
     )
 
     @field_validator("category_name")

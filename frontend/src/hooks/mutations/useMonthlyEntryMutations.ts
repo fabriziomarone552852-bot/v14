@@ -1,19 +1,19 @@
 // frontend/src/hooks/mutations/useMonthlyEntryMutations.ts
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/api/apiService';
-import type { DbMonthlyEntry } from '@/types/monthlyentries';
+import type { DbMonthlyEntry, MonthlyType } from '@/types/monthlyentries';
 
 export interface SaveMonthlyEntryPayload {
-  feel_type: number;
-  value: number;
+  monthly_type: MonthlyType;
+  monthly_field: string;
   dateStr: string;
-  existingEntryId?: number; 
+  existingEntryId?: number;
 }
 
-// 🪄 ZERO ANY: Creiamo un'interfaccia sicura e locale per la cache in memoria
+// 🪄 ZERO ANY: Interfaccia sicura per la cache in memoria
 interface MonthCacheData {
   monthly_entries?: DbMonthlyEntry[];
-  [key: string]: unknown; // Permette le altre proprietà senza far arrabbiare TypeScript
+  [key: string]: unknown;
 }
 
 export const useMonthlyEntryMutations = (queryKey: string[]) => {
@@ -24,7 +24,7 @@ export const useMonthlyEntryMutations = (queryKey: string[]) => {
       // Se abbiamo un ID valido, facciamo l'aggiornamento (PATCH)
       if (payload.existingEntryId && payload.existingEntryId > 0) {
         const response = await api.patch(`/monthly-entries/${payload.existingEntryId}`, {
-          feel_value: payload.value
+          monthly_field: payload.monthly_field,
         });
         return response as DbMonthlyEntry;
       }
@@ -34,41 +34,46 @@ export const useMonthlyEntryMutations = (queryKey: string[]) => {
       const dataForServer = {
         year: dateObj.getFullYear(),
         month: dateObj.getMonth() + 1,
-        feel_type: payload.feel_type,
-        feel_value: payload.value
+        monthly_type: payload.monthly_type,
+        monthly_field: payload.monthly_field,
       };
-      
+
       const response = await api.post('/monthly-entries', dataForServer);
       return response as DbMonthlyEntry;
     },
 
-    // --- AGGIORNAMENTO ISTANTANEO (Il motore del grafico) ---
     onMutate: async (newEntry) => {
       await queryClient.cancelQueries({ queryKey });
-      
+
       const previousData = queryClient.getQueryData<MonthCacheData>(queryKey);
-      const tempId = -(Date.now()); // ID negativo per non confonderlo col Database
+      const tempId = -(Date.now());
 
       queryClient.setQueryData<MonthCacheData>(queryKey, (old) => {
         if (!old) return old;
-        
+
         const currentEntries = old.monthly_entries || [];
-        const index = currentEntries.findIndex(e => e.feel_type === newEntry.feel_type);
+        // EP, EN, PM possono avere record multipli — per gli altri aggiorniamo l'esistente
+        const isMulti = ['EP', 'EN', 'PM'].includes(newEntry.monthly_type);
 
-        let updatedEntries = [...currentEntries];
+        let updatedEntries: DbMonthlyEntry[];
 
-        if (index !== -1) {
-          updatedEntries[index] = { ...updatedEntries[index], feel_value: newEntry.value };
+        if (!isMulti && newEntry.existingEntryId && newEntry.existingEntryId > 0) {
+          // Aggiornamento ottimistico di un entry unico esistente
+          updatedEntries = currentEntries.map(e =>
+            e.id === newEntry.existingEntryId
+              ? { ...e, monthly_field: newEntry.monthly_field }
+              : e
+          );
         } else {
-          updatedEntries.push({
-            id: tempId, 
+          // Creazione ottimistica (sia multi-record che primo inserimento)
+          updatedEntries = [...currentEntries, {
+            id: tempId,
             user_id: 0,
             year: parseInt(newEntry.dateStr.substring(0, 4)),
             month: parseInt(newEntry.dateStr.substring(5, 7)),
-            feel_type: newEntry.feel_type,
-            feel_value: newEntry.value,
-            feel_name: null // Sicuro, perché ora cerchiamo tramite feel_type!
-          });
+            monthly_type: newEntry.monthly_type,
+            monthly_field: newEntry.monthly_field,
+          }];
         }
 
         return { ...old, monthly_entries: updatedEntries };
@@ -77,28 +82,63 @@ export const useMonthlyEntryMutations = (queryKey: string[]) => {
       return { previousData, tempId };
     },
 
-    onSuccess: (savedEntry, newEntry, context) => {
-      // Scambiamo di nascosto l'ID finto con quello vero
+    onSuccess: (savedEntry, _newEntry, context) => {
+      // Sostituiamo l'ID temporaneo con quello reale del DB
       if (context?.tempId) {
-         queryClient.setQueryData<MonthCacheData>(queryKey, (old) => {
-            if (!old) return old;
-            const updatedEntries = (old.monthly_entries || []).map(e => 
-               e.id === context.tempId ? savedEntry : e
-            );
-            return { ...old, monthly_entries: updatedEntries };
-         });
+        queryClient.setQueryData<MonthCacheData>(queryKey, (old) => {
+          if (!old) return old;
+          const updatedEntries = (old.monthly_entries || []).map(e =>
+            e.id === context.tempId ? savedEntry : e
+          );
+          return { ...old, monthly_entries: updatedEntries };
+        });
       }
     },
 
-    onError: (err, newEntry, context) => {
-      console.error("Errore salvataggio tracker:", err);
+    onError: (err, _newEntry, context) => {
+      console.error('Errore salvataggio monthly entry:', err);
       if (context?.previousData) queryClient.setQueryData(queryKey, context.previousData);
     },
 
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey });
-    }
+    },
   });
 
-  return { saveMonthlyEntry: saveEntryMutation.mutate };
+  const deleteEntryMutation = useMutation({
+    mutationFn: async (entryId: number): Promise<number> => {
+      await api.delete(`/monthly-entries/${entryId}`);
+      return entryId;
+    },
+
+    onMutate: async (entryId) => {
+      await queryClient.cancelQueries({ queryKey });
+      const previousData = queryClient.getQueryData<MonthCacheData>(queryKey);
+
+      queryClient.setQueryData<MonthCacheData>(queryKey, (old) => {
+        if (!old) return old;
+        return {
+          ...old,
+          monthly_entries: (old.monthly_entries || []).filter(e => e.id !== entryId),
+        };
+      });
+
+      return { previousData };
+    },
+
+    onError: (err, _id, context) => {
+      console.error('Errore eliminazione monthly entry:', err);
+      if (context?.previousData) queryClient.setQueryData(queryKey, context.previousData);
+    },
+
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey });
+    },
+  });
+
+  return {
+    saveMonthlyEntry: saveEntryMutation.mutate,
+    saveMonthlyEntryAsync: saveEntryMutation.mutateAsync,
+    deleteMonthlyEntry: deleteEntryMutation.mutate,
+  };
 };

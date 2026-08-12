@@ -49,4 +49,13 @@ class SyncMonthResponse(ORMBaseModel):
     monthly_entries: List[MonthlyEntryResponse] = Field(default_factory=list)
     prev_monthly_entries: List[MonthlyEntryResponse] = Field(default_factory=list)
     
+class MonthReviewResponse(ORMBaseModel):
+    year: int
+    month: int
+    habits: List[HabitResponse] = Field(default_factory=list)
+    weekly_positive_events: List[DailyEntryResponse] = Field(default_factory=list)
+    weekly_negative_events: List[DailyEntryResponse] = Field(default_factory=list)
+    tasks_completed: int = 0
+    tasks_total: int = 0
+
 SyncMonthResponse.model_rebuild()

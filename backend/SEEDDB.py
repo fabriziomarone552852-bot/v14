@@ -22,7 +22,6 @@ from backend.core.models import import_all_models
 from backend.core.deps import get_password_hash
 from backend.domains.categories.models import UserCategory
 from backend.domains.config import Config, ConfigCode
-from backend.domains.monthly_entries.models import MonthlyFeeling
 from backend.domains.shopping.models import ShoppingSupplier
 from backend.domains.users.models import User
 
@@ -148,22 +147,6 @@ DEFAULT_USER_CATEGORIES = [
     {"category_name": "Rabbia", "colore": "#68EEB4", "genre": 4},
     {"category_name": "Disgusto", "colore": "#68EEB4", "genre": 4},
     {"category_name": "Paura", "colore": "#68EEB4", "genre": 4},
-]
-
-DEFAULT_MONTHLY_FEELINGS = [
-    {"feel_name": "Gioia"},
-    {"feel_name": "Tristezza"},
-    {"feel_name": "Rabbia"},
-    {"feel_name": "Disgusto"},
-    {"feel_name": "Paura"},
-    {"feel_name": "Famiglia"},
-    {"feel_name": "Coppia"},
-    {"feel_name": "Salute"},
-    {"feel_name": "Mente"},
-    {"feel_name": "Amici"},
-    {"feel_name": "Finanze"},
-    {"feel_name": "Divertimento"},
-    {"feel_name": "Lavoro"},
 ]
 
 DEFAULT_CONFIG_CODES = [
@@ -452,27 +435,6 @@ def _seed_default_suppliers(db, created_by_user_id: int, supplier_status_id: int
     return inserted
 
 
-def _seed_monthly_feelings(db) -> int:
-    inserted = 0
-
-    for feeling in DEFAULT_MONTHLY_FEELINGS:
-        feel_name = feeling["feel_name"].strip()
-
-        existing = (
-            db.query(MonthlyFeeling)
-            .filter(MonthlyFeeling.feel_name == feel_name)
-            .first()
-        )
-        if existing is not None:
-            continue
-
-        db.add(MonthlyFeeling(feel_name=feel_name))
-        db.flush()
-        inserted += 1
-
-    return inserted
-
-
 def seed_database(
     session_factory,
     env_values: dict[str, str],
@@ -528,18 +490,16 @@ def seed_database(
         db.commit()
         print(f"-> ConfigCode disponibili/allineati: {len(code_ids)}.")
 
-        print("[5/5] Seed fornitori e monthly feelings di default...")
+        print("[5/5] Seed fornitori di default...")
         supplier_status_id = _get_code_id(code_ids, "supplier_status", "active")
         inserted_suppliers = _seed_default_suppliers(
             db=db,
             created_by_user_id=seed_owner.id,
             supplier_status_id=supplier_status_id,
         )
-        inserted_monthly_feelings = _seed_monthly_feelings(db)
         db.commit()
         print(
-            f"-> Fornitori inseriti: {inserted_suppliers}. "
-            f"Monthly feelings inseriti: {inserted_monthly_feelings}."
+            f"-> Fornitori inseriti: {inserted_suppliers}."
         )
 
     except Exception as exc:

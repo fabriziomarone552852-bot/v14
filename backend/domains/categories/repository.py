@@ -14,16 +14,17 @@ def get_user_category_by_name(
     db: Session,
     name: str,
     user_id: int,
+    genre: Optional[int] = None,
 ) -> Optional[UserCategory]:
-    """Recupera una categoria utente per nome normalizzato."""
-    return (
-        db.query(UserCategory)
-        .filter(
-            UserCategory.user_id == user_id,
-            UserCategory.category_name == name,
-        )
-        .first()
+    """Recupera una categoria utente per nome normalizzato, opzionalmente filtrata per genre."""
+    q = db.query(UserCategory).filter(
+        UserCategory.user_id == user_id,
+        UserCategory.category_name == name,
     )
+    if genre is not None:
+        q = q.filter(UserCategory.genre == genre)
+    return q.first()
+
 
 
 def get_user_category(

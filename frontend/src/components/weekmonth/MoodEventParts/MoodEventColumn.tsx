@@ -1,15 +1,15 @@
 import React, { useState } from 'react';
 import { PlusIcon } from '@/components/shared/utils/Icons';
-import type { DailyEntry, MoodEventType } from '@/types';
+import type { MoodEventType } from '@/types';
 import { getGridClasses, getOriginClass, getNumCols } from '@/utils/uiUtils';
 import { AutoExpandingTextarea } from '@/components/shared/utils/AutoExpandingTextarea';
-import { MoodEventCard } from './MoodEventCard';
+import { MoodEventCard, type MoodEvent } from './MoodEventCard';
 
 // CONTRATTO RIGOROSO: Niente 'any'
 interface MoodEventColumnProps {
   title: string;
   type: MoodEventType;
-  events: DailyEntry[];
+  events: MoodEvent[];
   themeColor: 'green' | 'red';
   onAdd: (type: MoodEventType, title: string) => Promise<void> | void; 
   onUpdate: (id: number, newTitle: string) => Promise<void> | void;

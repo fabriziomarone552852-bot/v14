@@ -1,14 +1,20 @@
 // frontend/src/components/shared/GoalsAndPrioritiesPanel.tsx
 import React, { memo } from 'react';
 import { SmartObiettivoTextarea } from '@/components/day/utils/SmartObiettivoTextarea';
-import type { DailyEntry } from '@/types';
+
+/** Interfaccia minimale compatibile sia con DailyEntry che con DbMonthlyEntry. */
+interface GoalLikeEntry {
+  id: number;
+  testo?: string | null;
+  monthly_field?: string | null;
+}
 
 interface GoalsAndPrioritiesPanelProps {
   goalTitle: string;
   prioritiesTitle: string;
   dateKey: string;
-  goalEntry?: DailyEntry | null; 
-  prioritiesEntries?: (DailyEntry | null)[] | null; 
+  goalEntry?: GoalLikeEntry | null; 
+  prioritiesEntries?: (GoalLikeEntry | null)[] | null; 
   onSaveGoal: (text: string) => void;
   onSavePriority: (id: number | undefined, text: string) => void;
   placeholder?: string;
@@ -33,7 +39,7 @@ export const GoalsAndPrioritiesPanel: React.FC<GoalsAndPrioritiesPanelProps> = (
         </h3>
         <SmartObiettivoTextarea 
           key={`goal-${goalEntry?.id || 'empty'}-${dateKey}`}
-          initialText={goalEntry?.testo || ""}
+          initialText={goalEntry?.testo ?? goalEntry?.monthly_field ?? ""}
           onSave={onSaveGoal}
           placeholder={placeholder}
         />
@@ -57,7 +63,7 @@ export const GoalsAndPrioritiesPanel: React.FC<GoalsAndPrioritiesPanelProps> = (
                 <input 
                   key={`priority-input-${index}-${priorityObj?.id || 'empty'}-${dateKey}`} 
                   type="text" 
-                  defaultValue={priorityObj?.testo || ""} 
+                  defaultValue={priorityObj?.testo ?? priorityObj?.monthly_field ?? ""} 
                   onBlur={(e) => onSavePriority(priorityObj?.id, e.target.value)} 
                   placeholder={`Priorità ${index + 1}`} 
                   className="w-full text-sm font-medium text-gray-700 border-none bg-transparent focus:ring-0 p-0 placeholder-gray-300" 

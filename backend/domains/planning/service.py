@@ -18,7 +18,6 @@ from backend.domains.users.models import User
 _NOT_FOUND = "Daily entry non trovata."
 _DAILY_GOAL_DUP = "Esiste già un obiettivo giornaliero per questa data."
 _WEEKLY_GOAL_DUP = "Esiste già un obiettivo settimanale per questa data."
-_MONTHLY_GOAL_DUP = "Esiste già un obiettivo mensile per questa data."
 
 
 def _validate_unique_entry_type(
@@ -31,7 +30,6 @@ def _validate_unique_entry_type(
     duplicate_messages = {
         "OD": _DAILY_GOAL_DUP,
         "OW": _WEEKLY_GOAL_DUP,
-        "OM": _MONTHLY_GOAL_DUP,
     }
 
     if tipo not in duplicate_messages:

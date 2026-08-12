@@ -49,7 +49,17 @@ def create_category(
     current_user: User,
     data: schemas.CategoryCreate,
 ) -> schemas.CategoryResponse:
-    existing = repo.get_user_category_by_name(db, data.category_name, current_user.id)
+    # TAG (5) e MOOD (4) sono indipendenti: controllano duplicati solo dentro il loro genre.
+    # TASKS (1), EVENTS (2), COMMON (3) condividono lo stesso namespace.
+    if data.genre in (5, 4):
+        # Cerca duplicati solo nello stesso genre
+        existing = repo.get_user_category_by_name(db, data.category_name, current_user.id, genre=data.genre)
+    else:
+        # Per genre 1/2/3: cerca se il nome esiste già tra 1, 2 o 3
+        existing = repo.get_user_category_by_name(db, data.category_name, current_user.id)
+        # Ignora match con genre 4 o 5 (sono indipendenti)
+        if existing and existing.genre in (4, 5):
+            existing = None
     if existing:
         raise HTTPException(status_code=400, detail="Hai già questa categoria salvata.")
 

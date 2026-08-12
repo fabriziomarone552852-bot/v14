@@ -1,71 +1,43 @@
-"""
-Monthly entries domain schemas.
-Pydantic models for monthly feelings and monthly values.
-"""
 from __future__ import annotations
-
 from typing import Optional
-
-from pydantic import Field, field_validator
-
+from pydantic import Field, field_validator, model_validator
 from backend.core.schemas import ORMBaseModel, StrictBaseModel
+from backend.domains.monthly_entries.models import VALID_MONTHLY_TYPES, NUMERIC_MONTHLY_TYPES
 
-
-class MonthlyFeelingBase(StrictBaseModel):
-    feel_name: str = Field(..., min_length=1, max_length=100)
-
-    @field_validator("feel_name")
-    @classmethod
-    def normalize_feel_name(cls, value: str) -> str:
-        value = value.strip()
-        if not value:
-            raise ValueError("feel_name non può essere vuoto.")
-        return value
-
-
-class MonthlyFeelingCreate(MonthlyFeelingBase):
-    pass
-
-
-class MonthlyFeelingUpdate(StrictBaseModel):
-    feel_name: Optional[str] = Field(default=None, min_length=1, max_length=100)
-
-    @field_validator("feel_name")
-    @classmethod
-    def normalize_feel_name(cls, value: Optional[str]) -> Optional[str]:
-        if value is None:
-            return value
-        value = value.strip()
-        if not value:
-            raise ValueError("feel_name non può essere vuoto.")
-        return value
-
-
-class MonthlyFeelingResponse(ORMBaseModel):
-    id: int
-    feel_name: str
-
-
-class MonthlyEntryBase(StrictBaseModel):
+class MonthlyEntryCreate(StrictBaseModel):
     year: int = Field(..., ge=1)
     month: int = Field(..., ge=1, le=12)
-    feel_type: int
-    feel_value: int = Field(..., ge=0, le=10)
+    monthly_type: str = Field(..., min_length=2, max_length=2)
+    monthly_field: Optional[str] = None
 
+    @field_validator("monthly_type")
+    @classmethod
+    def validate_type(cls, v: str) -> str:
+        v = v.strip().upper()
+        if v not in VALID_MONTHLY_TYPES:
+            raise ValueError(f"monthly_type non valido. Deve essere uno tra: {', '.join(VALID_MONTHLY_TYPES)}")
+        return v
 
-class MonthlyEntryCreate(MonthlyEntryBase):
-    pass
-
+    @model_validator(mode='after')
+    def validate_numeric(self) -> 'MonthlyEntryCreate':
+        if self.monthly_type in NUMERIC_MONTHLY_TYPES:
+            if self.monthly_field is None:
+                raise ValueError("Il campo monthly_field è richiesto per i tipi numerici")
+            try:
+                val = int(self.monthly_field)
+                if not (0 <= val <= 10):
+                    raise ValueError()
+            except ValueError:
+                raise ValueError("monthly_field deve essere un intero tra 0 e 10 per i tipi numerici")
+        return self
 
 class MonthlyEntryUpdate(StrictBaseModel):
-    feel_value: int = Field(..., ge=0, le=10)
-
+    monthly_field: Optional[str] = None
 
 class MonthlyEntryResponse(ORMBaseModel):
     id: int
     user_id: int
     year: int
     month: int
-    feel_type: int
-    feel_value: int
-    feel_name: Optional[str] = None
+    monthly_type: str
+    monthly_field: Optional[str]

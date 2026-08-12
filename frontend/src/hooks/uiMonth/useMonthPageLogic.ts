@@ -6,6 +6,7 @@ import { useMonthTasksEvents } from './useMonthTasksEvents';
 import { useMonthNotes } from './useMonthNotes';
 import { useMonthSidebar } from './useMonthSidebar';
 import { useMonthModals } from './useMonthModals';
+import { useMonthReview } from './useMonthReview';
 import type { DbTask, NoteVariant, MoodEventType } from '@/types'; 
 
 // IL CONTRATTO DEFINITIVO: Nessun 'any'
@@ -58,13 +59,16 @@ export interface UseMonthPageLogicResult {
     handleDeleteMoodEvent: (id: number) => void;
     handleMoodChange: (dateStr: string, categoryId: number | null) => void;
   };
+  review: ReturnType<typeof useMonthReview>;
 }
 
 export const useMonthPageLogic = (): UseMonthPageLogicResult => {
   const nav = useMonthNavigation();
   const agenda = useAgendaMonth(nav.firstDayStr, nav.lastDayStr);
-  const sidebar = useMonthSidebar(agenda.monthData, nav.firstDayStr);
+  const monthQueryKey = ['monthSync', nav.firstDayStr, nav.lastDayStr];
+  const sidebar = useMonthSidebar(agenda.monthData, nav.firstDayStr, monthQueryKey);
   const modals = useMonthModals();
+  const review = useMonthReview(agenda.monthData, nav.targetDate, monthQueryKey);
 
   const tasksAndEvents = useMonthTasksEvents(
     agenda.monthData, 
@@ -82,45 +86,44 @@ export const useMonthPageLogic = (): UseMonthPageLogicResult => {
   });
 
   const handleSaveGoal = useCallback((testo: string) => {
-    agenda.saveDailyEntry({
-       id: agenda.monthData?.obiettivi?.[0]?.id,
-       text: testo,
-       tipo: 'OM',
-       dateStr: nav.firstDayStr
+    agenda.saveMonthlyEntry({
+       monthly_type: 'OM',
+       monthly_field: testo,
+       dateStr: nav.firstDayStr,
+       existingEntryId: agenda.monthData?.obiettivi?.[0]?.id,
     });
   }, [agenda, nav.firstDayStr]);
 
   const handleSavePriority = useCallback((id: number | undefined, testo: string) => {
-    agenda.saveDailyEntry({
-       id,
-       text: testo,
-       tipo: 'PM', 
-       dateStr: nav.firstDayStr
+    agenda.saveMonthlyEntry({
+       monthly_type: 'PM',
+       monthly_field: testo,
+       dateStr: nav.firstDayStr,
+       existingEntryId: id,
     });
   }, [agenda, nav.firstDayStr]);
 
   const handleAddMoodEvent = useCallback((tipo: MoodEventType, title: string) => {
-    const monthlyTipo = tipo === 'EP' ? 'EPM' : 'ENM';
-    agenda.saveDailyEntry({
-      text: title,
-      tipo: monthlyTipo,
-      dateStr: nav.firstDayStr
+    agenda.saveMonthlyEntry({
+      monthly_type: tipo,
+      monthly_field: title,
+      dateStr: nav.firstDayStr,
     });
   }, [agenda, nav.firstDayStr]);
 
   const handleUpdateMoodEvent = useCallback((id: number, newTitle: string) => {
     const existingEP = agenda.monthData?.eventi_positivi?.find(e => e.id === id);
-    const tipo = existingEP ? 'EPM' : 'ENM';
-    agenda.saveDailyEntry({
-      id,
-      text: newTitle,
-      tipo,
-      dateStr: nav.firstDayStr
+    const monthlyType = existingEP ? 'EP' : 'EN';
+    agenda.saveMonthlyEntry({
+      monthly_type: monthlyType,
+      monthly_field: newTitle,
+      dateStr: nav.firstDayStr,
+      existingEntryId: id,
     });
   }, [agenda, nav.firstDayStr]);
 
   const handleDeleteMoodEvent = useCallback((id: number) => {
-    agenda.deleteNote(id);
+    agenda.deleteMonthlyEntry(id);
   }, [agenda]);
 
   const handleMoodChange = useCallback((dateStr: string, categoryId: number | null) => {
@@ -178,6 +181,7 @@ export const useMonthPageLogic = (): UseMonthPageLogicResult => {
       handleUpdateMoodEvent,
       handleDeleteMoodEvent,
       handleMoodChange
-    }
+    },
+    review
   };
 };

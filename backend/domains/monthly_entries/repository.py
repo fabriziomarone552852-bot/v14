@@ -1,114 +1,48 @@
-"""
-Monthly entries repository.
-Solo accesso ai dati, nessuna regola di business.
-"""
-from __future__ import annotations
-
-from typing import List, Optional
-
-from sqlalchemy.orm import Session, joinedload
-
-from backend.domains.monthly_entries.models import MonthlyEntry, MonthlyFeeling
-
-
-def list_feelings(db: Session) -> List[MonthlyFeeling]:
-    return (
-        db.query(MonthlyFeeling)
-        .order_by(MonthlyFeeling.feel_name.asc(), MonthlyFeeling.id.asc())
-        .all()
-    )
-
-
-def get_feeling(db: Session, feeling_id: int) -> Optional[MonthlyFeeling]:
-    return db.query(MonthlyFeeling).filter(MonthlyFeeling.id == feeling_id).first()
-
-
-def get_feeling_by_name(db: Session, feel_name: str) -> Optional[MonthlyFeeling]:
-    return db.query(MonthlyFeeling).filter(MonthlyFeeling.feel_name == feel_name).first()
-
-
-def create_feeling(db: Session, feeling: MonthlyFeeling) -> MonthlyFeeling:
-    db.add(feeling)
-    db.commit()
-    db.refresh(feeling)
-    return feeling
-
-
-def bulk_create_feelings_if_missing(db: Session, feelings: List[dict]) -> None:
-    for feeling in feelings:
-        feel_name = feeling["feel_name"].strip()
-        existing = get_feeling_by_name(db, feel_name)
-        if existing is None:
-            db.add(MonthlyFeeling(feel_name=feel_name))
-    db.commit()
-
-
-def update_feeling(db: Session, feeling: MonthlyFeeling) -> MonthlyFeeling:
-    db.commit()
-    db.refresh(feeling)
-    return feeling
-
-
-def delete_feeling(db: Session, feeling: MonthlyFeeling) -> None:
-    db.delete(feeling)
-    db.commit()
-
+from typing import Optional
+from sqlalchemy.orm import Session
+from sqlalchemy import select
+from backend.domains.monthly_entries.models import MonthlyEntry
 
 def list_entries(
     db: Session,
     user_id: int,
     year: Optional[int] = None,
     month: Optional[int] = None,
-) -> List[MonthlyEntry]:
-    query = (
-        db.query(MonthlyEntry)
-        .options(joinedload(MonthlyEntry.feeling))
-        .filter(MonthlyEntry.user_id == user_id)
-    )
+    monthly_type: Optional[str] = None
+) -> list[MonthlyEntry]:
+    stmt = select(MonthlyEntry).where(MonthlyEntry.user_id == user_id)
+    
     if year is not None:
-        query = query.filter(MonthlyEntry.year == year)
+        stmt = stmt.where(MonthlyEntry.year == year)
     if month is not None:
-        query = query.filter(MonthlyEntry.month == month)
-
-    return (
-        query.order_by(
-            MonthlyEntry.year.desc(),
-            MonthlyEntry.month.desc(),
-            MonthlyEntry.feel_type.asc(),
-            MonthlyEntry.id.desc(),
-        )
-        .all()
-    )
-
+        stmt = stmt.where(MonthlyEntry.month == month)
+    if monthly_type is not None:
+        stmt = stmt.where(MonthlyEntry.monthly_type == monthly_type)
+        
+    stmt = stmt.order_by(MonthlyEntry.year.desc(), MonthlyEntry.month.desc(), MonthlyEntry.id.desc())
+    return list(db.scalars(stmt).all())
 
 def get_entry(db: Session, entry_id: int, user_id: int) -> Optional[MonthlyEntry]:
-    return (
-        db.query(MonthlyEntry)
-        .options(joinedload(MonthlyEntry.feeling))
-        .filter(MonthlyEntry.id == entry_id, MonthlyEntry.user_id == user_id)
-        .first()
+    stmt = select(MonthlyEntry).where(
+        MonthlyEntry.id == entry_id,
+        MonthlyEntry.user_id == user_id
     )
-
+    return db.scalars(stmt).first()
 
 def get_entry_by_key(
     db: Session,
     user_id: int,
     year: int,
     month: int,
-    feel_type: int,
+    monthly_type: str
 ) -> Optional[MonthlyEntry]:
-    return (
-        db.query(MonthlyEntry)
-        .options(joinedload(MonthlyEntry.feeling))
-        .filter(
-            MonthlyEntry.user_id == user_id,
-            MonthlyEntry.year == year,
-            MonthlyEntry.month == month,
-            MonthlyEntry.feel_type == feel_type,
-        )
-        .first()
+    stmt = select(MonthlyEntry).where(
+        MonthlyEntry.user_id == user_id,
+        MonthlyEntry.year == year,
+        MonthlyEntry.month == month,
+        MonthlyEntry.monthly_type == monthly_type
     )
-
+    return db.scalars(stmt).first()
 
 def create_entry(db: Session, entry: MonthlyEntry) -> MonthlyEntry:
     db.add(entry)
@@ -116,12 +50,10 @@ def create_entry(db: Session, entry: MonthlyEntry) -> MonthlyEntry:
     db.refresh(entry)
     return entry
 
-
 def update_entry(db: Session, entry: MonthlyEntry) -> MonthlyEntry:
     db.commit()
     db.refresh(entry)
     return entry
-
 
 def delete_entry(db: Session, entry: MonthlyEntry) -> None:
     db.delete(entry)

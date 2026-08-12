@@ -1,14 +1,23 @@
 import React, { useState } from 'react';
 import { TrashIcon } from '@/components/shared/utils/Icons';
 import type { DailyEntry } from '@/types/dailyentries';
+import type { DbMonthlyEntry } from '@/types/monthlyentries';
 import { getOriginClass, getNumCols } from '@/utils/uiUtils';
 import { AutoExpandingTextarea } from '@/components/shared/utils/AutoExpandingTextarea';
+
+export type MoodEvent = DailyEntry | DbMonthlyEntry;
+
+const getEventText = (ev: MoodEvent): string => {
+  if ('testo' in ev && ev.testo) return ev.testo;
+  if ('monthly_field' in ev && ev.monthly_field) return ev.monthly_field;
+  return '';
+};
 
 // Lo stile testo lo possiamo condividere o esportare da un file uiUtils.ts
 const textStyle = "text-[length:clamp(0.85rem,10cqmin,1.15rem)] font-black leading-tight break-words whitespace-pre-wrap w-full min-w-0 max-w-full";
 
 interface MoodEventCardProps {
-  ev: DailyEntry;
+  ev: MoodEvent;
   index: number;
   totalBlocks: number;
   themeColor: 'green' | 'red';
@@ -64,7 +73,7 @@ export const MoodEventCard: React.FC<MoodEventCardProps> = ({
         <div className="w-full flex flex-col items-center justify-center min-w-0 flex-1">
           {isEditing ? (
             <AutoExpandingTextarea 
-              initialValue={ev.testo ?? ''}
+              initialValue={getEventText(ev)}
               onBlur={(e) => handleSave(e.target.value)} 
               onKeyDown={(e) => {
                 if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSave(e.currentTarget.value); }
@@ -75,7 +84,7 @@ export const MoodEventCard: React.FC<MoodEventCardProps> = ({
             />
           ) : (
             <span className={`${textStyle} ${isVertical ? 'line-clamp-2' : 'line-clamp-3'} group-hover:line-clamp-none`}>
-              {ev.testo}
+              {getEventText(ev)}
             </span>
           )}
         </div>

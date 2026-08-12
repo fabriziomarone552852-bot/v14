@@ -21,12 +21,8 @@ VALID_DAILY_ENTRY_TYPES = {
     "N4",
     "OW",
     "PW",
-    "OM",
-    "PM",
     "EP",
     "EN",
-    "EPM",
-    "ENM",
 }
 
 

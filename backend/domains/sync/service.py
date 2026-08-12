@@ -5,7 +5,7 @@ from datetime import date
 from sqlalchemy.orm import Session
 
 from backend.domains.sync import repository, mappers
-from backend.domains.sync.schemas import SyncDayResponse, SyncWeekResponse, SyncMonthResponse
+from backend.domains.sync.schemas import SyncDayResponse, SyncWeekResponse, SyncMonthResponse, MonthReviewResponse
 from backend.domains.users.models import User
 
 
@@ -22,3 +22,8 @@ def get_week_sync(db: Session, current_user: User, start_date: date, end_date: d
 def get_month_sync(db: Session, current_user: User, start_date: date, end_date: date) -> SyncMonthResponse:
     bundle = repository.build_month_bundle(db, current_user.id, start_date, end_date)
     return mappers.to_month_response(bundle, start_date, end_date)
+
+
+def get_month_review(db: Session, current_user: User, year: int, month: int) -> MonthReviewResponse:
+    bundle = repository.build_month_review_bundle(db, current_user.id, year, month)
+    return mappers.to_month_review_response(bundle, year, month)

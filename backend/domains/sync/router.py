@@ -14,6 +14,7 @@ from backend.domains.sync.schemas import (
     SyncDayResponse,
     SyncWeekResponse,
     SyncMonthResponse,
+    MonthReviewResponse,
 )
 
 router = APIRouter(prefix="/sync", tags=["sync"])
@@ -57,3 +58,17 @@ def get_month_sync(
     Ritorna tutti i dati di un dato mese per l'utente corrente.
     """
     return service.get_month_sync(db, current_user, start_date, end_date)
+
+
+@router.get("/month-review", response_model=MonthReviewResponse)
+def get_month_review(
+    year: int = Query(..., ge=2000),
+    month: int = Query(..., ge=1, le=12),
+    current_user: User = Depends(deps.get_current_app_user),
+    db: Session = Depends(deps.get_db),
+):
+    """
+    Ritorna i dati per il recap/review di un mese specifico:
+    habits con log, eventi settimanali, statistiche task.
+    """
+    return service.get_month_review(db, current_user, year, month)
