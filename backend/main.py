@@ -21,6 +21,8 @@ from backend.domains.countdowns.router import router as countdowns_router
 from backend.domains.events.router import router as events_router
 from backend.domains.habits.router import router as habits_router
 from backend.domains.monthly_entries.router import router as monthly_entries_router
+from backend.domains.yearly_entries.router import router as yearly_entries_router
+from backend.domains.bingo.router import router as bingo_router
 from backend.domains.planning.router import router as daily_entries_router
 from backend.domains.shopping.router import router as shopping_router
 from backend.domains.sync.router import router as sync_router
@@ -62,3 +64,5 @@ app.include_router(habits_router)
 app.include_router(sync_router)
 app.include_router(catalogs_router)
 app.include_router(monthly_entries_router)
+app.include_router(yearly_entries_router)
+app.include_router(bingo_router)

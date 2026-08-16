@@ -12,7 +12,7 @@ interface SharedAgendaHeaderProps {
   onNext: () => void;
   onResetToday: () => void;
   onChangeDate: (newDate: Date) => void;
-  viewMode?: 'day' | 'week' | 'month';
+  viewMode?: 'day' | 'week' | 'month' | 'year';
   /** 'none' = non mostrare, 'empty' = piuma, 'filled' = pergamena */
   reviewStatus?: 'none' | 'empty' | 'filled';
   onOpenReview?: () => void;
@@ -38,16 +38,18 @@ export const SharedAgendaHeader: React.FC<SharedAgendaHeaderProps> = ({
     onChangeDate(new Date(Number(yyyy), Number(mm) - 1, Number(dd)));
   };
 
+  const isYearMode = viewMode === 'year';
+
   return (
     <div className="flex flex-col justify-center items-center relative py-2 z-30 shrink-0">
       <h2 className="text-sm font-bold uppercase tracking-wider text-gray-400 mb-1">Agenda</h2>
       
       <div className="flex items-center justify-between w-[340px] mx-auto relative z-40">
-        <button onClick={onPrev} className="text-blue-600 hover:text-blue-800 transition-transform hover:-translate-x-1 focus:outline-none p-1 z-50 bg-transparent">
+        <button onClick={onPrev} className="text-blue-600 hover:text-blue-800 transition-transform hover:-translate-x-1 focus:outline-none p-1 z-50 bg-transparent shrink-0">
           <BackIcon className="w-8 h-8" />
         </button>
         
-        <div className="flex-1 flex justify-center min-w-0 px-2">
+        <div className="flex-1 flex justify-center items-center min-w-0">
           <DatePicker
             value={formatDateString(currentDate)} 
             onChange={handleDatePickerChange}
@@ -71,7 +73,9 @@ export const SharedAgendaHeader: React.FC<SharedAgendaHeaderProps> = ({
         </button>
       </div>
       
-      <p className="text-lg xl:text-xl font-medium text-gray-500 mt-1 text-center">{subtitle}</p>
+      {!isYearMode && (
+        <p className="text-lg xl:text-xl font-medium text-gray-500 mt-1 text-center">{subtitle}</p>
+      )}
       
       <div className="h-8 mt-2 flex items-center justify-center gap-3 w-full">
         {!isToday && (

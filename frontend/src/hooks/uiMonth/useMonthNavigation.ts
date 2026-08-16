@@ -1,6 +1,5 @@
-// frontend/src/hooks/uiMonth/useMonthNavigation.ts
-import { useMemo, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useMemo, useCallback, useEffect } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { formatDateString } from '@/utils/dateUtils';
 import { useDay } from '@/context/DayContext';
 
@@ -21,7 +20,18 @@ export interface UseMonthNavigationResult {
 
 export const useMonthNavigation = (): UseMonthNavigationResult => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { dataRiferimento: targetDate, changeDate: setTargetDate } = useDay();
+
+  useEffect(() => {
+    const dateParam = searchParams.get('date');
+    if (dateParam) {
+      const [y, m, d] = dateParam.split('-').map(Number);
+      if (y && m) {
+        setTargetDate(new Date(y, m - 1, d || 1));
+      }
+    }
+  }, [searchParams, setTargetDate]);
 
   // Calcolo preciso del primo e ultimo giorno del mese
   const firstDay = useMemo((): Date => {

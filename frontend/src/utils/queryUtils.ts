@@ -1,11 +1,11 @@
 // src/utils/queryUtils.ts
 import type { QueryClient } from '@tanstack/react-query';
 
-/** Query key prefixes for all sync views */
-const SYNC_VIEW_KEYS = ['daySync', 'weekSync', 'monthSync'] as const;
+/** Query key prefixes for all sync views (giorno, settimana, mese, anno) */
+const SYNC_VIEW_KEYS = ['daySync', 'weekSync', 'monthSync', 'yearSync'] as const;
 
 /**
- * Invalidates all sync view caches (day, week, month) and the tasks cache.
+ * Invalidates all sync view caches (day, week, month, year) and the tasks cache.
  * Extracts the repeated invalidation pattern used across mutation hooks.
  */
 export const invalidateAllViews = (queryClient: QueryClient): void => {

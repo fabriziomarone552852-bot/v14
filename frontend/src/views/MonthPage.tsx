@@ -53,7 +53,7 @@ const MonthPage: React.FC = () => {
       
       {/* 🪄 CORREZIONE 1: Aggiunto 'relative z-50' al contenitore dell'header. 
           Questo garantisce che l'header e il suo DatePicker siano fisicamente "sopra" la Sidebar (che ha z-40). */}
-      <div className="flex flex-col xl:flex-row gap-6 shrink-0 items-stretch justify-between w-full relative z-10">
+      <div className="flex flex-col xl:flex-row gap-6 shrink-0 items-stretch justify-between w-full relative z-50">
         <SharedAgendaHeader 
           title={displayName} 
           subtitle={formattedDate} 

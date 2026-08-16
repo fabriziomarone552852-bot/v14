@@ -8,6 +8,7 @@ import HomePage from '@/views/HomePage';
 import DayPage from '@/views/DayPage';
 import WeekPage from '@/views/WeekPage';
 import MonthPage from '@/views/MonthPage';
+import YearPage from '@/views/YearPage';
 import TasksPage from '@/views/TasksPage';
 import EventsPage from '@/views/EventsPage';
 import CategoriesPage from '@/views/CategoriesPage';
@@ -44,6 +45,7 @@ const AppRouter: React.FC = () => {
             <Route path="/giorno" element={<DayPage />} />
             <Route path="/settimana" element={<WeekPage />} />
             <Route path="/mese" element={<MonthPage />} />
+            <Route path="/anno" element={<YearPage />} />
             <Route path="/tasks" element={<TasksPage />} />
             <Route path="/events" element={<EventsPage />} />
             <Route path="/categories" element={<CategoriesPage />} />

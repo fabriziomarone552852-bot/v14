@@ -1,5 +1,5 @@
 // frontend/src/components/weekmonth/review/ReadOnlyTrackerChart.tsx
-// Singolo grafico polare read-only per il modale di review.
+// Grafico polare per il modale di review, con supporto opzionale alla modifica (onUpdateValue).
 import React from 'react';
 import type { TrackerItem } from '@/types/monthlyentries';
 
@@ -33,14 +33,16 @@ interface ReadOnlyTrackerChartProps {
   title: string;
   items: TrackerItem[];
   uid: string;
+  onUpdateValue?: (id: string, newValue: number) => void;
 }
 
-export const ReadOnlyTrackerChart: React.FC<ReadOnlyTrackerChartProps> = ({ title, items, uid }) => {
+export const ReadOnlyTrackerChart: React.FC<ReadOnlyTrackerChartProps> = ({ title, items, uid, onUpdateValue }) => {
   const size = 320;
   const center = size / 2;
   const maxRadius = 95;
   const labelRadius = 120;
   const angleStep = 360 / items.length;
+  const isInteractive = !!onUpdateValue;
 
   return (
     <div className="flex flex-col h-full w-full overflow-hidden">
@@ -68,7 +70,25 @@ export const ReadOnlyTrackerChart: React.FC<ReadOnlyTrackerChartProps> = ({ titl
           {items.map((item, i) => {
             if (item.currentValue === 0) return null;
             const d = describeWedge(center, center, (item.currentValue / 10) * maxRadius, i * angleStep, (i + 1) * angleStep);
-            return <path key={`v-${item.id}`} d={d} fill={item.colorHex} fillOpacity="0.85" stroke="#fff" strokeWidth="1.5" />;
+            return <path key={`v-${item.id}`} d={d} fill={item.colorHex} fillOpacity={isInteractive ? "0.95" : "0.85"} stroke="#fff" strokeWidth="1.5" className="transition-all duration-300" />;
+          })}
+
+          {/* Hitboxes Interattive per la modifica */}
+          {isInteractive && onUpdateValue && items.map((item, i) => {
+            return [10, 9, 8, 7, 6, 5, 4, 3, 2, 1].map((level) => {
+              const d = describeWedge(center, center, (level / 10) * maxRadius, i * angleStep, (i + 1) * angleStep);
+              return (
+                <path
+                  key={`hitbox-${item.id}-${level}`}
+                  d={d}
+                  fill="transparent"
+                  className="cursor-pointer hover:fill-black/20 transition-colors outline-none"
+                  onClick={() => onUpdateValue(item.id, level)}
+                >
+                  <title>{`${item.name}: ${level}/10`}</title>
+                </path>
+              );
+            });
           })}
 
           {items.map(item => (

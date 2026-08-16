@@ -12,7 +12,8 @@ export interface TrackerItem {
 
 interface TrackerPanelProps {
   titleTop: string;
-  titleBottom: string;
+  titleBottom?: string;
+  showBottom?: boolean;
   items: TrackerItem[];
   onUpdateValue: (id: string, newValue: number) => void;
 }
@@ -144,7 +145,13 @@ const PolarAreaChart: React.FC<{
 };
 
 // --- COMPONENTE PRINCIPALE ESPORTATO ---
-export const TrackerPanel: React.FC<TrackerPanelProps> = ({ titleTop, titleBottom, items, onUpdateValue }) => {
+export const TrackerPanel: React.FC<TrackerPanelProps> = ({ 
+  titleTop, 
+  titleBottom, 
+  showBottom = true, 
+  items, 
+  onUpdateValue 
+}) => {
   return (
     <div className="flex flex-col h-full w-full overflow-hidden p-2">
       
@@ -159,18 +166,22 @@ export const TrackerPanel: React.FC<TrackerPanelProps> = ({ titleTop, titleBotto
         </div>
       </div>
 
-      <div className="w-8/12 mx-auto h-px bg-gray-200 shrink-0 my-2"></div>
+      {showBottom && titleBottom && (
+        <>
+          <div className="w-8/12 mx-auto h-px bg-gray-200 shrink-0 my-2"></div>
 
-      {/* SEZIONE INFERIORE */}
-      <div className="flex-1 min-h-0 flex flex-col items-center relative">
-        <h4 className="text-[11px] font-extrabold text-gray-500 uppercase tracking-wider mt-2 shrink-0 z-10">
-          {titleBottom}
-        </h4>
-        {/* LA GABBIA DI CONTENIMENTO */}
-        <div className="relative w-full flex-1 min-h-0">
-            <PolarAreaChart items={items} valueKey="previousValue" />
-        </div>
-      </div>
+          {/* SEZIONE INFERIORE */}
+          <div className="flex-1 min-h-0 flex flex-col items-center relative">
+            <h4 className="text-[11px] font-extrabold text-gray-500 uppercase tracking-wider mt-2 shrink-0 z-10">
+              {titleBottom}
+            </h4>
+            {/* LA GABBIA DI CONTENIMENTO */}
+            <div className="relative w-full flex-1 min-h-0">
+                <PolarAreaChart items={items} valueKey="previousValue" />
+            </div>
+          </div>
+        </>
+      )}
 
     </div>
   );

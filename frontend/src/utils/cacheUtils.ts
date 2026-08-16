@@ -1,8 +1,8 @@
 // src/utils/cacheUtils.ts
 import type { QueryClient } from '@tanstack/react-query';
 
-/** Keys for all sync view caches */
-const SYNC_CACHE_KEYS = ['daySync', 'weekSync', 'monthSync'] as const;
+/** Keys for all sync view caches (inclusa la vista annuale) */
+const SYNC_CACHE_KEYS = ['daySync', 'weekSync', 'monthSync', 'yearSync'] as const;
 
 /**
  * Applies an updater function across all sync view caches.

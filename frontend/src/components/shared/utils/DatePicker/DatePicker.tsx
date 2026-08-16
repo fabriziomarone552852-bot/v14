@@ -5,6 +5,7 @@ import { useOutsideClick } from '@/hooks/useOutsideClick';
 import { CalendarIcon, BackIcon, ForwardIcon } from '../Icons';
 import { DatePickerMonthGrid } from './DatePickerMonthGrid';
 import { DatePickerDayGrid } from './DatePickerDayGrid';
+import { DatePickerYearGrid } from './DatePickerYearGrid';
 
 interface DatePickerProps {
   value: string; // Formato YYYY-MM-DD
@@ -15,8 +16,12 @@ interface DatePickerProps {
   placeholder?: string;
   align?: 'left' | 'right' | 'center';
   customTrigger?: React.ReactNode; 
-  selectionMode?: 'day' | 'week' | 'month';
+  selectionMode?: 'day' | 'week' | 'month' | 'year';
 }
+
+const get9YearRangeStart = (y: number): number => {
+  return 2000 + Math.floor((y - 2000) / 9) * 9;
+};
 
 const DatePicker: React.FC<DatePickerProps> = ({ 
   value, 
@@ -30,6 +35,7 @@ const DatePicker: React.FC<DatePickerProps> = ({
   selectionMode = 'day'
 }) => {
   const [pickerMonthDate, setPickerMonthDate] = useState<Date>(new Date());
+  const [yearRangeStart, setYearRangeStart] = useState<number>(() => get9YearRangeStart(new Date().getFullYear()));
   const [openUpwards, setOpenUpwards] = useState<boolean>(false);
 
   const wrapperRef = useOutsideClick(() => {
@@ -40,9 +46,13 @@ const DatePicker: React.FC<DatePickerProps> = ({
     if (isOpen) {
       if (value) {
         const [yyyy, mm, dd] = value.split('-');
-        setPickerMonthDate(new Date(Number(yyyy), Number(mm) - 1, Number(dd)));
+        const yNum = Number(yyyy);
+        setPickerMonthDate(new Date(yNum, Number(mm) - 1, Number(dd || 1)));
+        setYearRangeStart(get9YearRangeStart(yNum));
       } else {
-        setPickerMonthDate(new Date());
+        const now = new Date();
+        setPickerMonthDate(now);
+        setYearRangeStart(get9YearRangeStart(now.getFullYear()));
       }
     }
   }, [isOpen, value]);
@@ -69,9 +79,11 @@ const DatePicker: React.FC<DatePickerProps> = ({
   const daysInMo = getDaysInMonth(year, month);
   const weeks = generateWeeksGrid(firstDayIdx, daysInMo);
 
-  // Helper per la navigazione condizionale (Anno vs Mese)
+  // Helper per la navigazione condizionale (Anno vs Mese vs Giorno)
   const handleBack = () => {
-    if (selectionMode === 'month') {
+    if (selectionMode === 'year') {
+      setYearRangeStart((prev) => prev - 9);
+    } else if (selectionMode === 'month') {
       setPickerMonthDate(new Date(year - 1, month, 1));
     } else {
       setPickerMonthDate(new Date(year, month - 1, 1));
@@ -79,7 +91,9 @@ const DatePicker: React.FC<DatePickerProps> = ({
   };
 
   const handleForward = () => {
-    if (selectionMode === 'month') {
+    if (selectionMode === 'year') {
+      setYearRangeStart((prev) => prev + 9);
+    } else if (selectionMode === 'month') {
       setPickerMonthDate(new Date(year + 1, month, 1));
     } else {
       setPickerMonthDate(new Date(year, month + 1, 1));
@@ -87,12 +101,12 @@ const DatePicker: React.FC<DatePickerProps> = ({
   };
 
   return (
-    <div className="relative flex justify-center" ref={wrapperRef}>
+    <div className="relative flex justify-center w-full" ref={wrapperRef}>
       
       {customTrigger ? (
         <div 
           onClick={(e: React.MouseEvent<HTMLDivElement>) => { e.stopPropagation(); onToggle(); }} 
-          className="cursor-pointer inline-flex items-center justify-center"
+          className="cursor-pointer inline-flex items-center justify-center w-full"
         >
           {customTrigger}
         </div>
@@ -110,9 +124,15 @@ const DatePicker: React.FC<DatePickerProps> = ({
       
       {isOpen && (
         <div 
-          className={`absolute z-[100] bg-white rounded-xl shadow-xl border border-gray-100 p-4 w-64 animate-fadeIn ${
-            align === 'right' ? 'right-0' : align === 'left' ? 'left-0' : 'left-1/2 -translate-x-1/2'
-          } ${openUpwards ? 'bottom-full mb-2' : 'top-full mt-2'}`}
+          className="absolute z-[100] bg-white rounded-xl shadow-xl border border-gray-100 p-4 w-64 animate-fadeIn"
+          style={{
+            [openUpwards ? 'bottom' : 'top']: '100%',
+            left: align === 'center' ? '50%' : align === 'right' ? undefined : 0,
+            right: align === 'right' ? 0 : undefined,
+            transform: align === 'center' ? 'translateX(-50%)' : undefined,
+            marginTop: openUpwards ? undefined : '0.5rem',
+            marginBottom: openUpwards ? '0.5rem' : undefined,
+          }}
           onClick={(e: React.MouseEvent<HTMLDivElement>) => e.stopPropagation()}
         >
           <div className="flex justify-between items-center mb-4 px-2">
@@ -120,14 +140,26 @@ const DatePicker: React.FC<DatePickerProps> = ({
               <BackIcon className="w-4 h-4" />
             </button>
             <span className="font-bold text-gray-800 text-sm">
-              {selectionMode === 'month' ? year : `${nomiMesiLungo[month]} ${year}`}
+              {selectionMode === 'year'
+                ? `${yearRangeStart} - ${yearRangeStart + 8}`
+                : selectionMode === 'month'
+                ? year
+                : `${nomiMesiLungo[month]} ${year}`}
             </span>
             <button type="button" onClick={handleForward} className="text-gray-400 hover:text-gray-800 transition-colors focus:outline-none">
               <ForwardIcon className="w-4 h-4" />
             </button>
           </div>
           
-          {selectionMode === 'month' ? (
+          {selectionMode === 'year' ? (
+            <DatePickerYearGrid
+              startYear={yearRangeStart}
+              selectedYear={year}
+              currentYear={currentYear}
+              onChange={onChange}
+              onClose={onClose}
+            />
+          ) : selectionMode === 'month' ? (
             // GRIGLIA MENSILE
             <DatePickerMonthGrid 
               year={year} 

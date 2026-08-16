@@ -161,7 +161,7 @@ export function useEventMutations<T extends CacheWithEvents>(queryKey: QueryKey)
     
     onMutate: async (payload) => {
       await queryClient.cancelQueries({ 
-        predicate: (query) => ['events', 'daySync', 'weekSync', 'monthSync'].includes(query.queryKey[0] as string) 
+        predicate: (query) => ['events', 'daySync', 'weekSync', 'monthSync', 'yearSync'].includes(query.queryKey[0] as string) 
       });
 
       // 🪄 Funzione completamente Type-Safe
@@ -197,7 +197,7 @@ export function useEventMutations<T extends CacheWithEvents>(queryKey: QueryKey)
       };
 
       queryClient.setQueriesData<EventCacheData>({ 
-        predicate: (query) => ['events', 'daySync', 'weekSync', 'monthSync'].includes(query.queryKey[0] as string) 
+        predicate: (query) => ['events', 'daySync', 'weekSync', 'monthSync', 'yearSync'].includes(query.queryKey[0] as string) 
       }, updateCache);
     },
 

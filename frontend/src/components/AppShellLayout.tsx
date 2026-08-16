@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { Link, useLocation, Outlet } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
-import { SettingsIcon, SwitchSidebarIcon, CategoryIcon, TaskListIcon, ShoppingIcon, UniversityIcon, FreeTimeIcon, CalendarIcon, CountdownIcon } from './shared/utils/Icons';
+import { SettingsIcon, SwitchSidebarIcon, CategoryIcon, TaskListIcon, ShoppingIcon, UniversityIcon, FreeTimeIcon, CalendarIcon, CountdownIcon, CalendarDayIcon, CalendarWeekIcon, CalendarMonthIcon, CalendarYearIcon } from './shared/utils/Icons';
 
 interface SidebarItemProps {
   to: string;
@@ -27,7 +27,7 @@ const AppShellLayout: React.FC<AppShellLayoutProps> = ({ onLogout }) => {
 
   const displayUsername = user?.username ? user.username.toUpperCase() : 'OSPITE';
   const isActive = (path: string) => location.pathname === path;
-  const isAgendaActive = isActive('/') || isActive('/giorno') || isActive('/settimana') || isActive('/mese');
+  const isAgendaActive = isActive('/') || isActive('/giorno') || isActive('/settimana') || isActive('/mese') || isActive('/anno');
 
   // Funzione per generare classi CSS dinamiche e perfette per i bottoni principali
   const getNavLinkClass = (active: boolean) => {
@@ -112,28 +112,46 @@ const devNavItems = [
 
               {/* SOTTOMENU (Visibile sia aperto che chiuso se attivo o in hover) */}
               {(isAgendaActive || isAgendaHovered) && (
-                <div className={`flex flex-col mt-1 mb-2 animate-fadeIn ${isSidebarOpen ? 'pl-8 pr-2 space-y-1' : 'items-center space-y-2 mt-2'}`}>
+                <div className={`flex flex-col mt-1 mb-2 animate-fadeIn ${isSidebarOpen ? 'pl-6 pr-2 space-y-1' : 'items-center space-y-2 mt-2'}`}>
                   
                   {/* Sottomenu: GIORNO */}
                   <Link 
-                        to="/giorno" 
-                        title={!isSidebarOpen ? "Giorno" : undefined} 
-                        className={`flex items-center gap-3 rounded-lg transition-colors focus:outline-none ${isSidebarOpen ? 'py-1.5 px-3' : 'p-2 justify-center'} ${isActive('/giorno') ? 'bg-gray-700 text-white font-bold' : 'text-gray-400 hover:bg-gray-700 hover:text-white'}`}
-                      >
-                    <span className={`rounded-full shrink-0 ${isActive('/giorno') ? 'bg-blue-400 shadow-[0_0_8px_rgba(96,165,250,0.8)]' : 'bg-blue-600'} ${isSidebarOpen ? 'w-1.5 h-1.5' : 'w-2.5 h-2.5'}`}></span>
+                    to="/giorno" 
+                    title={!isSidebarOpen ? "Giorno" : undefined} 
+                    className={`flex items-center gap-3 rounded-lg transition-colors focus:outline-none ${isSidebarOpen ? 'py-1.5 px-3' : 'p-2 justify-center'} ${isActive('/giorno') ? 'bg-gray-700 text-white font-bold' : 'text-gray-400 hover:bg-gray-700 hover:text-white'}`}
+                  >
+                    <CalendarDayIcon className="w-4 h-4 shrink-0" />
                     {isSidebarOpen && <span className="text-sm">Giorno</span>}
                   </Link>
 
                   {/* Sottomenu: SETTIMANA */}
-                  <Link to="/settimana" title={!isSidebarOpen ? "Settimana" : undefined} className={`flex items-center gap-3 rounded-lg transition-colors focus:outline-none ${isSidebarOpen ? 'py-1.5 px-3' : 'p-2 justify-center'} ${isActive('/settimana') ? 'bg-gray-700 text-white font-bold' : 'text-gray-400 hover:bg-gray-700 hover:text-white'}`}>
-                    <span className={`rounded-full shrink-0 ${isActive('/settimana') ? 'bg-green-400 shadow-[0_0_8px_rgba(74,222,128,0.8)]' : 'bg-green-600'} ${isSidebarOpen ? 'w-1.5 h-1.5' : 'w-2.5 h-2.5'}`}></span>
+                  <Link 
+                    to="/settimana" 
+                    title={!isSidebarOpen ? "Settimana" : undefined} 
+                    className={`flex items-center gap-3 rounded-lg transition-colors focus:outline-none ${isSidebarOpen ? 'py-1.5 px-3' : 'p-2 justify-center'} ${isActive('/settimana') ? 'bg-gray-700 text-white font-bold' : 'text-gray-400 hover:bg-gray-700 hover:text-white'}`}
+                  >
+                    <CalendarWeekIcon className="w-4 h-4 shrink-0" />
                     {isSidebarOpen && <span className="text-sm">Settimana</span>}
                   </Link>
 
                   {/* Sottomenu: MESE */}
-                  <Link to="/mese" title={!isSidebarOpen ? "Mese" : undefined} className={`flex items-center gap-3 rounded-lg transition-colors focus:outline-none ${isSidebarOpen ? 'py-1.5 px-3' : 'p-2 justify-center'} ${isActive('/mese') ? 'bg-gray-700 text-white font-bold' : 'text-gray-400 hover:bg-gray-700 hover:text-white'}`}>
-                    <span className={`rounded-full shrink-0 ${isActive('/mese') ? 'bg-purple-400 shadow-[0_0_8px_rgba(192,132,252,0.8)]' : 'bg-purple-600'} ${isSidebarOpen ? 'w-1.5 h-1.5' : 'w-2.5 h-2.5'}`}></span>
+                  <Link 
+                    to="/mese" 
+                    title={!isSidebarOpen ? "Mese" : undefined} 
+                    className={`flex items-center gap-3 rounded-lg transition-colors focus:outline-none ${isSidebarOpen ? 'py-1.5 px-3' : 'p-2 justify-center'} ${isActive('/mese') ? 'bg-gray-700 text-white font-bold' : 'text-gray-400 hover:bg-gray-700 hover:text-white'}`}
+                  >
+                    <CalendarMonthIcon className="w-4 h-4 shrink-0" />
                     {isSidebarOpen && <span className="text-sm">Mese</span>}
+                  </Link>
+
+                  {/* Sottomenu: ANNO */}
+                  <Link 
+                    to="/anno" 
+                    title={!isSidebarOpen ? "Anno" : undefined} 
+                    className={`flex items-center gap-3 rounded-lg transition-colors focus:outline-none ${isSidebarOpen ? 'py-1.5 px-3' : 'p-2 justify-center'} ${isActive('/anno') ? 'bg-gray-700 text-white font-bold' : 'text-gray-400 hover:bg-gray-700 hover:text-white'}`}
+                  >
+                    <CalendarYearIcon className="w-4 h-4 shrink-0" />
+                    {isSidebarOpen && <span className="text-sm">Anno</span>}
                   </Link>
 
                 </div>
