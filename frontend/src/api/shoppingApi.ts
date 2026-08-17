@@ -4,6 +4,8 @@ import type { InventoryBatchRow } from '@/types';
 import type {
   ShoppingConfigBundle,
   ShoppingGroup,
+  ShoppingGroupMember,
+  ShoppingGroupMemberInvitePayload,
   ShoppingListCreatePayload,
   ShoppingListItem,
   ShoppingListItemCreatePayload,
@@ -533,8 +535,107 @@ export async function deleteInventoryBatch(batchId: number): Promise<void> {
   });
 }
 
-// Mantieni il tuo file quasi invariato: è già buono.
-// Aggiungi solo queste 3 funzioni in fondo (stub controllati), utili per contratto hook se vuoi attivarle dopo.
+/* =========================
+ * Group Management APIs
+ * ========================= */
+
+type ShoppingGroupMemberApi = {
+  id: number;
+  group_id: number;
+  user_id: number;
+  user_username?: string | null;
+  user_email?: string | null;
+  role_id: number;
+  role_code?: string | null;
+  role_display_name?: string | null;
+  created_at: string;
+};
+
+function normalizeShoppingGroupMember(m: ShoppingGroupMemberApi): ShoppingGroupMember {
+  return {
+    id: Number(m.id),
+    groupId: Number(m.group_id),
+    userId: Number(m.user_id),
+    username: m.user_username ?? `User #${m.user_id}`,
+    email: m.user_email ?? '',
+    roleId: Number(m.role_id),
+    roleCode: m.role_code ?? 'reader',
+    roleDisplayName: m.role_display_name ?? m.role_code ?? 'Lettore',
+    createdAt: m.created_at,
+  };
+}
+
+export async function createShoppingGroup(payload: {
+  name: string;
+  description?: string;
+}): Promise<ShoppingGroup> {
+  const data = await apiRequest<ShoppingGroupApi>('/groups', {
+    method: 'POST',
+    body: { name: payload.name, description: payload.description },
+  });
+  return normalizeShoppingGroup(data);
+}
+
+export async function updateShoppingGroup(
+  groupId: number,
+  payload: { name?: string; description?: string }
+): Promise<ShoppingGroup> {
+  const data = await apiRequest<ShoppingGroupApi>(`/groups/${groupId}`, {
+    method: 'PATCH',
+    body: payload,
+  });
+  return normalizeShoppingGroup(data);
+}
+
+export async function deleteShoppingGroup(groupId: number): Promise<void> {
+  await apiRequest<void>(`/groups/${groupId}`, {
+    method: 'DELETE',
+  });
+}
+
+export async function fetchGroupMembers(
+  groupId: number,
+  signal?: AbortSignal
+): Promise<ShoppingGroupMember[]> {
+  const data = await apiRequest<ShoppingGroupMemberApi[]>(`/groups/${groupId}/members`, {
+    method: 'GET',
+    signal,
+  });
+  return (data ?? []).map(normalizeShoppingGroupMember);
+}
+
+export async function inviteGroupMember(
+  groupId: number,
+  payload: ShoppingGroupMemberInvitePayload
+): Promise<ShoppingGroupMember> {
+  const data = await apiRequest<ShoppingGroupMemberApi>(`/groups/${groupId}/members/invite`, {
+    method: 'POST',
+    body: {
+      username: payload.username || undefined,
+      email: payload.email || undefined,
+      role_code: payload.roleCode,
+    },
+  });
+  return normalizeShoppingGroupMember(data);
+}
+
+export async function updateGroupMemberRole(
+  groupId: number,
+  userId: number,
+  roleCode: string
+): Promise<ShoppingGroupMember> {
+  const data = await apiRequest<ShoppingGroupMemberApi>(`/groups/${groupId}/members/${userId}/role`, {
+    method: 'PATCH',
+    body: { role_code: roleCode },
+  });
+  return normalizeShoppingGroupMember(data);
+}
+
+export async function removeGroupMember(groupId: number, userId: number): Promise<void> {
+  await apiRequest<void>(`/groups/${groupId}/members/${userId}`, {
+    method: 'DELETE',
+  });
+}
 
 export async function toggleShoppingListItemPurchased(
   id: number,
@@ -548,7 +649,6 @@ export async function toggleShoppingListItemPurchased(
 }
 
 export async function addShoppingPrice(_payload: unknown): Promise<void> {
-  // Non disponibile nel backend attuale: usare inventory-batches
   throw new Error('addShoppingPrice non supportato: usare addInventoryBatch.');
 }
 

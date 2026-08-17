@@ -34,6 +34,8 @@ import ShoppingPurchaseModal from './ShoppingPurchaseModal';
 import ShoppingItemsToolbar from './ShoppingItemsToolbar';
 import ShoppingItemsList from './ShoppingItemsList';
 import ShoppingQuickAddBar from './ShoppingQuickAddBar';
+import ShoppingPriceHistoryModal from './ShoppingPriceHistoryModal';
+import ShoppingItemSuggestionsCard from './ShoppingItemSuggestionsCard';
 
 type FiltroStato = 'tutti' | 'aperti' | 'completati';
 
@@ -49,8 +51,9 @@ interface ShoppingItemsColumnProps {
   offerFlagOptions: ConfigOption[];
   loading: boolean;
   activeListId: number | null;
-  activeList: ShoppingListSummary | null;
+  activeList?: ShoppingListSummary | null;
   searchQuery: string;
+  userRole?: string;
 }
 
 const ShoppingItemsColumn = forwardRef<
@@ -68,6 +71,7 @@ const ShoppingItemsColumn = forwardRef<
       activeListId,
       activeList,
       searchQuery,
+      userRole = 'owner',
     },
     ref
   ) => {
@@ -78,6 +82,7 @@ const ShoppingItemsColumn = forwardRef<
     const [isCreateOpen, setIsCreateOpen] = useState(false);
     const editModal = useModal<ShoppingListItem>();
     const purchaseModal = useModal<ShoppingListItem>();
+    const [historyModalItem, setHistoryModalItem] = useState<ShoppingListItem | null>(null);
 
     const [filtroStato, setFiltroStato] = useState<FiltroStato>('tutti');
 
@@ -242,7 +247,6 @@ const ShoppingItemsColumn = forwardRef<
           }
         }
       } else {
-        // L'articolo non è acquistato, apriamo la modale per registrarlo.
         handleOpenPurchase(item);
       }
     };
@@ -297,28 +301,32 @@ const ShoppingItemsColumn = forwardRef<
           onAddItem={handleOpenCreate}
         />
 
-        <ShoppingQuickAddBar
-          activeListId={activeListId}
-          unitOptions={unitOptions}
-          quickName={quickName}
-          quickQuantity={quickQuantity}
-          quickUnitId={quickUnitId}
-          onQuickNameChange={setQuickName}
-          onQuickQuantityChange={setQuickQuantity}
-          onQuickUnitChange={setQuickUnitId}
-          onSubmit={handleQuickAdd}
-          loading={quickAdding}
-        />
+        {userRole !== 'reader' ? (
+          <ShoppingQuickAddBar
+            activeListId={activeListId}
+            unitOptions={unitOptions}
+            quickName={quickName}
+            quickQuantity={quickQuantity}
+            quickUnitId={quickUnitId}
+            onQuickNameChange={setQuickName}
+            onQuickQuantityChange={setQuickQuantity}
+            onQuickUnitChange={setQuickUnitId}
+            onSubmit={handleQuickAdd}
+            loading={quickAdding}
+          />
+        ) : null}
 
         <div className={`${shoppingCardClass} min-h-0 flex-1 overflow-hidden p-0`}>
           <ShoppingItemsList
             items={filteredItems}
-          loading={loading && items.length === 0}
+            loading={loading && items.length === 0}
             containerRef={containerRef}
             onEdit={handleOpenEdit}
             onDelete={handleDelete}
             onToggle={handleTogglePurchased}
             onPurchase={handleOpenPurchase}
+            onOpenSuggestions={(item) => setHistoryModalItem(item)}
+            userRole={userRole}
           />
         </div>
 
@@ -352,6 +360,15 @@ const ShoppingItemsColumn = forwardRef<
           offerFlagOptions={offerFlagOptions}
           itemName={purchaseModal.data?.productName ?? ''}
         />
+
+        {historyModalItem ? (
+          <ShoppingPriceHistoryModal
+            isOpen={Boolean(historyModalItem)}
+            itemId={historyModalItem.id}
+            productName={historyModalItem.productName}
+            onClose={() => setHistoryModalItem(null)}
+          />
+        ) : null}
       </div>
     );
   }

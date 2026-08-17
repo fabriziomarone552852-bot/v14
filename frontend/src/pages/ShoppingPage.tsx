@@ -7,7 +7,7 @@ import ShoppingItemsColumn, {
 import ShoppingBulkPurchasePanel from '../components/shared/shopping/ShoppingBulkPurchasePanel';
 
 import { useShoppingData } from '../hooks/shopping/useShoppingData';
-import type { ShoppingListItem, ShoppingViewMode } from '../types/shopping';
+import type { ConfigOption, ShoppingListItem, ShoppingViewMode } from '../types/shopping';
 
 const ShoppingPage: React.FC = () => {
   const [viewMode, setViewMode] = useState<ShoppingViewMode>('items');
@@ -36,46 +36,18 @@ const ShoppingPage: React.FC = () => {
 
   const groupVisibilityId = useMemo(() => {
     const opt = listVisibilityOptions.find(
-      (o: { codeValue?: string; codeName?: string; id?: number }) =>
+      (o: ConfigOption) =>
         o.codeValue?.toLowerCase() === 'group' ||
         o.codeName?.toLowerCase() === 'group'
     );
     return opt?.id ?? null;
   }, [listVisibilityOptions]);
 
-  interface RawShoppingItem {
-    shopping_list_id?: number;
-    shoppingListId?: number;
-    product_name?: string;
-    productName?: string;
-    is_purchased?: boolean;
-    isPurchased?: boolean;
-    unit_id?: number;
-    unitId?: number;
-    unit_code_name?: string;
-    unitCodeName?: string;
-    status_id?: number;
-    statusId?: number;
-    product_id?: number;
-    productId?: number;
-  }
-
   const filteredItems = useMemo<ShoppingListItem[]>(() => {
-    const mappedItems = items.map((item: RawShoppingItem) => ({
-      ...item,
-      shoppingListId: item.shopping_list_id ?? item.shoppingListId,
-      productName: item.product_name ?? item.productName,
-      isPurchased: item.is_purchased ?? item.isPurchased,
-      unitId: item.unit_id ?? item.unitId,
-      unitCodeName: item.unit_code_name ?? item.unitCodeName,
-      statusId: item.status_id ?? item.statusId,
-      productId: item.product_id ?? item.productId,
-    }));
-
-    if (!searchQuery) return mappedItems;
+    if (!searchQuery) return items;
 
     const q = searchQuery.trim().toLowerCase();
-    return mappedItems.filter((item) =>
+    return items.filter((item) =>
       String(item.productName ?? '').trim().toLowerCase().includes(q)
     );
   }, [items, searchQuery]);

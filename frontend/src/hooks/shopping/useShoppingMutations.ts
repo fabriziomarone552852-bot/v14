@@ -20,11 +20,9 @@ import {
 } from '@/api/shoppingApi';
 
 import type {
-  ShoppingListItem,
   ShoppingListCreatePayload,
   ShoppingListItemCreatePayload,
   ShoppingSupplierCreatePayload,
-  InventoryBatchCreatePayload,
   UpdateShoppingListArgs,
   UpdateShoppingListItemArgs,
   DeleteShoppingListItemArgs,
@@ -37,7 +35,10 @@ import type {
   UseShoppingMutationsResult,
 } from '@/types/shopping';
 
-export const useShoppingMutations = (): UseShoppingMutationsResult => {
+export const useShoppingMutations = (): UseShoppingMutationsResult & {
+  addInventoryBatch: (args: AddInventoryBatchArgs) => Promise<void>;
+  deleteInventoryBatch: (args: DeleteInventoryBatchArgs) => Promise<void>;
+} => {
   const queryClient = useQueryClient();
 
   const invalidateLists = () =>
@@ -114,32 +115,31 @@ export const useShoppingMutations = (): UseShoppingMutationsResult => {
   });
 
   const deleteInventoryBatchMutation = useMutation({
-    mutationFn: ({ batchId, listId }: DeleteInventoryBatchArgs) => deleteInventoryBatch(batchId),
+    mutationFn: ({ batchId }: DeleteInventoryBatchArgs) => deleteInventoryBatch(batchId),
     onSuccess: async (_d, vars) => {
       await Promise.all([invalidateLists(), invalidateItems(vars.listId)]);
     },
   });
 
   return {
-    createList: (payload) => createListMutation.mutateAsync(payload),
-    updateList: (args) => updateListMutation.mutateAsync(args),
-    deleteList: (id) => deleteListMutation.mutateAsync(id),
+    createList: (payload: ShoppingListCreatePayload) => createListMutation.mutateAsync(payload),
+    updateList: (args: UpdateShoppingListArgs) => updateListMutation.mutateAsync(args),
+    deleteList: (id: number) => deleteListMutation.mutateAsync(id),
 
-    createItem: (payload) => createItemMutation.mutateAsync(payload),
-    updateItem: (args) => updateItemMutation.mutateAsync(args),
-    deleteItem: (args) => deleteItemMutation.mutateAsync(args),
-    togglePurchased: (args) => togglePurchasedMutation.mutateAsync(args),
+    createItem: (payload: ShoppingListItemCreatePayload) => createItemMutation.mutateAsync(payload),
+    updateItem: (args: UpdateShoppingListItemArgs) => updateItemMutation.mutateAsync(args),
+    deleteItem: (args: DeleteShoppingListItemArgs) => deleteItemMutation.mutateAsync(args),
+    togglePurchased: (args: ToggleShoppingListItemPurchasedArgs) => togglePurchasedMutation.mutateAsync(args),
 
-    createSupplier: (payload) => createSupplierMutation.mutateAsync(payload),
-    updateSupplier: (args) => updateSupplierMutation.mutateAsync(args),
-    deleteSupplier: (id) => deleteSupplierMutation.mutateAsync(id),
+    createSupplier: (payload: ShoppingSupplierCreatePayload) => createSupplierMutation.mutateAsync(payload),
+    updateSupplier: (args: UpdateShoppingSupplierArgs) => updateSupplierMutation.mutateAsync(args),
+    deleteSupplier: (id: number) => deleteSupplierMutation.mutateAsync(id),
 
-    addInventoryBatch: (args) => addInventoryBatchMutation.mutateAsync(args),
-    deleteInventoryBatch: (args) => deleteInventoryBatchMutation.mutateAsync(args),
+    addInventoryBatch: (args: AddInventoryBatchArgs) => addInventoryBatchMutation.mutateAsync(args),
+    deleteInventoryBatch: (args: DeleteInventoryBatchArgs) => deleteInventoryBatchMutation.mutateAsync(args),
 
-    // compat contract
     addPrice: (payload: ShoppingPriceCreatePayload) => addShoppingPrice(payload),
     updatePrice: (args: UpdateShoppingPriceArgs) => updateShoppingPrice(args.priceId, args.data),
     deletePrice: (priceId: number) => deleteShoppingPrice(priceId),
-  } as UseShoppingMutationsResult;
+  } as any;
 };
