@@ -265,6 +265,39 @@ def resolve_role_id(db: Session, role_code: str) -> Optional[int]:
     )
 
 
+def get_user_role_code_in_group(db: Session, group_id: int, user_id: int) -> Optional[str]:
+    """Restituisce il codice del ruolo dell'utente nel gruppo ('owner', 'admin', 'editor', 'reader') oppure None."""
+    group = (
+        db.query(ShoppingGroup)
+        .filter(
+            ShoppingGroup.id == group_id,
+            ShoppingGroup.deleted_at.is_(None),
+        )
+        .first()
+    )
+    if not group:
+        return None
+
+    if group.owner_id == user_id:
+        return "owner"
+
+    member = (
+        db.query(ShoppingGroupMember)
+        .options(selectinload(ShoppingGroupMember.role))
+        .filter(
+            ShoppingGroupMember.group_id == group_id,
+            ShoppingGroupMember.user_id == user_id,
+            ShoppingGroupMember.removed_at.is_(None),
+        )
+        .first()
+    )
+
+    if member and member.role:
+        return member.role.code_value
+
+    return None
+
+
 def active_group_status_id(db: Session) -> Optional[int]:
     return (
         db.query(ConfigCode.id)

@@ -161,9 +161,15 @@ def invite_member(
     group_id: int,
     invite_in: ShoppingGroupMemberInvite,
 ) -> ShoppingGroupMember:
-    db_group = repo.get_group_owned(db, group_id, current_user.id)
-    if not db_group:
-        raise HTTPException(status_code=404, detail=_GROUP_NOT_FOUND)
+    caller_role = repo.get_user_role_code_in_group(db, group_id, current_user.id)
+    if caller_role not in ("owner", "admin"):
+        raise HTTPException(status_code=403, detail="Solo gli owner o gli admin di gruppo possono invitare membri.")
+
+    if caller_role == "admin" and invite_in.role_code in ("owner", "admin"):
+        raise HTTPException(
+            status_code=403,
+            detail="Gli admin possono invitare solo utenti con ruolo editor o reader.",
+        )
 
     target_user = repo.find_user_by_username_or_email(db, invite_in.username, invite_in.email)
     if not target_user:
@@ -303,6 +309,11 @@ def create_item(
     if not db_list:
         raise HTTPException(status_code=404, detail=_LIST_NOT_FOUND)
 
+    if db_list.group_id:
+        user_role = repo.get_user_role_code_in_group(db, db_list.group_id, current_user.id)
+        if user_role == "reader":
+            raise HTTPException(status_code=403, detail="I lettori non possono aggiungere articoli.")
+
     normalized_name = _normalize_name(item_in.product_name)
     existing_open = repo.get_open_item_by_list_and_name(db, db_list.id, normalized_name)
     if existing_open:
@@ -343,6 +354,17 @@ def update_item(
     if not db_item:
         raise HTTPException(status_code=404, detail=_ITEM_NOT_FOUND)
 
+    if db_item.shopping_list and db_item.shopping_list.group_id:
+        user_role = repo.get_user_role_code_in_group(db, db_item.shopping_list.group_id, current_user.id)
+        if db_item.is_purchased:
+            if user_role != "owner":
+                raise HTTPException(
+                    status_code=403,
+                    detail="Gli articoli già acquistati non possono essere modificati da questo ruolo.",
+                )
+        elif user_role == "reader":
+            raise HTTPException(status_code=403, detail="I lettori non possono modificare articoli.")
+
     update_data = item_in.model_dump(exclude_unset=True)
 
     if "product_name" in update_data and update_data["product_name"] is not None:
@@ -379,6 +401,18 @@ def delete_item(db: Session, current_user: User, item_id: int) -> None:
     db_item = repo.get_item_accessible(db, item_id, current_user.id)
     if not db_item:
         raise HTTPException(status_code=404, detail=_ITEM_NOT_FOUND)
+
+    if db_item.shopping_list and db_item.shopping_list.group_id:
+        user_role = repo.get_user_role_code_in_group(db, db_item.shopping_list.group_id, current_user.id)
+        if db_item.is_purchased:
+            if user_role != "owner":
+                raise HTTPException(
+                    status_code=403,
+                    detail="Gli articoli già acquistati non possono essere eliminati da questo ruolo.",
+                )
+        elif user_role == "reader":
+            raise HTTPException(status_code=403, detail="I lettori non possono eliminare articoli.")
+
     repo.delete(db, db_item)
 
 
@@ -475,6 +509,11 @@ def add_inventory_batch(
     db_item = repo.get_item_accessible(db, item_id, current_user.id)
     if not db_item:
         raise HTTPException(status_code=404, detail=_ITEM_NOT_FOUND)
+
+    if db_item.shopping_list and db_item.shopping_list.group_id:
+        user_role = repo.get_user_role_code_in_group(db, db_item.shopping_list.group_id, current_user.id)
+        if user_role == "reader":
+            raise HTTPException(status_code=403, detail="I lettori non possono registrare acquisti.")
 
     if batch_in.product_id != db_item.product_id:
         raise HTTPException(
