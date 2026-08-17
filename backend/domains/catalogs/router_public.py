@@ -36,7 +36,7 @@ def get_config(
 @router.get("/codes", response_model=List[schemas.ConfigCodeResponse])
 def list_codes(
     code_type: Optional[str] = Query(None),
-    active: Optional[bool] = Query(True),
+    active: Optional[bool] = Query(None),
     search: Optional[str] = Query(None),
     db: Session = Depends(deps.get_db),
     current_user: User = Depends(deps.get_current_app_user),

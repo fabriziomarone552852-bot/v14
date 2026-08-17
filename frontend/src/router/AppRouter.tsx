@@ -17,6 +17,7 @@ import UserSettingsPage from '@/views/UserSettingsPage';
 import LoginPage from '@/views/LoginPage';
 import PasswordChangeScreen from '@/views/PasswordChangeScreen';
 import ShoppingPage from '@/views/ShoppingPage';
+import AdminPage from '@/views/AdminPage';
 
 // Layout
 import AppShellLayout from '@/components/AppShellLayout';
@@ -49,6 +50,7 @@ const AppRouter: React.FC = () => {
             <Route path="/categories" element={<CategoriesPage />} />
             <Route path="/categories/:id/edit" element={<CategoryEditPage />} />
             <Route path="/shopping" element={<ShoppingPage />} />
+            <Route path="/admin" element={<AdminPage />} />
             <Route path="/settings" element={<UserSettingsPage />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Route>

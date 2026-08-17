@@ -41,6 +41,7 @@ class UserResponse(ORMBaseModel):
     max_subtask_depth_user: int | None = 3
     is_superuser: bool = False
     must_change_password: bool = False
+    deleted_at: datetime | None = None
 
 
 class UserPublicResponse(ORMBaseModel):
