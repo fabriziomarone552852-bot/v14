@@ -27,24 +27,34 @@ const ShoppingItemRow: React.FC<ShoppingItemRowProps> = ({
   userRole = 'owner',
 }) => {
   const itemLabel = item.productName || 'articolo';
+  const isOwner = userRole === 'owner';
+  const isAdmin = userRole === 'admin';
+  const isEditor = userRole === 'editor';
   const isReader = userRole === 'reader';
-  const canModifyPurchased = userRole === 'owner';
 
-  const canEditOrDelete = !item.isPurchased ? !isReader : canModifyPurchased;
+  // L'Editor non ha alcun privilegio di editing sugli articoli.
+  // Admin può editare gli articoli solo se aperti (!item.isPurchased). Owner sempre.
+  const canEdit = isOwner || (isAdmin && !item.isPurchased);
+
+  // Solo l'owner del gruppo può eliminare gli articoli della lista
+  const canDelete = isOwner;
+
+  // Se l'articolo è già acquistato (chiuso), solo l'owner può annullare l'acquisto / deselezionarlo
+  const canToggleCheck = !isReader && (!item.isPurchased || isOwner);
 
   return (
     <div className={`${shoppingCardClass} flex flex-col gap-2 p-3 transition hover:border-slate-300`}>
       <div className="flex items-center gap-2">
         <button
           type="button"
-          onClick={() => !isReader && onToggle(item)}
-          disabled={isReader}
+          onClick={() => canToggleCheck && onToggle(item)}
+          disabled={!canToggleCheck}
           className={[
             'inline-flex min-h-[36px] min-w-[36px] shrink-0 items-center justify-center rounded-full border-2 transition focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-1',
             item.isPurchased
               ? 'border-emerald-500 bg-emerald-500 text-white'
               : 'border-slate-300 bg-white text-transparent hover:border-emerald-400',
-            isReader ? 'opacity-50 cursor-not-allowed' : '',
+            !canToggleCheck ? 'opacity-50 cursor-not-allowed' : '',
           ].join(' ')}
           aria-label={
             item.isPurchased
@@ -103,29 +113,29 @@ const ShoppingItemRow: React.FC<ShoppingItemRowProps> = ({
             </button>
           ) : null}
 
-          {canEditOrDelete ? (
-            <>
-              <button
-                type="button"
-                onClick={() => onEdit(item)}
-                className={shoppingIconButtonClass}
-                title={`Modifica ${itemLabel}`}
-              >
-                <Pencil className="h-4 w-4" aria-hidden="true" />
-              </button>
+          {canEdit ? (
+            <button
+              type="button"
+              onClick={() => onEdit(item)}
+              className={shoppingIconButtonClass}
+              title={`Modifica ${itemLabel}`}
+            >
+              <Pencil className="h-4 w-4" aria-hidden="true" />
+            </button>
+          ) : null}
 
-              <button
-                type="button"
-                onClick={() => onDelete(item)}
-                className={[
-                  shoppingIconButtonClass,
-                  'border-red-200 text-red-500 hover:bg-red-50 hover:text-red-600 focus:ring-red-100',
-                ].join(' ')}
-                title={`Elimina ${itemLabel}`}
-              >
-                <Trash2 className="h-4 w-4" aria-hidden="true" />
-              </button>
-            </>
+          {canDelete ? (
+            <button
+              type="button"
+              onClick={() => onDelete(item)}
+              className={[
+                shoppingIconButtonClass,
+                'border-red-200 text-red-500 hover:bg-red-50 hover:text-red-600 focus:ring-red-100',
+              ].join(' ')}
+              title={`Elimina ${itemLabel}`}
+            >
+              <Trash2 className="h-4 w-4" aria-hidden="true" />
+            </button>
           ) : null}
         </div>
       </div>

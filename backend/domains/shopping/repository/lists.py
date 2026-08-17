@@ -43,16 +43,19 @@ def get_list_owned(db: Session, list_id: int, owner_id: int) -> Optional[Shoppin
 
 def list_items(
     db: Session,
-    owner_id: int,
+    user_id: int,
     shopping_list_id: Optional[int] = None,
     is_purchased: Optional[bool] = None,
 ) -> List[ShoppingListItem]:
+    if shopping_list_id is not None:
+        if not get_list_accessible(db, shopping_list_id, user_id):
+            return []
+
     query = (
         db.query(ShoppingListItem)
         .join(ShoppingList, ShoppingList.id == ShoppingListItem.shopping_list_id)
         .options(*item_loaders(), *soft_delete_criteria())
         .filter(
-            ShoppingList.owner_id == owner_id,
             ShoppingList.deleted_at.is_(None),
             ShoppingListItem.deleted_at.is_(None),
         )
@@ -60,6 +63,8 @@ def list_items(
 
     if shopping_list_id is not None:
         query = query.filter(ShoppingListItem.shopping_list_id == shopping_list_id)
+    else:
+        query = query.filter(ShoppingList.owner_id == user_id)
 
     if is_purchased is not None:
         query = query.filter(ShoppingListItem.is_purchased == is_purchased)

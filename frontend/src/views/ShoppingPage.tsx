@@ -9,29 +9,32 @@ import ShoppingSuppliersColumn from '@/components/shared/shopping/ShoppingSuppli
 import ShoppingGroupCreateModal from '@/components/shared/shopping/ShoppingGroupCreateModal';
 import ShoppingGroupMembersModal from '@/components/shared/shopping/ShoppingGroupMembersModal';
 import ShoppingGroupInviteModal from '@/components/shared/shopping/ShoppingGroupInviteModal';
-import { createShoppingGroup, inviteGroupMember } from '@/api/shoppingApi';
+import { createShoppingGroup, updateShoppingGroup, deleteShoppingGroup, inviteGroupMember, updateShoppingList } from '@/api/shoppingApi';
 import { shoppingCardClass } from '@/components/shared/shopping/shoppingUi';
 import type { ShoppingGroupSummary, ShoppingListSummary } from '@/types/shopping';
 
 const ShoppingPage: React.FC = () => {
-  const [activeListId, setActiveListId] = useState<number | null>(null);
   const [selectedGroupId, setSelectedGroupId] = useState<number | null>(null);
   const [itemsViewMode, setItemsViewMode] = useState<'lista' | 'bulk'>('lista');
 
   // Modals state
   const [isGroupCreateOpen, setIsGroupCreateOpen] = useState(false);
+  const [editingGroup, setEditingGroup] = useState<ShoppingGroupSummary | null>(null);
   const [activeMembersGroup, setActiveMembersGroup] = useState<ShoppingGroupSummary | null>(null);
   const [activeInviteGroup, setActiveInviteGroup] = useState<ShoppingGroupSummary | null>(null);
 
   const {
     lists,
     groups,
+    activeListId,
+    setActiveListId,
     items,
     suppliers,
     config,
     listsLoading,
     itemsLoading,
     refreshLists,
+    refreshGroups,
   } = useShoppingData();
 
   const unitOptions = config?.unitOptions ?? [];
@@ -52,13 +55,50 @@ const ShoppingPage: React.FC = () => {
     return lists.find((l) => l.id === activeListId) ?? null;
   }, [lists, activeListId]);
 
+  const activeGroup = useMemo(() => {
+    const groupId = activeList?.groupId ?? selectedGroupId;
+    if (!groupId) return null;
+    return groups.find((g) => g.id === groupId) ?? null;
+  }, [activeList, selectedGroupId, groups]);
+
+  const activeUserRole = useMemo(() => {
+    const groupId = activeList?.groupId ?? selectedGroupId;
+    if (!groupId) return 'owner';
+    return activeGroup?.userRole || 'reader';
+  }, [activeList, selectedGroupId, activeGroup]);
+
   const handleSelectGroup = (groupId: number | null) => {
     setSelectedGroupId(groupId);
-    setActiveListId(null);
+    const filtered = groupId == null ? lists : lists.filter((l) => l.groupId === groupId);
+    setActiveListId(filtered[0]?.id ?? null);
   };
 
   const handleCreateGroup = async (data: { name: string; description?: string }) => {
     await createShoppingGroup(data);
+    await Promise.all([refreshGroups(), refreshLists()]);
+    setIsGroupCreateOpen(false);
+  };
+
+  const handleUpdateGroup = async (data: { name: string; description?: string }) => {
+    if (!editingGroup) return;
+    await updateShoppingGroup(editingGroup.id, data);
+    await Promise.all([refreshGroups(), refreshLists()]);
+    setEditingGroup(null);
+  };
+
+  const handleDeleteGroup = async (group: ShoppingGroupSummary) => {
+    if (!window.confirm(`Sei sicuro di voler eliminare il gruppo spesa "${group.name}"?`)) {
+      return;
+    }
+    await deleteShoppingGroup(group.id);
+    if (selectedGroupId === group.id) {
+      setSelectedGroupId(null);
+    }
+    await Promise.all([refreshGroups(), refreshLists()]);
+  };
+
+  const handleAssignListToGroup = async (listId: number, groupId: number | null) => {
+    await updateShoppingList(listId, { groupId });
     await refreshLists();
   };
 
@@ -89,6 +129,9 @@ const ShoppingPage: React.FC = () => {
             selectedGroupId={selectedGroupId}
             onCreateGroup={() => setIsGroupCreateOpen(true)}
             onOpenMembers={(group) => setActiveMembersGroup(group)}
+            onEditGroup={(group) => setEditingGroup(group)}
+            onDeleteGroup={handleDeleteGroup}
+            onInviteGroup={(group) => setActiveInviteGroup(group)}
           />
         </div>
 
@@ -102,6 +145,7 @@ const ShoppingPage: React.FC = () => {
             groups={groups as any}
             listVisibilityOptions={listVisibilityOptions}
             listStatusOptions={listStatusOptions}
+            onAssignGroup={handleAssignListToGroup}
           />
         </div>
 
@@ -146,6 +190,7 @@ const ShoppingPage: React.FC = () => {
                 currencyOptions={currencyOptions}
                 offerFlagOptions={offerFlagOptions}
                 searchQuery=""
+                userRole={activeUserRole}
               />
             ) : (
               <ShoppingBulkPurchasePanel
@@ -175,12 +220,25 @@ const ShoppingPage: React.FC = () => {
         onSubmit={handleCreateGroup}
       />
 
+      {/* Modale Modifica Gruppo */}
+      {editingGroup ? (
+        <ShoppingGroupCreateModal
+          isOpen={Boolean(editingGroup)}
+          onClose={() => setEditingGroup(null)}
+          onSubmit={handleUpdateGroup}
+          initialData={editingGroup}
+          title="✏️ Modifica Gruppo Spesa"
+          submitLabel="Salva Modifiche"
+        />
+      ) : null}
+
       {/* Modale Membri Gruppo */}
       {activeMembersGroup ? (
         <ShoppingGroupMembersModal
           isOpen={Boolean(activeMembersGroup)}
           groupId={activeMembersGroup.id}
           groupName={activeMembersGroup.name}
+          currentUserRole={activeMembersGroup.userRole || undefined}
           onClose={() => setActiveMembersGroup(null)}
           onOpenInvite={() => {
             const group = activeMembersGroup;
@@ -195,6 +253,7 @@ const ShoppingPage: React.FC = () => {
         <ShoppingGroupInviteModal
           isOpen={Boolean(activeInviteGroup)}
           groupName={activeInviteGroup.name}
+          currentUserRole={activeInviteGroup.userRole || undefined}
           onClose={() => setActiveInviteGroup(null)}
           onSubmit={handleInviteMember}
         />

@@ -1,5 +1,5 @@
 // src/components/shared/shopping/ShoppingGroupCreateModal.tsx
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   shoppingButtonPrimaryClass,
   shoppingButtonSecondaryClass,
@@ -10,19 +10,37 @@ interface ShoppingGroupCreateModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSubmit: (data: { name: string; description?: string }) => Promise<void>;
+  initialData?: { name: string; description?: string | null } | null;
+  title?: string;
+  submitLabel?: string;
 }
 
 const ShoppingGroupCreateModal: React.FC<ShoppingGroupCreateModalProps> = ({
   isOpen,
   onClose,
   onSubmit,
+  initialData = null,
+  title,
+  submitLabel,
 }) => {
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  useEffect(() => {
+    if (isOpen) {
+      setName(initialData?.name || '');
+      setDescription(initialData?.description || '');
+      setError(null);
+    }
+  }, [isOpen, initialData]);
+
   if (!isOpen) return null;
+
+  const isEditing = Boolean(initialData);
+  const modalTitle = title || (isEditing ? '✏️ Modifica Gruppo Spesa' : '👥 Nuovo Gruppo Spesa');
+  const btnLabel = submitLabel || (isEditing ? 'Salva Modifiche' : 'Crea Gruppo');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -39,7 +57,7 @@ const ShoppingGroupCreateModal: React.FC<ShoppingGroupCreateModalProps> = ({
       setDescription('');
       onClose();
     } catch (err: any) {
-      setError(err?.response?.data?.detail || err?.message || 'Errore durante la creazione del gruppo.');
+      setError(err?.response?.data?.detail || err?.message || 'Errore durante il salvataggio del gruppo.');
     } finally {
       setIsSubmitting(false);
     }
@@ -49,7 +67,7 @@ const ShoppingGroupCreateModal: React.FC<ShoppingGroupCreateModalProps> = ({
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm">
       <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl transition-all">
         <div className="mb-4 flex items-center justify-between border-b border-gray-100 pb-3">
-          <h3 className="text-lg font-bold text-gray-800">👥 Nuovo Gruppo Spesa</h3>
+          <h3 className="text-lg font-bold text-gray-800">{modalTitle}</h3>
           <button
             type="button"
             onClick={onClose}
@@ -107,7 +125,7 @@ const ShoppingGroupCreateModal: React.FC<ShoppingGroupCreateModalProps> = ({
               className={shoppingButtonPrimaryClass}
               disabled={isSubmitting}
             >
-              {isSubmitting ? 'Creazione...' : 'Crea Gruppo'}
+              {isSubmitting ? 'Salvataggio...' : btnLabel}
             </button>
           </div>
         </form>

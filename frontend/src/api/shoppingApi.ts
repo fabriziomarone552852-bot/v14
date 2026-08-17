@@ -208,6 +208,7 @@ function normalizeShoppingGroup(group: ShoppingGroupApi): ShoppingGroup {
     description: group.description ?? null,
     ownerId: Number(group.owner_id),
     statusId: Number(group.status_id),
+    userRole: group.user_role ?? null,
   };
 }
 
@@ -543,7 +544,9 @@ type ShoppingGroupMemberApi = {
   id: number;
   group_id: number;
   user_id: number;
+  username?: string | null;
   user_username?: string | null;
+  email?: string | null;
   user_email?: string | null;
   role_id: number;
   role_code?: string | null;
@@ -552,15 +555,25 @@ type ShoppingGroupMemberApi = {
 };
 
 function normalizeShoppingGroupMember(m: ShoppingGroupMemberApi): ShoppingGroupMember {
+  const roleCode = m.role_code ?? 'reader';
+  const defaultRoleDisplay =
+    roleCode === 'owner'
+      ? 'Proprietario'
+      : roleCode === 'admin'
+      ? 'Amministratore'
+      : roleCode === 'editor'
+      ? 'Editor'
+      : 'Lettore';
+
   return {
     id: Number(m.id),
     groupId: Number(m.group_id),
     userId: Number(m.user_id),
-    username: m.user_username ?? `User #${m.user_id}`,
-    email: m.user_email ?? '',
+    username: m.username ?? m.user_username ?? `Utente #${m.user_id}`,
+    email: m.email ?? m.user_email ?? '',
     roleId: Number(m.role_id),
-    roleCode: m.role_code ?? 'reader',
-    roleDisplayName: m.role_display_name ?? m.role_code ?? 'Lettore',
+    roleCode: roleCode,
+    roleDisplayName: m.role_display_name ?? defaultRoleDisplay,
     createdAt: m.created_at,
   };
 }
@@ -608,7 +621,7 @@ export async function inviteGroupMember(
   groupId: number,
   payload: ShoppingGroupMemberInvitePayload
 ): Promise<ShoppingGroupMember> {
-  const data = await apiRequest<ShoppingGroupMemberApi>(`/groups/${groupId}/members/invite`, {
+  const data = await apiRequest<ShoppingGroupMemberApi>(`/groups/${groupId}/invite`, {
     method: 'POST',
     body: {
       username: payload.username || undefined,
@@ -624,7 +637,7 @@ export async function updateGroupMemberRole(
   userId: number,
   roleCode: string
 ): Promise<ShoppingGroupMember> {
-  const data = await apiRequest<ShoppingGroupMemberApi>(`/groups/${groupId}/members/${userId}/role`, {
+  const data = await apiRequest<ShoppingGroupMemberApi>(`/groups/${groupId}/members/${userId}`, {
     method: 'PATCH',
     body: { role_code: roleCode },
   });

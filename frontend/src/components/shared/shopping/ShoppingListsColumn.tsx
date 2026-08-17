@@ -20,6 +20,7 @@ interface ShoppingListsColumnProps {
   groups: ShoppingGroupSummary[];
   listVisibilityOptions: ConfigOption[];
   listStatusOptions: ConfigOption[];
+  onAssignGroup?: (listId: number, groupId: number | null) => Promise<void>;
 }
 
 const makeEmptyForm = (listVisibilityOptions: ConfigOption[] = []): ListFormState => ({
@@ -133,7 +134,7 @@ const ListModal: React.FC<ListModalProps> = ({
 };
 
 const ShoppingListsColumn: React.FC<ShoppingListsColumnProps> = ({
-  lists, loadingLists, activeListId, setActiveListId, groups, listVisibilityOptions, listStatusOptions,
+  lists, loadingLists, activeListId, setActiveListId, groups, listVisibilityOptions, listStatusOptions, onAssignGroup,
 }) => {
   const mutations = useShoppingMutations();
   const createModal = useModal<null>();
@@ -221,35 +222,82 @@ const ShoppingListsColumn: React.FC<ShoppingListsColumnProps> = ({
               const isGroupList = groupVisibilityId != null && Number(list.visibilityId) === groupVisibilityId;
 
               return (
-                <div key={list.id} className={`${shoppingCardClass} ${isActive ? 'border-blue-400 ring-1 ring-blue-200' : ''}`}>
+                <div
+                  key={list.id}
+                  onClick={() => setActiveListId(list.id)}
+                  className={`${shoppingCardClass} cursor-pointer transition ${
+                    isActive
+                      ? 'border-sky-500 bg-sky-50/50 ring-2 ring-sky-200'
+                      : 'hover:border-slate-300 hover:bg-slate-50/50'
+                  }`}
+                >
                   <div className="flex items-start justify-between gap-2 p-3">
-                    <button type="button" className="min-w-0 flex-1 text-left" onClick={() => setActiveListId(list.id)}>
+                    <div className="min-w-0 flex-1 text-left">
                       <p className="truncate text-sm font-semibold text-gray-800">{list.name}</p>
                       <div className="mt-1 flex items-center gap-2 text-xs">
                         {isGroupList ? (
-                          <span className="text-blue-500">{list.groupId ? 'Gruppo' : 'Gruppo (da associare)'}</span>
+                          <span className="font-medium text-sky-600">
+                            {list.groupName ? `👥 ${list.groupName}` : 'Gruppo'}
+                          </span>
                         ) : (
                           <span className="text-gray-400">Privata</span>
                         )}
+                        <span className="text-gray-300">·</span>
+                        <span className="font-medium text-gray-500">
+                          {list.openItemsCount ?? 0} aperti
+                        </span>
                       </div>
-                    </button>
+                    </div>
 
-                    {isGroupList ? (
+                    {/* Pulsante modifica completa */}
+                    {list.canEdit ? (
                       <button
                         type="button"
-                        className="rounded px-2 py-1 text-xs text-gray-400 hover:text-indigo-600"
-                        onClick={() =>
-                          window.alert(
-                            list.groupId
-                              ? `Invita membri alla lista "${list.name}"`
-                              : `Associa o crea un gruppo per la lista "${list.name}"`
-                          )
-                        }
+                        title="Modifica lista"
+                        className="rounded p-1 text-xs text-gray-400 hover:bg-white hover:text-indigo-600 transition"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setEditForm({
+                            name: list.name,
+                            description: list.description ?? '',
+                            groupId: list.groupId ? String(list.groupId) : '',
+                            visibilityId: list.visibilityId ? String(list.visibilityId) : '',
+                            statusId: list.statusId ? String(list.statusId) : '',
+                          });
+                          editModal.open(list);
+                        }}
                       >
-                        👥
+                        ✏️
                       </button>
                     ) : null}
                   </div>
+
+                  {/* Select rapida per assegnare/cambiare gruppo — visibile solo all'owner */}
+                  {list.canEdit && onAssignGroup && groups.length > 0 ? (
+                    <div
+                      className="border-t border-gray-100 px-3 pb-2.5 pt-2"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <label className="mb-1 block text-[10px] font-semibold uppercase tracking-wide text-gray-400">
+                        Gruppo spesa
+                      </label>
+                      <select
+                        className="w-full rounded-xl border border-slate-200 bg-white px-2 py-1.5 text-xs text-slate-700 outline-none transition focus:border-sky-400 focus:ring-1 focus:ring-sky-100"
+                        value={list.groupId ? String(list.groupId) : ''}
+                        onChange={async (e) => {
+                          const val = e.target.value;
+                          await onAssignGroup(list.id, val ? Number(val) : null);
+                        }}
+                      >
+                        <option value="">— Nessun gruppo (privata) —</option>
+                        {groups.map((g) => (
+                          <option key={g.id} value={String(g.id)}>
+                            {g.name}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  ) : null}
                 </div>
               );
             })}

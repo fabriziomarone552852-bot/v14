@@ -290,6 +290,8 @@ const ShoppingItemsColumn = forwardRef<
       handleClosePurchase();
     };
 
+    const canCreateItem = userRole === 'owner' || userRole === 'admin';
+
     return (
       <div className="flex h-full min-h-0 flex-col gap-3">
         <ShoppingItemsToolbar
@@ -298,10 +300,10 @@ const ShoppingItemsColumn = forwardRef<
           searchQuery={searchQuery}
           filtroStato={filtroStato}
           onFiltroStatoChange={setFiltroStato}
-          onAddItem={handleOpenCreate}
+          onAddItem={canCreateItem ? handleOpenCreate : undefined}
         />
 
-        {userRole !== 'reader' ? (
+        {canCreateItem ? (
           <ShoppingQuickAddBar
             activeListId={activeListId}
             unitOptions={unitOptions}

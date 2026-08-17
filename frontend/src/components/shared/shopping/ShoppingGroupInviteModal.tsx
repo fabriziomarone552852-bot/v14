@@ -32,7 +32,8 @@ const ShoppingGroupInviteModal: React.FC<ShoppingGroupInviteModalProps> = ({
 
   if (!isOpen) return null;
 
-  const isAdmin = currentUserRole === 'admin';
+  const isOwner = currentUserRole === 'owner';
+  const effectiveRoleCode = !isOwner && roleCode === 'admin' ? 'editor' : roleCode;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -54,7 +55,7 @@ const ShoppingGroupInviteModal: React.FC<ShoppingGroupInviteModalProps> = ({
       await onSubmit({
         username: inviteType === 'username' ? cleanUsername : undefined,
         email: inviteType === 'email' ? cleanEmail : undefined,
-        roleCode,
+        roleCode: effectiveRoleCode,
       });
       setUsername('');
       setEmail('');
@@ -149,17 +150,17 @@ const ShoppingGroupInviteModal: React.FC<ShoppingGroupInviteModalProps> = ({
               Ruolo da Assegnare <span className="text-red-500">*</span>
             </label>
             <select
-              value={roleCode}
+              value={effectiveRoleCode}
               onChange={(e) => setRoleCode(e.target.value)}
               className={shoppingSelectClass}
             >
-              {!isAdmin && <option value="admin">Amministratore (Admin)</option>}
+              {isOwner && <option value="admin">Amministratore (Admin)</option>}
               <option value="editor">Editor (Può aggiungere e registrare acquisti)</option>
               <option value="reader">Lettore (Sola consultazione read-only)</option>
             </select>
-            {isAdmin && (
+            {!isOwner && (
               <p className="mt-1 text-[11px] text-amber-600 font-medium">
-                * Gli admin possono invitare solo con ruoli Editor o Lettore.
+                * Gli amministratori possono invitare utenti solo con ruolo Editor o Lettore.
               </p>
             )}
           </div>

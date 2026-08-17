@@ -16,7 +16,7 @@ import CategoryEditPage from '@/views/CategoryEditPage';
 import UserSettingsPage from '@/views/UserSettingsPage';
 import LoginPage from '@/views/LoginPage';
 import PasswordChangeScreen from '@/views/PasswordChangeScreen';
-import ShoppingPage from '@/pages/ShoppingPage';
+import ShoppingPage from '@/views/ShoppingPage';
 
 // Layout
 import AppShellLayout from '@/components/AppShellLayout';

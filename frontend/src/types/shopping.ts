@@ -24,6 +24,7 @@ export interface ShoppingGroupSummary {
   statusId?: number | null;
   canEdit?: boolean;
   canDelete?: boolean;
+  userRole?: string | null;
 }
 
 export interface ShoppingGroup {
@@ -341,6 +342,7 @@ export interface UseShoppingDataResult {
   setActiveListId: (id: number | null) => void;
 
   refreshLists: () => Promise<unknown>;
+  refreshGroups: () => Promise<unknown>;
   refreshItems: (listId?: number | null) => Promise<unknown>;
   refreshSuppliers: () => Promise<unknown>;
   refreshConfig: () => Promise<unknown>;

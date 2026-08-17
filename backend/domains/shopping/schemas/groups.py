@@ -42,6 +42,7 @@ class ShoppingGroupResponse(ORMBaseModel):
     name: str
     description: Optional[str] = None
     status_id: int
+    user_role: Optional[str] = None
     created_at: datetime
     updated_at: Optional[datetime] = None
     archived_at: Optional[datetime] = None
@@ -125,8 +126,34 @@ class ShoppingGroupMemberResponse(ORMBaseModel):
     id: int
     group_id: int
     user_id: int
+    username: Optional[str] = None
+    email: Optional[str] = None
     role_id: int
+    role_code: Optional[str] = None
+    role_display_name: Optional[str] = None
     added_by_user_id: Optional[int] = None
     created_at: datetime
     updated_at: Optional[datetime] = None
     removed_at: Optional[datetime] = None
+
+    @model_validator(mode="before")
+    @classmethod
+    def populate_details(cls, data: any) -> any:
+        if hasattr(data, "user") and data.user:
+            user_obj = data.user
+            role_obj = getattr(data, "role", None)
+            return {
+                "id": data.id,
+                "group_id": data.group_id,
+                "user_id": data.user_id,
+                "username": getattr(user_obj, "username", f"User #{data.user_id}"),
+                "email": getattr(user_obj, "email", None),
+                "role_id": data.role_id,
+                "role_code": getattr(role_obj, "code_value", None) or getattr(role_obj, "code_name", None),
+                "role_display_name": getattr(role_obj, "display_name", None) or getattr(role_obj, "code_name", None),
+                "added_by_user_id": data.added_by_user_id,
+                "created_at": data.created_at,
+                "updated_at": data.updated_at,
+                "removed_at": data.removed_at,
+            }
+        return data

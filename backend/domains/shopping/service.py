@@ -72,8 +72,28 @@ def _normalize_name(value: str) -> str:
 
 
 # ------------------------------------------------------------------ Groups
-def list_groups(db: Session, current_user: User) -> List[ShoppingGroup]:
-    return repo.list_groups(db, current_user.id)
+def list_groups(db: Session, current_user: User) -> List[dict]:
+    groups = repo.list_groups(db, current_user.id)
+    res = []
+    for g in groups:
+        if g.owner_id == current_user.id:
+            role = "owner"
+        else:
+            role = repo.get_user_role_code_in_group(db, g.id, current_user.id) or "reader"
+
+        res.append({
+            "id": g.id,
+            "owner_id": g.owner_id,
+            "name": g.name,
+            "description": g.description,
+            "status_id": g.status_id,
+            "user_role": role,
+            "created_at": g.created_at,
+            "updated_at": g.updated_at,
+            "archived_at": g.archived_at,
+            "deleted_at": g.deleted_at,
+        })
+    return res
 
 
 def create_group(
@@ -311,8 +331,11 @@ def create_item(
 
     if db_list.group_id:
         user_role = repo.get_user_role_code_in_group(db, db_list.group_id, current_user.id)
-        if user_role == "reader":
-            raise HTTPException(status_code=403, detail="I lettori non possono aggiungere articoli.")
+        if user_role in ("reader", "editor"):
+            raise HTTPException(
+                status_code=403,
+                detail="Gli editor e i lettori non hanno i permessi per inserire nuovi articoli.",
+            )
 
     normalized_name = _normalize_name(item_in.product_name)
     existing_open = repo.get_open_item_by_list_and_name(db, db_list.id, normalized_name)
@@ -362,8 +385,11 @@ def update_item(
                     status_code=403,
                     detail="Gli articoli già acquistati non possono essere modificati da questo ruolo.",
                 )
-        elif user_role == "reader":
-            raise HTTPException(status_code=403, detail="I lettori non possono modificare articoli.")
+        elif user_role in ("reader", "editor"):
+            raise HTTPException(
+                status_code=403,
+                detail="Gli editor e i lettori non hanno i permessi per modificare gli articoli.",
+            )
 
     update_data = item_in.model_dump(exclude_unset=True)
 
@@ -404,14 +430,11 @@ def delete_item(db: Session, current_user: User, item_id: int) -> None:
 
     if db_item.shopping_list and db_item.shopping_list.group_id:
         user_role = repo.get_user_role_code_in_group(db, db_item.shopping_list.group_id, current_user.id)
-        if db_item.is_purchased:
-            if user_role != "owner":
-                raise HTTPException(
-                    status_code=403,
-                    detail="Gli articoli già acquistati non possono essere eliminati da questo ruolo.",
-                )
-        elif user_role == "reader":
-            raise HTTPException(status_code=403, detail="I lettori non possono eliminare articoli.")
+        if user_role != "owner":
+            raise HTTPException(
+                status_code=403,
+                detail="Solo il proprietario (owner) del gruppo spesa può eliminare gli articoli.",
+            )
 
     repo.delete(db, db_item)
 
