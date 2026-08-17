@@ -1,6 +1,6 @@
 // src/components/shared/shopping/ShoppingQuickAddBar.tsx
 import React, { useId } from 'react';
-import type { ConfigOption } from '../../../types/shopping';
+import type { ConfigOption } from '@/types/shopping';
 import { getConfigOptionLabel } from './shoppingItems.utils';
 import {
   shoppingButtonPrimaryClass,

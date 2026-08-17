@@ -1,5 +1,4 @@
 // src/types/yearlyentries.ts
-import { getTrackerColor } from '@/utils/trackerUtils';
 
 /** Tipi mood annuali — stessi codici del mensile per riuso componenti */
 export const YEARLY_MOOD_TYPES = ['MJ', 'MS', 'MA', 'MD', 'MT'] as const;
@@ -34,25 +33,25 @@ export const YEARLY_SPHERE_LABELS: Record<YearlySphereType, string> = {
   SS: 'Mente', SD: 'Svago', SM: 'Finanze', SW: 'Lavoro',
 };
 
-/** Colori per mood (uniformati a MonthPage tramite trackerUtils) */
+/** Colori per mood — speculari a TRACKER_COLORS in trackerUtils.ts */
 export const YEARLY_MOOD_COLORS: Record<YearlyMoodType, string> = {
-  MJ: getTrackerColor('Gioia'),
-  MS: getTrackerColor('Tristezza'),
-  MA: getTrackerColor('Rabbia'),
-  MD: getTrackerColor('Disgusto'),
-  MT: getTrackerColor('Paura'),
+  MJ: '#FACC15', // Gioia — Giallo
+  MS: '#3B82F6', // Tristezza — Blu
+  MA: '#EF4444', // Rabbia — Rosso
+  MD: '#22C55E', // Disgusto — Verde
+  MT: '#A855F7', // Paura — Viola
 };
 
-/** Colori per sfere (uniformati a MonthPage tramite trackerUtils) */
+/** Colori per sfere — speculari a TRACKER_COLORS in trackerUtils.ts */
 export const YEARLY_SPHERE_COLORS: Record<YearlySphereType, string> = {
-  SC: getTrackerColor('Coppia'),
-  SF: getTrackerColor('Famiglia'),
-  SA: getTrackerColor('Amici'),
-  SH: getTrackerColor('Salute'),
-  SS: getTrackerColor('Mente'),
-  SD: getTrackerColor('Svago'),
-  SM: getTrackerColor('Finanze'),
-  SW: getTrackerColor('Lavoro'),
+  SC: '#A855F7', // Coppia — Viola
+  SF: '#78350F', // Famiglia — Marrone
+  SA: '#FACC15', // Amici — Giallo
+  SH: '#EF4444', // Salute — Rosso
+  SS: '#EC4899', // Mente — Rosa
+  SD: '#F97316', // Svago — Arancione
+  SM: '#22C55E', // Finanze — Verde
+  SW: '#3B82F6', // Lavoro — Blu
 };
 
 /** Record DB yearly_entries */

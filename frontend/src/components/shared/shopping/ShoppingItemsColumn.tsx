@@ -7,6 +7,7 @@ import React, {
 } from 'react';
 import { useShoppingMutations } from '@/hooks/shopping/useShoppingMutations';
 import { useModal } from '@/hooks/useModals';
+import { useConfirm } from '@/context/ConfirmContext';
 import { getLocalTodayStr } from '@/utils/dateUtils';
 
 import type {
@@ -71,6 +72,7 @@ const ShoppingItemsColumn = forwardRef<
     ref
   ) => {
     const mutations = useShoppingMutations();
+    const confirm = useConfirm();
     const containerRef = React.useRef<HTMLDivElement>(null);
 
     const [isCreateOpen, setIsCreateOpen] = useState(false);
@@ -227,14 +229,12 @@ const ShoppingItemsColumn = forwardRef<
       });
     };
 
-    const handleTogglePurchased = (item: ShoppingListItem) => {
+    const handleTogglePurchased = async (item: ShoppingListItem) => {
       if (item.isPurchased) {
-        // L'articolo è già acquistato.
-        // Troviamo l'ultimo lotto di acquisto (inventory batch).
         const lastBatch = item.inventoryBatches?.[item.inventoryBatches.length - 1];
         if (lastBatch) {
-          // Chiediamo conferma prima di eliminare l'acquisto.
-          if (window.confirm(`Annullare l'acquisto per "${item.productName}"?`)) {
+          const ok = await confirm(`Annullare l'acquisto per "${item.productName}"?`);
+          if (ok) {
             mutations.deleteInventoryBatch({
               batchId: lastBatch.id,
               listId: item.shoppingListId,

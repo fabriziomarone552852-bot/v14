@@ -3,7 +3,7 @@ import React, { useEffect, useId, useRef } from 'react';
 import type {
   ConfigOption,
   ShoppingSupplierOption,
-} from '../../../types/shopping';
+} from '@/types/shopping';
 import type { PurchaseFormState } from './shoppingItems.utils';
 import { getConfigOptionLabel } from './shoppingItems.utils';
 import {

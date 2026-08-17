@@ -1,7 +1,7 @@
 // frontend/src/components/weekmonth/review/BaseReviewModal.tsx
 import React from 'react';
 import { ReadOnlyTrackerChart } from './ReadOnlyTrackerChart';
-import type { TrackerItem } from '@/components/weekmonth/TrackerPanel';
+import type { TrackerItem } from '@/types/monthlyentries';
 
 export interface ReviewTabButton<T extends string = string> {
   id: T;

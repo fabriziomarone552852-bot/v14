@@ -1,5 +1,5 @@
 // src/api/shoppingApi.ts
-import { apiClient } from './client';
+import { api } from '@/api/apiService';
 import type { InventoryBatchRow } from '@/types';
 import type {
   ShoppingConfigBundle,
@@ -20,7 +20,7 @@ import type {
 
 const SHOPPING_API_BASE = '/shopping';
 
-type RequestMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
+
 
 // REFACTOR: Allineata la response ai nuovi parametri del backend
 type ShoppingListItemApi = {
@@ -113,25 +113,22 @@ type ShoppingProductOptionApi = {
 async function apiRequest<T>(
   path: string,
   options: {
-    method: RequestMethod;
+    method: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
     body?: unknown;
     params?: Record<string, unknown>;
     signal?: AbortSignal;
   } = { method: 'GET' }
 ): Promise<T> {
-  const response = await apiClient<T>({
-    url: `${SHOPPING_API_BASE}${path}`,
-    method: options.method,
-    data: options.body,
-    params: options.params,
-    signal: options.signal,
-  });
+  const fullPath = `${SHOPPING_API_BASE}${path}`;
+  const { method, body, params, signal } = options;
 
-  if (response.status === 204) {
-    return undefined as T;
+  switch (method) {
+    case 'POST':   return (await api.post<T>(fullPath, body, { params, signal }))!;
+    case 'PATCH':  return (await api.patch<T>(fullPath, body, { params, signal }))!;
+    case 'PUT':    return (await api.put<T>(fullPath, body, { params, signal }))!;
+    case 'DELETE': await api.delete(fullPath, { params, signal }); return undefined as T;
+    default:       return (await api.get<T>(fullPath, { params, signal }))!;
   }
-
-  return response.data;
 }
 
 function toNumberOrNull(value: unknown): number | null {

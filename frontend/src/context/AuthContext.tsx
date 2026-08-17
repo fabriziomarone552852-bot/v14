@@ -1,5 +1,6 @@
 // src/context/AuthContext.tsx
-import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
+import React, { createContext, useContext, useEffect, useRef, useState, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { apiUrl, apiClient } from '@/api/client';
 import type { TokenResponse, UserResponse } from '@/types/auth';
@@ -26,6 +27,12 @@ interface AuthContextValue {
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const navigate = useNavigate();
+  // Usiamo un ref per rendere navigate disponibile dentro useCallback
+  // senza doverlo inserire nelle dipendenze (è stabile per design).
+  const navigateRef = useRef(navigate);
+  navigateRef.current = navigate;
+
   const [token, setToken] = useState<string | null>(() => localStorage.getItem('token'));
 
   const [user, setUser] = useState<UserResponse | null>(() => {
@@ -81,7 +88,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     clearError();
 
     if (window.location.pathname !== '/login') {
-      window.location.href = '/login';
+      navigateRef.current('/login');
     }
   }, []);
 

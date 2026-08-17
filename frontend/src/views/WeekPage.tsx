@@ -1,5 +1,6 @@
 // frontend/src/views/WeekPage.tsx
 import React from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 
 // --- IMPORT COMPONENTI ---
 import { GoalsAndPrioritiesPanel } from '@/components/shared/GoalsAndPrioritiesPanel';
@@ -23,6 +24,7 @@ const WeekPageLoading: React.FC = () => (
 const WeekPage: React.FC = () => {
   // Consumiamo lo stato centralizzato e tipizzato dal nostro custom hook esterno
   const { state, data, moodBoard, handlers, goals } = useWeekPageLogic();
+  const queryClient = useQueryClient();
   const { openTaskForm } = useTaskModals();
   const { openEventForm } = useEventModals();
 
@@ -36,10 +38,10 @@ const WeekPage: React.FC = () => {
         <h2 className="text-xl font-bold mb-2">Ops! Qualcosa è andato storto.</h2>
         <p>Impossibile caricare i dati della settimana. Riprova più tardi.</p>
         <button 
-          onClick={() => window.location.reload()} 
+          onClick={() => queryClient.refetchQueries()}
           className="mt-4 px-4 py-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200"
         >
-          Ricarica Pagina
+          Ricarica Dati
         </button>
       </div>
     );

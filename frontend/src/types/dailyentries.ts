@@ -23,6 +23,6 @@ export interface LocalNoteEntry extends DailyEntry {
 // ANCHE SE SARANNO FORMULATI I COLORIN NEL BACKEND IN USER_CATEGORIES TABLE
 export type PixelColor = 'blu' | 'giallo' | 'rosso' | 'verde' | 'viola' | 'transparent';
 
-export const isNoteVariant = (tipo: string): tipo is NoteVariant => {
-  return ['N1', 'N2', 'N3', 'N4'].includes(tipo);
-};
+// ⚠️  isNoteVariant è una funzione runtime — definita in utils/noteUtils.ts
+// Riesportata qui per compatibilità con i vecchi import `from '@/types'`.
+export { isNoteVariant } from '@/utils/noteUtils';

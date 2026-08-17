@@ -9,6 +9,7 @@ from __future__ import annotations
 
 def import_all_models() -> None:
     import backend.domains.audit.models  # noqa: F401
+    import backend.domains.bingo.models  # noqa: F401
     import backend.domains.categories.models  # noqa: F401
     import backend.domains.config.models  # noqa: F401
     import backend.domains.countdowns.models  # noqa: F401
@@ -18,8 +19,10 @@ def import_all_models() -> None:
     import backend.domains.notifications.models  # noqa: F401
     import backend.domains.planning.models  # noqa: F401
     import backend.domains.shopping.models  # noqa: F401
+    import backend.domains.system_boot.models  # noqa: F401
     import backend.domains.tasks.models  # noqa: F401
     import backend.domains.users.models  # noqa: F401
+    import backend.domains.yearly_entries.models  # noqa: F401
 
 
 __all__ = ["import_all_models"]

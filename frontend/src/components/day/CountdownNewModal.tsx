@@ -2,8 +2,9 @@
 import React, { useState, useEffect } from 'react';
 import type { CountdownItem } from '@/components/day/CountdownWidget';
 import DatePicker from '@/components/shared/utils/DatePicker/DatePicker';
-import TimeInput from '@/components/shared/utils/TimeInput'; 
-import { combineDateAndTime, pad } from '@/utils/dateUtils'; 
+import TimeInput from '@/components/shared/utils/TimeInput';
+import { pad } from '@/utils/dateUtils';
+import { DEFAULT_COVER_IMAGE } from '@/utils/constants';
 import BaseModal from '@/components/shared/dialog/BaseModal';
 
 export type CountdownSavePayload = Omit<CountdownItem, 'id'> & { id?: number };
@@ -66,7 +67,7 @@ const CountdownNewModal: React.FC<CountdownNewModalProps> = ({ isOpen, onClose, 
         id: countdownToEdit?.id,
         title,
         targetDateStr: finalIso,
-        imageUrl: imageUrl || 'https://images.unsplash.com/photo-1506744626753-143283d115a0?q=80&w=800'
+        imageUrl: imageUrl || DEFAULT_COVER_IMAGE
       });
       
       onClose(); // Chiudiamo solo se è andato tutto bene

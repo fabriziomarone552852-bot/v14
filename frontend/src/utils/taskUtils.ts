@@ -1,6 +1,7 @@
 // frontend/src/utils/taskUtils.ts
 import type { DbTask, TaskSummary, UITask } from '@/types';
 import { getLocalTodayStr, formatDateString } from '@/utils/dateUtils';
+import { getPriorityWeight } from '@/utils/calendarLayoutUtils';
 
 // 2. MAPPATURA SINGOLA SICURA
 export const mapTaskToSummary = (
@@ -252,12 +253,6 @@ export const buildTaskTreeForMonth = (
 ): UITask[] => {
   if (!flatTasks || !Array.isArray(flatTasks) || flatTasks.length === 0) return [];
 
-  const getLocalTodayStr = () => {
-    const d = new Date();
-    const offset = d.getTimezoneOffset() * 60000;
-    return new Date(d.getTime() - offset).toISOString().substring(0, 10);
-  };
-
   const todayStr = getLocalTodayStr();
   const isPastMonth = lastDayStr < todayStr;
 
@@ -366,15 +361,6 @@ export const filterAndSortTree = (
 ): UITask[] => {
   if (!tasks) return [];
   
-  const priorityWeights: Record<string, number> = { Alta: 3, Media: 2, Bassa: 1 };
-
-  // 🪄 Calcoliamo la data di oggi in formato YYYY-MM-DD locale per il confronto
-  const getLocalTodayStr = () => {
-    const d = new Date();
-    const offset = d.getTimezoneOffset() * 60000;
-    return new Date(d.getTime() - offset).toISOString().substring(0, 10);
-  };
-  
   const todayStr = getLocalTodayStr();
   const isPastDay = referenceDateStr ? referenceDateStr < todayStr : false;
 
@@ -420,8 +406,8 @@ export const filterAndSortTree = (
     };
 
     if (sortMode === 'priority') {
-      const weightA = priorityWeights[a.priority] ?? 0;
-      const weightB = priorityWeights[b.priority] ?? 0;
+      const weightA = getPriorityWeight(a.priority);
+      const weightB = getPriorityWeight(b.priority);
       const diff = weightB - weightA;
       if (diff !== 0) return diff;
 
@@ -435,8 +421,8 @@ export const filterAndSortTree = (
       if (diff !== 0) return diff;
 
       // Fallback a priorità se stessa data
-      const weightA = priorityWeights[a.priority] ?? 0;
-      const weightB = priorityWeights[b.priority] ?? 0;
+      const weightA = getPriorityWeight(a.priority);
+      const weightB = getPriorityWeight(b.priority);
       return weightB - weightA;
     }
   });

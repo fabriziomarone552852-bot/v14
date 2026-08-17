@@ -1,6 +1,6 @@
 // src/components/shared/shopping/ShoppingItemsList.tsx
 import React from 'react';
-import type { ShoppingListItem } from '../../../types/shopping';
+import type { ShoppingListItem } from '@/types/shopping';
 import ShoppingItemRow from './ShoppingItemRow';
 
 interface ShoppingItemsListProps {

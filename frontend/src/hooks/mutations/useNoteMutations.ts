@@ -2,12 +2,13 @@
 import { useMutation, useQueryClient, type QueryKey } from '@tanstack/react-query';
 import { api } from '@/api/apiService';
 import type { LocalNoteEntry, NoteVariant, DailyEntry } from '@/types';
+import type { DbMonthlyEntry } from '@/types/monthlyentries';
 
 // Il "contratto": la cache che usa questo hook DEVE avere un array 'note'
 export interface CacheWithNotes {
   note?: DailyEntry[];
-  eventi_positivi?: DailyEntry[];
-  eventi_negativi?: DailyEntry[];
+  eventi_positivi?: DailyEntry[] | DbMonthlyEntry[];
+  eventi_negativi?: DailyEntry[] | DbMonthlyEntry[];
 }
 
 // 1. IL CONTRATTO DEI DATI INVIATI (Perfettamente allineato al Backend)

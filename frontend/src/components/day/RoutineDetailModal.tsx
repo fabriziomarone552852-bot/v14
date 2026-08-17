@@ -2,12 +2,13 @@
 import React, { useState, useMemo } from 'react';
 import type { RoutineItem, RoutinePeriod } from '@/components/day/RoutineColumn';
 import BaseModal from '@/components/shared/dialog/BaseModal';
-import { useHabitLogs } from '@/hooks/useHabitLogs'; 
+import { useHabitLogs } from '@/hooks/useHabitLogs';
 import { translateRRule } from '@/utils/rruleUtils';
 import { useConfirm } from '@/context/ConfirmContext';
 import { EditIcon, TrashIcon, PauseIcon, PlayIcon } from '@/components/shared/utils/Icons';
 import { formatToItalianShortDate } from '@/utils/dateUtils';
 import { Badge } from '@/components/shared/utils/Badges';
+import { DEFAULT_COVER_IMAGE } from '@/utils/constants';
 
 interface RoutineDetailModalProps {
   isOpen: boolean;
@@ -151,7 +152,7 @@ const RoutineDetailModal: React.FC<RoutineDetailModalProps> = ({
       >
         <div className="space-y-4">
           {/* L'immagine è ora un elemento pulito del body, invece che un overlay assoluto */}
-          <div className="w-full h-40 rounded-xl bg-cover bg-center shadow-sm" style={{ backgroundImage: `url(${selectedRoutine.imageUrl || 'https://images.unsplash.com/photo-1506744626753-143283d115a0?q=80&w=800'})` }}></div>
+          <div className="w-full h-40 rounded-xl bg-cover bg-center shadow-sm" style={{ backgroundImage: `url(${selectedRoutine.imageUrl || DEFAULT_COVER_IMAGE})` }}></div>
           
           <div>
             <h2 className="text-2xl font-extrabold text-gray-800">{selectedRoutine.title}</h2>

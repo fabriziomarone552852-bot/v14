@@ -1,3 +1,4 @@
+import { BrowserRouter } from 'react-router-dom';
 import { AuthProvider } from '@/context/AuthContext';
 import AppRouter from '@/router/AppRouter';
 import { ConfirmProvider } from '@/context/ConfirmContext';
@@ -7,19 +8,19 @@ import { EventModalProvider } from '@/context/EventModalContext';
 
 function App() {
   return (
-    <AuthProvider>
-      <ConfirmProvider>
-        <DayProvider>
-          <EventModalProvider>
-            <TaskModalProvider>
-              
-              <AppRouter />
-              
-            </TaskModalProvider>
-          </EventModalProvider>
-        </DayProvider>
-      </ConfirmProvider>
-    </AuthProvider>
+    <BrowserRouter>
+      <AuthProvider>
+        <ConfirmProvider>
+          <DayProvider>
+            <EventModalProvider>
+              <TaskModalProvider>
+                <AppRouter />
+              </TaskModalProvider>
+            </EventModalProvider>
+          </DayProvider>
+        </ConfirmProvider>
+      </AuthProvider>
+    </BrowserRouter>
   );
 }
 

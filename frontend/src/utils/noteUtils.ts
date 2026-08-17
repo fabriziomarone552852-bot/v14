@@ -1,9 +1,12 @@
 // frontend/src/utils/noteUtils.ts
 import type { DailyEntry, LocalNoteEntry, NoteVariant } from '@/types';
-import { isNoteVariant } from '@/types';
 
-// 1. Creiamo la Guardia di Tipo (Il "buttafuori")
-// Questa funzione dice: "Se restituisco vero, allora 'entry' è sicuramente una LocalNoteEntry"
+// 1. Type guard: verifica se una stringa è un NoteVariant valido
+export const isNoteVariant = (tipo: string): tipo is NoteVariant => {
+  return ['N1', 'N2', 'N3', 'N4'].includes(tipo);
+};
+
+// 2. Type guard per DailyEntry → LocalNoteEntry
 export const isLocalNoteEntry = (entry: DailyEntry): entry is LocalNoteEntry => {
   return isNoteVariant(entry.tipo);
 };

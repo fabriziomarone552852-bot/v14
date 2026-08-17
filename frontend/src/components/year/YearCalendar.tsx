@@ -47,13 +47,13 @@ export const YearCalendar: React.FC<YearCalendarProps> = ({
   // Helper per estrarre eventi e task di una specifica data per il Popover in Hover
   const getDayDetails = (dateStr: string) => {
     const dayEvents = events.filter(e => {
-      const startStr = (e.data_inizio || e.start_date || e.date || '').split('T')[0];
-      const endStr = (e.data_fine || e.end_date || startStr).split('T')[0];
+      const startStr = (e.data_inizio || '').split('T')[0];
+      const endStr = (e.data_fine || startStr).split('T')[0];
       return dateStr >= startStr && dateStr <= endStr;
     });
 
     const dayTasks = tasks.filter(t => {
-      const dueStr = (t.deadline || t.data_scadenza || t.due_date || t.date || '').split('T')[0];
+      const dueStr = (t.data_scadenza || '').split('T')[0];
       return dueStr === dateStr;
     });
 
@@ -137,7 +137,7 @@ export const YearCalendar: React.FC<YearCalendarProps> = ({
                                   <div className="flex flex-col gap-1">
                                     {details.dayEvents.map(e => (
                                       <div key={e.id} className="bg-slate-800/80 rounded px-2 py-1 text-[11px] font-medium text-slate-200 truncate border-l-2 border-blue-500">
-                                        {e.titolo || e.title}
+                                        {e.titolo}
                                       </div>
                                     ))}
                                   </div>
@@ -153,7 +153,7 @@ export const YearCalendar: React.FC<YearCalendarProps> = ({
                                     {details.dayTasks.map(t => (
                                       <div key={t.id} className="bg-slate-800/80 rounded px-2 py-1 text-[11px] font-medium text-slate-200 truncate flex items-center justify-between border-l-2 border-emerald-500">
                                         <span className={t.fatto ? 'line-through text-slate-500' : ''}>
-                                          {t.titolo || t.title}
+                                          {t.titolo}
                                         </span>
                                         {t.fatto && <span className="text-[9px] text-emerald-400 font-bold ml-1">✓ Fatto</span>}
                                       </div>

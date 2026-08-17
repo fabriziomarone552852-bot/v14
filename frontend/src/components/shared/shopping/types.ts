@@ -1,5 +1,5 @@
 // Re-export from centralized types for backward compatibility
-// I nuovi componenti importano direttamente da ../../../types/shopping
+// I nuovi componenti importano direttamente da @/types/shopping
 export type {
   CatalogOption,
   ShoppingGroup,
@@ -13,4 +13,4 @@ export type {
   SupplierFormState,
   PurchaseFormState,
   InviteFormState,
-} from '../../../types/shopping';
+} from '@/types/shopping';

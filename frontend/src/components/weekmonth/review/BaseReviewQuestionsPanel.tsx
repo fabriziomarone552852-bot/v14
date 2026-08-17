@@ -7,17 +7,17 @@ export interface QuestionItem {
   text: string;
 }
 
-interface BaseReviewQuestionsPanelProps<T = any> {
+interface BaseReviewQuestionsPanelProps<T = unknown, TCode extends string = string> {
   questions: QuestionItem[];
   entries: T[];
   getEntryCode: (entry: T) => string;
   getEntryField: (entry: T) => string | null;
   getEntryId: (entry: T) => number;
-  onSaveAnswer: (code: any, text: string, existingId?: number) => void;
+  onSaveAnswer: (code: TCode, text: string, existingId?: number) => void;
   questionsPerPage?: number;
 }
 
-export function BaseReviewQuestionsPanel<T = any>({
+export function BaseReviewQuestionsPanel<T = unknown, TCode extends string = string>({
   questions,
   entries,
   getEntryCode,
@@ -25,7 +25,7 @@ export function BaseReviewQuestionsPanel<T = any>({
   getEntryId,
   onSaveAnswer,
   questionsPerPage = 3,
-}: BaseReviewQuestionsPanelProps<T>) {
+}: BaseReviewQuestionsPanelProps<T, TCode>) {
   const [currentPage, setCurrentPage] = useState(1);
   const totalPages = Math.ceil(questions.length / questionsPerPage);
 
@@ -52,7 +52,7 @@ export function BaseReviewQuestionsPanel<T = any>({
                 onBlur={(e) => {
                   const val = e.target.value.trim();
                   if (val !== (currentText ?? '').trim()) {
-                    onSaveAnswer(code, val, existingId);
+                    onSaveAnswer(code as TCode, val, existingId);
                   }
                 }}
                 placeholder="Scrivi la tua risposta..."

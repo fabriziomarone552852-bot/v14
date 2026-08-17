@@ -7,15 +7,15 @@ import { YearReviewTasksPanel } from './YearReviewTasksPanel';
 import { YearReviewHabitsPanel } from './YearReviewHabitsPanel';
 import { ReviewTagBar } from '@/components/weekmonth/review/ReviewTagBar';
 import type { TrackerItem } from '@/components/weekmonth/TrackerPanel';
-import type { YearlyType } from '@/types/yearlyentries';
+import type { YearlyType, DbYearlyEntry } from '@/types/yearlyentries';
 import type { Habit } from '@/types/habits';
 import type { Category } from '@/types/categories';
 
 export type YearReviewSidebarTab = 'tasks' | 'habits';
 
 export interface YearReviewData {
-  yearlyEntries?: any[];
-  entries?: any[];
+  yearlyEntries?: DbYearlyEntry[];
+  entries?: DbYearlyEntry[];
   assignedTags?: Category[];
   allTags?: Category[];
   tagEntryMap?: Record<number, number>;

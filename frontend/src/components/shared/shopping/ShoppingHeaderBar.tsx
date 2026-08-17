@@ -7,7 +7,7 @@ import {
   PackageOpen,
   SlidersHorizontal,
 } from 'lucide-react';
-import type { ShoppingViewMode } from '../../../types/shopping';
+import type { ShoppingViewMode } from '@/types/shopping';
 
 interface ShoppingHeaderBarProps {
   activeListId?: number | null;

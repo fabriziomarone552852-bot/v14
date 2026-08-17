@@ -29,7 +29,7 @@ export interface ComputedDayData {
 
 const parsePercent = (val: string): number => parseFloat(val.replace('%', '')) || 0;
 
-const getPriorityWeight = (priority?: string | number | null): number => {
+export const getPriorityWeight = (priority?: string | number | null): number => {
   if (!priority) return 0;
   const p = String(priority).trim().toLowerCase();
   if (['alta', 'high', '1', 'urgente'].includes(p)) return 3;

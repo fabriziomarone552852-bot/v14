@@ -1,7 +1,7 @@
 // src/components/shared/shopping/ShoppingItemRow.tsx
 import React from 'react';
 import { Pencil, Trash2, Receipt, Check } from 'lucide-react';
-import type { ShoppingListItem } from '../../../types/shopping';
+import type { ShoppingListItem } from '@/types/shopping';
 import {
   shoppingCardClass,
   shoppingIconButtonClass,

@@ -24,9 +24,9 @@ export const useYearHighlights = (
     const highlightedDays = new Set<string>();
 
     // 1. EVENTI: campionamento date da data_inizio a data_fine (copre tutti i giorni di eventi multi-giorno)
-    (events || []).forEach((event: any) => {
-      const startStr = event.data_inizio || event.start_date || event.date;
-      const endStr = event.data_fine || event.end_date || startStr;
+    (events || []).forEach((event: DbEvent) => {
+      const startStr = event.data_inizio;
+      const endStr = event.data_fine || startStr;
 
       if (startStr) {
         const startParts = String(startStr).split('T')[0].split('-');
@@ -56,8 +56,8 @@ export const useYearHighlights = (
     });
 
     // 2. TASK: campionamento date per scadenza/deadline
-    (tasks || []).forEach((task: any) => {
-      const dueStr = task.deadline || task.data_scadenza || task.due_date || task.date;
+    (tasks || []).forEach((task: DbTask) => {
+      const dueStr = task.data_scadenza;
       if (dueStr) {
         const parts = String(dueStr).split('T')[0].split('-');
         if (parts.length === 3) {

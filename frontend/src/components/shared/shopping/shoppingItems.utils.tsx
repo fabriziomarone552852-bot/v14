@@ -2,8 +2,8 @@
 import type {
   CatalogOption,
   ItemFormState,
-} from '../../../types/shopping';
-import { getLocalTodayStr } from '../../../utils/dateUtils';
+} from '@/types/shopping';
+import { getLocalTodayStr } from '@/utils/dateUtils';
 
 export const emptyItemForm = (shoppingListId = ''): ItemFormState => ({
   shopping_list_id: shoppingListId,

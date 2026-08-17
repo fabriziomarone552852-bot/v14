@@ -2,6 +2,7 @@
 import { useMutation, useQueryClient, type QueryKey } from '@tanstack/react-query';
 import { api } from '@/api/apiService';
 import type { DailyEntry } from '@/types';
+import type { DbMonthlyEntry } from '@/types/monthlyentries';
 
 export interface SaveDailyEntryPayload {
   id?: number;
@@ -12,12 +13,12 @@ export interface SaveDailyEntryPayload {
 }
 
 export interface CacheWithDailyEntries {
-  obiettivi?: DailyEntry[];
-  priorita?: DailyEntry[];
+  obiettivi?: DailyEntry[] | DbMonthlyEntry[];
+  priorita?: DailyEntry[] | DbMonthlyEntry[];
   obiettivo_settimanale?: DailyEntry | null;
   priorita_settimanali?: DailyEntry[];
-  eventi_positivi?: DailyEntry[];
-  eventi_negativi?: DailyEntry[];
+  eventi_positivi?: DailyEntry[] | DbMonthlyEntry[];
+  eventi_negativi?: DailyEntry[] | DbMonthlyEntry[];
 }
 
 export function useDailyEntryMutations<T extends CacheWithDailyEntries>(queryKey: QueryKey) {

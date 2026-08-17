@@ -1,12 +1,13 @@
 // src/components/shared/shopping/ShoppingSuppliersColumn.tsx
 import React, { useState } from 'react';
-import { useShoppingMutations } from '../../../hooks/useShoppingMutations';
-import { useModal } from '../../../hooks/useModals';
+import { useShoppingMutations } from '@/hooks/useShoppingMutations';
+import { useModal } from '@/hooks/useModals';
+import { useConfirm } from '@/context/ConfirmContext';
 import type {
   CatalogOption,
   ShoppingSupplier,
   SupplierFormState,
-} from '../../../types/shopping';
+} from '@/types/shopping';
 import {
   shoppingButtonPrimaryClass,
   shoppingButtonSecondaryClass,
@@ -36,6 +37,7 @@ const ShoppingSuppliersColumn: React.FC<ShoppingSuppliersColumnProps> = ({
   supplierStatusOptions,
 }) => {
   const mutations = useShoppingMutations();
+  const confirm = useConfirm();
   const createModal = useModal<null>();
   const editModal = useModal<ShoppingSupplier>();
 
@@ -71,7 +73,8 @@ const ShoppingSuppliersColumn: React.FC<ShoppingSuppliersColumnProps> = ({
   };
 
   const handleDelete = async (supplier: ShoppingSupplier) => {
-    if (!window.confirm(`Eliminare il fornitore "${supplier.name}"?`)) return;
+    const ok = await confirm(`Eliminare il fornitore "${supplier.name}"?`);
+    if (!ok) return;
     await mutations.deleteSupplier(supplier.id);
   };
 

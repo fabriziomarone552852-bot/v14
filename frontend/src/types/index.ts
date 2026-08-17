@@ -9,3 +9,5 @@ export * from './ui';
 export * from './monthlyentries';
 export * from './auth';
 export * from './yearlyentries';
+export * from './shopping';
+export * from './settings';

@@ -1,6 +1,6 @@
 // src/components/shared/shopping/ShoppingItemCreateModal.tsx
 import React from 'react';
-import type { ConfigOption } from '../../../types/shopping';
+import type { ConfigOption } from '@/types/shopping';
 import type { ItemFormState } from './shoppingItems.utils';
 import { getConfigOptionLabel } from './shoppingItems.utils';
 import {

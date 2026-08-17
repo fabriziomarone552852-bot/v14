@@ -61,7 +61,7 @@ const MonthBarChart: React.FC<{ data: Record<number, number>; currentMonth: numb
       })}
 
       {!hasData && (
-        <text x={svgWidth / 2} y={padding.top + chartHeight / 2} textAnchor="middle" fontSize={11} fill="#94a3b8" fontWeight="600" italic>
+        <text x={svgWidth / 2} y={padding.top + chartHeight / 2} textAnchor="middle" fontSize={11} fill="#94a3b8" fontWeight="600" fontStyle="italic">
           Nessuna task registrata nei mesi
         </text>
       )}
@@ -128,7 +128,7 @@ const WeekdayBarChart: React.FC<{ data: Record<number, number> }> = ({ data }) =
       })}
 
       {!hasData && (
-        <text x={svgWidth / 2} y={padding.top + chartHeight / 2} textAnchor="middle" fontSize={11} fill="#94a3b8" fontWeight="600" italic>
+        <text x={svgWidth / 2} y={padding.top + chartHeight / 2} textAnchor="middle" fontSize={11} fill="#94a3b8" fontWeight="600" fontStyle="italic">
           Nessuna task nei giorni
         </text>
       )}

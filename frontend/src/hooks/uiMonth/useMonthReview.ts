@@ -200,6 +200,7 @@ export const useMonthReview = (
       id: tempCatId,
       category_name: tagName.trim().toLowerCase(),
       colore: '#6366f1',
+      user_id: null,
       genre: 5,
     };
     queryClient.setQueryData<Category[]>(['categories'], (old) =>

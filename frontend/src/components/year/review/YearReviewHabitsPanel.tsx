@@ -49,8 +49,8 @@ export const YearReviewHabitsPanel: React.FC<YearReviewHabitsPanelProps> = ({ ha
           </div>
         ) : (
           currentHabits.map((habit) => {
-            const completedDays = habit.logs.filter(l => l.completato).length;
-            const longestStreak = getLongestStreak(habit.logs.filter(l => l.completato));
+            const completedDays = habit.logs.filter(l => l.count > 0).length;
+            const longestStreak = getLongestStreak(habit.logs.filter(l => l.count > 0));
 
             return (
               <div key={habit.id} className="flex-1 flex flex-col justify-center gap-3 bg-gray-50 rounded-xl p-5 border border-gray-200">
@@ -80,9 +80,9 @@ export const YearReviewHabitsPanel: React.FC<YearReviewHabitsPanelProps> = ({ ha
       {totalPages > 1 && (
         <div className="pt-4 border-t border-gray-100 mt-4 shrink-0 flex justify-center">
           <Pagination
-            currentPage={currentPage}
-            totalPages={totalPages}
-            onPageChange={setCurrentPage}
+            current={currentPage}
+            total={totalPages}
+            onChange={setCurrentPage}
           />
         </div>
       )}

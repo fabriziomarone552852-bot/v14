@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 
-const LoginScreen: React.FC = () => {
+const LoginPage: React.FC = () => {
   const { login, register, loading, error, isAuthenticated } = useAuth();
   const navigate = useNavigate();
 
@@ -221,4 +221,4 @@ const LoginScreen: React.FC = () => {
   );
 };
 
-export default LoginScreen;
+export default LoginPage;

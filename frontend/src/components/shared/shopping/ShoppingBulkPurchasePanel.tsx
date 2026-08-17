@@ -1,13 +1,13 @@
 // src/components/shared/shopping/ShoppingBulkPurchasePanel.tsx
 import React, { useEffect, useId, useMemo, useState } from 'react';
-import { useShoppingMutations } from '../../../hooks/shopping/useShoppingMutations';
-import { getLocalTodayStr } from '../../../utils/dateUtils';
+import { useShoppingMutations } from '@/hooks/shopping/useShoppingMutations';
+import { getLocalTodayStr } from '@/utils/dateUtils';
 import type {
   ConfigOption,
   ShoppingListItem,
   ShoppingListSummary,
   ShoppingSupplierOption,
-} from '../../../types/shopping';
+} from '@/types/shopping';
 import {
   shoppingButtonPrimaryClass,
   shoppingCardClass,

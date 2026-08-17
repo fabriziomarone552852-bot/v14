@@ -3,19 +3,48 @@ from datetime import datetime, timezone
 from typing import Sequence, Union
 
 from fastapi import HTTPException
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from backend.core import deps
 from backend.domains.categories import repository as categories_repo
 from backend.domains.categories.models import CategoryGenre
+from backend.domains.config import Config
 from backend.domains.tasks import repository as repo
 from backend.domains.tasks import schemas
 from backend.domains.tasks.models import Task
 from backend.domains.users.models import User
+from backend.core.settings import get_settings
 
+settings = get_settings()
 
 _COMPLETED_LOOKBACK_DAYS = 90
 
+
+# ---------------------------------------------------------------------------
+# Helpers di dominio (logica di business — prima in core/deps.py)
+# ---------------------------------------------------------------------------
+
+def get_admin_max_depth(db: Session) -> int:
+    """Legge il limite di profondità dalla configurazione di sistema."""
+    stmt = select(Config).where(Config.key == "maxsubtaskdepth")
+    config_db = db.execute(stmt).scalar_one_or_none()
+    return int(config_db.value) if config_db else settings.default_max_subtask_depth
+
+
+def get_effective_max_depth(user: User, db: Session) -> int:
+    """Calcola il limite effettivo per l'utente (il minore tra admin e user)."""
+    admin_limit = get_admin_max_depth(db)
+    user_limit = (
+        user.max_subtask_depth_user
+        if user.max_subtask_depth_user is not None
+        else settings.default_max_subtask_depth
+    )
+    return min(user_limit, admin_limit)
+
+
+# ---------------------------------------------------------------------------
+# Utility private di dominio
+# ---------------------------------------------------------------------------
 
 def populate_category_name(
     obj: Union[Task, Sequence[Task], None],
@@ -59,11 +88,15 @@ def _validate_user_category(
         )
 
 
+# ---------------------------------------------------------------------------
+# Operazioni CRUD
+# ---------------------------------------------------------------------------
+
 def create_task(db: Session, current_user: User, task_in: schemas.TaskCreate) -> Task:
     _validate_user_category(db, current_user, task_in.user_category_id)
 
     parent_task = (
-        deps.get_task_owned(task_in.parent_id, current_user, db)
+        repo.get_owned(task_in.parent_id, current_user, db)
         if task_in.parent_id is not None
         else None
     )
@@ -80,7 +113,7 @@ def create_task(db: Session, current_user: User, task_in: schemas.TaskCreate) ->
         parent_id=parent_task.id if parent_task else None,
     )
 
-    max_depth = deps.get_effective_max_depth(current_user, db)
+    max_depth = get_effective_max_depth(current_user, db)
     if new_task.calculate_depth(db_session=db) > max_depth:
         raise HTTPException(
             status_code=400,
@@ -123,9 +156,9 @@ def update_task(
     task_id: int,
     task_in: schemas.TaskUpdate,
 ) -> Task:
-    db_task = deps.get_task_owned(task_id, current_user, db)
+    db_task = repo.get_owned(task_id, current_user, db)
 
-    if task_in.parent_id is not None and deps.would_create_cycle(
+    if task_in.parent_id is not None and repo.would_create_cycle(
         task_id, task_in.parent_id, current_user, db
     ):
         raise HTTPException(
@@ -148,7 +181,7 @@ def update_task(
     if new_fatto is not None and new_fatto != old_fatto:
         db_task.data_fatto = datetime.now(timezone.utc) if new_fatto is True else None
 
-    max_depth = deps.get_effective_max_depth(current_user, db)
+    max_depth = get_effective_max_depth(current_user, db)
     if db_task.calculate_depth(db_session=db) > max_depth:
         raise HTTPException(
             status_code=400,
@@ -167,5 +200,5 @@ def update_task(
 
 
 def delete_task(db: Session, current_user: User, task_id: int) -> None:
-    db_task = deps.get_task_owned(task_id, current_user, db)
+    db_task = repo.get_owned(task_id, current_user, db)
     repo.delete(db, db_task)

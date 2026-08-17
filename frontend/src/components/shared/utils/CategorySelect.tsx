@@ -82,7 +82,7 @@ const CategorySelect: React.FC<CategorySelectProps> = ({
 
         // Promozione a COMMON solo tra TASKS (1) e EVENTS (2).
         // MOOD (4) e TAG (5) sono indipendenti e non vanno mai uniti.
-        const mergeable = [CategoryGenre.TASKS, CategoryGenre.EVENTS];
+        const mergeable: number[] = [CategoryGenre.TASKS, CategoryGenre.EVENTS];
         if (mergeable.includes(existingCat.genre) && mergeable.includes(genreType)) {
           const promotedCat = await updateCategoryMutation.mutateAsync({
             id: existingCat.id,

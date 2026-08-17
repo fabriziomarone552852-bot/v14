@@ -1,5 +1,5 @@
-import type { ConfigOption } from '../../../types/shopping';
-import { getLocalTodayStr } from '../../../utils/dateUtils';
+import type { ConfigOption } from '@/types/shopping';
+import { getLocalTodayStr } from '@/utils/dateUtils';
 
 export interface ItemFormState {
   shoppingListId: string;

@@ -1,13 +1,13 @@
 // src/views/ShoppingPage.tsx
 import React, { useMemo, useState } from 'react';
-import { useShoppingData } from '../hooks/useShoppingData';
-import ShoppingGroupsColumn from '../components/shared/shopping/ShoppingGroupsColumn';
-import ShoppingListsColumn from '../components/shared/shopping/ShoppingListsColumn';
-import ShoppingItemsColumn from '../components/shared/shopping/ShoppingItemsColumn';
-import ShoppingBulkPurchasePanel from '../components/shared/shopping/ShoppingBulkPurchasePanel';
-import ShoppingSuppliersColumn from '../components/shared/shopping/ShoppingSuppliersColumn';
-import { shoppingCardClass } from '../components/shared/shopping/shoppingUi';
-import type { ShoppingList } from '../types/shopping';
+import { useShoppingData } from '@/hooks/useShoppingData';
+import ShoppingGroupsColumn from '@/components/shared/shopping/ShoppingGroupsColumn';
+import ShoppingListsColumn from '@/components/shared/shopping/ShoppingListsColumn';
+import ShoppingItemsColumn from '@/components/shared/shopping/ShoppingItemsColumn';
+import ShoppingBulkPurchasePanel from '@/components/shared/shopping/ShoppingBulkPurchasePanel';
+import ShoppingSuppliersColumn from '@/components/shared/shopping/ShoppingSuppliersColumn';
+import { shoppingCardClass } from '@/components/shared/shopping/shoppingUi';
+import type { ShoppingList } from '@/types/shopping';
 
 const ShoppingPage: React.FC = () => {
   const [activeListId, setActiveListId] = useState('');

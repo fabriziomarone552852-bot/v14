@@ -1,6 +1,6 @@
 // src/router/AppRouter.tsx
 import React from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 
 // Pagine
@@ -14,7 +14,7 @@ import EventsPage from '@/views/EventsPage';
 import CategoriesPage from '@/views/CategoriesPage';
 import CategoryEditPage from '@/views/CategoryEditPage';
 import UserSettingsPage from '@/views/UserSettingsPage';
-import LoginScreen from '@/views/LoginScreen';
+import LoginPage from '@/views/LoginPage';
 import PasswordChangeScreen from '@/views/PasswordChangeScreen';
 import ShoppingPage from '@/pages/ShoppingPage';
 
@@ -27,17 +27,15 @@ const AppRouter: React.FC = () => {
   // Priorità 1: cambio password obbligatorio
   if (mustChangePassword) {
     return (
-      <BrowserRouter>
-        <Routes>
-          <Route path="/change-password" element={<PasswordChangeScreen />} />
-          <Route path="*" element={<Navigate to="/change-password" replace />} />
-        </Routes>
-      </BrowserRouter>
+      <Routes>
+        <Route path="/change-password" element={<PasswordChangeScreen />} />
+        <Route path="*" element={<Navigate to="/change-password" replace />} />
+      </Routes>
     );
   }
 
   return (
-    <BrowserRouter>
+    <>
       {isAuthenticated ? (
         <Routes>
           <Route element={<AppShellLayout onLogout={logout} />}>
@@ -57,11 +55,11 @@ const AppRouter: React.FC = () => {
         </Routes>
       ) : (
         <Routes>
-          <Route path="/login" element={<LoginScreen />} />
+          <Route path="/login" element={<LoginPage />} />
           <Route path="*" element={<Navigate to="/login" replace />} />
         </Routes>
       )}
-    </BrowserRouter>
+    </>
   );
 };
 

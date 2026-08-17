@@ -36,11 +36,11 @@ const TaskNewModal: React.FC<TaskNewModalProps> = ({ isOpen, onClose, taskToEdit
 
   const queryClient = useQueryClient();
 
-  const { data: tasks = [] } = useQuery({ 
-    queryKey: ['tasks'], 
+  const { data: tasks = [] } = useQuery({
+    queryKey: ['tasks'],
     queryFn: async () => {
-      const data = await api.get('/tasks');
-      return Array.isArray(data) ? data : (data?.items || []);
+      const data = await api.get<{ items?: DbTask[] } | DbTask[]>('/tasks');
+      return Array.isArray(data) ? data : (data?.items ?? []);
     }
   });
 

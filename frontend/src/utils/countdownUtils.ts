@@ -1,5 +1,6 @@
 import type { RawCountdown } from '@/types';
-import type { CountdownItem } from '@/components/day/CountdownWidget'; 
+import type { CountdownItem } from '@/components/day/CountdownWidget';
+import { DEFAULT_COVER_IMAGE } from '@/utils/constants';
 
 /**
  * TRASFORMATORE PER I COUNTDOWN
@@ -18,6 +19,6 @@ export const mapToCountdownItems = (rawCountdowns: RawCountdown[] | undefined): 
     
     targetDateStr: c.target_date ?? c.data_riferimento ?? '',
     
-    imageUrl: c.immagine_url ?? 'https://images.unsplash.com/photo-1506744626753-143283d115a0?q=80&w=800'
+    imageUrl: c.immagine_url ?? DEFAULT_COVER_IMAGE
   }));
 };

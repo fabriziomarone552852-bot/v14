@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useQueryClient } from '@tanstack/react-query';
 import { useDay } from '@/context/DayContext';
 import { useYearPageLogic } from '@/hooks/uiYear/useYearPageLogic';
 import { SharedAgendaHeader } from '@/components/shared/SharedAgendaHeader';
@@ -12,6 +13,7 @@ import { YearReviewModal } from '@/components/year/review/YearReviewModal';
 
 const YearPage: React.FC = () => {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const { changeDate } = useDay();
   const { state, handlers, nav, apiData, highlights, bingo, review } = useYearPageLogic();
   const [isBingoModalOpen, setIsBingoModalOpen] = useState(false);
@@ -26,7 +28,7 @@ const YearPage: React.FC = () => {
   const handleDayClick = (dateStr: string) => {
     const [y, m, d] = dateStr.split('-').map(Number);
     changeDate(new Date(y, m - 1, d));
-    navigate(`/giorno?date=${dateStr}`);
+    navigate('/giorno', { state: { selectedDate: dateStr } });
   };
 
   // Caricamento iniziale e gestione errori uniformata a MonthPage, WeekPage e DayPage
@@ -44,10 +46,10 @@ const YearPage: React.FC = () => {
         <h2 className="text-xl font-bold mb-2">Ops! Qualcosa è andato storto.</h2>
         <p>Impossibile caricare i dati dell'anno. Riprova più tardi.</p>
         <button
-          onClick={() => window.location.reload()}
+          onClick={() => queryClient.refetchQueries()}
           className="mt-4 px-4 py-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 font-medium"
         >
-          Ricarica Pagina
+          Ricarica Dati
         </button>
       </div>
     );
@@ -153,7 +155,7 @@ const YearPage: React.FC = () => {
         isOpen={review.isOpen}
         onClose={review.closeReview}
         year={state.selectedYear}
-        reviewData={review.reviewData as any}
+        reviewData={review.reviewData}
         activeTab={review.activeTab}
         onSetTab={review.setActiveTab}
         moodsUI={apiData.entries.moodsUI}
