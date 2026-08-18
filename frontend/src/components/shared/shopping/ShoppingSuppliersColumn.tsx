@@ -1,6 +1,6 @@
 // src/components/shared/shopping/ShoppingSuppliersColumn.tsx
 import React, { useState } from 'react';
-import { useShoppingMutations } from '@/hooks/useShoppingMutations';
+import { useShoppingMutations } from '@/hooks/shopping/useShoppingMutations';
 import { useModal } from '@/hooks/useModals';
 import { useConfirm } from '@/context/ConfirmContext';
 import type {

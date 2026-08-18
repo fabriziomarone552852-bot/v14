@@ -1,5 +1,6 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useAuth } from '@/context/AuthContext';
 
 import {
   fetchShoppingConfig,
@@ -23,19 +24,26 @@ import type {
 
 export const useShoppingData = (): UseShoppingDataResult => {
   const queryClient = useQueryClient();
+  const { user } = useAuth();
+  const userId = user?.id ?? 0;
   const [activeListId, setActiveListId] = useState<number | null>(null);
 
+  // Reset dell'attiva lista quando cambia utente
+  useEffect(() => {
+    setActiveListId(null);
+  }, [userId]);
+
   const listsQuery = useQuery<ShoppingListSummary[]>({
-    queryKey: shoppingQueryKeys.lists(),
+    queryKey: [...shoppingQueryKeys.lists(), userId],
     queryFn: ({ signal }) => fetchShoppingLists(signal),
-    staleTime: 60_000,
+    staleTime: 10_000,
     gcTime: 10 * 60_000,
   });
 
   const suppliersQuery = useQuery<ShoppingSupplierOption[]>({
-    queryKey: shoppingQueryKeys.suppliers(),
+    queryKey: [...shoppingQueryKeys.suppliers(), userId],
     queryFn: ({ signal }) => fetchShoppingSuppliers(signal),
-    staleTime: 10 * 60_000,
+    staleTime: 60_000,
     gcTime: 30 * 60_000,
   });
 
@@ -47,55 +55,52 @@ export const useShoppingData = (): UseShoppingDataResult => {
   });
 
   const productsQuery = useQuery<ShoppingProductOption[]>({
-    queryKey: shoppingQueryKeys.products(),
+    queryKey: [...shoppingQueryKeys.products(), userId],
     queryFn: ({ signal }) => fetchShoppingProducts(signal),
-    staleTime: 10 * 60_000,
+    staleTime: 60_000,
     gcTime: 30 * 60_000,
   });
 
   const groupsQuery = useQuery<ShoppingGroup[]>({
-    queryKey: shoppingQueryKeys.groups(),
+    queryKey: [...shoppingQueryKeys.groups(), userId],
     queryFn: ({ signal }) => fetchShoppingGroups(signal),
-    staleTime: 10 * 60_000,
+    staleTime: 10_000,
     gcTime: 30 * 60_000,
   });
 
-  const resolvedActiveListId = useMemo(() => {
+  useEffect(() => {
     const lists = listsQuery.data ?? [];
-    if (lists.length === 0) return null;
-
-    if (
-      activeListId !== null &&
-      lists.some((list) => list.id === activeListId)
-    ) {
-      return activeListId;
+    if (lists.length > 0 && activeListId === null) {
+      setActiveListId(lists[0].id);
     }
+  }, [listsQuery.data]);
 
-    return lists[0].id;
-  }, [activeListId, listsQuery.data]);
-
-  const hasActiveList = resolvedActiveListId !== null;
+  const hasActiveList = activeListId !== null;
 
   const itemsQuery = useQuery<ShoppingListItem[]>({
-    queryKey: shoppingQueryKeys.items(resolvedActiveListId),
+    queryKey: [...shoppingQueryKeys.items(activeListId), userId],
     queryFn: ({ signal }) =>
-      fetchShoppingListItems(resolvedActiveListId as number, signal),
+      fetchShoppingListItems(activeListId as number, signal),
     enabled: hasActiveList,
-    staleTime: 5_000,
+    staleTime: 0,
     gcTime: 10 * 60_000,
-    placeholderData: (previousData) => previousData,
   });
 
   const lists = listsQuery.data ?? [];
-  const items = itemsQuery.data ?? [];
   const suppliers = suppliersQuery.data ?? [];
   const products = productsQuery.data ?? [];
   const groups = groupsQuery.data ?? [];
   const config = configQuery.data ?? null;
 
+  const items = useMemo(() => {
+    if (activeListId == null) return [];
+    const rawItems = itemsQuery.data ?? [];
+    return rawItems.filter((item) => item.shoppingListId === activeListId);
+  }, [itemsQuery.data, activeListId]);
+
   const activeList = useMemo(
-    () => lists.find((list) => list.id === resolvedActiveListId) ?? null,
-    [lists, resolvedActiveListId]
+    () => lists.find((list) => list.id === activeListId) ?? null,
+    [lists, activeListId]
   );
 
   const isInitialLoading =
@@ -111,8 +116,14 @@ export const useShoppingData = (): UseShoppingDataResult => {
     });
   };
 
+  const refreshGroups = async () => {
+    await queryClient.invalidateQueries({
+      queryKey: shoppingQueryKeys.groups(),
+    });
+  };
+
   const refreshItems = async (listId?: number | null) => {
-    const targetListId = listId ?? resolvedActiveListId;
+    const targetListId = listId ?? activeListId;
     if (targetListId === null) return;
 
     await queryClient.invalidateQueries({
@@ -135,7 +146,7 @@ export const useShoppingData = (): UseShoppingDataResult => {
   return {
     lists,
     groups,
-    activeListId: resolvedActiveListId,
+    activeListId,
     activeList,
     items,
     suppliers,
@@ -149,6 +160,7 @@ export const useShoppingData = (): UseShoppingDataResult => {
     isInitialLoading,
     setActiveListId,
     refreshLists,
+    refreshGroups,
     refreshItems,
     refreshSuppliers,
     refreshConfig,

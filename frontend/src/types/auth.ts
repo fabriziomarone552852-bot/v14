@@ -10,5 +10,6 @@ export interface UserResponse {
   id: number;
   username: string;
   email: string;
+  is_superuser?: boolean;
   max_subtask_depth_user?: number | null;
 }

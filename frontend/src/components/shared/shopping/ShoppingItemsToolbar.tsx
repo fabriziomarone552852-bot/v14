@@ -13,7 +13,7 @@ interface ShoppingItemsToolbarProps {
   searchQuery: string;
   filtroStato: FiltroStato;
   onFiltroStatoChange: (value: FiltroStato) => void;
-  onAddItem: () => void;
+  onAddItem?: () => void;
 }
 
 const ShoppingItemsToolbar: React.FC<ShoppingItemsToolbarProps> = ({
@@ -43,14 +43,16 @@ const ShoppingItemsToolbar: React.FC<ShoppingItemsToolbarProps> = ({
           ) : null}
         </div>
 
-        <button
-          type="button"
-          onClick={onAddItem}
-          className={`${shoppingButtonPrimaryClass} shrink-0 text-xs`}
-          disabled={!hasActiveList}
-        >
-          + Articolo
-        </button>
+        {onAddItem ? (
+          <button
+            type="button"
+            onClick={onAddItem}
+            className={`${shoppingButtonPrimaryClass} shrink-0 text-xs`}
+            disabled={!hasActiveList}
+          >
+            + Articolo
+          </button>
+        ) : null}
       </div>
 
       <div className="shrink-0 flex gap-2">

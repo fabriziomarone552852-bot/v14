@@ -27,7 +27,7 @@ interface BulkPurchaseRowState {
 }
 
 interface ShoppingBulkPurchasePanelProps {
-  activeList: ShoppingListSummary;
+  activeList?: ShoppingListSummary | null;
   items: ShoppingListItem[];
   suppliers: ShoppingSupplierOption[];
   currencyOptions: ConfigOption[];

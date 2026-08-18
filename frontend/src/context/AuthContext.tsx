@@ -1,6 +1,7 @@
 // src/context/AuthContext.tsx
 import React, { createContext, useContext, useEffect, useRef, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useQueryClient } from '@tanstack/react-query';
 import axios from 'axios';
 import { apiUrl, apiClient } from '@/api/client';
 import type { TokenResponse, UserResponse } from '@/types/auth';
@@ -28,6 +29,7 @@ const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   // Usiamo un ref per rendere navigate disponibile dentro useCallback
   // senza doverlo inserire nelle dipendenze (è stabile per design).
   const navigateRef = useRef(navigate);
@@ -82,6 +84,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const clearError = () => setError(null);
 
   const logout = useCallback(() => {
+    queryClient.clear();
     persistTokens(null, null);
     persistUser(null);
     persistMustChangePassword(false);
@@ -90,7 +93,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (window.location.pathname !== '/login') {
       navigateRef.current('/login');
     }
-  }, []);
+  }, [queryClient]);
 
   useEffect(() => {
     const handleForceLogout = () => {
@@ -105,6 +108,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setLoading(true);
     clearError();
     try {
+      // Puliamo preventivamente vecchi token per evitare intercettazioni errate
+      localStorage.removeItem('token');
+      localStorage.removeItem('refreshToken');
+      localStorage.removeItem('user');
+      localStorage.removeItem('mustChangePassword');
+
       const normalizedUsername = username.trim().toLowerCase();
       const body = new URLSearchParams();
       body.append('username', normalizedUsername);
@@ -116,18 +125,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       const tokenData = res.data;
 
-      persistTokens(tokenData.access_token, tokenData.refresh_token ?? null);
-
       const needsPasswordChange =
         tokenData.must_change_password === true ||
         tokenData.access_scope === 'password_change';
 
-      persistMustChangePassword(needsPasswordChange);
-
+      let userData: UserResponse | null = null;
       if (!needsPasswordChange) {
-        const userRes = await apiClient.get<UserResponse>('/users/me');
-        persistUser(userRes.data);
+        const userRes = await axios.get<UserResponse>(apiUrl('/users/me'), {
+          headers: { Authorization: `Bearer ${tokenData.access_token}` },
+        });
+        userData = userRes.data;
       }
+
+      // Impostiamo sia i token che lo user in modo sincrono prima dell'aggiornamento dello stato
+      persistTokens(tokenData.access_token, tokenData.refresh_token ?? null);
+      persistMustChangePassword(needsPasswordChange);
+      persistUser(userData);
 
     } catch (e: unknown) {
       let msg = 'Errore di login';

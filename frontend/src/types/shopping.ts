@@ -24,6 +24,7 @@ export interface ShoppingGroupSummary {
   statusId?: number | null;
   canEdit?: boolean;
   canDelete?: boolean;
+  userRole?: string | null;
 }
 
 export interface ShoppingGroup {
@@ -32,6 +33,49 @@ export interface ShoppingGroup {
   description?: string | null;
   ownerId: number;
   statusId: number;
+  userRole?: string | null; // 'owner' | 'admin' | 'editor' | 'reader'
+}
+
+export interface ShoppingGroupMember {
+  id: number;
+  groupId: number;
+  userId: number;
+  username: string;
+  email: string;
+  roleId: number;
+  roleCode: string;
+  roleDisplayName: string;
+  createdAt: string;
+}
+
+export interface ShoppingGroupMemberInvitePayload {
+  username?: string;
+  email?: string;
+  roleCode: string;
+}
+
+export interface ShoppingGroupMemberRoleUpdatePayload {
+  roleCode: string;
+}
+
+export interface SupplierPriceSummary {
+  supplierId?: number | null;
+  supplierName: string;
+  lastPrice?: number | null;
+  lastPurchaseDate?: string | null;
+  isLastPriceOnSale?: boolean;
+  bestPrice?: number | null;
+  bestPurchaseDate?: string | null;
+  avgNormalPrice?: number | null;
+}
+
+export interface ItemPriceHistoryPoint {
+  id: number;
+  purchaseDate: string;
+  purchasePrice: number;
+  supplierName?: string | null;
+  isOnSale: boolean;
+  quantityPurchased?: number | null;
 }
 
 export interface ShoppingSupplierOption {
@@ -159,6 +203,8 @@ export interface ShoppingConfigBundle {
   offerFlagOptions: ConfigOption[];
   visibilityOptions: ConfigOption[];
   listStatusOptions: ConfigOption[];
+  supplierStatusOptions?: ConfigOption[];
+  groupRoleOptions?: ConfigOption[];
 }
 
 /* =========================
@@ -296,6 +342,7 @@ export interface UseShoppingDataResult {
   setActiveListId: (id: number | null) => void;
 
   refreshLists: () => Promise<unknown>;
+  refreshGroups: () => Promise<unknown>;
   refreshItems: (listId?: number | null) => Promise<unknown>;
   refreshSuppliers: () => Promise<unknown>;
   refreshConfig: () => Promise<unknown>;

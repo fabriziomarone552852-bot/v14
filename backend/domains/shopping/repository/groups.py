@@ -5,7 +5,7 @@ Solo accesso ai dati, nessuna regola di business.
 
 from typing import List, Optional
 
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 
 from backend.domains.config import ConfigCode
 from backend.domains.shopping.models import ShoppingGroup, ShoppingGroupMember
@@ -125,6 +125,10 @@ def delete_group(db: Session, group: ShoppingGroup) -> None:
 def list_members(db: Session, group_id: int) -> List[ShoppingGroupMember]:
     return (
         db.query(ShoppingGroupMember)
+        .options(
+            joinedload(ShoppingGroupMember.user),
+            joinedload(ShoppingGroupMember.role),
+        )
         .filter(
             ShoppingGroupMember.group_id == group_id,
             ShoppingGroupMember.removed_at.is_(None),

@@ -13,7 +13,8 @@ import YearPage from '@/views/YearPage';
 import UserSettingsPage from '@/views/UserSettingsPage';
 import LoginPage from '@/views/LoginPage';
 import PasswordChangeScreen from '@/views/PasswordChangeScreen';
-import ShoppingPage from '@/pages/ShoppingPage';
+import ShoppingPage from '@/views/ShoppingPage';
+import AdminPage from '@/views/AdminPage';
 
 // Pagine Archivio (Raccolte nella cartella Archive)
 import {
@@ -66,6 +67,7 @@ const AppRouter: React.FC = () => {
             <Route path="/reviews" element={<ReviewsPage />} />
             <Route path="/tags" element={<TagsPage />} />
             <Route path="/shopping" element={<ShoppingPage />} />
+            <Route path="/admin" element={<AdminPage />} />
             <Route path="/settings" element={<UserSettingsPage />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Route>

@@ -192,6 +192,21 @@ const AppShellLayout: React.FC<AppShellLayoutProps> = ({ onLogout }) => {
               />
             </div>
 
+            {/* ========================================= */}
+            {/* SEZIONE RISERVATA AL SUPERUSER (SU) */}
+            {/* ========================================= */}
+            {user?.is_superuser && (
+              <div className="pt-3 mt-1 border-t border-gray-800 flex flex-col gap-1">
+                {isSidebarOpen && <p className="px-6 text-[9px] font-bold text-amber-500 uppercase tracking-wider mb-1">Pannello SU</p>}
+                <SidebarItem
+                  to="/admin"
+                  label="Amministrazione SU"
+                  icon={<span className="text-base">🛡️</span>}
+                  isActive={isActive('/admin')}
+                  isSidebarOpen={isSidebarOpen}
+                />
+              </div>
+            )}
           </nav>
 
           {/* FOOTER SIDEBAR: Settings + Logout */}

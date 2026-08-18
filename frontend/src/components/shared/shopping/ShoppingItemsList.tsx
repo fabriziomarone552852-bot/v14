@@ -11,6 +11,8 @@ interface ShoppingItemsListProps {
   onEdit: (item: ShoppingListItem) => void;
   onDelete: (item: ShoppingListItem) => void;
   onPurchase: (item: ShoppingListItem) => void;
+  onOpenSuggestions?: (item: ShoppingListItem) => void;
+  userRole?: string;
 }
 
 const ShoppingItemsList: React.FC<ShoppingItemsListProps> = ({
@@ -21,6 +23,8 @@ const ShoppingItemsList: React.FC<ShoppingItemsListProps> = ({
   onEdit,
   onDelete,
   onPurchase,
+  onOpenSuggestions,
+  userRole = 'owner',
 }) => {
   return (
     <div
@@ -50,6 +54,8 @@ const ShoppingItemsList: React.FC<ShoppingItemsListProps> = ({
                   onEdit={onEdit}
                   onDelete={onDelete}
                   onPurchase={onPurchase}
+                  onOpenSuggestions={onOpenSuggestions}
+                  userRole={userRole}
                 />
               </li>
             ))}

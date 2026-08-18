@@ -1,6 +1,6 @@
 // src/components/shared/shopping/ShoppingGroupsColumn.tsx
 import React, { useMemo, useState } from 'react';
-import { useShoppingMutations } from '../../../hooks/useShoppingMutations';
+import { useShoppingMutations } from '../../../hooks/shopping/useShoppingMutations';
 import { useModal } from '../../../hooks/useModals';
 import type {
   CatalogOption,
