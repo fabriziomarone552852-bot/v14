@@ -31,3 +31,7 @@ export async function updateCategory(
   if (!data) throw new Error("Errore nell'aggiornamento della categoria");
   return data;
 }
+
+export async function deleteCategory(id: number): Promise<void> {
+  await api.delete(`/categories/${id}`);
+}

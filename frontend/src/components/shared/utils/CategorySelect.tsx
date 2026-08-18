@@ -1,13 +1,10 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { CategoryGenre, type Category } from '@/types';
 import { useOutsideClick } from '@/hooks/useOutsideClick';
-import { PlusIcon, DropdownIcon, CloseIcon } from './Icons';
-import {
-  useCategories,
-  useCreateCategory,
-  useUpdateCategory,
-} from '@/hooks/useCategories';
+import { PlusIcon, DropdownIcon } from './Icons';
+import { useCategories } from '@/hooks/useCategories';
 import { formatName } from '@/utils/uiUtils';
+import { CategoryModal } from '@/components/categories/CategoryModal';
 
 interface CategorySelectProps {
   value: string;
@@ -21,9 +18,6 @@ const CategorySelect: React.FC<CategorySelectProps> = ({
   genreType,
 }) => {
   const { data: dbCategories = [] } = useCategories();
-  const createCategoryMutation = useCreateCategory();
-  const updateCategoryMutation = useUpdateCategory();
-
   const safeCategories = useMemo<Category[]>(() => dbCategories ?? [], [dbCategories]);
 
   const categories = useMemo(
@@ -37,8 +31,6 @@ const CategorySelect: React.FC<CategorySelectProps> = ({
 
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isNewModalOpen, setIsNewModalOpen] = useState(false);
-  const [newCatForm, setNewCatForm] = useState({ name: '', colore: '#3B82F6' });
-  const [errorMsg, setErrorMsg] = useState('');
   const [openUpwards, setOpenUpwards] = useState(false);
 
   const activeColor =
@@ -56,64 +48,6 @@ const CategorySelect: React.FC<CategorySelectProps> = ({
     }
   }, [isDropdownOpen, wrapperRef]);
 
-  const resetNewCategoryState = () => {
-    setIsNewModalOpen(false);
-    setNewCatForm({ name: '', colore: '#3B82F6' });
-    setErrorMsg('');
-  };
-
-  const handleSaveNew = async () => {
-    const nomePulito = newCatForm.name.trim();
-    if (!nomePulito) return;
-
-    const existingCat = safeCategories.find(
-      (c: Category) => c.category_name.toLowerCase() === nomePulito.toLowerCase()
-    );
-
-    try {
-      if (existingCat) {
-        if (
-          existingCat.genre === genreType ||
-          existingCat.genre === CategoryGenre.COMMON
-        ) {
-          setErrorMsg('Categoria già esistente!');
-          return;
-        }
-
-        // Promozione a COMMON solo tra TASKS (1) e EVENTS (2).
-        // MOOD (4) e TAG (5) sono indipendenti e non vanno mai uniti.
-        const mergeable: number[] = [CategoryGenre.TASKS, CategoryGenre.EVENTS];
-        if (mergeable.includes(existingCat.genre) && mergeable.includes(genreType)) {
-          const promotedCat = await updateCategoryMutation.mutateAsync({
-            id: existingCat.id,
-            data: { genre: CategoryGenre.COMMON },
-          });
-
-          onChange(promotedCat.category_name || nomePulito);
-          resetNewCategoryState();
-          return;
-        }
-
-        // Se arriviamo qui, il nome esiste con genre incompatibile (4 o 5) — creiamo un nuovo record
-      }
-
-      const cat = await createCategoryMutation.mutateAsync({
-        category_name: nomePulito,
-        colore: newCatForm.colore,
-        genre: genreType,
-      });
-
-      onChange(cat.category_name || nomePulito);
-      resetNewCategoryState();
-    } catch (err: unknown) {
-      console.error(err);
-      setErrorMsg("Errore durante l'operazione.");
-    }
-  };
-
-  const isSubmitting =
-    createCategoryMutation.isPending || updateCategoryMutation.isPending;
-
   return (
     <div className="relative" ref={wrapperRef}>
       <div className="flex justify-between items-center mb-1">
@@ -126,7 +60,8 @@ const CategorySelect: React.FC<CategorySelectProps> = ({
             setIsDropdownOpen(false);
             setIsNewModalOpen(true);
           }}
-          className="hover:bg-blue-100 text-gray-500 hover:text-blue-500 rounded p-0.5 transition-colors"
+          className="hover:bg-blue-100 text-gray-500 hover:text-blue-500 rounded p-0.5 transition-colors cursor-pointer"
+          title="Crea nuova categoria"
         >
           <PlusIcon className="h-4 w-4" />
         </button>
@@ -185,83 +120,15 @@ const CategorySelect: React.FC<CategorySelectProps> = ({
         </div>
       )}
 
-      {isNewModalOpen && (
-        <div
-          className="fixed inset-0 bg-gray-900/40 backdrop-blur-sm flex items-center justify-center z-[60] p-4"
-          onClick={() => setIsNewModalOpen(false)}
-        >
-          <div
-            className="w-64 bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden pointer-events-auto"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="px-4 py-3 border-b border-gray-100 flex justify-between items-center bg-gray-50">
-              <h4 className="text-sm font-extrabold text-gray-800 uppercase tracking-wider">
-                Crea Categoria
-              </h4>
-              <button
-                type="button"
-                onClick={() => setIsNewModalOpen(false)}
-                className="text-gray-400 hover:text-red-500"
-              >
-                <CloseIcon className="h-4 w-4" />
-              </button>
-            </div>
-
-            <div className="p-4 space-y-4">
-              <div>
-                <label className="block text-xs font-bold text-gray-500 uppercase mb-1">
-                  Nome
-                </label>
-                <input
-                  type="text"
-                  value={newCatForm.name}
-                  onChange={(e) =>
-                    setNewCatForm({ ...newCatForm, name: e.target.value })
-                  }
-                  className="w-full px-3 py-2 border rounded-lg text-sm focus:border-blue-500 outline-none"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-gray-500 uppercase mb-1">
-                  Colore (HEX)
-                </label>
-                <div className="flex gap-2">
-                  <input
-                    type="color"
-                    value={newCatForm.colore}
-                    onChange={(e) =>
-                      setNewCatForm({ ...newCatForm, colore: e.target.value })
-                    }
-                    className="w-10 h-10 p-0.5 border rounded-lg cursor-pointer"
-                  />
-                  <input
-                    type="text"
-                    value={newCatForm.colore}
-                    onChange={(e) =>
-                      setNewCatForm({ ...newCatForm, colore: e.target.value })
-                    }
-                    className="flex-1 px-3 py-2 border rounded-lg text-sm uppercase outline-none focus:border-blue-500"
-                  />
-                </div>
-              </div>
-
-              {errorMsg && (
-                <p className="text-xs text-red-500 font-bold">{errorMsg}</p>
-              )}
-
-              <button
-                type="button"
-                onClick={handleSaveNew}
-                disabled={isSubmitting}
-                className="w-full py-2 bg-blue-500 hover:bg-blue-600 disabled:bg-blue-300 text-white rounded-lg font-bold text-sm"
-              >
-                {isSubmitting ? 'Salvataggio...' : 'Salva'}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* MODALE CREAZIONE CATEGORIA CONDIVISO */}
+      <CategoryModal
+        isOpen={isNewModalOpen}
+        onClose={() => setIsNewModalOpen(false)}
+        defaultGenre={genreType}
+        onSuccess={(cat) => {
+          onChange(cat.category_name);
+        }}
+      />
     </div>
   );
 };

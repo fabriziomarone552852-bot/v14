@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   createCategory,
+  deleteCategory,
   getCategories,
   getCategory,
   updateCategory,
@@ -49,6 +50,17 @@ export function useUpdateCategory() {
         queryClient.invalidateQueries({ queryKey: categoriesQueryKey }),
         queryClient.invalidateQueries({ queryKey: ['categories', variables.id] }),
       ]);
+    },
+  });
+}
+
+export function useDeleteCategory() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (id: number) => deleteCategory(id),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: categoriesQueryKey });
     },
   });
 }
