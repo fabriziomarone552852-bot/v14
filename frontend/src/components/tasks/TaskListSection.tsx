@@ -1,33 +1,69 @@
 import React from 'react';
-import type { Task } from '@/types/tasks';
 
 interface TaskListSectionProps {
-  loading: boolean;
-  totalItems: number;
-  startIndex: number;
-  endIndex: number;
-  rowsPerPage: number;
-  setRowsPerPage: (value: number) => void;
-  safeCurrentPage: number;
-  totalPages: number;
-  setCurrentPage: React.Dispatch<React.SetStateAction<number>>;
-  rowsContent: React.ReactNode;
-  rowsPerPageOptions: number[];
+  loading?: boolean;
+  totalItems?: number;
+  startIndex?: number;
+  endIndex?: number;
+  rowsPerPage?: number;
+  setRowsPerPage?: (value: number) => void;
+  safeCurrentPage?: number;
+  totalPages?: number;
+  setCurrentPage?: React.Dispatch<React.SetStateAction<number>>;
+  rowsContent?: React.ReactNode;
+  rowsPerPageOptions?: number[];
+  children?: React.ReactNode;
 }
 
 const TaskListSection: React.FC<TaskListSectionProps> = ({
-  loading,
-  totalItems,
-  startIndex,
-  endIndex,
-  rowsPerPage,
+  loading = false,
+  totalItems = 0,
+  startIndex = 0,
+  endIndex = 0,
+  rowsPerPage = 10,
   setRowsPerPage,
-  safeCurrentPage,
-  totalPages,
+  safeCurrentPage = 1,
+  totalPages = 1,
   setCurrentPage,
   rowsContent,
-  rowsPerPageOptions,
+  rowsPerPageOptions = [10, 20, 50],
+  children,
 }) => {
+  // Se è usato con children diretti (come in TasksPage)
+  if (children) {
+    return (
+      <div className="overflow-x-auto">
+        <table className="w-full border-collapse text-left text-sm text-slate-600">
+          <thead className="border-b border-slate-100 bg-slate-50/75 text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">
+            <tr>
+              <th className="py-3.5 pl-5 pr-3 lg:pl-6 text-left">Titolo</th>
+              <th className="px-3 py-3.5 text-left">Descrizione</th>
+              <th className="px-3 py-3.5 text-center">Inizio</th>
+              <th className="px-3 py-3.5 text-center">Scadenza</th>
+              <th className="px-3 py-3.5 text-center">Priorità</th>
+              <th className="px-3 py-3.5 text-center">Categoria</th>
+              <th className="px-3 py-3.5 text-center">Luogo</th>
+              <th className="px-3 py-3.5 text-center">Fatto</th>
+              <th className="py-3.5 pl-3 pr-5 text-right lg:pr-6">Azioni</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-slate-100">
+            {loading ? (
+              <tr>
+                <td colSpan={9} className="py-8 text-center text-slate-400">
+                  Caricamento attività...
+                </td>
+              </tr>
+            ) : (
+              children
+            )}
+          </tbody>
+        </table>
+      </div>
+    );
+  }
+
+  // Fallback con tabella autonoma
   return (
     <section>
       <h2>Elenco tasks</h2>
@@ -53,9 +89,9 @@ const TaskListSection: React.FC<TaskListSectionProps> = ({
           <select
             id="rowsPerPageTasks"
             value={rowsPerPage}
-            onChange={(e) => setRowsPerPage(Number(e.target.value))}
+            onChange={(e) => setRowsPerPage && setRowsPerPage(Number(e.target.value))}
           >
-            {rowsPerPageOptions.map((option) => (
+            {(rowsPerPageOptions || [10, 20, 50]).map((option) => (
               <option key={option} value={option}>
                 {option}
               </option>
@@ -90,41 +126,43 @@ const TaskListSection: React.FC<TaskListSectionProps> = ({
                 <th>Azioni</th>
               </tr>
             </thead>
-			<tbody>{rowsContent}</tbody>
+            <tbody>{rowsContent}</tbody>
           </table>
 
-          <nav
-            aria-label="Paginazione tasks"
-            style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              gap: 12,
-              marginTop: 16,
-              flexWrap: 'wrap',
-            }}
-          >
-            <div>
-              Pagina {safeCurrentPage} di {totalPages}
-            </div>
+          {totalPages > 1 && setCurrentPage && (
+            <nav
+              aria-label="Paginazione tasks"
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                gap: 12,
+                marginTop: 16,
+                flexWrap: 'wrap',
+              }}
+            >
+              <div>
+                Pagina {safeCurrentPage} di {totalPages}
+              </div>
 
-            <div style={{ display: 'flex', gap: 8 }}>
-              <button
-                type="button"
-                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                disabled={safeCurrentPage === 1 || loading}
-              >
-                Precedente
-              </button>
-              <button
-                type="button"
-                onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-                disabled={safeCurrentPage === totalPages || loading}
-              >
-                Successiva
-              </button>
-            </div>
-          </nav>
+              <div style={{ display: 'flex', gap: 8 }}>
+                <button
+                  type="button"
+                  onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                  disabled={safeCurrentPage === 1 || loading}
+                >
+                  Precedente
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                  disabled={safeCurrentPage === totalPages || loading}
+                >
+                  Successiva
+                </button>
+              </div>
+            </nav>
+          )}
         </>
       )}
     </section>

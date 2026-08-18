@@ -9,14 +9,25 @@ import DayPage from '@/views/DayPage';
 import WeekPage from '@/views/WeekPage';
 import MonthPage from '@/views/MonthPage';
 import YearPage from '@/views/YearPage';
-import TasksPage from '@/views/TasksPage';
-import EventsPage from '@/views/EventsPage';
-import CategoriesPage from '@/views/CategoriesPage';
-import CategoryEditPage from '@/views/CategoryEditPage';
+// Pagine Generali & Auth
 import UserSettingsPage from '@/views/UserSettingsPage';
 import LoginPage from '@/views/LoginPage';
 import PasswordChangeScreen from '@/views/PasswordChangeScreen';
 import ShoppingPage from '@/pages/ShoppingPage';
+
+// Pagine Archivio (Raccolte nella cartella Archive)
+import {
+  ArchivePage,
+  TasksPage,
+  EventsPage,
+  CategoriesPage,
+  CategoryEditPage,
+  CountdownsPage,
+  HabitsPage,
+  NotesPage,
+  ReviewsPage,
+  TagsPage,
+} from '@/views/Archive';
 
 // Layout
 import AppShellLayout from '@/components/AppShellLayout';
@@ -44,10 +55,16 @@ const AppRouter: React.FC = () => {
             <Route path="/settimana" element={<WeekPage />} />
             <Route path="/mese" element={<MonthPage />} />
             <Route path="/anno" element={<YearPage />} />
+            <Route path="/archivio" element={<ArchivePage />} />
             <Route path="/tasks" element={<TasksPage />} />
             <Route path="/events" element={<EventsPage />} />
             <Route path="/categories" element={<CategoriesPage />} />
             <Route path="/categories/:id/edit" element={<CategoryEditPage />} />
+            <Route path="/countdowns" element={<CountdownsPage />} />
+            <Route path="/habits" element={<HabitsPage />} />
+            <Route path="/notes" element={<NotesPage />} />
+            <Route path="/reviews" element={<ReviewsPage />} />
+            <Route path="/tags" element={<TagsPage />} />
             <Route path="/shopping" element={<ShoppingPage />} />
             <Route path="/settings" element={<UserSettingsPage />} />
             <Route path="*" element={<Navigate to="/" replace />} />

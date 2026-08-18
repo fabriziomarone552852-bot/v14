@@ -343,3 +343,85 @@ export const CalendarYearIcon = ({ className = "w-5 h-5" }: { className?: string
     <rect x="14" y="16" width="4" height="3.5" rx="0.6" stroke="currentColor" strokeWidth="1.3" />
   </svg>
 );
+
+// Icona 3 Linee per Menu / Archivio / Hub
+export const MenuBarsIcon = ({ className = "w-6 h-6" }: { className?: string }) => (
+  <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+  </svg>
+);
+
+// Icona Tag & Etichette
+export const TagIcon = ({ className = "w-6 h-6" }: { className?: string }) => (
+  <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M9.568 3H5.25A2.25 2.25 0 003 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581c.699.699 1.78.872 2.607.386l4.412-2.59c.827-.486 1.137-1.517.651-2.344l-9.581-9.581A2.25 2.25 0 009.568 3z" />
+    <path strokeLinecap="round" strokeLinejoin="round" d="M6 6h.008v.008H6V6z" />
+  </svg>
+);
+
+// Icona Habit & Routine (Fulmine di energia / costanza)
+export const HabitIcon = ({ className = "w-6 h-6" }: { className?: string }) => (
+  <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z" />
+  </svg>
+);
+
+// Icona Review & Statistiche
+export const ReviewIcon = ({ className = "w-6 h-6" }: { className?: string }) => (
+  <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M3 13.5v6.75A1.5 1.5 0 0 0 4.5 21.75h2.25A1.5 1.5 0 0 0 8.25 20.25V13.5A1.5 1.5 0 0 0 6.75 12H4.5A1.5 1.5 0 0 0 3 13.5z" />
+    <path strokeLinecap="round" strokeLinejoin="round" d="M9.75 9v11.25A1.5 1.5 0 0 0 11.25 21.75h2.25A1.5 1.5 0 0 0 15 20.25V9a1.5 1.5 0 0 0-1.5-1.5h-2.25A1.5 1.5 0 0 0 9.75 9z" />
+    <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 4.5v15.75A1.5 1.5 0 0 0 18 21.75h2.25A1.5 1.5 0 0 0 21.75 20.25V4.5A1.5 1.5 0 0 0 20.25 3H18a1.5 1.5 0 0 0-1.5 1.5z" />
+  </svg>
+);
+
+// Icona Ricerca / Lente di ingrandimento
+export const SearchIcon = ({ className = "w-5 h-5" }: { className?: string }) => (
+  <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
+  </svg>
+);
+
+// Icona Filtri
+export const FilterIcon = ({ className = "w-5 h-5" }: { className?: string }) => (
+  <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M12 3c2.755 0 5.455.232 8.083.678.533.09.917.556.917 1.096v1.044a2.25 2.25 0 01-.659 1.591l-5.432 5.432a2.25 2.25 0 00-.659 1.591v2.927a2.25 2.25 0 01-1.244 2.013L9.75 21v-6.568a2.25 2.25 0 00-.659-1.591L3.659 7.409A2.25 2.25 0 013 5.818V4.774c0-.54.384-1.006.917-1.096A48.32 48.32 0 0112 3z" />
+  </svg>
+);
+
+// Icona Casella con Spunta (Completati)
+export const CheckboxCheckedIcon = ({ className = "w-4 h-4" }: { className?: string }) => (
+  <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+    <rect x="3" y="3" width="18" height="18" rx="4" stroke="currentColor" strokeWidth="2" />
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M8 12.5l2.5 2.5L16 9" />
+  </svg>
+);
+
+// Icona Casella con X (Da fare / Incompleti)
+export const CheckboxCrossIcon = ({ className = "w-4 h-4" }: { className?: string }) => (
+  <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+    <rect x="3" y="3" width="18" height="18" rx="4" stroke="currentColor" strokeWidth="2" />
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M9 9l6 6m0-6l-6 6" />
+  </svg>
+);
+
+// Icona Orologio (Con orario)
+export const ClockIcon = ({ className = "w-4 h-4" }: { className?: string }) => (
+  <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+    <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="2" />
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 7v5l3 2" />
+  </svg>
+);
+
+// Icona Sole / Giorno (Tutto il giorno)
+export const SunIcon = ({ className = "w-4 h-4" }: { className?: string }) => (
+  <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+    <circle cx="12" cy="12" r="4" stroke="currentColor" strokeWidth="2" />
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 2v2m0 16v2M4.93 4.93l1.41 1.41m11.32 11.32l1.41 1.41M2 12h2m16 0h2M4.93 19.07l1.41-1.41m11.32-11.32l1.41-1.41" />
+  </svg>
+);
+
+
+
+
+

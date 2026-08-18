@@ -35,7 +35,7 @@ const updateCacheSafely = <T extends TaskCacheData>(
   return oldData;
 };
 
-export function useTaskMutations(queryKey: QueryKey) {
+export function useTaskMutations(queryKey: QueryKey = ['tasks']) {
   const queryClient = useQueryClient();
 
   // --- 1. TOGGLE TASK ---

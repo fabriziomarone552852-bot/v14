@@ -2,7 +2,7 @@ import React from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import CategoryForm, { type CategoryFormValues } from '@/components/CategoryForm';
 import { useCategory, useUpdateCategory } from '@/hooks/useCategories';
-import type { CategoryUpdatePayload } from '@/types';
+import { type CategoryUpdatePayload, CategoryGenre } from '@/types';
 
 const CategoryEditPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -67,7 +67,7 @@ const CategoryEditPage: React.FC = () => {
   const initialValues: CategoryFormValues = {
     name: category.category_name,
     color: category.colore || '#cccccc',
-    genre: category.genre,
+    genre: (category.genre as CategoryGenre) || CategoryGenre.TASKS,
   };
 
   return (

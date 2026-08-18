@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { Link, useLocation, Outlet } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
-import { SettingsIcon, SwitchSidebarIcon, CategoryIcon, TaskListIcon, ShoppingIcon, UniversityIcon, FreeTimeIcon, CalendarIcon, CountdownIcon, CalendarDayIcon, CalendarWeekIcon, CalendarMonthIcon, CalendarYearIcon } from './shared/utils/Icons';
+import { SettingsIcon, SwitchSidebarIcon, ShoppingIcon, UniversityIcon, FreeTimeIcon, CountdownIcon, CalendarDayIcon, CalendarWeekIcon, CalendarMonthIcon, CalendarYearIcon, MenuBarsIcon } from './shared/utils/Icons';
 
 interface SidebarItemProps {
   to: string;
@@ -56,17 +56,23 @@ const AppShellLayout: React.FC<AppShellLayoutProps> = ({ onLogout }) => {
   };
 
 
-  const mainNavItems = [
-  { to: '/free-time', label: 'Free Time', icon: <FreeTimeIcon className="w-6 h-6 shrink-0" /> },
-  { to: '/universita', label: 'Università', icon: <UniversityIcon className="w-6 h-6 shrink-0" /> },
-  { to: '/shopping', label: 'Shopping', icon: <ShoppingIcon className="w-6 h-6 shrink-0" /> }
-];
+  const isArchiveActive =
+    isActive('/archivio') ||
+    isActive('/tasks') ||
+    isActive('/events') ||
+    isActive('/categories') ||
+    location.pathname.startsWith('/categories/') ||
+    isActive('/countdowns') ||
+    isActive('/habits') ||
+    isActive('/notes') ||
+    isActive('/reviews') ||
+    isActive('/tags');
 
-const devNavItems = [
-  { to: '/tasks', label: 'Lista Tasks', icon: <TaskListIcon className="w-5 h-5 shrink-0" /> },
-  { to: '/events', label: 'Lista Eventi', icon: <CalendarIcon className="w-5 h-5 shrink-0" /> },
-  { to: '/categories', label: 'Categorie', icon: <CategoryIcon className="w-5 h-5 shrink-0" /> }
-];
+  const mainNavItems = [
+    { to: '/free-time', label: 'Free Time', icon: <FreeTimeIcon className="w-6 h-6 shrink-0" /> },
+    { to: '/universita', label: 'Università', icon: <UniversityIcon className="w-6 h-6 shrink-0" /> },
+    { to: '/shopping', label: 'Shopping', icon: <ShoppingIcon className="w-6 h-6 shrink-0" /> }
+  ];
 
   return (
     <div className="app-container flex h-screen overflow-hidden relative bg-gray-50">
@@ -174,22 +180,16 @@ const devNavItems = [
             ))}
 
             {/* ========================================= */}
-            {/* DIVISORE MENU SVILUPPO E VOCI MAPPATE */}
+            {/* SEZIONE ARCHIVIO DATI (Icona a 3 linee) */}
             {/* ========================================= */}
-            <div className="pt-4 mt-2 border-t border-gray-800 flex flex-col gap-1">
-              {isSidebarOpen && <p className="px-6 text-[9px] font-bold text-gray-500 uppercase tracking-wider mb-1">Sviluppo</p>}
-              
-              {devNavItems.map(item => (
-                <SidebarItem 
-                  key={item.to}
-                  to={item.to}
-                  label={item.label}
-                  icon={item.icon}
-                  isActive={isActive(item.to)}
-                  isSidebarOpen={isSidebarOpen}
-                  isDevMenu={true}
-                />
-              ))}
+            <div className="pt-3 mt-2 border-t border-gray-800 flex flex-col gap-1">
+              <SidebarItem 
+                to="/archivio"
+                label="Archivio"
+                icon={<MenuBarsIcon className="w-6 h-6 shrink-0" />}
+                isActive={isArchiveActive}
+                isSidebarOpen={isSidebarOpen}
+              />
             </div>
 
           </nav>

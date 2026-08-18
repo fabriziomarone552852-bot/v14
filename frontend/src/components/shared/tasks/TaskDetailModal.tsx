@@ -69,8 +69,21 @@ const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
   const liveTask = tasks.find((t: DbTask) => t.id === selectedTask.id);
   const isTaskDone = liveTask ? liveTask.fatto : selectedTask.done;
 
-  const taskCategoryName = liveTask?.category_name || selectedTask.category;
-  const taskCategoryColor = liveTask?.category?.colore || selectedTask.categoryColor;
+  const taskCategoryName =
+    liveTask?.category?.category_name ||
+    liveTask?.category_name ||
+    (typeof selectedTask.category === 'string' ? selectedTask.category : undefined) ||
+    'Generico';
+
+  const taskCategoryColor =
+    liveTask?.category?.colore ||
+    selectedTask.categoryColor ||
+    '#9CA3AF';
+
+  const taskPriority =
+    liveTask?.priorita ||
+    selectedTask.priority ||
+    'Bassa';
 
   const handleTaskToggle = async (taskId: number, isCurrentlyDone: boolean) => {
     // 1. Troviamo se ci sono sottotask dirette non completate
@@ -143,15 +156,15 @@ const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
   ) : undefined;
 
   const HeaderTags = (
-  <div className="flex items-center gap-2">
+    <div className="flex items-center gap-2">
       <Badge variant="category" colorHex={taskCategoryColor}>
-        {selectedTask.category}
+        {taskCategoryName}
       </Badge>
-      <Badge variant="priority" priorityLevel={selectedTask.priority}>
-        {selectedTask.priority}
+      <Badge variant="priority" priorityLevel={taskPriority}>
+        {taskPriority}
       </Badge>
-  </div>
-);
+    </div>
+  );
 
   const HeaderActions = (
     <>
