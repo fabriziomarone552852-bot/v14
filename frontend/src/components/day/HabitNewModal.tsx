@@ -4,6 +4,7 @@ import { getLocalDateString } from '@/utils/dateUtils';
 import BaseModal from '@/components/shared/dialog/BaseModal';
 import { InfoIcon } from '@/components/shared/utils/Icons';
 import { buildRRule } from '@/utils/rruleUtils';
+import type { HabitItem } from '@/components/day/HabitDetailModal';
 
 export interface HabitSavePayload {
   titolo: string;
@@ -17,10 +18,11 @@ export interface HabitSavePayload {
 interface HabitNewModalProps {
   isOpen: boolean; 
   onClose: () => void;
+  habitToEdit?: HabitItem | null;
   onSave: (habitData: HabitSavePayload) => Promise<void> | void; 
 }
 
-const HabitNewModal: React.FC<HabitNewModalProps> = ({ isOpen, onClose, onSave }) => {
+const HabitNewModal: React.FC<HabitNewModalProps> = ({ isOpen, onClose, habitToEdit, onSave }) => {
   const [form, setForm] = useState({
     titolo: '',
     icona: '✨',
@@ -30,20 +32,27 @@ const HabitNewModal: React.FC<HabitNewModalProps> = ({ isOpen, onClose, onSave }
 
   useEffect(() => {
     if (isOpen) {
-      setForm({ titolo: '', icona: '✨' });
+      if (habitToEdit) {
+        setForm({
+          titolo: habitToEdit.title || '',
+          icona: habitToEdit.icon || '✨',
+        });
+      } else {
+        setForm({ titolo: '', icona: '✨' });
+      }
     }
-  }, [isOpen]);
+  }, [isOpen, habitToEdit]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsSaving(true); // 🟢 Inizio caricamento
+    setIsSaving(true);
 
     try {
-      const payload = {
-        titolo: form.titolo,
+      const payload: HabitSavePayload = {
+        titolo: form.titolo.trim(),
         tipo: 'H', 
         data_inizio: getLocalDateString(), 
-        immagine_url: form.icona, 
+        immagine_url: form.icona || '✨', 
         rrule: buildRRule('DAILY', '1', ''),
         attiva: true
       };
@@ -51,9 +60,9 @@ const HabitNewModal: React.FC<HabitNewModalProps> = ({ isOpen, onClose, onSave }
       await onSave(payload);
       onClose();
     } catch (error) {
-      console.error("Errore creazione abitudine:", error);
+      console.error("Errore salvataggio abitudine:", error);
     } finally {
-      setIsSaving(false); // 🔴 Fine caricamento
+      setIsSaving(false);
     }
   };
 
@@ -63,15 +72,14 @@ const HabitNewModal: React.FC<HabitNewModalProps> = ({ isOpen, onClose, onSave }
     <BaseModal
       isOpen={isOpen}
       onClose={onClose}
-      title="Nuova Abitudine"
-      maxWidthClass="max-w-sm" // In HabitNewModal usavi max-w-sm
+      title={habitToEdit ? 'Modifica Abitudine' : 'Nuova Abitudine'}
+      maxWidthClass="max-w-sm"
       formId="habit-form"
-      confirmText="Crea"
+      confirmText={habitToEdit ? 'Salva Modifiche' : 'Crea'}
       isConfirmDisabled={!form.titolo.trim()}
       isLoading={isSaving} 
       overflowVisible={true}
     >
-      {/* Da qui in poi c'è SOLO l'HTML che riguarda strettamente il form! */}
       <form id="habit-form" onSubmit={handleSubmit} className="space-y-5">
         <div className="flex gap-4">
           <div className="w-1/4 shrink-0">
@@ -91,13 +99,14 @@ const HabitNewModal: React.FC<HabitNewModalProps> = ({ isOpen, onClose, onSave }
               value={form.titolo} 
               onChange={(e) => setForm({...form, titolo: e.target.value})} 
               className="w-full h-[42px] px-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all shadow-sm" 
+              autoFocus
             />
           </div>
         </div>
 
-        <div className="bg-blue-50 text-blue-800 p-3 rounded-xl text-xs font-medium flex gap-2">
-          <InfoIcon className="h-4 w-4 shrink-0 mt-0.5" />
-          Le abitudini vengono impostate automaticamente con frequenza giornaliera a partire da oggi.
+        <div className="bg-purple-50 text-purple-900 p-3 rounded-xl text-xs font-medium flex gap-2 border border-purple-100">
+          <InfoIcon className="h-4 w-4 shrink-0 mt-0.5 text-purple-600" />
+          Le abitudini hanno frequenza giornaliera costante (1 volta al giorno) a partire dalla data di creazione.
         </div>
       </form>
     </BaseModal>
