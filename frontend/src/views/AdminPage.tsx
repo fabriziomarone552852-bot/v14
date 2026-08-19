@@ -10,6 +10,7 @@ import { AdminConfigSection } from '@/components/admin/AdminConfigSection';
 import { AdminCodesSection } from '@/components/admin/AdminCodesSection';
 import { AdminUsersSection } from '@/components/admin/AdminUsersSection';
 import { AdminSystemHealthSection } from '@/components/admin/AdminSystemHealthSection';
+import { extractErrorMessage } from '@/utils/errorUtils';
 
 type AdminTab = 'config' | 'codes' | 'users' | 'health';
 
@@ -48,8 +49,8 @@ const AdminPage: React.FC = () => {
         const errDetail = rejected[0].reason?.response?.data?.detail || rejected[0].reason?.message || 'Errore nel caricamento';
         setError(`Errore nel caricamento: ${errDetail}`);
       }
-    } catch (err: any) {
-      setError(err?.response?.data?.detail || 'Errore durante il caricamento dei dati di amministrazione.');
+    } catch (err: unknown) {
+      setError(extractErrorMessage(err, 'Errore durante il caricamento dei dati di amministrazione.'));
     } finally {
       setLoading(false);
     }

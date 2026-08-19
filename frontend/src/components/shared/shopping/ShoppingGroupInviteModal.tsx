@@ -7,6 +7,7 @@ import {
   shoppingSelectClass,
 } from './shoppingUi';
 import type { ShoppingGroupMemberInvitePayload } from '@/types/shopping';
+import { extractErrorMessage } from '@/utils/errorUtils';
 
 interface ShoppingGroupInviteModalProps {
   isOpen: boolean;
@@ -60,8 +61,8 @@ const ShoppingGroupInviteModal: React.FC<ShoppingGroupInviteModalProps> = ({
       setUsername('');
       setEmail('');
       onClose();
-    } catch (err: any) {
-      setError(err?.response?.data?.detail || err?.message || "Errore durante l'invio dell'invito.");
+    } catch (err: unknown) {
+      setError(extractErrorMessage(err, "Errore durante l'invio dell'invito."));
     } finally {
       setIsSubmitting(false);
     }

@@ -2,11 +2,12 @@
 import React, { useMemo, useState } from 'react';
 import { ArchiveHeader } from '@/components/shared/layout/ArchiveHeader';
 import { HabitIcon, UndoIcon } from '@/components/shared/utils/Icons';
-import { ArchiveTabs, type HabitTabType } from '@/components/habits/ArchiveTabs';
-import { HabitFilterBar } from '@/components/habits/HabitFilterBar';
-import { RoutineCard } from '@/components/habits/RoutineCard';
-import { HabitCard } from '@/components/habits/HabitCard';
-import { HabitFilterModal } from '@/components/habits/HabitFilterModal';
+import { Pagination } from '@/components/shared/utils/Pagination';
+import { ArchiveTabs, type HabitTabType } from '@/components/archive/habits/ArchiveTabs';
+import { HabitFilterBar } from '@/components/archive/habits/HabitFilterBar';
+import { RoutineCard } from '@/components/archive/habits/RoutineCard';
+import { HabitCard } from '@/components/archive/habits/HabitCard';
+import { HabitFilterModal } from '@/components/archive/habits/HabitFilterModal';
 import RoutineDetailModal from '@/components/day/RoutineDetailModal';
 import RoutineNewModal, {
   type RoutineSavePayload,
@@ -28,9 +29,10 @@ import {
   type EnrichedRoutineItem,
   type EnrichedHabitItem,
 } from '@/hooks/useHabitArchiveData';
+import { useDynamicPageSize } from '@/hooks/useDynamicPageSize';
+import { useModal } from '@/hooks/useModals';
 import { getLocalDateString } from '@/utils/dateUtils';
-
-const PANEL_CLASS = 'rounded-2xl border border-slate-200/90 bg-white shadow-xs';
+import { ARCHIVE_PANEL_CLASS } from './CategoriesPage';
 
 const initialFilterState: HabitFilterState = {
   keyword: '',
@@ -50,22 +52,23 @@ export const HabitsPage: React.FC = () => {
   // 2. STATO TAB ATTIVA E FILTRI
   const [activeTab, setActiveTab] = useState<HabitTabType>('routines');
   const [filters, setFilters] = useState<HabitFilterState>(initialFilterState);
-  const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState<number>(1);
 
-  // 3. STATO MODALI ROUTINE
-  const [selectedRoutine, setSelectedRoutine] = useState<EnrichedRoutineItem | null>(null);
-  const [isRoutineDetailOpen, setIsRoutineDetailOpen] = useState(false);
+  // 3. MODALI — useModal<T> al posto di 10 useState separate
+  const filterModal = useModal();
+  const routineDetailModal = useModal<EnrichedRoutineItem>();
+  const routineFormModal = useModal<EnrichedRoutineItem>();
+  const habitDetailModal = useModal<EnrichedHabitItem>();
+  const habitFormModal = useModal<EnrichedHabitItem>();
 
-  const [routineToEdit, setRoutineToEdit] = useState<EnrichedRoutineItem | null>(null);
-  const [isRoutineFormOpen, setIsRoutineFormOpen] = useState(false);
-
-  // 4. STATO MODALI HABIT
-  const [selectedHabit, setSelectedHabit] = useState<EnrichedHabitItem | null>(null);
-  const [isHabitDetailOpen, setIsHabitDetailOpen] = useState(false);
-
-  const [habitToEdit, setHabitToEdit] = useState<EnrichedHabitItem | null>(null);
-  const [isHabitFormOpen, setIsHabitFormOpen] = useState(false);
+  // 4. CALCOLO DINAMICO DEL PAGE SIZE IN BASE ALL'ALTEZZA
+  const { containerRef, pageSize } = useDynamicPageSize({
+    rowHeight: 230,
+    columns: (w) => (w >= 1024 ? 3 : w >= 640 ? 2 : 1),
+    defaultPageSize: 6,
+    minItems: 2,
+    maxItems: 18,
+  });
 
   // 5. ELABORAZIONE DATI IN RAM
   const {
@@ -79,7 +82,7 @@ export const HabitsPage: React.FC = () => {
     filters,
     activeTab,
     currentPage,
-    pageSize: 12,
+    pageSize,
   });
 
   // Conteggio filtri attivi
@@ -107,70 +110,51 @@ export const HabitsPage: React.FC = () => {
   // --- AZIONI CREAZIONE / MODIFICA ---
   const handleOpenNew = () => {
     if (activeTab === 'routines') {
-      setRoutineToEdit(null);
-      setIsRoutineFormOpen(true);
+      routineFormModal.open(null);
     } else {
-      setHabitToEdit(null);
-      setIsHabitFormOpen(true);
+      habitFormModal.open(null);
     }
   };
 
   // --- AZIONI ROUTINE ---
-  const handleSelectRoutine = (routine: EnrichedRoutineItem) => {
-    setSelectedRoutine(routine);
-    setIsRoutineDetailOpen(true);
-  };
+  const handleSelectRoutine = (routine: EnrichedRoutineItem) => routineDetailModal.open(routine);
 
   const handleEditRoutineFromDetail = () => {
-    if (!selectedRoutine) return;
-    setRoutineToEdit(selectedRoutine);
-    setIsRoutineDetailOpen(false);
-    setIsRoutineFormOpen(true);
+    if (!routineDetailModal.data) return;
+    routineFormModal.open(routineDetailModal.data);
+    routineDetailModal.close();
   };
 
   const handleDeleteRoutine = async (id: number) => {
-    try {
-      await deleteHabitMutation.mutateAsync(id);
-      setIsRoutineDetailOpen(false);
-      setSelectedRoutine(null);
-    } catch (err) {
-      console.error('Errore eliminazione routine:', err);
-    }
+    await deleteHabitMutation.mutateAsync(id);
+    routineDetailModal.close();
   };
 
   const handleSuspendRoutine = async () => {
-    if (!selectedRoutine?.activePeriod) return;
-    try {
-      await suspendHabitMutation.mutateAsync({
-        habitId: selectedRoutine.id,
-        periodId: selectedRoutine.activePeriod.id,
-        endDate: getLocalDateString(),
-      });
-      setIsRoutineDetailOpen(false);
-      setSelectedRoutine(null);
-    } catch (err) {
-      console.error('Errore sospensione routine:', err);
-    }
+    const routine = routineDetailModal.data;
+    if (!routine?.activePeriod) return;
+    await suspendHabitMutation.mutateAsync({
+      habitId: routine.id,
+      periodId: routine.activePeriod.id,
+      endDate: getLocalDateString(),
+    });
+    routineDetailModal.close();
   };
 
   const handleResumeRoutine = async () => {
-    if (!selectedRoutine) return;
-    try {
-      await resumeHabitMutation.mutateAsync({
-        habitId: selectedRoutine.id,
-        target: selectedRoutine.targetCompletions || 1,
-        startDate: getLocalDateString(),
-      });
-      setIsRoutineDetailOpen(false);
-      setSelectedRoutine(null);
-    } catch (err) {
-      console.error('Errore riattivazione routine:', err);
-    }
+    const routine = routineDetailModal.data;
+    if (!routine) return;
+    await resumeHabitMutation.mutateAsync({
+      habitId: routine.id,
+      target: routine.targetCompletions || 1,
+      startDate: getLocalDateString(),
+    });
+    routineDetailModal.close();
   };
 
   const handleSaveRoutine = async (payload: RoutineSavePayload) => {
-    const isEdit = Boolean(routineToEdit);
-    const existingId = routineToEdit?.id;
+    const existingId = routineFormModal.data?.id;
+    const isEdit = Boolean(existingId);
 
     await saveHabitMutation.mutateAsync({
       existingId,
@@ -187,66 +171,48 @@ export const HabitsPage: React.FC = () => {
       },
     });
 
-    setIsRoutineFormOpen(false);
-    setRoutineToEdit(null);
+    routineFormModal.close();
   };
 
   // --- AZIONI HABIT ---
-  const handleSelectHabit = (habit: EnrichedHabitItem) => {
-    setSelectedHabit(habit);
-    setIsHabitDetailOpen(true);
-  };
+  const handleSelectHabit = (habit: EnrichedHabitItem) => habitDetailModal.open(habit);
 
   const handleEditHabitFromDetail = () => {
-    if (!selectedHabit) return;
-    setHabitToEdit(selectedHabit);
-    setIsHabitDetailOpen(false);
-    setIsHabitFormOpen(true);
+    if (!habitDetailModal.data) return;
+    habitFormModal.open(habitDetailModal.data);
+    habitDetailModal.close();
   };
 
   const handleDeleteHabit = async (id: number) => {
-    try {
-      await deleteHabitMutation.mutateAsync(id);
-      setIsHabitDetailOpen(false);
-      setSelectedHabit(null);
-    } catch (err) {
-      console.error('Errore eliminazione abitudine:', err);
-    }
+    await deleteHabitMutation.mutateAsync(id);
+    habitDetailModal.close();
   };
 
   const handleSuspendHabit = async () => {
-    if (!selectedHabit?.activePeriod) return;
-    try {
-      await suspendHabitMutation.mutateAsync({
-        habitId: selectedHabit.id,
-        periodId: selectedHabit.activePeriod.id,
-        endDate: getLocalDateString(),
-      });
-      setIsHabitDetailOpen(false);
-      setSelectedHabit(null);
-    } catch (err) {
-      console.error('Errore sospensione abitudine:', err);
-    }
+    const habit = habitDetailModal.data;
+    if (!habit?.activePeriod) return;
+    await suspendHabitMutation.mutateAsync({
+      habitId: habit.id,
+      periodId: habit.activePeriod.id,
+      endDate: getLocalDateString(),
+    });
+    habitDetailModal.close();
   };
 
   const handleResumeHabit = async () => {
-    if (!selectedHabit) return;
-    try {
-      await resumeHabitMutation.mutateAsync({
-        habitId: selectedHabit.id,
-        target: 1,
-        startDate: getLocalDateString(),
-      });
-      setIsHabitDetailOpen(false);
-      setSelectedHabit(null);
-    } catch (err) {
-      console.error('Errore riattivazione abitudine:', err);
-    }
+    const habit = habitDetailModal.data;
+    if (!habit) return;
+    await resumeHabitMutation.mutateAsync({
+      habitId: habit.id,
+      target: 1,
+      startDate: getLocalDateString(),
+    });
+    habitDetailModal.close();
   };
 
   const handleSaveHabit = async (payload: HabitSavePayload) => {
-    const isEdit = Boolean(habitToEdit);
-    const existingId = habitToEdit?.id;
+    const existingId = habitFormModal.data?.id;
+    const isEdit = Boolean(existingId);
 
     await saveHabitMutation.mutateAsync({
       existingId,
@@ -263,8 +229,7 @@ export const HabitsPage: React.FC = () => {
       },
     });
 
-    setIsHabitFormOpen(false);
-    setHabitToEdit(null);
+    habitFormModal.close();
   };
 
   return (
@@ -272,9 +237,9 @@ export const HabitsPage: React.FC = () => {
       {/* 1. HEADER STANDARD */}
       <ArchiveHeader
         title="HABITS & ROUTINE"
-        description="Monitora le tue abitudini quotidiane e la regolarità delle tue routine periodiche."
+        subtitle="Monitora le tue abitudini quotidiane e la regolarità delle tue routine periodiche."
         icon={<HabitIcon className="h-6 w-6 text-white" />}
-        className={PANEL_CLASS}
+        className={ARCHIVE_PANEL_CLASS}
       />
 
       {/* 2. SCHEDE TIPO CHROME (ROUTINES / HABITS) */}
@@ -291,14 +256,14 @@ export const HabitsPage: React.FC = () => {
       <HabitFilterBar
         activeTab={activeTab}
         onOpenNew={handleOpenNew}
-        onOpenSearch={() => setIsFilterModalOpen(true)}
+        onOpenSearch={filterModal.open}
         activeFiltersCount={activeFiltersCount}
-        panelClass={PANEL_CLASS}
+        panelClass={ARCHIVE_PANEL_CLASS}
       />
 
       {/* 4. GRIGLIA CONTENUTI */}
-      <div className={`${PANEL_CLASS} flex flex-col flex-1 min-h-0 overflow-hidden`}>
-        <div className="flex-1 min-h-0 overflow-y-auto p-4 sm:p-5 custom-scrollbar">
+      <div className={`${ARCHIVE_PANEL_CLASS} flex flex-col flex-1 min-h-0 overflow-hidden`}>
+        <div ref={containerRef} className="flex-1 min-h-0 overflow-y-auto p-4 sm:p-5 custom-scrollbar">
           {loading ? (
             <div className="flex flex-col items-center justify-center h-64 text-slate-400 gap-3">
               <div className="w-8 h-8 border-3 border-amber-500 border-t-transparent rounded-full animate-spin" />
@@ -355,34 +320,20 @@ export const HabitsPage: React.FC = () => {
 
         {/* PAGINAZIONE INFERIORE */}
         {totalPages > 1 && (
-          <div className="p-3 border-t border-slate-100 bg-slate-50/50 flex items-center justify-center gap-2 shrink-0">
-            <button
-              type="button"
-              disabled={currentPage <= 1}
-              onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-              className="px-3 py-1.5 text-xs font-bold rounded-lg border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-colors"
-            >
-              Precedente
-            </button>
-            <span className="text-xs font-semibold text-slate-500 px-2">
-              Pagina {currentPage} di {totalPages}
-            </span>
-            <button
-              type="button"
-              disabled={currentPage >= totalPages}
-              onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-              className="px-3 py-1.5 text-xs font-bold rounded-lg border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-colors"
-            >
-              Successiva
-            </button>
+          <div className="p-2.5 border-t border-slate-100 bg-slate-50/50 flex items-center justify-center shrink-0">
+            <Pagination
+              current={currentPage}
+              total={totalPages}
+              onChange={setCurrentPage}
+            />
           </div>
         )}
       </div>
 
       {/* 5. MODALE FILTRI & RICERCA IN OVERLAY GLOBALE */}
       <HabitFilterModal
-        isOpen={isFilterModalOpen}
-        onClose={() => setIsFilterModalOpen(false)}
+        isOpen={filterModal.isOpen}
+        onClose={filterModal.close}
         filters={filters}
         onFilterChange={(newFilters) => {
           setFilters(newFilters);
@@ -395,51 +346,39 @@ export const HabitsPage: React.FC = () => {
 
       {/* 6. MODALI ROUTINE (DETTAGLIO E FORM) */}
       <RoutineDetailModal
-        isOpen={isRoutineDetailOpen}
-        onClose={() => {
-          setIsRoutineDetailOpen(false);
-          setSelectedRoutine(null);
-        }}
-        selectedRoutine={selectedRoutine}
+        isOpen={routineDetailModal.isOpen}
+        onClose={routineDetailModal.close}
+        selectedRoutine={routineDetailModal.data}
         onEditClick={handleEditRoutineFromDetail}
         onDeleteClick={handleDeleteRoutine}
-        isAttiva={selectedRoutine?.isAttiva ?? true}
+        isAttiva={routineDetailModal.data?.isAttiva ?? true}
         onSuspendClick={handleSuspendRoutine}
         onResumeClick={handleResumeRoutine}
       />
 
       <RoutineNewModal
-        isOpen={isRoutineFormOpen}
-        onClose={() => {
-          setIsRoutineFormOpen(false);
-          setRoutineToEdit(null);
-        }}
-        routineToEdit={routineToEdit}
+        isOpen={routineFormModal.isOpen}
+        onClose={routineFormModal.close}
+        routineToEdit={routineFormModal.data}
         onSave={handleSaveRoutine}
       />
 
       {/* 7. MODALI HABIT (DETTAGLIO E FORM) */}
       <HabitDetailModal
-        isOpen={isHabitDetailOpen}
-        onClose={() => {
-          setIsHabitDetailOpen(false);
-          setSelectedHabit(null);
-        }}
-        selectedHabit={selectedHabit}
+        isOpen={habitDetailModal.isOpen}
+        onClose={habitDetailModal.close}
+        selectedHabit={habitDetailModal.data}
         onEditClick={handleEditHabitFromDetail}
         onDeleteClick={handleDeleteHabit}
-        isAttiva={selectedHabit?.isAttiva ?? true}
+        isAttiva={habitDetailModal.data?.isAttiva ?? true}
         onSuspendClick={handleSuspendHabit}
         onResumeClick={handleResumeHabit}
       />
 
       <HabitNewModal
-        isOpen={isHabitFormOpen}
-        onClose={() => {
-          setIsHabitFormOpen(false);
-          setHabitToEdit(null);
-        }}
-        habitToEdit={habitToEdit}
+        isOpen={habitFormModal.isOpen}
+        onClose={habitFormModal.close}
+        habitToEdit={habitFormModal.data}
         onSave={handleSaveHabit}
       />
     </div>

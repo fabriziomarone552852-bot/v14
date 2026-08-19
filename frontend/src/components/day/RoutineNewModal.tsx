@@ -6,6 +6,7 @@ import { getLocalDateString } from '@/utils/dateUtils';
 import { parseRRule, buildRRule } from '@/utils/rruleUtils'; 
 import BaseModal from '@/components/shared/dialog/BaseModal';
 import { RecurrenceEditor } from '@/components/shared/utils/RecurrenceEditor';
+import { logger } from '@/utils/logger';
 
 export interface RoutineSavePayload {
   titolo: string;
@@ -95,7 +96,7 @@ const RoutineNewModal: React.FC<RoutineNewModalProps> = ({ isOpen, onClose, rout
       await onSave(payload);
       onClose();
     } catch (error) {
-      console.error("Errore nel salvataggio:", error);
+      logger.error("Errore nel salvataggio:", error);
     } finally {
       setIsSaving(false);
     }

@@ -3,25 +3,27 @@ import React, { useMemo, useState } from 'react';
 import { useCategories, useDeleteCategory } from '@/hooks/useCategories';
 import { useConfirm } from '@/context/ConfirmContext';
 import { useCategoryArchiveData } from '@/hooks/useCategoryArchiveData';
+import { useDynamicPageSize } from '@/hooks/useDynamicPageSize';
+import { useModal } from '@/hooks/useModals';
 import { CategoryIcon } from '@/components/shared/utils/Icons';
 import { ArchiveTableContainer } from '@/components/shared/layout/ArchiveTableContainer';
-import { CategoryStatsOverview } from '@/components/categories/CategoryStatsOverview';
-import { CategoryFilterBar } from '@/components/categories/CategoryFilterBar';
+import { CategoryStatsOverview } from '@/components/archive/categories/CategoryStatsOverview';
+import { CategoryFilterBar } from '@/components/archive/categories/CategoryFilterBar';
 import {
   CategoryTableHeader,
   type CategorySortField,
   type CategorySortDirection,
-} from '@/components/categories/CategoryTableHeader';
-import { CategoryTableRow } from '@/components/categories/CategoryTableRow';
+} from '@/components/archive/categories/CategoryTableHeader';
+import { CategoryTableRow } from '@/components/archive/categories/CategoryTableRow';
 import {
   CategoryFilterModal,
   type CategoryFilterState,
-} from '@/components/categories/CategoryFilterModal';
-import { CategoryModal } from '@/components/categories/CategoryModal';
-import { CategoryDetailModal } from '@/components/categories/CategoryDetailModal';
+} from '@/components/archive/categories/CategoryFilterModal';
+import { CategoryModal } from '@/components/archive/categories/CategoryModal';
+import { CategoryDetailModal } from '@/components/archive/categories/CategoryDetailModal';
 import type { Category } from '@/types/categories';
 
-const PANEL_CLASS = 'rounded-2xl border border-slate-200/90 bg-white shadow-xs';
+export const ARCHIVE_PANEL_CLASS = 'rounded-2xl border border-slate-200/90 bg-white shadow-xs';
 
 const initialFilterState: CategoryFilterState = {
   keyword: '',
@@ -35,20 +37,24 @@ export const CategoriesPage: React.FC = () => {
 
   // 1. STATO FILTRI, ORDINAMENTO E PAGINAZIONE
   const [filters, setFilters] = useState<CategoryFilterState>(initialFilterState);
-  const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
-
   const [sortField, setSortField] = useState<CategorySortField>('name');
   const [sortDirection, setSortDirection] = useState<CategorySortDirection>('asc');
   const [currentPage, setCurrentPage] = useState<number>(1);
 
-  // 2. STATO MODALI (DETTAGLIO E CREAZIONE/MODIFICA)
-  const [selectedCategory, setSelectedCategory] = useState<Category | null>(null);
-  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+  // 2. MODALI — useModal<T> al posto di coppie useState separate
+  const filterModal = useModal();
+  const detailModal = useModal<Category>();
+  const formModal = useModal<Category>();
 
-  const [categoryToEdit, setCategoryToEdit] = useState<Category | null>(null);
-  const [isFormModalOpen, setIsFormModalOpen] = useState(false);
+  // 3. CALCOLO DINAMICO DEL PAGE SIZE IN BASE ALL'ALTEZZA
+  const { containerRef, pageSize } = useDynamicPageSize({
+    rowHeight: 46,
+    defaultPageSize: 8,
+    minItems: 3,
+    maxItems: 30,
+  });
 
-  // 3. HOOK PER ELABORAZIONE AD ALTE PRESTAZIONI IN RAM
+  // 4. HOOK PER ELABORAZIONE AD ALTE PRESTAZIONI IN RAM
   const { filteredCategories, paginatedCategories, stats, totalPages } =
     useCategoryArchiveData({
       rawCategories,
@@ -56,6 +62,7 @@ export const CategoriesPage: React.FC = () => {
       sortField,
       sortDirection,
       currentPage,
+      pageSize,
     });
 
   // Conteggio filtri attivi
@@ -83,30 +90,19 @@ export const CategoriesPage: React.FC = () => {
     setCurrentPage(1);
   };
 
-  // Apertura modale per Nuova Categoria
-  const handleOpenNewCategory = () => {
-    setCategoryToEdit(null);
-    setIsFormModalOpen(true);
-  };
+  const handleOpenNewCategory = () => formModal.open(null);
 
-  // Selezione riga per aprire il Modale di Dettaglio
-  const handleSelectCategory = (category: Category) => {
-    setSelectedCategory(category);
-    setIsDetailModalOpen(true);
-  };
+  const handleSelectCategory = (category: Category) => detailModal.open(category);
 
-  // Transizione da Dettaglio a Modifica
   const handleEditFromDetail = () => {
-    if (!selectedCategory) return;
-    setCategoryToEdit(selectedCategory);
-    setIsDetailModalOpen(false);
-    setIsFormModalOpen(true);
+    if (!detailModal.data) return;
+    formModal.open(detailModal.data);
+    detailModal.close();
   };
 
-  // Eliminazione con conferma di sicurezza
   const handleDeleteFromDetail = () => {
-    if (!selectedCategory) return;
-    const catToDelete = selectedCategory;
+    if (!detailModal.data) return;
+    const catToDelete = detailModal.data;
 
     confirm({
       title: 'Elimina Categoria',
@@ -114,13 +110,8 @@ export const CategoriesPage: React.FC = () => {
       confirmText: 'Elimina',
       isDestructive: true,
       onConfirm: async () => {
-        try {
-          await deleteCategoryMutation.mutateAsync(catToDelete.id);
-          setIsDetailModalOpen(false);
-          setSelectedCategory(null);
-        } catch (err) {
-          console.error('Errore durante l\'eliminazione della categoria:', err);
-        }
+        await deleteCategoryMutation.mutateAsync(catToDelete.id);
+        detailModal.close();
       },
     });
   };
@@ -128,14 +119,14 @@ export const CategoriesPage: React.FC = () => {
   return (
     <div className="h-full flex flex-col gap-3.5 max-w-[1600px] mx-auto relative z-10 pb-1">
       {/* 1. HEADER COMPATTO CON PANORAMICA STATS */}
-      <CategoryStatsOverview stats={stats} panelClass={PANEL_CLASS} />
+      <CategoryStatsOverview stats={stats} panelClass={ARCHIVE_PANEL_CLASS} />
 
       {/* 2. RIGA AZIONI: TASTO NUOVA CATEGORIA E LENTE DI RICERCA */}
       <CategoryFilterBar
         onOpenNewCategory={handleOpenNewCategory}
-        onOpenSearch={() => setIsFilterModalOpen(true)}
+        onOpenSearch={filterModal.open}
         activeFiltersCount={activeFiltersCount}
-        panelClass={PANEL_CLASS}
+        panelClass={ARCHIVE_PANEL_CLASS}
       />
 
       {/* 3. TABELLA CATEGORIE CON ORDINAMENTO E PAGINAZIONE */}
@@ -162,7 +153,8 @@ export const CategoriesPage: React.FC = () => {
         currentPage={currentPage}
         totalPages={totalPages}
         onPageChange={setCurrentPage}
-        className={PANEL_CLASS}
+        className={ARCHIVE_PANEL_CLASS}
+        bodyRef={containerRef}
       >
         {paginatedCategories.map((cat) => (
           <CategoryTableRow
@@ -175,8 +167,8 @@ export const CategoriesPage: React.FC = () => {
 
       {/* 4. MODALE FILTRI & RICERCA IN OVERLAY GLOBALE */}
       <CategoryFilterModal
-        isOpen={isFilterModalOpen}
-        onClose={() => setIsFilterModalOpen(false)}
+        isOpen={filterModal.isOpen}
+        onClose={filterModal.close}
         filters={filters}
         onFilterChange={(newFilters) => {
           setFilters(newFilters);
@@ -188,24 +180,18 @@ export const CategoriesPage: React.FC = () => {
 
       {/* 5. MODALE DI DETTAGLIO CATEGORIA (Al click sulla riga) */}
       <CategoryDetailModal
-        isOpen={isDetailModalOpen}
-        onClose={() => {
-          setIsDetailModalOpen(false);
-          setSelectedCategory(null);
-        }}
-        category={selectedCategory}
+        isOpen={detailModal.isOpen}
+        onClose={detailModal.close}
+        category={detailModal.data}
         onEditClick={handleEditFromDetail}
         onDeleteClick={handleDeleteFromDetail}
       />
 
       {/* 6. MODALE CREAZIONE / MODIFICA CATEGORIA */}
       <CategoryModal
-        isOpen={isFormModalOpen}
-        onClose={() => {
-          setIsFormModalOpen(false);
-          setCategoryToEdit(null);
-        }}
-        categoryToEdit={categoryToEdit}
+        isOpen={formModal.isOpen}
+        onClose={formModal.close}
+        categoryToEdit={formModal.data}
       />
     </div>
   );

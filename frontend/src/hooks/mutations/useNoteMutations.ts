@@ -3,6 +3,7 @@ import { useMutation, useQueryClient, type QueryKey } from '@tanstack/react-quer
 import { api } from '@/api/apiService';
 import type { LocalNoteEntry, NoteVariant, DailyEntry } from '@/types';
 import type { DbMonthlyEntry } from '@/types/monthlyentries';
+import { logger } from '@/utils/logger';
 
 // Il "contratto": la cache che usa questo hook DEVE avere un array 'note'
 export interface CacheWithNotes {
@@ -91,7 +92,7 @@ export function useNoteMutations<T extends CacheWithNotes>(queryKey: QueryKey) {
     },
 
     onError: (err, newNote, context) => {
-      console.error("Errore salvataggio nota:", err);
+      logger.error("Errore salvataggio nota:", err);
       // context è ora fortemente tipizzato, l'editor sa che previousData esiste
       if (context?.previousData) {
         queryClient.setQueryData(queryKey, context.previousData);

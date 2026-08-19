@@ -1,6 +1,7 @@
 // src/components/admin/AdminSystemHealthSection.tsx
 import React, { useEffect, useState } from 'react';
 import { pingAdmin } from '@/api/adminApi';
+import { extractErrorMessage } from '@/utils/errorUtils';
 
 export const AdminSystemHealthSection: React.FC = () => {
   const [pingData, setPingData] = useState<{ message: string; timestamp: string } | null>(null);
@@ -13,8 +14,8 @@ export const AdminSystemHealthSection: React.FC = () => {
     try {
       const res = await pingAdmin();
       setPingData(res);
-    } catch (err: any) {
-      setError(err?.response?.data?.detail || 'Impossibile contattare l\'endpoint di amministrazione.');
+    } catch (err: unknown) {
+      setError(extractErrorMessage(err, "Impossibile contattare l'endpoint di amministrazione."));
     } finally {
       setLoading(false);
     }

@@ -8,7 +8,9 @@ export const getHabits = async (): Promise<Habit[]> => {
 };
 
 export const getHabit = async (id: number): Promise<Habit> => {
-  return await api.get<Habit>(`/habits/${id}`);
+  const data = await api.get<Habit>(`/habits/${id}`);
+  if (!data) throw new Error('Abitudine non trovata');
+  return data;
 };
 
 export const createHabit = async (payload: SaveHabitPayload['data']): Promise<Habit> => {
@@ -17,15 +19,19 @@ export const createHabit = async (payload: SaveHabitPayload['data']): Promise<Ha
     ? periods
     : [{ data_inizio: data_inizio || new Date().toISOString().substring(0, 10), target: target_completamenti || 1 }];
 
-  return await api.post<Habit>('/habits', {
+  const data = await api.post<Habit>('/habits', {
     ...baseData,
     periods: initialPeriods,
   });
+  if (!data) throw new Error('Errore nella creazione dell\'abitudine');
+  return data;
 };
 
 export const updateHabit = async (id: number, payload: Partial<SaveHabitPayload['data']>): Promise<Habit> => {
   const { data_inizio, target_completamenti, data_fine, periodId, periods, ...baseData } = payload;
-  return await api.patch<Habit>(`/habits/${id}`, baseData);
+  const data = await api.patch<Habit>(`/habits/${id}`, baseData);
+  if (!data) throw new Error('Errore nell\'aggiornamento dell\'abitudine');
+  return data;
 };
 
 export const deleteHabit = async (id: number): Promise<void> => {
@@ -36,7 +42,9 @@ export const createHabitPeriod = async (
   habitId: number,
   payload: { data_inizio: string; target: number }
 ): Promise<HabitPeriod> => {
-  return await api.post<HabitPeriod>(`/habits/${habitId}/periods`, payload);
+  const data = await api.post<HabitPeriod>(`/habits/${habitId}/periods`, payload);
+  if (!data) throw new Error('Errore nella creazione del periodo');
+  return data;
 };
 
 export const updateHabitPeriod = async (
@@ -44,5 +52,7 @@ export const updateHabitPeriod = async (
   periodId: number,
   payload: { data_fine?: string | null; target?: number }
 ): Promise<HabitPeriod> => {
-  return await api.patch<HabitPeriod>(`/habits/${habitId}/periods/${periodId}`, payload);
+  const data = await api.patch<HabitPeriod>(`/habits/${habitId}/periods/${periodId}`, payload);
+  if (!data) throw new Error('Errore nell\'aggiornamento del periodo');
+  return data;
 };

@@ -13,6 +13,7 @@ import { RecurrenceEditor } from '@/components/shared/utils/RecurrenceEditor';
 import { useCategories } from '@/hooks/useCategories';
 import { useEventMutations } from '@/hooks/mutations/useEventMutations';
 import TimeInput from '@/components/shared/utils/TimeInput';
+import { logger } from '@/utils/logger';
 import { FormInput, FormTextarea } from '@/components/shared/form';
 
 interface NewEventModalProps {
@@ -196,7 +197,7 @@ const NewEventModal: React.FC<NewEventModalProps> = ({
       if (onEventSaved) onEventSaved(savedEvent);
       onClose();
     } catch (errore: unknown) {
-      console.error("Errore nel salvataggio dell'evento", errore);
+      logger.error("Errore nel salvataggio dell'evento", errore);
       confirm({
         title: 'Attenzione',
         message: "Si è verificato un errore durante il salvataggio.",

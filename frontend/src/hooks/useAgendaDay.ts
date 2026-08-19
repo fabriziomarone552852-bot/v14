@@ -6,6 +6,7 @@ import { useTaskMutations } from './mutations/useTaskMutations';
 import { useNoteMutations } from './mutations/useNoteMutations';
 import { useDailyEntryMutations } from './mutations/useDailyEntryMutations';
 import { useEventMutations } from './mutations/useEventMutations';
+import { logger } from '@/utils/logger';
 
 export interface SaveCountdownPayload {
   id?: number;
@@ -199,7 +200,7 @@ export const useAgendaDay = (dateStr: string) => {
       return { previousData };
     },
     onError: (err, variables, context) => {
-      console.error("Errore del server durante l'untoggle!", err); 
+      logger.error("Errore del server durante l'untoggle!", err); 
       queryClient.setQueryData(queryKey, context?.previousData);
     },
     onSettled: () => {

@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import type { SystemConfigItem } from '@/api/adminApi';
 import { updateSystemConfig } from '@/api/adminApi';
+import { extractErrorMessage } from '@/utils/errorUtils';
 
 interface AdminConfigSectionProps {
   configs: SystemConfigItem[];
@@ -36,8 +37,8 @@ export const AdminConfigSection: React.FC<AdminConfigSectionProps> = ({ configs,
       setMessage({ text: `Variabile "${key}" aggiornata con successo!`, type: 'success' });
       setEditingKey(null);
       await onRefresh();
-    } catch (err: any) {
-      setMessage({ text: err?.response?.data?.detail || 'Errore durante l\'aggiornamento', type: 'error' });
+    } catch (err: unknown) {
+      setMessage({ text: extractErrorMessage(err, "Errore durante l'aggiornamento"), type: 'error' });
     } finally {
       setSaving(false);
     }

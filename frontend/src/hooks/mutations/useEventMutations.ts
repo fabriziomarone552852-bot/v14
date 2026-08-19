@@ -1,9 +1,9 @@
 import { useMutation, useQueryClient, type QueryKey } from '@tanstack/react-query';
 import { api } from '@/api/apiService';
-import { updateAllSyncCaches } from '@/utils/cacheUtils';
-import { invalidateAllViewsAndEvents } from '@/utils/queryUtils';
+import { updateAllSyncCaches, invalidateAllViewsAndEvents } from '@/utils/queryCacheUtils';
 import type { DbEvent } from '@/types';
 import type { EventDeletePayload } from '@/components/shared/events/EventDetailModal';
+import { logger } from '@/utils/logger';
 
 export interface CacheWithEvents {
   events?: DbEvent[];
@@ -128,7 +128,7 @@ export function useEventMutations<T extends CacheWithEvents>(queryKey: QueryKey)
       return { previousData };
     },
     onError: (err, deletedId, context) => {
-      console.error("Errore eliminazione evento:", err);
+      logger.error("Errore eliminazione evento:", err);
       if (context?.previousData) queryClient.setQueryData(queryKey, context.previousData);
     },
     onSettled: () => {
@@ -206,7 +206,7 @@ export function useEventMutations<T extends CacheWithEvents>(queryKey: QueryKey)
     },
     
     onError: (error) => {
-      console.error("Errore durante l'eliminazione dell'evento:", error);
+      logger.error("Errore durante l'eliminazione dell'evento:", error);
       alert("Si è verificato un errore durante l'eliminazione.");
       invalidateAllViewsAndEvents(queryClient);
     }

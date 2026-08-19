@@ -28,6 +28,9 @@ const getGenreLabel = (genre: number) => {
     case CategoryGenre.MOOD:
     case 4:
       return 'Stato d\'animo';
+    case CategoryGenre.TAG:
+    case 5:
+      return 'Tag / Etichetta';
     default:
       return `Tipo ${genre}`;
   }
@@ -47,6 +50,9 @@ const getGenreDescription = (genre: number) => {
     case CategoryGenre.MOOD:
     case 4:
       return 'Utilizzata per tracciare il bilancio emotivo e il mood giornaliero nel calendario a pixel.';
+    case CategoryGenre.TAG:
+    case 5:
+      return 'Etichetta utilizzata per catalogare e filtrare le revisioni mensili e annuali.';
     default:
       return 'Categoria di sistema.';
   }

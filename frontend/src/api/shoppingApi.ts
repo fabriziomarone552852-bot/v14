@@ -3,7 +3,7 @@ import { api } from '@/api/apiService';
 import type { InventoryBatchRow } from '@/types';
 import type {
   ShoppingConfigBundle,
-  ShoppingGroup,
+  ShoppingGroupSummary,
   ShoppingGroupMember,
   ShoppingGroupMemberInvitePayload,
   ShoppingListCreatePayload,
@@ -201,7 +201,7 @@ function normalizeShoppingSupplierOption(
   };
 }
 
-function normalizeShoppingGroup(group: ShoppingGroupApi): ShoppingGroup {
+function normalizeShoppingGroup(group: ShoppingGroupApi): ShoppingGroupSummary {
   return {
     id: Number(group.id),
     name: group.name,
@@ -370,7 +370,7 @@ export async function fetchShoppingLists(
 
 export async function fetchShoppingGroups(
   signal?: AbortSignal
-): Promise<ShoppingGroup[]> {
+): Promise<ShoppingGroupSummary[]> {
   const data = await apiRequest<ShoppingGroupApi[]>('/groups', {
     method: 'GET',
     signal,

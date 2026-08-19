@@ -27,6 +27,7 @@ interface ArchiveTableContainerProps {
   children: React.ReactNode;
 
   className?: string;
+  bodyRef?: React.Ref<HTMLDivElement>;
 }
 
 export const ArchiveTableContainer: React.FC<ArchiveTableContainerProps> = ({
@@ -44,6 +45,7 @@ export const ArchiveTableContainer: React.FC<ArchiveTableContainerProps> = ({
   onPageChange,
   children,
   className = '',
+  bodyRef,
 }) => {
   const basePanelClass =
     'rounded-2xl border border-slate-200/90 bg-white shadow-xs flex-1 min-h-0 flex flex-col justify-between overflow-hidden relative z-10';
@@ -54,8 +56,8 @@ export const ArchiveTableContainer: React.FC<ArchiveTableContainerProps> = ({
         {/* Intestazione Colonne */}
         {header}
 
-        {/* Corpo Scrollabile */}
-        <div className="flex-1 min-h-0 overflow-y-auto custom-scrollbar">
+        {/* Corpo Scrollabile / Adattivo */}
+        <div ref={bodyRef} className="flex-1 min-h-0 overflow-y-auto custom-scrollbar">
           {loading ? (
             <div className="flex flex-col items-center justify-center py-20 text-slate-400">
               <div className="w-8 h-8 border-3 border-blue-600 border-t-transparent rounded-full animate-spin mb-3" />

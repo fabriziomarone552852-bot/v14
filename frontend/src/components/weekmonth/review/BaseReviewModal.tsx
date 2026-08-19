@@ -1,5 +1,6 @@
 // frontend/src/components/weekmonth/review/BaseReviewModal.tsx
 import React from 'react';
+import { createPortal } from 'react-dom';
 import { ReadOnlyTrackerChart } from './ReadOnlyTrackerChart';
 import type { TrackerItem } from '@/types/monthlyentries';
 
@@ -44,13 +45,16 @@ export function BaseReviewModal<T extends string = string>({
     onSetTab(activeTab === tab ? null : tab);
   };
 
-  return (
-    <div className="fixed inset-0 z-[200] flex items-center justify-center">
+  const modalContent = (
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center pointer-events-auto">
       {/* Backdrop */}
-      <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} />
+      <div
+        className="absolute inset-0 bg-black/50 backdrop-blur-sm transition-opacity"
+        onClick={onClose}
+      />
 
       {/* Modal Shell */}
-      <div className="relative bg-white rounded-2xl shadow-2xl w-[95vw] max-w-[1200px] h-[90vh] max-h-[900px] flex flex-col overflow-hidden animate-fadeIn">
+      <div className="relative bg-white rounded-2xl shadow-2xl w-[95vw] max-w-[1200px] h-[90vh] max-h-[900px] flex flex-col overflow-hidden animate-fadeIn z-10 pointer-events-auto">
         {/* Header */}
         <div className="flex items-center justify-between px-8 py-4 border-b border-gray-200 bg-gray-100 shrink-0">
           <h2 className="text-sm font-black text-gray-600 uppercase tracking-widest">
@@ -58,7 +62,7 @@ export function BaseReviewModal<T extends string = string>({
           </h2>
           <button
             onClick={onClose}
-            className="w-8 h-8 flex items-center justify-center rounded-full text-gray-400 hover:text-gray-700 hover:bg-gray-200 transition-all"
+            className="w-8 h-8 flex items-center justify-center rounded-full text-gray-400 hover:text-gray-700 hover:bg-gray-200 transition-all cursor-pointer"
           >
             ✕
           </button>
@@ -107,7 +111,7 @@ export function BaseReviewModal<T extends string = string>({
                     key={id}
                     onClick={() => handleTabClick(id)}
                     title={btnTitle}
-                    className={`w-12 h-12 rounded-xl text-lg flex items-center justify-center transition-all ${
+                    className={`w-12 h-12 rounded-xl text-lg flex items-center justify-center transition-all cursor-pointer ${
                       activeTab === id
                         ? 'bg-blue-600 text-white shadow-md scale-105'
                         : 'bg-white text-gray-500 hover:bg-gray-100 border border-gray-200'
@@ -130,4 +134,8 @@ export function BaseReviewModal<T extends string = string>({
       </div>
     </div>
   );
+
+  return createPortal(modalContent, document.body);
 }
+
+export default BaseReviewModal;

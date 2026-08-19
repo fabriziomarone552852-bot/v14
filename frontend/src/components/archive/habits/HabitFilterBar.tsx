@@ -1,7 +1,7 @@
 // src/components/habits/HabitFilterBar.tsx
 import React from 'react';
 import { ArchiveActionBar } from '@/components/shared/layout/ArchiveActionBar';
-import type { HabitTabType } from '@/components/habits/ArchiveTabs';
+import type { HabitTabType } from '@/components/archive/habits/ArchiveTabs';
 
 interface HabitFilterBarProps {
   activeTab: HabitTabType;

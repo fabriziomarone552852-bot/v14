@@ -3,6 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { fetchGroupMembers, updateGroupMemberRole, removeGroupMember } from '@/api/shoppingApi';
 import type { ShoppingGroupMember } from '@/types/shopping';
 import { shoppingButtonPrimaryClass, shoppingButtonSecondaryClass } from './shoppingUi';
+import { extractErrorMessage } from '@/utils/errorUtils';
 
 interface ShoppingGroupMembersModalProps {
   isOpen: boolean;
@@ -43,8 +44,8 @@ const ShoppingGroupMembersModal: React.FC<ShoppingGroupMembersModalProps> = ({
     try {
       const data = await fetchGroupMembers(groupId);
       setMembers(data);
-    } catch (err: any) {
-      setError(err?.response?.data?.detail || err?.message || 'Errore nel caricamento dei membri.');
+    } catch (err: unknown) {
+      setError(extractErrorMessage(err, 'Errore nel caricamento dei membri.'));
     } finally {
       setIsLoading(false);
     }
@@ -64,8 +65,8 @@ const ShoppingGroupMembersModal: React.FC<ShoppingGroupMembersModalProps> = ({
     try {
       await updateGroupMemberRole(groupId, userId, newRoleCode);
       await loadMembers();
-    } catch (err: any) {
-      setError(err?.response?.data?.detail || err?.message || 'Errore nella modifica del ruolo.');
+    } catch (err: unknown) {
+      setError(extractErrorMessage(err, 'Errore nella modifica del ruolo.'));
     } finally {
       setActionUserId(null);
     }
@@ -78,8 +79,8 @@ const ShoppingGroupMembersModal: React.FC<ShoppingGroupMembersModalProps> = ({
     try {
       await removeGroupMember(groupId, userId);
       await loadMembers();
-    } catch (err: any) {
-      setError(err?.response?.data?.detail || err?.message || 'Errore nella rimozione del membro.');
+    } catch (err: unknown) {
+      setError(extractErrorMessage(err, 'Errore nella rimozione del membro.'));
     } finally {
       setActionUserId(null);
     }

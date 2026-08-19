@@ -1,6 +1,6 @@
-// src/components/tasks/TaskFamilyPanel.tsx
+// src/components/archive/tasks/TaskFamilyPanel.tsx
 import React from "react";
-import type { Task, Priorita } from "../../types/tasks"; // se non puoi importare da qui, ti dico dopo come estrarre i tipi
+import type { Task, Priorita } from "@/types/tasks";
 import type { UITask } from '@/types';
 
 type ToggleFattoFn = (task: Task) => Promise<void> | void;

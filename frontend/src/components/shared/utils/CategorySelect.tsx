@@ -4,7 +4,7 @@ import { useOutsideClick } from '@/hooks/useOutsideClick';
 import { PlusIcon, DropdownIcon } from './Icons';
 import { useCategories } from '@/hooks/useCategories';
 import { formatName } from '@/utils/uiUtils';
-import { CategoryModal } from '@/components/categories/CategoryModal';
+import { CategoryModal } from '@/components/archive/categories/CategoryModal';
 
 interface CategorySelectProps {
   value: string;

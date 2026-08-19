@@ -6,6 +6,7 @@ import type { TaskSummary, DbTask } from '@/types';
 import DatePicker from '@/components/shared/utils/DatePicker/DatePicker'; 
 import CategorySelect from '@/components/shared/utils/CategorySelect'; 
 import BaseModal from '@/components/shared/dialog/BaseModal';
+import { logger } from '@/utils/logger';
 import { useConfirm } from '@/context/ConfirmContext';
 import { CloseIcon, CheckCircleIcon } from '@/components/shared/utils/Icons';
 import TaskTreeSelector from '@/components/shared/utils/TaskTreeSelector';
@@ -164,7 +165,7 @@ const TaskNewModal: React.FC<TaskNewModalProps> = ({ isOpen, onClose, taskToEdit
       onClose(); 
       
     } catch (errore) {
-      console.error("Errore nel salvataggio della task", errore);
+      logger.error("Errore nel salvataggio della task", errore);
     } finally {
       setIsSaving(false); 
     }

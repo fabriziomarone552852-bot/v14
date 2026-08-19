@@ -6,6 +6,7 @@ import {
   getCategory,
   updateCategory,
 } from '@/api/categories';
+import { invalidateAllViews } from '@/utils/queryCacheUtils';
 import type {
   CategoryCreatePayload,
   CategoryUpdatePayload,
@@ -35,6 +36,7 @@ export function useCreateCategory() {
     mutationFn: (payload: CategoryCreatePayload) => createCategory(payload),
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: categoriesQueryKey });
+      invalidateAllViews(queryClient);
     },
   });
 }
@@ -50,6 +52,7 @@ export function useUpdateCategory() {
         queryClient.invalidateQueries({ queryKey: categoriesQueryKey }),
         queryClient.invalidateQueries({ queryKey: ['categories', variables.id] }),
       ]);
+      invalidateAllViews(queryClient);
     },
   });
 }
@@ -61,6 +64,7 @@ export function useDeleteCategory() {
     mutationFn: (id: number) => deleteCategory(id),
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: categoriesQueryKey });
+      invalidateAllViews(queryClient);
     },
   });
 }

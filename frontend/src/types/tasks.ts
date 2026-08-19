@@ -1,6 +1,9 @@
 import type { Category } from './categories';
 
+export type { Category };
 export type Priorita = 'Alta' | 'Media' | 'Bassa';
+
+export type Task = DbTask;
 
 export interface DbTask {
   id: number;

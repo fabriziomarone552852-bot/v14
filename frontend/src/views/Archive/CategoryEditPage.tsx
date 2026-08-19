@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import CategoryForm, { type CategoryFormValues } from '@/components/CategoryForm';
 import { useCategory, useUpdateCategory } from '@/hooks/useCategories';
 import { type CategoryUpdatePayload, CategoryGenre } from '@/types';
+import { logger } from '@/utils/logger';
 
 const CategoryEditPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -33,7 +34,7 @@ const CategoryEditPage: React.FC = () => {
 
       navigate('/categories');
     } catch (err) {
-      console.error('Exception in handleUpdate', err);
+      logger.error('Exception in handleUpdate', err);
     }
   };
 

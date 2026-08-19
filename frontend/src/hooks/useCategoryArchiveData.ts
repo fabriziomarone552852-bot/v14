@@ -1,8 +1,8 @@
 // src/hooks/useCategoryArchiveData.ts
 import { useMemo } from 'react';
 import { CategoryGenre, type Category } from '@/types/categories';
-import type { CategoryFilterState } from '@/components/categories/CategoryFilterModal';
-import type { CategorySortField, CategorySortDirection } from '@/components/categories/CategoryTableHeader';
+import type { CategoryFilterState } from '@/components/archive/categories/CategoryFilterModal';
+import type { CategorySortField, CategorySortDirection } from '@/components/archive/categories/CategoryTableHeader';
 
 export interface CategoryStats {
   total: number;
@@ -34,26 +34,31 @@ export const useCategoryArchiveData = ({
   sortField,
   sortDirection,
   currentPage,
-  pageSize = 12,
+  pageSize = 8,
 }: UseCategoryArchiveDataOptions): CategoryArchiveDataResult => {
   return useMemo(() => {
+    // Escludiamo il genere 5 (TAG) dalla gestione categorie (gestito in TagsPage)
+    const categoriesOnly = rawCategories.filter(
+      (c) => c.genre !== CategoryGenre.TAG && c.genre !== 5
+    );
+
     // 1. Calcolo Statistiche Complessive in RAM
-    const total = rawCategories.length;
-    const tasks = rawCategories.filter(
+    const total = categoriesOnly.length;
+    const tasks = categoriesOnly.filter(
       (c) => c.genre === CategoryGenre.TASKS || c.genre === 1
     ).length;
-    const events = rawCategories.filter(
+    const events = categoriesOnly.filter(
       (c) => c.genre === CategoryGenre.EVENTS || c.genre === 2
     ).length;
-    const common = rawCategories.filter(
+    const common = categoriesOnly.filter(
       (c) => c.genre === CategoryGenre.COMMON || c.genre === 3
     ).length;
-    const mood = rawCategories.filter(
+    const mood = categoriesOnly.filter(
       (c) => c.genre === CategoryGenre.MOOD || c.genre === 4
     ).length;
 
     // 2. Filtro in RAM
-    const filtered = rawCategories.filter((cat) => {
+    const filtered = categoriesOnly.filter((cat) => {
       // Filtro per tipologia / genere
       if (filters.genre !== 'all') {
         const targetGenre = Number(filters.genre);

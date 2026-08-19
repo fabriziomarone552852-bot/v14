@@ -4,6 +4,7 @@ import type {
   Task,
   SubtaskFormState,
   EditTaskFormState,
+  Priorita,
 } from '@/types/tasks';
 
 interface TaskRowsProps {
@@ -391,7 +392,7 @@ const TaskRows: React.FC<TaskRowsProps> = ({
                       <option value="">Nessuna categoria</option>
                       {categories.map((c) => (
                         <option key={c.id} value={c.id}>
-                          {c.name}
+                          {c.category_name}
                         </option>
                       ))}
                     </select>

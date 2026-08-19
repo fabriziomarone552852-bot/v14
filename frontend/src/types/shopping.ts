@@ -20,21 +20,16 @@ export interface ShoppingGroupSummary {
   id: number;
   name: string;
   description?: string | null;
-  visibilityId?: number | null;
+  ownerId?: number | null;
   statusId?: number | null;
+  visibilityId?: number | null;
   canEdit?: boolean;
   canDelete?: boolean;
   userRole?: string | null;
 }
 
-export interface ShoppingGroup {
-  id: number;
-  name: string;
-  description?: string | null;
-  ownerId: number;
-  statusId: number;
-  userRole?: string | null; // 'owner' | 'admin' | 'editor' | 'reader'
-}
+/** @deprecated Usa ShoppingGroupSummary */
+export type ShoppingGroup = ShoppingGroupSummary;
 
 export interface ShoppingGroupMember {
   id: number;
@@ -322,7 +317,7 @@ export interface UpdateShoppingPriceArgs {
 
 export interface UseShoppingDataResult {
   lists: ShoppingListSummary[];
-  groups: ShoppingGroup[];
+  groups: ShoppingGroupSummary[];
   activeListId: number | null;
   activeList: ShoppingListSummary | null;
   items: ShoppingListItem[];
@@ -382,6 +377,10 @@ export interface UseShoppingMutationsResult {
   ) => Promise<ShoppingSupplierOption>;
 
   deleteSupplier: (id: number) => Promise<void>;
+
+  addInventoryBatch: (args: AddInventoryBatchArgs) => Promise<void>;
+
+  deleteInventoryBatch: (args: DeleteInventoryBatchArgs) => Promise<void>;
 
   addPrice: (payload: ShoppingPriceCreatePayload) => Promise<void>;
 

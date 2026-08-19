@@ -123,7 +123,7 @@ const ShoppingPage: React.FC = () => {
         {/* Colonna Gruppi */}
         <div className={`${shoppingCardClass} flex h-full min-h-0 flex-col p-4`}>
           <ShoppingGroupsColumn
-            groups={groups as any}
+            groups={groups}
             loading={listsLoading}
             onSelectGroup={handleSelectGroup}
             selectedGroupId={selectedGroupId}
@@ -142,7 +142,7 @@ const ShoppingPage: React.FC = () => {
             loadingLists={listsLoading}
             activeListId={activeListId}
             setActiveListId={(id) => setActiveListId(id)}
-            groups={groups as any}
+            groups={groups}
             listVisibilityOptions={listVisibilityOptions}
             listStatusOptions={listStatusOptions}
             onAssignGroup={handleAssignListToGroup}

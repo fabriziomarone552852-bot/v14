@@ -6,6 +6,7 @@ import TimeInput from '@/components/shared/utils/TimeInput';
 import { pad } from '@/utils/dateUtils';
 import { DEFAULT_COVER_IMAGE } from '@/utils/constants';
 import BaseModal from '@/components/shared/dialog/BaseModal';
+import { logger } from '@/utils/logger';
 
 export type CountdownSavePayload = Omit<CountdownItem, 'id'> & { id?: number };
 
@@ -72,7 +73,7 @@ const CountdownNewModal: React.FC<CountdownNewModalProps> = ({ isOpen, onClose, 
       
       onClose(); // Chiudiamo solo se è andato tutto bene
     } catch (error) {
-      console.error("Errore durante il salvataggio:", error);
+      logger.error("Errore durante il salvataggio:", error);
     } finally {
       setIsSaving(false); // 🔴 Spegniamo lo spinner in ogni caso
     }

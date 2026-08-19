@@ -1,102 +1,227 @@
-// src/views/TagsPage.tsx
-import React, { useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useCategories } from '@/hooks/useCategories';
-import { TagIcon, BackIcon, LoadingIcon, CategoryIcon } from '@/components/shared/utils/Icons';
-import type { Category } from '@/types/categories';
+// src/views/Archive/TagsPage.tsx
+import React, { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { api } from '@/api/apiService';
+import { useCategories, useUpdateCategory } from '@/hooks/useCategories';
+import { ArchiveHeader } from '@/components/shared/layout/ArchiveHeader';
+import { TagIcon } from '@/components/shared/utils/Icons';
+import { ArchiveTableContainer } from '@/components/shared/layout/ArchiveTableContainer';
+import { TagActionBar, type TagViewTab } from '@/components/archive/tags/TagActionBar';
+import { TagCloudBoard } from '@/components/archive/tags/TagCloudBoard';
+import { TagTableHeader } from '@/components/archive/tags/TagTableHeader';
+import { TagTableRow } from '@/components/archive/tags/TagTableRow';
+import { TagReviewsModal } from '@/components/archive/tags/TagReviewsModal';
+import { MonthReviewArchiveModal } from '@/components/archive/reviews/MonthReviewArchiveModal';
+import { YearReviewArchiveModal } from '@/components/archive/reviews/YearReviewArchiveModal';
+import { useTagArchiveData, type EnrichedTagItem, type AssociatedReview } from '@/hooks/useTagArchiveData';
+import { useDynamicPageSize } from '@/hooks/useDynamicPageSize';
+import type { MonthlyEntryResponse } from '@/types/monthlyentries';
+import type { DbYearlyEntry } from '@/types/yearlyentries';
+import { logger } from '@/utils/logger';
 
-const panelClass =
-  'rounded-[28px] border border-white/70 bg-white/95 shadow-[0_10px_30px_rgba(15,23,42,0.06)] backdrop-blur';
+const PANEL_CLASS = 'rounded-2xl border border-slate-200/90 bg-white shadow-xs';
 
 export const TagsPage: React.FC = () => {
-  const navigate = useNavigate();
-  const { data: categories = [], isLoading, isError } = useCategories();
+  const updateCategoryMutation = useUpdateCategory();
 
-  // I tag corrispondono alle categorie di tipo genre = 5 (TAG) o tutte le categorie come filtri
-  const tags = useMemo(() => {
-    return categories.filter((c: Category) => c.genre === 5 || c.genre === 3);
-  }, [categories]);
+  // 1. CARICAMENTO DATI (Categorie, Revisioni Mensili e Annuali)
+  const { data: rawCategories = [], isLoading: loadingCategories } = useCategories();
+
+  const { data: rawMonthlyEntries = [], isLoading: loadingMonthly } = useQuery<MonthlyEntryResponse[]>({
+    queryKey: ['monthly_entries'],
+    queryFn: async () => {
+      const res = await api.get<MonthlyEntryResponse[]>('/monthly-entries');
+      return res || [];
+    },
+  });
+
+  const { data: rawYearlyEntries = [], isLoading: loadingYearly } = useQuery<DbYearlyEntry[]>({
+    queryKey: ['yearly_entries'],
+    queryFn: async () => {
+      const res = await api.get<DbYearlyEntry[]>('/yearly-entries');
+      return res || [];
+    },
+  });
+
+  const isLoading = loadingCategories || loadingMonthly || loadingYearly;
+
+  // 2. STATO TAB VISUALIZZAZIONE (BACHECA / TABELLA) E RICERCA
+  const [activeTab, setActiveTab] = useState<TagViewTab>('cloud');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [currentPage, setCurrentPage] = useState<number>(1);
+
+  // 3. CALCOLO DINAMICO DELLE RIGHE PER LA TABELLA INFERIORE
+  const { containerRef, pageSize } = useDynamicPageSize({
+    rowHeight: 52,
+    defaultPageSize: 8,
+    minItems: 3,
+    maxItems: 25,
+  });
+
+  // 4. ELABORAZIONE DATI IN RAM CON SUPPORTO MOCK DATA
+  const {
+    allTags,
+    filteredTags,
+    paginatedTags,
+    totalPages,
+  } = useTagArchiveData({
+    categories: rawCategories,
+    rawMonthlyEntries,
+    rawYearlyEntries,
+    searchQuery,
+    currentPage,
+    pageSize,
+  });
+
+  // 5. STATO MODALE REVIEW COLLEGATE (DOPPIO CLICK)
+  const [tagForReviews, setTagForReviews] = useState<EnrichedTagItem | null>(null);
+  const [isReviewsModalOpen, setIsReviewsModalOpen] = useState(false);
+
+  // 6. STATO MODALI DI REVISIONE DIRETTA DALL'ELENCO DEL TAG
+  const [selectedMonthDate, setSelectedMonthDate] = useState<Date | null>(null);
+  const [isMonthReviewOpen, setIsMonthReviewOpen] = useState(false);
+
+  const [selectedYear, setSelectedYear] = useState<number | null>(null);
+  const [isYearReviewOpen, setIsYearReviewOpen] = useState(false);
+
+  // Gestione Modifica Nome Tag Inline (Click Singolo)
+  const handleSaveTagName = async (tagId: number, newName: string) => {
+    const existingReal = rawCategories.find((c) => c.id === tagId);
+    if (existingReal) {
+      try {
+        await updateCategoryMutation.mutateAsync({
+          id: tagId,
+          data: { category_name: newName },
+        });
+      } catch (err) {
+        logger.error('Errore durante l\'aggiornamento del tag:', err);
+      }
+    }
+  };
+
+  // Gestione Doppio Click -> Dettaglio Review Collegate
+  const handleOpenTagReviews = (tag: EnrichedTagItem) => {
+    setTagForReviews(tag);
+    setIsReviewsModalOpen(true);
+  };
+
+  // Gestione Apertura Review Diretta dal Modale dei Tag
+  const handleOpenReviewFromTag = (review: AssociatedReview) => {
+    if (review.type === 'month') {
+      setSelectedMonthDate(review.date);
+      setIsMonthReviewOpen(true);
+    } else {
+      setSelectedYear(review.year);
+      setIsYearReviewOpen(true);
+    }
+  };
+
+  // Gestione Ricerca: alla digitazione porta automaticamente nella Tabella
+  const handleSearchChange = (query: string) => {
+    setSearchQuery(query);
+    setCurrentPage(1);
+    if (query.trim()) {
+      setActiveTab('table');
+    }
+  };
+
+  const handleResetSearch = () => {
+    setSearchQuery('');
+    setCurrentPage(1);
+  };
 
   return (
-    <div className="h-full flex flex-col justify-between gap-4 max-w-[1600px] mx-auto overflow-hidden">
-      {/* HEADER */}
-      <section className={`${panelClass} p-5 sm:p-6 shrink-0`}>
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3.5">
-            <button
-              type="button"
-              onClick={() => navigate('/archivio')}
-              className="p-2.5 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-700 transition cursor-pointer"
-              title="Torna all'archivio"
-            >
-              <BackIcon className="w-5 h-5" />
-            </button>
-            <div className="p-3 bg-teal-50 text-teal-600 rounded-2xl">
-              <TagIcon className="w-6 h-6" />
-            </div>
-            <div>
-              <h1 className="text-xl sm:text-2xl font-extrabold tracking-tight text-slate-900">
-                Tag & Etichette
-              </h1>
-              <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
-                Organizza e consulta i tag trasversali associati alle tue attività ed eventi.
-              </p>
-            </div>
-          </div>
-          <button
-            type="button"
-            onClick={() => navigate('/categories')}
-            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-teal-600 hover:bg-teal-700 text-white font-bold text-xs transition cursor-pointer shadow-sm"
-          >
-            <CategoryIcon className="w-4 h-4" />
-            <span>Gestisci in Categorie</span>
-          </button>
-        </div>
-      </section>
+    <div className="h-full flex flex-col gap-3.5 max-w-[1600px] mx-auto relative z-10 pb-1">
+      {/* 1. HEADER STANDARD */}
+      <ArchiveHeader
+        title="TAG & ETICHETTE"
+        subtitle="Bacheca di frequenza ed elenco alfabetico dei tag associati alle tue revisioni periodiche."
+        icon={<TagIcon className="h-6 w-6 text-white" />}
+        className={PANEL_CLASS}
+      />
 
-      {/* CONTENUTO PRINCIPALE */}
-      <div className={`${panelClass} p-6 flex-1 min-h-0 overflow-y-auto custom-scrollbar`}>
-        {isLoading ? (
-          <div className="flex items-center justify-center h-48 gap-3 text-slate-500">
-            <LoadingIcon className="w-6 h-6 animate-spin text-teal-600" />
-            <span className="text-sm font-semibold">Caricamento tag in corso...</span>
-          </div>
-        ) : isError ? (
-          <div className="rounded-2xl border border-rose-200 bg-rose-50 p-4 text-center text-rose-700 text-sm">
-            Errore nel caricamento dei tag.
-          </div>
-        ) : tags.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-64 text-center">
-            <div className="p-4 rounded-3xl bg-teal-50 text-teal-500 mb-3">
-              <TagIcon className="w-8 h-8" />
-            </div>
-            <h3 className="text-base font-bold text-slate-800">Nessun tag configurato</h3>
-            <p className="text-xs text-slate-500 mt-1 max-w-sm">
-              Crea le tue categorie ed etichette per filtrare rapidamente le informazioni.
-            </p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
-            {tags.map((tag) => (
-              <div
-                key={tag.id}
-                className="flex items-center gap-3 p-4 rounded-2xl border border-slate-200/80 bg-white shadow-xs"
-              >
-                <div
-                  className="w-4 h-4 rounded-full border border-black/10 shrink-0"
-                  style={{ backgroundColor: tag.colore || '#94a3b8' }}
-                />
-                <div className="min-w-0 flex-1">
-                  <p className="text-sm font-bold text-slate-900 truncate">{tag.category_name}</p>
-                  <p className="text-[10px] text-slate-400 uppercase font-semibold">
-                    {tag.genre === 5 ? 'Tag' : 'Comune'}
-                  </p>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
+      {/* 2. BARRA AZIONI: SLIDER A SINISTRA E RICERCA A DESTRA */}
+      <TagActionBar
+        activeTab={activeTab}
+        onTabChange={(tab) => {
+          setActiveTab(tab);
+          setCurrentPage(1);
+        }}
+        searchQuery={searchQuery}
+        onSearchChange={handleSearchChange}
+        onResetSearch={handleResetSearch}
+        panelClass={PANEL_CLASS}
+      />
+
+      {/* 3. VISTA ATTIVA: BACHECA DEI TOP 25 O TABELLA COMPLETA A 4 COLONNE */}
+      {activeTab === 'cloud' ? (
+        <TagCloudBoard
+          tags={allTags}
+          onSaveTagName={handleSaveTagName}
+          onDoubleClick={handleOpenTagReviews}
+          panelClass={PANEL_CLASS}
+        />
+      ) : (
+        <ArchiveTableContainer
+          header={<TagTableHeader />}
+          loading={isLoading}
+          loadingMessage="Caricamento tag in corso..."
+          isEmpty={filteredTags.length === 0}
+          emptyIcon={<TagIcon className="w-8 h-8 text-slate-400" />}
+          emptyTitle="Nessun tag trovato"
+          emptyDescription={
+            searchQuery.trim()
+              ? 'Nessun tag corrisponde alla parola chiave cercata.'
+              : 'Non ci sono tag configurati nel sistema.'
+          }
+          hasActiveFilters={searchQuery.trim().length > 0}
+          onResetFilters={handleResetSearch}
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={setCurrentPage}
+          className={PANEL_CLASS}
+          bodyRef={containerRef}
+        >
+          {paginatedTags.map((tag) => (
+            <TagTableRow
+              key={tag.id}
+              tag={tag}
+              onSaveTagName={handleSaveTagName}
+              onDoubleClick={handleOpenTagReviews}
+            />
+          ))}
+        </ArchiveTableContainer>
+      )}
+
+      {/* 4. MODALE REVIEW COLLEGATE (DOPPIO CLICK) */}
+      <TagReviewsModal
+        isOpen={isReviewsModalOpen}
+        onClose={() => {
+          setIsReviewsModalOpen(false);
+          setTagForReviews(null);
+        }}
+        tag={tagForReviews}
+        onOpenReview={handleOpenReviewFromTag}
+      />
+
+      {/* 5. MODALI DI REVISIONE PERIODICA (DALL'APERTURA DIRETTA) */}
+      <MonthReviewArchiveModal
+        isOpen={isMonthReviewOpen}
+        onClose={() => {
+          setIsMonthReviewOpen(false);
+          setSelectedMonthDate(null);
+        }}
+        monthDate={selectedMonthDate}
+      />
+
+      <YearReviewArchiveModal
+        isOpen={isYearReviewOpen}
+        onClose={() => {
+          setIsYearReviewOpen(false);
+          setSelectedYear(null);
+        }}
+        year={selectedYear}
+      />
     </div>
   );
 };

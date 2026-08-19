@@ -1,8 +1,8 @@
 import { useMutation, useQueryClient, type QueryKey } from '@tanstack/react-query';
 import { api } from '@/api/apiService';
-import { updateAllSyncCaches } from '@/utils/cacheUtils';
-import { invalidateAllViews } from '@/utils/queryUtils';
+import { updateAllSyncCaches, invalidateAllViews } from '@/utils/queryCacheUtils';
 import type { DbTask } from '@/types';
+import { logger } from '@/utils/logger';
 
 // 🪄 1. Definiamo i contratti in modo rigoroso, zero unknown.
 export interface CacheWithTasks {
@@ -63,7 +63,7 @@ export function useTaskMutations(queryKey: QueryKey = ['tasks']) {
     },
     
     onError: (err) => {
-      console.error("Errore durante il toggle del task:", err);
+      logger.error("Errore durante il toggle del task:", err);
       invalidateAllViews(queryClient);
     },
     
@@ -151,7 +151,7 @@ export function useTaskMutations(queryKey: QueryKey = ['tasks']) {
     },
     
     onError: (err) => {
-      console.error("Errore eliminazione task:", err);
+      logger.error("Errore eliminazione task:", err);
       invalidateAllViews(queryClient);
     },
     

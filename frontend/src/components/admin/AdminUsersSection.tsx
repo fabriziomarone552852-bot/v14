@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import type { SystemUserItem } from '@/api/adminApi';
 import { updateSystemUser, resetSystemUserPassword, toggleSystemUserActive } from '@/api/adminApi';
+import { extractErrorMessage } from '@/utils/errorUtils';
 
 interface AdminUsersSectionProps {
   users: SystemUserItem[];
@@ -53,8 +54,8 @@ export const AdminUsersSection: React.FC<AdminUsersSectionProps> = ({ users, onR
       setMessage({ text: `Dati dell'utente "${editForm.username}" aggiornati con successo!`, type: 'success' });
       setEditingUser(null);
       await onRefresh();
-    } catch (err: any) {
-      setMessage({ text: err?.response?.data?.detail || 'Errore durante l\'aggiornamento utente', type: 'error' });
+    } catch (err: unknown) {
+      setMessage({ text: extractErrorMessage(err, "Errore durante l'aggiornamento utente"), type: 'error' });
     } finally {
       setSaving(false);
     }
@@ -70,8 +71,8 @@ export const AdminUsersSection: React.FC<AdminUsersSectionProps> = ({ users, onR
       const res = await resetSystemUserPassword(resetUser.id, newPassword);
       setMessage({ text: res.message || `Password resettata con successo per ${resetUser.username}!`, type: 'success' });
       setResetUser(null);
-    } catch (err: any) {
-      setMessage({ text: err?.response?.data?.detail || 'Errore durante il reset della password', type: 'error' });
+    } catch (err: unknown) {
+      setMessage({ text: extractErrorMessage(err, 'Errore durante il reset della password'), type: 'error' });
     } finally {
       setSaving(false);
     }
@@ -90,8 +91,8 @@ export const AdminUsersSection: React.FC<AdminUsersSectionProps> = ({ users, onR
         type: 'success',
       });
       await onRefresh();
-    } catch (err: any) {
-      setMessage({ text: err?.response?.data?.detail || 'Errore durante l\'aggiornamento stato utente', type: 'error' });
+    } catch (err: unknown) {
+      setMessage({ text: extractErrorMessage(err, "Errore durante l'aggiornamento stato utente"), type: 'error' });
     }
   };
 

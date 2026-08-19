@@ -5,13 +5,14 @@ import { api } from '@/api/apiService';
 import { useCategories } from '@/hooks/useCategories';
 import { useEventModals } from '@/context/EventModalContext';
 import { useEventArchiveData } from '@/hooks/useEventArchiveData';
+import { useDynamicPageSize } from '@/hooks/useDynamicPageSize';
 import { CalendarIcon } from '@/components/shared/utils/Icons';
 import { ArchiveTableContainer } from '@/components/shared/layout/ArchiveTableContainer';
-import { EventStatsOverview } from '@/components/events/EventStatsOverview';
-import { EventFilterBar } from '@/components/events/EventFilterBar';
-import { EventTableHeader, type EventSortField, type EventSortDirection } from '@/components/events/EventTableHeader';
-import { EventTableRow } from '@/components/events/EventTableRow';
-import { EventFilterModal, type EventFilterState } from '@/components/events/EventFilterModal';
+import { EventStatsOverview } from '@/components/archive/events/EventStatsOverview';
+import { EventFilterBar } from '@/components/archive/events/EventFilterBar';
+import { EventTableHeader, type EventSortField, type EventSortDirection } from '@/components/archive/events/EventTableHeader';
+import { EventTableRow } from '@/components/archive/events/EventTableRow';
+import { EventFilterModal, type EventFilterState } from '@/components/archive/events/EventFilterModal';
 import type { DbEvent } from '@/types';
 
 const PANEL_CLASS = 'rounded-2xl border border-slate-200/90 bg-white shadow-xs';
@@ -47,13 +48,22 @@ export const EventsPage: React.FC = () => {
   const [sortDirection, setSortDirection] = useState<EventSortDirection>('asc');
   const [currentPage, setCurrentPage] = useState<number>(1);
 
-  // 3. HOOK PER ELABORAZIONE AD ALTE PRESTAZIONI DEI DATI DEGLI EVENTI
+  // 3. CALCOLO DINAMICO DEL PAGE SIZE IN BASE ALL'ALTEZZA
+  const { containerRef, pageSize } = useDynamicPageSize({
+    rowHeight: 46,
+    defaultPageSize: 8,
+    minItems: 3,
+    maxItems: 30,
+  });
+
+  // 4. HOOK PER ELABORAZIONE AD ALTE PRESTAZIONI DEI DATI DEGLI EVENTI
   const { filteredEvents, paginatedEvents, totalPages } = useEventArchiveData({
     rawEvents,
     modalFilters,
     sortField,
     sortDirection,
     currentPage,
+    pageSize,
   });
 
   // Conteggio filtri attivi nel modale di ricerca
@@ -123,6 +133,7 @@ export const EventsPage: React.FC = () => {
         totalPages={totalPages}
         onPageChange={setCurrentPage}
         className={PANEL_CLASS}
+        bodyRef={containerRef}
       >
         {paginatedEvents.map((ev) => (
           <EventTableRow

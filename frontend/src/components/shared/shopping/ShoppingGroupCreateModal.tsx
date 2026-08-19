@@ -5,6 +5,7 @@ import {
   shoppingButtonSecondaryClass,
   shoppingInputClass,
 } from './shoppingUi';
+import { extractErrorMessage } from '@/utils/errorUtils';
 
 interface ShoppingGroupCreateModalProps {
   isOpen: boolean;
@@ -56,8 +57,8 @@ const ShoppingGroupCreateModal: React.FC<ShoppingGroupCreateModalProps> = ({
       setName('');
       setDescription('');
       onClose();
-    } catch (err: any) {
-      setError(err?.response?.data?.detail || err?.message || 'Errore durante il salvataggio del gruppo.');
+    } catch (err: unknown) {
+      setError(extractErrorMessage(err, 'Errore durante il salvataggio del gruppo.'));
     } finally {
       setIsSubmitting(false);
     }

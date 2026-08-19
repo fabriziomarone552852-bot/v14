@@ -10,6 +10,7 @@ import type { DailyEntry } from '@/types/dailyentries';
 import type { DbTask } from '@/types/tasks';
 import type { Habit } from '@/types/habits';
 import type { Category } from '@/types/categories';
+import { logger } from '@/utils/logger';
 import { MOOD_NAMES, SPHERE_NAMES, getNumericValue } from '@/types/monthlyentries';
 import { getTrackerColor, TRACKER_CODES } from '@/utils/trackerUtils';
 
@@ -266,7 +267,7 @@ export const useMonthReview = (
         });
       });
     }).catch(err => {
-      console.error('Errore creazione tag:', err);
+      logger.error('Errore creazione tag:', err);
       // Rollback: rimuovi temporanei
       queryClient.setQueryData<Category[]>(['categories'], (old) =>
         (old || []).filter(c => c.id !== tempCatId)

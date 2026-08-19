@@ -5,6 +5,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import axios from 'axios';
 import { apiUrl, apiClient } from '@/api/client';
 import type { TokenResponse, UserResponse } from '@/types/auth';
+import { logger } from '@/utils/logger';
 
 interface AuthContextValue {
   token: string | null;
@@ -97,7 +98,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   useEffect(() => {
     const handleForceLogout = () => {
-      console.warn("Sessione completamente scaduta, logout forzato.");
+      logger.warn("Sessione completamente scaduta, logout forzato.");
       logout();
     };
     window.addEventListener('force-logout', handleForceLogout);

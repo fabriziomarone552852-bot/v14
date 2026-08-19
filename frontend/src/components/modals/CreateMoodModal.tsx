@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import { useQueryClient } from '@tanstack/react-query';
 import { CategoryGenre } from '@/types';
 import { useCreateCategory, categoriesQueryKey } from '@/hooks/useCategories';
+import { logger } from '@/utils/logger';
 import { CloseIcon } from '@/components/shared/utils/Icons';
 
 interface CreateMoodModalProps {
@@ -43,7 +44,7 @@ export const CreateMoodModal: React.FC<CreateMoodModalProps> = ({ isOpen, onClos
       onClose();
     } catch (err: unknown) {
       setIsSubmitting(false);
-      console.error("Errore creazione stato d'animo:", err);
+      logger.error("Errore creazione stato d'animo:", err);
       let message = 'Impossibile salvare lo stato d\'animo.';
       if (err instanceof Error) {
         try {

@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import BaseModal from '@/components/shared/dialog/BaseModal';
 import { CategoryGenre, type Category } from '@/types/categories';
 import { useCreateCategory, useUpdateCategory } from '@/hooks/useCategories';
+import { logger } from '@/utils/logger';
 
 interface CategoryModalProps {
   isOpen: boolean;
@@ -89,7 +90,7 @@ export const CategoryModal: React.FC<CategoryModalProps> = ({
       if (onSuccess && saved) onSuccess(saved);
       onClose();
     } catch (err: unknown) {
-      console.error('Errore salvataggio categoria:', err);
+      logger.error('Errore salvataggio categoria:', err);
       let message = 'Impossibile salvare la categoria.';
       if (err instanceof Error) {
         try {

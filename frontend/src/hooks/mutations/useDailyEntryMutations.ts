@@ -3,6 +3,7 @@ import { useMutation, useQueryClient, type QueryKey } from '@tanstack/react-quer
 import { api } from '@/api/apiService';
 import type { DailyEntry } from '@/types';
 import type { DbMonthlyEntry } from '@/types/monthlyentries';
+import { logger } from '@/utils/logger';
 
 export interface SaveDailyEntryPayload {
   id?: number;
@@ -13,12 +14,12 @@ export interface SaveDailyEntryPayload {
 }
 
 export interface CacheWithDailyEntries {
-  obiettivi?: DailyEntry[] | DbMonthlyEntry[];
-  priorita?: DailyEntry[] | DbMonthlyEntry[];
+  obiettivi?: DailyEntry[];
+  priorita?: DailyEntry[];
   obiettivo_settimanale?: DailyEntry | null;
   priorita_settimanali?: DailyEntry[];
-  eventi_positivi?: DailyEntry[] | DbMonthlyEntry[];
-  eventi_negativi?: DailyEntry[] | DbMonthlyEntry[];
+  eventi_positivi?: DailyEntry[];
+  eventi_negativi?: DailyEntry[];
 }
 
 export function useDailyEntryMutations<T extends CacheWithDailyEntries>(queryKey: QueryKey) {
@@ -102,7 +103,7 @@ export function useDailyEntryMutations<T extends CacheWithDailyEntries>(queryKey
       return { previousData, tempId };
     },
     onError: (err, payload, context) => {
-      console.error("Errore salvataggio daily entry:", err);
+      logger.error("Errore salvataggio daily entry:", err);
       if (context?.previousData) queryClient.setQueryData(queryKey, context.previousData);
     },
     onSuccess: (savedEntryFromDB, payload, context) => {

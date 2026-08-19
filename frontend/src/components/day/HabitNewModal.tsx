@@ -5,6 +5,7 @@ import BaseModal from '@/components/shared/dialog/BaseModal';
 import { InfoIcon } from '@/components/shared/utils/Icons';
 import { buildRRule } from '@/utils/rruleUtils';
 import type { HabitItem } from '@/components/day/HabitDetailModal';
+import { logger } from '@/utils/logger';
 
 export interface HabitSavePayload {
   titolo: string;
@@ -60,7 +61,7 @@ const HabitNewModal: React.FC<HabitNewModalProps> = ({ isOpen, onClose, habitToE
       await onSave(payload);
       onClose();
     } catch (error) {
-      console.error("Errore salvataggio abitudine:", error);
+      logger.error("Errore salvataggio abitudine:", error);
     } finally {
       setIsSaving(false);
     }

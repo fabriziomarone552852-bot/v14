@@ -4,22 +4,24 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/api/apiService';
 import { ArchiveHeader } from '@/components/shared/layout/ArchiveHeader';
 import { CountdownIcon, UndoIcon } from '@/components/shared/utils/Icons';
-import { CountdownFilterBar } from '@/components/countdowns/CountdownFilterBar';
-import { CountdownCard } from '@/components/countdowns/CountdownCard';
+import { Pagination } from '@/components/shared/utils/Pagination';
+import { CountdownFilterBar } from '@/components/archive/countdowns/CountdownFilterBar';
+import { CountdownCard } from '@/components/archive/countdowns/CountdownCard';
 import {
   CountdownFilterModal,
   type CountdownFilterState,
-} from '@/components/countdowns/CountdownFilterModal';
+} from '@/components/archive/countdowns/CountdownFilterModal';
 import CountdownNewModal, {
   type CountdownSavePayload,
 } from '@/components/day/CountdownNewModal';
 import CountdownDetailModal from '@/components/day/CountdownDetailModal';
 import { useCountdownArchiveData } from '@/hooks/useCountdownArchiveData';
+import { useDynamicPageSize } from '@/hooks/useDynamicPageSize';
+import { useModal } from '@/hooks/useModals';
 import { mapToCountdownItems } from '@/utils/countdownUtils';
+import { ARCHIVE_PANEL_CLASS } from './CategoriesPage';
 import type { CountdownItem } from '@/components/day/CountdownWidget';
 import type { RawCountdown } from '@/types/countdowns';
-
-const PANEL_CLASS = 'rounded-2xl border border-slate-200/90 bg-white shadow-xs';
 
 const initialFilterState: CountdownFilterState = {
   keyword: '',
@@ -72,26 +74,33 @@ export const CountdownsPage: React.FC = () => {
 
   // 3. STATO FILTRI E PAGINAZIONE
   const [filters, setFilters] = useState<CountdownFilterState>(initialFilterState);
-  const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState<number>(1);
 
-  // 4. STATO MODALI (DETTAGLIO E CREAZIONE/MODIFICA)
-  const [selectedCountdown, setSelectedCountdown] = useState<CountdownItem | null>(null);
-  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+  // 4. MODALI — useModal<T> al posto di coppie useState separate
+  const filterModal = useModal();
+  const detailModal = useModal<CountdownItem>();
+  const formModal = useModal<CountdownItem>();
 
-  const [countdownToEdit, setCountdownToEdit] = useState<CountdownItem | null>(null);
-  const [isNewModalOpen, setIsNewModalOpen] = useState(false);
+  // 5. CALCOLO DINAMICO DEL PAGE SIZE IN BASE ALL'ALTEZZA
+  const { containerRef, pageSize } = useDynamicPageSize({
+    rowHeight: 230,
+    columns: (w) => (w >= 1024 ? 3 : w >= 640 ? 2 : 1),
+    defaultPageSize: 6,
+    minItems: 2,
+    maxItems: 18,
+  });
 
-  // 5. HOOK IN RAM PER FILTRAGGIO, ORDINAMENTO E PAGINAZIONE
+  // 6. HOOK IN RAM PER FILTRAGGIO, ORDINAMENTO E PAGINAZIONE
   const {
     filteredCountdowns,
     paginatedCountdowns,
     totalPages,
+    totalCount,
   } = useCountdownArchiveData({
     rawCountdowns,
     filters,
     currentPage,
-    pageSize: 12,
+    pageSize,
   });
 
   // Conteggio filtri attivi
@@ -111,51 +120,35 @@ export const CountdownsPage: React.FC = () => {
     setCurrentPage(1);
   };
 
-  const handleOpenNew = () => {
-    setCountdownToEdit(null);
-    setIsNewModalOpen(true);
-  };
+  // --- AZIONI SUI COUNTDOWN ---
+  const handleOpenNew = () => formModal.open(null);
 
-  const handleSelectCountdown = (cd: CountdownItem) => {
-    setSelectedCountdown(cd);
-    setIsDetailModalOpen(true);
-  };
+  const handleSelectCountdown = (cd: CountdownItem) => detailModal.open(cd);
 
   const handleEditFromDetail = () => {
-    if (!selectedCountdown) return;
-    setCountdownToEdit(selectedCountdown);
-    setIsDetailModalOpen(false);
-    setIsNewModalOpen(true);
+    if (!detailModal.data) return;
+    formModal.open(detailModal.data);
+    detailModal.close();
   };
 
   const handleDelete = async (id: number) => {
-    try {
-      await deleteMutation.mutateAsync(id);
-      setIsDetailModalOpen(false);
-      setSelectedCountdown(null);
-    } catch (err) {
-      console.error('Errore eliminazione countdown:', err);
-    }
+    await deleteMutation.mutateAsync(id);
+    detailModal.close();
   };
 
   const handleRenew = async (renewed: CountdownItem) => {
-    try {
-      await saveMutation.mutateAsync({
-        id: renewed.id,
-        title: renewed.title,
-        targetDateStr: renewed.targetDateStr,
-        imageUrl: renewed.imageUrl,
-      });
-      setSelectedCountdown(renewed);
-    } catch (err) {
-      console.error('Errore rinnovo countdown:', err);
-    }
+    await saveMutation.mutateAsync({
+      id: renewed.id,
+      title: renewed.title,
+      targetDateStr: renewed.targetDateStr,
+      imageUrl: renewed.imageUrl,
+    });
+    detailModal.open(renewed);
   };
 
   const handleSaveCountdown = async (payload: CountdownSavePayload) => {
     await saveMutation.mutateAsync(payload);
-    setIsNewModalOpen(false);
-    setCountdownToEdit(null);
+    formModal.close();
   };
 
   return (
@@ -165,27 +158,27 @@ export const CountdownsPage: React.FC = () => {
         title="GESTIONE COUNTDOWN"
         subtitle="Tieni traccia dei giorni mancanti alle tue date più importanti."
         icon={<CountdownIcon className="h-6 w-6 text-white" />}
-        className={PANEL_CLASS}
+        className={ARCHIVE_PANEL_CLASS}
       />
 
       {/* 2. RIGA AZIONI: TASTO NUOVO COUNTDOWN E LENTE DI RICERCA */}
       <CountdownFilterBar
         onOpenNewCountdown={handleOpenNew}
-        onOpenSearch={() => setIsFilterModalOpen(true)}
+        onOpenSearch={filterModal.open}
         activeFiltersCount={activeFiltersCount}
-        panelClass={PANEL_CLASS}
+        panelClass={ARCHIVE_PANEL_CLASS}
       />
 
       {/* 3. GRIGLIA A 3 COLONNE CON LE TARGHE COUNTDOWN */}
-      <div className={`${PANEL_CLASS} flex flex-col flex-1 min-h-0 overflow-hidden`}>
+      <div className={`${ARCHIVE_PANEL_CLASS} flex flex-col flex-1 min-h-0 overflow-hidden`}>
         {/* CORPO DELLA GRIGLIA SCROLLABILE */}
-        <div className="flex-1 min-h-0 overflow-y-auto p-4 sm:p-5 custom-scrollbar">
+        <div ref={containerRef} className="flex-1 min-h-0 overflow-y-auto p-4 sm:p-5 custom-scrollbar">
           {loading ? (
             <div className="flex flex-col items-center justify-center h-64 text-slate-400 gap-3">
               <div className="w-8 h-8 border-3 border-blue-600 border-t-transparent rounded-full animate-spin" />
               <span className="text-sm font-semibold">Caricamento countdown in corso...</span>
             </div>
-          ) : filteredCountdowns.length === 0 ? (
+          ) : totalCount === 0 ? (
             <div className="flex flex-col items-center justify-center h-64 text-center p-6">
               <div className="p-4 rounded-full bg-slate-50 text-slate-400 mb-3 border border-slate-100">
                 <CountdownIcon className="w-8 h-8 text-slate-400" />
@@ -194,7 +187,7 @@ export const CountdownsPage: React.FC = () => {
               <p className="text-xs text-slate-500 mt-1 max-w-sm">
                 {hasActiveFilters
                   ? 'Nessun countdown corrisponde ai filtri selezionati. Prova ad azzerarli.'
-                  : 'Non ci sono countdown registrati nel sistema.'}
+                  : 'Crea il tuo primo countdown per iniziare il conteggio!'}
               </p>
               {hasActiveFilters && (
                 <button
@@ -222,34 +215,20 @@ export const CountdownsPage: React.FC = () => {
 
         {/* PAGINAZIONE INFERIORE */}
         {totalPages > 1 && (
-          <div className="p-3 border-t border-slate-100 bg-slate-50/50 flex items-center justify-center gap-2 shrink-0">
-            <button
-              type="button"
-              disabled={currentPage <= 1}
-              onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-              className="px-3 py-1.5 text-xs font-bold rounded-lg border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-colors"
-            >
-              Precedente
-            </button>
-            <span className="text-xs font-semibold text-slate-500 px-2">
-              Pagina {currentPage} di {totalPages}
-            </span>
-            <button
-              type="button"
-              disabled={currentPage >= totalPages}
-              onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-              className="px-3 py-1.5 text-xs font-bold rounded-lg border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-colors"
-            >
-              Successiva
-            </button>
+          <div className="p-2.5 border-t border-slate-100 bg-slate-50/50 flex items-center justify-center shrink-0">
+            <Pagination
+              current={currentPage}
+              total={totalPages}
+              onChange={setCurrentPage}
+            />
           </div>
         )}
       </div>
 
       {/* 4. MODALE FILTRI & RICERCA IN OVERLAY GLOBALE */}
       <CountdownFilterModal
-        isOpen={isFilterModalOpen}
-        onClose={() => setIsFilterModalOpen(false)}
+        isOpen={filterModal.isOpen}
+        onClose={filterModal.close}
         filters={filters}
         onFilterChange={(newFilters) => {
           setFilters(newFilters);
@@ -261,12 +240,9 @@ export const CountdownsPage: React.FC = () => {
 
       {/* 5. MODALE DI DETTAGLIO COUNTDOWN */}
       <CountdownDetailModal
-        isOpen={isDetailModalOpen}
-        onClose={() => {
-          setIsDetailModalOpen(false);
-          setSelectedCountdown(null);
-        }}
-        countdown={selectedCountdown}
+        isOpen={detailModal.isOpen}
+        onClose={detailModal.close}
+        countdown={detailModal.data}
         onEditClick={handleEditFromDetail}
         onDeleteClick={handleDelete}
         onRenewClick={handleRenew}
@@ -274,12 +250,9 @@ export const CountdownsPage: React.FC = () => {
 
       {/* 6. MODALE NUOVO / MODIFICA COUNTDOWN */}
       <CountdownNewModal
-        isOpen={isNewModalOpen}
-        onClose={() => {
-          setIsNewModalOpen(false);
-          setCountdownToEdit(null);
-        }}
-        countdownToEdit={countdownToEdit}
+        isOpen={formModal.isOpen}
+        onClose={formModal.close}
+        countdownToEdit={formModal.data}
         onSave={handleSaveCountdown}
       />
     </div>

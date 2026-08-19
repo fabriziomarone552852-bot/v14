@@ -1,11 +1,11 @@
 // src/hooks/useEventArchiveData.ts
 import { useMemo } from 'react';
 import type { DbEvent, CalendarEvent } from '@/types';
-import type { EventFilterState } from '@/components/events/EventFilterModal';
-import type { EventSortField, EventSortDirection } from '@/components/events/EventTableHeader';
+import type { EventFilterState } from '@/components/archive/events/EventFilterModal';
+import type { EventSortField, EventSortDirection } from '@/components/archive/events/EventTableHeader';
 import { mapDbEventsToCalendarEvents } from '@/utils/eventUtils';
 import { getLocalTodayStr } from '@/utils/dateUtils';
-import { formatEventRecurrence } from '@/components/events/EventTableRow';
+import { formatEventRecurrence } from '@/components/archive/events/EventTableRow';
 
 interface UseEventArchiveDataOptions {
   rawEvents: DbEvent[];
@@ -28,7 +28,7 @@ export const useEventArchiveData = ({
   sortField,
   sortDirection,
   currentPage,
-  pageSize = 12,
+  pageSize = 8,
 }: UseEventArchiveDataOptions): EventArchiveDataResult => {
   return useMemo(() => {
     const todayStr = getLocalTodayStr();

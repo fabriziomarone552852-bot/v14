@@ -4,6 +4,7 @@ import type { MoodEventType } from '@/types';
 import { getGridClasses, getOriginClass, getNumCols } from '@/utils/uiUtils';
 import { AutoExpandingTextarea } from '@/components/shared/utils/AutoExpandingTextarea';
 import { MoodEventCard, type MoodEvent } from './MoodEventCard';
+import { logger } from '@/utils/logger';
 
 // CONTRATTO RIGOROSO: Niente 'any'
 interface MoodEventColumnProps {
@@ -48,7 +49,7 @@ export const MoodEventColumn: React.FC<MoodEventColumnProps> = ({
       setIsSaving(true);
       await onAdd(type, trimmedVal);
     } catch (error) {
-      console.error("Errore durante il salvataggio", error);
+      logger.error("Errore durante il salvataggio", error);
     } finally {
       setIsSaving(false);
       setIsAdding(false);

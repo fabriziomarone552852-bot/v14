@@ -6,14 +6,15 @@ import { useCategories } from '@/hooks/useCategories';
 import { useTaskMutations } from '@/hooks/mutations/useTaskMutations';
 import { useTaskModals } from '@/context/TaskModalContext';
 import { useTaskArchiveTree } from '@/hooks/useTaskArchiveTree';
+import { useDynamicPageSize } from '@/hooks/useDynamicPageSize';
 import { TaskListIcon } from '@/components/shared/utils/Icons';
 import { mapTaskToSummary } from '@/utils/taskUtils';
 import { ArchiveTableContainer } from '@/components/shared/layout/ArchiveTableContainer';
-import { TaskStatsOverview } from '@/components/tasks/TaskStatsOverview';
-import { TaskFilterBar } from '@/components/tasks/TaskFilterBar';
-import { TaskTableHeader, type TaskSortField, type TaskSortDirection } from '@/components/tasks/TaskTableHeader';
-import { TaskTreeRow } from '@/components/tasks/TaskTreeRow';
-import { TaskFilterModal, type TaskFilterState } from '@/components/tasks/TaskFilterModal';
+import { TaskStatsOverview } from '@/components/archive/tasks/TaskStatsOverview';
+import { TaskFilterBar } from '@/components/archive/tasks/TaskFilterBar';
+import { TaskTableHeader, type TaskSortField, type TaskSortDirection } from '@/components/archive/tasks/TaskTableHeader';
+import { TaskTreeRow } from '@/components/archive/tasks/TaskTreeRow';
+import { TaskFilterModal, type TaskFilterState } from '@/components/archive/tasks/TaskFilterModal';
 import type { DbTask } from '@/types';
 
 const PANEL_CLASS = 'rounded-2xl border border-slate-200/90 bg-white shadow-xs';
@@ -51,13 +52,22 @@ export const TasksPage: React.FC = () => {
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [expandedIds, setExpandedIds] = useState<Set<number>>(new Set());
 
-  // 3. HOOK PER ELABORAZIONE AD ALTE PRESTAZIONI DELL'ALBERO TASK
+  // 3. CALCOLO DINAMICO DEL PAGE SIZE IN BASE ALL'ALTEZZA
+  const { containerRef, pageSize } = useDynamicPageSize({
+    rowHeight: 46,
+    defaultPageSize: 8,
+    minItems: 3,
+    maxItems: 30,
+  });
+
+  // 4. HOOK PER ELABORAZIONE AD ALTE PRESTAZIONI DELL'ALBERO TASK
   const { filteredRoots, paginatedRoots, totalStats, totalPages, isSearchMode } = useTaskArchiveTree({
     rawTasks,
     modalFilters,
     sortField,
     sortDirection,
     currentPage,
+    pageSize,
   });
 
   // Conteggio filtri attivi nel modale di ricerca
@@ -143,6 +153,7 @@ export const TasksPage: React.FC = () => {
         totalPages={totalPages}
         onPageChange={setCurrentPage}
         className={PANEL_CLASS}
+        bodyRef={containerRef}
       >
         {paginatedRoots.map((root) => (
           <TaskTreeRow

@@ -1,7 +1,7 @@
 // src/hooks/useCountdownArchiveData.ts
 import { useMemo } from 'react';
 import type { CountdownItem } from '@/components/day/CountdownWidget';
-import type { CountdownFilterState } from '@/components/countdowns/CountdownFilterModal';
+import type { CountdownFilterState } from '@/components/archive/countdowns/CountdownFilterModal';
 
 interface UseCountdownArchiveDataOptions {
   rawCountdowns: CountdownItem[];
@@ -23,7 +23,7 @@ export const useCountdownArchiveData = ({
   rawCountdowns,
   filters,
   currentPage,
-  pageSize = 12,
+  pageSize = 6,
 }: UseCountdownArchiveDataOptions): CountdownArchiveDataResult => {
   return useMemo(() => {
     const nowTime = Date.now();

@@ -35,10 +35,7 @@ import type {
   UseShoppingMutationsResult,
 } from '@/types/shopping';
 
-export const useShoppingMutations = (): UseShoppingMutationsResult & {
-  addInventoryBatch: (args: AddInventoryBatchArgs) => Promise<void>;
-  deleteInventoryBatch: (args: DeleteInventoryBatchArgs) => Promise<void>;
-} => {
+export const useShoppingMutations = (): UseShoppingMutationsResult => {
   const queryClient = useQueryClient();
 
   const invalidateLists = () =>
@@ -141,5 +138,5 @@ export const useShoppingMutations = (): UseShoppingMutationsResult & {
     addPrice: (payload: ShoppingPriceCreatePayload) => addShoppingPrice(payload),
     updatePrice: (args: UpdateShoppingPriceArgs) => updateShoppingPrice(args.priceId, args.data),
     deletePrice: (priceId: number) => deleteShoppingPrice(priceId),
-  } as any;
+  };
 };

@@ -2,6 +2,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/api/apiService';
 import type { DbMonthlyEntry, MonthlyType } from '@/types/monthlyentries';
+import { logger } from '@/utils/logger';
 
 export interface SaveMonthlyEntryPayload {
   monthly_type: MonthlyType;
@@ -96,7 +97,7 @@ export const useMonthlyEntryMutations = (queryKey: string[]) => {
     },
 
     onError: (err, _newEntry, context) => {
-      console.error('Errore salvataggio monthly entry:', err);
+      logger.error('Errore salvataggio monthly entry:', err);
       if (context?.previousData) queryClient.setQueryData(queryKey, context.previousData);
     },
 
@@ -127,7 +128,7 @@ export const useMonthlyEntryMutations = (queryKey: string[]) => {
     },
 
     onError: (err, _id, context) => {
-      console.error('Errore eliminazione monthly entry:', err);
+      logger.error('Errore eliminazione monthly entry:', err);
       if (context?.previousData) queryClient.setQueryData(queryKey, context.previousData);
     },
 

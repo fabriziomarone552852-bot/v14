@@ -1,6 +1,7 @@
 // frontend/src/utils/eventUtils.ts
 import { pad } from './dateUtils';
 import type { DbEvent, CalendarEvent } from '@/types';
+import { logger } from '@/utils/logger';
 
 export interface DayEventItem {
   ev: CalendarEvent;
@@ -202,7 +203,7 @@ export const mapDbEventsToCalendarEvents = (
     const hasValidDate = safeDataInizio.length >= 10;
 
     if (!hasValidDate && !fallbackDateStr) {
-      console.warn(`Evento ignorato (ID: ${e.id}): data_inizio mancante o invalida.`);
+      logger.warn(`Evento ignorato (ID: ${e.id}): data_inizio mancante o invalida.`);
       return acc; 
     }
 

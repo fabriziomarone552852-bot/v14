@@ -14,7 +14,7 @@ import {
 
 import type {
   ShoppingConfigBundle,
-  ShoppingGroup,
+  ShoppingGroupSummary,
   ShoppingListItem,
   ShoppingListSummary,
   ShoppingProductOption,
@@ -61,7 +61,7 @@ export const useShoppingData = (): UseShoppingDataResult => {
     gcTime: 30 * 60_000,
   });
 
-  const groupsQuery = useQuery<ShoppingGroup[]>({
+  const groupsQuery = useQuery<ShoppingGroupSummary[]>({
     queryKey: [...shoppingQueryKeys.groups(), userId],
     queryFn: ({ signal }) => fetchShoppingGroups(signal),
     staleTime: 10_000,

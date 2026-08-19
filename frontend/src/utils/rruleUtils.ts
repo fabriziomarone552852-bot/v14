@@ -1,5 +1,6 @@
 // src/utils/rruleUtils.ts
 import { RRule, rrulestr } from 'rrule';
+import { logger } from '@/utils/logger';
 
 // Aggiunto il secondo parametro opzionale: startDateStr
 // Aggiungiamo il secondo parametro opzionale: startDateStr
@@ -50,7 +51,7 @@ export const translateRRule = (rruleString?: string, startDateStr?: string): str
 
     return base; 
   } catch (e) {
-    console.error("Impossibile tradurre RRULE:", e);
+    logger.error("Impossibile tradurre RRULE:", e);
     return 'Regola personalizzata';
   }
 };
@@ -81,7 +82,7 @@ export const parseRRule = (rruleString?: string) => {
       until: untilStr
     };
   } catch (e) {
-    console.error("Errore nel parsing RRULE:", e);
+    logger.error("Errore nel parsing RRULE:", e);
     return { isRecurrent: true, freq: 'DAILY', interval: '1', until: '' };
   }
 };

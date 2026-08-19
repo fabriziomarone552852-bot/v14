@@ -6,7 +6,7 @@ import { YearReviewQuestionsPanel } from './YearReviewQuestionsPanel';
 import { YearReviewTasksPanel } from './YearReviewTasksPanel';
 import { YearReviewHabitsPanel } from './YearReviewHabitsPanel';
 import { ReviewTagBar } from '@/components/weekmonth/review/ReviewTagBar';
-import type { TrackerItem } from '@/components/weekmonth/TrackerPanel';
+import type { TrackerItem } from '@/types/monthlyentries';
 import type { YearlyType, DbYearlyEntry } from '@/types/yearlyentries';
 import type { Habit } from '@/types/habits';
 import type { Category } from '@/types/categories';

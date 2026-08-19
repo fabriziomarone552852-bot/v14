@@ -3,6 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { fetchItemPriceHistory } from '@/api/analyticsApi';
 import type { ItemPriceHistoryPoint } from '@/types/shopping';
 import { shoppingButtonSecondaryClass } from './shoppingUi';
+import { extractErrorMessage } from '@/utils/errorUtils';
 
 interface ShoppingPriceHistoryModalProps {
   isOpen: boolean;
@@ -27,8 +28,8 @@ const ShoppingPriceHistoryModal: React.FC<ShoppingPriceHistoryModalProps> = ({
       setError(null);
       fetchItemPriceHistory(itemId)
         .then((data) => setHistory(data))
-        .catch((err: any) => {
-          setError(err?.response?.data?.detail || err?.message || 'Impossibile caricare lo storico prezzi.');
+        .catch((err: unknown) => {
+          setError(extractErrorMessage(err, 'Impossibile caricare lo storico prezzi.'));
         })
         .finally(() => setIsLoading(false));
     }

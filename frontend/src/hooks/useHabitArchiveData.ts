@@ -6,6 +6,7 @@ import type { HabitItem } from '@/components/day/HabitDetailModal';
 import { translateRRule } from '@/utils/rruleUtils';
 import { formatToItalianShortDate } from '@/utils/dateUtils';
 import { RRule, rrulestr } from 'rrule';
+import { logger } from '@/utils/logger';
 
 export interface HabitFilterState {
   keyword: string;
@@ -90,7 +91,7 @@ export const calculateNextRoutineOccurrence = (
       return { date: next, label };
     }
   } catch (e) {
-    console.error('Errore calcolo prossima occorrenza RRULE:', e);
+    logger.error('Errore calcolo prossima occorrenza RRULE:', e);
   }
 
   return { date: null, label: 'Nessuna data futura' };
@@ -101,7 +102,7 @@ export const useHabitArchiveData = ({
   filters,
   activeTab,
   currentPage,
-  pageSize = 12,
+  pageSize = 6,
 }: UseHabitArchiveDataOptions) => {
   return useMemo(() => {
     // 1. Mappatura & Arricchimento Routines
@@ -128,6 +129,7 @@ export const useHabitArchiveData = ({
         data_inizio: startDate,
         imageUrl: h.immagine_url || '',
         targetCompletions,
+        currentCompletions: 0,
         currentCount: 0,
         done: false,
         periods: periods.map((p) => ({

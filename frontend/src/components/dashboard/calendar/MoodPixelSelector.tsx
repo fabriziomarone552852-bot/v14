@@ -2,7 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { CategoryGenre, type Category } from '@/types'; 
 import { useOutsideClick } from '@/hooks/useOutsideClick'; 
 import { DropdownIcon, CloseIcon } from '@/components/shared/utils/Icons'; 
-import { useCategories, useCreateCategory } from '@/hooks/useCategories'; 
+import { useCategories, useCreateCategory } from '@/hooks/useCategories';
+import { logger } from '@/utils/logger';
 
 interface MoodPixelSelectorProps {
   selectedCategoryId: number | null;
@@ -85,7 +86,7 @@ export const MoodPixelSelector: React.FC<MoodPixelSelectorProps> = ({
       setNewMoodForm({ name: '', color: '#3B82F6' });
       setErrorMsg('');
     } catch (err) {
-      console.error(err);
+      logger.error(err);
       setErrorMsg("Errore durante la creazione.");
     }
   };

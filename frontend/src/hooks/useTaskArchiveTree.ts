@@ -1,11 +1,11 @@
 // src/hooks/useTaskArchiveTree.ts
 import { useMemo } from 'react';
 import type { DbTask } from '@/types';
-import type { TaskFilterState } from '@/components/tasks/TaskFilterModal';
-import type { TaskSortField, TaskSortDirection } from '@/components/tasks/TaskTableHeader';
-import type { TaskStats } from '@/components/tasks/TaskStatsOverview';
+import type { TaskFilterState } from '@/components/archive/tasks/TaskFilterModal';
+import type { TaskSortField, TaskSortDirection } from '@/components/archive/tasks/TaskTableHeader';
+import type { TaskStats } from '@/components/archive/tasks/TaskStatsOverview';
 import { getLocalTodayStr } from '@/utils/dateUtils';
-import type { TaskTreeNode } from '@/components/tasks/TaskTreeRow';
+import type { TaskTreeNode } from '@/components/archive/tasks/TaskTreeRow';
 
 interface UseTaskArchiveTreeOptions {
   rawTasks: DbTask[];
@@ -36,7 +36,7 @@ export const useTaskArchiveTree = ({
   sortField,
   sortDirection,
   currentPage,
-  pageSize = 12,
+  pageSize = 8,
 }: UseTaskArchiveTreeOptions): TaskArchiveTreeResult => {
   return useMemo(() => {
     const todayStr = getLocalTodayStr();
@@ -55,7 +55,7 @@ export const useTaskArchiveTree = ({
     // 2. Costruzione Gerarchia Genitore -> Figli
     const roots: TaskTreeNode[] = [];
     allTasksList.forEach((node) => {
-      const parentId = node.parent_id ?? node.parent_task_id;
+      const parentId = node.parent_id;
       if (parentId) {
         const parent = taskMap.get(parentId);
         if (parent) {
@@ -104,7 +104,7 @@ export const useTaskArchiveTree = ({
       // Filtro Categoria
       if (
         modalFilters.categoryId !== 'all' &&
-        String(node.category_id || node.user_category_id || node.category?.id) !== modalFilters.categoryId
+        String(node.user_category_id || node.category?.id) !== modalFilters.categoryId
       ) {
         return false;
       }

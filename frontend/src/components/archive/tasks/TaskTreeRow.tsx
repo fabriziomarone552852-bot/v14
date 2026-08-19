@@ -47,7 +47,7 @@ export const TaskTreeRow: React.FC<TaskTreeRowProps> = ({
   const categoryColor = node.category?.colore || node.category_color || '#9CA3AF';
 
   // È una sottotask visualizzata a livello principale nei risultati di ricerca?
-  const isSubtaskInSearch = isSearchMode && level === 0 && Boolean(node.parent_id ?? node.parent_task_id);
+  const isSubtaskInSearch = isSearchMode && level === 0 && Boolean(node.parent_id);
 
   return (
     <div className="border-b border-gray-100 last:border-b-0">

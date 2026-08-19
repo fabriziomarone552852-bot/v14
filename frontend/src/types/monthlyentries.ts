@@ -44,6 +44,8 @@ export interface DbMonthlyEntry {
   monthly_field: string | null;
 }
 
+export type MonthlyEntryResponse = DbMonthlyEntry;
+
 /** Discriminatore type-safe: restituisce true se il tipo usa un valore numerico 0-10. */
 export function isNumericMonthlyType(type: string): type is NumericMonthlyType {
   return (NUMERIC_MONTHLY_TYPES as readonly string[]).includes(type);

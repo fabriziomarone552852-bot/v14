@@ -38,6 +38,13 @@ export const getGenreBadge = (genre: number) => {
           Stato d'animo
         </span>
       );
+    case CategoryGenre.TAG:
+    case 5:
+      return (
+        <span className="px-2.5 py-1 text-[11px] font-bold rounded-md bg-purple-50 text-purple-700 border border-purple-200 uppercase tracking-wide">
+          Tag
+        </span>
+      );
     default:
       return (
         <span className="px-2.5 py-1 text-[11px] font-bold rounded-md bg-gray-100 text-gray-700 border border-gray-200 uppercase tracking-wide">

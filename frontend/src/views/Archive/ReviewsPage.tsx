@@ -1,103 +1,208 @@
-// src/views/ReviewsPage.tsx
-import React from 'react';
-import { useNavigate } from 'react-router-dom';
-import { ReviewIcon, BackIcon, CalendarMonthIcon, CalendarYearIcon, ArrowRightIcon } from '@/components/shared/utils/Icons';
+// src/views/Archive/ReviewsPage.tsx
+import React, { useMemo, useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { api } from '@/api/apiService';
+import { useCategories } from '@/hooks/useCategories';
+import { ArchiveHeader } from '@/components/shared/layout/ArchiveHeader';
+import { ReviewIcon } from '@/components/shared/utils/Icons';
+import { ArchiveTableContainer } from '@/components/shared/layout/ArchiveTableContainer';
+import { ReviewActionBar } from '@/components/archive/reviews/ReviewActionBar';
+import { ReviewTableHeader } from '@/components/archive/reviews/ReviewTableHeader';
+import { ReviewTableRow } from '@/components/archive/reviews/ReviewTableRow';
+import { ReviewFilterModal } from '@/components/archive/reviews/ReviewFilterModal';
+import { MonthReviewArchiveModal } from '@/components/archive/reviews/MonthReviewArchiveModal';
+import { YearReviewArchiveModal } from '@/components/archive/reviews/YearReviewArchiveModal';
+import {
+  useReviewArchiveData,
+  type ReviewTabType,
+  type ReviewFilterState,
+  type MonthReviewItem,
+  type YearReviewItem,
+} from '@/hooks/useReviewArchiveData';
+import { useDynamicPageSize } from '@/hooks/useDynamicPageSize';
+import { useModal } from '@/hooks/useModals';
+import { ARCHIVE_PANEL_CLASS } from './CategoriesPage';
+import type { MonthlyEntryResponse } from '@/types/monthlyentries';
+import type { DbYearlyEntry } from '@/types/yearlyentries';
 
-const panelClass =
-  'rounded-[28px] border border-white/70 bg-white/95 shadow-[0_10px_30px_rgba(15,23,42,0.06)] backdrop-blur';
+const initialFilterState: ReviewFilterState = {
+  keyword: '',
+  tag: '',
+  status: 'all',
+};
 
 export const ReviewsPage: React.FC = () => {
-  const navigate = useNavigate();
+  const { data: categories = [] } = useCategories();
+
+  // 1. CARICAMENTO DATI IN RAM CON REACT QUERY
+  const { data: rawMonthlyEntries = [], isLoading: loadingMonths } = useQuery<
+    MonthlyEntryResponse[]
+  >({
+    queryKey: ['monthly_entries'],
+    queryFn: async () => {
+      const res = await api.get<MonthlyEntryResponse[]>('/monthly-entries');
+      return Array.isArray(res) ? res : [];
+    },
+  });
+
+  const { data: rawYearlyEntries = [], isLoading: loadingYears } = useQuery<
+    DbYearlyEntry[]
+  >({
+    queryKey: ['yearly_entries'],
+    queryFn: async () => {
+      const res = await api.get<DbYearlyEntry[]>('/yearly-entries');
+      return Array.isArray(res) ? res : [];
+    },
+  });
+
+  const loading = loadingMonths || loadingYears;
+
+  // 2. STATO TAB, FILTRI E PAGINAZIONE
+  const [activeTab, setActiveTab] = useState<ReviewTabType>('months');
+  const [filters, setFilters] = useState<ReviewFilterState>(initialFilterState);
+  const [currentPage, setCurrentPage] = useState<number>(1);
+
+  // 3. CALCOLO DINAMICO DEL PAGE SIZE IN BASE ALL'ALTEZZA
+  const { containerRef, pageSize } = useDynamicPageSize({
+    rowHeight: 48,
+    defaultPageSize: 8,
+    minItems: 3,
+    maxItems: 30,
+  });
+
+  // 4. MODALI — useModal<T> al posto di coppie useState separate
+  // Il dato associato è il valore discriminante (Date per mesi, number per anni)
+  const filterModal = useModal();
+  const monthModal = useModal<Date>();
+  const yearModal = useModal<number>();
+
+  // 5. HOOK DI ELABORAZIONE IN RAM
+  const {
+    monthsCount,
+    yearsCount,
+    filteredItems,
+    paginatedItems,
+    totalPages,
+    availableTags,
+  } = useReviewArchiveData({
+    rawMonthlyEntries,
+    rawYearlyEntries,
+    categories,
+    activeTab,
+    filters,
+    currentPage,
+    pageSize,
+  });
+
+  // Conteggio filtri attivi
+  const activeFiltersCount = useMemo(() => {
+    let count = 0;
+    if (filters.keyword.trim()) count++;
+    if (filters.tag.trim()) count++;
+    if (filters.status !== 'all') count++;
+    return count;
+  }, [filters]);
+
+  const hasActiveFilters = activeFiltersCount > 0;
+
+  const handleResetFilters = () => {
+    setFilters(initialFilterState);
+    setCurrentPage(1);
+  };
+
+  const handleTabSwitch = (tab: ReviewTabType) => {
+    setActiveTab(tab);
+    setCurrentPage(1);
+  };
+
+  // Apertura modale di revisione corrispondente
+  const handleSelectReview = (item: MonthReviewItem | YearReviewItem) => {
+    if (activeTab === 'months') {
+      monthModal.open((item as MonthReviewItem).monthDate);
+    } else {
+      yearModal.open((item as YearReviewItem).year);
+    }
+  };
 
   return (
-    <div className="h-full flex flex-col justify-between gap-4 max-w-[1600px] mx-auto overflow-hidden">
-      {/* HEADER */}
-      <section className={`${panelClass} p-5 sm:p-6 shrink-0`}>
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3.5">
-            <button
-              type="button"
-              onClick={() => navigate('/archivio')}
-              className="p-2.5 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-700 transition cursor-pointer"
-              title="Torna all'archivio"
-            >
-              <BackIcon className="w-5 h-5" />
-            </button>
-            <div className="p-3 bg-rose-50 text-rose-600 rounded-2xl">
-              <ReviewIcon className="w-6 h-6" />
-            </div>
-            <div>
-              <h1 className="text-xl sm:text-2xl font-extrabold tracking-tight text-slate-900">
-                Review Mesi & Anni
-              </h1>
-              <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
-                Accedi alle retrospettive periodiche per valutare obiettivi, progetti e riflessioni.
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
+    <div className="h-full flex flex-col gap-3.5 max-w-[1600px] mx-auto relative z-10 pb-1">
+      {/* 1. HEADER STANDARD */}
+      <ArchiveHeader
+        title="REVISIONI PERIODICHE"
+        subtitle="Archivio e bilancio delle risposte di review, tag ed obiettivi dei mesi e degli anni."
+        icon={<ReviewIcon className="h-6 w-6 text-white" />}
+        className={ARCHIVE_PANEL_CLASS}
+      />
 
-      {/* CONTENUTO PRINCIPALE */}
-      <div className={`${panelClass} p-6 flex-1 min-h-0 flex flex-col justify-center`}>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-3xl mx-auto w-full">
-          {/* Card Review Mensile */}
-          <button
-            type="button"
-            onClick={() => navigate('/mese')}
-            className="p-6 rounded-3xl border border-slate-200/80 bg-white hover:bg-rose-50/30 hover:border-rose-300 transition-all text-left group shadow-sm flex flex-col justify-between cursor-pointer focus:outline-none"
-          >
-            <div className="flex items-start justify-between">
-              <div className="p-4 rounded-2xl bg-rose-50 text-rose-600 group-hover:scale-105 transition-transform">
-                <CalendarMonthIcon className="w-8 h-8" />
-              </div>
-              <span className="text-xs font-bold px-3 py-1 rounded-full bg-rose-100 text-rose-700">
-                Mese
-              </span>
-            </div>
-            <div className="my-4">
-              <h2 className="text-lg font-bold text-slate-900 group-hover:text-rose-600 transition-colors">
-                Review Mensile
-              </h2>
-              <p className="text-xs text-slate-500 mt-1">
-                Consulta il bilancio mensile, la tabella del mood e le domande di retrospettiva del mese corrente.
-              </p>
-            </div>
-            <div className="flex items-center gap-2 text-xs font-bold text-rose-600">
-              <span>Vai alla vista mese</span>
-              <ArrowRightIcon className="w-3.5 h-3.5" />
-            </div>
-          </button>
+      {/* 2. RIGA AZIONI: SLIDER SCHEDE A SINISTRA E RICERCA A DESTRA */}
+      <ReviewActionBar
+        activeTab={activeTab}
+        onTabChange={handleTabSwitch}
+        monthsCount={monthsCount}
+        yearsCount={yearsCount}
+        onOpenSearch={filterModal.open}
+        activeFiltersCount={activeFiltersCount}
+        panelClass={ARCHIVE_PANEL_CLASS}
+      />
 
-          {/* Card Review Annuale */}
-          <button
-            type="button"
-            onClick={() => navigate('/anno')}
-            className="p-6 rounded-3xl border border-slate-200/80 bg-white hover:bg-indigo-50/30 hover:border-indigo-300 transition-all text-left group shadow-sm flex flex-col justify-between cursor-pointer focus:outline-none"
-          >
-            <div className="flex items-start justify-between">
-              <div className="p-4 rounded-2xl bg-indigo-50 text-indigo-600 group-hover:scale-105 transition-transform">
-                <CalendarYearIcon className="w-8 h-8" />
-              </div>
-              <span className="text-xs font-bold px-3 py-1 rounded-full bg-indigo-100 text-indigo-700">
-                Anno
-              </span>
-            </div>
-            <div className="my-4">
-              <h2 className="text-lg font-bold text-slate-900 group-hover:text-indigo-600 transition-colors">
-                Review Annuale
-              </h2>
-              <p className="text-xs text-slate-500 mt-1">
-                Visualizza la panoramica di tutto l&apos;anno, gli obiettivi annuali e i progressi complessivi.
-              </p>
-            </div>
-            <div className="flex items-center gap-2 text-xs font-bold text-indigo-600">
-              <span>Vai alla vista anno</span>
-              <ArrowRightIcon className="w-3.5 h-3.5" />
-            </div>
-          </button>
-        </div>
-      </div>
+      {/* 3. TABELLA REVISIONI CON ORDINAMENTO E PAGINAZIONE */}
+      <ArchiveTableContainer
+        header={<ReviewTableHeader />}
+        loading={loading}
+        loadingMessage="Caricamento revisioni in corso..."
+        isEmpty={filteredItems.length === 0}
+        emptyIcon={<ReviewIcon className="w-8 h-8 text-slate-400" />}
+        emptyTitle="Nessuna revisione trovata"
+        emptyDescription={
+          hasActiveFilters
+            ? 'Nessuna revisione corrisponde ai filtri selezionati. Prova ad azzerarli.'
+            : 'Non ci sono revisioni disponibili.'
+        }
+        hasActiveFilters={hasActiveFilters}
+        onResetFilters={handleResetFilters}
+        currentPage={currentPage}
+        totalPages={totalPages}
+        onPageChange={setCurrentPage}
+        className={ARCHIVE_PANEL_CLASS}
+        bodyRef={containerRef}
+      >
+        {paginatedItems.map((item) => (
+          <ReviewTableRow
+            key={item.id}
+            item={item}
+            onSelect={handleSelectReview}
+          />
+        ))}
+      </ArchiveTableContainer>
+
+      {/* 4. MODALE FILTRI & RICERCA IN OVERLAY GLOBALE */}
+      <ReviewFilterModal
+        isOpen={filterModal.isOpen}
+        onClose={filterModal.close}
+        filters={filters}
+        onFilterChange={(newFilters) => {
+          setFilters(newFilters);
+          setCurrentPage(1);
+        }}
+        onReset={handleResetFilters}
+        hasActiveFilters={hasActiveFilters}
+        availableTags={availableTags}
+        activeTab={activeTab}
+      />
+
+      {/* 5. MODALE REVIEW MESE (Apertura al click sulla riga mese) */}
+      <MonthReviewArchiveModal
+        isOpen={monthModal.isOpen}
+        onClose={monthModal.close}
+        monthDate={monthModal.data}
+      />
+
+      {/* 6. MODALE REVIEW ANNO (Apertura al click sulla riga anno) */}
+      <YearReviewArchiveModal
+        isOpen={yearModal.isOpen}
+        onClose={yearModal.close}
+        year={yearModal.data}
+      />
     </div>
   );
 };

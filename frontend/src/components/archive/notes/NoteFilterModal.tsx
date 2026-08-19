@@ -1,38 +1,35 @@
-// src/components/habits/HabitFilterModal.tsx
+// src/components/notes/NoteFilterModal.tsx
 import React, { useState } from 'react';
 import BaseModal from '@/components/shared/dialog/BaseModal';
 import { SearchIcon, UndoIcon } from '@/components/shared/utils/Icons';
 import DatePicker from '@/components/shared/utils/DatePicker/DatePicker';
-import type { HabitFilterState } from '@/hooks/useHabitArchiveData';
-import type { HabitTabType } from '@/components/habits/ArchiveTabs';
+import type { NoteFilterState } from '@/hooks/useNoteArchiveData';
 
-interface HabitFilterModalProps {
+interface NoteFilterModalProps {
   isOpen: boolean;
   onClose: () => void;
-  filters: HabitFilterState;
-  onFilterChange: (newFilters: HabitFilterState) => void;
+  filters: NoteFilterState;
+  onFilterChange: (newFilters: NoteFilterState) => void;
   onReset: () => void;
   hasActiveFilters: boolean;
-  activeTab: HabitTabType;
 }
 
-export const HabitFilterModal: React.FC<HabitFilterModalProps> = ({
+export const NoteFilterModal: React.FC<NoteFilterModalProps> = ({
   isOpen,
   onClose,
   filters,
   onFilterChange,
   onReset,
   hasActiveFilters,
-  activeTab,
 }) => {
   const [isDateFromOpen, setIsDateFromOpen] = useState(false);
   const [isDateToOpen, setIsDateToOpen] = useState(false);
 
   if (!isOpen) return null;
 
-  const handleFieldChange = <K extends keyof HabitFilterState>(
+  const handleFieldChange = <K extends keyof NoteFilterState>(
     field: K,
-    value: HabitFilterState[K]
+    value: NoteFilterState[K]
   ) => {
     onFilterChange({
       ...filters,
@@ -65,22 +62,20 @@ export const HabitFilterModal: React.FC<HabitFilterModalProps> = ({
     </div>
   );
 
-  const titleSuffix = activeTab === 'routines' ? 'Routines' : 'Habits';
-
   return (
     <BaseModal
       isOpen={isOpen}
       onClose={onClose}
-      title={`Filtri & Ricerca ${titleSuffix}`}
+      title="Filtri & Ricerca Note"
       maxWidthClass="max-w-md"
       footer={modalFooter}
       overflowVisible={true}
     >
       <div className="space-y-4">
-        {/* 1. RICERCA PER PAROLA CHIAVE NEL NOME */}
+        {/* 1. RICERCA PER PAROLA CHIAVE NEL TESTO */}
         <div>
           <label className="block text-xs font-bold text-gray-500 uppercase mb-1">
-            Nome {activeTab === 'routines' ? 'Routine' : 'Habit'}
+            Parola Chiave nel Testo
           </label>
           <div className="relative">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
@@ -90,34 +85,36 @@ export const HabitFilterModal: React.FC<HabitFilterModalProps> = ({
               type="text"
               value={filters.keyword}
               onChange={(e) => handleFieldChange('keyword', e.target.value)}
-              placeholder="Cerca per nome..."
+              placeholder="Cerca negli appunti..."
               className="w-full pl-9 pr-3 py-2 border border-gray-200 rounded-xl text-sm focus:border-blue-500 outline-none transition-colors"
             />
           </div>
         </div>
 
-        {/* 2. STATO (TUTTI / SOLO ATTIVI / SOLO IN PAUSA) */}
+        {/* 2. TIPOLOGIA COLORE / VARIANTE */}
         <div>
           <label className="block text-xs font-bold text-gray-500 uppercase mb-1">
-            Stato
+            Tipologia / Colore Nota
           </label>
-          <div className="grid grid-cols-3 gap-2">
+          <div className="grid grid-cols-5 gap-1.5">
             {[
-              { id: 'all', label: 'Tutti' },
-              { id: 'active', label: 'Solo Attivi' },
-              { id: 'paused', label: 'Solo in Pausa' },
+              { id: 'all', label: 'Tutte', bg: 'bg-slate-100 text-slate-700 border-slate-200' },
+              { id: 'N1', label: 'Giallo', bg: 'bg-yellow-100 text-yellow-900 border-yellow-300' },
+              { id: 'N2', label: 'Verde', bg: 'bg-green-100 text-green-900 border-green-300' },
+              { id: 'N3', label: 'Blu', bg: 'bg-blue-100 text-blue-900 border-blue-300' },
+              { id: 'N4', label: 'Rosa', bg: 'bg-pink-100 text-pink-900 border-pink-300' },
             ].map((item) => (
               <button
                 key={item.id}
                 type="button"
                 onClick={() =>
-                  handleFieldChange('status', item.id as HabitFilterState['status'])
+                  handleFieldChange('variant', item.id as NoteFilterState['variant'])
                 }
-                className={`py-2 text-xs font-bold rounded-xl border transition-all cursor-pointer ${
-                  filters.status === item.id
-                    ? 'bg-gray-900 text-white border-gray-900 shadow-sm'
-                    : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
-                }`}
+                className={`py-2 text-[11px] font-bold rounded-xl border transition-all cursor-pointer text-center ${
+                  filters.variant === item.id
+                    ? 'ring-2 ring-blue-600 font-extrabold shadow-sm'
+                    : 'opacity-75 hover:opacity-100'
+                } ${item.bg}`}
               >
                 {item.label}
               </button>
@@ -125,7 +122,7 @@ export const HabitFilterModal: React.FC<HabitFilterModalProps> = ({
           </div>
         </div>
 
-        {/* 3. PERIODO DI SCADENZA / INIZIO CON DATEPICKER */}
+        {/* 3. INTERVALLO DI DATE (DA DATA - A DATA CON DATEPICKER) */}
         <div className="grid grid-cols-2 gap-3 items-end">
           <div>
             <label className="block text-xs font-bold text-gray-500 uppercase mb-1">
@@ -166,4 +163,4 @@ export const HabitFilterModal: React.FC<HabitFilterModalProps> = ({
   );
 };
 
-export default HabitFilterModal;
+export default NoteFilterModal;

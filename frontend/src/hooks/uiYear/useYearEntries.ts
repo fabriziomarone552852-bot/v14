@@ -6,9 +6,9 @@ import { useCategories } from '@/hooks/useCategories';
 import { api } from '@/api/apiService';
 import type { SyncYearResponse } from '@/hooks/useAgendaYear';
 import type { DbYearlyEntry, YearlyType } from '@/types/yearlyentries';
-import type { Category } from '@/types/categories';
 import { YEARLY_MOOD_COLORS, YEARLY_MOOD_LABELS, YEARLY_SPHERE_COLORS, YEARLY_SPHERE_LABELS } from '@/types/yearlyentries';
-import type { TrackerItem } from '@/components/weekmonth/TrackerPanel';
+import type { Category } from '@/types/categories';
+import type { TrackerItem } from '@/types/monthlyentries';
 
 export interface UseYearEntriesResult {
   entries: DbYearlyEntry[];
@@ -80,6 +80,7 @@ export const useYearEntries = (yearData: SyncYearResponse | undefined, year: num
       return {
         id: code,
         name: YEARLY_MOOD_LABELS[code],
+        category: 'MOOD',
         colorHex: YEARLY_MOOD_COLORS[code],
         currentValue: entry && entry.yearly_field ? parseInt(entry.yearly_field, 10) || 0 : 0,
         previousValue: 0,
@@ -93,6 +94,7 @@ export const useYearEntries = (yearData: SyncYearResponse | undefined, year: num
       return {
         id: code,
         name: YEARLY_SPHERE_LABELS[code],
+        category: 'SPHERE',
         colorHex: YEARLY_SPHERE_COLORS[code],
         currentValue: entry && entry.yearly_field ? parseInt(entry.yearly_field, 10) || 0 : 0,
         previousValue: 0,

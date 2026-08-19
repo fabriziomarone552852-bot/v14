@@ -6,6 +6,7 @@ import {
   intervalToDuration,
   isBefore
 } from 'date-fns';
+import { logger } from '@/utils/logger';
 
 export const nomiMesiLungo = [
   'Gennaio', 'Febbraio', 'Marzo', 'Aprile', 'Maggio', 'Giugno',
@@ -99,7 +100,7 @@ export const combineDateAndTime = (dateStr: string, timeStr?: string): string =>
     // Niente .toISOString() ! Costruiamo il naive datetime per FastAPI
     return `${year}-${pad(month)}-${pad(day)}T${pad(hours)}:${pad(minutes)}:00`;
   } catch (e) {
-    console.error("Errore nel parsing della data", e);
+    logger.error("Errore nel parsing della data", e);
     return `${dateStr}T00:00:00`; 
   }
 };

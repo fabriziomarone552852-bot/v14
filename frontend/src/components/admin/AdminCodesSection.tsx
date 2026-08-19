@@ -2,6 +2,7 @@
 import React, { useMemo, useState } from 'react';
 import type { SystemConfigCodeItem } from '@/api/adminApi';
 import { createSystemCode, deactivateSystemCode, updateSystemCode } from '@/api/adminApi';
+import { extractErrorMessage } from '@/utils/errorUtils';
 
 interface AdminCodesSectionProps {
   codes: SystemConfigCodeItem[];
@@ -63,8 +64,8 @@ export const AdminCodesSection: React.FC<AdminCodesSectionProps> = ({ codes, onR
       setIsModalOpen(false);
       setForm({ code_type: '', code_value: '', code_name: '', display_name: '', sort_order: '0', notes: '' });
       await onRefresh();
-    } catch (err: any) {
-      setMessage({ text: err?.response?.data?.detail || 'Errore nella creazione', type: 'error' });
+    } catch (err: unknown) {
+      setMessage({ text: extractErrorMessage(err, 'Errore nella creazione'), type: 'error' });
     } finally {
       setSubmitting(false);
     }
@@ -78,8 +79,8 @@ export const AdminCodesSection: React.FC<AdminCodesSectionProps> = ({ codes, onR
         await updateSystemCode(code.id, { is_active: true });
       }
       await onRefresh();
-    } catch (err: any) {
-      alert(err?.response?.data?.detail || 'Errore nell\'aggiornamento stato');
+    } catch (err: unknown) {
+      alert(extractErrorMessage(err, "Errore nell'aggiornamento stato"));
     }
   };
 
