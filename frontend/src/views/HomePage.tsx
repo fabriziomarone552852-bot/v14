@@ -14,16 +14,16 @@ import CalendarColumn from '@/components/dashboard/CalendarColumn';
 import TaskColumn from '@/components/shared/tasks/TaskColumn';
 import EventsColumn from '@/components/shared/events/EventsColumn';
 import { YearProgressWidget } from '@/components/dashboard/YearProgressWidget';
-import { UpcomingTasksWidget } from '@/components/dashboard/UpcomingTasksWidget';
+import { DailyQuoteWidget } from '@/components/dashboard/DailyQuoteWidget';
 import { LoadingIcon } from '@/components/shared/utils/Icons';
 
 // Utilities
-import { buildTaskTreeForHome, filterAndSortTree, getUpcomingTasks } from '@/utils/taskUtils';
+import { buildTaskTreeForHome, filterAndSortTree } from '@/utils/taskUtils';
 import { calculateYearProgress, formatDateString } from '@/utils/dateUtils';
 import { mapDbEventsToCalendarEvents } from '@/utils/eventUtils';
 
 // Tipi rigorosi (Zero any)
-import type { CalendarEvent, TaskSummary, UITask } from '@/types';
+import type { CalendarEvent, UITask } from '@/types';
 
 const HomePage: React.FC = () => {
   const navigate = useNavigate();
@@ -53,11 +53,6 @@ const HomePage: React.FC = () => {
   const calendarEvents: CalendarEvent[] = useMemo(() => {
     return mapDbEventsToCalendarEvents(eventiDalServer ?? []);
   }, [eventiDalServer]);
-
-  const next30DaysTasks: TaskSummary[] = useMemo(
-    () => getUpcomingTasks(tasks ?? [], 30), 
-    [tasks]
-  );
 
   // --- HANDLERS ---
 
@@ -92,10 +87,12 @@ const HomePage: React.FC = () => {
   }
 
   return (
-    <div className="flex flex-col gap-6 max-w-[1600px] mx-auto min-h-full xl:h-full relative">
+    <div className="flex flex-col gap-4 max-w-[1600px] mx-auto min-h-full xl:h-full xl:overflow-hidden relative">
+      {/* Barra Progresso Anno (Dimensione fissa shrink-0) */}
       <YearProgressWidget progress={yearProgress} />
 
-      <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 flex-1 xl:min-h-0">
+      {/* Griglia Centrale a 3 Colonne (Occupa tutto lo spazio verticale residuo) */}
+      <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 flex-1 min-h-0">
         <div className="xl:col-span-3 flex flex-col h-full min-h-0">
           <TaskColumn 
             tasks={taskTree} 
@@ -136,8 +133,8 @@ const HomePage: React.FC = () => {
         </div>
       </div>
 
-      {/* Lasciamo l'elenco delle task previste nei prossimi 30 giorni in basso */}
-      <UpcomingTasksWidget tasks={next30DaysTasks} />
+      {/* Barra Citazioni Giornaliere (Altezza fissa bloccata) */}
+      <DailyQuoteWidget />
     </div>
   );
 };
