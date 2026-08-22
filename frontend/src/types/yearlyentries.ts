@@ -23,12 +23,14 @@ export type YearlySingleType = typeof YEARLY_SINGLE_TYPES[number];
 export type YearlyMultiType = typeof YEARLY_MULTI_TYPES[number];
 export type YearlyType = YearlySingleType | YearlyMultiType;
 
+import type { FixedMoodName, FixedSphereName } from './monthlyentries';
+
 /** Nomi leggibili mood (riusa stessi label di monthly) */
-export const YEARLY_MOOD_LABELS: Record<YearlyMoodType, string> = {
+export const YEARLY_MOOD_LABELS: Record<YearlyMoodType, FixedMoodName> = {
   MJ: 'Gioia', MS: 'Tristezza', MA: 'Rabbia', MD: 'Disgusto', MT: 'Paura',
 };
 /** Nomi leggibili sfere */
-export const YEARLY_SPHERE_LABELS: Record<YearlySphereType, string> = {
+export const YEARLY_SPHERE_LABELS: Record<YearlySphereType, FixedSphereName> = {
   SC: 'Coppia', SF: 'Famiglia', SA: 'Amici', SH: 'Salute',
   SS: 'Mente', SD: 'Svago', SM: 'Finanze', SW: 'Lavoro',
 };

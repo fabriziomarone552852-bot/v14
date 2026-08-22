@@ -20,7 +20,10 @@ from backend.domains.shopping.schemas.inventory import (
     InventoryBatchCreate,
     InventoryBatchResponse,
     InventoryBatchUpdate,
+    ItemBatchResponse,
+    CommunityPricePoint,
 )
+
 from backend.domains.shopping.schemas.lists import (
     ShoppingListItemCreate,
     ShoppingListItemResponse,
@@ -84,6 +87,25 @@ def delete_group(
 ):
     service.delete_group(db, current_user, group_id)
     return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+
+@router.post("/groups/{group_id}/archive", response_model=ShoppingGroupResponse)
+def archive_group(
+    group_id: int,
+    db: Session = Depends(deps.get_db),
+    current_user: User = Depends(deps.get_current_app_user),
+):
+    return service.archive_group(db, current_user, group_id)
+
+
+@router.post("/groups/{group_id}/unarchive", response_model=ShoppingGroupResponse)
+def unarchive_group(
+    group_id: int,
+    db: Session = Depends(deps.get_db),
+    current_user: User = Depends(deps.get_current_app_user),
+):
+    return service.unarchive_group(db, current_user, group_id)
+
 
 
 @router.get("/groups/{group_id}/members", response_model=List[ShoppingGroupMemberResponse])
@@ -320,8 +342,46 @@ def delete_supplier(
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
+@router.get(
+    "/inventory-batches",
+    response_model=List[ItemBatchResponse],
+)
+def list_all_inventory_batches(
+    db: Session = Depends(deps.get_db),
+    current_user: User = Depends(deps.get_current_app_user),
+):
+    return service.list_all_batches(db, current_user)
+
+
+@router.get(
+    "/items/{item_id}/inventory-batches",
+    response_model=List[ItemBatchResponse],
+)
+def list_item_batches(
+    item_id: int,
+    db: Session = Depends(deps.get_db),
+    current_user: User = Depends(deps.get_current_app_user),
+):
+    return service.list_item_batches(db, current_user, item_id)
+
+
+
+@router.get(
+    "/products/{product_id}/community-prices",
+    response_model=List[CommunityPricePoint],
+)
+def list_community_prices(
+    product_id: int,
+    limit: int = Query(50, ge=1, le=200),
+    db: Session = Depends(deps.get_db),
+    current_user: User = Depends(deps.get_current_app_user),
+):
+    return service.list_community_prices(db, product_id, limit=limit)
+
+
 @router.post(
     "/items/{item_id}/inventory-batches",
+
     response_model=InventoryBatchResponse,
     status_code=status.HTTP_201_CREATED,
 )

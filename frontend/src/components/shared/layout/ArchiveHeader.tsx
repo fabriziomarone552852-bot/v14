@@ -19,14 +19,14 @@ export const ArchiveHeader: React.FC<ArchiveHeaderProps> = ({
   className = '',
 }) => {
   const basePanelClass =
-    'rounded-2xl border border-slate-200/90 bg-white shadow-xs p-5 sm:p-6 shrink-0 relative z-10';
+    'rounded-2xl border border-slate-200/90 bg-white shadow-xs p-3.5 sm:px-5 sm:py-3.5 shrink-0 relative z-10';
 
   return (
     <section className={`${basePanelClass} ${className}`}>
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         {/* Sinistra: Icona, Titolo, Badge e Sottotitolo */}
         <div className="flex items-center gap-3.5">
-          <div className="p-2.5 bg-slate-900 text-white rounded-xl shadow-xs shrink-0 flex items-center justify-center">
+          <div className="w-10 h-10 bg-slate-900 text-white rounded-xl shadow-xs shrink-0 flex items-center justify-center [&>svg]:w-5 [&>svg]:h-5">
             {icon}
           </div>
           <div>

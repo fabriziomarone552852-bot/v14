@@ -52,6 +52,9 @@ class Settings(BaseSettings):
     default_max_subtask_depth: int = Field(3, ge=0)
     default_habit_log_lookback_days: int = Field(30, ge=1)
     default_completed_task_lookback_days: int = Field(90, ge=1)
+    default_price_stats_lookback_days: int = Field(365, ge=1)
+
+
 
     password_min_length: int = 5
     password_max_length: int = 128

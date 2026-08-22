@@ -51,7 +51,7 @@ export const BingoModal: React.FC<BingoModalProps> = ({
     setDraftText('');
   };
 
-  const handleCellClick = (cell: DbBingoEntry, pos: number) => {
+  const handleCellClick = (cell: DbBingoEntry, _pos: number) => {
     const now = Date.now();
     const last = lastClickTime[cell.id] ?? 0;
     if (now - last < 300) {

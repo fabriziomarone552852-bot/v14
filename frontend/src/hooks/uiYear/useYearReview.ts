@@ -30,7 +30,7 @@ export interface UseYearReviewResult {
 export const useYearReview = (
   year: number,
   entries: DbYearlyEntry[],
-  isCurrentYear: boolean,
+  _isCurrentYear: boolean,
   tagInfo?: {
     assignedTags: Category[];
     allTags: Category[];

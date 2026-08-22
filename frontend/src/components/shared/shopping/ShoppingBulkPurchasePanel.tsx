@@ -271,6 +271,8 @@ const ShoppingBulkPurchasePanel: React.FC<ShoppingBulkPurchasePanelProps> = ({
       return;
     }
 
+    if (!activeList) return;
+
     setRows((prev) =>
       prev.map((r) =>
         r.item.id === itemId ? { ...r, saving: true } : r
@@ -281,13 +283,16 @@ const ShoppingBulkPurchasePanel: React.FC<ShoppingBulkPurchasePanelProps> = ({
       await mutations.addInventoryBatch({
         itemId: item.id,
         listId: activeList.id,
-        productId: item.productId,
-        supplierId: form.supplierId ? Number(form.supplierId) : undefined,
-        purchaseDate: form.purchaseDate,
-        price: priceValue,
-        currencyId: form.currencyId ? Number(form.currencyId) : undefined,
-        offerFlagId: form.offerFlagId ? Number(form.offerFlagId) : undefined,
+        data: {
+          productId: item.productId,
+          supplierId: form.supplierId ? Number(form.supplierId) : undefined,
+          purchaseDate: form.purchaseDate,
+          purchasePrice: priceValue,
+          currencyId: form.currencyId ? Number(form.currencyId) : undefined,
+          offerFlagId: form.offerFlagId ? Number(form.offerFlagId) : undefined,
+        },
       });
+
 
       setRows((prev) => prev.filter((r) => r.item.id !== itemId));
     } finally {
@@ -299,10 +304,10 @@ const ShoppingBulkPurchasePanel: React.FC<ShoppingBulkPurchasePanelProps> = ({
     }
   };
 
-  if (openItems.length === 0) {
+  if (!activeList || openItems.length === 0) {
     return (
       <div className={`${shoppingCardClass} p-4 text-sm text-slate-500`}>
-        Nessun articolo aperto da acquistare.
+        {!activeList ? 'Seleziona una lista per visualizzare gli articoli.' : 'Nessun articolo aperto da acquistare.'}
       </div>
     );
   }
@@ -319,6 +324,7 @@ const ShoppingBulkPurchasePanel: React.FC<ShoppingBulkPurchasePanelProps> = ({
           </p>
         </div>
       </div>
+
 
       <div className="space-y-3">
         {rows.map(({ item, form, saving }) => (

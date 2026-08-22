@@ -18,3 +18,17 @@ export const shoppingDangerButtonClass =
 
 export const shoppingSelectClass =
   'w-full rounded-2xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-700 shadow-sm outline-none transition focus:border-sky-400 focus:ring-2 focus:ring-sky-100 disabled:cursor-not-allowed disabled:bg-slate-50 disabled:opacity-100';
+
+export const getRoleBadgeClass = (roleCode: string): string => {
+  switch (roleCode.toLowerCase()) {
+    case 'owner':
+      return 'bg-purple-100 text-purple-800 border-purple-200';
+    case 'admin':
+      return 'bg-blue-100 text-blue-800 border-blue-200';
+    case 'editor':
+      return 'bg-green-100 text-green-800 border-green-200';
+    case 'reader':
+    default:
+      return 'bg-gray-100 text-gray-700 border-gray-200';
+  }
+};

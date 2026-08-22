@@ -5,7 +5,7 @@ import type { RoutineItem } from '@/components/day/RoutineColumn';
 import type { HabitItem } from '@/components/day/HabitDetailModal';
 import { translateRRule } from '@/utils/rruleUtils';
 import { formatToItalianShortDate } from '@/utils/dateUtils';
-import { RRule, rrulestr } from 'rrule';
+import { rrulestr } from 'rrule';
 import { logger } from '@/utils/logger';
 
 export interface HabitFilterState {
@@ -61,7 +61,7 @@ export const formatRoutineFrequency = (
  */
 export const calculateNextRoutineOccurrence = (
   rruleStr?: string | null,
-  startDateStr?: string
+  _startDateStr?: string
 ): { date: Date | null; label: string } => {
   if (!rruleStr) {
     const today = new Date();

@@ -9,3 +9,6 @@ export { default as HabitsPage } from './HabitsPage';
 export { default as NotesPage } from './NotesPage';
 export { default as ReviewsPage } from './ReviewsPage';
 export { default as TagsPage } from './TagsPage';
+export { default as SuppliersPage } from './SuppliersPage';
+export { default as ShoppingArchivePage } from './ShoppingArchivePage';
+

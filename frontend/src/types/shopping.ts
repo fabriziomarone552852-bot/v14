@@ -20,13 +20,20 @@ export interface ShoppingGroupSummary {
   id: number;
   name: string;
   description?: string | null;
+  icon?: string | null;
   ownerId?: number | null;
   statusId?: number | null;
   visibilityId?: number | null;
   canEdit?: boolean;
   canDelete?: boolean;
   userRole?: string | null;
+  archivedAt?: string | null;
+  isArchived?: boolean;
+  members?: ShoppingGroupMember[];
+  memberCount?: number;
 }
+
+
 
 /** @deprecated Usa ShoppingGroupSummary */
 export type ShoppingGroup = ShoppingGroupSummary;
@@ -48,6 +55,13 @@ export interface ShoppingGroupMemberInvitePayload {
   email?: string;
   roleCode: string;
 }
+
+export interface PendingGroupInvite {
+  type: 'username' | 'email';
+  value: string;
+  roleCode: string;
+}
+
 
 export interface ShoppingGroupMemberRoleUpdatePayload {
   roleCode: string;
@@ -105,17 +119,21 @@ export interface ShoppingListSummary {
   description?: string | null;
   groupId?: number | null;
   groupName?: string | null;
-  visibilityId: number;
+  visibilityId?: number | null;
   visibilityCodeName?: string | null;
   statusId?: number | null;
   statusCodeName?: string | null;
   openItemsCount: number;
   purchasedItemsCount: number;
   totalItemsCount: number;
+  isCompleted: boolean;
   canEdit: boolean;
   canDelete: boolean;
   canArchive?: boolean;
+  items?: ShoppingListItem[];
 }
+
+
 
 export interface ShoppingListItem {
   id: number;
@@ -129,7 +147,13 @@ export interface ShoppingListItem {
   quantity?: number | null;
   unitId?: number | null;
   unitCodeName?: string | null;
+  unitCode?: string | null;
+  unitName?: string | null;
+  groupName?: string | null;
+  listName?: string | null;
   notes?: string | null;
+  note?: string | null;
+  estimatedPrice?: number | null;
 
   isPurchased: boolean;
 
@@ -143,7 +167,12 @@ export interface ShoppingListItem {
 
   createdAt?: string;
   updatedAt?: string;
+  inventoryBatches?: InventoryBatchRow[];
+  canEdit?: boolean;
+  canDelete?: boolean;
 }
+
+
 
 export interface InventoryBatchRow {
   id: number;
@@ -170,6 +199,30 @@ export interface InventoryBatchRow {
 
   purchaseDate: string;
   expirationDate?: string | null;
+}
+
+export interface ItemBatchRecord {
+  id: number;
+  productId?: number | null;
+  productName?: string | null;
+  purchaseDate: string;
+  quantityPurchased: number;
+  purchasePrice: number;
+  unitPrice: number | null;
+  supplierId: number | null;
+  supplierName: string | null;
+  unitName: string | null;
+  listName: string | null;
+  isOnSale: boolean;
+}
+
+export interface CommunityPriceRecord {
+  purchaseDate: string;
+  unitPrice: number;
+  supplierId: number | null;
+  supplierName: string | null;
+  unitName: string | null;
+  isOnSale: boolean;
 }
 
 export interface ShoppingProductInsights {
@@ -202,14 +255,19 @@ export interface ShoppingConfigBundle {
   groupRoleOptions?: ConfigOption[];
 }
 
+export interface ShoppingDashboardStats {
+  openListsCount: number;
+  totalItemsToBuy: number;
+  totalPurchasedItems: number;
+  activeSuppliersCount: number;
+}
+
 /* =========================
  * API write payloads
  * ========================= */
 
 export interface ShoppingPriceCreatePayload {
-  shoppingListId: number;
-  shoppingListItemId: number;
-  productId: number | null;
+  productId: number;
   supplierId?: number | null;
   purchaseDate: string;
   price: number;
@@ -218,12 +276,25 @@ export interface ShoppingPriceCreatePayload {
   expirationDate?: string | null;
 }
 
-export interface ShoppingListCreatePayload {
+export interface ShoppingGroupCreatePayload {
   name: string;
   description?: string;
+  icon?: string;
+}
+
+export interface ShoppingGroupUpdatePayload {
+  name?: string;
+  description?: string;
+  icon?: string;
+}
+
+export interface ShoppingListCreatePayload {
+  name: string;
+  description?: string | null;
   groupId?: number | null;
-  visibilityId: number;
+  visibilityId?: number | null;
   statusId?: number | null;
+  isCompleted?: boolean;
 }
 
 export interface ShoppingListUpdatePayload {
@@ -232,7 +303,9 @@ export interface ShoppingListUpdatePayload {
   groupId?: number | null;
   visibilityId?: number | null;
   statusId?: number | null;
+  isCompleted?: boolean;
 }
+
 
 // REFACTOR: Usa productName invece di productId e nameOriginal
 export interface ShoppingListItemCreatePayload {
@@ -249,6 +322,7 @@ export interface ShoppingListItemUpdatePayload {
   quantity?: number | null;
   unitId?: number | null;
   notes?: string | null;
+  isPurchased?: boolean;
 }
 
 export interface ToggleShoppingListItemPurchasedPayload {
@@ -327,6 +401,7 @@ export interface UseShoppingDataResult {
   config: ShoppingConfigBundle | null;
 
   listsLoading: boolean;
+  groupsLoading: boolean;
   itemsLoading: boolean;
   suppliersLoading: boolean;
   configLoading: boolean;
@@ -387,18 +462,28 @@ export interface UseShoppingMutationsResult {
   updatePrice: (args: UpdateShoppingPriceArgs) => Promise<void>;
 
   deletePrice: (priceId: number) => Promise<void>;
+
+  createGroup: (payload: ShoppingGroupCreatePayload) => Promise<ShoppingGroupSummary>;
+  updateGroup: (id: number, data: ShoppingGroupUpdatePayload) => Promise<ShoppingGroupSummary>;
+  archiveGroup: (groupId: number) => Promise<ShoppingGroupSummary>;
+  unarchiveGroup: (groupId: number) => Promise<ShoppingGroupSummary>;
+  deleteGroup: (groupId: number) => Promise<void>;
 }
 
+
 export interface InventoryBatchCreatePayload {
+  productId?: number;
   supplierId?: number | null;
   quantity?: number | null;
   unitId?: number | null;
   purchasePrice: number;
   currencyId?: number | null;
   offerFlagId?: number | null;
+  isOnSale?: boolean;
   purchaseDate: string;
   expirationDate?: string | null;
 }
+
 
 export interface AddInventoryBatchArgs {
   itemId: number;

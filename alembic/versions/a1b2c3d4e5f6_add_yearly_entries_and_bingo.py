@@ -16,45 +16,45 @@ depends_on: Union[str, Sequence[str], None] = None
 
 def upgrade() -> None:
     # Tabella yearly_entries
-    op.create_table(
-        'yearly_entries',
-        sa.Column('id', sa.Integer(), autoincrement=True, nullable=False),
-        sa.Column('user_id', sa.Integer(), nullable=False),
-        sa.Column('year', sa.Integer(), nullable=False),
-        sa.Column('yearly_type', sa.String(2), nullable=False),
-        sa.Column('yearly_field', sa.Text(), nullable=True),
-        sa.ForeignKeyConstraint(['user_id'], ['users.id'], ondelete='CASCADE'),
-        sa.PrimaryKeyConstraint('id'),
-        sa.CheckConstraint(
-            "yearly_type IN ('OY','P1','P2','P3','PR','MJ','MS','MA','MD','MT','SC','SF','SA','SH','SS','SD','SM','SW','EP','EN','Q1','Q2','Q3','Q4','Q5','Q6','TG')",
-            name='ck_yearly_entries_type_valid'
+    op.execute("""
+        CREATE TABLE IF NOT EXISTS yearly_entries (
+            id SERIAL NOT NULL,
+            user_id INTEGER NOT NULL,
+            year INTEGER NOT NULL,
+            yearly_type VARCHAR(2) NOT NULL,
+            yearly_field TEXT,
+            PRIMARY KEY (id),
+            FOREIGN KEY(user_id) REFERENCES users (id) ON DELETE CASCADE,
+            CONSTRAINT ck_yearly_entries_type_valid CHECK (yearly_type IN ('OY','P1','P2','P3','PR','MJ','MS','MA','MD','MT','SC','SF','SA','SH','SS','SD','SM','SW','EP','EN','Q1','Q2','Q3','Q4','Q5','Q6','TG'))
         )
-    )
-    op.create_index('ix_yearly_entries_user_year', 'yearly_entries', ['user_id', 'year'])
-    op.create_index('ix_yearly_entries_yearly_type', 'yearly_entries', ['yearly_type'])
-    op.create_index(
-        'ix_yearly_entries_unique', 'yearly_entries', ['user_id', 'year', 'yearly_type'],
-        unique=True,
-        postgresql_where=sa.text("yearly_type NOT IN ('PR', 'EP', 'EN', 'TG')")
-    )
+    """)
+    op.execute("CREATE INDEX IF NOT EXISTS ix_yearly_entries_user_year ON yearly_entries (user_id, year)")
+    op.execute("CREATE INDEX IF NOT EXISTS ix_yearly_entries_yearly_type ON yearly_entries (yearly_type)")
+    op.execute("""
+        CREATE UNIQUE INDEX IF NOT EXISTS ix_yearly_entries_unique
+        ON yearly_entries (user_id, year, yearly_type)
+        WHERE yearly_type NOT IN ('PR', 'EP', 'EN', 'TG')
+    """)
 
     # Tabella bingo
-    op.create_table(
-        'bingo',
-        sa.Column('id', sa.Integer(), autoincrement=True, nullable=False),
-        sa.Column('user_id', sa.Integer(), nullable=False),
-        sa.Column('year', sa.Integer(), nullable=False),
-        sa.Column('testo', sa.Text(), nullable=True),
-        sa.Column('done', sa.Boolean(), nullable=False, server_default=sa.text('false')),
-        sa.ForeignKeyConstraint(['user_id'], ['users.id'], ondelete='CASCADE'),
-        sa.PrimaryKeyConstraint('id'),
-    )
-    op.create_index('ix_bingo_user_year', 'bingo', ['user_id', 'year'])
+    op.execute("""
+        CREATE TABLE IF NOT EXISTS bingo (
+            id SERIAL NOT NULL,
+            user_id INTEGER NOT NULL,
+            year INTEGER NOT NULL,
+            testo TEXT,
+            done BOOLEAN NOT NULL DEFAULT false,
+            PRIMARY KEY (id),
+            FOREIGN KEY(user_id) REFERENCES users (id) ON DELETE CASCADE
+        )
+    """)
+    op.execute("CREATE INDEX IF NOT EXISTS ix_bingo_user_year ON bingo (user_id, year)")
 
 def downgrade() -> None:
-    op.drop_index('ix_bingo_user_year', table_name='bingo')
+    op.execute("DROP INDEX IF EXISTS ix_bingo_user_year")
     op.drop_table('bingo')
-    op.drop_index('ix_yearly_entries_unique', table_name='yearly_entries')
-    op.drop_index('ix_yearly_entries_yearly_type', table_name='yearly_entries')
-    op.drop_index('ix_yearly_entries_user_year', table_name='yearly_entries')
+    op.execute("DROP INDEX IF EXISTS ix_yearly_entries_unique")
+    op.execute("DROP INDEX IF EXISTS ix_yearly_entries_yearly_type")
+    op.execute("DROP INDEX IF EXISTS ix_yearly_entries_user_year")
     op.drop_table('yearly_entries')
+

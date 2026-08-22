@@ -67,8 +67,14 @@ class ShoppingList(Base):
 
     name: Mapped[str] = mapped_column(String(255), nullable=False)
     description: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    is_completed: Mapped[bool] = mapped_column(
+        Boolean,
+        nullable=False,
+        default=False,
+    )
 
     created_at: Mapped[datetime] = mapped_column(
+
         DateTime(timezone=True),
         nullable=False,
         default=lambda: datetime.now(timezone.utc),

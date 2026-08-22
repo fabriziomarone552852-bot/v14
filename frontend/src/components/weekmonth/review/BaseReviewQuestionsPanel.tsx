@@ -1,5 +1,4 @@
-// frontend/src/components/weekmonth/review/BaseReviewQuestionsPanel.tsx
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Pagination } from '@/components/shared/utils/Pagination';
 
 export interface QuestionItem {

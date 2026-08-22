@@ -1,6 +1,6 @@
 // src/components/archive/tasks/TaskFamilyPanel.tsx
 import React from "react";
-import type { Task, Priorita } from "@/types/tasks";
+import type { Task } from "@/types/tasks";
 import type { UITask } from '@/types';
 
 type ToggleFattoFn = (task: Task) => Promise<void> | void;

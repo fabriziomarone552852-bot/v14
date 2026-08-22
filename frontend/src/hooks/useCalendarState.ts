@@ -1,5 +1,5 @@
 // src/hooks/useCalendarState.ts
-import { useState, type Dispatch, type SetStateAction } from 'react';
+import { useState } from 'react';
 import { pad, getDaysInMonth, getFirstDayIndex, getMondayOfCurrentWeek } from '@/utils/dateUtils';
 
 export function useCalendarState() {

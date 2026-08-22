@@ -1,12 +1,9 @@
 import React from 'react';
 import type {
-  CatalogOption,
-  ItemFormState,
-  ListFormState,
-  ShoppingGroup,
-  ShoppingList,
-  ShoppingSupplier,
-  SupplierFormState,
+  ConfigOption,
+  ShoppingGroupSummary,
+  ShoppingListSummary,
+  ShoppingSupplierOption,
 } from '@/types/shopping';
 import {
   shoppingButtonPrimaryClass,
@@ -14,15 +11,38 @@ import {
   shoppingInputClass,
 } from './shoppingUi';
 
+interface ListFormState {
+  group_id: string;
+  visibility_id: string;
+  status_id: string;
+  name: string;
+  description: string;
+}
+
+interface ItemFormState {
+  shopping_list_id: string;
+  name_original: string;
+  quantity: string;
+  unit_id: string;
+  notes: string;
+  status_id: string;
+}
+
+interface SupplierFormState {
+  name: string;
+  status_id: string;
+}
+
 interface ShoppingControlsColumnProps {
-  groups: ShoppingGroup[];
-  lists: ShoppingList[];
-  suppliers: ShoppingSupplier[];
-  listVisibilityOptions: CatalogOption[];
-  listStatusOptions: CatalogOption[];
-  itemStatusOptions: CatalogOption[];
-  unitOptions: CatalogOption[];
-  supplierStatusOptions: CatalogOption[];
+  groups: ShoppingGroupSummary[];
+  lists: ShoppingListSummary[];
+  suppliers: ShoppingSupplierOption[];
+  listVisibilityOptions: ConfigOption[];
+  listStatusOptions: ConfigOption[];
+  itemStatusOptions: ConfigOption[];
+  unitOptions: ConfigOption[];
+  supplierStatusOptions: ConfigOption[];
+
   loading: boolean;
   loadingLists: boolean;
   listForm: ListFormState;
@@ -36,12 +56,13 @@ interface ShoppingControlsColumnProps {
   creaFornitore: (e: React.FormEvent) => Promise<void>;
 }
 
-const renderCatalogOptions = (options: CatalogOption[]) =>
+const renderCatalogOptions = (options: ConfigOption[]) =>
   options.map((option) => (
     <option key={option.id} value={String(option.id)}>
-      {option.code_name}
+      {option.displayName || option.codeName}
     </option>
   ));
+
 
 const ShoppingControlsColumn: React.FC<ShoppingControlsColumnProps> = ({
   groups,

@@ -51,7 +51,6 @@ export const NotesPage: React.FC = () => {
 
   // 5. ELABORAZIONE DATI IN RAM (MAZZO DI CARTE)
   const {
-    filteredNotes,
     paginatedNotes,
     totalPages,
     totalCount,
@@ -128,7 +127,7 @@ export const NotesPage: React.FC = () => {
       <ArchiveHeader
         title="NOTE & RIFLESSIONI"
         subtitle="Bacheca completa delle tue note, memo veloci e riflessioni giornaliere."
-        icon={<NoteIcon className="h-6 w-6 text-white" />}
+        icon={<NoteIcon className="w-5 h-5 text-white" />}
         className={ARCHIVE_PANEL_CLASS}
       />
 

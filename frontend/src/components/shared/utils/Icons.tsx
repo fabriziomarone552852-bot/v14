@@ -1,5 +1,4 @@
 // src/components/shared/utils/Icon.tsx
-import React from 'react';
 
 // Aggiungi qui i nomi delle tue icone man mano che le centralizzi
 export type IconName = 
@@ -420,6 +419,84 @@ export const SunIcon = ({ className = "w-4 h-4" }: { className?: string }) => (
     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 2v2m0 16v2M4.93 4.93l1.41 1.41m11.32 11.32l1.41 1.41M2 12h2m16 0h2M4.93 19.07l1.41-1.41m11.32-11.32l1.41-1.41" />
   </svg>
 );
+
+// Icona Negozio / Fornitori (Storefront)
+export const StoreIcon = ({ className = "w-6 h-6" }: { className?: string }) => (
+  <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M3 3h18v4a3 3 0 01-6 0 3 3 0 01-6 0 3 3 0 01-6 0V3z" />
+    <path strokeLinecap="round" strokeLinejoin="round" d="M4 10v10a1 1 0 001 1h14a1 1 0 001-1V10M9 21v-6h6v6" />
+  </svg>
+);
+
+// Icona Lucchetto (Privata)
+export const LockIcon = ({ className = "w-4 h-4" }: { className?: string }) => (
+  <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+  </svg>
+);
+
+// Icona Gruppi / Membri (Condiviso)
+export const UsersIcon = ({ className = "w-4 h-4" }: { className?: string }) => (
+  <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+  </svg>
+);
+
+// Icona Chevron Giù (Accordion aperto)
+export const ChevronDownIcon = ({ className = "w-4 h-4" }: { className?: string }) => (
+  <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+  </svg>
+);
+
+// Icona Invito / Mail
+export const MailIcon = ({ className = "w-4 h-4" }: { className?: string }) => (
+  <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+  </svg>
+);
+
+// Icona Chevron Destra (Accordion chiuso)
+export const ChevronRightIcon = ({ className = "w-4 h-4" }: { className?: string }) => (
+  <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+  </svg>
+);
+
+// Icona Archivio (Scatola / Box)
+export const ArchiveIcon = ({ className = "w-4 h-4" }: { className?: string }) => (
+  <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
+  </svg>
+);
+
+// Icona Link Esterno / Apri Dettaglio
+export const ExternalLinkIcon = ({ className = "w-4 h-4" }: { className?: string }) => (
+  <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
+  </svg>
+);
+
+// Icona Trend Discendente / Prezzo Migliore
+export const TrendDownIcon = ({ className = "w-5 h-5" }: { className?: string }) => (
+  <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 6L9 12.75l4.286-4.286L21.75 16.5m0 0l-5.25.75m5.25-.75l-.75-5.25" />
+  </svg>
+);
+
+// Icona Trend Ascendente
+export const TrendUpIcon = ({ className = "w-5 h-5" }: { className?: string }) => (
+  <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 18L9 11.25l4.306 4.307L21.75 7.5m0 0l-5.25-.75m5.25.75l-.75 5.25" />
+  </svg>
+);
+
+
+
+
+
+
+
 
 
 

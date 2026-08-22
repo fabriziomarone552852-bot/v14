@@ -11,6 +11,7 @@ VALID_SHOPPING_GROUP_ROLE_CODES = {"reader", "editor", "admin", "owner"}
 class ShoppingGroupCreate(StrictBaseModel):
     name: str = Field(..., min_length=1, max_length=255)
     description: Optional[str] = None
+    icon: Optional[str] = None
     status_id: Optional[int] = None
 
     @field_validator("name")
@@ -24,6 +25,7 @@ class ShoppingGroupCreate(StrictBaseModel):
 class ShoppingGroupUpdate(StrictBaseModel):
     name: Optional[str] = Field(None, min_length=1, max_length=255)
     description: Optional[str] = None
+    icon: Optional[str] = None
     status_id: Optional[int] = None
 
     @field_validator("name")
@@ -41,12 +43,14 @@ class ShoppingGroupResponse(ORMBaseModel):
     owner_id: int
     name: str
     description: Optional[str] = None
+    icon: Optional[str] = None
     status_id: int
     user_role: Optional[str] = None
     created_at: datetime
     updated_at: Optional[datetime] = None
     archived_at: Optional[datetime] = None
     deleted_at: Optional[datetime] = None
+
 
 class ShoppingGroupMemberCreate(StrictBaseModel):
     user_id: int

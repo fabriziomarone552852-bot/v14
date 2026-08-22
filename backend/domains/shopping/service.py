@@ -86,6 +86,7 @@ def list_groups(db: Session, current_user: User) -> List[dict]:
             "owner_id": g.owner_id,
             "name": g.name,
             "description": g.description,
+            "icon": g.icon,
             "status_id": g.status_id,
             "user_role": role,
             "created_at": g.created_at,
@@ -110,10 +111,12 @@ def create_group(
         owner_id=current_user.id,
         name=group_in.name,
         description=group_in.description,
+        icon=group_in.icon,
         status_id=group_in.status_id or default_status_id,
         created_at=now,
         updated_at=now,
     )
+
     return repo.create_group(db, db_group)
 
 
@@ -134,8 +137,53 @@ def update_group(
     return repo.update_group(db, db_group)
 
 
+def archive_group(db: Session, current_user: User, group_id: int) -> dict:
+    db_group = repo.get_group_owned(db, group_id, current_user.id)
+    if not db_group:
+        raise HTTPException(status_code=404, detail=_GROUP_NOT_FOUND)
+    db_group.archived_at = _now()
+    db_group.updated_at = _now()
+    repo.update_group(db, db_group)
+    return {
+        "id": db_group.id,
+        "owner_id": db_group.owner_id,
+        "name": db_group.name,
+        "description": db_group.description,
+        "icon": db_group.icon,
+        "status_id": db_group.status_id,
+        "user_role": "owner",
+        "created_at": db_group.created_at,
+        "updated_at": db_group.updated_at,
+        "archived_at": db_group.archived_at,
+        "deleted_at": db_group.deleted_at,
+    }
+
+
+def unarchive_group(db: Session, current_user: User, group_id: int) -> dict:
+    db_group = repo.get_group_owned(db, group_id, current_user.id)
+    if not db_group:
+        raise HTTPException(status_code=404, detail=_GROUP_NOT_FOUND)
+    db_group.archived_at = None
+    db_group.updated_at = _now()
+    repo.update_group(db, db_group)
+    return {
+        "id": db_group.id,
+        "owner_id": db_group.owner_id,
+        "name": db_group.name,
+        "description": db_group.description,
+        "icon": db_group.icon,
+        "status_id": db_group.status_id,
+        "user_role": "owner",
+        "created_at": db_group.created_at,
+        "updated_at": db_group.updated_at,
+        "archived_at": db_group.archived_at,
+        "deleted_at": db_group.deleted_at,
+    }
+
+
 def delete_group(db: Session, current_user: User, group_id: int) -> None:
     db_group = repo.get_group_owned(db, group_id, current_user.id)
+
     if not db_group:
         raise HTTPException(status_code=404, detail=_GROUP_NOT_FOUND)
     repo.delete_group(db, db_group)
@@ -159,11 +207,21 @@ def add_member(
     if not db_group:
         raise HTTPException(status_code=404, detail=_GROUP_NOT_FOUND)
 
-    existing = repo.get_member(db, group_id, member_in.user_id)
-    if existing:
+    existing_active = repo.get_member(db, group_id, member_in.user_id)
+    if existing_active:
         raise HTTPException(status_code=400, detail="L'utente è già membro del gruppo.")
 
     now = _now()
+
+    # Se esiste un record soft-deleted, riattivarlo
+    existing_any = repo.get_member_any(db, group_id, member_in.user_id)
+    if existing_any:
+        existing_any.role_id = member_in.role_id
+        existing_any.added_by_user_id = current_user.id
+        existing_any.removed_at = None
+        existing_any.updated_at = now
+        return repo.update_member(db, existing_any)
+
     db_member = ShoppingGroupMember(
         group_id=group_id,
         user_id=member_in.user_id,
@@ -173,6 +231,7 @@ def add_member(
         updated_at=now,
     )
     return repo.add_member(db, db_member)
+
 
 
 def invite_member(
@@ -195,8 +254,9 @@ def invite_member(
     if not target_user:
         raise HTTPException(status_code=404, detail=_USER_NOT_FOUND)
 
-    existing = repo.get_member(db, group_id, target_user.id)
-    if existing:
+    # Controlla se l'utente è già un membro attivo
+    existing_active = repo.get_member(db, group_id, target_user.id)
+    if existing_active:
         raise HTTPException(status_code=400, detail="L'utente è già membro del gruppo.")
 
     role_id = repo.resolve_role_id(db, invite_in.role_code)
@@ -204,6 +264,16 @@ def invite_member(
         raise HTTPException(status_code=400, detail=_ROLE_NOT_FOUND)
 
     now = _now()
+
+    # Se esiste un record soft-deleted, riattivarlo invece di inserirne uno nuovo
+    existing_any = repo.get_member_any(db, group_id, target_user.id)
+    if existing_any:
+        existing_any.role_id = role_id
+        existing_any.added_by_user_id = current_user.id
+        existing_any.removed_at = None
+        existing_any.updated_at = now
+        return repo.update_member(db, existing_any)
+
     db_member = ShoppingGroupMember(
         group_id=group_id,
         user_id=target_user.id,
@@ -213,6 +283,7 @@ def invite_member(
         updated_at=now,
     )
     return repo.add_member(db, db_member)
+
 
 
 def update_member_role(
@@ -275,9 +346,11 @@ def create_list(db: Session, current_user: User, list_in: ShoppingListCreate) ->
         status_id=list_in.status_id or default_status_id,
         name=list_in.name,
         description=list_in.description,
+        is_completed=bool(list_in.is_completed),
         created_at=now,
         updated_at=now,
     )
+
     repo.add(db, db_list)
     repo.commit(db)
     repo.refresh(db, db_list)
@@ -379,17 +452,18 @@ def update_item(
 
     if db_item.shopping_list and db_item.shopping_list.group_id:
         user_role = repo.get_user_role_code_in_group(db, db_item.shopping_list.group_id, current_user.id)
-        if db_item.is_purchased:
-            if user_role != "owner":
-                raise HTTPException(
-                    status_code=403,
-                    detail="Gli articoli già acquistati non possono essere modificati da questo ruolo.",
-                )
-        elif user_role in ("reader", "editor"):
+        if user_role == "reader":
             raise HTTPException(
                 status_code=403,
-                detail="Gli editor e i lettori non hanno i permessi per modificare gli articoli.",
+                detail="I lettori non hanno i permessi per modificare gli articoli.",
             )
+        is_only_toggling = set(item_in.model_dump(exclude_unset=True).keys()) <= {"is_purchased"}
+        if db_item.is_purchased and not is_only_toggling and user_role != "owner":
+            raise HTTPException(
+                status_code=403,
+                detail="Gli articoli già acquistati non possono essere modificati da questo ruolo.",
+            )
+
 
     update_data = item_in.model_dump(exclude_unset=True)
 
@@ -415,6 +489,23 @@ def update_item(
     for field, value in update_data.items():
         setattr(db_item, field, value)
 
+    # Se l'articolo viene deselezionato (segnato come non acquistato), elimina i record dei prezzi/lotti collegati
+    if update_data.get("is_purchased") is False:
+        active_batches = (
+            db.query(InventoryBatch)
+            .filter(
+                InventoryBatch.list_item_id == db_item.id,
+                InventoryBatch.deleted_at.is_(None),
+            )
+            .all()
+        )
+        now_ts = _today()
+        for batch in active_batches:
+            batch.deleted_at = now_ts
+            batch.deleted_by_user_id = current_user.id
+            batch.updated_at = now_ts
+            batch.updated_by_user_id = current_user.id
+
     db_item.updated_at = _now()
     db_item.updated_by_user_id = current_user.id
 
@@ -436,7 +527,23 @@ def delete_item(db: Session, current_user: User, item_id: int) -> None:
                 detail="Solo il proprietario (owner) del gruppo spesa può eliminare gli articoli.",
             )
 
+    active_batches = (
+        db.query(InventoryBatch)
+        .filter(
+            InventoryBatch.list_item_id == db_item.id,
+            InventoryBatch.deleted_at.is_(None),
+        )
+        .all()
+    )
+    now_ts = _today()
+    for batch in active_batches:
+        batch.deleted_at = now_ts
+        batch.deleted_by_user_id = current_user.id
+        batch.updated_at = now_ts
+        batch.updated_by_user_id = current_user.id
+
     repo.delete(db, db_item)
+
 
 
 # ------------------------------------------------------------------ Suppliers
@@ -538,11 +645,12 @@ def add_inventory_batch(
         if user_role == "reader":
             raise HTTPException(status_code=403, detail="I lettori non possono registrare acquisti.")
 
-    if batch_in.product_id != db_item.product_id:
+    if batch_in.product_id is not None and batch_in.product_id != db_item.product_id:
         raise HTTPException(
             status_code=400,
             detail="Il product_id del lotto non corrisponde al prodotto dell'articolo di lista.",
         )
+
 
     if batch_in.supplier_id is not None and not repo.get_supplier(db, batch_in.supplier_id):
         raise HTTPException(status_code=404, detail="Fornitore non trovato")
@@ -638,7 +746,110 @@ def delete_inventory_batch(db: Session, current_user: User, batch_id: int) -> No
             repo.commit(db)
 
 
+def list_item_batches(
+    db: Session,
+    current_user: User,
+    item_id: int,
+) -> list:
+    """Restituisce i lotti di acquisto per un item della lista (storico acquisti personale)."""
+    from decimal import Decimal as D
+    batches = repo.list_batches_for_item(db, item_id=item_id, user_id=current_user.id)
+    result = []
+    for b in batches:
+        qty = b.quantity_purchased or D("1")
+        unit_price = (b.purchase_price / qty).quantize(D("0.01")) if qty else None
+        list_name: Optional[str] = None
+        unit_name: Optional[str] = None
+        if b.list_item:
+            if b.list_item.shopping_list:
+                list_name = b.list_item.shopping_list.name
+            if b.list_item.unit:
+                unit_name = b.list_item.unit.code_value or b.list_item.unit.code_name
+        result.append({
+            "id": b.id,
+            "product_id": b.product_id,
+            "product_name": b.product.name_normalized if b.product else (b.list_item.name_normalized if b.list_item else "Prodotto"),
+            "purchase_date": b.purchase_date,
+            "quantity_purchased": b.quantity_purchased,
+            "purchase_price": b.purchase_price,
+            "unit_price": unit_price,
+            "supplier_id": b.supplier_id,
+            "supplier_name": b.supplier.name if b.supplier else None,
+            "unit_name": unit_name,
+            "list_name": list_name,
+            "is_on_sale": b.is_on_sale,
+        })
+    return result
+
+
+def list_all_batches(db: Session, current_user: User) -> list:
+    """Restituisce tutti i prezzi/batch registrati dall'utente o nei suoi gruppi."""
+    from decimal import Decimal as D
+    batches = repo.list_all_batches_for_user(db, current_user.id)
+    result = []
+    for b in batches:
+        qty = b.quantity_purchased
+        unit_price = (b.purchase_price / qty).quantize(D("0.01")) if qty else None
+        list_name: Optional[str] = None
+        unit_name: Optional[str] = None
+        product_name: str = "Prodotto"
+        if b.product:
+            product_name = b.product.name_normalized
+        elif b.list_item and b.list_item.name_normalized:
+            product_name = b.list_item.name_normalized
+        if b.list_item:
+            if b.list_item.shopping_list:
+                list_name = b.list_item.shopping_list.name
+            if b.list_item.unit:
+                unit_name = b.list_item.unit.code_value or b.list_item.unit.code_name
+        result.append({
+            "id": b.id,
+            "product_id": b.product_id,
+            "product_name": product_name,
+
+            "purchase_date": b.purchase_date,
+            "quantity_purchased": b.quantity_purchased,
+            "purchase_price": b.purchase_price,
+            "unit_price": unit_price,
+            "supplier_id": b.supplier_id,
+            "supplier_name": b.supplier.name if b.supplier else None,
+            "unit_name": unit_name,
+            "list_name": list_name,
+            "is_on_sale": b.is_on_sale,
+        })
+    return result
+
+
+def list_community_prices(
+
+    db: Session,
+    product_id: int,
+    limit: int = 50,
+) -> list:
+    """Restituisce i prezzi anonimi della community per un prodotto."""
+    from decimal import Decimal as D
+    batches = repo.list_community_prices_for_product(db, product_id=product_id, limit=limit)
+    result = []
+    for b in batches:
+        qty = b.quantity_purchased or D("1")
+        unit_price = (b.purchase_price / qty).quantize(D("0.01")) if qty else b.purchase_price
+        unit_name: Optional[str] = None
+        if b.list_item and b.list_item.unit:
+            unit_name = b.list_item.unit.code_value or b.list_item.unit.code_name
+        result.append({
+            "purchase_date": b.purchase_date,
+            "unit_price": unit_price,
+            "supplier_id": b.supplier_id,
+            "supplier_name": b.supplier.name if b.supplier else None,
+            "unit_name": unit_name,
+            "is_on_sale": b.is_on_sale,
+        })
+    return result
+
+
+
 # ------------------------------------------------------------------ Products
+
 def list_products(
     db: Session,
     search: Optional[str] = None,

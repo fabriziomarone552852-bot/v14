@@ -3,7 +3,7 @@ import React, { useMemo, useState } from 'react';
 import { ArchiveHeader } from '@/components/shared/layout/ArchiveHeader';
 import { HabitIcon, UndoIcon } from '@/components/shared/utils/Icons';
 import { Pagination } from '@/components/shared/utils/Pagination';
-import { ArchiveTabs, type HabitTabType } from '@/components/archive/habits/ArchiveTabs';
+import type { HabitTabType } from '@/components/archive/habits/ArchiveTabs';
 import { HabitFilterBar } from '@/components/archive/habits/HabitFilterBar';
 import { RoutineCard } from '@/components/archive/habits/RoutineCard';
 import { HabitCard } from '@/components/archive/habits/HabitCard';
@@ -238,23 +238,16 @@ export const HabitsPage: React.FC = () => {
       <ArchiveHeader
         title="HABITS & ROUTINE"
         subtitle="Monitora le tue abitudini quotidiane e la regolarità delle tue routine periodiche."
-        icon={<HabitIcon className="h-6 w-6 text-white" />}
+        icon={<HabitIcon className="w-5 h-5 text-white" />}
         className={ARCHIVE_PANEL_CLASS}
       />
 
-      {/* 2. SCHEDE TIPO CHROME (ROUTINES / HABITS) */}
-      <div className="flex items-center justify-between">
-        <ArchiveTabs
-          activeTab={activeTab}
-          onTabChange={handleTabSwitch}
-          routinesCount={routinesCount}
-          habitsCount={habitsCount}
-        />
-      </div>
-
-      {/* 3. BARRA AZIONI (NUOVA ROUTINE / HABIT + RICERCA) */}
+      {/* 2. BARRA AZIONI (NUOVA ROUTINE / HABIT + SLIDER CENTRALE + RICERCA) */}
       <HabitFilterBar
         activeTab={activeTab}
+        onTabChange={handleTabSwitch}
+        routinesCount={routinesCount}
+        habitsCount={habitsCount}
         onOpenNew={handleOpenNew}
         onOpenSearch={filterModal.open}
         activeFiltersCount={activeFiltersCount}

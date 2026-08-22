@@ -28,7 +28,7 @@ export const YearCalendar: React.FC<YearCalendarProps> = ({
   tasks = [],
   taskDays,
   eventDays,
-  highlightedDays,
+  highlightedDays: _highlightedDays,
   onDayClick,
   onMonthClick,
 }) => {

@@ -32,8 +32,10 @@ class ShoppingGroup(Base):
 
     name: Mapped[str] = mapped_column(String(255), nullable=False)
     description: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    icon: Mapped[Optional[str]] = mapped_column(String(50), nullable=True)
 
     status_id: Mapped[int] = mapped_column(
+
         Integer,
         ForeignKey("config_codes.id", ondelete="RESTRICT"),
         nullable=False,

@@ -37,9 +37,11 @@ def create_list(
         status_id=list_in.status_id or list_in.visibility_id,
         name=list_in.name,
         description=list_in.description,
+        is_completed=bool(list_in.is_completed),
         created_at=now,
         updated_at=now,
     )
+
     repo.add(db, db_list)
     repo.commit(db)
     repo.refresh(db, db_list)

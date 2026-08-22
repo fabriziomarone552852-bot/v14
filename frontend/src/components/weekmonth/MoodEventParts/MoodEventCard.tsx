@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { TrashIcon } from '@/components/shared/utils/Icons';
 import type { DailyEntry } from '@/types/dailyentries';
 import type { DbMonthlyEntry } from '@/types/monthlyentries';

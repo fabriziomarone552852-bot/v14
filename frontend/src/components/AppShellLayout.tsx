@@ -66,7 +66,8 @@ const AppShellLayout: React.FC<AppShellLayoutProps> = ({ onLogout }) => {
     isActive('/habits') ||
     isActive('/notes') ||
     isActive('/reviews') ||
-    isActive('/tags');
+    isActive('/tags') ||
+    isActive('/fornitori');
 
   const mainNavItems = [
     { to: '/free-time', label: 'Free Time', icon: <FreeTimeIcon className="w-6 h-6 shrink-0" /> },

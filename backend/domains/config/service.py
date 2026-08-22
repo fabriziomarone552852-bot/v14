@@ -126,6 +126,17 @@ def seed_default_configs(db: Session) -> None:
             descrizione="Numero massimo di livelli consentiti per la nidificazione dei sottotask.",
         )
 
+    existing_price = repo.get_config_by_key(db, "price_stats_lookback_days")
+    if existing_price is None:
+        repo.create_config(
+            db,
+            key="price_stats_lookback_days",
+            value=str(settings.default_price_stats_lookback_days),
+            descrizione="Numero di giorni di storico da considerare per il calcolo del prezzo medio e migliore nella spesa (es. 365 per 1 anno, 90 per 3 mesi).",
+        )
+
+
+
 
 @register_seeder
 def seed_default_config_codes(db: Session) -> None:

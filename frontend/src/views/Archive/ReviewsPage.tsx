@@ -130,7 +130,7 @@ export const ReviewsPage: React.FC = () => {
       <ArchiveHeader
         title="REVISIONI PERIODICHE"
         subtitle="Archivio e bilancio delle risposte di review, tag ed obiettivi dei mesi e degli anni."
-        icon={<ReviewIcon className="h-6 w-6 text-white" />}
+        icon={<ReviewIcon className="w-5 h-5 text-white" />}
         className={ARCHIVE_PANEL_CLASS}
       />
 

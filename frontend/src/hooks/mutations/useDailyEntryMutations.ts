@@ -14,12 +14,12 @@ export interface SaveDailyEntryPayload {
 }
 
 export interface CacheWithDailyEntries {
-  obiettivi?: DailyEntry[];
-  priorita?: DailyEntry[];
+  obiettivi?: DailyEntry[] | DbMonthlyEntry[];
+  priorita?: DailyEntry[] | DbMonthlyEntry[];
   obiettivo_settimanale?: DailyEntry | null;
   priorita_settimanali?: DailyEntry[];
-  eventi_positivi?: DailyEntry[];
-  eventi_negativi?: DailyEntry[];
+  eventi_positivi?: DailyEntry[] | DbMonthlyEntry[];
+  eventi_negativi?: DailyEntry[] | DbMonthlyEntry[];
 }
 
 export function useDailyEntryMutations<T extends CacheWithDailyEntries>(queryKey: QueryKey) {
@@ -67,10 +67,11 @@ export function useDailyEntryMutations<T extends CacheWithDailyEntries>(queryKey
       queryClient.setQueryData<T>(queryKey, (old) => {
         if (!old) return old;
 
-        const updateArray = (list: DailyEntry[] = []) => {
-          if (isDelete) return list.filter(item => item.id !== payload.id);
-          const exists = list.some(item => item.id === tempId);
-          return exists ? list.map(item => item.id === tempId ? entry : item) : [...list, entry];
+        const updateArray = (list?: (DailyEntry | DbMonthlyEntry)[]): (DailyEntry | DbMonthlyEntry)[] => {
+          const arr = list || [];
+          if (isDelete) return arr.filter(item => item.id !== payload.id);
+          const exists = arr.some(item => item.id === tempId);
+          return exists ? arr.map(item => item.id === tempId ? (entry as unknown as DailyEntry & DbMonthlyEntry) : item) : [...arr, entry];
         };
 
         if (payload.tipo === 'PX') {
@@ -93,7 +94,7 @@ export function useDailyEntryMutations<T extends CacheWithDailyEntries>(queryKey
           case 'OD': return { ...old, obiettivi: updateArray(old.obiettivi) };
           case 'PD': return { ...old, priorita: updateArray(old.priorita) };
           case 'OW': return { ...old, obiettivo_settimanale: isDelete ? null : entry };
-          case 'PW': return { ...old, priorita_settimanali: updateArray(old.priorita_settimanali) };
+          case 'PW': return { ...old, priorita_settimanali: updateArray(old.priorita_settimanali) as DailyEntry[] };
           case 'EP': return { ...old, eventi_positivi: updateArray(old.eventi_positivi) };
           case 'EN': return { ...old, eventi_negativi: updateArray(old.eventi_negativi) };
           default: return old;
@@ -102,7 +103,7 @@ export function useDailyEntryMutations<T extends CacheWithDailyEntries>(queryKey
 
       return { previousData, tempId };
     },
-    onError: (err, payload, context) => {
+    onError: (err, _payload, context) => {
       logger.error("Errore salvataggio daily entry:", err);
       if (context?.previousData) queryClient.setQueryData(queryKey, context.previousData);
     },
@@ -114,8 +115,8 @@ export function useDailyEntryMutations<T extends CacheWithDailyEntries>(queryKey
           if (!old) return old;
 
           const tempId = context.tempId;
-          const swapEntry = (list: DailyEntry[] = []) => 
-            list.map(item => item.id === tempId ? (savedEntryFromDB as DailyEntry) : item);
+          const swapEntry = (list?: (DailyEntry | DbMonthlyEntry)[]): (DailyEntry | DbMonthlyEntry)[] => 
+            (list || []).map(item => item.id === tempId ? (savedEntryFromDB as unknown as DailyEntry) : item);
 
           switch (payload.tipo) {
             // Giorno e Mese vanno nello stesso cassetto (array)
@@ -130,7 +131,7 @@ export function useDailyEntryMutations<T extends CacheWithDailyEntries>(queryKey
             case 'OW': 
               return { ...old, obiettivo_settimanale: savedEntryFromDB as DailyEntry };
             case 'PW': 
-              return { ...old, priorita_settimanali: swapEntry(old.priorita_settimanali) };
+              return { ...old, priorita_settimanali: swapEntry(old.priorita_settimanali) as DailyEntry[] };
             
             // Eventi
             case 'EP': 

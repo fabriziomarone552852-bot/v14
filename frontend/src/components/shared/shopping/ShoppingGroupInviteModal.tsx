@@ -1,20 +1,17 @@
 // src/components/shared/shopping/ShoppingGroupInviteModal.tsx
-import React, { useState } from 'react';
-import {
-  shoppingButtonPrimaryClass,
-  shoppingButtonSecondaryClass,
-  shoppingInputClass,
-  shoppingSelectClass,
-} from './shoppingUi';
-import type { ShoppingGroupMemberInvitePayload } from '@/types/shopping';
+import React, { useState, useEffect } from 'react';
+import BaseModal from '@/components/shared/dialog/BaseModal';
+import { MailIcon } from '@/components/shared/utils/Icons';
+import ShoppingGroupInviteListBuilder from './ShoppingGroupInviteListBuilder';
+import type { PendingGroupInvite } from '@/types/shopping';
 import { extractErrorMessage } from '@/utils/errorUtils';
 
 interface ShoppingGroupInviteModalProps {
   isOpen: boolean;
   groupName: string;
   onClose: () => void;
-  onSubmit: (payload: ShoppingGroupMemberInvitePayload) => Promise<void>;
-  currentUserRole?: string; // 'owner' | 'admin' | 'editor' | 'reader'
+  onSubmit: (invites: PendingGroupInvite[]) => Promise<void>;
+  currentUserRole?: string;
 }
 
 const ShoppingGroupInviteModal: React.FC<ShoppingGroupInviteModalProps> = ({
@@ -24,174 +21,83 @@ const ShoppingGroupInviteModal: React.FC<ShoppingGroupInviteModalProps> = ({
   onSubmit,
   currentUserRole = 'owner',
 }) => {
-  const [inviteType, setInviteType] = useState<'username' | 'email'>('username');
-  const [username, setUsername] = useState('');
-  const [email, setEmail] = useState('');
-  const [roleCode, setRoleCode] = useState<string>('editor');
+  const [pendingInvites, setPendingInvites] = useState<PendingGroupInvite[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  useEffect(() => {
+    if (isOpen) {
+      setPendingInvites([]);
+      setError(null);
+      setIsSubmitting(false);
+    }
+  }, [isOpen]);
+
   if (!isOpen) return null;
 
-  const isOwner = currentUserRole === 'owner';
-  const effectiveRoleCode = !isOwner && roleCode === 'admin' ? 'editor' : roleCode;
+  const handleSubmit = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const cleanUsername = username.trim();
-    const cleanEmail = email.trim();
-
-    if (inviteType === 'username' && !cleanUsername) {
-      setError("Inserisci il nome utente dell'utente da invitare.");
-      return;
-    }
-    if (inviteType === 'email' && !cleanEmail) {
-      setError("Inserisci l'indirizzo email dell'utente da invitare.");
+    if (pendingInvites.length === 0) {
+      setError("Inserisci almeno un utente o un'email e clicca 'Aggiungi'.");
       return;
     }
 
     setIsSubmitting(true);
     setError(null);
     try {
-      await onSubmit({
-        username: inviteType === 'username' ? cleanUsername : undefined,
-        email: inviteType === 'email' ? cleanEmail : undefined,
-        roleCode: effectiveRoleCode,
-      });
-      setUsername('');
-      setEmail('');
+      await onSubmit(pendingInvites);
+      setPendingInvites([]);
       onClose();
     } catch (err: unknown) {
-      setError(extractErrorMessage(err, "Errore durante l'invio dell'invito."));
+      setError(extractErrorMessage(err, "Errore durante l'aggiunta dei collaboratori."));
     } finally {
       setIsSubmitting(false);
     }
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm">
-      <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl transition-all">
-        <div className="mb-4 flex items-center justify-between border-b border-gray-100 pb-3">
-          <div>
-            <h3 className="text-lg font-bold text-gray-800">✉️ Invita Collaboratore</h3>
-            <p className="text-xs text-gray-500">Gruppo: <span className="font-semibold text-blue-600">{groupName}</span></p>
-          </div>
-          <button
-            type="button"
-            onClick={onClose}
-            className="rounded-lg p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600"
-          >
-            ✕
-          </button>
-        </div>
-
-        {error ? (
-          <div className="mb-4 rounded-xl bg-red-50 p-3 text-xs font-medium text-red-600">
+    <BaseModal
+      isOpen={isOpen}
+      onClose={onClose}
+      title={
+        <span className="flex items-center gap-2 text-base font-bold text-gray-800">
+          <MailIcon className="w-5 h-5 text-blue-600" />
+          <span>Aggiungi a {groupName}</span>
+        </span>
+      }
+      formId="group-invite-form"
+      confirmText={isSubmitting ? 'Salvataggio...' : 'Aggiungi Membri'}
+      cancelText="Annulla"
+      isConfirmDisabled={isSubmitting || pendingInvites.length === 0}
+      maxWidthClass="max-w-md"
+      overflowVisible={true}
+    >
+      <form id="group-invite-form" onSubmit={handleSubmit} className="space-y-4">
+        {error && (
+          <div className="rounded-xl bg-red-50 p-3 text-xs font-medium text-red-600">
             {error}
           </div>
-        ) : null}
+        )}
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="mb-1 block text-xs font-semibold text-gray-700">Metodo di Invito</label>
-            <div className="flex gap-2 rounded-xl bg-gray-100 p-1 text-xs">
-              <button
-                type="button"
-                className={`flex-1 rounded-lg py-1.5 font-medium transition ${
-                  inviteType === 'username' ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-600'
-                }`}
-                onClick={() => setInviteType('username')}
-              >
-                Username
-              </button>
-              <button
-                type="button"
-                className={`flex-1 rounded-lg py-1.5 font-medium transition ${
-                  inviteType === 'email' ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-600'
-                }`}
-                onClick={() => setInviteType('email')}
-              >
-                Email
-              </button>
-            </div>
-          </div>
+        <div className="space-y-2">
+          <label className="block text-xs font-bold text-gray-500 uppercase">
+            Aggiungi Membri al Gruppo
+          </label>
+          <p className="text-xs text-gray-500">
+            Inserisci username o email, seleziona il ruolo e premi <span className="font-semibold text-gray-700">Aggiungi</span>.
+          </p>
 
-          {inviteType === 'username' ? (
-            <div>
-              <label className="mb-1 block text-xs font-semibold text-gray-700">
-                Username Utente Registrato <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="text"
-                placeholder="es. mariorossi"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                className={shoppingInputClass}
-                autoFocus
-              />
-            </div>
-          ) : (
-            <div>
-              <label className="mb-1 block text-xs font-semibold text-gray-700">
-                Email Utente Registrato <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="email"
-                placeholder="es. mario.rossi@email.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className={shoppingInputClass}
-                autoFocus
-              />
-            </div>
-          )}
-
-          <div>
-            <label className="mb-1 block text-xs font-semibold text-gray-700">
-              Ruolo da Assegnare <span className="text-red-500">*</span>
-            </label>
-            <select
-              value={effectiveRoleCode}
-              onChange={(e) => setRoleCode(e.target.value)}
-              className={shoppingSelectClass}
-            >
-              {isOwner && <option value="admin">Amministratore (Admin)</option>}
-              <option value="editor">Editor (Può aggiungere e registrare acquisti)</option>
-              <option value="reader">Lettore (Sola consultazione read-only)</option>
-            </select>
-            {!isOwner && (
-              <p className="mt-1 text-[11px] text-amber-600 font-medium">
-                * Gli amministratori possono invitare utenti solo con ruolo Editor o Lettore.
-              </p>
-            )}
-          </div>
-
-          <div className="rounded-xl bg-blue-50/60 p-3 text-[11px] text-blue-800">
-            {roleCode === 'admin' && '🛡️ Admin: Può consultare, registrare acquisti ed invitare editor/lettori.'}
-            {roleCode === 'editor' && '✏️ Editor: Può visualizzare la lista, aggiungere prodotti e registrare gli acquisti.'}
-            {roleCode === 'reader' && '👁️ Lettore: Può solo consultare la lista spesa in modalità di sola lettura.'}
-          </div>
-
-          <div className="mt-6 flex justify-end gap-2 pt-2">
-            <button
-              type="button"
-              onClick={onClose}
-              className={shoppingButtonSecondaryClass}
-              disabled={isSubmitting}
-            >
-              Annulla
-            </button>
-            <button
-              type="submit"
-              className={shoppingButtonPrimaryClass}
-              disabled={isSubmitting}
-            >
-              {isSubmitting ? 'Invio in corso...' : 'Invia Invito'}
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
+          <ShoppingGroupInviteListBuilder
+            invites={pendingInvites}
+            onChange={setPendingInvites}
+            currentUserRole={currentUserRole}
+            onError={setError}
+            inputPlaceholder="User o email..."
+          />
+        </div>
+      </form>
+    </BaseModal>
   );
 };
 

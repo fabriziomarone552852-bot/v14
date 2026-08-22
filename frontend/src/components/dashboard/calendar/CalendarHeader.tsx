@@ -1,7 +1,7 @@
 // src/components/dashboard/calendar/CalendarHeader.tsx
 import React from 'react';
 import type { CalendarState } from '@/hooks/useCalendarState';
-import { nomiMesiLungo, pad, getMondayOfCurrentWeek } from '@/utils/dateUtils';
+import { nomiMesiLungo, pad } from '@/utils/dateUtils';
 import { BackIcon, ForwardIcon } from '@/components/shared/utils/Icons';
 import DatePicker from '@/components/shared/utils/DatePicker/DatePicker';
 
@@ -13,7 +13,7 @@ const CalendarHeader: React.FC<CalendarHeaderProps> = ({ state }) => {
   const { 
     view, setView, hoveredDay, handlePrev, handleNext, 
     isSelectingDate, setIsSelectingDate,
-    monthIndex, monthYear, mondayOfWeek, currentWeekDate, // <-- Assicurati di estrarre currentWeekDate
+    monthIndex, monthYear, mondayOfWeek, currentWeekDate,
     setCurrentMonthDate, setCurrentWeekDate, setHoveredDay, setPopupRect
   } = state;
 
@@ -30,23 +30,9 @@ const CalendarHeader: React.FC<CalendarHeaderProps> = ({ state }) => {
     if (view === 'Mese') {
       setCurrentMonthDate(new Date(yyyy, mm - 1, 1));
     } else {
-      // INVECE DI: setCurrentWeekDate(getMondayOfCurrentWeek(selectedDate));
-      // FAI QUESTO: 
       setCurrentWeekDate(selectedDate);
     }
   };
-
-  // Il trigger personalizzato continua a mostrare il Lunedì per coerenza visiva ("Sett. 29/06")
-  const headerTrigger = (
-    <div className={`flex gap-1.5 items-baseline cursor-pointer px-3 py-1 rounded-md transition-colors group select-none ${isSelectingDate ? 'bg-blue-50' : 'hover:bg-gray-50'}`}>
-      <h3 className="text-xl font-extrabold text-gray-800 group-hover:text-blue-600 transition-colors">
-        {view === 'Mese' ? nomiMesiLungo[monthIndex] : `Sett. ${pad(mondayOfWeek.getDate())}/${pad(mondayOfWeek.getMonth() + 1)}`}
-      </h3>
-      <span className="text-sm font-bold text-gray-400">
-        {view === 'Mese' ? monthYear : mondayOfWeek.getFullYear()}
-      </span>
-    </div>
-  );
 
   return (
     <div className={`flex justify-between items-end mb-4 border-b pb-2 flex-shrink-0 relative transition-none ${hoveredDay ? 'z-10' : 'z-40'}`}>

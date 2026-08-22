@@ -28,26 +28,34 @@ def upgrade() -> None:
     op.execute("ALTER TABLE monthly_entries DROP COLUMN IF EXISTS feel_value")
 
     # Aggiungi nuove colonne se non esistono già
-    op.add_column('monthly_entries', sa.Column('monthly_type', sa.String(length=2), nullable=False))
-    op.add_column('monthly_entries', sa.Column('monthly_field', sa.Text(), nullable=True))
+    # monthly_type è NOT NULL ma usiamo un default temporaneo 'MJ' per righe esistenti
+    op.execute("ALTER TABLE monthly_entries ADD COLUMN IF NOT EXISTS monthly_type VARCHAR(2) NOT NULL DEFAULT 'MJ'")
+    op.execute("ALTER TABLE monthly_entries ADD COLUMN IF NOT EXISTS monthly_field TEXT")
 
-    # Aggiungi check constraint
-    op.create_check_constraint(
-        'ck_monthly_entries_type_valid',
-        'monthly_entries',
-        "monthly_type IN ('MJ','MS','MA','MD','MT','SC','SF','SA','SH','SS','SD','SM','SW','EP','EN','OM','PM','Q1','Q2','Q3','Q4','Q5','Q6','TG')"
-    )
+    # Aggiungi check constraint se non esiste
+    op.execute("""
+        DO $$
+        BEGIN
+            IF NOT EXISTS (
+                SELECT 1 FROM pg_constraint
+                WHERE conname = 'ck_monthly_entries_type_valid'
+            ) THEN
+                ALTER TABLE monthly_entries ADD CONSTRAINT ck_monthly_entries_type_valid
+                CHECK (monthly_type IN ('MJ','MS','MA','MD','MT','SC','SF','SA','SH','SS','SD','SM','SW','EP','EN','OM','PM','Q1','Q2','Q3','Q4','Q5','Q6','TG'));
+            END IF;
+        END $$;
+    """)
 
-    # Aggiungi indici
-    op.create_index('ix_monthly_entries_user_year_month', 'monthly_entries', ['user_id', 'year', 'month'])
-    op.create_index('ix_monthly_entries_monthly_type', 'monthly_entries', ['monthly_type'])
-    op.create_index(
-        'ix_monthly_entries_unique',
-        'monthly_entries',
-        ['user_id', 'year', 'month', 'monthly_type'],
-        unique=True,
-        postgresql_where=sa.text("monthly_type NOT IN ('EP', 'EN', 'PM', 'TG')")
-    )
+    # Aggiungi indici se non esistono
+    op.execute("CREATE INDEX IF NOT EXISTS ix_monthly_entries_user_year_month ON monthly_entries (user_id, year, month)")
+    op.execute("CREATE INDEX IF NOT EXISTS ix_monthly_entries_monthly_type ON monthly_entries (monthly_type)")
+    op.execute("""
+        CREATE UNIQUE INDEX IF NOT EXISTS ix_monthly_entries_unique
+        ON monthly_entries (user_id, year, month, monthly_type)
+        WHERE monthly_type NOT IN ('EP', 'EN', 'PM', 'TG')
+    """)
+
+
 
 
 def downgrade() -> None:

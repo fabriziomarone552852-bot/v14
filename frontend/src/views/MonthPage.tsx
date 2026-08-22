@@ -1,6 +1,5 @@
 // frontend/src/pages/MonthPage.tsx
-import React, { useState, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useMemo } from 'react';
 import { format } from 'date-fns';
 import { it } from 'date-fns/locale';
 
@@ -9,11 +8,8 @@ import NotesSidebar from '@/components/day/NotesSidebar';
 import { SharedAgendaHeader } from '@/components/shared/SharedAgendaHeader';
 import { GoalsAndPrioritiesPanel } from '@/components/shared/GoalsAndPrioritiesPanel';
 import CalendarColumn from '@/components/dashboard/CalendarColumn';
-import TaskColumn from '@/components/shared/tasks/TaskColumn'; 
 import MoodEventsBoard from '@/components/weekmonth/MoodEventsBoard';
 import { TrackerPanel } from '@/components/weekmonth/TrackerPanel';
-import NewEventModal from '@/components/shared/events/EventNewModal';
-import EventDetailModal from '@/components/shared/events/EventDetailModal';
 import { MonthReviewModal } from '@/components/weekmonth/review/MonthReviewModal';
 
 // --- HOOKS LOGICI E DATI ---
@@ -23,8 +19,6 @@ import { useCategories } from '@/hooks/useCategories';
 import { mapDbEventsToCalendarEvents } from '@/utils/eventUtils'; 
 
 const MonthPage: React.FC = () => {
-  const navigate = useNavigate();
-  
   const { changeDate: setTargetDate } = useDay();
   
   const { state, modals, apiData, handlers, review } = useMonthPageLogic();

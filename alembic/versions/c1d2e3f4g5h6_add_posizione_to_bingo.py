@@ -15,7 +15,8 @@ branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
 def upgrade() -> None:
-    op.add_column('bingo', sa.Column('posizione', sa.Integer(), nullable=True))
+    op.execute("ALTER TABLE bingo ADD COLUMN IF NOT EXISTS posizione INTEGER")
 
 def downgrade() -> None:
     op.drop_column('bingo', 'posizione')
+

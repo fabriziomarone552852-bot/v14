@@ -1,11 +1,10 @@
 // src/components/shared/shopping/ShoppingQuickAddBar.tsx
 import React, { useId } from 'react';
-import type { ConfigOption } from '@/types/shopping';
-import { getConfigOptionLabel } from './shoppingItems.utils';
-import {
-  shoppingButtonPrimaryClass,
-  shoppingInputClass,
-} from './shoppingUi';
+import type { ConfigOption, ShoppingProductOption } from '@/types/shopping';
+import ShoppingUnitSelect from './ShoppingUnitSelect';
+import ShoppingQuantityInput from './ShoppingQuantityInput';
+import ShoppingProductAutocomplete from './ShoppingProductAutocomplete';
+import { AddButton } from '@/components/shared/utils/AddButton';
 
 interface ShoppingQuickAddBarProps {
   activeListId: number | null;
@@ -14,6 +13,7 @@ interface ShoppingQuickAddBarProps {
   quickQuantity: string;
   quickUnitId: string;
   loading?: boolean;
+  products?: ShoppingProductOption[];
   onQuickNameChange: (value: string) => void;
   onQuickQuantityChange: (value: string) => void;
   onQuickUnitChange: (value: string) => void;
@@ -27,6 +27,7 @@ const ShoppingQuickAddBar: React.FC<ShoppingQuickAddBarProps> = ({
   quickQuantity,
   quickUnitId,
   loading = false,
+  products = [],
   onQuickNameChange,
   onQuickQuantityChange,
   onQuickUnitChange,
@@ -36,78 +37,61 @@ const ShoppingQuickAddBar: React.FC<ShoppingQuickAddBarProps> = ({
   const disabled = !hasActiveList || !quickName.trim() || loading;
 
   const quickNameId = useId();
-  const quickQuantityId = useId();
-  const quickUnitFieldId = useId();
 
   return (
     <form
       onSubmit={onSubmit}
-      className="shrink-0 rounded-2xl border border-slate-200 bg-slate-50 p-2"
+      className="shrink-0 rounded-2xl border border-slate-200 bg-slate-50 p-2 shadow-2xs"
     >
-      <div className="grid grid-cols-1 gap-2 md:grid-cols-[minmax(0,1fr)_110px_150px_auto]">
+      <div className="grid grid-cols-1 gap-2 md:grid-cols-[minmax(0,1fr)_110px_160px_auto] items-center">
+        {/* Nome Prodotto con autocomplete */}
         <div>
           <label htmlFor={quickNameId} className="sr-only">
             Nome articolo
           </label>
-          <input
+          <ShoppingProductAutocomplete
             id={quickNameId}
-            type="text"
-            className={shoppingInputClass}
+            value={quickName}
+            onChange={(name) => onQuickNameChange(name)}
+            products={products}
             placeholder={
               hasActiveList
-                ? 'Aggiungi rapidamente un articolo...'
+                ? 'Aggiungi rapidamente un prodotto...'
                 : 'Seleziona prima una lista'
             }
-            value={quickName}
-            onChange={(e) => onQuickNameChange(e.target.value)}
             disabled={!hasActiveList || loading}
           />
         </div>
 
+        {/* Quantità */}
         <div>
-          <label htmlFor={quickQuantityId} className="sr-only">
-            Quantità
-          </label>
-          <input
-            id={quickQuantityId}
-            type="number"
-            min="0"
-            step="0.01"
-            className={shoppingInputClass}
-            placeholder="Qtà"
+          <ShoppingQuantityInput
             value={quickQuantity}
-            onChange={(e) => onQuickQuantityChange(e.target.value)}
+            onChange={onQuickQuantityChange}
+            placeholder="Qtà (1)"
             disabled={!hasActiveList || loading}
           />
         </div>
 
+        {/* Unità di misura */}
         <div>
-          <label htmlFor={quickUnitFieldId} className="sr-only">
-            Unità di misura
-          </label>
-          <select
-            id={quickUnitFieldId}
-            className={shoppingInputClass}
+          <ShoppingUnitSelect
             value={quickUnitId}
-            onChange={(e) => onQuickUnitChange(e.target.value)}
+            onChange={onQuickUnitChange}
+            unitOptions={unitOptions}
             disabled={!hasActiveList || loading}
-          >
-            <option value="">Unità</option>
-            {unitOptions.map((option) => (
-              <option key={option.id} value={String(option.id)}>
-                {getConfigOptionLabel(option)}
-              </option>
-            ))}
-          </select>
+          />
         </div>
 
-        <button
-          type="submit"
-          className={`${shoppingButtonPrimaryClass} whitespace-nowrap text-xs`}
-          disabled={disabled}
-        >
-          + Aggiungi
-        </button>
+        {/* Pulsante Aggiunta */}
+        <div className="shrink-0 min-w-[120px]">
+          <AddButton
+            label={loading ? 'Aggiunta...' : 'Aggiungi'}
+            compact={true}
+            type="submit"
+            disabled={disabled}
+          />
+        </div>
       </div>
     </form>
   );

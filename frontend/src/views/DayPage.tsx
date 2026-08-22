@@ -119,7 +119,7 @@ const DayPage: React.FC = () => {
     saveNote({ id, testo, data_riferimento: targetDateStr, tipo, isNew });
   }, [saveNote, targetDateStr]);
 
-  const handleDeleteNote = useCallback((id: number, isNew?: boolean) => {
+  const handleDeleteNote = useCallback((id: number) => {
     deleteNote(id); 
   }, [deleteNote]);
 

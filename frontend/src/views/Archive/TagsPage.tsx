@@ -136,7 +136,7 @@ export const TagsPage: React.FC = () => {
       <ArchiveHeader
         title="TAG & ETICHETTE"
         subtitle="Bacheca di frequenza ed elenco alfabetico dei tag associati alle tue revisioni periodiche."
-        icon={<TagIcon className="h-6 w-6 text-white" />}
+        icon={<TagIcon className="w-5 h-5 text-white" />}
         className={PANEL_CLASS}
       />
 

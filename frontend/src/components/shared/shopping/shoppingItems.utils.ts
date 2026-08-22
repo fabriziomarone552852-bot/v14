@@ -1,39 +1,44 @@
+// src/components/shared/shopping/shoppingItems.utils.ts
 import type { ConfigOption } from '@/types/shopping';
 import { getLocalTodayStr } from '@/utils/dateUtils';
 
 export interface ItemFormState {
   shoppingListId: string;
-  productName: string; // REFACTOR: Usa productName invece di nameOriginal
+  productName: string;
   quantity: string;
   unitId: string;
   notes: string;
 }
 
 export interface PurchaseFormState {
+  quantity: string;
   supplierId: string;
   price: string;
   purchaseDate: string;
   currencyId: string;
   offerFlagId: string;
+  isOnSale: boolean;
 }
 
 export const emptyItemForm = (shoppingListId = ''): ItemFormState => ({
   shoppingListId,
-  productName: '', // REFACTOR: Usa productName
+  productName: '',
   quantity: '',
   unitId: '',
   notes: '',
-  statusId: '',
 });
 
 export const emptyPurchaseForm = (
-  defaultCurrencyId = ''
+  defaultCurrencyId = '',
+  defaultQuantity = '1'
 ): PurchaseFormState => ({
+  quantity: defaultQuantity,
   supplierId: '',
   price: '',
   purchaseDate: getLocalTodayStr(),
   currencyId: defaultCurrencyId,
   offerFlagId: '',
+  isOnSale: false,
 });
 
 export const getConfigOptionLabel = (option: ConfigOption): string =>

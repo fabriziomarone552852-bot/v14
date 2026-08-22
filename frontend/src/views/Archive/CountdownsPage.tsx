@@ -92,7 +92,6 @@ export const CountdownsPage: React.FC = () => {
 
   // 6. HOOK IN RAM PER FILTRAGGIO, ORDINAMENTO E PAGINAZIONE
   const {
-    filteredCountdowns,
     paginatedCountdowns,
     totalPages,
     totalCount,
@@ -157,7 +156,7 @@ export const CountdownsPage: React.FC = () => {
       <ArchiveHeader
         title="GESTIONE COUNTDOWN"
         subtitle="Tieni traccia dei giorni mancanti alle tue date più importanti."
-        icon={<CountdownIcon className="h-6 w-6 text-white" />}
+        icon={<CountdownIcon className="w-5 h-5 text-white" />}
         className={ARCHIVE_PANEL_CLASS}
       />
 

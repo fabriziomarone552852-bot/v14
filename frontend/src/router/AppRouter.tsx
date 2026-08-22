@@ -28,6 +28,8 @@ import {
   NotesPage,
   ReviewsPage,
   TagsPage,
+  SuppliersPage,
+  ShoppingArchivePage,
 } from '@/views/Archive';
 
 // Layout
@@ -66,7 +68,10 @@ const AppRouter: React.FC = () => {
             <Route path="/notes" element={<NotesPage />} />
             <Route path="/reviews" element={<ReviewsPage />} />
             <Route path="/tags" element={<TagsPage />} />
+            <Route path="/fornitori" element={<SuppliersPage />} />
+            <Route path="/shopping-archive" element={<ShoppingArchivePage />} />
             <Route path="/shopping" element={<ShoppingPage />} />
+
             <Route path="/admin" element={<AdminPage />} />
             <Route path="/settings" element={<UserSettingsPage />} />
             <Route path="*" element={<Navigate to="/" replace />} />

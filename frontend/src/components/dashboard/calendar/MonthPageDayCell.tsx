@@ -3,7 +3,7 @@ import { getHexColor } from '@/utils/uiUtils';
 import { TimeDisplay, DateRangeDisplay } from '@/components/shared/utils/DateTimeDisplays';
 import { useOutsideClick } from '@/hooks/useOutsideClick';
 import type { CalendarGridItem } from './MonthGrid';
-import { CategoryGenre, type Category, type DbTask, type CalendarEvent } from '@/types'; 
+import type { Category, DbTask, CalendarEvent } from '@/types'; 
 import { AddButton } from '@/components/shared/utils/AddButton';
 import { CreateMoodModal } from '@/components/modals/CreateMoodModal'; 
 import { useCategories } from '@/hooks/useCategories'; 
@@ -48,7 +48,7 @@ export const MonthPageDayCell: React.FC<MonthPageDayCellProps> = ({
   onSelectTask,
   onToggleTask,
   onMoodChange, 
-  onCreateNewMood,
+  onCreateNewMood: _onCreateNewMood,
   showMoodSelector = false 
 }) => {
   const [isHovered, setIsHovered] = useState<boolean>(false);

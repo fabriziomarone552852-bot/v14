@@ -68,12 +68,9 @@ export const useShoppingData = (): UseShoppingDataResult => {
     gcTime: 30 * 60_000,
   });
 
-  useEffect(() => {
-    const lists = listsQuery.data ?? [];
-    if (lists.length > 0 && activeListId === null) {
-      setActiveListId(lists[0].id);
-    }
-  }, [listsQuery.data]);
+  // Nessuna lista selezionata di default — l'utente sceglie manualmente
+
+
 
   const hasActiveList = activeListId !== null;
 
@@ -105,6 +102,7 @@ export const useShoppingData = (): UseShoppingDataResult => {
 
   const isInitialLoading =
     listsQuery.isLoading ||
+    groupsQuery.isLoading ||
     configQuery.isLoading ||
     suppliersQuery.isLoading ||
     productsQuery.isLoading ||
@@ -153,6 +151,7 @@ export const useShoppingData = (): UseShoppingDataResult => {
     products,
     config,
     listsLoading: listsQuery.isLoading,
+    groupsLoading: groupsQuery.isLoading,
     itemsLoading: itemsQuery.isLoading,
     suppliersLoading: suppliersQuery.isLoading,
     productsLoading: productsQuery.isLoading,

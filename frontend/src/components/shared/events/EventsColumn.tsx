@@ -1,5 +1,4 @@
-// src/components/shared/EventsColumn.tsx
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useRef } from 'react';
 import type { CalendarEvent } from '@/types';
 import { TruncatedTitle } from '@/components/shared/utils/TruncatedTitle';
 import { Pagination } from '@/components/shared/utils/Pagination';

@@ -110,7 +110,7 @@ const WeekGridDetailed: React.FC<WeekGridDetailedProps> = ({
           
           {/* COLONNA DELLE ORE */}
           <div className="bg-white flex flex-col relative min-w-0 border-r border-gray-100/50">
-            {hours24.map((hour, i) => (
+            {hours24.map((_hour, i) => (
               <div key={i} className="flex-1 relative border-b border-transparent min-h-0 shrink-0 flex items-center justify-center">
                 {[0, 6, 12, 18].includes(i) && (
                   <span className="absolute -top-2 right-1 text-[9px] font-bold text-gray-400 bg-white px-1 leading-none z-10">

@@ -358,19 +358,34 @@ def _sync_users_id_sequence(db) -> None:
 
 
 def _ensure_config(db, default_max_subtask_depth: int) -> bool:
+    inserted = False
     existing = db.query(Config).filter(Config.key == "max_subtask_depth").first()
-    if existing is not None:
-        return False
-
-    db.add(
-        Config(
-            key="max_subtask_depth",
-            value=str(default_max_subtask_depth),
-            descrizione="Numero massimo di livelli consentiti per la nidificazione dei sottotask.",
+    if existing is None:
+        db.add(
+            Config(
+                key="max_subtask_depth",
+                value=str(default_max_subtask_depth),
+                descrizione="Numero massimo di livelli consentiti per la nidificazione dei sottotask.",
+            )
         )
-    )
-    db.flush()
-    return True
+        inserted = True
+
+    existing_price = db.query(Config).filter(Config.key == "price_stats_lookback_days").first()
+    if existing_price is None:
+        db.add(
+            Config(
+                key="price_stats_lookback_days",
+                value="365",
+                descrizione="Numero di giorni di storico da considerare per il calcolo del prezzo medio e migliore nella spesa (es. 365 per 1 anno, 90 per 3 mesi).",
+            )
+        )
+        inserted = True
+
+
+    if inserted:
+        db.flush()
+    return inserted
+
 
 
 def _seed_config_codes(db) -> dict[tuple[str, str], int]:

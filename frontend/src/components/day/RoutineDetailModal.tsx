@@ -1,5 +1,4 @@
-// src/components/day/RoutineDetailModal.tsx
-import React, { useState, useMemo } from 'react';
+import React, { useMemo } from 'react';
 import type { RoutineItem, RoutinePeriod } from '@/components/day/RoutineColumn';
 import BaseModal from '@/components/shared/dialog/BaseModal';
 import { useHabitLogs } from '@/hooks/useHabitLogs';

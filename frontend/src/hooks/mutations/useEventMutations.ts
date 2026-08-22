@@ -127,7 +127,7 @@ export function useEventMutations<T extends CacheWithEvents>(queryKey: QueryKey)
 
       return { previousData };
     },
-    onError: (err, deletedId, context) => {
+    onError: (err, _deletedId, context) => {
       logger.error("Errore eliminazione evento:", err);
       if (context?.previousData) queryClient.setQueryData(queryKey, context.previousData);
     },

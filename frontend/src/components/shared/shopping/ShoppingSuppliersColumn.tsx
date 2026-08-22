@@ -4,9 +4,8 @@ import { useShoppingMutations } from '@/hooks/shopping/useShoppingMutations';
 import { useModal } from '@/hooks/useModals';
 import { useConfirm } from '@/context/ConfirmContext';
 import type {
-  CatalogOption,
-  ShoppingSupplier,
-  SupplierFormState,
+  ConfigOption,
+  ShoppingSupplierOption,
 } from '@/types/shopping';
 import {
   shoppingButtonPrimaryClass,
@@ -15,9 +14,14 @@ import {
   shoppingInputClass,
 } from './shoppingUi';
 
+interface SupplierFormState {
+  name: string;
+  status_id: string;
+}
+
 interface ShoppingSuppliersColumnProps {
-  suppliers: ShoppingSupplier[];
-  supplierStatusOptions: CatalogOption[];
+  suppliers: ShoppingSupplierOption[];
+  supplierStatusOptions: ConfigOption[];
 }
 
 const makeEmptyForm = (): SupplierFormState => ({
@@ -25,10 +29,10 @@ const makeEmptyForm = (): SupplierFormState => ({
   status_id: '',
 });
 
-const renderCatalogOptions = (options: CatalogOption[]) =>
+const renderCatalogOptions = (options: ConfigOption[]) =>
   options.map((option) => (
     <option key={option.id} value={String(option.id)}>
-      {option.code_name}
+      {option.displayName || option.codeName}
     </option>
   ));
 
@@ -37,9 +41,9 @@ const ShoppingSuppliersColumn: React.FC<ShoppingSuppliersColumnProps> = ({
   supplierStatusOptions,
 }) => {
   const mutations = useShoppingMutations();
-  const confirm = useConfirm();
+  const { confirm } = useConfirm();
   const createModal = useModal<null>();
-  const editModal = useModal<ShoppingSupplier>();
+  const editModal = useModal<ShoppingSupplierOption>();
 
   const [form, setForm] = useState<SupplierFormState>(makeEmptyForm());
   const [editForm, setEditForm] = useState<SupplierFormState>(makeEmptyForm());
@@ -50,7 +54,7 @@ const ShoppingSuppliersColumn: React.FC<ShoppingSuppliersColumnProps> = ({
 
     await mutations.createSupplier({
       name: form.name.trim(),
-      status_id: form.status_id,
+      statusId: form.status_id ? Number(form.status_id) : undefined,
     });
 
     setForm(makeEmptyForm());
@@ -65,23 +69,29 @@ const ShoppingSuppliersColumn: React.FC<ShoppingSuppliersColumnProps> = ({
       id: editModal.data.id,
       data: {
         name: editForm.name.trim(),
-        status_id: editForm.status_id,
+        statusId: editForm.status_id ? Number(editForm.status_id) : undefined,
       },
     });
 
     editModal.close();
   };
 
-  const handleDelete = async (supplier: ShoppingSupplier) => {
-    const ok = await confirm(`Eliminare il fornitore "${supplier.name}"?`);
-    if (!ok) return;
-    await mutations.deleteSupplier(supplier.id);
+  const handleDelete = (supplier: ShoppingSupplierOption) => {
+    confirm({
+      title: 'Elimina fornitore',
+      message: `Eliminare il fornitore "${supplier.name}"?`,
+      confirmText: 'Elimina',
+      isDestructive: true,
+      onConfirm: async () => {
+        await mutations.deleteSupplier(supplier.id);
+      },
+    });
   };
 
-  const startEdit = (supplier: ShoppingSupplier) => {
+  const startEdit = (supplier: ShoppingSupplierOption) => {
     setEditForm({
       name: supplier.name,
-      status_id: supplier.status_id == null ? '' : String(supplier.status_id),
+      status_id: supplier.statusId == null ? '' : String(supplier.statusId),
     });
     editModal.open(supplier);
   };
@@ -98,13 +108,13 @@ const ShoppingSuppliersColumn: React.FC<ShoppingSuppliersColumnProps> = ({
             setForm(makeEmptyForm());
             createModal.open(null);
           }}
-          className={`${shoppingButtonSecondaryClass} text-xs`}
+          className={`${shoppingButtonSecondaryClass} text-xs cursor-pointer`}
         >
           + Nuovo
         </button>
       </div>
 
-      <div className="min-h-0 flex-1 space-y-2 overflow-y-auto">
+      <div className="min-h-0 flex-1 space-y-2 overflow-y-auto custom-scrollbar">
         {suppliers.length === 0 ? (
           <p className="py-4 text-center text-xs text-gray-400">
             Nessun fornitore.
@@ -126,7 +136,7 @@ const ShoppingSuppliersColumn: React.FC<ShoppingSuppliersColumnProps> = ({
                 <button
                   type="button"
                   onClick={() => startEdit(supplier)}
-                  className="text-xs text-gray-400 hover:text-blue-500"
+                  className="text-xs text-gray-400 hover:text-blue-500 cursor-pointer"
                   aria-label={`Modifica fornitore ${supplier.name}`}
                 >
                   ✎
@@ -134,7 +144,7 @@ const ShoppingSuppliersColumn: React.FC<ShoppingSuppliersColumnProps> = ({
                 <button
                   type="button"
                   onClick={() => handleDelete(supplier)}
-                  className="text-xs text-gray-400 hover:text-red-500"
+                  className="text-xs text-gray-400 hover:text-red-500 cursor-pointer"
                   aria-label={`Elimina fornitore ${supplier.name}`}
                 >
                   ✕
@@ -147,7 +157,7 @@ const ShoppingSuppliersColumn: React.FC<ShoppingSuppliersColumnProps> = ({
 
       {createModal.isOpen && (
         <div className="fixed inset-0 z-40 flex items-center justify-center bg-slate-900/30 p-4 backdrop-blur-sm">
-          <div className={`${shoppingCardClass} w-full max-w-md p-5`}>
+          <div className={`${shoppingCardClass} w-full max-w-md p-5 bg-white`}>
             <h2 className="mb-4 text-lg font-bold text-gray-900">Nuovo fornitore</h2>
 
             <form onSubmit={handleCreate} className="space-y-3">
@@ -156,7 +166,7 @@ const ShoppingSuppliersColumn: React.FC<ShoppingSuppliersColumnProps> = ({
                 placeholder="Nome fornitore"
                 value={form.name}
                 onChange={(e) =>
-                  setForm((prev) => ({ ...prev, name: e.target.value }))
+                  setForm((prev: SupplierFormState) => ({ ...prev, name: e.target.value }))
                 }
                 required
               />
@@ -165,7 +175,7 @@ const ShoppingSuppliersColumn: React.FC<ShoppingSuppliersColumnProps> = ({
                 className={shoppingInputClass}
                 value={form.status_id}
                 onChange={(e) =>
-                  setForm((prev) => ({ ...prev, status_id: e.target.value }))
+                  setForm((prev: SupplierFormState) => ({ ...prev, status_id: e.target.value }))
                 }
               >
                 <option value="">Default backend</option>
@@ -176,11 +186,11 @@ const ShoppingSuppliersColumn: React.FC<ShoppingSuppliersColumnProps> = ({
                 <button
                   type="button"
                   onClick={createModal.close}
-                  className={shoppingButtonSecondaryClass}
+                  className={`${shoppingButtonSecondaryClass} cursor-pointer`}
                 >
                   Annulla
                 </button>
-                <button type="submit" className={shoppingButtonPrimaryClass}>
+                <button type="submit" className={`${shoppingButtonPrimaryClass} cursor-pointer`}>
                   Crea
                 </button>
               </div>
@@ -191,7 +201,7 @@ const ShoppingSuppliersColumn: React.FC<ShoppingSuppliersColumnProps> = ({
 
       {editModal.isOpen && editModal.data && (
         <div className="fixed inset-0 z-40 flex items-center justify-center bg-slate-900/30 p-4 backdrop-blur-sm">
-          <div className={`${shoppingCardClass} w-full max-w-md p-5`}>
+          <div className={`${shoppingCardClass} w-full max-w-md p-5 bg-white`}>
             <h2 className="mb-4 text-lg font-bold text-gray-900">Modifica fornitore</h2>
 
             <form onSubmit={handleSaveEdit} className="space-y-3">
@@ -200,7 +210,7 @@ const ShoppingSuppliersColumn: React.FC<ShoppingSuppliersColumnProps> = ({
                 placeholder="Nome"
                 value={editForm.name}
                 onChange={(e) =>
-                  setEditForm((prev) => ({ ...prev, name: e.target.value }))
+                  setEditForm((prev: SupplierFormState) => ({ ...prev, name: e.target.value }))
                 }
                 required
               />
@@ -209,7 +219,7 @@ const ShoppingSuppliersColumn: React.FC<ShoppingSuppliersColumnProps> = ({
                 className={shoppingInputClass}
                 value={editForm.status_id}
                 onChange={(e) =>
-                  setEditForm((prev) => ({ ...prev, status_id: e.target.value }))
+                  setEditForm((prev: SupplierFormState) => ({ ...prev, status_id: e.target.value }))
                 }
               >
                 <option value="">Default backend</option>
@@ -220,11 +230,11 @@ const ShoppingSuppliersColumn: React.FC<ShoppingSuppliersColumnProps> = ({
                 <button
                   type="button"
                   onClick={editModal.close}
-                  className={shoppingButtonSecondaryClass}
+                  className={`${shoppingButtonSecondaryClass} cursor-pointer`}
                 >
                   Annulla
                 </button>
-                <button type="submit" className={shoppingButtonPrimaryClass}>
+                <button type="submit" className={`${shoppingButtonPrimaryClass} cursor-pointer`}>
                   Salva
                 </button>
               </div>

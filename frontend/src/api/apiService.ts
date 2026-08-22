@@ -78,8 +78,21 @@ export const api = {
   },
 
   /**
+   * Esegue una richiesta PUT.
+   */
+  put: async <T = unknown, D = unknown>(endpoint: string, body?: D, options?: AxiosRequestConfig): Promise<T | null> => {
+    try {
+      const response = await apiClient.put<T>(endpoint, body, options);
+      return response.status === 204 ? null : response.data;
+    } catch (error) { 
+      return handleAxiosError(error); 
+    }
+  },
+
+  /**
    * Esegue una richiesta DELETE.
    */
+
   delete: async <T = unknown>(endpoint: string, options?: AxiosRequestConfig): Promise<T | null> => {
     try {
       const response = await apiClient.delete<T>(endpoint, options);

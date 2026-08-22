@@ -9,6 +9,9 @@ interface ArchiveActionBarProps {
   onAdd?: () => void;
   actionButton?: React.ReactNode;
 
+  // Centro: Contenuto centrale opzionale (es. SegmentedTabs / Slider)
+  centerContent?: React.ReactNode;
+
   // Destra: Ricerca Modale & Filtri Rapidi Extra
   onOpenSearch?: () => void;
   activeFiltersCount?: number;
@@ -21,6 +24,7 @@ export const ArchiveActionBar: React.FC<ArchiveActionBarProps> = ({
   addLabel,
   onAdd,
   actionButton,
+  centerContent,
   onOpenSearch,
   activeFiltersCount = 0,
   extraFilters,
@@ -46,8 +50,15 @@ export const ArchiveActionBar: React.FC<ArchiveActionBarProps> = ({
         ) : null}
       </div>
 
+      {/* AL CENTRO: Contenuto centrale (es. Slider/Tabs) */}
+      {centerContent && (
+        <div className="flex items-center justify-center flex-1 min-w-0">
+          {centerContent}
+        </div>
+      )}
+
       {/* A DESTRA: Lente di Ricerca & Eventuali Filtri Rapidi */}
-      <div className="flex items-center gap-2.5">
+      <div className="flex items-center gap-2.5 shrink-0">
         {onOpenSearch && (
           <button
             type="button"

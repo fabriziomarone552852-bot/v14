@@ -1,143 +1,116 @@
 // src/components/shared/shopping/ShoppingItemRow.tsx
 import React from 'react';
-import { Pencil, Trash2, Receipt, Check, BarChart2 } from 'lucide-react';
+import { Check } from 'lucide-react';
 import type { ShoppingListItem } from '@/types/shopping';
-import {
-  shoppingCardClass,
-  shoppingIconButtonClass,
-} from './shoppingUi';
+import { shoppingCardClass } from './shoppingUi';
+import { StoreIcon } from '@/components/shared/utils/Icons';
+import { formatUnitForQuantity } from './ShoppingUnitSelect';
 
 interface ShoppingItemRowProps {
   item: ShoppingListItem;
   onToggle: (item: ShoppingListItem) => void;
-  onEdit: (item: ShoppingListItem) => void;
-  onDelete: (item: ShoppingListItem) => void;
-  onPurchase: (item: ShoppingListItem) => void;
-  onOpenSuggestions?: (item: ShoppingListItem) => void;
+  onOpenDetail?: (item: ShoppingListItem) => void;
   userRole?: string; // 'owner' | 'admin' | 'editor' | 'reader'
 }
+
+const capitalizeFirstLetter = (str: string): string => {
+  if (!str) return '';
+  return str.charAt(0).toUpperCase() + str.slice(1);
+};
 
 const ShoppingItemRow: React.FC<ShoppingItemRowProps> = ({
   item,
   onToggle,
-  onEdit,
-  onDelete,
-  onPurchase,
-  onOpenSuggestions,
+  onOpenDetail,
   userRole = 'owner',
 }) => {
   const itemLabel = item.productName || 'articolo';
   const isOwner = userRole === 'owner';
-  const isAdmin = userRole === 'admin';
-  const isEditor = userRole === 'editor';
   const isReader = userRole === 'reader';
 
-  // L'Editor non ha alcun privilegio di editing sugli articoli.
-  // Admin può editare gli articoli solo se aperti (!item.isPurchased). Owner sempre.
-  const canEdit = isOwner || (isAdmin && !item.isPurchased);
-
-  // Solo l'owner del gruppo può eliminare gli articoli della lista
-  const canDelete = isOwner;
-
-  // Se l'articolo è già acquistato (chiuso), solo l'owner può annullare l'acquisto / deselezionarlo
+  // Se l'articolo è già acquistato (chiuso), solo chi non è reader o l'owner può annullare/spuntare
   const canToggleCheck = !isReader && (!item.isPurchased || isOwner);
 
+  const unitDisplay = formatUnitForQuantity(item.unitCodeName, item.quantity);
+  const formattedName = capitalizeFirstLetter(item.productName);
+
   return (
-    <div className={`${shoppingCardClass} flex flex-col gap-2 p-3 transition hover:border-slate-300`}>
-      <div className="flex items-center gap-2">
-        <button
-          type="button"
-          onClick={() => canToggleCheck && onToggle(item)}
-          disabled={!canToggleCheck}
+    <div
+      onClick={() => onOpenDetail?.(item)}
+      className={`${shoppingCardClass} flex items-center justify-between gap-3 p-3 transition-all duration-150 cursor-pointer ${
+        item.isPurchased
+          ? 'bg-slate-50/60 opacity-60 border-slate-200 hover:opacity-90'
+          : 'bg-white hover:border-blue-300 hover:shadow-xs'
+      }`}
+    >
+      {/* 1. CHECKBOX */}
+      <button
+        type="button"
+        onClick={(e) => {
+          e.stopPropagation();
+          if (canToggleCheck) onToggle(item);
+        }}
+        disabled={!canToggleCheck}
+        className={[
+          'inline-flex min-h-[32px] min-w-[32px] shrink-0 items-center justify-center rounded-full border-2 transition focus:outline-none focus:ring-2 focus:ring-blue-400 cursor-pointer',
+          item.isPurchased
+            ? 'border-emerald-500 bg-emerald-500 text-white shadow-xs'
+            : 'border-slate-300 bg-white text-transparent hover:border-emerald-500 hover:text-emerald-500',
+          !canToggleCheck ? 'opacity-50 cursor-not-allowed' : '',
+        ].join(' ')}
+        aria-label={
+          item.isPurchased
+            ? `Segna ${itemLabel} come da acquistare`
+            : `Segna ${itemLabel} come acquistato`
+        }
+        aria-pressed={item.isPurchased}
+      >
+        <Check className="h-4 w-4" aria-hidden="true" />
+      </button>
+
+      {/* 2. QUANTITÀ CON UNITÀ SINGOLARE/PLURALE */}
+      {item.quantity != null ? (
+        <span className="shrink-0 px-2 py-0.5 rounded-md text-xs font-bold bg-blue-50 text-blue-700 border border-blue-100 capitalize">
+          {item.quantity} {unitDisplay}
+        </span>
+      ) : null}
+
+      {/* 3. NOME PRODOTTO (Prima lettera maiuscola) */}
+      <div className="min-w-0 flex-1">
+        <p
           className={[
-            'inline-flex min-h-[36px] min-w-[36px] shrink-0 items-center justify-center rounded-full border-2 transition focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-1',
+            'truncate text-sm font-semibold',
             item.isPurchased
-              ? 'border-emerald-500 bg-emerald-500 text-white'
-              : 'border-slate-300 bg-white text-transparent hover:border-emerald-400',
-            !canToggleCheck ? 'opacity-50 cursor-not-allowed' : '',
+              ? 'text-slate-400 line-through'
+              : 'text-slate-800',
           ].join(' ')}
-          aria-label={
-            item.isPurchased
-              ? `Segna ${itemLabel} come non acquistato`
-              : `Segna ${itemLabel} come acquistato`
-          }
-          aria-pressed={item.isPurchased}
         >
-          <Check className="h-4 w-4" aria-hidden="true" />
-        </button>
+          {formattedName}
+        </p>
+      </div>
 
-        <div className="min-w-0 flex-1">
-          <p
-            className={[
-              'truncate text-sm font-semibold',
-              item.isPurchased
-                ? 'text-slate-400 line-through'
-                : 'text-slate-800',
-            ].join(' ')}
-          >
-            {item.productName}
-          </p>
-
-          <div className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-slate-500">
-            {item.quantity != null ? (
-              <span className="font-medium">
-                Qtà: {item.quantity}
-                {item.unitCodeName ? ` ${item.unitCodeName}` : ''}
-              </span>
-            ) : null}
-
-            {item.notes ? <span className="truncate italic">"{item.notes}"</span> : null}
-          </div>
+      {/* 4. NOTE (se presenti) */}
+      {item.notes ? (
+        <div className="hidden md:block max-w-[200px] truncate text-xs text-slate-400 italic">
+          "{item.notes}"
         </div>
+      ) : null}
 
-        <div className="shrink-0 flex items-center gap-1">
-          {onOpenSuggestions ? (
-            <button
-              type="button"
-              onClick={() => onOpenSuggestions(item)}
-              className={`${shoppingIconButtonClass} border-blue-200 text-blue-600 hover:bg-blue-50`}
-              title="Vedi suggerimenti e storico prezzi"
-            >
-              <BarChart2 className="h-4 w-4" aria-hidden="true" />
-            </button>
-          ) : null}
+      {/* 5. ULTIMO FORNITORE E PREZZO UNITARIO */}
+      <div className="shrink-0 flex items-center gap-2 text-xs">
+        {item.lastSupplierName && (
+          <span className="hidden sm:inline-flex items-center gap-1 font-medium text-slate-600 px-2 py-0.5 rounded-md bg-slate-100 border border-slate-200">
+            <StoreIcon className="w-3 h-3 text-orange-500" />
+            <span className="truncate max-w-[90px]">{item.lastSupplierName}</span>
+          </span>
+        )}
 
-          {!isReader && !item.isPurchased ? (
-            <button
-              type="button"
-              onClick={() => onPurchase(item)}
-              className={shoppingIconButtonClass}
-              title={`Registra acquisto per ${itemLabel}`}
-            >
-              <Receipt className="h-4 w-4" aria-hidden="true" />
-            </button>
-          ) : null}
-
-          {canEdit ? (
-            <button
-              type="button"
-              onClick={() => onEdit(item)}
-              className={shoppingIconButtonClass}
-              title={`Modifica ${itemLabel}`}
-            >
-              <Pencil className="h-4 w-4" aria-hidden="true" />
-            </button>
-          ) : null}
-
-          {canDelete ? (
-            <button
-              type="button"
-              onClick={() => onDelete(item)}
-              className={[
-                shoppingIconButtonClass,
-                'border-red-200 text-red-500 hover:bg-red-50 hover:text-red-600 focus:ring-red-100',
-              ].join(' ')}
-              title={`Elimina ${itemLabel}`}
-            >
-              <Trash2 className="h-4 w-4" aria-hidden="true" />
-            </button>
-          ) : null}
-        </div>
+        {item.lastPrice != null && (
+          <span className="font-bold text-slate-700 bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded-md border border-emerald-200">
+            € {Number(item.lastPrice).toFixed(2)}
+            {item.quantity && item.quantity > 1 ? '/pz' : ''}
+          </span>
+        )}
       </div>
     </div>
   );

@@ -214,8 +214,27 @@ export const useYearEntries = (yearData: SyncYearResponse | undefined, year: num
   }, [tagEntries]);
 
   const handleAddTag = async (categoryId: number) => {
-    const created = await yearlyEntriesApi.create({ year, yearly_type: 'TG', yearly_field: String(categoryId) });
-    if (created) updateEntriesState(prev => [...prev, created]);
+    const tempId = -Date.now();
+    const optimisticEntry: DbYearlyEntry = {
+      id: tempId,
+      user_id: 0,
+      year,
+      yearly_type: 'TG',
+      yearly_field: String(categoryId),
+    };
+    updateEntriesState(prev => [...prev, optimisticEntry]);
+
+    try {
+      const created = await yearlyEntriesApi.create({ year, yearly_type: 'TG', yearly_field: String(categoryId) });
+      if (created) {
+        updateEntriesState(prev => prev.map(e => e.id === tempId ? created : e));
+      }
+    } catch (err) {
+      console.error('Errore aggiunta tag anno:', err);
+      updateEntriesState(prev => prev.filter(e => e.id !== tempId));
+    } finally {
+      queryClient.invalidateQueries({ queryKey });
+    }
   };
 
   const handleCreateAndAddTag = async (tagName: string) => {
@@ -225,21 +244,88 @@ export const useYearEntries = (yearData: SyncYearResponse | undefined, year: num
       return;
     }
 
-    const newCat = await api.post<Category>('/categories', {
+    const tempCatId = -Date.now();
+    const tempCat: Category = {
+      id: tempCatId,
       category_name: tagName,
       colore: '#6366f1',
       genre: 5,
-    });
-    if (newCat) {
-      const created = await yearlyEntriesApi.create({ year, yearly_type: 'TG', yearly_field: String(newCat.id) });
-      if (created) updateEntriesState(prev => [...prev, created]);
+      user_id: 0,
+    };
+
+    // 1. Aggiornamento ottimistico cache categorie (mazzo di carte)
+    queryClient.setQueryData<Category[]>(['categories'], (old) => (old ? [...old, tempCat] : [tempCat]));
+
+    const tempEntryId = -(Date.now() + 1);
+    const tempEntry: DbYearlyEntry = {
+      id: tempEntryId,
+      user_id: 0,
+      year,
+      yearly_type: 'TG',
+      yearly_field: String(tempCatId),
+    };
+    updateEntriesState(prev => [...prev, tempEntry]);
+
+    try {
+      const newCat = await api.post<Category>('/categories', {
+        category_name: tagName,
+        colore: '#6366f1',
+        genre: 5,
+      });
+
+      if (!newCat) throw new Error('Creazione categoria fallita');
+
+      // Sostituisci categoria temporanea con quella reale
+      queryClient.setQueryData<Category[]>(['categories'], (old) =>
+        (old || []).map(c => c.id === tempCatId ? newCat : c)
+      );
+
+      // Aggiorna entry temporaneo con il category_id reale
+      updateEntriesState(prev =>
+        prev.map(e => e.id === tempEntryId ? { ...e, yearly_field: String(newCat.id) } : e)
+      );
+
+      // Crea l'entry yearly definitivo sul backend
+      const created = await yearlyEntriesApi.create({
+        year,
+        yearly_type: 'TG',
+        yearly_field: String(newCat.id),
+      });
+
+      if (created) {
+        updateEntriesState(prev => prev.map(e => e.id === tempEntryId ? created : e));
+      }
+    } catch (err) {
+      console.error('Errore creazione e aggiunta tag:', err);
+      // Rollback
+      queryClient.setQueryData<Category[]>(['categories'], (old) =>
+        (old || []).filter(c => c.id !== tempCatId)
+      );
+      updateEntriesState(prev => prev.filter(e => e.id !== tempEntryId));
+    } finally {
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ['categories'] }),
+        queryClient.invalidateQueries({ queryKey }),
+      ]);
     }
   };
 
   const handleRemoveTag = async (yearlyEntryId: number) => {
-    await yearlyEntriesApi.delete(yearlyEntryId);
+    const backup = entries.find(e => e.id === yearlyEntryId);
     updateEntriesState(prev => prev.filter(e => e.id !== yearlyEntryId));
+
+    try {
+      await yearlyEntriesApi.delete(yearlyEntryId);
+    } catch (err) {
+      console.error('Errore rimozione tag:', err);
+      if (backup) {
+        updateEntriesState(prev => [...prev, backup]);
+      }
+    } finally {
+      queryClient.invalidateQueries({ queryKey });
+    }
   };
+
 
   return {
     entries,

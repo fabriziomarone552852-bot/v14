@@ -1,16 +1,13 @@
 // Re-export from centralized types for backward compatibility
-// I nuovi componenti importano direttamente da @/types/shopping
 export type {
-  CatalogOption,
-  ShoppingGroup,
+  ConfigOption,
+  ConfigOption as CatalogOption,
+  ShoppingGroupSummary as ShoppingGroup,
+  ShoppingGroupSummary,
   ShoppingGroupMember,
-  ShoppingList,
+  ShoppingListSummary as ShoppingList,
+  ShoppingListSummary,
   ShoppingListItem,
-  ShoppingPrice,
-  ShoppingSupplier,
-  ListFormState,
-  ItemFormState,
-  SupplierFormState,
-  PurchaseFormState,
-  InviteFormState,
+  ShoppingSupplierOption as ShoppingSupplier,
+  ShoppingSupplierOption,
 } from '@/types/shopping';

@@ -91,7 +91,7 @@ export function useNoteMutations<T extends CacheWithNotes>(queryKey: QueryKey) {
       return { previousData, tempId };
     },
 
-    onError: (err, newNote, context) => {
+    onError: (err, _newNote, context) => {
       logger.error("Errore salvataggio nota:", err);
       // context è ora fortemente tipizzato, l'editor sa che previousData esiste
       if (context?.previousData) {
@@ -145,7 +145,7 @@ export function useNoteMutations<T extends CacheWithNotes>(queryKey: QueryKey) {
 
       return { previousData };
     },
-    onError: (err, deletedId, context) => {
+    onError: (_err, _deletedId, context) => {
       if (context?.previousData) {
         queryClient.setQueryData(queryKey, context.previousData);
       }

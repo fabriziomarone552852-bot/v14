@@ -10,7 +10,7 @@ interface TickDisplayProps {
 }
 
 export const TickDisplay: React.FC<TickDisplayProps> = ({ targetDateStr, variant = 'modal', isActive = true }) => {
-  const now = useCurrentTime(isActive ? 1000 : null);
+  useCurrentTime(isActive ? 1000 : null);
 
   const timeLeft = calculateTimeLeft(targetDateStr);
 

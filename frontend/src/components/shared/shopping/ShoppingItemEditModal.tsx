@@ -1,20 +1,19 @@
 // src/components/shared/shopping/ShoppingItemEditModal.tsx
 import React from 'react';
-import type { ConfigOption } from '@/types/shopping';
+import BaseModal from '@/components/shared/dialog/BaseModal';
+import ShoppingUnitSelect from './ShoppingUnitSelect';
+import ShoppingQuantityInput from './ShoppingQuantityInput';
+import ShoppingProductAutocomplete from './ShoppingProductAutocomplete';
+import type { ConfigOption, ShoppingProductOption } from '@/types/shopping';
 import type { ItemFormState } from './shoppingItems.utils';
-import { getConfigOptionLabel } from './shoppingItems.utils';
-import {
-  shoppingButtonPrimaryClass,
-  shoppingButtonSecondaryClass,
-  shoppingCardClass,
-  shoppingInputClass,
-} from './shoppingUi';
+import { EditIcon } from '@/components/shared/utils/Icons';
 
 interface ShoppingItemEditModalProps {
   open: boolean;
   editForm: ItemFormState;
   setEditForm: React.Dispatch<React.SetStateAction<ItemFormState>>;
   unitOptions: ConfigOption[];
+  products?: ShoppingProductOption[];
   onClose: () => void;
   onSubmit: (e: React.FormEvent<HTMLFormElement>) => void;
 }
@@ -24,69 +23,93 @@ const ShoppingItemEditModal: React.FC<ShoppingItemEditModalProps> = ({
   editForm,
   setEditForm,
   unitOptions,
+  products = [],
   onClose,
   onSubmit,
 }) => {
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-40 flex items-center justify-center bg-slate-900/30 p-4 backdrop-blur-sm">
-      <div className={`${shoppingCardClass} w-full max-w-md p-5`}>
-        <h2 className="mb-4 text-lg font-bold text-slate-900">
-          Modifica articolo
-        </h2>
-
-        <form onSubmit={onSubmit} className="space-y-3">
-          <input
-            className={shoppingInputClass}
-            placeholder="Nome"
+    <BaseModal
+      isOpen={open}
+      onClose={onClose}
+      title={
+        <span className="flex items-center gap-2 text-base font-bold text-gray-800">
+          <EditIcon className="w-5 h-5 text-blue-600" />
+          <span>Modifica Prodotto</span>
+        </span>
+      }
+      formId="edit-item-form"
+      confirmText="Salva Modifiche"
+      cancelText="Annulla"
+      isConfirmDisabled={!editForm.productName.trim()}
+      maxWidthClass="max-w-md"
+      overflowVisible={true}
+    >
+      <form id="edit-item-form" onSubmit={onSubmit} className="space-y-4">
+        {/* Nome Prodotto */}
+        <div>
+          <label className="block text-xs font-bold text-gray-500 uppercase mb-1">
+            Nome Prodotto
+          </label>
+          <ShoppingProductAutocomplete
             value={editForm.productName}
-            onChange={(e) =>
+            onChange={(name) =>
               setEditForm((prev) => ({
                 ...prev,
-                productName: e.target.value,
+                productName: name,
               }))
             }
-            required
+            products={products}
+            autoFocus
           />
+        </div>
 
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-            <input
-              type="number"
-              step="any"
-              className={shoppingInputClass}
-              placeholder="Quantità"
+
+        {/* Quantità & Unità di Misura */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 items-end">
+
+          <div>
+            <label className="block text-xs font-bold text-gray-500 uppercase mb-1">
+              Quantità
+            </label>
+            <ShoppingQuantityInput
               value={editForm.quantity}
-              onChange={(e) =>
+              onChange={(val) =>
                 setEditForm((prev) => ({
                   ...prev,
-                  quantity: e.target.value,
+                  quantity: val,
                 }))
               }
+              placeholder="Es. 1"
             />
-
-            <select
-              className={shoppingInputClass}
-              value={editForm.unitId}
-              onChange={(e) =>
-                setEditForm((prev) => ({
-                  ...prev,
-                  unitId: e.target.value,
-                }))
-              }
-            >
-              <option value="">Nessuna unità</option>
-              {unitOptions.map((option) => (
-                <option key={option.id} value={String(option.id)}>
-                  {getConfigOptionLabel(option)}
-                </option>
-              ))}
-            </select>
           </div>
 
+          <div>
+            <label className="block text-xs font-bold text-gray-500 uppercase mb-1">
+              Unità di misura
+            </label>
+            <ShoppingUnitSelect
+              value={editForm.unitId}
+              onChange={(val) =>
+                setEditForm((prev) => ({
+                  ...prev,
+                  unitId: val,
+                }))
+              }
+              unitOptions={unitOptions}
+            />
+          </div>
+        </div>
+
+        {/* Note / Dettagli con textarea non ridimensionabile */}
+        <div>
+          <label className="block text-xs font-bold text-gray-500 uppercase mb-1">
+            Note
+          </label>
           <textarea
-            className={`${shoppingInputClass} min-h-[96px] resize-y`}
-            placeholder="Note"
+            rows={2}
+            className="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-blue-500 transition-colors resize-none"
             value={editForm.notes}
             onChange={(e) =>
               setEditForm((prev) => ({
@@ -94,24 +117,11 @@ const ShoppingItemEditModal: React.FC<ShoppingItemEditModalProps> = ({
                 notes: e.target.value,
               }))
             }
+            placeholder="Es. Marca preferita, offerte..."
           />
-
-          <div className="flex justify-end gap-2 pt-2">
-            <button
-              type="button"
-              onClick={onClose}
-              className={shoppingButtonSecondaryClass}
-            >
-              Annulla
-            </button>
-
-            <button type="submit" className={shoppingButtonPrimaryClass}>
-              Salva
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
+        </div>
+      </form>
+    </BaseModal>
   );
 };
 

@@ -20,12 +20,13 @@ def _truncate_2_decimals(value: object) -> Decimal:
 
 
 class InventoryBatchBase(StrictBaseModel):
-    product_id: int
+    product_id: Optional[int] = None
     list_item_id: Optional[int] = None
     supplier_id: Optional[int] = None
 
     purchase_date: date
     expiration_date: Optional[date] = None
+
 
     quantity_purchased: Decimal = Field(
         ...,
@@ -128,4 +129,31 @@ class PriceHistoryPoint(ORMBaseModel):
     purchase_price: Decimal
     supplier_id: Optional[int] = None
     supplier_name: Optional[str] = None
+    is_on_sale: bool = False
+
+
+class ItemBatchResponse(ORMBaseModel):
+    """Lotto acquisto per un singolo list_item — usato nel pannello storico acquisti."""
+    id: int
+    product_id: Optional[int] = None
+    product_name: Optional[str] = None
+    purchase_date: date
+    quantity_purchased: Decimal
+    purchase_price: Decimal
+    unit_price: Optional[Decimal] = None          # purchase_price / quantity_purchased
+    supplier_id: Optional[int] = None
+    supplier_name: Optional[str] = None
+    unit_name: Optional[str] = None               # unità di misura associata all'acquisto
+    list_name: Optional[str] = None               # nome della lista da cui proviene
+    is_on_sale: bool = False
+
+
+
+class CommunityPricePoint(ORMBaseModel):
+    """Prezzo anonimo registrato dalla community per un prodotto."""
+    purchase_date: date
+    unit_price: Decimal                           # prezzo totale / quantità
+    supplier_id: Optional[int] = None
+    supplier_name: Optional[str] = None
+    unit_name: Optional[str] = None               # unità di misura associata all'acquisto
     is_on_sale: bool = False

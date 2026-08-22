@@ -70,16 +70,17 @@ const BaseModal: React.FC<BaseModalProps> = ({
 
   const modalContent = (
     <div className="fixed inset-0 bg-gray-900/40 backdrop-blur-sm flex items-center justify-center z-[9999] p-4 pointer-events-auto animate-fadeIn" onClick={!isLoading ? onClose : undefined}>
-      <div className="flex gap-4 items-start w-full max-w-5xl justify-center pointer-events-none">
+      <div className="flex gap-4 items-stretch w-full max-w-5xl justify-center pointer-events-none">
         
         {sidePanel && (
            <div 
-             className="pointer-events-auto flex-shrink-0 w-full max-w-md"
+             className="pointer-events-auto flex-shrink-0 w-full max-w-md flex flex-col"
              onClick={(e) => e.stopPropagation()} 
            >
              {sidePanel}
            </div>
         )}
+
 
         <div className={`bg-white rounded-2xl shadow-2xl w-full ${maxWidthClass} transform transition-all animate-fadeIn relative flex flex-col max-h-[90vh] pointer-events-auto shrink-0`} onClick={(e) => e.stopPropagation()}>
           

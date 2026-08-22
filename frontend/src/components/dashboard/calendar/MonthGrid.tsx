@@ -34,7 +34,7 @@ interface MonthGridProps {
   onToggleTask?: (task: DbTask, newStatus: boolean) => void;
 }
 
-const MonthGrid: React.FC<MonthGridProps> = ({ state, events, tasks, onDayClick, onAddEventClick, onSelectTask, onToggleTask }) => {
+const MonthGrid: React.FC<MonthGridProps> = ({ state, events, tasks, onDayClick, onAddEventClick, onSelectTask: _onSelectTask, onToggleTask: _onToggleTask }) => {
   const { monthYear, monthIndex, mainFirstDayIndex, mainDaysInMonth, todayStr } = state;
 
   // 2. MOTORE DI PERFORMANCE: Calcoliamo la griglia una sola volta

@@ -1,27 +1,44 @@
 // src/views/ShoppingPage.tsx
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
+import { useQueryClient } from '@tanstack/react-query';
 import { useShoppingData } from '@/hooks/shopping/useShoppingData';
-import ShoppingGroupsColumn from '@/components/shared/shopping/ShoppingGroupsColumn';
-import ShoppingListsColumn from '@/components/shared/shopping/ShoppingListsColumn';
+
+import { useShoppingMutations } from '@/hooks/shopping/useShoppingMutations';
+import { useModal } from '@/hooks/useModals';
+import ShoppingGroupsAndListsColumn from '@/components/shared/shopping/ShoppingGroupsAndListsColumn';
 import ShoppingItemsColumn from '@/components/shared/shopping/ShoppingItemsColumn';
-import ShoppingBulkPurchasePanel from '@/components/shared/shopping/ShoppingBulkPurchasePanel';
-import ShoppingSuppliersColumn from '@/components/shared/shopping/ShoppingSuppliersColumn';
+import ShoppingGroupDetailModal from '@/components/shared/shopping/ShoppingGroupDetailModal';
 import ShoppingGroupCreateModal from '@/components/shared/shopping/ShoppingGroupCreateModal';
-import ShoppingGroupMembersModal from '@/components/shared/shopping/ShoppingGroupMembersModal';
 import ShoppingGroupInviteModal from '@/components/shared/shopping/ShoppingGroupInviteModal';
-import { createShoppingGroup, updateShoppingGroup, deleteShoppingGroup, inviteGroupMember, updateShoppingList } from '@/api/shoppingApi';
-import { shoppingCardClass } from '@/components/shared/shopping/shoppingUi';
-import type { ShoppingGroupSummary, ShoppingListSummary } from '@/types/shopping';
+import {
+  createShoppingGroup,
+  updateShoppingGroup,
+  deleteShoppingGroup,
+  archiveShoppingGroup,
+  unarchiveShoppingGroup,
+  inviteGroupMember,
+  shoppingQueryKeys,
+} from '@/api/shoppingApi';
+import { extractErrorMessage } from '@/utils/errorUtils';
+
+import type { ConfigOption, PendingGroupInvite, ShoppingGroupSummary, ShoppingListSummary } from '@/types/shopping';
+import { ShoppingIcon } from '@/components/shared/utils/Icons';
+import { ShoppingListModal, makeEmptyForm, type ListFormState } from '@/components/shared/shopping/ShoppingListModal';
 
 const ShoppingPage: React.FC = () => {
-  const [selectedGroupId, setSelectedGroupId] = useState<number | null>(null);
-  const [itemsViewMode, setItemsViewMode] = useState<'lista' | 'bulk'>('lista');
+  const queryClient = useQueryClient();
+  const mutations = useShoppingMutations();
 
   // Modals state
   const [isGroupCreateOpen, setIsGroupCreateOpen] = useState(false);
   const [editingGroup, setEditingGroup] = useState<ShoppingGroupSummary | null>(null);
-  const [activeMembersGroup, setActiveMembersGroup] = useState<ShoppingGroupSummary | null>(null);
+  const [detailGroup, setDetailGroup] = useState<ShoppingGroupSummary | null>(null);
   const [activeInviteGroup, setActiveInviteGroup] = useState<ShoppingGroupSummary | null>(null);
+
+  // Edit list modal state
+  const editListModal = useModal<ShoppingListSummary>();
+  const [listEditForm, setListEditForm] = useState<ListFormState>(() => makeEmptyForm(''));
 
   const {
     lists,
@@ -30,6 +47,7 @@ const ShoppingPage: React.FC = () => {
     setActiveListId,
     items,
     suppliers,
+    products,
     config,
     listsLoading,
     itemsLoading,
@@ -37,53 +55,93 @@ const ShoppingPage: React.FC = () => {
     refreshGroups,
   } = useShoppingData();
 
+  const [searchParams] = useSearchParams();
+  const paramListId = searchParams.get('listId');
+
+  useEffect(() => {
+    if (paramListId) {
+      const parsed = parseInt(paramListId, 10);
+      if (!isNaN(parsed) && parsed > 0) {
+        setActiveListId(parsed);
+      }
+    }
+  }, [paramListId, setActiveListId]);
+
+  const [groupMembersRefreshKey, setGroupMembersRefreshKey] = useState(0);
+
+
   const unitOptions = config?.unitOptions ?? [];
   const currencyOptions = config?.currencyOptions ?? [];
   const offerFlagOptions = config?.offerFlagOptions ?? [];
   const listVisibilityOptions = config?.visibilityOptions ?? [];
   const listStatusOptions = config?.listStatusOptions ?? [];
-  const supplierStatusOptions = config?.supplierStatusOptions ?? [];
 
-  const visibleLists = useMemo<ShoppingListSummary[]>(() => {
-    if (selectedGroupId == null) {
-      return lists;
-    }
-    return lists.filter((list) => list.groupId === selectedGroupId);
-  }, [lists, selectedGroupId]);
+  const groupVisibilityId = useMemo(() => {
+    const opt = listVisibilityOptions.find(
+      (o: ConfigOption) => o.codeValue?.toLowerCase() === 'group' || o.codeName?.toLowerCase() === 'group'
+    );
+    return opt ? Number(opt.id) : 2;
+  }, [listVisibilityOptions]);
+
+  const privateVisibilityId = useMemo(() => {
+    const opt = listVisibilityOptions.find(
+      (o: ConfigOption) => o.codeValue?.toLowerCase() === 'private' || o.codeName?.toLowerCase() === 'private'
+    );
+    return opt ? Number(opt.id) : 1;
+  }, [listVisibilityOptions]);
 
   const activeList = useMemo(() => {
     return lists.find((l) => l.id === activeListId) ?? null;
   }, [lists, activeListId]);
 
   const activeGroup = useMemo(() => {
-    const groupId = activeList?.groupId ?? selectedGroupId;
-    if (!groupId) return null;
-    return groups.find((g) => g.id === groupId) ?? null;
-  }, [activeList, selectedGroupId, groups]);
+    if (!activeList?.groupId) return null;
+    return groups.find((g) => g.id === activeList.groupId) ?? null;
+  }, [activeList, groups]);
 
   const activeUserRole = useMemo(() => {
-    const groupId = activeList?.groupId ?? selectedGroupId;
-    if (!groupId) return 'owner';
+    if (!activeList?.groupId) return 'owner';
     return activeGroup?.userRole || 'reader';
-  }, [activeList, selectedGroupId, activeGroup]);
+  }, [activeList, activeGroup]);
 
-  const handleSelectGroup = (groupId: number | null) => {
-    setSelectedGroupId(groupId);
-    const filtered = groupId == null ? lists : lists.filter((l) => l.groupId === groupId);
-    setActiveListId(filtered[0]?.id ?? null);
-  };
+  const handleCreateGroup = async (data: {
+    name: string;
+    description?: string;
+    icon?: string;
+    invites?: PendingGroupInvite[];
+  }) => {
+    const newGroup = await createShoppingGroup({
+      name: data.name,
+      description: data.description,
+      icon: data.icon,
+    });
 
-  const handleCreateGroup = async (data: { name: string; description?: string }) => {
-    await createShoppingGroup(data);
+    if (data.invites && data.invites.length > 0 && newGroup?.id) {
+      for (const inv of data.invites) {
+        try {
+          await inviteGroupMember(newGroup.id, {
+            username: inv.type === 'username' ? inv.value : undefined,
+            email: inv.type === 'email' ? inv.value : undefined,
+            roleCode: inv.roleCode,
+          });
+        } catch (err) {
+          console.error('Errore invio invito collaboratore:', err);
+        }
+      }
+    }
+
     await Promise.all([refreshGroups(), refreshLists()]);
     setIsGroupCreateOpen(false);
   };
 
-  const handleUpdateGroup = async (data: { name: string; description?: string }) => {
+  const handleUpdateGroup = async (data: { name: string; description?: string; icon?: string }) => {
     if (!editingGroup) return;
     await updateShoppingGroup(editingGroup.id, data);
     await Promise.all([refreshGroups(), refreshLists()]);
     setEditingGroup(null);
+    if (detailGroup && detailGroup.id === editingGroup.id) {
+      setDetailGroup(null);
+    }
   };
 
   const handleDeleteGroup = async (group: ShoppingGroupSummary) => {
@@ -91,129 +149,203 @@ const ShoppingPage: React.FC = () => {
       return;
     }
     await deleteShoppingGroup(group.id);
-    if (selectedGroupId === group.id) {
-      setSelectedGroupId(null);
-    }
     await Promise.all([refreshGroups(), refreshLists()]);
+    if (detailGroup && detailGroup.id === group.id) {
+      setDetailGroup(null);
+    }
   };
 
-  const handleAssignListToGroup = async (listId: number, groupId: number | null) => {
-    await updateShoppingList(listId, { groupId });
-    await refreshLists();
+  const handleArchiveGroup = async (group: ShoppingGroupSummary) => {
+    try {
+      await archiveShoppingGroup(group.id);
+      await Promise.all([refreshGroups(), refreshLists()]);
+      if (detailGroup && detailGroup.id === group.id) {
+        setDetailGroup(null);
+      }
+    } catch (err) {
+      console.error('Errore archiviazione gruppo:', err);
+    }
   };
 
-  const handleInviteMember = async (payload: { username?: string; email?: string; roleCode: string }) => {
+  const handleUnarchiveGroup = async (group: ShoppingGroupSummary) => {
+    try {
+      await unarchiveShoppingGroup(group.id);
+      await Promise.all([refreshGroups(), refreshLists()]);
+      if (detailGroup && detailGroup.id === group.id) {
+        setDetailGroup(null);
+      }
+    } catch (err) {
+      console.error('Errore ripristino gruppo:', err);
+    }
+  };
+
+
+  const handleInviteMembers = async (invites: PendingGroupInvite[]) => {
     if (!activeInviteGroup) return;
-    await inviteGroupMember(activeInviteGroup.id, payload);
+    const errors: string[] = [];
+    const groupId = activeInviteGroup.id;
+    for (const inv of invites) {
+      try {
+        await inviteGroupMember(groupId, {
+          username: inv.type === 'username' ? inv.value : undefined,
+          email: inv.type === 'email' ? inv.value : undefined,
+          roleCode: inv.roleCode,
+        });
+      } catch (err) {
+        console.error('Errore aggiunta membro:', err);
+        errors.push(`${inv.value}: ${extractErrorMessage(err)}`);
+      }
+    }
+    await Promise.all([
+      refreshGroups(),
+      refreshLists(),
+      queryClient.invalidateQueries({ queryKey: shoppingQueryKeys.groupMembers(groupId) }),
+      queryClient.refetchQueries({ queryKey: shoppingQueryKeys.groupMembers(groupId) }),
+    ]);
+    setGroupMembersRefreshKey((k) => k + 1);
+    if (errors.length > 0) {
+      throw new Error(errors.join(' | '));
+    }
     setActiveInviteGroup(null);
   };
 
+
+
+  const handleOpenEditList = (list: ShoppingListSummary) => {
+    setListEditForm({
+      name: list.name,
+      description: list.description ?? '',
+      destinationValue: list.groupId ? String(list.groupId) : '',
+    });
+    editListModal.open(list);
+  };
+
+  const handleSaveEditList = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (!editListModal.data) return;
+    const trimmedName = listEditForm.name.trim();
+    if (!trimmedName) return;
+
+    const isGroup = Boolean(listEditForm.destinationValue);
+    const visibilityId = isGroup ? groupVisibilityId : privateVisibilityId;
+    const groupId = isGroup ? Number(listEditForm.destinationValue) : null;
+
+    await mutations.updateList({
+      id: editListModal.data.id,
+      data: {
+        name: trimmedName,
+        description: listEditForm.description.trim() || undefined,
+        groupId,
+        visibilityId,
+      },
+    });
+
+    editListModal.close();
+  };
+
+  const handleDeleteList = async (list: ShoppingListSummary) => {
+    await mutations.deleteList(list.id);
+    if (activeListId === list.id) {
+      const remaining = lists.filter((l) => l.id !== list.id);
+      setActiveListId(remaining[0]?.id ?? null);
+    }
+  };
+
+  const handleToggleCompleteList = async (list: ShoppingListSummary, isCompleted: boolean) => {
+    await mutations.updateList({
+      id: list.id,
+      data: { isCompleted },
+    });
+  };
+
   return (
-    <div className="mx-auto flex min-h-full max-w-[1800px] flex-col gap-4 p-4 md:p-6 xl:h-full xl:overflow-hidden bg-slate-50">
-      <div className="shrink-0 flex items-center justify-between">
-        <div>
-          <h1 className="text-xl font-bold text-gray-800">🛒 Gestione Shopping & Spesa</h1>
-          <p className="text-sm text-gray-500">
-            Liste spesa private e condivise, collaboratori di gruppo, fornitori e storico prezzi
-          </p>
-        </div>
-      </div>
-
-      <div className="grid flex-1 grid-cols-1 gap-4 xl:min-h-0 xl:grid-cols-[280px_280px_minmax(0,1fr)_280px]">
-        {/* Colonna Gruppi */}
-        <div className={`${shoppingCardClass} flex h-full min-h-0 flex-col p-4`}>
-          <ShoppingGroupsColumn
-            groups={groups}
-            loading={listsLoading}
-            onSelectGroup={handleSelectGroup}
-            selectedGroupId={selectedGroupId}
-            onCreateGroup={() => setIsGroupCreateOpen(true)}
-            onOpenMembers={(group) => setActiveMembersGroup(group)}
-            onEditGroup={(group) => setEditingGroup(group)}
-            onDeleteGroup={handleDeleteGroup}
-            onInviteGroup={(group) => setActiveInviteGroup(group)}
-          />
-        </div>
-
-        {/* Colonna Liste */}
-        <div className={`${shoppingCardClass} flex h-full min-h-0 flex-col p-4`}>
-          <ShoppingListsColumn
-            lists={visibleLists}
-            loadingLists={listsLoading}
-            activeListId={activeListId}
-            setActiveListId={(id) => setActiveListId(id)}
-            groups={groups}
-            listVisibilityOptions={listVisibilityOptions}
-            listStatusOptions={listStatusOptions}
-            onAssignGroup={handleAssignListToGroup}
-          />
-        </div>
-
-        {/* Colonna Articoli & Acquisto Multiplo */}
-        <div className={`${shoppingCardClass} flex h-full min-h-0 flex-col p-4`}>
-          <div className="mb-3 shrink-0 flex items-center justify-end">
-            <div className="inline-flex rounded-xl border border-gray-200 bg-gray-50 p-1 text-xs">
-              <button
-                type="button"
-                onClick={() => setItemsViewMode('lista')}
-                className={`rounded-lg px-3 py-1.5 font-medium transition ${
-                  itemsViewMode === 'lista'
-                    ? 'bg-white text-blue-600 shadow-sm'
-                    : 'text-gray-500 hover:text-gray-700'
-                }`}
-              >
-                Lista Articoli
-              </button>
-              <button
-                type="button"
-                onClick={() => setItemsViewMode('bulk')}
-                className={`rounded-lg px-3 py-1.5 font-medium transition ${
-                  itemsViewMode === 'bulk'
-                    ? 'bg-white text-blue-600 shadow-sm'
-                    : 'text-gray-500 hover:text-gray-700'
-                }`}
-              >
-                Acquisto Multiplo
-              </button>
-            </div>
+    <div className="mx-auto flex h-full max-w-[1600px] flex-col min-h-0 relative pb-1">
+      {/* Layout a 8 Colonne: 3/8 per Header + Gruppi & Liste, 5/8 per Prodotti (a tutta altezza) */}
+      <div className="grid grid-cols-1 xl:grid-cols-8 gap-4 flex-1 min-h-0 items-stretch">
+        
+        {/* Colonna Sinistra (3/8): Header compatto centrato + Gruppi & Liste Spesa */}
+        <div className="xl:col-span-3 flex flex-col gap-3.5 h-[500px] xl:h-full min-h-0 min-w-0">
+          {/* Header centrato nello spazio */}
+          <div className="shrink-0 flex items-center justify-center bg-white rounded-xl shadow-sm border border-gray-200 p-3.5 text-center">
+            <h1 className="text-base sm:text-lg font-bold text-gray-800 flex items-center gap-2">
+              <ShoppingIcon className="w-5 h-5 text-blue-600" />
+              <span>Shopping & Spesa</span>
+            </h1>
           </div>
 
-          <div className="min-h-0 flex-1">
-            {itemsViewMode === 'lista' ? (
-              <ShoppingItemsColumn
-                items={items}
-                suppliers={suppliers}
-                loading={itemsLoading}
-                activeListId={activeListId}
-                activeList={activeList}
-                unitOptions={unitOptions}
-                currencyOptions={currencyOptions}
-                offerFlagOptions={offerFlagOptions}
-                searchQuery=""
-                userRole={activeUserRole}
-              />
-            ) : (
-              <ShoppingBulkPurchasePanel
-                activeList={activeList}
-                items={items.filter((i) => !i.isPurchased)}
-                suppliers={suppliers}
-                currencyOptions={currencyOptions}
-                offerFlagOptions={offerFlagOptions}
-              />
-            )}
+          {/* Box Gruppi & Liste */}
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-5 flex-1 min-h-0 min-w-0 flex flex-col justify-between relative overflow-hidden">
+            <ShoppingGroupsAndListsColumn
+              groups={groups}
+              lists={lists}
+              loadingGroups={listsLoading}
+              loadingLists={listsLoading}
+              activeListId={activeListId}
+              setActiveListId={setActiveListId}
+              listVisibilityOptions={listVisibilityOptions}
+              listStatusOptions={listStatusOptions}
+              onCreateGroup={() => setIsGroupCreateOpen(true)}
+              onOpenGroupDetail={(group) => setDetailGroup(group)}
+            />
           </div>
         </div>
 
-        {/* Colonna Fornitori */}
-        <div className={`${shoppingCardClass} flex h-full min-h-0 flex-col p-4`}>
-          <ShoppingSuppliersColumn
+        {/* Colonna Destra (5/8): Articoli e Prodotti Spesa (a tutta altezza!) */}
+        <div className="xl:col-span-5 bg-white rounded-xl shadow-sm border border-gray-200 p-5 h-[500px] xl:h-full min-h-0 min-w-0 flex flex-col overflow-hidden">
+          <ShoppingItemsColumn
+            items={items}
             suppliers={suppliers}
-            supplierStatusOptions={supplierStatusOptions}
+            products={products}
+            loading={itemsLoading}
+            activeListId={activeListId}
+            activeList={activeList}
+            unitOptions={unitOptions}
+            currencyOptions={currencyOptions}
+            offerFlagOptions={offerFlagOptions}
+            searchQuery=""
+            userRole={activeUserRole}
+            onEditList={handleOpenEditList}
+            onDeleteList={handleDeleteList}
+            onToggleCompleteList={handleToggleCompleteList}
           />
         </div>
       </div>
 
-      {/* Modale Creazione Gruppo */}
+      {/* Modale Dettaglio Gruppo con SidePanel */}
+      {detailGroup && (
+        <ShoppingGroupDetailModal
+          isOpen={Boolean(detailGroup)}
+          onClose={() => setDetailGroup(null)}
+          group={detailGroup}
+          lists={lists}
+          onEditClick={(group) => setEditingGroup(group)}
+          onDeleteClick={handleDeleteGroup}
+          onArchiveClick={handleArchiveGroup}
+          onUnarchiveClick={handleUnarchiveGroup}
+          onOpenInvite={(group) => setActiveInviteGroup(group)}
+          onSelectList={(listId) => setActiveListId(listId)}
+
+          onCreateListInGroup={(groupId) => {
+            setListEditForm(makeEmptyForm(String(groupId)));
+            editListModal.open({
+              id: 0,
+              name: '',
+              visibilityId: groupVisibilityId,
+              groupId,
+              openItemsCount: 0,
+              purchasedItemsCount: 0,
+              totalItemsCount: 0,
+              isCompleted: false,
+              canEdit: true,
+              canDelete: true,
+            });
+          }}
+          currentUserRole={detailGroup.userRole || undefined}
+          refreshKey={groupMembersRefreshKey}
+        />
+      )}
+
+      {/* Modale Creazione Gruppo (con BaseModal e Inviti integrati) */}
       <ShoppingGroupCreateModal
         isOpen={isGroupCreateOpen}
         onClose={() => setIsGroupCreateOpen(false)}
@@ -221,43 +353,63 @@ const ShoppingPage: React.FC = () => {
       />
 
       {/* Modale Modifica Gruppo */}
-      {editingGroup ? (
+      {editingGroup && (
         <ShoppingGroupCreateModal
           isOpen={Boolean(editingGroup)}
           onClose={() => setEditingGroup(null)}
           onSubmit={handleUpdateGroup}
           initialData={editingGroup}
-          title="✏️ Modifica Gruppo Spesa"
+          title="Modifica Gruppo Spesa"
           submitLabel="Salva Modifiche"
         />
-      ) : null}
-
-      {/* Modale Membri Gruppo */}
-      {activeMembersGroup ? (
-        <ShoppingGroupMembersModal
-          isOpen={Boolean(activeMembersGroup)}
-          groupId={activeMembersGroup.id}
-          groupName={activeMembersGroup.name}
-          currentUserRole={activeMembersGroup.userRole || undefined}
-          onClose={() => setActiveMembersGroup(null)}
-          onOpenInvite={() => {
-            const group = activeMembersGroup;
-            setActiveMembersGroup(null);
-            setActiveInviteGroup(group);
-          }}
-        />
-      ) : null}
+      )}
 
       {/* Modale Invito Collaboratori */}
-      {activeInviteGroup ? (
+      {activeInviteGroup && (
         <ShoppingGroupInviteModal
           isOpen={Boolean(activeInviteGroup)}
           groupName={activeInviteGroup.name}
           currentUserRole={activeInviteGroup.userRole || undefined}
           onClose={() => setActiveInviteGroup(null)}
-          onSubmit={handleInviteMember}
+          onSubmit={handleInviteMembers}
         />
-      ) : null}
+      )}
+
+
+      {/* Modale Modifica/Creazione Lista */}
+      {editListModal.isOpen && editListModal.data && (
+        <ShoppingListModal
+          title={editListModal.data.id === 0 ? 'Nuova Lista nel Gruppo' : 'Modifica Lista Spesa'}
+          form={listEditForm}
+          setForm={setListEditForm}
+          groups={groups}
+          onClose={editListModal.close}
+          onSubmit={async (e) => {
+            if (editListModal.data?.id === 0) {
+              e.preventDefault();
+              const trimmedName = listEditForm.name.trim();
+              if (!trimmedName) return;
+              const isGroup = Boolean(listEditForm.destinationValue);
+              const visibilityId = isGroup ? groupVisibilityId : privateVisibilityId;
+              const groupId = isGroup ? Number(listEditForm.destinationValue) : null;
+              const newList = await mutations.createList({
+                name: trimmedName,
+                description: listEditForm.description.trim() || undefined,
+                groupId,
+                visibilityId,
+                isCompleted: false,
+              });
+              if (newList?.id) {
+                setActiveListId(newList.id);
+              }
+              editListModal.close();
+            } else {
+              await handleSaveEditList(e);
+            }
+          }}
+          submitLabel={editListModal.data.id === 0 ? 'Crea Lista' : 'Salva Modifiche'}
+        />
+      )}
     </div>
   );
 };

@@ -2,7 +2,7 @@ import React, { createContext, useContext, type ReactNode } from 'react';
 import { useModal } from '@/hooks/useModals';
 import TaskDetailModal from '@/components/shared/tasks/TaskDetailModal';
 import TaskNewModal from '@/components/shared/tasks/TaskNewModal';
-import type { DbTask, TaskSummary } from '@/types';
+import type { TaskSummary } from '@/types';
 import { useTaskMutations } from '@/hooks/mutations/useTaskMutations';
 
 interface TaskFormModalState {

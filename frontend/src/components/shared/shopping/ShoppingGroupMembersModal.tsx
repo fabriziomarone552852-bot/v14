@@ -4,6 +4,7 @@ import { fetchGroupMembers, updateGroupMemberRole, removeGroupMember } from '@/a
 import type { ShoppingGroupMember } from '@/types/shopping';
 import { shoppingButtonPrimaryClass, shoppingButtonSecondaryClass } from './shoppingUi';
 import { extractErrorMessage } from '@/utils/errorUtils';
+import { UsersIcon, TrashIcon, PlusIcon } from '@/components/shared/utils/Icons';
 
 interface ShoppingGroupMembersModalProps {
   isOpen: boolean;
@@ -73,7 +74,7 @@ const ShoppingGroupMembersModal: React.FC<ShoppingGroupMembersModalProps> = ({
   };
 
   const handleRemoveMember = async (userId: number) => {
-    if (!window.confirm('Sei sicuro di voler rimuovere questo collaboratore dal gruppo spesa?')) return;
+    if (!window.confirm('Sei sicuro di voler rimuovere questo membro dal gruppo?')) return;
     setActionUserId(userId);
     setError(null);
     try {
@@ -88,10 +89,13 @@ const ShoppingGroupMembersModal: React.FC<ShoppingGroupMembersModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm">
-      <div className="w-full max-w-lg rounded-2xl bg-white p-6 shadow-2xl transition-all max-h-[90vh] flex flex-col">
-        <div className="mb-4 flex items-center justify-between border-b border-gray-100 pb-3 shrink-0">
+      <div className="flex max-h-[85vh] w-full max-w-lg flex-col rounded-2xl bg-white p-6 shadow-2xl transition-all">
+        <div className="mb-4 flex items-center justify-between border-b border-gray-100 pb-3">
           <div>
-            <h3 className="text-lg font-bold text-gray-800">👥 Collaboratori Gruppo</h3>
+            <h3 className="text-lg font-bold text-gray-800 flex items-center gap-2">
+              <UsersIcon className="w-5 h-5 text-blue-600" />
+              <span>Membri Gruppo</span>
+            </h3>
             <p className="text-xs text-gray-500">
               Gruppo: <span className="font-semibold text-blue-600">{groupName}</span>
             </p>
@@ -99,34 +103,35 @@ const ShoppingGroupMembersModal: React.FC<ShoppingGroupMembersModalProps> = ({
           <button
             type="button"
             onClick={onClose}
-            className="rounded-lg p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600"
+            className="rounded-lg p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600 cursor-pointer"
           >
             ✕
           </button>
         </div>
 
         {error ? (
-          <div className="mb-4 shrink-0 rounded-xl bg-red-50 p-3 text-xs font-medium text-red-600">
+          <div className="mb-3 rounded-xl bg-red-50 p-3 text-xs font-medium text-red-600">
             {error}
           </div>
         ) : null}
 
-        <div className="mb-3 shrink-0 flex items-center justify-between">
+        <div className="mb-3 flex items-center justify-between">
           <span className="text-xs font-bold uppercase tracking-wider text-gray-500">
-            Membri attivi ({members.length})
+            Collaboratori ({members.length})
           </span>
           {canInvite ? (
             <button
               type="button"
               onClick={onOpenInvite}
-              className={`${shoppingButtonPrimaryClass} text-xs py-1.5 px-3`}
+              className={`${shoppingButtonPrimaryClass} text-xs py-1.5 px-3 flex items-center gap-1.5 cursor-pointer`}
             >
-              + Invita Collaboratore
+              <PlusIcon className="w-3.5 h-3.5" />
+              <span>Invita Collaboratore</span>
             </button>
           ) : null}
         </div>
 
-        <div className="flex-1 overflow-y-auto space-y-2 pr-1 min-h-[200px]">
+        <div className="flex-1 overflow-y-auto space-y-2 pr-1 min-h-[200px] custom-scrollbar">
           {isLoading ? (
             <div className="py-8 text-center text-xs text-gray-400">Caricamento membri in corso...</div>
           ) : members.length === 0 ? (
@@ -156,7 +161,7 @@ const ShoppingGroupMembersModal: React.FC<ShoppingGroupMembersModalProps> = ({
                         value={m.roleCode}
                         onChange={(e) => handleRoleChange(m.userId, e.target.value)}
                         disabled={actionUserId === m.userId}
-                        className="rounded-lg border border-gray-200 bg-white px-2 py-1 text-xs font-medium text-gray-700 shadow-sm focus:border-blue-500 focus:outline-none"
+                        className="rounded-lg border border-gray-200 bg-white px-2 py-1 text-xs font-medium text-gray-700 shadow-xs focus:border-blue-500 focus:outline-none"
                       >
                         <option value="admin">Admin</option>
                         <option value="editor">Editor</option>
@@ -167,10 +172,10 @@ const ShoppingGroupMembersModal: React.FC<ShoppingGroupMembersModalProps> = ({
                         type="button"
                         onClick={() => handleRemoveMember(m.userId)}
                         disabled={actionUserId === m.userId}
-                        className="rounded-lg p-1.5 text-xs text-red-500 hover:bg-red-50 hover:text-red-700 transition"
+                        className="rounded-lg p-1.5 text-xs text-red-500 hover:bg-red-50 hover:text-red-700 transition cursor-pointer"
                         title="Rimuovi dal gruppo"
                       >
-                        🗑️
+                        <TrashIcon className="w-4 h-4" />
                       </button>
                     </div>
                   ) : null}
@@ -181,7 +186,7 @@ const ShoppingGroupMembersModal: React.FC<ShoppingGroupMembersModalProps> = ({
         </div>
 
         <div className="mt-4 shrink-0 border-t border-gray-100 pt-3 flex justify-end">
-          <button type="button" onClick={onClose} className={shoppingButtonSecondaryClass}>
+          <button type="button" onClick={onClose} className={`${shoppingButtonSecondaryClass} cursor-pointer`}>
             Chiudi
           </button>
         </div>

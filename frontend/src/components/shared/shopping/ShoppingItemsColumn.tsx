@@ -1,3 +1,4 @@
+// src/components/shared/shopping/ShoppingItemsColumn.tsx
 import React, {
   forwardRef,
   useEffect,
@@ -5,19 +6,21 @@ import React, {
   useMemo,
   useState,
 } from 'react';
+
 import { useShoppingMutations } from '@/hooks/shopping/useShoppingMutations';
 import { useModal } from '@/hooks/useModals';
 import { useConfirm } from '@/context/ConfirmContext';
 import { getLocalTodayStr } from '@/utils/dateUtils';
+import { AddButton } from '@/components/shared/utils/AddButton';
 
 import type {
   ConfigOption,
   ShoppingListItem,
   ShoppingListSummary,
+  ShoppingProductOption,
   ShoppingSupplierOption,
-} from '../../../types/shopping';
+} from '@/types/shopping';
 
-import { shoppingCardClass } from './shoppingUi';
 import {
   emptyItemForm,
   emptyPurchaseForm,
@@ -30,14 +33,14 @@ import type {
 
 import ShoppingItemCreateModal from './ShoppingItemCreateModal';
 import ShoppingItemEditModal from './ShoppingItemEditModal';
+import ShoppingItemDetailModal from './ShoppingItemDetailModal';
 import ShoppingPurchaseModal from './ShoppingPurchaseModal';
-import ShoppingItemsToolbar from './ShoppingItemsToolbar';
 import ShoppingItemsList from './ShoppingItemsList';
 import ShoppingQuickAddBar from './ShoppingQuickAddBar';
 import ShoppingPriceHistoryModal from './ShoppingPriceHistoryModal';
-import ShoppingItemSuggestionsCard from './ShoppingItemSuggestionsCard';
-
-type FiltroStato = 'tutti' | 'aperti' | 'completati';
+import { ShoppingItemsEmptyState } from './ShoppingItemsEmptyState';
+import { ShoppingActiveListHeader, type FiltroStato } from './ShoppingActiveListHeader';
+import { ShoppingListSearchInput } from './ShoppingListSearchInput';
 
 export interface ShoppingItemsColumnHandle {
   openCreateModal: () => void;
@@ -46,6 +49,7 @@ export interface ShoppingItemsColumnHandle {
 interface ShoppingItemsColumnProps {
   items: ShoppingListItem[];
   suppliers: ShoppingSupplierOption[];
+  products?: ShoppingProductOption[];
   unitOptions: ConfigOption[];
   currencyOptions: ConfigOption[];
   offerFlagOptions: ConfigOption[];
@@ -54,6 +58,9 @@ interface ShoppingItemsColumnProps {
   activeList?: ShoppingListSummary | null;
   searchQuery: string;
   userRole?: string;
+  onEditList?: (list: ShoppingListSummary) => void;
+  onDeleteList?: (list: ShoppingListSummary) => void;
+  onToggleCompleteList?: (list: ShoppingListSummary, isCompleted: boolean) => void;
 }
 
 const ShoppingItemsColumn = forwardRef<
@@ -64,6 +71,7 @@ const ShoppingItemsColumn = forwardRef<
     {
       items,
       suppliers,
+      products = [],
       unitOptions,
       currencyOptions,
       offerFlagOptions,
@@ -72,19 +80,30 @@ const ShoppingItemsColumn = forwardRef<
       activeList,
       searchQuery,
       userRole = 'owner',
+      onEditList,
+      onDeleteList,
+      onToggleCompleteList,
     },
     ref
   ) => {
+
     const mutations = useShoppingMutations();
-    const confirm = useConfirm();
+    const { confirm } = useConfirm();
     const containerRef = React.useRef<HTMLDivElement>(null);
 
     const [isCreateOpen, setIsCreateOpen] = useState(false);
     const editModal = useModal<ShoppingListItem>();
+    const detailModal = useModal<ShoppingListItem>();
     const purchaseModal = useModal<ShoppingListItem>();
     const [historyModalItem, setHistoryModalItem] = useState<ShoppingListItem | null>(null);
 
-    const [filtroStato, setFiltroStato] = useState<FiltroStato>('tutti');
+    const [filtroStato, setFiltroStato] = useState<FiltroStato>('aperti');
+    const [filterQuery, setFilterQuery] = useState('');
+
+    useEffect(() => {
+      setFiltroStato('aperti');
+    }, [activeListId]);
+
 
     const [itemForm, setItemForm] = useState<ItemFormState>(emptyItemForm());
     const [editForm, setEditForm] = useState<ItemFormState>(emptyItemForm());
@@ -102,18 +121,13 @@ const ShoppingItemsColumn = forwardRef<
       [currencyOptions]
     );
 
-    useEffect(() => {
-      if (!eurCurrencyId) return;
-
-      setPurchaseForm((prev) =>
-        prev.currencyId ? prev : { ...prev, currencyId: eurCurrencyId }
-      );
-    }, [eurCurrencyId]);
-
-    const buildCreateForm = (): ItemFormState => ({
-      ...emptyItemForm(),
-      shoppingListId: activeListId != null ? String(activeListId) : '',
-    });
+    const buildCreateForm = (): ItemFormState => {
+      const form = emptyItemForm();
+      if (activeListId != null) {
+        form.shoppingListId = String(activeListId);
+      }
+      return form;
+    };
 
     const handleOpenCreate = () => {
       setItemForm(buildCreateForm());
@@ -128,6 +142,8 @@ const ShoppingItemsColumn = forwardRef<
       [handleOpenCreate]
     );
 
+    const effectiveQuery = (searchQuery || filterQuery).toLowerCase().trim();
+
     const filteredItems = useMemo(() => {
       let result = items;
 
@@ -139,10 +155,12 @@ const ShoppingItemsColumn = forwardRef<
         result = result.filter((item) => item.isPurchased);
       }
 
-      return result;
-    }, [items, filtroStato]);
+      if (effectiveQuery) {
+        result = result.filter((item) => item.productName.toLowerCase().includes(effectiveQuery));
+      }
 
-    const currentListName = activeList?.name ?? 'Lista spesa';
+      return result;
+    }, [items, filtroStato, effectiveQuery]);
 
     const resetQuickAdd = () => {
       setQuickName('');
@@ -171,10 +189,9 @@ const ShoppingItemsColumn = forwardRef<
       handleCloseCreate();
     };
 
-    const handleQuickAdd = async (e: React.FormEvent<HTMLFormElement>) => {
+    const handleQuickAdd = async (e: React.FormEvent) => {
       e.preventDefault();
-      if (activeListId == null) return;
-      if (!quickName.trim()) return;
+      if (!activeListId || !quickName.trim() || quickAdding) return;
 
       setQuickAdding(true);
       try {
@@ -183,7 +200,6 @@ const ShoppingItemsColumn = forwardRef<
           productName: quickName.trim(),
           quantity: quickQuantity ? Number(quickQuantity) : undefined,
           unitId: quickUnitId ? Number(quickUnitId) : undefined,
-          notes: undefined,
         });
         resetQuickAdd();
       } finally {
@@ -234,18 +250,20 @@ const ShoppingItemsColumn = forwardRef<
       });
     };
 
-    const handleTogglePurchased = async (item: ShoppingListItem) => {
+    const handleTogglePurchased = (item: ShoppingListItem) => {
       if (item.isPurchased) {
-        const lastBatch = item.inventoryBatches?.[item.inventoryBatches.length - 1];
-        if (lastBatch) {
-          const ok = await confirm(`Annullare l'acquisto per "${item.productName}"?`);
-          if (ok) {
-            mutations.deleteInventoryBatch({
-              batchId: lastBatch.id,
+        confirm({
+          title: 'Annulla Acquisto',
+          message: `Vuoi segnare "${item.productName}" come non acquistato?`,
+          confirmText: 'Conferma',
+          onConfirm: async () => {
+            await mutations.togglePurchased({
+              id: item.id,
               listId: item.shoppingListId,
+              data: { isPurchased: false },
             });
-          }
-        }
+          },
+        });
       } else {
         handleOpenPurchase(item);
       }
@@ -253,7 +271,7 @@ const ShoppingItemsColumn = forwardRef<
 
     const handleOpenPurchase = (item: ShoppingListItem) => {
       setPurchaseForm({
-        ...emptyPurchaseForm(eurCurrencyId),
+        ...emptyPurchaseForm(eurCurrencyId, item.quantity != null ? String(item.quantity) : '1'),
         purchaseDate: getLocalTodayStr(),
       });
       purchaseModal.open(item);
@@ -270,68 +288,156 @@ const ShoppingItemsColumn = forwardRef<
       if (activeListId == null) return;
       if (!purchaseForm.price) return;
 
+      const targetItem = purchaseModal.data;
+      const boughtQuantity = Number(purchaseForm.quantity) || 1;
+      const originalQuantity = targetItem.quantity != null ? targetItem.quantity : 1;
+
+      // 1. Registra il lotto di inventario
       await mutations.addInventoryBatch({
-        itemId: purchaseModal.data.id,
+        itemId: targetItem.id,
         listId: activeListId,
-        productId: purchaseModal.data.productId,
-        supplierId: purchaseForm.supplierId
-          ? Number(purchaseForm.supplierId)
-          : undefined,
-        purchaseDate: purchaseForm.purchaseDate,
-        price: Number(purchaseForm.price),
-        currencyId: purchaseForm.currencyId
-          ? Number(purchaseForm.currencyId)
-          : undefined,
-        offerFlagId: purchaseForm.offerFlagId
-          ? Number(purchaseForm.offerFlagId)
-          : undefined,
+        data: {
+          productId: targetItem.productId,
+          supplierId: purchaseForm.supplierId
+            ? Number(purchaseForm.supplierId)
+            : undefined,
+          purchaseDate: purchaseForm.purchaseDate,
+          purchasePrice: Number(purchaseForm.price.replace(',', '.')),
+          quantity: boughtQuantity,
+          currencyId: purchaseForm.currencyId
+            ? Number(purchaseForm.currencyId)
+            : undefined,
+          isOnSale: purchaseForm.isOnSale,
+          offerFlagId: purchaseForm.isOnSale ? (Number(purchaseForm.offerFlagId) || 1) : undefined,
+        },
       });
+
+
+
+      // 2. Logica acquisto parziale o completamento lista
+      if (boughtQuantity < originalQuantity) {
+        const remainingQuantity = originalQuantity - boughtQuantity;
+        await mutations.updateItem({
+          id: targetItem.id,
+          listId: activeListId,
+          data: { quantity: remainingQuantity },
+        });
+        await mutations.togglePurchased({
+          id: targetItem.id,
+          listId: activeListId,
+          data: { isPurchased: false },
+        });
+      } else {
+        const isAllItemsPurchased = items.every((i) =>
+          i.id === targetItem.id ? true : i.isPurchased
+        );
+        if (isAllItemsPurchased && !activeList?.isCompleted) {
+          confirm({
+            title: 'Lista Completata!',
+            message: 'Tutti gli articoli di questa lista sono stati acquistati. Vuoi segnare la lista come completata?',
+            confirmText: 'Sì, completa lista',
+            cancelText: 'Lascia aperta',
+            onConfirm: async () => {
+              await mutations.updateList({
+                id: activeListId,
+                data: { isCompleted: true },
+              });
+            },
+          });
+        }
+      }
 
       handleClosePurchase();
     };
 
-    const canCreateItem = userRole === 'owner' || userRole === 'admin';
+    const canCreateItem = userRole === 'owner' || userRole === 'admin' || userRole === 'editor';
+    const canEditItem   = userRole === 'owner' || userRole === 'admin' || userRole === 'editor';
+    // Admin può modificare anche i prodotti già acquistati; editor no
+    const canEditPurchasedItem = userRole === 'owner' || userRole === 'admin';
+    const canDeleteItem = userRole === 'owner' || userRole === 'admin';
+    const canEditList   = userRole === 'owner' || userRole === 'admin';
+
+
+    if (!activeListId || !activeList) {
+      return <ShoppingItemsEmptyState />;
+    }
 
     return (
-      <div className="flex h-full min-h-0 flex-col gap-3">
-        <ShoppingItemsToolbar
-          currentListName={currentListName}
-          activeListId={activeListId}
-          searchQuery={searchQuery}
-          filtroStato={filtroStato}
-          onFiltroStatoChange={setFiltroStato}
-          onAddItem={canCreateItem ? handleOpenCreate : undefined}
-        />
-
-        {canCreateItem ? (
-          <ShoppingQuickAddBar
-            activeListId={activeListId}
-            unitOptions={unitOptions}
-            quickName={quickName}
-            quickQuantity={quickQuantity}
-            quickUnitId={quickUnitId}
-            onQuickNameChange={setQuickName}
-            onQuickQuantityChange={setQuickQuantity}
-            onQuickUnitChange={setQuickUnitId}
-            onSubmit={handleQuickAdd}
-            loading={quickAdding}
+      <div className="flex h-full min-h-0 flex-col justify-between">
+        <div className="flex flex-col flex-1 min-h-0 w-full gap-3.5">
+          {/* Header della lista attiva */}
+          <ShoppingActiveListHeader
+            activeList={activeList}
+            items={items}
+            filtroStato={filtroStato}
+            onFiltroStatoChange={setFiltroStato}
+            canEditList={canEditList}
+            onToggleCompleteList={onToggleCompleteList}
+            onEditList={onEditList}
+            onDeleteList={onDeleteList}
           />
-        ) : null}
 
-        <div className={`${shoppingCardClass} min-h-0 flex-1 overflow-hidden p-0`}>
-          <ShoppingItemsList
-            items={filteredItems}
-            loading={loading && items.length === 0}
-            containerRef={containerRef}
-            onEdit={handleOpenEdit}
-            onDelete={handleDelete}
-            onToggle={handleTogglePurchased}
-            onPurchase={handleOpenPurchase}
-            onOpenSuggestions={(item) => setHistoryModalItem(item)}
-            userRole={userRole}
+          {/* Barra di ricerca a tutta larghezza */}
+          <ShoppingListSearchInput
+            value={filterQuery}
+            onChange={setFilterQuery}
           />
+
+
+          {/* Quick Add Bar */}
+          {canCreateItem && (
+            <ShoppingQuickAddBar
+              activeListId={activeListId}
+              unitOptions={unitOptions}
+              quickName={quickName}
+              quickQuantity={quickQuantity}
+              quickUnitId={quickUnitId}
+              products={products}
+              onQuickNameChange={setQuickName}
+              onQuickQuantityChange={setQuickQuantity}
+              onQuickUnitChange={setQuickUnitId}
+              onSubmit={handleQuickAdd}
+              loading={quickAdding}
+            />
+          )}
+
+          {/* ========================================================================= */}
+          {/* 3. ELENCO ARTICOLI DELLA LISTA                                            */}
+          {/* ========================================================================= */}
+          <div className="min-h-0 flex-1 overflow-hidden">
+            <ShoppingItemsList
+              items={filteredItems}
+              loading={loading && items.length === 0}
+              containerRef={containerRef}
+              onToggle={handleTogglePurchased}
+              onOpenDetail={(item) => detailModal.open(item)}
+              userRole={userRole}
+            />
+          </div>
         </div>
 
+        {/* Footer: Tasto Nuovo Prodotto nello stile TaskColumn / AddButton */}
+        {canCreateItem && (
+          <div className="flex flex-col gap-2 mt-3 shrink-0 w-full">
+            <AddButton
+              label="Nuovo Prodotto"
+              onClick={handleOpenCreate}
+            />
+          </div>
+        )}
+
+        {/* Modal Dettaglio Singolo Prodotto */}
+        <ShoppingItemDetailModal
+          isOpen={detailModal.isOpen}
+          onClose={detailModal.close}
+          item={detailModal.data}
+          onEditClick={handleOpenEdit}
+          onDeleteClick={handleDelete}
+          canEdit={detailModal.data?.isPurchased ? canEditPurchasedItem : canEditItem}
+          canDelete={canDeleteItem}
+        />
+
+        {/* Modal Creazione Prodotto */}
         <ShoppingItemCreateModal
           open={isCreateOpen}
           onClose={handleCloseCreate}
@@ -340,8 +446,11 @@ const ShoppingItemsColumn = forwardRef<
           setItemForm={setItemForm}
           activeListId={activeListId}
           unitOptions={unitOptions}
+          products={products}
         />
 
+
+        {/* Modal Modifica Prodotto */}
         <ShoppingItemEditModal
           open={editModal.isOpen}
           onClose={handleCloseEdit}
@@ -349,8 +458,11 @@ const ShoppingItemsColumn = forwardRef<
           editForm={editForm}
           setEditForm={setEditForm}
           unitOptions={unitOptions}
+          products={products}
         />
 
+
+        {/* Modal Registra Acquisto */}
         <ShoppingPurchaseModal
           open={purchaseModal.isOpen}
           onClose={handleClosePurchase}
@@ -361,6 +473,8 @@ const ShoppingItemsColumn = forwardRef<
           currencyOptions={currencyOptions}
           offerFlagOptions={offerFlagOptions}
           itemName={purchaseModal.data?.productName ?? ''}
+          itemTotalQuantity={purchaseModal.data?.quantity ?? null}
+          unitCodeName={purchaseModal.data?.unitCodeName ?? null}
         />
 
         {historyModalItem ? (

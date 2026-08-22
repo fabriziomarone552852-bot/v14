@@ -1,10 +1,13 @@
-// src/components/habits/HabitFilterBar.tsx
+// src/components/archive/habits/HabitFilterBar.tsx
 import React from 'react';
 import { ArchiveActionBar } from '@/components/shared/layout/ArchiveActionBar';
-import type { HabitTabType } from '@/components/archive/habits/ArchiveTabs';
+import { ArchiveTabs, type HabitTabType } from '@/components/archive/habits/ArchiveTabs';
 
 interface HabitFilterBarProps {
   activeTab: HabitTabType;
+  onTabChange: (tab: HabitTabType) => void;
+  routinesCount: number;
+  habitsCount: number;
   onOpenNew: () => void;
   onOpenSearch: () => void;
   activeFiltersCount: number;
@@ -13,6 +16,9 @@ interface HabitFilterBarProps {
 
 export const HabitFilterBar: React.FC<HabitFilterBarProps> = ({
   activeTab,
+  onTabChange,
+  routinesCount,
+  habitsCount,
   onOpenNew,
   onOpenSearch,
   activeFiltersCount,
@@ -24,6 +30,14 @@ export const HabitFilterBar: React.FC<HabitFilterBarProps> = ({
     <ArchiveActionBar
       addLabel={addLabel}
       onAdd={onOpenNew}
+      centerContent={
+        <ArchiveTabs
+          activeTab={activeTab}
+          onTabChange={onTabChange}
+          routinesCount={routinesCount}
+          habitsCount={habitsCount}
+        />
+      }
       onOpenSearch={onOpenSearch}
       activeFiltersCount={activeFiltersCount}
       className={panelClass}

@@ -4,7 +4,7 @@ import { Pagination } from '@/components/shared/utils/Pagination';
 import { EmptyState } from '@/components/shared/utils/EmptyState';
 import { AddButton } from '@/components/shared/utils/AddButton';
 import { filterAndSortTree, filterTreeByDeadlineMode } from '@/utils/taskUtils';
-import { formatToItalianShortDate, getLocalTodayStr, formatDateString } from '@/utils/dateUtils';
+import { getLocalTodayStr, formatDateString } from '@/utils/dateUtils';
 import { useAutoFitPagination } from '@/hooks/useAutoFitPagination';
 import { CalendarIcon, CalendarXIcon, SwitchIcon } from '@/components/shared/utils/Icons';
 import type { UITask, TaskSummary } from '@/types';

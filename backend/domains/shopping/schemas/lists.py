@@ -25,6 +25,7 @@ class ShoppingListCreate(StrictBaseModel):
     status_id: Optional[int] = None
     name: str = Field(..., min_length=1, max_length=255)
     description: Optional[str] = None
+    is_completed: Optional[bool] = False
 
     @field_validator("name")
     @classmethod
@@ -41,9 +42,11 @@ class ShoppingListUpdate(StrictBaseModel):
     visibility_id: Optional[int] = None
     status_id: Optional[int] = None
     group_id: Optional[int] = None
+    is_completed: Optional[bool] = None
     closed_at: Optional[datetime] = None
     archived_at: Optional[datetime] = None
     deleted_at: Optional[datetime] = None
+
 
     @field_validator("name")
     @classmethod
@@ -94,6 +97,8 @@ class ShoppingListItemUpdate(StrictBaseModel):
     )
     unit_id: Optional[int] = None
     notes: Optional[str] = None
+    is_purchased: Optional[bool] = None
+
 
     @field_validator("product_name")
     @classmethod
@@ -169,12 +174,14 @@ class ShoppingListResponse(ORMBaseModel):
     status_id: int
     name: str
     description: Optional[str] = None
+    is_completed: bool = False
     created_at: datetime
     updated_at: Optional[datetime] = None
     closed_at: Optional[datetime] = None
     archived_at: Optional[datetime] = None
     deleted_at: Optional[datetime] = None
     items: List[ShoppingListItemResponse] = Field(default_factory=list)
+
 
 
 _ShoppingProductLiteResponse.model_rebuild()

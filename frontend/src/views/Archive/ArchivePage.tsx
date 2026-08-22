@@ -11,6 +11,8 @@ import {
   NoteIcon,
   ReviewIcon,
   TagIcon,
+  StoreIcon,
+  ShoppingIcon,
   ArrowRightIcon,
 } from '@/components/shared/utils/Icons';
 import { ArchiveHeader } from '@/components/shared/layout/ArchiveHeader';
@@ -18,7 +20,6 @@ import { ArchiveHeader } from '@/components/shared/layout/ArchiveHeader';
 interface ArchiveModuleCard {
   id: string;
   title: string;
-  subtitle: string;
   description: string;
   to: string;
   icon: React.ReactNode;
@@ -30,7 +31,6 @@ const MODULES: ArchiveModuleCard[] = [
   {
     id: 'tasks',
     title: 'Task & To-Do',
-    subtitle: 'Attività e Gerarchia',
     description: 'Gestisci la lista completa delle tue attività, sotto-task gerarchici e priorità.',
     to: '/tasks',
     icon: <TaskListIcon className="w-6 h-6" />,
@@ -40,7 +40,6 @@ const MODULES: ArchiveModuleCard[] = [
   {
     id: 'events',
     title: 'Eventi & Calendario',
-    subtitle: 'Appuntamenti e Ricorrenze',
     description: 'Consulta e organizza tutti gli eventi, fasce orarie e ricorrenze del calendario.',
     to: '/events',
     icon: <CalendarIcon className="w-6 h-6" />,
@@ -49,39 +48,35 @@ const MODULES: ArchiveModuleCard[] = [
   },
   {
     id: 'categories',
-    title: 'Categorie',
-    subtitle: 'Spazi e Colori',
-    description: 'Personalizza le categorie per task ed eventi, gestendo palette e tipologie.',
+    title: 'Categorie & Ambiti',
+    description: 'Organizza i tuoi ambiti di vita, icone e colori per catalogare ogni elemento.',
     to: '/categories',
     icon: <CategoryIcon className="w-6 h-6" />,
-    accentBg: 'bg-purple-50 hover:bg-purple-100/80',
-    accentText: 'text-purple-600',
+    accentBg: 'bg-violet-50 hover:bg-violet-100/80',
+    accentText: 'text-violet-600',
   },
   {
     id: 'countdowns',
-    title: 'Countdown',
-    subtitle: 'Traguardi e Scadenze',
-    description: 'Monitora il conto alla rovescia verso date importanti, viaggi ed esami.',
+    title: 'Countdown & Scadenze',
+    description: 'Monitora il tempo rimanente e i giorni trascorsi per date importanti.',
     to: '/countdowns',
     icon: <CountdownIcon className="w-6 h-6" />,
-    accentBg: 'bg-emerald-50 hover:bg-emerald-100/80',
-    accentText: 'text-emerald-600',
-  },
-  {
-    id: 'habits',
-    title: 'Habits & Routine',
-    subtitle: 'Costanza e Obiettivi',
-    description: 'Traccia le abitudini quotidiane, i target periodici e i log di completamento.',
-    to: '/habits',
-    icon: <HabitIcon className="w-6 h-6" />,
     accentBg: 'bg-amber-50 hover:bg-amber-100/80',
     accentText: 'text-amber-600',
   },
   {
+    id: 'habits',
+    title: 'Abitudini & Routine',
+    description: 'Traccia la frequenza delle tue routine giornaliere, settimanali e mensili.',
+    to: '/habits',
+    icon: <HabitIcon className="w-6 h-6" />,
+    accentBg: 'bg-emerald-50 hover:bg-emerald-100/80',
+    accentText: 'text-emerald-600',
+  },
+  {
     id: 'notes',
-    title: 'Note & Riflessioni',
-    subtitle: 'Appunti e Quaderno',
-    description: 'Consulta memo veloci, note giornaliere e pensieri sparsi senza distrazioni.',
+    title: 'Note & Appunti',
+    description: 'Raccogli pensieri, promemoria veloci e appunti collegati a categorie.',
     to: '/notes',
     icon: <NoteIcon className="w-6 h-6" />,
     accentBg: 'bg-cyan-50 hover:bg-cyan-100/80',
@@ -90,7 +85,6 @@ const MODULES: ArchiveModuleCard[] = [
   {
     id: 'reviews',
     title: 'Review Mesi & Anni',
-    subtitle: 'Retrospettive e Analisi',
     description: 'Analizza i bilanci periodici, le risposte di review e il progresso annuale.',
     to: '/reviews',
     icon: <ReviewIcon className="w-6 h-6" />,
@@ -100,12 +94,29 @@ const MODULES: ArchiveModuleCard[] = [
   {
     id: 'tags',
     title: 'Tag & Etichette',
-    subtitle: 'Filtri Trasversali',
     description: 'Organizza i tag per collegare task, eventi e note con parole chiave veloci.',
     to: '/tags',
     icon: <TagIcon className="w-6 h-6" />,
     accentBg: 'bg-teal-50 hover:bg-teal-100/80',
     accentText: 'text-teal-600',
+  },
+  {
+    id: 'shopping',
+    title: 'Spesa & Liste',
+    description: 'Gestisci gruppi collaborativi, liste spesa archiviate e lo storico prezzi.',
+    to: '/shopping-archive',
+    icon: <ShoppingIcon className="w-6 h-6" />,
+    accentBg: 'bg-emerald-50 hover:bg-emerald-100/80',
+    accentText: 'text-emerald-600',
+  },
+  {
+    id: 'fornitori',
+    title: 'Fornitori & Negozi',
+    description: 'Gestisci supermercati, negozi di fiducia e listini prezzi per la spesa.',
+    to: '/fornitori',
+    icon: <StoreIcon className="w-6 h-6" />,
+    accentBg: 'bg-orange-50 hover:bg-orange-100/80',
+    accentText: 'text-orange-600',
   },
 ];
 
@@ -124,13 +135,13 @@ export const ArchivePage: React.FC = () => {
         subtitle="Centro di gestione per organizzare e consultare tutti i dati della tua Smart Agenda."
         badge={
           <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md bg-slate-100 text-slate-600 border border-slate-200">
-            8 Moduli
+            10 Moduli
           </span>
         }
       />
 
-      {/* GRIGLIA BENTO DEI MODULI: OCCUPA TUTTO LO SPAZIO VERTICALE (2 RIGHE EQUIDISTRIBUITE) */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 grid-rows-2 gap-4 flex-1 min-h-0 relative z-10">
+      {/* GRIGLIA BENTO DEI MODULI: 2 RIGHE DA 5 COLONNE CON LO SPAZIO VUOTO SUL 10° SLOT */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 grid-rows-2 gap-4 flex-1 min-h-0 relative z-10">
         {MODULES.map((mod) => (
           <button
             key={mod.id}
@@ -152,9 +163,6 @@ export const ArchivePage: React.FC = () => {
               <h2 className="text-base sm:text-lg font-bold text-slate-900 group-hover:text-blue-600 transition-colors">
                 {mod.title}
               </h2>
-              <p className="text-xs font-semibold text-slate-400 mt-0.5">
-                {mod.subtitle}
-              </p>
               <p className="text-xs text-slate-600 mt-2 line-clamp-3 leading-relaxed">
                 {mod.description}
               </p>
@@ -169,9 +177,13 @@ export const ArchivePage: React.FC = () => {
             </div>
           </button>
         ))}
+
+        {/* 10° Slot vuoto per future espansioni */}
+        <div className="hidden lg:block rounded-2xl border-2 border-dashed border-slate-200/60 bg-slate-50/40 p-5 h-full opacity-60" />
       </div>
     </div>
   );
 };
 
 export default ArchivePage;
+

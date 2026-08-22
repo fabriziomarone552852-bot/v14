@@ -53,11 +53,13 @@ def _batch_loaders():
     return (
         selectinload(InventoryBatch.product),
         selectinload(InventoryBatch.supplier),
-        selectinload(InventoryBatch.list_item),
+        selectinload(InventoryBatch.list_item).selectinload(ShoppingListItem.unit),
+        selectinload(InventoryBatch.list_item).selectinload(ShoppingListItem.shopping_list),
         selectinload(InventoryBatch.purchased_by_user),
         selectinload(InventoryBatch.created_by_user),
         selectinload(InventoryBatch.updated_by_user),
     )
+
 
 
 def _list_loaders():
@@ -218,6 +220,18 @@ def get_member(db: Session, group_id: int, user_id: int) -> Optional[ShoppingGro
             ShoppingGroupMember.group_id == group_id,
             ShoppingGroupMember.user_id == user_id,
             ShoppingGroupMember.removed_at.is_(None),
+        )
+        .first()
+    )
+
+
+def get_member_any(db: Session, group_id: int, user_id: int) -> Optional[ShoppingGroupMember]:
+    """Trova un membro indipendentemente dallo stato removed_at (inclusi soft-deleted)."""
+    return (
+        db.query(ShoppingGroupMember)
+        .filter(
+            ShoppingGroupMember.group_id == group_id,
+            ShoppingGroupMember.user_id == user_id,
         )
         .first()
     )
@@ -405,14 +419,15 @@ def get_list_accessible(db: Session, list_id: int, user_id: int) -> Optional[Sho
 
 
 # ------------------------------------------------------------------ Products
-def list_products(db: Session, search: Optional[str] = None, limit: int = 50) -> List[ShoppingProduct]:
+def list_products(db: Session, search: Optional[str] = None, limit: int = 200) -> List[ShoppingProduct]:
     query = db.query(ShoppingProduct).filter(ShoppingProduct.deleted_at.is_(None))
 
     if search:
         normalized = normalize_name(search)
-        query = query.filter(ShoppingProduct.name_normalized.ilike(f"{normalized}%"))
+        query = query.filter(ShoppingProduct.name_normalized.ilike(f"%{normalized}%"))
 
     return query.order_by(ShoppingProduct.name_normalized.asc()).limit(limit).all()
+
 
 
 def get_product(db: Session, product_id: int) -> Optional[ShoppingProduct]:
@@ -651,6 +666,109 @@ def list_batches_for_product(
         query = query.limit(limit)
 
     return query.all()
+
+
+def list_batches_for_item(
+    db: Session,
+    item_id: int,
+    user_id: int,
+) -> List[InventoryBatch]:
+    """Restituisce tutti i lotti di acquisto personali per il prodotto di questo item accessibili all'utente."""
+    db_item = get_item(db, item_id)
+    product_id = db_item.product_id if db_item else None
+
+    query = (
+        db.query(InventoryBatch)
+        .join(ShoppingListItem, ShoppingListItem.id == InventoryBatch.list_item_id)
+        .join(ShoppingList, ShoppingList.id == ShoppingListItem.shopping_list_id)
+        .outerjoin(ShoppingGroup, ShoppingList.group_id == ShoppingGroup.id)
+        .outerjoin(
+            ShoppingGroupMember,
+            (ShoppingGroup.id == ShoppingGroupMember.group_id)
+            & (ShoppingGroupMember.removed_at.is_(None)),
+        )
+        .options(*_batch_loaders())
+    )
+
+    if product_id is not None:
+        query = query.filter(InventoryBatch.product_id == product_id)
+    else:
+        query = query.filter(InventoryBatch.list_item_id == item_id)
+
+    return (
+        query.filter(
+            InventoryBatch.deleted_at.is_(None),
+            ShoppingListItem.deleted_at.is_(None),
+            ShoppingList.deleted_at.is_(None),
+            or_(
+                ShoppingList.owner_id == user_id,
+                ShoppingGroup.owner_id == user_id,
+                ShoppingGroupMember.user_id == user_id,
+            ),
+        )
+        .order_by(InventoryBatch.purchase_date.desc(), InventoryBatch.created_at.desc())
+        .all()
+    )
+
+
+def list_all_batches_for_user(
+
+    db: Session,
+    user_id: int,
+) -> List[InventoryBatch]:
+    """Restituisce tutti i batch/prezzi di acquisto registrati dall'utente o nei suoi gruppi."""
+    return (
+        db.query(InventoryBatch)
+        .join(ShoppingListItem, ShoppingListItem.id == InventoryBatch.list_item_id)
+        .join(ShoppingList, ShoppingList.id == ShoppingListItem.shopping_list_id)
+        .outerjoin(ShoppingGroup, ShoppingList.group_id == ShoppingGroup.id)
+        .outerjoin(
+            ShoppingGroupMember,
+            (ShoppingGroup.id == ShoppingGroupMember.group_id)
+            & (ShoppingGroupMember.removed_at.is_(None)),
+        )
+        .options(
+            selectinload(InventoryBatch.supplier),
+            selectinload(InventoryBatch.product),
+            selectinload(InventoryBatch.list_item).selectinload(ShoppingListItem.unit),
+            selectinload(InventoryBatch.list_item).selectinload(ShoppingListItem.shopping_list),
+        )
+        .filter(
+            InventoryBatch.deleted_at.is_(None),
+            ShoppingListItem.deleted_at.is_(None),
+            ShoppingList.deleted_at.is_(None),
+            or_(
+                ShoppingList.owner_id == user_id,
+                ShoppingGroup.owner_id == user_id,
+                ShoppingGroupMember.user_id == user_id,
+            ),
+        )
+        .order_by(InventoryBatch.purchase_date.desc(), InventoryBatch.created_at.desc())
+        .all()
+    )
+
+
+def list_community_prices_for_product(
+
+    db: Session,
+    product_id: int,
+    limit: int = 50,
+) -> List[InventoryBatch]:
+    """Restituisce i prezzi (anonimi) registrati per un prodotto da qualsiasi utente."""
+    return (
+        db.query(InventoryBatch)
+        .options(
+            selectinload(InventoryBatch.supplier),
+            selectinload(InventoryBatch.list_item).selectinload(ShoppingListItem.unit),
+        )
+        .filter(
+            InventoryBatch.product_id == product_id,
+            InventoryBatch.deleted_at.is_(None),
+        )
+        .order_by(InventoryBatch.purchase_date.desc(), InventoryBatch.created_at.desc())
+        .limit(limit)
+        .all()
+    )
 
 
 def get_batch(db: Session, batch_id: int, user_id: int) -> Optional[InventoryBatch]:

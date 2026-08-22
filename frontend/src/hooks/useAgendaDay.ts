@@ -199,7 +199,7 @@ export const useAgendaDay = (dateStr: string) => {
       });
       return { previousData };
     },
-    onError: (err, variables, context) => {
+    onError: (err, _variables, context) => {
       logger.error("Errore del server durante l'untoggle!", err); 
       queryClient.setQueryData(queryKey, context?.previousData);
     },
