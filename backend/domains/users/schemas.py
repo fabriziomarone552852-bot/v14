@@ -90,7 +90,7 @@ class UserSettingsUpdate(StrictBaseModel):
         min_length=PASSWORD_MIN_LENGTH,
         max_length=PASSWORD_MAX_LENGTH,
     )
-    max_subtask_depth_user: int | None = Field(None, ge=1, le=15)
+    max_subtask_depth_user: int | None = Field(None, ge=1, le=10)
 
     @model_validator(mode="after")
     def validate_password_change(self) -> "UserSettingsUpdate":

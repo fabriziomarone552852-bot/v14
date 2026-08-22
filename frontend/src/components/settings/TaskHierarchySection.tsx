@@ -13,14 +13,14 @@ export const TaskHierarchySection: React.FC<TaskHierarchySectionProps> = ({
   disabled = false,
 }) => {
   const MIN_LIMIT = 1;
-  const MAX_LIMIT = 15;
+  const MAX_LIMIT = 10;
   const numericValue = typeof maxDepth === 'number' ? maxDepth : 3;
 
   const keyBenchmarks = [
     { value: 1, label: '1 (Minimo)' },
     { value: 3, label: '3 (Consigliato)' },
-    { value: 7, label: '7 (Avanzato)' },
-    { value: 15, label: '15 (Massimo)' },
+    { value: 6, label: '6 (Avanzato)' },
+    { value: 10, label: '10 (Massimo)' },
   ];
 
   const getPositionPercent = (val: number) => {
@@ -45,7 +45,7 @@ export const TaskHierarchySection: React.FC<TaskHierarchySectionProps> = ({
               Profondità Massima Sottotask
             </label>
             <p className="text-xs text-slate-500 mt-0.5">
-              Valore compreso tra 1 (solo task radice con 1 livello di figli) e 15 livelli di profondità.
+              Valore compreso tra 1 (solo task radice con 1 livello di figli) e 10 livelli di profondità.
             </p>
           </div>
 
