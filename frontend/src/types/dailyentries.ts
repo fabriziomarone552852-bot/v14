@@ -1,0 +1,28 @@
+import type { Category } from './categories';
+
+export type MoodEventType = 'EP' | 'EN';
+export type NoteVariant = 'N1' | 'N2' | 'N3' | 'N4';
+export type DailyEntryType = 'OD' | 'PD' | 'OW' | 'PW' | 'PX' | MoodEventType | NoteVariant;
+
+export interface DailyEntry {
+  id: number;
+  user_id: number;
+  data_riferimento: string; 
+  tipo: DailyEntryType;
+  testo?: string | null;
+  immagine_url?: string | null;
+  category_id?: number | null; 
+  category?: Category | null; 
+}
+
+export interface LocalNoteEntry extends DailyEntry {
+  isNew?: boolean;
+}
+
+// Definiamo le opzioni per i colori del pixel, niente stringhe libere
+// ANCHE SE SARANNO FORMULATI I COLORIN NEL BACKEND IN USER_CATEGORIES TABLE
+export type PixelColor = 'blu' | 'giallo' | 'rosso' | 'verde' | 'viola' | 'transparent';
+
+// ⚠️  isNoteVariant è una funzione runtime — definita in utils/noteUtils.ts
+// Riesportata qui per compatibilità con i vecchi import `from '@/types'`.
+export { isNoteVariant } from '@/utils/noteUtils';

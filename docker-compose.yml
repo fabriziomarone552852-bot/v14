@@ -1,0 +1,28 @@
+version: '3.8'
+
+services:
+  # Servizio Backend FastAPI
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    container_name: vxame14_backend
+    restart: always
+    environment:
+      - DATABASE_URL=postgresql+psycopg://postgres:postgres@192.168.11.20:5432/family_smart
+      - APP_ENV=prod
+      - SECRET_KEY=prod-secret-key-change-me-qnap-nas-2026-secure
+    ports:
+      - "8000:8000"
+
+  # Servizio Frontend React (Nginx Web Server)
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: vxame14_frontend
+    restart: always
+    ports:
+      - "8080:80"
+    depends_on:
+      - backend
