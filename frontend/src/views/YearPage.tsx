@@ -11,6 +11,10 @@ import MiniBingoCard from '@/components/year/MiniBingoCard';
 import BingoModal from '@/components/year/BingoModal';
 import { YearReviewModal } from '@/components/year/review/YearReviewModal';
 
+import PageLoadingState from '@/components/shared/feedback/PageLoadingState';
+import PageErrorState from '@/components/shared/feedback/PageErrorState';
+import { LOADING_MESSAGES, ERROR_MESSAGES } from '@/data/loadingMessages';
+
 const YearPage: React.FC = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -32,27 +36,12 @@ const YearPage: React.FC = () => {
   };
 
   // Caricamento iniziale e gestione errori uniformata a MonthPage, WeekPage e DayPage
-  if (state.isLoading) {
-    return (
-      <div className="flex h-full items-center justify-center font-bold text-gray-500 animate-pulse">
-        Caricamento anno...
-      </div>
-    );
+  if (state.isLoading && !apiData) {
+    return <PageLoadingState messages={LOADING_MESSAGES.year} />;
   }
 
   if (state.isError) {
-    return (
-      <div className="flex h-full flex-col items-center justify-center text-red-500">
-        <h2 className="text-xl font-bold mb-2">Ops! Qualcosa è andato storto.</h2>
-        <p>Impossibile caricare i dati dell'anno. Riprova più tardi.</p>
-        <button
-          onClick={() => queryClient.refetchQueries()}
-          className="mt-4 px-4 py-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 font-medium"
-        >
-          Ricarica Dati
-        </button>
-      </div>
-    );
+    return <PageErrorState message={ERROR_MESSAGES.year} onRetry={() => queryClient.refetchQueries()} />;
   }
 
   return (

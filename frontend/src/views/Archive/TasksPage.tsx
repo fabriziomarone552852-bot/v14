@@ -1,6 +1,6 @@
 // src/views/Archive/TasksPage.tsx
 import React, { useMemo, useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/api/apiService';
 import { useCategories } from '@/hooks/useCategories';
 import { useTaskMutations } from '@/hooks/mutations/useTaskMutations';
@@ -15,6 +15,7 @@ import { TaskFilterBar } from '@/components/archive/tasks/TaskFilterBar';
 import { TaskTableHeader, type TaskSortField, type TaskSortDirection } from '@/components/archive/tasks/TaskTableHeader';
 import { TaskTreeRow } from '@/components/archive/tasks/TaskTreeRow';
 import { TaskFilterModal, type TaskFilterState } from '@/components/archive/tasks/TaskFilterModal';
+import { ERROR_MESSAGES } from '@/data/loadingMessages';
 import type { DbTask } from '@/types';
 
 const PANEL_CLASS = 'rounded-2xl border border-slate-200/90 bg-white shadow-xs';
@@ -29,12 +30,13 @@ const initialFilterState: TaskFilterState = {
 };
 
 export const TasksPage: React.FC = () => {
+  const queryClient = useQueryClient();
   const { openTaskForm, openTaskDetail } = useTaskModals();
   const { data: categories = [] } = useCategories();
   const { toggleTask } = useTaskMutations(['tasks']);
 
   // 1. CARICAMENTO DATI (Mazzo di carte in React Query)
-  const { data: rawTasks = [], isLoading: loading } = useQuery<DbTask[]>({
+  const { data: rawTasks = [], isLoading: loading, isError } = useQuery<DbTask[]>({
     queryKey: ['tasks'],
     queryFn: async () => {
       const res = await api.get<{ items?: DbTask[] } | DbTask[]>('/tasks');
@@ -139,6 +141,9 @@ export const TasksPage: React.FC = () => {
         }
         loading={loading}
         loadingMessage="Caricamento task in corso..."
+        isError={isError}
+        errorMessage={ERROR_MESSAGES.archive}
+        onRetry={() => queryClient.refetchQueries()}
         isEmpty={filteredRoots.length === 0}
         emptyIcon={<TaskListIcon className="w-8 h-8 text-slate-400" />}
         emptyTitle="Nessuna task trovata"

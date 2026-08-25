@@ -1,6 +1,6 @@
 // src/views/Archive/ShoppingArchivePage.tsx
 import React, { useState, useMemo } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   UsersIcon,
   TaskListIcon,
@@ -16,6 +16,7 @@ import { ShoppingStatsOverview } from '@/components/archive/shopping/ShoppingSta
 import { ShoppingArchiveGroupsTab } from '@/components/archive/shopping/ShoppingArchiveGroupsTab';
 import { ShoppingArchiveListsTab } from '@/components/archive/shopping/ShoppingArchiveListsTab';
 import { ShoppingArchivePricesTab } from '@/components/archive/shopping/ShoppingArchivePricesTab';
+import { ERROR_MESSAGES } from '@/data/loadingMessages';
 import type { ShoppingGroupFilterState } from '@/components/archive/shopping/ShoppingGroupFilterModal';
 import type { ShoppingListFilterState } from '@/components/archive/shopping/ShoppingListFilterModal';
 import type { ShoppingPriceFilterState } from '@/components/archive/shopping/ShoppingPriceFilterModal';
@@ -44,6 +45,7 @@ const initialPriceFilters: ShoppingPriceFilterState = {
 };
 
 export const ShoppingArchivePage: React.FC = () => {
+  const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState<ShoppingArchiveTab>('gruppi');
   const { createGroup } = useShoppingMutations();
 
@@ -54,15 +56,17 @@ export const ShoppingArchivePage: React.FC = () => {
     products,
     groupsLoading,
     listsLoading,
+    isError: shoppingError,
   } = useShoppingData();
 
-  const { data: allBatches = [], isLoading: batchesLoading } = useQuery<ItemBatchRecord[]>({
+  const { data: allBatches = [], isLoading: batchesLoading, isError: batchesError } = useQuery<ItemBatchRecord[]>({
     queryKey: shoppingQueryKeys.allBatches(),
     queryFn: ({ signal }) => fetchAllInventoryBatches(signal),
     staleTime: 30_000,
   });
 
   const isOverallLoading = groupsLoading || listsLoading;
+  const isError = Boolean(shoppingError || batchesError);
 
   // Modali Creazione
   const groupCreateModal = useModal<null>();
@@ -168,7 +172,19 @@ export const ShoppingArchivePage: React.FC = () => {
       />
 
       {/* 3. CONTENUTO TABELLARE IN ARCHIVE CONTAINER */}
-      {activeTab === 'gruppi' && (
+      {isError ? (
+        <div className={`${PANEL_CLASS} flex flex-col flex-1 items-center justify-center py-20 text-slate-400`}>
+          <div className="flex items-center justify-center w-12 h-12 rounded-2xl bg-rose-50 border border-rose-200 text-2xl mb-3">⚠️</div>
+          <p className="text-sm font-bold text-rose-700">{ERROR_MESSAGES.archive}</p>
+          <button
+            type="button"
+            onClick={() => queryClient.refetchQueries()}
+            className="mt-4 px-4 py-2 text-xs font-bold text-red-600 bg-red-50 hover:bg-red-100 rounded-xl transition cursor-pointer"
+          >
+            🔄 Riprova
+          </button>
+        </div>
+      ) : activeTab === 'gruppi' ? (
         <ShoppingArchiveGroupsTab
           groups={groups}
           lists={lists}
@@ -182,9 +198,7 @@ export const ShoppingArchivePage: React.FC = () => {
           onResetFilters={() => setGroupFilters(initialGroupFilters)}
           className={PANEL_CLASS}
         />
-      )}
-
-      {activeTab === 'liste' && (
+      ) : activeTab === 'liste' ? (
         <ShoppingArchiveListsTab
           lists={lists}
           products={products}
@@ -196,9 +210,7 @@ export const ShoppingArchivePage: React.FC = () => {
           onResetFilters={() => setListFilters(initialListFilters)}
           className={PANEL_CLASS}
         />
-      )}
-
-      {activeTab === 'prezzi' && (
+      ) : (
         <ShoppingArchivePricesTab
           batches={allBatches}
           loading={batchesLoading}

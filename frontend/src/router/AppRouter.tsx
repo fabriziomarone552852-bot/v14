@@ -15,6 +15,7 @@ import LoginPage from '@/views/LoginPage';
 import PasswordChangeScreen from '@/views/PasswordChangeScreen';
 import ShoppingPage from '@/views/ShoppingPage';
 import AdminPage from '@/views/AdminPage';
+import NotFoundPage from '@/views/NotFoundPage';
 
 // Pagine Archivio (Raccolte nella cartella Archive)
 import {
@@ -74,7 +75,7 @@ const AppRouter: React.FC = () => {
 
             <Route path="/admin" element={<AdminPage />} />
             <Route path="/settings" element={<UserSettingsPage />} />
-            <Route path="*" element={<Navigate to="/" replace />} />
+            <Route path="*" element={<NotFoundPage />} />
           </Route>
         </Routes>
       ) : (

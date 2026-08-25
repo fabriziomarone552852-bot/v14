@@ -1,6 +1,6 @@
 // src/views/Archive/SuppliersPage.tsx
 import React, { useMemo, useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useShoppingData } from '@/hooks/shopping/useShoppingData';
 import { useShoppingMutations } from '@/hooks/shopping/useShoppingMutations';
 import { useConfirm } from '@/context/ConfirmContext';
@@ -10,6 +10,7 @@ import { fetchAllInventoryBatches, shoppingQueryKeys } from '@/api/shoppingApi';
 import type { ItemBatchRecord, ShoppingSupplierOption } from '@/types/shopping';
 import { StoreIcon } from '@/components/shared/utils/Icons';
 import { ArchiveTableContainer } from '@/components/shared/layout/ArchiveTableContainer';
+import { ERROR_MESSAGES } from '@/data/loadingMessages';
 
 import { SupplierStatsOverview } from '@/components/archive/suppliers/SupplierStatsOverview';
 import { SupplierFilterBar } from '@/components/archive/suppliers/SupplierFilterBar';
@@ -38,12 +39,13 @@ const initialFilterState: SupplierFilterState = {
 };
 
 export const SuppliersPage: React.FC = () => {
+  const queryClient = useQueryClient();
   const { suppliers, config, suppliersLoading } = useShoppingData();
   const mutations = useShoppingMutations();
   const { confirm } = useConfirm();
 
   // Caricamento di tutti i lotti d'inventario per arricchire i fornitori con dati acquisti
-  const { data: allBatches = [], isLoading: batchesLoading } = useQuery<ItemBatchRecord[]>({
+  const { data: allBatches = [], isLoading: batchesLoading, isError } = useQuery<ItemBatchRecord[]>({
     queryKey: shoppingQueryKeys.allBatches(),
     queryFn: ({ signal }) => fetchAllInventoryBatches(signal),
     staleTime: 30_000,
@@ -156,6 +158,9 @@ export const SuppliersPage: React.FC = () => {
         }
         loading={loading}
         loadingMessage="Caricamento negozi e fornitori in corso..."
+        isError={isError}
+        errorMessage={ERROR_MESSAGES.archive}
+        onRetry={() => queryClient.refetchQueries()}
         isEmpty={filteredSuppliers.length === 0}
         emptyIcon={<StoreIcon className="w-8 h-8 text-slate-400" />}
         emptyTitle="Nessun negozio o fornitore trovato"

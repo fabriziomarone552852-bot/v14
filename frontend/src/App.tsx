@@ -5,6 +5,7 @@ import { ConfirmProvider } from '@/context/ConfirmContext';
 import { DayProvider } from '@/context/DayContext';
 import { TaskModalProvider } from '@/context/TaskModalContext';
 import { EventModalProvider } from '@/context/EventModalContext';
+import AppErrorBoundary from '@/components/AppErrorBoundary';
 
 function App() {
   return (
@@ -14,7 +15,9 @@ function App() {
           <DayProvider>
             <EventModalProvider>
               <TaskModalProvider>
-                <AppRouter />
+                <AppErrorBoundary>
+                  <AppRouter />
+                </AppErrorBoundary>
               </TaskModalProvider>
             </EventModalProvider>
           </DayProvider>

@@ -1,6 +1,6 @@
 // src/views/Archive/TagsPage.tsx
 import React, { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/api/apiService';
 import { useCategories, useUpdateCategory } from '@/hooks/useCategories';
 import { ArchiveHeader } from '@/components/shared/layout/ArchiveHeader';
@@ -15,6 +15,7 @@ import { MonthReviewArchiveModal } from '@/components/archive/reviews/MonthRevie
 import { YearReviewArchiveModal } from '@/components/archive/reviews/YearReviewArchiveModal';
 import { useTagArchiveData, type EnrichedTagItem, type AssociatedReview } from '@/hooks/useTagArchiveData';
 import { useDynamicPageSize } from '@/hooks/useDynamicPageSize';
+import { ERROR_MESSAGES } from '@/data/loadingMessages';
 import type { MonthlyEntryResponse } from '@/types/monthlyentries';
 import type { DbYearlyEntry } from '@/types/yearlyentries';
 import { logger } from '@/utils/logger';
@@ -22,12 +23,13 @@ import { logger } from '@/utils/logger';
 const PANEL_CLASS = 'rounded-2xl border border-slate-200/90 bg-white shadow-xs';
 
 export const TagsPage: React.FC = () => {
+  const queryClient = useQueryClient();
   const updateCategoryMutation = useUpdateCategory();
 
   // 1. CARICAMENTO DATI (Categorie, Revisioni Mensili e Annuali)
-  const { data: rawCategories = [], isLoading: loadingCategories } = useCategories();
+  const { data: rawCategories = [], isLoading: loadingCategories, isError: catError } = useCategories();
 
-  const { data: rawMonthlyEntries = [], isLoading: loadingMonthly } = useQuery<MonthlyEntryResponse[]>({
+  const { data: rawMonthlyEntries = [], isLoading: loadingMonthly, isError: monthError } = useQuery<MonthlyEntryResponse[]>({
     queryKey: ['monthly_entries'],
     queryFn: async () => {
       const res = await api.get<MonthlyEntryResponse[]>('/monthly-entries');
@@ -35,7 +37,7 @@ export const TagsPage: React.FC = () => {
     },
   });
 
-  const { data: rawYearlyEntries = [], isLoading: loadingYearly } = useQuery<DbYearlyEntry[]>({
+  const { data: rawYearlyEntries = [], isLoading: loadingYearly, isError: yearError } = useQuery<DbYearlyEntry[]>({
     queryKey: ['yearly_entries'],
     queryFn: async () => {
       const res = await api.get<DbYearlyEntry[]>('/yearly-entries');
@@ -44,6 +46,7 @@ export const TagsPage: React.FC = () => {
   });
 
   const isLoading = loadingCategories || loadingMonthly || loadingYearly;
+  const isError = catError || monthError || yearError;
 
   // 2. STATO TAB VISUALIZZAZIONE (BACHECA / TABELLA) E RICERCA
   const [activeTab, setActiveTab] = useState<TagViewTab>('cloud');
@@ -154,7 +157,19 @@ export const TagsPage: React.FC = () => {
       />
 
       {/* 3. VISTA ATTIVA: BACHECA DEI TOP 25 O TABELLA COMPLETA A 4 COLONNE */}
-      {activeTab === 'cloud' ? (
+      {isError ? (
+        <div className="flex flex-col items-center justify-center py-20 text-slate-400">
+          <div className="flex items-center justify-center w-12 h-12 rounded-2xl bg-rose-50 border border-rose-200 text-2xl mb-3">⚠️</div>
+          <p className="text-sm font-bold text-rose-700">{ERROR_MESSAGES.archive}</p>
+          <button
+            type="button"
+            onClick={() => queryClient.refetchQueries()}
+            className="mt-4 px-4 py-2 text-xs font-bold text-red-600 bg-red-50 hover:bg-red-100 rounded-xl transition cursor-pointer"
+          >
+            🔄 Riprova
+          </button>
+        </div>
+      ) : activeTab === 'cloud' ? (
         <TagCloudBoard
           tags={allTags}
           onSaveTagName={handleSaveTagName}
@@ -166,6 +181,9 @@ export const TagsPage: React.FC = () => {
           header={<TagTableHeader />}
           loading={isLoading}
           loadingMessage="Caricamento tag in corso..."
+          isError={isError}
+          errorMessage={ERROR_MESSAGES.archive}
+          onRetry={() => queryClient.refetchQueries()}
           isEmpty={filteredTags.length === 0}
           emptyIcon={<TagIcon className="w-8 h-8 text-slate-400" />}
           emptyTitle="Nessun tag trovato"

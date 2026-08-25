@@ -10,6 +10,10 @@ import type {
   UserSettingsUpdatePayload,
 } from '@/types/settings';
 
+import PageLoadingState from '@/components/shared/feedback/PageLoadingState';
+import PageErrorState from '@/components/shared/feedback/PageErrorState';
+import { LOADING_MESSAGES, ERROR_MESSAGES } from '@/data/loadingMessages';
+
 import ProfileSection from '@/components/settings/ProfileSection';
 import TaskHierarchySection from '@/components/settings/TaskHierarchySection';
 import MemorySection from '@/components/settings/MemorySection';
@@ -197,23 +201,11 @@ export const UserSettingsPage: React.FC = () => {
   };
 
   if (loading) {
-    return (
-      <div className="flex h-[70vh] flex-col items-center justify-center gap-3">
-        <LoadingIcon className="h-8 w-8 animate-spin text-blue-600" />
-        <span className="text-sm font-semibold text-slate-500">Caricamento impostazioni...</span>
-      </div>
-    );
+    return <PageLoadingState messages={LOADING_MESSAGES.settings} />;
   }
 
   if (!settings) {
-    return (
-      <div className="p-6">
-        <div className="rounded-3xl border border-red-200 bg-red-50 p-6 text-center text-red-800 shadow-sm">
-          <p className="font-bold">Impossibile caricare le impostazioni utente.</p>
-          <p className="text-sm text-red-600 mt-1">{error || 'Verifica la connessione o effettua nuovamente il login.'}</p>
-        </div>
-      </div>
-    );
+    return <PageErrorState message={ERROR_MESSAGES.settings} onRetry={() => window.location.reload()} />;
   }
 
   const tabs: { id: SettingsTabId; label: string; icon: string }[] = [

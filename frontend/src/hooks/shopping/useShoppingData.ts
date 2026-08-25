@@ -108,6 +108,11 @@ export const useShoppingData = (): UseShoppingDataResult => {
     productsQuery.isLoading ||
     (hasActiveList && itemsQuery.isLoading && items.length === 0);
 
+  const isError =
+    listsQuery.isError ||
+    groupsQuery.isError ||
+    configQuery.isError;
+
   const refreshLists = async () => {
     await queryClient.invalidateQueries({
       queryKey: shoppingQueryKeys.lists(),
@@ -157,6 +162,7 @@ export const useShoppingData = (): UseShoppingDataResult => {
     productsLoading: productsQuery.isLoading,
     configLoading: configQuery.isLoading,
     isInitialLoading,
+    isError,
     setActiveListId,
     refreshLists,
     refreshGroups,

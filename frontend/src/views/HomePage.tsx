@@ -25,8 +25,14 @@ import { mapDbEventsToCalendarEvents } from '@/utils/eventUtils';
 // Tipi rigorosi (Zero any)
 import type { CalendarEvent, UITask } from '@/types';
 
+import PageLoadingState from '@/components/shared/feedback/PageLoadingState';
+import PageErrorState from '@/components/shared/feedback/PageErrorState';
+import { LOADING_MESSAGES, ERROR_MESSAGES } from '@/data/loadingMessages';
+import { useQueryClient } from '@tanstack/react-query';
+
 const HomePage: React.FC = () => {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   
   const [currentMonth, setCurrentMonth] = useState<Date>(new Date());
   const today = useMemo(() => new Date(), []);
@@ -68,22 +74,11 @@ const HomePage: React.FC = () => {
   const isInitialLoad: boolean = isLoading && (!tasks || tasks.length === 0) && (!eventiDalServer || eventiDalServer.length === 0);
 
   if (isInitialLoad) {
-    return (
-      <div className="flex justify-center items-center h-full">
-        <LoadingIcon className="w-6 h-6 text-gray-500 animate-spin" />
-        <span className="ml-2">Caricamento in corso...</span>
-      </div>
-    );
+    return <PageLoadingState messages={LOADING_MESSAGES.home} />;
   }
 
   if (isError) {
-    return (
-      <div className="flex flex-col justify-center items-center h-full text-red-500">
-        <span className="text-4xl mb-4">⚠️</span>
-        <h2 className="text-xl font-bold">Ops! Qualcosa è andato storto.</h2>
-        <p className="text-gray-500">Impossibile caricare i dati dell'agenda. Riprova più tardi.</p>
-      </div>
-    );
+    return <PageErrorState message={ERROR_MESSAGES.home} onRetry={() => queryClient.refetchQueries()} />;
   }
 
   return (

@@ -6,6 +6,9 @@ import { Navigate } from 'react-router-dom';
 import type { SystemConfigItem, SystemConfigCodeItem, SystemUserItem } from '@/api/adminApi';
 import { fetchSystemConfigs, fetchSystemCodes, fetchSystemUsers } from '@/api/adminApi';
 
+import PageLoadingState from '@/components/shared/feedback/PageLoadingState';
+import { LOADING_MESSAGES } from '@/data/loadingMessages';
+
 import { AdminConfigSection } from '@/components/admin/AdminConfigSection';
 import { AdminCodesSection } from '@/components/admin/AdminCodesSection';
 import { AdminUsersSection } from '@/components/admin/AdminUsersSection';
@@ -147,9 +150,7 @@ const AdminPage: React.FC = () => {
 
       {/* Contenuto Tab */}
       {loading ? (
-        <div className="py-12 text-center text-xs font-medium text-slate-400">
-          Caricamento informazioni riservate al SuperUser...
-        </div>
+        <PageLoadingState messages={LOADING_MESSAGES.admin} />
       ) : (
         <div className="flex-1">
           {activeTab === 'config' && <AdminConfigSection configs={configs} onRefresh={loadData} />}
