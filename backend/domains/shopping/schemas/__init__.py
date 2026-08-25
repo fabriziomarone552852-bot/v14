@@ -5,6 +5,7 @@ from .catalog import (
     ShoppingSupplierCreate,
     ShoppingSupplierResponse,
     ShoppingSupplierUpdate,
+    ShoppingSupplierSummary,
 )
 from .config import ConfigOption, ShoppingConfigBundle
 from .groups import (

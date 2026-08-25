@@ -33,7 +33,9 @@ from backend.domains.shopping.schemas.lists import (
     ShoppingListUpdate,
 )
 from backend.domains.shopping.schemas.catalog import (
+    ShoppingProductCreate,
     ShoppingProductResponse,
+    ShoppingProductUpdate,
     ShoppingSupplierCreate,
     ShoppingSupplierResponse,
     ShoppingSupplierUpdate,
@@ -219,11 +221,25 @@ def delete_shopping_list(
 @router.get("/products", response_model=List[ShoppingProductResponse])
 def list_products(
     search: Optional[str] = Query(None, min_length=1, max_length=255),
+    brand_id: Optional[int] = Query(None),
     limit: int = Query(20, ge=1, le=100),
     db: Session = Depends(deps.get_db),
     current_user: User = Depends(deps.get_current_app_user),
 ):
-    return service.list_products(db, search=search, limit=limit)
+    return service.list_products(db, search=search, brand_id=brand_id, limit=limit)
+
+
+@router.post(
+    "/products",
+    response_model=ShoppingProductResponse,
+    status_code=status.HTTP_201_CREATED,
+)
+def create_product(
+    product_in: ShoppingProductCreate,
+    db: Session = Depends(deps.get_db),
+    current_user: User = Depends(deps.get_current_app_user),
+):
+    return service.create_product(db, current_user, product_in)
 
 
 @router.get("/products/{product_id}", response_model=ShoppingProductResponse)
@@ -233,6 +249,16 @@ def get_product(
     current_user: User = Depends(deps.get_current_app_user),
 ):
     return service.get_product(db, current_user, product_id)
+
+
+@router.patch("/products/{product_id}", response_model=ShoppingProductResponse)
+def update_product(
+    product_id: int,
+    product_in: ShoppingProductUpdate,
+    db: Session = Depends(deps.get_db),
+    current_user: User = Depends(deps.get_current_app_user),
+):
+    return service.update_product(db, current_user, product_id, product_in)
 
 
 @router.get("/items", response_model=List[ShoppingListItemResponse])
@@ -298,11 +324,22 @@ def get_shopping_config(
 @router.get("/suppliers", response_model=List[ShoppingSupplierResponse])
 def list_suppliers(
     search: Optional[str] = Query(None, min_length=1, max_length=255),
+    type_code: Optional[int] = Query(None, ge=1, le=3),
     limit: int = Query(20, ge=1, le=100),
     db: Session = Depends(deps.get_db),
     current_user: User = Depends(deps.get_current_app_user),
 ):
-    return service.list_suppliers(db, current_user, search=search, limit=limit)
+    return service.list_suppliers(db, current_user, search=search, type_code=type_code, limit=limit)
+
+
+@router.get("/brands", response_model=List[ShoppingSupplierResponse])
+def list_brands(
+    search: Optional[str] = Query(None, min_length=1, max_length=255),
+    limit: int = Query(20, ge=1, le=100),
+    db: Session = Depends(deps.get_db),
+    current_user: User = Depends(deps.get_current_app_user),
+):
+    return service.list_brands(db, current_user, search=search, limit=limit)
 
 
 @router.post(
@@ -335,10 +372,11 @@ def update_supplier(
 )
 def delete_supplier(
     supplier_id: int,
+    as_type: Optional[int] = Query(None, ge=1, le=2),
     db: Session = Depends(deps.get_db),
     current_user: User = Depends(deps.get_current_app_user),
 ):
-    service.delete_supplier(db, current_user, supplier_id)
+    service.delete_supplier(db, current_user, supplier_id, as_type=as_type)
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 

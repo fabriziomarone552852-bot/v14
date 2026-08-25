@@ -32,7 +32,12 @@ def seed_default_shopping_suppliers_for_user(db: Session, user_id: int) -> None:
 from backend.domains.shopping.models.groups import ShoppingGroup, ShoppingGroupMember
 from backend.domains.shopping.models.inventory import InventoryBatch
 from backend.domains.shopping.models.lists import ShoppingList, ShoppingListItem
-from backend.domains.shopping.schemas.catalog import ShoppingSupplierCreate, ShoppingSupplierUpdate
+from backend.domains.shopping.schemas.catalog import (
+    ShoppingProductCreate,
+    ShoppingProductUpdate,
+    ShoppingSupplierCreate,
+    ShoppingSupplierUpdate,
+)
 from backend.domains.shopping.schemas.config import ShoppingConfigBundle
 from backend.domains.shopping.schemas.groups import (
     ShoppingGroupCreate,
@@ -551,12 +556,22 @@ def list_suppliers(
     db: Session,
     current_user: User,
     search: Optional[str] = None,
+    type_code: Optional[int] = None,
     limit: int = 20,
 ) -> List[ShoppingSupplier]:
     if search:
-        return repo.search_suppliers(db, search=search, limit=limit)
-    suppliers = repo.list_suppliers(db)
+        return repo.search_suppliers(db, search=search, type_code=type_code, limit=limit)
+    suppliers = repo.list_suppliers(db, type_code=type_code)
     return suppliers[:limit]
+
+
+def list_brands(
+    db: Session,
+    current_user: User,
+    search: Optional[str] = None,
+    limit: int = 20,
+) -> List[ShoppingSupplier]:
+    return list_suppliers(db, current_user, search=search, type_code=2, limit=limit)
 
 
 def create_supplier(
@@ -564,8 +579,26 @@ def create_supplier(
     current_user: User,
     supplier_in: ShoppingSupplierCreate,
 ) -> ShoppingSupplier:
-    if repo.find_supplier_by_name(db, supplier_in.name):
-        raise HTTPException(status_code=400, detail="Esiste già un fornitore con questo nome.")
+    existing = repo.find_supplier_by_name(db, supplier_in.name)
+    if existing:
+        target_type = supplier_in.type_code
+        # Se esiste già ma con tipo diverso -> promuovi a 3 (Entrambi)
+        if (existing.type_code == 1 and target_type == 2) or (existing.type_code == 2 and target_type == 1):
+            existing.type_code = 3
+            existing.updated_at = _now()
+            existing.updated_by_user_id = current_user.id
+            repo.commit(db)
+            repo.refresh(db, existing)
+            return existing
+        elif target_type == 3 and existing.type_code != 3:
+            existing.type_code = 3
+            existing.updated_at = _now()
+            existing.updated_by_user_id = current_user.id
+            repo.commit(db)
+            repo.refresh(db, existing)
+            return existing
+        else:
+            raise HTTPException(status_code=400, detail="Esiste già un fornitore o brand con questo nome.")
 
     default_status_id = repo.active_supplier_status_id(db)
     if default_status_id is None:
@@ -575,6 +608,7 @@ def create_supplier(
     db_supplier = ShoppingSupplier(
         name=supplier_in.name,
         name_normalized=_normalize_name(supplier_in.name),
+        type_code=supplier_in.type_code,
         status_id=supplier_in.status_id or default_status_id,
         created_by_user_id=current_user.id,
         updated_by_user_id=current_user.id,
@@ -595,14 +629,14 @@ def update_supplier(
 ) -> ShoppingSupplier:
     db_supplier = repo.get_supplier(db, supplier_id)
     if not db_supplier:
-        raise HTTPException(status_code=404, detail="Fornitore non trovato")
+        raise HTTPException(status_code=404, detail="Fornitore o brand non trovato")
 
     update_data = supplier_in.model_dump(exclude_unset=True)
 
     if "name" in update_data and update_data["name"]:
         existing = repo.find_supplier_by_name(db, update_data["name"])
         if existing and existing.id != supplier_id:
-            raise HTTPException(status_code=400, detail="Esiste già un fornitore con questo nome.")
+            raise HTTPException(status_code=400, detail="Esiste già un fornitore o brand con questo nome.")
         update_data["name_normalized"] = _normalize_name(update_data["name"])
 
     for field, value in update_data.items():
@@ -616,16 +650,55 @@ def update_supplier(
     return db_supplier
 
 
-def delete_supplier(db: Session, current_user: User, supplier_id: int) -> None:
+def delete_supplier(
+    db: Session,
+    current_user: User,
+    supplier_id: int,
+    as_type: Optional[int] = None,
+) -> None:
     db_supplier = repo.get_supplier(db, supplier_id)
     if not db_supplier:
-        raise HTTPException(status_code=404, detail="Fornitore non trovato")
+        raise HTTPException(status_code=404, detail="Fornitore o brand non trovato")
 
+    # Se l'entità ha doppio ruolo (3: Fornitore + Brand)
+    if db_supplier.type_code == 3:
+        if as_type == 1:
+            # Eliminazione solo come Fornitore -> downgrade a Brand (2)
+            if repo.supplier_has_batches(db, supplier_id):
+                raise HTTPException(
+                    status_code=400,
+                    detail="Impossibile rimuovere il ruolo fornitore: ha acquisti/lotti associati.",
+                )
+            db_supplier.type_code = 2
+            db_supplier.updated_at = _now()
+            db_supplier.updated_by_user_id = current_user.id
+            repo.commit(db)
+            return
+        elif as_type == 2:
+            # Eliminazione solo come Brand -> downgrade a Fornitore (1)
+            if repo.supplier_has_branded_products(db, supplier_id):
+                raise HTTPException(
+                    status_code=400,
+                    detail="Impossibile rimuovere il ruolo brand: ha prodotti associati.",
+                )
+            db_supplier.type_code = 1
+            db_supplier.updated_at = _now()
+            db_supplier.updated_by_user_id = current_user.id
+            repo.commit(db)
+            return
+
+    # Se l'entità è solo fornitore (1) o solo brand (2) o cancellazione globale (as_type=None)
     if repo.supplier_has_batches(db, supplier_id):
         raise HTTPException(
             status_code=400,
-            detail="Impossibile eliminare il fornitore: ha acquisti/lotti associati.",
+            detail="Impossibile eliminare l'entità: ha acquisti/lotti associati come fornitore.",
         )
+    if repo.supplier_has_branded_products(db, supplier_id):
+        raise HTTPException(
+            status_code=400,
+            detail="Impossibile eliminare l'entità: ha prodotti associati come brand.",
+        )
+
     repo.delete(db, db_supplier)
 
 
@@ -853,9 +926,10 @@ def list_community_prices(
 def list_products(
     db: Session,
     search: Optional[str] = None,
+    brand_id: Optional[int] = None,
     limit: int = 20,
 ) -> List[ShoppingProduct]:
-    return repo.list_products(db, search=search, limit=limit)
+    return repo.list_products(db, search=search, brand_id=brand_id, limit=limit)
 
 
 def get_product(
@@ -866,6 +940,71 @@ def get_product(
     db_product = repo.get_product(db, product_id)
     if not db_product:
         raise HTTPException(status_code=404, detail="Prodotto non trovato")
+    return db_product
+
+
+def create_product(
+    db: Session,
+    current_user: User,
+    product_in: ShoppingProductCreate,
+) -> ShoppingProduct:
+    normalized_name = _normalize_name(product_in.name)
+    existing = repo.get_product_by_name_normalized(db, normalized_name, brand_id=product_in.brand_id)
+    if existing:
+        raise HTTPException(status_code=400, detail="Esiste già un prodotto con questo nome e marchio.")
+
+    if product_in.brand_id:
+        brand = repo.get_supplier(db, product_in.brand_id)
+        if not brand:
+            raise HTTPException(status_code=404, detail="Brand specificato non trovato.")
+        # Se l'entità era solo fornitore (1), promuovila a 3 (Entrambi)
+        if brand.type_code == 1:
+            brand.type_code = 3
+            brand.updated_at = _now()
+            brand.updated_by_user_id = current_user.id
+
+    now = _now()
+    db_product = ShoppingProduct(
+        name_normalized=normalized_name,
+        brand_id=product_in.brand_id,
+        created_by_user_id=current_user.id,
+        updated_by_user_id=current_user.id,
+        created_at=now,
+        updated_at=now,
+    )
+    repo.add(db, db_product)
+    repo.commit(db)
+    repo.refresh(db, db_product)
+    return db_product
+
+
+def update_product(
+    db: Session,
+    current_user: User,
+    product_id: int,
+    product_in: ShoppingProductUpdate,
+) -> ShoppingProduct:
+    db_product = repo.get_product(db, product_id)
+    if not db_product:
+        raise HTTPException(status_code=404, detail="Prodotto non trovato.")
+
+    if product_in.brand_id is not None and product_in.brand_id != db_product.brand_id:
+        brand = repo.get_supplier(db, product_in.brand_id)
+        if not brand:
+            raise HTTPException(status_code=404, detail="Brand specificato non trovato.")
+        if brand.type_code == 1:
+            brand.type_code = 3
+            brand.updated_at = _now()
+            brand.updated_by_user_id = current_user.id
+        db_product.brand_id = product_in.brand_id
+
+    if product_in.name is not None:
+        db_product.name_normalized = _normalize_name(product_in.name)
+
+    db_product.updated_at = _now()
+    db_product.updated_by_user_id = current_user.id
+    repo.commit(db)
+    repo.refresh(db, db_product)
     return db_product
 
 

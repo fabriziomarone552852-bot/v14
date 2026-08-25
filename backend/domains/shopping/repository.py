@@ -419,20 +419,32 @@ def get_list_accessible(db: Session, list_id: int, user_id: int) -> Optional[Sho
 
 
 # ------------------------------------------------------------------ Products
-def list_products(db: Session, search: Optional[str] = None, limit: int = 200) -> List[ShoppingProduct]:
-    query = db.query(ShoppingProduct).filter(ShoppingProduct.deleted_at.is_(None))
+def list_products(
+    db: Session,
+    search: Optional[str] = None,
+    brand_id: Optional[int] = None,
+    limit: int = 200,
+) -> List[ShoppingProduct]:
+    query = (
+        db.query(ShoppingProduct)
+        .options(selectinload(ShoppingProduct.brand))
+        .filter(ShoppingProduct.deleted_at.is_(None))
+    )
 
     if search:
         normalized = normalize_name(search)
         query = query.filter(ShoppingProduct.name_normalized.ilike(f"%{normalized}%"))
 
-    return query.order_by(ShoppingProduct.name_normalized.asc()).limit(limit).all()
+    if brand_id is not None:
+        query = query.filter(ShoppingProduct.brand_id == brand_id)
 
+    return query.order_by(ShoppingProduct.name_normalized.asc()).limit(limit).all()
 
 
 def get_product(db: Session, product_id: int) -> Optional[ShoppingProduct]:
     return (
         db.query(ShoppingProduct)
+        .options(selectinload(ShoppingProduct.brand))
         .filter(
             ShoppingProduct.id == product_id,
             ShoppingProduct.deleted_at.is_(None),
@@ -441,28 +453,40 @@ def get_product(db: Session, product_id: int) -> Optional[ShoppingProduct]:
     )
 
 
-def get_product_by_name_normalized(db: Session, name_normalized: str) -> Optional[ShoppingProduct]:
-    return (
+def get_product_by_name_normalized(
+    db: Session,
+    name_normalized: str,
+    brand_id: Optional[int] = None,
+) -> Optional[ShoppingProduct]:
+    query = (
         db.query(ShoppingProduct)
+        .options(selectinload(ShoppingProduct.brand))
         .filter(
             ShoppingProduct.name_normalized == name_normalized,
             ShoppingProduct.deleted_at.is_(None),
         )
-        .first()
     )
+    if brand_id is not None:
+        query = query.filter(ShoppingProduct.brand_id == brand_id)
+    else:
+        query = query.filter(ShoppingProduct.brand_id.is_(None))
+
+    return query.first()
 
 
 def get_or_create_product_by_name(
     db: Session,
     normalized_name: str,
     user_id: int,
+    brand_id: Optional[int] = None,
 ) -> ShoppingProduct:
-    product = get_product_by_name_normalized(db, normalized_name)
+    product = get_product_by_name_normalized(db, normalized_name, brand_id=brand_id)
     if product:
         return product
 
     product = ShoppingProduct(
         name_normalized=normalized_name,
+        brand_id=brand_id,
         created_by_user_id=user_id,
         updated_by_user_id=user_id,
         created_at=_now(),
@@ -582,14 +606,22 @@ def item_has_active_batches(db: Session, list_item_id: int) -> bool:
     )
 
 
-# ------------------------------------------------------------------ Suppliers
-def list_suppliers(db: Session) -> List[ShoppingSupplier]:
-    return (
-        db.query(ShoppingSupplier)
-        .filter(ShoppingSupplier.deleted_at.is_(None))
-        .order_by(ShoppingSupplier.name.asc())
-        .all()
-    )
+# ------------------------------------------------------------------ Suppliers & Brands
+def list_suppliers(
+    db: Session,
+    type_code: Optional[int] = None,
+) -> List[ShoppingSupplier]:
+    query = db.query(ShoppingSupplier).filter(ShoppingSupplier.deleted_at.is_(None))
+    if type_code is not None:
+        if type_code in (1, 2):
+            query = query.filter(ShoppingSupplier.type_code.in_([type_code, 3]))
+        else:
+            query = query.filter(ShoppingSupplier.type_code == type_code)
+    return query.order_by(ShoppingSupplier.name.asc()).all()
+
+
+def list_brands(db: Session) -> List[ShoppingSupplier]:
+    return list_suppliers(db, type_code=2)
 
 
 def get_supplier(db: Session, supplier_id: int) -> Optional[ShoppingSupplier]:
@@ -615,20 +647,31 @@ def find_supplier_by_name(db: Session, name: str) -> Optional[ShoppingSupplier]:
     )
 
 
-def search_suppliers(db: Session, search: str, limit: int = 50) -> List[ShoppingSupplier]:
+def search_suppliers(
+    db: Session,
+    search: str,
+    type_code: Optional[int] = None,
+    limit: int = 50,
+) -> List[ShoppingSupplier]:
     normalized = normalize_name(search)
     raw = search.strip()
 
+    query = db.query(ShoppingSupplier).filter(
+        ShoppingSupplier.deleted_at.is_(None),
+        or_(
+            ShoppingSupplier.name_normalized.ilike(f"{normalized}%"),
+            ShoppingSupplier.name.ilike(f"{raw}%"),
+        ),
+    )
+
+    if type_code is not None:
+        if type_code in (1, 2):
+            query = query.filter(ShoppingSupplier.type_code.in_([type_code, 3]))
+        else:
+            query = query.filter(ShoppingSupplier.type_code == type_code)
+
     return (
-        db.query(ShoppingSupplier)
-        .filter(
-            ShoppingSupplier.deleted_at.is_(None),
-            or_(
-                ShoppingSupplier.name_normalized.ilike(f"{normalized}%"),
-                ShoppingSupplier.name.ilike(f"{raw}%"),
-            ),
-        )
-        .order_by(ShoppingSupplier.name.asc())
+        query.order_by(ShoppingSupplier.name.asc())
         .limit(limit)
         .all()
     )
@@ -640,6 +683,18 @@ def supplier_has_batches(db: Session, supplier_id: int) -> bool:
         .filter(
             InventoryBatch.supplier_id == supplier_id,
             InventoryBatch.deleted_at.is_(None),
+        )
+        .first()
+        is not None
+    )
+
+
+def supplier_has_branded_products(db: Session, supplier_id: int) -> bool:
+    return (
+        db.query(ShoppingProduct.id)
+        .filter(
+            ShoppingProduct.brand_id == supplier_id,
+            ShoppingProduct.deleted_at.is_(None),
         )
         .first()
         is not None
