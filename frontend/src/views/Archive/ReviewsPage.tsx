@@ -1,6 +1,6 @@
 // src/views/Archive/ReviewsPage.tsx
 import React, { useMemo, useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/api/apiService';
 import { useCategories } from '@/hooks/useCategories';
 import { ArchiveHeader } from '@/components/shared/layout/ArchiveHeader';
@@ -22,6 +22,7 @@ import {
 import { useDynamicPageSize } from '@/hooks/useDynamicPageSize';
 import { useModal } from '@/hooks/useModals';
 import { ARCHIVE_PANEL_CLASS } from './CategoriesPage';
+import { ERROR_MESSAGES } from '@/data/loadingMessages';
 import type { MonthlyEntryResponse } from '@/types/monthlyentries';
 import type { DbYearlyEntry } from '@/types/yearlyentries';
 
@@ -32,10 +33,11 @@ const initialFilterState: ReviewFilterState = {
 };
 
 export const ReviewsPage: React.FC = () => {
+  const queryClient = useQueryClient();
   const { data: categories = [] } = useCategories();
 
   // 1. CARICAMENTO DATI IN RAM CON REACT QUERY
-  const { data: rawMonthlyEntries = [], isLoading: loadingMonths } = useQuery<
+  const { data: rawMonthlyEntries = [], isLoading: loadingMonths, isError: monthsError } = useQuery<
     MonthlyEntryResponse[]
   >({
     queryKey: ['monthly_entries'],
@@ -45,7 +47,7 @@ export const ReviewsPage: React.FC = () => {
     },
   });
 
-  const { data: rawYearlyEntries = [], isLoading: loadingYears } = useQuery<
+  const { data: rawYearlyEntries = [], isLoading: loadingYears, isError: yearsError } = useQuery<
     DbYearlyEntry[]
   >({
     queryKey: ['yearly_entries'],
@@ -56,6 +58,7 @@ export const ReviewsPage: React.FC = () => {
   });
 
   const loading = loadingMonths || loadingYears;
+  const isError = monthsError || yearsError;
 
   // 2. STATO TAB, FILTRI E PAGINAZIONE
   const [activeTab, setActiveTab] = useState<ReviewTabType>('months');
@@ -150,6 +153,9 @@ export const ReviewsPage: React.FC = () => {
         header={<ReviewTableHeader />}
         loading={loading}
         loadingMessage="Caricamento revisioni in corso..."
+        isError={isError}
+        errorMessage={ERROR_MESSAGES.archive}
+        onRetry={() => queryClient.refetchQueries()}
         isEmpty={filteredItems.length === 0}
         emptyIcon={<ReviewIcon className="w-8 h-8 text-slate-400" />}
         emptyTitle="Nessuna revisione trovata"

@@ -6,6 +6,9 @@ import { useShoppingData } from '@/hooks/shopping/useShoppingData';
 
 import { useShoppingMutations } from '@/hooks/shopping/useShoppingMutations';
 import { useModal } from '@/hooks/useModals';
+import PageLoadingState from '@/components/shared/feedback/PageLoadingState';
+import PageErrorState from '@/components/shared/feedback/PageErrorState';
+import { LOADING_MESSAGES, ERROR_MESSAGES } from '@/data/loadingMessages';
 import ShoppingGroupsAndListsColumn from '@/components/shared/shopping/ShoppingGroupsAndListsColumn';
 import ShoppingItemsColumn from '@/components/shared/shopping/ShoppingItemsColumn';
 import ShoppingGroupDetailModal from '@/components/shared/shopping/ShoppingGroupDetailModal';
@@ -51,6 +54,8 @@ const ShoppingPage: React.FC = () => {
     config,
     listsLoading,
     itemsLoading,
+    isInitialLoading,
+    isError,
     refreshLists,
     refreshGroups,
   } = useShoppingData();
@@ -257,6 +262,14 @@ const ShoppingPage: React.FC = () => {
       data: { isCompleted },
     });
   };
+
+  if (isInitialLoading) {
+    return <PageLoadingState messages={LOADING_MESSAGES.shopping} />;
+  }
+
+  if (isError) {
+    return <PageErrorState message={ERROR_MESSAGES.shopping} onRetry={() => queryClient.refetchQueries()} />;
+  }
 
   return (
     <div className="mx-auto flex h-full max-w-[1600px] flex-col min-h-0 relative pb-1">

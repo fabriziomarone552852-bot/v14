@@ -1,5 +1,6 @@
 // src/views/Archive/CategoriesPage.tsx
 import React, { useMemo, useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { useCategories, useDeleteCategory } from '@/hooks/useCategories';
 import { useConfirm } from '@/context/ConfirmContext';
 import { useCategoryArchiveData } from '@/hooks/useCategoryArchiveData';
@@ -21,6 +22,7 @@ import {
 } from '@/components/archive/categories/CategoryFilterModal';
 import { CategoryModal } from '@/components/archive/categories/CategoryModal';
 import { CategoryDetailModal } from '@/components/archive/categories/CategoryDetailModal';
+import { ERROR_MESSAGES } from '@/data/loadingMessages';
 import type { Category } from '@/types/categories';
 
 export const ARCHIVE_PANEL_CLASS = 'rounded-2xl border border-slate-200/90 bg-white shadow-xs';
@@ -31,7 +33,8 @@ const initialFilterState: CategoryFilterState = {
 };
 
 export const CategoriesPage: React.FC = () => {
-  const { data: rawCategories = [], isLoading: loading } = useCategories();
+  const queryClient = useQueryClient();
+  const { data: rawCategories = [], isLoading: loading, isError } = useCategories();
   const deleteCategoryMutation = useDeleteCategory();
   const { confirm } = useConfirm();
 
@@ -140,6 +143,9 @@ export const CategoriesPage: React.FC = () => {
         }
         loading={loading}
         loadingMessage="Caricamento categorie in corso..."
+        isError={isError}
+        errorMessage={ERROR_MESSAGES.archive}
+        onRetry={() => queryClient.refetchQueries()}
         isEmpty={filteredCategories.length === 0}
         emptyIcon={<CategoryIcon className="w-8 h-8 text-slate-400" />}
         emptyTitle="Nessuna categoria trovata"

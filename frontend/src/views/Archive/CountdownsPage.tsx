@@ -20,6 +20,7 @@ import { useDynamicPageSize } from '@/hooks/useDynamicPageSize';
 import { useModal } from '@/hooks/useModals';
 import { mapToCountdownItems } from '@/utils/countdownUtils';
 import { ARCHIVE_PANEL_CLASS } from './CategoriesPage';
+import { ERROR_MESSAGES } from '@/data/loadingMessages';
 import type { CountdownItem } from '@/components/day/CountdownWidget';
 import type { RawCountdown } from '@/types/countdowns';
 
@@ -34,7 +35,7 @@ export const CountdownsPage: React.FC = () => {
   const queryClient = useQueryClient();
 
   // 1. CARICAMENTO DATI CON REACT QUERY
-  const { data: rawCountdowns = [], isLoading: loading } = useQuery<CountdownItem[]>({
+  const { data: rawCountdowns = [], isLoading: loading, isError } = useQuery<CountdownItem[]>({
     queryKey: ['countdowns'],
     queryFn: async () => {
       const res = await api.get<RawCountdown[]>('/countdowns');
@@ -172,7 +173,19 @@ export const CountdownsPage: React.FC = () => {
       <div className={`${ARCHIVE_PANEL_CLASS} flex flex-col flex-1 min-h-0 overflow-hidden`}>
         {/* CORPO DELLA GRIGLIA SCROLLABILE */}
         <div ref={containerRef} className="flex-1 min-h-0 overflow-y-auto p-4 sm:p-5 custom-scrollbar">
-          {loading ? (
+          {isError ? (
+            <div className="flex flex-col items-center justify-center h-64 text-slate-400 gap-3">
+              <div className="flex items-center justify-center w-12 h-12 rounded-2xl bg-rose-50 border border-rose-200 text-2xl mb-3">⚠️</div>
+              <p className="text-sm font-bold text-rose-700">{ERROR_MESSAGES.archive}</p>
+              <button
+                type="button"
+                onClick={() => queryClient.refetchQueries()}
+                className="mt-4 px-4 py-2 text-xs font-bold text-red-600 bg-red-50 hover:bg-red-100 rounded-xl transition cursor-pointer"
+              >
+                🔄 Riprova
+              </button>
+            </div>
+          ) : loading ? (
             <div className="flex flex-col items-center justify-center h-64 text-slate-400 gap-3">
               <div className="w-8 h-8 border-3 border-blue-600 border-t-transparent rounded-full animate-spin" />
               <span className="text-sm font-semibold">Caricamento countdown in corso...</span>

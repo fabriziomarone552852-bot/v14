@@ -18,6 +18,11 @@ interface ArchiveTableContainerProps {
   hasActiveFilters?: boolean;
   onResetFilters?: () => void;
 
+  // Stato di Errore
+  isError?: boolean;
+  errorMessage?: string;
+  onRetry?: () => void;
+
   // Paginazione
   currentPage?: number;
   totalPages?: number;
@@ -34,6 +39,9 @@ export const ArchiveTableContainer: React.FC<ArchiveTableContainerProps> = ({
   header,
   loading = false,
   loadingMessage = 'Caricamento in corso...',
+  isError = false,
+  errorMessage = 'Errore nel caricamento dei dati',
+  onRetry,
   isEmpty = false,
   emptyIcon,
   emptyTitle = 'Nessun elemento trovato',
@@ -58,7 +66,21 @@ export const ArchiveTableContainer: React.FC<ArchiveTableContainerProps> = ({
 
         {/* Corpo Scrollabile / Adattivo */}
         <div ref={bodyRef} className="flex-1 min-h-0 overflow-y-auto custom-scrollbar">
-          {loading ? (
+          {isError ? (
+            <div className="flex flex-col items-center justify-center py-20 text-slate-400">
+              <div className="flex items-center justify-center w-12 h-12 rounded-2xl bg-rose-50 border border-rose-200 text-2xl mb-3">⚠️</div>
+              <p className="text-sm font-bold text-rose-700">{errorMessage}</p>
+              {onRetry && (
+                <button
+                  type="button"
+                  onClick={onRetry}
+                  className="mt-4 px-4 py-2 text-xs font-bold text-red-600 bg-red-50 hover:bg-red-100 rounded-xl transition cursor-pointer"
+                >
+                  🔄 Riprova
+                </button>
+              )}
+            </div>
+          ) : loading ? (
             <div className="flex flex-col items-center justify-center py-20 text-slate-400">
               <div className="w-8 h-8 border-3 border-blue-600 border-t-transparent rounded-full animate-spin mb-3" />
               <p className="text-sm font-medium">{loadingMessage}</p>

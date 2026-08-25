@@ -408,6 +408,7 @@ export interface UseShoppingDataResult {
   productsLoading: boolean;
 
   isInitialLoading: boolean;
+  isError: boolean;
 
   setActiveListId: (id: number | null) => void;
 

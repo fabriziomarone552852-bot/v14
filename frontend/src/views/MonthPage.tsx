@@ -18,8 +18,14 @@ import { useDay } from '@/context/DayContext';
 import { useCategories } from '@/hooks/useCategories';
 import { mapDbEventsToCalendarEvents } from '@/utils/eventUtils'; 
 
+import PageLoadingState from '@/components/shared/feedback/PageLoadingState';
+import PageErrorState from '@/components/shared/feedback/PageErrorState';
+import { LOADING_MESSAGES, ERROR_MESSAGES } from '@/data/loadingMessages';
+import { useQueryClient } from '@tanstack/react-query';
+
 const MonthPage: React.FC = () => {
   const { changeDate: setTargetDate } = useDay();
+  const queryClient = useQueryClient();
   
   const { state, modals, apiData, handlers, review } = useMonthPageLogic();
 
@@ -34,12 +40,12 @@ const MonthPage: React.FC = () => {
     return mapDbEventsToCalendarEvents(apiData?.events || [], state.startStr);
   }, [apiData?.events, state.startStr]);
 
-  if (state.isLoading) {
-    return <div className="flex h-full items-center justify-center font-bold text-gray-500 animate-pulse">Caricamento mese...</div>;
+  if (state.isLoading && !apiData) {
+    return <PageLoadingState messages={LOADING_MESSAGES.month} />;
   }
 
   if (state.isError) {
-    return <div className="flex h-full items-center justify-center text-red-500">Errore nel caricamento dei dati mensili.</div>;
+    return <PageErrorState message={ERROR_MESSAGES.month} onRetry={() => queryClient.refetchQueries()} />;
   }
 
   return (

@@ -1,6 +1,6 @@
 // src/views/Archive/EventsPage.tsx
 import React, { useMemo, useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/api/apiService';
 import { useCategories } from '@/hooks/useCategories';
 import { useEventModals } from '@/context/EventModalContext';
@@ -13,6 +13,7 @@ import { EventFilterBar } from '@/components/archive/events/EventFilterBar';
 import { EventTableHeader, type EventSortField, type EventSortDirection } from '@/components/archive/events/EventTableHeader';
 import { EventTableRow } from '@/components/archive/events/EventTableRow';
 import { EventFilterModal, type EventFilterState } from '@/components/archive/events/EventFilterModal';
+import { ERROR_MESSAGES } from '@/data/loadingMessages';
 import type { DbEvent } from '@/types';
 
 const PANEL_CLASS = 'rounded-2xl border border-slate-200/90 bg-white shadow-xs';
@@ -27,11 +28,12 @@ const initialFilterState: EventFilterState = {
 };
 
 export const EventsPage: React.FC = () => {
+  const queryClient = useQueryClient();
   const { openEventForm, openEventDetail } = useEventModals();
   const { data: categories = [] } = useCategories();
 
   // 1. CARICAMENTO DATI (Mazzo di carte in React Query)
-  const { data: rawEvents = [], isLoading: loading } = useQuery<DbEvent[]>({
+  const { data: rawEvents = [], isLoading: loading, isError } = useQuery<DbEvent[]>({
     queryKey: ['events'],
     queryFn: async () => {
       const res = await api.get<{ items?: DbEvent[] } | DbEvent[]>('/events');
@@ -119,6 +121,9 @@ export const EventsPage: React.FC = () => {
         }
         loading={loading}
         loadingMessage="Caricamento eventi in corso..."
+        isError={isError}
+        errorMessage={ERROR_MESSAGES.archive}
+        onRetry={() => queryClient.refetchQueries()}
         isEmpty={filteredEvents.length === 0}
         emptyIcon={<CalendarIcon className="w-8 h-8 text-slate-400" />}
         emptyTitle="Nessun evento trovato"

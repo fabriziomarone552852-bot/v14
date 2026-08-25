@@ -4,6 +4,9 @@ import CategoryForm, { type CategoryFormValues } from '@/components/CategoryForm
 import { useCategory, useUpdateCategory } from '@/hooks/useCategories';
 import { type CategoryUpdatePayload, CategoryGenre } from '@/types';
 import { logger } from '@/utils/logger';
+import PageLoadingState from '@/components/shared/feedback/PageLoadingState';
+import PageErrorState from '@/components/shared/feedback/PageErrorState';
+import { LOADING_MESSAGES, ERROR_MESSAGES } from '@/data/loadingMessages';
 
 const CategoryEditPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -14,7 +17,6 @@ const CategoryEditPage: React.FC = () => {
     data: category,
     isPending,
     isError,
-    error,
   } = useCategory(categoryId);
 
   const updateCategoryMutation = useUpdateCategory();
@@ -43,26 +45,11 @@ const CategoryEditPage: React.FC = () => {
   }
 
   if (isPending) {
-    return <p>Caricamento categoria...</p>;
+    return <PageLoadingState messages={LOADING_MESSAGES.archiveCategories} />;
   }
 
   if (isError || !category) {
-    return (
-      <div style={{ padding: 24 }}>
-        <h1>Modifica categoria</h1>
-        <p>
-          Errore nel caricamento della categoria:{' '}
-          {error instanceof Error ? error.message : 'errore sconosciuto'}
-        </p>
-        <button
-          type="button"
-          style={{ marginTop: 16 }}
-          onClick={() => navigate(-1)}
-        >
-          Torna indietro
-        </button>
-      </div>
-    );
+    return <PageErrorState message={ERROR_MESSAGES.archive} onRetry={() => navigate(-1)} />;
   }
 
   const initialValues: CategoryFormValues = {
@@ -72,7 +59,7 @@ const CategoryEditPage: React.FC = () => {
   };
 
   return (
-    <div style={{ padding: 24 }}>
+    <div className="p-6">
       <h1>Modifica categoria</h1>
 
       <CategoryForm
@@ -84,7 +71,7 @@ const CategoryEditPage: React.FC = () => {
 
       <button
         type="button"
-        style={{ marginTop: 16 }}
+        className="mt-4 px-4 py-2 text-sm font-medium text-slate-600 hover:text-slate-800 rounded-lg hover:bg-slate-100 transition-colors"
         onClick={() => navigate(-1)}
         disabled={updateCategoryMutation.isPending}
       >

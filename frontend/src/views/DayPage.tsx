@@ -21,9 +21,15 @@ import { mapToCountdownItems } from '@/utils/countdownUtils';
 import { filterNotes, getRandomVariant } from '@/utils/noteUtils';
 import { type NoteVariant } from '@/types';
 
+import PageLoadingState from '@/components/shared/feedback/PageLoadingState';
+import PageErrorState from '@/components/shared/feedback/PageErrorState';
+import { LOADING_MESSAGES, ERROR_MESSAGES } from '@/data/loadingMessages';
+import { useQueryClient } from '@tanstack/react-query';
+
 const DayPage: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const queryClient = useQueryClient();
 
   // 1. STATO DELLA DATA (Source of Truth globale)
   const { dataRiferimento: targetDate, changeDate: setTargetDate } = useDay();
@@ -42,7 +48,7 @@ const DayPage: React.FC = () => {
 
   // 2. FETCH DEI DATI
   const { 
-    dayData, isLoading, toggleTask, saveNote, deleteNote,
+    dayData, isLoading, isError, toggleTask, saveNote, deleteNote,
     updateHabitLog, saveCountdown, deleteCountdown, saveHabit, 
     deleteHabit, suspendHabit, resumeHabit, updateHabitPeriod,
     updateHabitCount, saveObiettivo, savePriorita
@@ -126,11 +132,11 @@ const DayPage: React.FC = () => {
   // --- 6. RENDER ---
 
   if (isLoading && !dayData) {
-    return (
-      <div className="flex h-full items-center justify-center font-bold text-gray-500 animate-pulse">
-        Caricamento agenda...
-      </div>
-    );
+    return <PageLoadingState messages={LOADING_MESSAGES.day} />;
+  }
+
+  if (isError && !dayData) {
+    return <PageErrorState message={ERROR_MESSAGES.day} onRetry={() => queryClient.refetchQueries({ queryKey: ['daySync', targetDateStr] })} />;
   }
   
   return (
