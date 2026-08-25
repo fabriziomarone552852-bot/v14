@@ -26,6 +26,12 @@ class ShoppingProduct(Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
 
     name_normalized: Mapped[str] = mapped_column(String(255), nullable=False, index=True)
+    brand_id: Mapped[Optional[int]] = mapped_column(
+        Integer,
+        ForeignKey("shopping_suppliers.id", ondelete="SET NULL"),
+        nullable=True,
+        index=True,
+    )
 
     created_by_user_id: Mapped[int] = mapped_column(
         Integer,
@@ -66,6 +72,12 @@ class ShoppingProduct(Base):
         back_populates="shopping_products_updated",
     )
 
+    brand: Mapped[Optional["ShoppingSupplier"]] = relationship(
+        "ShoppingSupplier",
+        foreign_keys=[brand_id],
+        back_populates="branded_products",
+    )
+
     list_items: Mapped[List["ShoppingListItem"]] = relationship(
         "ShoppingListItem",
         back_populates="product",
@@ -78,11 +90,11 @@ class ShoppingProduct(Base):
     )
 
     def __repr__(self) -> str:
-        return f"<ShoppingProduct id={self.id} name_normalized={self.name_normalized!r}>"
+        return f"<ShoppingProduct id={self.id} name_normalized={self.name_normalized!r} brand_id={self.brand_id}>"
 
 
 class ShoppingSupplier(Base):
-    """Supplier used for inventory purchases."""
+    """Supplier or Brand entity used for inventory purchases and product branding."""
 
     __tablename__ = "shopping_suppliers"
 
@@ -90,6 +102,14 @@ class ShoppingSupplier(Base):
 
     name: Mapped[str] = mapped_column(String(255), nullable=False)
     name_normalized: Mapped[str] = mapped_column(String(255), nullable=False, index=True)
+
+    # 1 = Fornitore / Punto vendita, 2 = Produttore / Brand, 3 = Entrambi (es. Private Label)
+    type_code: Mapped[int] = mapped_column(
+        Integer,
+        nullable=False,
+        default=1,
+        index=True,
+    )
 
     status_id: Mapped[int] = mapped_column(
         Integer,
@@ -147,6 +167,12 @@ class ShoppingSupplier(Base):
         back_populates="supplier",
         lazy="selectin",
     )
+    branded_products: Mapped[List["ShoppingProduct"]] = relationship(
+        "ShoppingProduct",
+        foreign_keys="ShoppingProduct.brand_id",
+        back_populates="brand",
+        lazy="selectin",
+    )
 
     def __repr__(self) -> str:
-        return f"<ShoppingSupplier id={self.id} name={self.name!r}>"
+        return f"<ShoppingSupplier id={self.id} name={self.name!r} type_code={self.type_code}>"
