@@ -417,7 +417,6 @@ def _resolve_brand_id(
 
         default_status_id = repo.active_supplier_status_id(db) or 1
         new_brand = ShoppingSupplier(
-            name=clean_name,
             name_normalized=_normalize_name(clean_name),
             type_code=2,  # Brand
             status_id=default_status_id,
@@ -935,7 +934,6 @@ def create_quick_price_batch(
             else:
                 default_status_id = repo.active_supplier_status_id(db) or 1
                 new_sup = ShoppingSupplier(
-                    name=rec.supplier_name.strip(),
                     name_normalized=_normalize_name(rec.supplier_name.strip()),
                     type_code=1,
                     status_id=default_status_id,

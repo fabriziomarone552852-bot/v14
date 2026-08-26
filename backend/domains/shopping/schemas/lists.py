@@ -139,7 +139,7 @@ class ShoppingListItemUpdate(StrictBaseModel):
 
 class _ShoppingSupplierLiteResponse(ORMBaseModel):
     id: int
-    name: str
+    name_normalized: str
 
 
 class _ShoppingProductLiteResponse(ORMBaseModel):
@@ -194,7 +194,7 @@ class ShoppingListItemResponse(ORMBaseModel):
     @computed_field
     @property
     def brand_name(self) -> Optional[str]:
-        return self.product.brand.name if self.product and self.product.brand else None
+        return self.product.brand.name_normalized if self.product and self.product.brand else None
 
     @computed_field
     @property

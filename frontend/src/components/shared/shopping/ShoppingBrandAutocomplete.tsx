@@ -104,7 +104,7 @@ export const ShoppingBrandAutocomplete: React.FC<ShoppingBrandAutocompleteProps>
 
     const set = new Set<string>();
     matching.forEach((p) => {
-      if (p.brandName) {
+      if (p?.brandName) {
         set.add(p.brandName.trim().toLowerCase());
       }
     });
@@ -114,15 +114,18 @@ export const ShoppingBrandAutocomplete: React.FC<ShoppingBrandAutocompleteProps>
   // Lista brand filtrata e ordinata per rilevanza rispetto al prodotto
   const suggestions = useMemo(() => {
     const q = (value || '').trim().toLowerCase();
-    let list = brands;
+    let list = brands.filter((b) => Boolean(b && (b.name || (b as any).name_normalized)));
 
     if (q) {
-      list = list.filter((b) => (b?.name || '').toLowerCase().includes(q));
+      list = list.filter((b) => {
+        const name = (b?.name || (b as any)?.name_normalized || '').toLowerCase();
+        return name.includes(q);
+      });
     }
 
     return [...list].sort((a, b) => {
-      const aName = (a?.name || '').toLowerCase();
-      const bName = (b?.name || '').toLowerCase();
+      const aName = (a?.name || (a as any)?.name_normalized || '').toLowerCase();
+      const bName = (b?.name || (b as any)?.name_normalized || '').toLowerCase();
       const aAssoc = productAssociatedBrandNames.has(aName);
       const bAssoc = productAssociatedBrandNames.has(bName);
 
@@ -135,11 +138,15 @@ export const ShoppingBrandAutocomplete: React.FC<ShoppingBrandAutocompleteProps>
   const exactMatch = useMemo(() => {
     const q = (value || '').trim().toLowerCase();
     if (!q) return false;
-    return brands.some((b) => (b?.name || '').toLowerCase() === q);
+    return brands.some((b) => {
+      const name = (b?.name || (b as any)?.name_normalized || '').toLowerCase();
+      return name === q;
+    });
   }, [value, brands]);
 
   const handleSelect = (brand: ShoppingSupplierOption) => {
-    onChange(brand.name, brand);
+    const brandName = brand?.name || (brand as any)?.name_normalized || '';
+    onChange(brandName, brand);
     setIsOpen(false);
     setHighlightedIndex(-1);
   };
@@ -184,7 +191,7 @@ export const ShoppingBrandAutocomplete: React.FC<ShoppingBrandAutocompleteProps>
         handleSelect(suggestions[highlightedIndex]);
       } else if (isOpen && suggestions.length > 0 && highlightedIndex === -1) {
         const first = suggestions[0];
-        const firstName = (first?.name || '').toLowerCase();
+        const firstName = (first?.name || (first as any)?.name_normalized || '').toLowerCase();
         if (firstName === (value || '').trim().toLowerCase()) {
           e.preventDefault();
           handleSelect(first);
@@ -214,7 +221,8 @@ export const ShoppingBrandAutocomplete: React.FC<ShoppingBrandAutocompleteProps>
     >
       {suggestions.map((b, idx) => {
         const isHighlighted = idx === highlightedIndex;
-        const isAssociated = productAssociatedBrandNames.has(b.name.toLowerCase());
+        const brandName = b?.name || (b as any)?.name_normalized || '';
+        const isAssociated = brandName ? productAssociatedBrandNames.has(brandName.toLowerCase()) : false;
         return (
           <button
             key={b.id}
@@ -229,7 +237,7 @@ export const ShoppingBrandAutocomplete: React.FC<ShoppingBrandAutocompleteProps>
             }`}
           >
             <div className="flex items-center gap-1.5 truncate">
-              <span className="truncate">{b.name}</span>
+              <span className="truncate">{brandName}</span>
               {isAssociated && (
                 <span className="px-1.5 py-0.5 rounded-full text-[10px] font-medium bg-blue-100 text-blue-700 shrink-0">
                   Consigliato

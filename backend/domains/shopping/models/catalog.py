@@ -173,5 +173,13 @@ class ShoppingSupplier(Base):
         lazy="selectin",
     )
 
+    @property
+    def name(self) -> str:
+        return self.name_normalized
+
+    @name.setter
+    def name(self, value: str) -> None:
+        self.name_normalized = value
+
     def __repr__(self) -> str:
         return f"<ShoppingSupplier id={self.id} name_normalized={self.name_normalized!r} type_code={self.type_code}>"

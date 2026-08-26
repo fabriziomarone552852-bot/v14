@@ -8,7 +8,8 @@ import { apiRequest } from './shoppingClient';
 
 export type ShoppingSupplierOptionApi = {
   id: number;
-  name: string;
+  name?: string;
+  name_normalized?: string;
   type_code?: number;
   status_id?: number | null;
   status_code_name?: string | null;
@@ -20,7 +21,7 @@ export function normalizeShoppingSupplierOption(
 ): ShoppingSupplierOption {
   return {
     id: Number(supplier.id),
-    name: supplier.name,
+    name: supplier.name || supplier.name_normalized || '',
     typeCode: supplier.type_code ?? 1,
     statusId: supplier.status_id ?? null,
     statusCodeName: supplier.status_code_name ?? null,

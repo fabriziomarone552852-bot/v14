@@ -3,7 +3,7 @@ Schemas for canonical shopping products and suppliers/brands.
 """
 from datetime import datetime
 from typing import Optional
-from pydantic import Field, field_validator
+from pydantic import Field, computed_field, field_validator
 from backend.core.schemas import ORMBaseModel, StrictBaseModel
 
 
@@ -11,6 +11,11 @@ class ShoppingSupplierSummary(ORMBaseModel):
     id: int
     name_normalized: str
     type_code: int
+
+    @computed_field
+    @property
+    def name(self) -> str:
+        return self.name_normalized
 
 
 class ShoppingProductCreate(StrictBaseModel):
@@ -93,3 +98,9 @@ class ShoppingSupplierResponse(ORMBaseModel):
     created_at: datetime
     updated_at: Optional[datetime] = None
     deleted_at: Optional[datetime] = None
+
+    @computed_field
+    @property
+    def name(self) -> str:
+        return self.name_normalized
+
