@@ -29,7 +29,7 @@ export const SupplierModal: React.FC<SupplierModalProps> = ({
 
   useEffect(() => {
     if (supplierToEdit) {
-      setName(supplierToEdit.name || '');
+      setName(supplierToEdit.nameNormalized || supplierToEdit.name || '');
       const activeState =
         supplierToEdit.isActive ??
         (supplierToEdit.statusId == null ||
@@ -66,13 +66,13 @@ export const SupplierModal: React.FC<SupplierModalProps> = ({
         await mutations.updateSupplier({
           id: supplierToEdit.id,
           data: {
-            name: name.trim(),
+            nameNormalized: name.trim(),
             statusId: resolvedStatusId,
           },
         });
       } else {
         await mutations.createSupplier({
-          name: name.trim(),
+          nameNormalized: name.trim(),
           statusId: resolvedStatusId,
         });
       }
@@ -83,6 +83,7 @@ export const SupplierModal: React.FC<SupplierModalProps> = ({
       setIsSubmitting(false);
     }
   };
+
 
   const modalFooter = (
     <div className="flex items-center justify-end gap-2 w-full">

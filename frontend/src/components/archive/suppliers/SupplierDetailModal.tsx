@@ -77,8 +77,8 @@ export const SupplierDetailModal: React.FC<SupplierDetailModalProps> = ({
       <div className="space-y-4 text-xs">
         {/* Titolo Negozio (Stile TaskDetailModal ed EventDetailModal, senza icone né ID) */}
         <div>
-          <h2 className="text-2xl font-extrabold text-gray-800">
-            {supplier.name}
+          <h2 className="text-2xl font-extrabold text-gray-800 capitalize">
+            {supplier.nameNormalized || supplier.name}
           </h2>
         </div>
 

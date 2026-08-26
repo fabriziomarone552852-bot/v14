@@ -84,7 +84,7 @@ def _group_metrics_by_supplier(
             )
         )
 
-    metrics.sort(key=lambda m: m.supplier.name.lower())
+    metrics.sort(key=lambda m: m.supplier.name_normalized.lower())
     return metrics
 
 
@@ -101,7 +101,7 @@ def get_supplier_price_summaries(
     return [
         {
             "supplier_id": metric.supplier.id,
-            "supplier_name": metric.supplier.name,
+            "supplier_name": metric.supplier.name_normalized,
             "last_price": metric.last_batch.purchase_price,
             "last_purchase_date": metric.last_batch.purchase_date,
             "best_price": metric.best_batch.purchase_price,
@@ -129,7 +129,7 @@ def get_price_history(
                 "date": batch.purchase_date,
                 "price": batch.purchase_price,
                 "supplier_id": batch.supplier.id if batch.supplier else None,
-                "supplier_name": batch.supplier.name if batch.supplier else None,
+                "supplier_name": batch.supplier.name_normalized if batch.supplier else None,
                 "is_on_sale": batch.is_on_sale,
             }
         )

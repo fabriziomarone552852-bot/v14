@@ -1050,10 +1050,10 @@ def list_item_batches(
         brand_name: Optional[str] = None
         if b.product and b.product.brand:
             brand_id = b.product.brand.id
-            brand_name = b.product.brand.name
+            brand_name = b.product.brand.name_normalized
         elif b.list_item and b.list_item.product and b.list_item.product.brand:
             brand_id = b.list_item.product.brand.id
-            brand_name = b.list_item.product.brand.name
+            brand_name = b.list_item.product.brand.name_normalized
 
         if b.list_item:
             if b.list_item.shopping_list:
@@ -1096,12 +1096,12 @@ def list_all_batches(db: Session, current_user: User) -> list:
             product_name = b.product.name_normalized
             if b.product.brand:
                 brand_id = b.product.brand.id
-                brand_name = b.product.brand.name
+                brand_name = b.product.brand.name_normalized
         elif b.list_item and b.list_item.name_normalized:
             product_name = b.list_item.name_normalized
             if b.list_item.product and b.list_item.product.brand:
                 brand_id = b.list_item.product.brand.id
-                brand_name = b.list_item.product.brand.name
+                brand_name = b.list_item.product.brand.name_normalized
 
         if b.list_item:
             if b.list_item.shopping_list:
@@ -1145,20 +1145,21 @@ def list_community_prices(
         brand_name: Optional[str] = None
         if b.product and b.product.brand:
             brand_id = b.product.brand.id
-            brand_name = b.product.brand.name
+            brand_name = b.product.brand.name_normalized
         if b.list_item and b.list_item.unit:
             unit_name = b.list_item.unit.code_value or b.list_item.unit.code_name
         result.append({
             "purchase_date": b.purchase_date,
             "unit_price": unit_price,
             "supplier_id": b.supplier_id,
-            "supplier_name": b.supplier.name if b.supplier else None,
+            "supplier_name": b.supplier.name_normalized if b.supplier else None,
             "brand_id": brand_id,
             "brand_name": brand_name,
             "unit_name": unit_name,
             "is_on_sale": b.is_on_sale,
         })
     return result
+
 
 
 

@@ -47,7 +47,7 @@ export const ShoppingSupplierSelect: React.FC<ShoppingSupplierSelectProps> = ({
     setIsSubmitting(true);
     setError(null);
     try {
-      const created = await createShoppingSupplier({ name: newSupplierName.trim() });
+      const created = await createShoppingSupplier({ nameNormalized: newSupplierName.trim() });
       if (onSupplierCreated) {
         onSupplierCreated(created);
       }

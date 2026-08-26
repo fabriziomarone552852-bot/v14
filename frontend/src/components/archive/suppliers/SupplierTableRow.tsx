@@ -20,8 +20,8 @@ export const SupplierTableRow: React.FC<SupplierTableRowProps> = ({
     >
       {/* Colonna Negozio / Fornitore (Testo pulito senza icona e senza ID, come Tasks/Eventi) */}
       <div className="min-w-0 pl-2">
-        <p className="font-bold text-slate-900 truncate group-hover:text-blue-600 transition-colors text-sm">
-          {supplier.name}
+        <p className="font-bold text-slate-900 truncate group-hover:text-blue-600 transition-colors text-sm capitalize">
+          {supplier.nameNormalized || supplier.name}
         </p>
       </div>
 

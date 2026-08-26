@@ -12,11 +12,6 @@ class ShoppingSupplierSummary(ORMBaseModel):
     name_normalized: str
     type_code: int
 
-    @computed_field
-    @property
-    def name(self) -> str:
-        return self.name_normalized
-
 
 class ShoppingProductCreate(StrictBaseModel):
     name: str = Field(..., min_length=1, max_length=255)
@@ -98,9 +93,4 @@ class ShoppingSupplierResponse(ORMBaseModel):
     created_at: datetime
     updated_at: Optional[datetime] = None
     deleted_at: Optional[datetime] = None
-
-    @computed_field
-    @property
-    def name(self) -> str:
-        return self.name_normalized
 

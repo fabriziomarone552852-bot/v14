@@ -90,11 +90,13 @@ export interface ItemPriceHistoryPoint {
 export interface ShoppingSupplierOption {
   id: number;
   name: string;
+  nameNormalized?: string;
   typeCode?: number;
   statusId?: number | null;
   statusCodeName?: string | null;
   isActive?: boolean;
 }
+
 
 export interface ShoppingProductOption {
   id: number;
@@ -340,13 +342,13 @@ export interface ToggleShoppingListItemPurchasedPayload {
 }
 
 export interface ShoppingSupplierCreatePayload {
-  name: string;
+  nameNormalized: string;
   typeCode?: number;
   statusId?: number | null;
 }
 
 export interface ShoppingSupplierUpdatePayload {
-  name?: string;
+  nameNormalized?: string;
   typeCode?: number;
   statusId?: number | null;
 }
@@ -467,7 +469,7 @@ export interface UseShoppingMutationsResult {
     args: UpdateShoppingSupplierArgs
   ) => Promise<ShoppingSupplierOption>;
 
-  deleteSupplier: (id: number) => Promise<void>;
+  deleteSupplier: (id: number, asType?: number) => Promise<void>;
 
   addInventoryBatch: (args: AddInventoryBatchArgs) => Promise<void>;
 

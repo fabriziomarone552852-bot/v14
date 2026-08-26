@@ -53,7 +53,7 @@ const ShoppingSuppliersColumn: React.FC<ShoppingSuppliersColumnProps> = ({
     if (!form.name.trim()) return;
 
     await mutations.createSupplier({
-      name: form.name.trim(),
+      nameNormalized: form.name.trim(),
       statusId: form.status_id ? Number(form.status_id) : undefined,
     });
 
@@ -68,7 +68,7 @@ const ShoppingSuppliersColumn: React.FC<ShoppingSuppliersColumnProps> = ({
     await mutations.updateSupplier({
       id: editModal.data.id,
       data: {
-        name: editForm.name.trim(),
+        nameNormalized: editForm.name.trim(),
         statusId: editForm.status_id ? Number(editForm.status_id) : undefined,
       },
     });
@@ -77,20 +77,21 @@ const ShoppingSuppliersColumn: React.FC<ShoppingSuppliersColumnProps> = ({
   };
 
   const handleDelete = (supplier: ShoppingSupplierOption) => {
+    const sName = supplier.nameNormalized || supplier.name;
     confirm({
       title: 'Elimina fornitore',
-      message: `Eliminare il fornitore "${supplier.name}"?`,
+      message: `Eliminare il fornitore "${sName}"?`,
       confirmText: 'Elimina',
       isDestructive: true,
       onConfirm: async () => {
-        await mutations.deleteSupplier(supplier.id);
+        await mutations.deleteSupplier(supplier.id, 1);
       },
     });
   };
 
   const startEdit = (supplier: ShoppingSupplierOption) => {
     setEditForm({
-      name: supplier.name,
+      name: supplier.nameNormalized || supplier.name,
       status_id: supplier.statusId == null ? '' : String(supplier.statusId),
     });
     editModal.open(supplier);
@@ -126,8 +127,8 @@ const ShoppingSuppliersColumn: React.FC<ShoppingSuppliersColumnProps> = ({
               className={`${shoppingCardClass} flex items-center justify-between p-3`}
             >
               <div className="min-w-0">
-                <p className="truncate text-sm font-semibold text-gray-800">
-                  {supplier.name}
+                <p className="truncate text-sm font-semibold text-gray-800 capitalize">
+                  {supplier.nameNormalized || supplier.name}
                 </p>
                 <p className="text-xs text-gray-400">ID: {supplier.id}</p>
               </div>
@@ -137,7 +138,7 @@ const ShoppingSuppliersColumn: React.FC<ShoppingSuppliersColumnProps> = ({
                   type="button"
                   onClick={() => startEdit(supplier)}
                   className="text-xs text-gray-400 hover:text-blue-500 cursor-pointer"
-                  aria-label={`Modifica fornitore ${supplier.name}`}
+                  aria-label={`Modifica fornitore ${supplier.nameNormalized || supplier.name}`}
                 >
                   ✎
                 </button>
@@ -145,7 +146,7 @@ const ShoppingSuppliersColumn: React.FC<ShoppingSuppliersColumnProps> = ({
                   type="button"
                   onClick={() => handleDelete(supplier)}
                   className="text-xs text-gray-400 hover:text-red-500 cursor-pointer"
-                  aria-label={`Elimina fornitore ${supplier.name}`}
+                  aria-label={`Elimina fornitore ${supplier.nameNormalized || supplier.name}`}
                 >
                   ✕
                 </button>

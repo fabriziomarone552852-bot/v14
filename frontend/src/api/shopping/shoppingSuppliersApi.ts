@@ -8,8 +8,7 @@ import { apiRequest } from './shoppingClient';
 
 export type ShoppingSupplierOptionApi = {
   id: number;
-  name?: string;
-  name_normalized?: string;
+  name_normalized: string;
   type_code?: number;
   status_id?: number | null;
   status_code_name?: string | null;
@@ -21,7 +20,8 @@ export function normalizeShoppingSupplierOption(
 ): ShoppingSupplierOption {
   return {
     id: Number(supplier.id),
-    name: supplier.name || supplier.name_normalized || '',
+    name: supplier.name_normalized ?? '',
+    nameNormalized: supplier.name_normalized ?? '',
     typeCode: supplier.type_code ?? 1,
     statusId: supplier.status_id ?? null,
     statusCodeName: supplier.status_code_name ?? null,
@@ -29,11 +29,12 @@ export function normalizeShoppingSupplierOption(
   };
 }
 
+
 export function serializeShoppingSupplierPayload(
   payload: ShoppingSupplierCreatePayload | ShoppingSupplierUpdatePayload
 ) {
   return {
-    ...(payload.name !== undefined ? { name: payload.name } : {}),
+    ...(payload.nameNormalized !== undefined ? { name_normalized: payload.nameNormalized } : {}),
     ...(payload.typeCode !== undefined ? { type_code: payload.typeCode } : {}),
     ...(payload.statusId !== undefined ? { status_id: payload.statusId } : {}),
   };
@@ -86,8 +87,10 @@ export async function updateShoppingSupplier(
   return normalizeShoppingSupplierOption(data);
 }
 
-export async function deleteShoppingSupplier(id: number): Promise<void> {
+export async function deleteShoppingSupplier(id: number, asType?: number): Promise<void> {
   await apiRequest<void>(`/suppliers/${id}`, {
     method: 'DELETE',
+    ...(asType != null ? { params: { as_type: asType } } : {}),
   });
 }
+

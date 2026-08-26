@@ -95,7 +95,7 @@ export const useSupplierArchiveData = ({
 
       if (filters.keyword.trim()) {
         const q = filters.keyword.toLowerCase().trim();
-        const matchName = s.name.toLowerCase().includes(q);
+        const matchName = (s.nameNormalized || s.name).toLowerCase().includes(q);
         if (!matchName) return false;
       }
 
@@ -107,7 +107,7 @@ export const useSupplierArchiveData = ({
       let comparison = 0;
       switch (sortField) {
         case 'name':
-          comparison = a.name.localeCompare(b.name);
+          comparison = (a.nameNormalized || a.name).localeCompare(b.nameNormalized || b.name);
           break;
         case 'status':
           comparison = Number(a.isActive) - Number(b.isActive);

@@ -70,8 +70,8 @@ export const BrandDetailModal: React.FC<BrandDetailModalProps> = ({
       <div className="space-y-4 text-xs">
         {/* Titolo Brand */}
         <div>
-          <h2 className="text-2xl font-extrabold text-gray-800">
-            {brand.name}
+          <h2 className="text-2xl font-extrabold text-gray-800 capitalize">
+            {brand.nameNormalized || brand.name}
           </h2>
         </div>
 

@@ -20,8 +20,8 @@ export const BrandTableRow: React.FC<BrandTableRowProps> = ({
     >
       {/* Colonna Marchio / Brand */}
       <div className="min-w-0 pl-2">
-        <p className="font-bold text-slate-900 truncate group-hover:text-blue-600 transition-colors text-sm">
-          {brand.name}
+        <p className="font-bold text-slate-900 truncate group-hover:text-blue-600 transition-colors text-sm capitalize">
+          {brand.nameNormalized || brand.name}
         </p>
       </div>
 

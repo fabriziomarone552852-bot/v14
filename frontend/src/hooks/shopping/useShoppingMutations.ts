@@ -431,7 +431,7 @@ export const useShoppingMutations = (): UseShoppingMutationsResult => {
   });
 
   const deleteSupplierMutation = useMutation({
-    mutationFn: (id: number) => deleteShoppingSupplier(id),
+    mutationFn: ({ id, asType }: { id: number; asType?: number }) => deleteShoppingSupplier(id, asType),
     onSuccess: async () => {
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: shoppingQueryKeys.suppliers() }),
@@ -439,6 +439,7 @@ export const useShoppingMutations = (): UseShoppingMutationsResult => {
       ]);
     },
   });
+
 
   // 9. LOTTI DI INVENTARIO / ACQUISTI
   const addInventoryBatchMutation = useMutation({
@@ -515,7 +516,7 @@ export const useShoppingMutations = (): UseShoppingMutationsResult => {
 
     createSupplier: (payload: ShoppingSupplierCreatePayload) => createSupplierMutation.mutateAsync(payload),
     updateSupplier: (args: UpdateShoppingSupplierArgs) => updateSupplierMutation.mutateAsync(args),
-    deleteSupplier: (id: number) => deleteSupplierMutation.mutateAsync(id),
+    deleteSupplier: (id: number, asType?: number) => deleteSupplierMutation.mutateAsync({ id, asType }),
 
     addInventoryBatch: (args: AddInventoryBatchArgs) => addInventoryBatchMutation.mutateAsync(args),
     deleteInventoryBatch: (args: DeleteInventoryBatchArgs) => deleteInventoryBatchMutation.mutateAsync(args),

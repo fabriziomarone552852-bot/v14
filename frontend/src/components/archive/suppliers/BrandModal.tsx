@@ -22,7 +22,7 @@ export const BrandModal: React.FC<BrandModalProps> = ({
 
   useEffect(() => {
     if (brandToEdit) {
-      setName(brandToEdit.name || '');
+      setName(brandToEdit.nameNormalized || brandToEdit.name || '');
     } else {
       setName('');
     }
@@ -39,7 +39,7 @@ export const BrandModal: React.FC<BrandModalProps> = ({
       await mutations.updateSupplier({
         id: brandToEdit.id,
         data: {
-          name: name.trim(),
+          nameNormalized: name.trim(),
           typeCode: 2,
         },
       });

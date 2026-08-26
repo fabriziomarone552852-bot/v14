@@ -214,26 +214,28 @@ export const SuppliersPage: React.FC = () => {
   };
 
   const handleDeleteSupplier = (supplier: EnrichedSupplier) => {
+    const sName = supplier.nameNormalized || supplier.name;
     confirm({
       title: 'Elimina Fornitore',
-      message: `Sei sicuro di voler eliminare definitivamente il fornitore "${supplier.name}"? Lo storico prezzi associato rimarrà in archivio.`,
+      message: `Sei sicuro di voler eliminare il fornitore "${sName}"? Se è associato anche come marchio, rimarrà come brand.`,
       confirmText: 'Elimina',
       isDestructive: true,
       onConfirm: async () => {
-        await mutations.deleteSupplier(supplier.id);
+        await mutations.deleteSupplier(supplier.id, 1);
         supplierDetailModal.close();
       },
     });
   };
 
   const handleDeleteBrand = (brand: EnrichedBrand) => {
+    const bName = brand.nameNormalized || brand.name;
     confirm({
       title: 'Elimina Brand',
-      message: `Sei sicuro di voler eliminare definitivamente il marchio "${brand.name}"? Lo storico acquisti associato rimarrà in archivio.`,
+      message: `Sei sicuro di voler eliminare il marchio "${bName}"? Se è associato anche come fornitore, rimarrà come negozio.`,
       confirmText: 'Elimina',
       isDestructive: true,
       onConfirm: async () => {
-        await mutations.deleteSupplier(brand.id);
+        await mutations.deleteSupplier(brand.id, 2);
         brandDetailModal.close();
       },
     });
