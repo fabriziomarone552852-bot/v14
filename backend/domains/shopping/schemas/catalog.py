@@ -9,7 +9,7 @@ from backend.core.schemas import ORMBaseModel, StrictBaseModel
 
 class ShoppingSupplierSummary(ORMBaseModel):
     id: int
-    name: str
+    name_normalized: str
     type_code: int
 
 
@@ -85,7 +85,6 @@ class ShoppingSupplierUpdate(StrictBaseModel):
 
 class ShoppingSupplierResponse(ORMBaseModel):
     id: int
-    name: str
     name_normalized: str
     type_code: int = 1
     status_id: int

@@ -710,7 +710,6 @@ def create_supplier(
 
     now = _now()
     db_supplier = ShoppingSupplier(
-        name=supplier_in.name,
         name_normalized=_normalize_name(supplier_in.name),
         type_code=supplier_in.type_code,
         status_id=supplier_in.status_id or default_status_id,
@@ -741,10 +740,13 @@ def update_supplier(
         existing = repo.find_supplier_by_name(db, update_data["name"])
         if existing and existing.id != supplier_id:
             raise HTTPException(status_code=400, detail="Esiste già un fornitore o brand con questo nome.")
-        update_data["name_normalized"] = _normalize_name(update_data["name"])
+        db_supplier.name_normalized = _normalize_name(update_data["name"])
 
-    for field, value in update_data.items():
-        setattr(db_supplier, field, value)
+    if "type_code" in update_data and update_data["type_code"] is not None:
+        db_supplier.type_code = update_data["type_code"]
+
+    if "status_id" in update_data and update_data["status_id"] is not None:
+        db_supplier.status_id = update_data["status_id"]
 
     db_supplier.updated_at = _now()
     db_supplier.updated_by_user_id = current_user.id
@@ -1071,7 +1073,7 @@ def list_item_batches(
             "purchase_price": b.purchase_price,
             "unit_price": unit_price,
             "supplier_id": b.supplier_id,
-            "supplier_name": b.supplier.name if b.supplier else None,
+            "supplier_name": b.supplier.name_normalized if b.supplier else None,
             "unit_name": unit_name,
             "list_name": list_name,
             "is_on_sale": b.is_on_sale,
@@ -1119,7 +1121,7 @@ def list_all_batches(db: Session, current_user: User) -> list:
             "purchase_price": b.purchase_price,
             "unit_price": unit_price,
             "supplier_id": b.supplier_id,
-            "supplier_name": b.supplier.name if b.supplier else None,
+            "supplier_name": b.supplier.name_normalized if b.supplier else None,
             "unit_name": unit_name,
             "list_name": list_name,
             "is_on_sale": b.is_on_sale,
