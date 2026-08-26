@@ -22,8 +22,7 @@ export const getQuoteOfTheDay = (date: Date = new Date()): Quote => {
     return {
       id: 0,
       text: "Ogni giorno è una nuova opportunità.",
-      author: "Anonimo",
-      category: "Motivazione"
+      author: "Anonimo"
     };
   }
 

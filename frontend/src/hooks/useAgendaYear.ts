@@ -7,6 +7,7 @@ import { bingoApi } from '@/api/bingoApi';
 import type { DbYearlyEntry, DbBingoEntry } from '@/types/yearlyentries';
 import type { DbEvent } from '@/types/events';
 import type { DbTask } from '@/types/tasks';
+import type { DailyEntry } from '@/types/dailyentries';
 
 export interface SyncYearResponse {
   year: number;
@@ -14,22 +15,25 @@ export interface SyncYearResponse {
   bingo: DbBingoEntry[];
   events: DbEvent[];
   tasks: DbTask[];
+  dailyEntries: DailyEntry[];
 }
 
 export const fetchYearData = async (year: number): Promise<SyncYearResponse> => {
   const startStr = `${year}-01-01`;
   const endStr = `${year}-12-31`;
 
-  const [entries, bingoRaw, eventsRaw, tasksRaw] = await Promise.all([
+  const [entries, bingoRaw, eventsRaw, tasksRaw, dailyEntriesRaw] = await Promise.all([
     yearlyEntriesApi.getAll(year),
     bingoApi.getAll(year),
     api.get<{ items?: DbEvent[] } | DbEvent[]>(`/events?start_date=${startStr}&end_date=${endStr}`),
     api.get<{ items?: DbTask[] } | DbTask[]>('/tasks'),
+    api.get<DailyEntry[]>(`/daily-entries?start_date=${startStr}&end_date=${endStr}&tipo=PX`),
   ]);
 
   const events = Array.isArray(eventsRaw) ? eventsRaw : (eventsRaw?.items ?? []);
   const tasks = Array.isArray(tasksRaw) ? tasksRaw : (tasksRaw?.items ?? []);
   const bingo = (bingoRaw || []).sort((a, b) => (a.posizione ?? a.id) - (b.posizione ?? b.id));
+  const dailyEntries = Array.isArray(dailyEntriesRaw) ? dailyEntriesRaw : [];
 
   return {
     year,
@@ -37,6 +41,7 @@ export const fetchYearData = async (year: number): Promise<SyncYearResponse> => 
     bingo: bingo || [],
     events: events || [],
     tasks: tasks || [],
+    dailyEntries,
   };
 };
 

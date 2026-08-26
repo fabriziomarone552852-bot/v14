@@ -132,12 +132,14 @@ const MonthGrid: React.FC<MonthGridProps> = ({ state, events, tasks, onDayClick,
         {Array.from({ length: mainDaysInMonth }).map((_, i) => {
           const dayNum = i + 1;
           const dateKey = `${monthYear}-${pad(monthIndex + 1)}-${pad(dayNum)}`;
+          const colIndex = (mainFirstDayIndex + i) % 7;
           
           return (
             <MonthDayCell 
               key={dateKey}
               dateKey={dateKey}
               dayNum={dayNum}
+              colIndex={colIndex}
               isToday={dateKey === todayStr}
               items={itemsByDate[dateKey] || []} 
               onDayClick={onDayClick}

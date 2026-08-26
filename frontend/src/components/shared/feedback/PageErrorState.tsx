@@ -22,7 +22,7 @@ const PageErrorState: React.FC<PageErrorStateProps> = ({
   return (
     <div className="flex flex-col items-center justify-center h-full gap-3 select-none">
       {/* Icona */}
-      <div className="flex items-center justify-center w-14 h-14 rounded-2xl bg-rose-50 border border-rose-200 text-3xl">
+      <div className="text-4xl">
         ⚠️
       </div>
 
@@ -34,13 +34,15 @@ const PageErrorState: React.FC<PageErrorStateProps> = ({
 
       {/* Pulsante Retry */}
       {onRetry && (
-        <button
-          type="button"
-          onClick={onRetry}
-          className="mt-2 px-5 py-2.5 text-sm font-bold text-red-700 bg-red-100 hover:bg-red-200 rounded-xl transition-colors cursor-pointer"
-        >
-          🔄 Ricarica Dati
-        </button>
+        <div className="mt-2 p-1.5 bg-rose-50 border border-rose-200 rounded-2xl">
+          <button
+            type="button"
+            onClick={onRetry}
+            className="px-5 py-2.5 text-sm font-bold text-red-700 hover:bg-rose-100 rounded-xl transition-colors cursor-pointer"
+          >
+            🔄 Ricarica Dati
+          </button>
+        </div>
       )}
     </div>
   );

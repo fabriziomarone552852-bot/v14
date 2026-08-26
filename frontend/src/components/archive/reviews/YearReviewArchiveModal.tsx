@@ -57,6 +57,7 @@ const YearReviewArchiveModalContent: React.FC<{
       tasksByMonth={{}}
       tasksByWeekday={{}}
       habits={[]}
+      dailyEntries={agendaYear.yearData?.dailyEntries || []}
     />
   );
 };

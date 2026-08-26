@@ -5,13 +5,16 @@ import type { ReviewTabButton } from '@/components/weekmonth/review/BaseReviewMo
 import { YearReviewQuestionsPanel } from './YearReviewQuestionsPanel';
 import { YearReviewTasksPanel } from './YearReviewTasksPanel';
 import { YearReviewHabitsPanel } from './YearReviewHabitsPanel';
+import { YearReviewPixelsPanel } from './YearReviewPixelsPanel';
+import { YearInPixelsIcon } from './YearInPixelsIcon';
 import { ReviewTagBar } from '@/components/weekmonth/review/ReviewTagBar';
 import type { TrackerItem } from '@/types/monthlyentries';
 import type { YearlyType, DbYearlyEntry } from '@/types/yearlyentries';
 import type { Habit } from '@/types/habits';
 import type { Category } from '@/types/categories';
+import type { DailyEntry } from '@/types/dailyentries';
 
-export type YearReviewSidebarTab = 'tasks' | 'habits';
+export type YearReviewSidebarTab = 'tasks' | 'habits' | 'pixels';
 
 export interface YearReviewData {
   yearlyEntries?: DbYearlyEntry[];
@@ -41,11 +44,14 @@ interface YearReviewModalProps {
   tasksByMonth: Record<number, number>;
   tasksByWeekday: Record<number, number>;
   habits: Habit[];
+  dailyEntries?: DailyEntry[];
+  allCategories?: Category[];
 }
 
 const TAB_BUTTONS: ReviewTabButton<YearReviewSidebarTab>[] = [
   { id: 'tasks', emoji: '📊', title: 'Statistiche Task' },
   { id: 'habits', emoji: '🔄', title: 'Statistiche Abitudini' },
+  { id: 'pixels', emoji: <YearInPixelsIcon />, title: 'Anno in Pixel' },
 ];
 
 export const YearReviewModal: React.FC<YearReviewModalProps> = ({
@@ -65,6 +71,8 @@ export const YearReviewModal: React.FC<YearReviewModalProps> = ({
   tasksByMonth,
   tasksByWeekday,
   habits,
+  dailyEntries = [],
+  allCategories,
 }) => {
   const entriesList = reviewData.yearlyEntries || reviewData.entries || [];
 
@@ -113,6 +121,14 @@ export const YearReviewModal: React.FC<YearReviewModalProps> = ({
           year={year}
         />
       )}
+      {activeTab === 'pixels' && (
+        <YearReviewPixelsPanel
+          year={year}
+          dailyEntries={dailyEntries}
+          allCategories={allCategories || reviewData.allTags}
+        />
+      )}
     </BaseReviewModal>
   );
 };
+
