@@ -9,6 +9,7 @@ import { apiRequest } from './shoppingClient';
 export type ShoppingSupplierOptionApi = {
   id: number;
   name: string;
+  type_code?: number;
   status_id?: number | null;
   status_code_name?: string | null;
   is_active?: boolean;
@@ -20,6 +21,7 @@ export function normalizeShoppingSupplierOption(
   return {
     id: Number(supplier.id),
     name: supplier.name,
+    typeCode: supplier.type_code ?? 1,
     statusId: supplier.status_id ?? null,
     statusCodeName: supplier.status_code_name ?? null,
     isActive: supplier.is_active ?? true,
@@ -31,6 +33,7 @@ export function serializeShoppingSupplierPayload(
 ) {
   return {
     ...(payload.name !== undefined ? { name: payload.name } : {}),
+    ...(payload.typeCode !== undefined ? { type_code: payload.typeCode } : {}),
     ...(payload.statusId !== undefined ? { status_id: payload.statusId } : {}),
   };
 }
@@ -40,6 +43,19 @@ export async function fetchShoppingSuppliers(
 ): Promise<ShoppingSupplierOption[]> {
   const data = await apiRequest<ShoppingSupplierOptionApi[]>('/suppliers', {
     method: 'GET',
+    params: { type_code: 1 },
+    signal,
+  });
+
+  return (data ?? []).map(normalizeShoppingSupplierOption);
+}
+
+export async function fetchShoppingBrands(
+  signal?: AbortSignal
+): Promise<ShoppingSupplierOption[]> {
+  const data = await apiRequest<ShoppingSupplierOptionApi[]>('/brands', {
+    method: 'GET',
+    params: { limit: 100 },
     signal,
   });
 

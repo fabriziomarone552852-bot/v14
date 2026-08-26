@@ -163,6 +163,10 @@ const ShoppingGroupsAndListsColumn: React.FC<ShoppingGroupsAndListsColumnProps> 
     createModal.close();
   };
 
+  const handleSelectList = (id: number) => {
+    setActiveListId(activeListId === id ? null : id);
+  };
+
   return (
     <div className={`h-full min-h-0 flex flex-col justify-between ${className}`}>
       <div className="flex flex-col flex-1 min-h-0 w-full min-w-0">
@@ -191,7 +195,7 @@ const ShoppingGroupsAndListsColumn: React.FC<ShoppingGroupsAndListsColumnProps> 
             isExpanded={isPersonalExpanded}
             onToggleExpanded={togglePersonalExpanded}
             activeListId={activeListId}
-            onSelectList={setActiveListId}
+            onSelectList={handleSelectList}
             onOpenCreateModal={() => openCreateModal()}
           />
 
@@ -210,7 +214,7 @@ const ShoppingGroupsAndListsColumn: React.FC<ShoppingGroupsAndListsColumnProps> 
                 onToggleExpanded={(e) => toggleGroupExpanded(group.id, e)}
                 onOpenGroupDetail={onOpenGroupDetail}
                 activeListId={activeListId}
-                onSelectList={setActiveListId}
+                onSelectList={handleSelectList}
                 onOpenCreateModal={openCreateModal}
                 avatarClass={getAvatarBg(group.id)}
               />

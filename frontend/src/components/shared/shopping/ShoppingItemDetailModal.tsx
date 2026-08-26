@@ -83,7 +83,7 @@ const ShoppingItemDetailModal: React.FC<ShoppingItemDetailModalProps> = ({
       }
     };
     load();
-  }, [isOpen, item?.id]);
+  }, [isOpen, item?.id, item?.productId, item?.brandId, item?.isPurchased]);
 
   const currentStats = useMemo<PriceStatsData | null>(() => {
     const rawList = view === 'personal' ? personalBatches : communityPrices;
@@ -213,9 +213,16 @@ const ShoppingItemDetailModal: React.FC<ShoppingItemDetailModalProps> = ({
               </div>
 
               <div>
-                <h2 className="text-xl font-black text-gray-900 leading-tight">
-                  {formattedProductName}
-                </h2>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <h2 className="text-xl font-black text-gray-900 leading-tight">
+                    {formattedProductName}
+                  </h2>
+                  {item.brandName && (
+                    <span className="text-sm px-2.5 py-0.5 rounded-lg font-bold bg-indigo-50 text-indigo-700 border border-indigo-200">
+                      {item.brandName}
+                    </span>
+                  )}
+                </div>
                 {item.groupName && (
                   <p className="text-xs text-gray-400 mt-0.5">
                     Lista: <span className="font-semibold text-gray-600">{item.listName}</span> • Gruppo: <span className="font-semibold text-gray-600">{item.groupName}</span>

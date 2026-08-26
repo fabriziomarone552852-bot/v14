@@ -16,6 +16,8 @@ export type ShoppingListItemApi = {
   product_id: number;
   product_name: string;
   name_normalized: string;
+  brand_id?: number | null;
+  brand_name?: string | null;
   quantity?: number | string | null;
   unit_id?: number | null;
   unit_name?: string | null;
@@ -48,6 +50,8 @@ export function normalizeShoppingListItem(item: ShoppingListItemApi): ShoppingLi
     productId: Number(item.product_id),
     productName: item.product_name,
     nameNormalized: item.name_normalized,
+    brandId: item.brand_id ?? null,
+    brandName: item.brand_name ?? null,
     quantity: toNumberOrNull(item.quantity),
     unitId: item.unit_id ?? null,
     unitCodeName: item.unit_code_name ?? item.unit_name ?? null,
@@ -111,6 +115,8 @@ export function serializeShoppingListItemCreatePayload(
   return {
     shopping_list_id: payload.shoppingListId,
     product_name: payload.productName,
+    ...(payload.brandName !== undefined ? { brand_name: payload.brandName } : {}),
+    ...(payload.brandId !== undefined ? { brand_id: payload.brandId } : {}),
     ...(payload.quantity !== undefined ? { quantity: payload.quantity } : {}),
     ...(payload.unitId !== undefined ? { unit_id: payload.unitId } : {}),
     ...(payload.notes !== undefined ? { notes: payload.notes } : {}),
@@ -122,6 +128,8 @@ export function serializeShoppingListItemUpdatePayload(
 ) {
   return {
     ...(payload.productName !== undefined ? { product_name: payload.productName } : {}),
+    ...(payload.brandName !== undefined ? { brand_name: payload.brandName } : {}),
+    ...(payload.brandId !== undefined ? { brand_id: payload.brandId } : {}),
     ...(payload.quantity !== undefined ? { quantity: payload.quantity } : {}),
     ...(payload.unitId !== undefined ? { unit_id: payload.unitId } : {}),
     ...(payload.notes !== undefined ? { notes: payload.notes } : {}),

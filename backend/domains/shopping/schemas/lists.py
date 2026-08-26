@@ -62,6 +62,8 @@ class ShoppingListUpdate(StrictBaseModel):
 class ShoppingListItemCreate(StrictBaseModel):
     shopping_list_id: int
     product_name: str = Field(..., min_length=1, max_length=255)
+    brand_name: Optional[str] = Field(None, max_length=255)
+    brand_id: Optional[int] = None
     quantity: Optional[Decimal] = Field(
         default=None,
         max_digits=12,
@@ -79,6 +81,14 @@ class ShoppingListItemCreate(StrictBaseModel):
             raise ValueError("Il nome del prodotto non può essere vuoto.")
         return value
 
+    @field_validator("brand_name")
+    @classmethod
+    def normalize_brand_name(cls, value: Optional[str]) -> Optional[str]:
+        if value is None:
+            return None
+        value = value.strip()
+        return value if value else None
+
     @field_validator("quantity", mode="before")
     @classmethod
     def truncate_quantity(cls, value: object) -> object:
@@ -89,6 +99,8 @@ class ShoppingListItemCreate(StrictBaseModel):
 
 class ShoppingListItemUpdate(StrictBaseModel):
     product_name: Optional[str] = Field(None, min_length=1, max_length=255)
+    brand_name: Optional[str] = Field(None, max_length=255)
+    brand_id: Optional[int] = None
     quantity: Optional[Decimal] = Field(
         default=None,
         max_digits=12,
@@ -98,7 +110,6 @@ class ShoppingListItemUpdate(StrictBaseModel):
     unit_id: Optional[int] = None
     notes: Optional[str] = None
     is_purchased: Optional[bool] = None
-
 
     @field_validator("product_name")
     @classmethod
@@ -110,6 +121,14 @@ class ShoppingListItemUpdate(StrictBaseModel):
             raise ValueError("Il nome del prodotto non può essere vuoto.")
         return value
 
+    @field_validator("brand_name")
+    @classmethod
+    def normalize_brand_name(cls, value: Optional[str]) -> Optional[str]:
+        if value is None:
+            return None
+        value = value.strip()
+        return value if value else None
+
     @field_validator("quantity", mode="before")
     @classmethod
     def truncate_quantity(cls, value: object) -> object:
@@ -118,9 +137,16 @@ class ShoppingListItemUpdate(StrictBaseModel):
         return _truncate_2_decimals(value)
 
 
+class _ShoppingSupplierLiteResponse(ORMBaseModel):
+    id: int
+    name: str
+
+
 class _ShoppingProductLiteResponse(ORMBaseModel):
     id: int
     name_normalized: str
+    brand_id: Optional[int] = None
+    brand: Optional[_ShoppingSupplierLiteResponse] = None
 
 
 class _ShoppingUnitLiteResponse(ORMBaseModel):
@@ -162,6 +188,16 @@ class ShoppingListItemResponse(ORMBaseModel):
 
     @computed_field
     @property
+    def brand_id(self) -> Optional[int]:
+        return self.product.brand_id if self.product else None
+
+    @computed_field
+    @property
+    def brand_name(self) -> Optional[str]:
+        return self.product.brand.name if self.product and self.product.brand else None
+
+    @computed_field
+    @property
     def unit_name(self) -> Optional[str]:
         return self.unit.code_name if self.unit else None
 
@@ -184,6 +220,7 @@ class ShoppingListResponse(ORMBaseModel):
 
 
 
+_ShoppingSupplierLiteResponse.model_rebuild()
 _ShoppingProductLiteResponse.model_rebuild()
 _ShoppingUnitLiteResponse.model_rebuild()
 ShoppingListItemResponse.model_rebuild()

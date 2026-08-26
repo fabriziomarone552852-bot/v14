@@ -21,6 +21,7 @@ import type { ShoppingGroupFilterState } from '@/components/archive/shopping/Sho
 import type { ShoppingListFilterState } from '@/components/archive/shopping/ShoppingListFilterModal';
 import type { ShoppingPriceFilterState } from '@/components/archive/shopping/ShoppingPriceFilterModal';
 import ShoppingGroupCreateModal from '@/components/shared/shopping/ShoppingGroupCreateModal';
+import ShoppingQuickPriceModal from '@/components/archive/shopping/ShoppingQuickPriceModal';
 
 export type ShoppingArchiveTab = 'gruppi' | 'liste' | 'prezzi';
 
@@ -54,6 +55,9 @@ export const ShoppingArchivePage: React.FC = () => {
     groups,
     lists,
     products,
+    brands,
+    suppliers,
+    config,
     groupsLoading,
     listsLoading,
     isError: shoppingError,
@@ -70,6 +74,7 @@ export const ShoppingArchivePage: React.FC = () => {
 
   // Modali Creazione
   const groupCreateModal = useModal<null>();
+  const quickPriceModal = useModal<null>();
 
   // Stati dei Filtri per ciascuna Tab
   const [groupFilters, setGroupFilters] = useState<ShoppingGroupFilterState>(initialGroupFilters);
@@ -143,10 +148,17 @@ export const ShoppingArchivePage: React.FC = () => {
   const handlePrimaryAddAction = () => {
     if (activeTab === 'gruppi') {
       groupCreateModal.open(null);
+    } else if (activeTab === 'prezzi') {
+      quickPriceModal.open(null);
     }
   };
 
-  const primaryAddLabel = activeTab === 'gruppi' ? 'Nuovo Gruppo' : undefined;
+  const primaryAddLabel =
+    activeTab === 'gruppi'
+      ? 'Nuovo Gruppo'
+      : activeTab === 'prezzi'
+      ? 'Aggiunta Rapida'
+      : undefined;
 
 
   return (
@@ -237,6 +249,16 @@ export const ShoppingArchivePage: React.FC = () => {
           }}
         />
       )}
+
+      {/* Modal Aggiunta Rapida Prezzi */}
+      <ShoppingQuickPriceModal
+        isOpen={quickPriceModal.isOpen}
+        onClose={quickPriceModal.close}
+        products={products}
+        brands={brands}
+        suppliers={suppliers}
+        unitOptions={config?.unitOptions}
+      />
     </div>
   );
 };

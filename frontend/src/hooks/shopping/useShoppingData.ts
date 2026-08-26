@@ -9,6 +9,7 @@ import {
   fetchShoppingLists,
   fetchShoppingProducts,
   fetchShoppingSuppliers,
+  fetchShoppingBrands,
   shoppingQueryKeys,
 } from '@/api/shoppingApi';
 
@@ -47,6 +48,13 @@ export const useShoppingData = (): UseShoppingDataResult => {
     gcTime: 30 * 60_000,
   });
 
+  const brandsQuery = useQuery<ShoppingSupplierOption[]>({
+    queryKey: [...shoppingQueryKeys.brands(), userId],
+    queryFn: ({ signal }) => fetchShoppingBrands(signal),
+    staleTime: 60_000,
+    gcTime: 30 * 60_000,
+  });
+
   const configQuery = useQuery<ShoppingConfigBundle>({
     queryKey: shoppingQueryKeys.config(),
     queryFn: ({ signal }) => fetchShoppingConfig(signal),
@@ -68,10 +76,6 @@ export const useShoppingData = (): UseShoppingDataResult => {
     gcTime: 30 * 60_000,
   });
 
-  // Nessuna lista selezionata di default — l'utente sceglie manualmente
-
-
-
   const hasActiveList = activeListId !== null;
 
   const itemsQuery = useQuery<ShoppingListItem[]>({
@@ -85,6 +89,7 @@ export const useShoppingData = (): UseShoppingDataResult => {
 
   const lists = listsQuery.data ?? [];
   const suppliers = suppliersQuery.data ?? [];
+  const brands = brandsQuery.data ?? [];
   const products = productsQuery.data ?? [];
   const groups = groupsQuery.data ?? [];
   const config = configQuery.data ?? null;
@@ -103,10 +108,7 @@ export const useShoppingData = (): UseShoppingDataResult => {
   const isInitialLoading =
     listsQuery.isLoading ||
     groupsQuery.isLoading ||
-    configQuery.isLoading ||
-    suppliersQuery.isLoading ||
-    productsQuery.isLoading ||
-    (hasActiveList && itemsQuery.isLoading && items.length === 0);
+    configQuery.isLoading;
 
   const isError =
     listsQuery.isError ||
@@ -140,6 +142,12 @@ export const useShoppingData = (): UseShoppingDataResult => {
     });
   };
 
+  const refreshBrands = async () => {
+    await queryClient.invalidateQueries({
+      queryKey: shoppingQueryKeys.brands(),
+    });
+  };
+
   const refreshConfig = async () => {
     await queryClient.invalidateQueries({
       queryKey: shoppingQueryKeys.config(),
@@ -153,12 +161,14 @@ export const useShoppingData = (): UseShoppingDataResult => {
     activeList,
     items,
     suppliers,
+    brands,
     products,
     config,
     listsLoading: listsQuery.isLoading,
     groupsLoading: groupsQuery.isLoading,
     itemsLoading: itemsQuery.isLoading,
     suppliersLoading: suppliersQuery.isLoading,
+    brandsLoading: brandsQuery.isLoading,
     productsLoading: productsQuery.isLoading,
     configLoading: configQuery.isLoading,
     isInitialLoading,
@@ -168,6 +178,7 @@ export const useShoppingData = (): UseShoppingDataResult => {
     refreshGroups,
     refreshItems,
     refreshSuppliers,
+    refreshBrands,
     refreshConfig,
   };
 };

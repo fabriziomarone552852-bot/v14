@@ -51,7 +51,7 @@ def _soft_delete_criteria():
 
 def _batch_loaders():
     return (
-        selectinload(InventoryBatch.product),
+        selectinload(InventoryBatch.product).selectinload(ShoppingProduct.brand),
         selectinload(InventoryBatch.supplier),
         selectinload(InventoryBatch.list_item).selectinload(ShoppingListItem.unit),
         selectinload(InventoryBatch.list_item).selectinload(ShoppingListItem.shopping_list),
@@ -64,13 +64,14 @@ def _batch_loaders():
 
 def _list_loaders():
     return (
-        selectinload(ShoppingList.items).selectinload(ShoppingListItem.product),
+        selectinload(ShoppingList.items).selectinload(ShoppingListItem.product).selectinload(ShoppingProduct.brand),
         selectinload(ShoppingList.items).selectinload(ShoppingListItem.unit),
         selectinload(ShoppingList.items).selectinload(ShoppingListItem.created_by_user),
         selectinload(ShoppingList.items).selectinload(ShoppingListItem.updated_by_user),
         selectinload(ShoppingList.items)
         .selectinload(ShoppingListItem.inventory_batches)
-        .selectinload(InventoryBatch.product),
+        .selectinload(InventoryBatch.product)
+        .selectinload(ShoppingProduct.brand),
         selectinload(ShoppingList.items)
         .selectinload(ShoppingListItem.inventory_batches)
         .selectinload(InventoryBatch.supplier),
@@ -89,11 +90,11 @@ def _list_loaders():
 def _item_loaders():
     return (
         selectinload(ShoppingListItem.shopping_list),
-        selectinload(ShoppingListItem.product),
+        selectinload(ShoppingListItem.product).selectinload(ShoppingProduct.brand),
         selectinload(ShoppingListItem.unit),
         selectinload(ShoppingListItem.created_by_user),
         selectinload(ShoppingListItem.updated_by_user),
-        selectinload(ShoppingListItem.inventory_batches).selectinload(InventoryBatch.product),
+        selectinload(ShoppingListItem.inventory_batches).selectinload(InventoryBatch.product).selectinload(ShoppingProduct.brand),
         selectinload(ShoppingListItem.inventory_batches).selectinload(InventoryBatch.supplier),
         selectinload(ShoppingListItem.inventory_batches).selectinload(InventoryBatch.created_by_user),
         selectinload(ShoppingListItem.inventory_batches).selectinload(InventoryBatch.updated_by_user),
@@ -732,30 +733,59 @@ def list_batches_for_item(
     db_item = get_item(db, item_id)
     product_id = db_item.product_id if db_item else None
 
+    matching_product_ids = []
+    if product_id is not None:
+        target_product = get_product(db, product_id)
+        if target_product:
+            matching_product_ids = [
+                p_id for (p_id,) in db.query(ShoppingProduct.id)
+                .filter(
+                    ShoppingProduct.name_normalized == target_product.name_normalized,
+                    ShoppingProduct.deleted_at.is_(None),
+                )
+                .all()
+            ]
+        if not matching_product_ids:
+            matching_product_ids = [product_id]
+
     query = (
         db.query(InventoryBatch)
-        .join(ShoppingListItem, ShoppingListItem.id == InventoryBatch.list_item_id)
-        .join(ShoppingList, ShoppingList.id == ShoppingListItem.shopping_list_id)
+        .outerjoin(ShoppingListItem, ShoppingListItem.id == InventoryBatch.list_item_id)
+        .outerjoin(ShoppingList, ShoppingList.id == ShoppingListItem.shopping_list_id)
         .outerjoin(ShoppingGroup, ShoppingList.group_id == ShoppingGroup.id)
         .outerjoin(
             ShoppingGroupMember,
             (ShoppingGroup.id == ShoppingGroupMember.group_id)
             & (ShoppingGroupMember.removed_at.is_(None)),
         )
-        .options(*_batch_loaders())
+        .options(
+            selectinload(InventoryBatch.supplier),
+            selectinload(InventoryBatch.product).selectinload(ShoppingProduct.brand),
+            selectinload(InventoryBatch.list_item).selectinload(ShoppingListItem.unit),
+            selectinload(InventoryBatch.list_item).selectinload(ShoppingListItem.shopping_list),
+        )
     )
 
-    if product_id is not None:
-        query = query.filter(InventoryBatch.product_id == product_id)
+    if matching_product_ids:
+        query = query.filter(
+            or_(
+                InventoryBatch.product_id.in_(matching_product_ids),
+                InventoryBatch.list_item_id == item_id,
+            )
+        )
     else:
         query = query.filter(InventoryBatch.list_item_id == item_id)
 
     return (
         query.filter(
             InventoryBatch.deleted_at.is_(None),
-            ShoppingListItem.deleted_at.is_(None),
-            ShoppingList.deleted_at.is_(None),
             or_(
+                ShoppingListItem.id.is_(None),
+                (ShoppingListItem.deleted_at.is_(None) & ShoppingList.deleted_at.is_(None)),
+            ),
+            or_(
+                InventoryBatch.created_by_user_id == user_id,
+                InventoryBatch.purchased_by_user_id == user_id,
                 ShoppingList.owner_id == user_id,
                 ShoppingGroup.owner_id == user_id,
                 ShoppingGroupMember.user_id == user_id,
@@ -767,15 +797,14 @@ def list_batches_for_item(
 
 
 def list_all_batches_for_user(
-
     db: Session,
     user_id: int,
 ) -> List[InventoryBatch]:
     """Restituisce tutti i batch/prezzi di acquisto registrati dall'utente o nei suoi gruppi."""
     return (
         db.query(InventoryBatch)
-        .join(ShoppingListItem, ShoppingListItem.id == InventoryBatch.list_item_id)
-        .join(ShoppingList, ShoppingList.id == ShoppingListItem.shopping_list_id)
+        .outerjoin(ShoppingListItem, ShoppingListItem.id == InventoryBatch.list_item_id)
+        .outerjoin(ShoppingList, ShoppingList.id == ShoppingListItem.shopping_list_id)
         .outerjoin(ShoppingGroup, ShoppingList.group_id == ShoppingGroup.id)
         .outerjoin(
             ShoppingGroupMember,
@@ -784,15 +813,19 @@ def list_all_batches_for_user(
         )
         .options(
             selectinload(InventoryBatch.supplier),
-            selectinload(InventoryBatch.product),
+            selectinload(InventoryBatch.product).selectinload(ShoppingProduct.brand),
             selectinload(InventoryBatch.list_item).selectinload(ShoppingListItem.unit),
             selectinload(InventoryBatch.list_item).selectinload(ShoppingListItem.shopping_list),
         )
         .filter(
             InventoryBatch.deleted_at.is_(None),
-            ShoppingListItem.deleted_at.is_(None),
-            ShoppingList.deleted_at.is_(None),
             or_(
+                ShoppingListItem.id.is_(None),
+                (ShoppingListItem.deleted_at.is_(None) & ShoppingList.deleted_at.is_(None)),
+            ),
+            or_(
+                InventoryBatch.created_by_user_id == user_id,
+                InventoryBatch.purchased_by_user_id == user_id,
                 ShoppingList.owner_id == user_id,
                 ShoppingGroup.owner_id == user_id,
                 ShoppingGroupMember.user_id == user_id,
@@ -804,20 +837,35 @@ def list_all_batches_for_user(
 
 
 def list_community_prices_for_product(
-
     db: Session,
     product_id: int,
     limit: int = 50,
 ) -> List[InventoryBatch]:
     """Restituisce i prezzi (anonimi) registrati per un prodotto da qualsiasi utente."""
+    target_product = get_product(db, product_id)
+    if not target_product:
+        return []
+
+    matching_product_ids = [
+        p_id for (p_id,) in db.query(ShoppingProduct.id)
+        .filter(
+            ShoppingProduct.name_normalized == target_product.name_normalized,
+            ShoppingProduct.deleted_at.is_(None),
+        )
+        .all()
+    ]
+    if not matching_product_ids:
+        matching_product_ids = [product_id]
+
     return (
         db.query(InventoryBatch)
         .options(
             selectinload(InventoryBatch.supplier),
+            selectinload(InventoryBatch.product).selectinload(ShoppingProduct.brand),
             selectinload(InventoryBatch.list_item).selectinload(ShoppingListItem.unit),
         )
         .filter(
-            InventoryBatch.product_id == product_id,
+            InventoryBatch.product_id.in_(matching_product_ids),
             InventoryBatch.deleted_at.is_(None),
         )
         .order_by(InventoryBatch.purchase_date.desc(), InventoryBatch.created_at.desc())

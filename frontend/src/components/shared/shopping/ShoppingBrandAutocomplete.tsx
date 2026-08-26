@@ -1,31 +1,33 @@
-// src/components/shared/shopping/ShoppingProductAutocomplete.tsx
+// src/components/shared/shopping/ShoppingBrandAutocomplete.tsx
 import React, { useRef, useEffect, useState, useMemo, useCallback } from 'react';
 import { createPortal } from 'react-dom';
-import type { ShoppingProductOption } from '@/types/shopping';
+import type { ShoppingProductOption, ShoppingSupplierOption } from '@/types/shopping';
 
-interface ShoppingProductAutocompleteProps {
+interface ShoppingBrandAutocompleteProps {
   value: string;
-  onChange: (name: string, product?: ShoppingProductOption) => void;
+  onChange: (brandName: string, brand?: ShoppingSupplierOption) => void;
+  brands?: ShoppingSupplierOption[];
+  productName?: string;
   products?: ShoppingProductOption[];
   placeholder?: string;
   disabled?: boolean;
   autoFocus?: boolean;
   className?: string;
   id?: string;
-  hideBrand?: boolean;
   usePortal?: boolean;
 }
 
-export const ShoppingProductAutocomplete: React.FC<ShoppingProductAutocompleteProps> = ({
+export const ShoppingBrandAutocomplete: React.FC<ShoppingBrandAutocompleteProps> = ({
   value,
   onChange,
+  brands = [],
+  productName = '',
   products = [],
-  placeholder = 'Es. Pasta, latte, zucchero...',
+  placeholder = 'Es. Barilla, De Cecco, Mutti...',
   disabled = false,
   autoFocus = false,
   className = '',
   id,
-  hideBrand = false,
   usePortal = false,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
@@ -90,49 +92,54 @@ export const ShoppingProductAutocomplete: React.FC<ShoppingProductAutocompletePr
     };
   }, [isOpen, updateCoords]);
 
-  // Filtro in tempo reale su tutti i prodotti nel database (case-insensitive substring)
+  // Brand precedentemente associati a questo prodotto
+  const productAssociatedBrandNames = useMemo(() => {
+    const pName = (productName || '').trim().toLowerCase();
+    if (!pName) return new Set<string>();
+
+    const matching = products.filter((p) => {
+      const name = (p?.displayName || p?.nameNormalized || '').toLowerCase();
+      return name === pName;
+    });
+
+    const set = new Set<string>();
+    matching.forEach((p) => {
+      if (p.brandName) {
+        set.add(p.brandName.trim().toLowerCase());
+      }
+    });
+    return set;
+  }, [productName, products]);
+
+  // Lista brand filtrata e ordinata per rilevanza rispetto al prodotto
   const suggestions = useMemo(() => {
     const q = (value || '').trim().toLowerCase();
-    if (!q || q.length < 1) return [];
+    let list = brands;
 
-    if (hideBrand) {
-      const seenNames = new Set<string>();
-      const uniqueList: ShoppingProductOption[] = [];
-      for (const p of products) {
-        const baseName = (p?.nameNormalized || p?.displayName || '').trim().toLowerCase();
-        if (baseName && baseName.includes(q) && !seenNames.has(baseName)) {
-          seenNames.add(baseName);
-          uniqueList.push({
-            ...p,
-            displayName: p.nameNormalized || p.displayName,
-            brandName: null,
-            brandId: null,
-          });
-        }
-      }
-      return uniqueList.slice(0, 10);
+    if (q) {
+      list = list.filter((b) => (b?.name || '').toLowerCase().includes(q));
     }
 
-    return products
-      .filter((p) => {
-        const name = (p?.displayName || p?.nameNormalized || '').toLowerCase();
-        return Boolean(name && name.includes(q));
-      })
-      .slice(0, 10);
-  }, [value, products, hideBrand]);
+    return [...list].sort((a, b) => {
+      const aName = (a?.name || '').toLowerCase();
+      const bName = (b?.name || '').toLowerCase();
+      const aAssoc = productAssociatedBrandNames.has(aName);
+      const bAssoc = productAssociatedBrandNames.has(bName);
+
+      if (aAssoc && !bAssoc) return -1;
+      if (!aAssoc && bAssoc) return 1;
+      return aName.localeCompare(bName);
+    }).slice(0, 10);
+  }, [value, brands, productAssociatedBrandNames]);
 
   const exactMatch = useMemo(() => {
     const q = (value || '').trim().toLowerCase();
     if (!q) return false;
-    return products.some((p) => {
-      const name = (p?.displayName || p?.nameNormalized || '').toLowerCase();
-      return name === q;
-    });
-  }, [value, products]);
+    return brands.some((b) => (b?.name || '').toLowerCase() === q);
+  }, [value, brands]);
 
-  const handleSelect = (product: ShoppingProductOption) => {
-    const name = product.displayName || product.nameNormalized || '';
-    onChange(name, product);
+  const handleSelect = (brand: ShoppingSupplierOption) => {
+    onChange(brand.name, brand);
     setIsOpen(false);
     setHighlightedIndex(-1);
   };
@@ -177,7 +184,7 @@ export const ShoppingProductAutocomplete: React.FC<ShoppingProductAutocompletePr
         handleSelect(suggestions[highlightedIndex]);
       } else if (isOpen && suggestions.length > 0 && highlightedIndex === -1) {
         const first = suggestions[0];
-        const firstName = (first?.displayName || first?.nameNormalized || '').toLowerCase();
+        const firstName = (first?.name || '').toLowerCase();
         if (firstName === (value || '').trim().toLowerCase()) {
           e.preventDefault();
           handleSelect(first);
@@ -205,15 +212,15 @@ export const ShoppingProductAutocomplete: React.FC<ShoppingProductAutocompletePr
         usePortal ? '' : 'absolute left-0 right-0 top-full mt-1 z-[9999]'
       } bg-white border border-gray-200 rounded-xl shadow-2xl max-h-56 overflow-y-auto animate-fadeIn divide-y divide-gray-50`}
     >
-      {suggestions.map((p, idx) => {
+      {suggestions.map((b, idx) => {
         const isHighlighted = idx === highlightedIndex;
-        const productName = p.displayName || p.nameNormalized || '';
+        const isAssociated = productAssociatedBrandNames.has(b.name.toLowerCase());
         return (
           <button
-            key={p.id}
+            key={b.id}
             type="button"
             onMouseDown={(e) => e.preventDefault()}
-            onClick={() => handleSelect(p)}
+            onClick={() => handleSelect(b)}
             onMouseEnter={() => setHighlightedIndex(idx)}
             className={`w-full text-left px-3 py-2 text-xs font-semibold flex items-center justify-between gap-2 transition-colors cursor-pointer ${
               isHighlighted
@@ -222,15 +229,15 @@ export const ShoppingProductAutocomplete: React.FC<ShoppingProductAutocompletePr
             }`}
           >
             <div className="flex items-center gap-1.5 truncate">
-              <span className="truncate">{productName}</span>
-              {!hideBrand && p.brandName && (
-                <span className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-indigo-50 text-indigo-700 shrink-0">
-                  {p.brandName}
+              <span className="truncate">{b.name}</span>
+              {isAssociated && (
+                <span className="px-1.5 py-0.5 rounded-full text-[10px] font-medium bg-blue-100 text-blue-700 shrink-0">
+                  Consigliato
                 </span>
               )}
             </div>
             <span className="text-[10px] text-gray-400 font-normal shrink-0">
-              Esistente
+              Brand
             </span>
           </button>
         );
@@ -243,7 +250,7 @@ export const ShoppingProductAutocomplete: React.FC<ShoppingProductAutocompletePr
           onClick={handleSelectCustom}
           className="w-full text-left px-3 py-2 text-xs font-bold text-emerald-700 bg-emerald-50/50 hover:bg-emerald-100/60 transition-colors flex items-center gap-1.5 cursor-pointer"
         >
-          <span>+ Usa &quot;{(value || '').trim()}&quot; (nuovo)</span>
+          <span>+ Usa &quot;{(value || '').trim()}&quot; (nuovo brand)</span>
         </button>
       )}
     </div>
@@ -262,7 +269,7 @@ export const ShoppingProductAutocomplete: React.FC<ShoppingProductAutocompletePr
           setHighlightedIndex(-1);
         }}
         onFocus={() => {
-          if ((value || '').trim().length >= 1) setIsOpen(true);
+          setIsOpen(true);
         }}
         onKeyDown={handleKeyDown}
         placeholder={placeholder}
@@ -273,11 +280,10 @@ export const ShoppingProductAutocomplete: React.FC<ShoppingProductAutocompletePr
       />
 
       {isOpen &&
-        (value || '').trim().length >= 1 &&
-        (suggestions.length > 0 || !exactMatch) &&
+        (suggestions.length > 0 || ((value || '').trim().length >= 1 && !exactMatch)) &&
         (usePortal ? createPortal(dropdownMenu, document.body) : dropdownMenu)}
     </div>
   );
 };
 
-export default ShoppingProductAutocomplete;
+export default ShoppingBrandAutocomplete;

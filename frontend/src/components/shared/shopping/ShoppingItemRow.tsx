@@ -75,8 +75,8 @@ const ShoppingItemRow: React.FC<ShoppingItemRowProps> = ({
         </span>
       ) : null}
 
-      {/* 3. NOME PRODOTTO (Prima lettera maiuscola) */}
-      <div className="min-w-0 flex-1">
+      {/* 3. NOME PRODOTTO E BRAND (Prima lettera maiuscola) */}
+      <div className="min-w-0 flex-1 flex items-center gap-1.5 truncate">
         <p
           className={[
             'truncate text-sm font-semibold',
@@ -87,6 +87,18 @@ const ShoppingItemRow: React.FC<ShoppingItemRowProps> = ({
         >
           {formattedName}
         </p>
+        {item.brandName && (
+          <span
+            className={[
+              'shrink-0 text-xs px-1.5 py-0.5 rounded-md font-medium',
+              item.isPurchased
+                ? 'bg-slate-100 text-slate-400 border border-slate-200 line-through'
+                : 'bg-indigo-50 text-indigo-700 border border-indigo-100',
+            ].join(' ')}
+          >
+            {item.brandName}
+          </span>
+        )}
       </div>
 
       {/* 4. NOTE (se presenti) */}

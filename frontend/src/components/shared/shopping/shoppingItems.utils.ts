@@ -5,6 +5,8 @@ import { getLocalTodayStr } from '@/utils/dateUtils';
 export interface ItemFormState {
   shoppingListId: string;
   productName: string;
+  brandName: string;
+  brandId: string;
   quantity: string;
   unitId: string;
   notes: string;
@@ -13,6 +15,8 @@ export interface ItemFormState {
 export interface PurchaseFormState {
   quantity: string;
   supplierId: string;
+  brandName: string;
+  brandId: string;
   price: string;
   purchaseDate: string;
   currencyId: string;
@@ -23,6 +27,8 @@ export interface PurchaseFormState {
 export const emptyItemForm = (shoppingListId = ''): ItemFormState => ({
   shoppingListId,
   productName: '',
+  brandName: '',
+  brandId: '',
   quantity: '',
   unitId: '',
   notes: '',
@@ -30,10 +36,14 @@ export const emptyItemForm = (shoppingListId = ''): ItemFormState => ({
 
 export const emptyPurchaseForm = (
   defaultCurrencyId = '',
-  defaultQuantity = '1'
+  defaultQuantity = '1',
+  defaultBrandName = '',
+  defaultBrandId = ''
 ): PurchaseFormState => ({
   quantity: defaultQuantity,
   supplierId: '',
+  brandName: defaultBrandName,
+  brandId: defaultBrandId,
   price: '',
   purchaseDate: getLocalTodayStr(),
   currencyId: defaultCurrencyId,

@@ -13,6 +13,7 @@ import {
   deleteShoppingSupplier,
   addInventoryBatch,
   deleteInventoryBatch,
+  createQuickPriceBatch,
   toggleShoppingListItemPurchased,
   addShoppingPrice,
   updateShoppingPrice,
@@ -222,6 +223,7 @@ export const useShoppingMutations = (): UseShoppingMutationsResult => {
         invalidateLists(),
         invalidateItems(vars.shoppingListId),
         queryClient.invalidateQueries({ queryKey: shoppingQueryKeys.products() }),
+        queryClient.invalidateQueries({ queryKey: shoppingQueryKeys.brands() }),
       ]);
     },
   });
@@ -244,6 +246,8 @@ export const useShoppingMutations = (): UseShoppingMutationsResult => {
             return {
               ...item,
               productName: data.productName !== undefined ? data.productName : item.productName,
+              brandName: data.brandName !== undefined ? data.brandName : item.brandName,
+              brandId: data.brandId !== undefined ? data.brandId : item.brandId,
               quantity: data.quantity !== undefined ? data.quantity : item.quantity,
               unitId: data.unitId !== undefined ? data.unitId : item.unitId,
               notes: data.notes !== undefined ? data.notes : item.notes,
@@ -261,7 +265,12 @@ export const useShoppingMutations = (): UseShoppingMutationsResult => {
       }
     },
     onSettled: async (_updated, _err, vars) => {
-      await Promise.all([invalidateLists(), invalidateItems(vars.listId)]);
+      await Promise.all([
+        invalidateLists(),
+        invalidateItems(vars.listId),
+        queryClient.invalidateQueries({ queryKey: shoppingQueryKeys.products() }),
+        queryClient.invalidateQueries({ queryKey: shoppingQueryKeys.brands() }),
+      ]);
     },
   });
 
@@ -403,17 +412,32 @@ export const useShoppingMutations = (): UseShoppingMutationsResult => {
   // 8. FORNITORI / NEGOZI
   const createSupplierMutation = useMutation({
     mutationFn: (payload: ShoppingSupplierCreatePayload) => createShoppingSupplier(payload),
-    onSuccess: async () => queryClient.invalidateQueries({ queryKey: shoppingQueryKeys.suppliers() }),
+    onSuccess: async () => {
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: shoppingQueryKeys.suppliers() }),
+        queryClient.invalidateQueries({ queryKey: shoppingQueryKeys.brands() }),
+      ]);
+    },
   });
 
   const updateSupplierMutation = useMutation({
     mutationFn: ({ id, data }: UpdateShoppingSupplierArgs) => updateShoppingSupplier(id, data),
-    onSuccess: async () => queryClient.invalidateQueries({ queryKey: shoppingQueryKeys.suppliers() }),
+    onSuccess: async () => {
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: shoppingQueryKeys.suppliers() }),
+        queryClient.invalidateQueries({ queryKey: shoppingQueryKeys.brands() }),
+      ]);
+    },
   });
 
   const deleteSupplierMutation = useMutation({
     mutationFn: (id: number) => deleteShoppingSupplier(id),
-    onSuccess: async () => queryClient.invalidateQueries({ queryKey: shoppingQueryKeys.suppliers() }),
+    onSuccess: async () => {
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: shoppingQueryKeys.suppliers() }),
+        queryClient.invalidateQueries({ queryKey: shoppingQueryKeys.brands() }),
+      ]);
+    },
   });
 
   // 9. LOTTI DI INVENTARIO / ACQUISTI
@@ -424,6 +448,7 @@ export const useShoppingMutations = (): UseShoppingMutationsResult => {
         invalidateLists(),
         invalidateItems(vars.listId),
         queryClient.invalidateQueries({ queryKey: shoppingQueryKeys.products() }),
+        queryClient.invalidateQueries({ queryKey: shoppingQueryKeys.brands() }),
       ]);
     },
   });
@@ -435,6 +460,19 @@ export const useShoppingMutations = (): UseShoppingMutationsResult => {
         invalidateLists(),
         invalidateItems(vars.listId),
         queryClient.invalidateQueries({ queryKey: shoppingQueryKeys.products() }),
+        queryClient.invalidateQueries({ queryKey: shoppingQueryKeys.brands() }),
+      ]);
+    },
+  });
+
+  const createQuickPriceBatchMutation = useMutation({
+    mutationFn: (payload: import('@/types/shopping').QuickPriceBatchCreatePayload) => createQuickPriceBatch(payload),
+    onSuccess: async () => {
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: shoppingQueryKeys.allBatches() }),
+        queryClient.invalidateQueries({ queryKey: shoppingQueryKeys.products() }),
+        queryClient.invalidateQueries({ queryKey: shoppingQueryKeys.brands() }),
+        queryClient.invalidateQueries({ queryKey: shoppingQueryKeys.suppliers() }),
       ]);
     },
   });
@@ -481,6 +519,8 @@ export const useShoppingMutations = (): UseShoppingMutationsResult => {
 
     addInventoryBatch: (args: AddInventoryBatchArgs) => addInventoryBatchMutation.mutateAsync(args),
     deleteInventoryBatch: (args: DeleteInventoryBatchArgs) => deleteInventoryBatchMutation.mutateAsync(args),
+    createQuickPriceBatch: (payload: import('@/types/shopping').QuickPriceBatchCreatePayload) =>
+      createQuickPriceBatchMutation.mutateAsync(payload),
 
     addPrice: (payload: ShoppingPriceCreatePayload) => addShoppingPrice(payload),
     updatePrice: (args: UpdateShoppingPriceArgs) => updateShoppingPrice(args.priceId, args.data),

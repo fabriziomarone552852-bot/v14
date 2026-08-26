@@ -4,7 +4,8 @@ import BaseModal from '@/components/shared/dialog/BaseModal';
 import ShoppingUnitSelect from './ShoppingUnitSelect';
 import ShoppingQuantityInput from './ShoppingQuantityInput';
 import ShoppingProductAutocomplete from './ShoppingProductAutocomplete';
-import type { ConfigOption, ShoppingProductOption } from '@/types/shopping';
+import ShoppingBrandAutocomplete from './ShoppingBrandAutocomplete';
+import type { ConfigOption, ShoppingProductOption, ShoppingSupplierOption } from '@/types/shopping';
 import type { ItemFormState } from './shoppingItems.utils';
 import { EditIcon } from '@/components/shared/utils/Icons';
 
@@ -14,6 +15,7 @@ interface ShoppingItemEditModalProps {
   setEditForm: React.Dispatch<React.SetStateAction<ItemFormState>>;
   unitOptions: ConfigOption[];
   products?: ShoppingProductOption[];
+  brands?: ShoppingSupplierOption[];
   onClose: () => void;
   onSubmit: (e: React.FormEvent<HTMLFormElement>) => void;
 }
@@ -24,6 +26,7 @@ const ShoppingItemEditModal: React.FC<ShoppingItemEditModalProps> = ({
   setEditForm,
   unitOptions,
   products = [],
+  brands = [],
   onClose,
   onSubmit,
 }) => {
@@ -54,14 +57,40 @@ const ShoppingItemEditModal: React.FC<ShoppingItemEditModalProps> = ({
           </label>
           <ShoppingProductAutocomplete
             value={editForm.productName}
-            onChange={(name) =>
+            onChange={(name, selectedProd) =>
               setEditForm((prev) => ({
                 ...prev,
                 productName: name,
+                ...(selectedProd?.brandName && !prev.brandName
+                  ? {
+                      brandName: selectedProd.brandName,
+                      brandId: selectedProd.brandId ? String(selectedProd.brandId) : '',
+                    }
+                  : {}),
               }))
             }
             products={products}
             autoFocus
+          />
+        </div>
+
+        {/* Marchio / Brand */}
+        <div>
+          <label className="block text-xs font-bold text-gray-500 uppercase mb-1">
+            Marchio / Brand <span className="text-gray-400 font-normal lowercase">(opzionale)</span>
+          </label>
+          <ShoppingBrandAutocomplete
+            value={editForm.brandName}
+            onChange={(bName, brandObj) =>
+              setEditForm((prev) => ({
+                ...prev,
+                brandName: bName,
+                brandId: brandObj?.id ? String(brandObj.id) : '',
+              }))
+            }
+            brands={brands}
+            productName={editForm.productName}
+            products={products}
           />
         </div>
 

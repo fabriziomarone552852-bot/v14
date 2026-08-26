@@ -4,7 +4,8 @@ import BaseModal from '@/components/shared/dialog/BaseModal';
 import ShoppingUnitSelect from './ShoppingUnitSelect';
 import ShoppingQuantityInput from './ShoppingQuantityInput';
 import ShoppingProductAutocomplete from './ShoppingProductAutocomplete';
-import type { ConfigOption, ShoppingProductOption } from '@/types/shopping';
+import ShoppingBrandAutocomplete from './ShoppingBrandAutocomplete';
+import type { ConfigOption, ShoppingProductOption, ShoppingSupplierOption } from '@/types/shopping';
 import type { ItemFormState } from './shoppingItems.utils';
 import { ShoppingIcon } from '@/components/shared/utils/Icons';
 
@@ -17,6 +18,7 @@ interface ShoppingItemCreateModalProps {
   activeListId: number | null;
   unitOptions: ConfigOption[];
   products?: ShoppingProductOption[];
+  brands?: ShoppingSupplierOption[];
 }
 
 
@@ -29,6 +31,7 @@ const ShoppingItemCreateModal: React.FC<ShoppingItemCreateModalProps> = ({
   activeListId,
   unitOptions,
   products = [],
+  brands = [],
 }) => {
   if (!open) return null;
 
@@ -65,14 +68,44 @@ const ShoppingItemCreateModal: React.FC<ShoppingItemCreateModalProps> = ({
           </label>
           <ShoppingProductAutocomplete
             value={itemForm.productName}
-            onChange={(name) =>
+            onChange={(name, selectedProd) =>
               setItemForm((prev) => ({
                 ...prev,
                 productName: name,
+                ...(selectedProd?.brandName && !prev.brandName
+                  ? {
+                      brandName: selectedProd.brandName,
+                      brandId: selectedProd.brandId ? String(selectedProd.brandId) : '',
+                    }
+                  : {}),
+                ...(selectedProd?.defaultUnitId && !prev.unitId
+                  ? { unitId: String(selectedProd.defaultUnitId) }
+                  : {}),
               }))
             }
             products={products}
             autoFocus
+            disabled={!hasActiveList}
+          />
+        </div>
+
+        {/* Marchio / Brand */}
+        <div>
+          <label className="block text-xs font-bold text-gray-500 uppercase mb-1">
+            Marchio / Brand <span className="text-gray-400 font-normal lowercase">(opzionale)</span>
+          </label>
+          <ShoppingBrandAutocomplete
+            value={itemForm.brandName}
+            onChange={(bName, brandObj) =>
+              setItemForm((prev) => ({
+                ...prev,
+                brandName: bName,
+                brandId: brandObj?.id ? String(brandObj.id) : '',
+              }))
+            }
+            brands={brands}
+            productName={itemForm.productName}
+            products={products}
             disabled={!hasActiveList}
           />
         </div>

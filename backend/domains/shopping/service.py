@@ -46,7 +46,11 @@ from backend.domains.shopping.schemas.groups import (
     ShoppingGroupMemberRoleUpdate,
     ShoppingGroupUpdate,
 )
-from backend.domains.shopping.schemas.inventory import InventoryBatchCreate, InventoryBatchUpdate
+from backend.domains.shopping.schemas.inventory import (
+    InventoryBatchCreate,
+    InventoryBatchUpdate,
+    QuickPriceBatchCreate,
+)
 from backend.domains.shopping.schemas.lists import (
     ShoppingListCreate,
     ShoppingListItemCreate,
@@ -388,6 +392,47 @@ def delete_list(db: Session, current_user: User, list_id: int) -> None:
     repo.delete(db, db_list)
 
 
+def _resolve_brand_id(
+    db: Session,
+    current_user: User,
+    brand_name: Optional[str] = None,
+    brand_id: Optional[int] = None,
+) -> Optional[int]:
+    if brand_id is not None and brand_id > 0:
+        brand = repo.get_supplier(db, brand_id)
+        if brand:
+            return brand.id
+    if brand_name:
+        clean_name = brand_name.strip()
+        if not clean_name:
+            return None
+        existing = repo.find_supplier_by_name(db, clean_name)
+        if existing:
+            if existing.type_code == 1:
+                existing.type_code = 3
+                existing.updated_at = _now()
+                existing.updated_by_user_id = current_user.id
+                repo.commit(db)
+            return existing.id
+
+        default_status_id = repo.active_supplier_status_id(db) or 1
+        new_brand = ShoppingSupplier(
+            name=clean_name,
+            name_normalized=_normalize_name(clean_name),
+            type_code=2,  # Brand
+            status_id=default_status_id,
+            created_by_user_id=current_user.id,
+            updated_by_user_id=current_user.id,
+            created_at=_now(),
+            updated_at=_now(),
+        )
+        repo.add(db, new_brand)
+        repo.commit(db)
+        repo.refresh(db, new_brand)
+        return new_brand.id
+    return None
+
+
 # ------------------------------------------------------------------ Items
 def list_items(
     db: Session,
@@ -416,20 +461,36 @@ def create_item(
             )
 
     normalized_name = _normalize_name(item_in.product_name)
-    existing_open = repo.get_open_item_by_list_and_name(db, db_list.id, normalized_name)
+    resolved_brand_id = _resolve_brand_id(
+        db,
+        current_user,
+        brand_name=item_in.brand_name,
+        brand_id=item_in.brand_id,
+    )
+
+    db_brand = repo.get_supplier(db, resolved_brand_id) if resolved_brand_id else None
+    brand_suffix = f" ({db_brand.name_normalized})" if db_brand else ""
+    list_item_normalized_name = f"{normalized_name}{brand_suffix}"
+
+    existing_open = repo.get_open_item_by_list_and_name(db, db_list.id, list_item_normalized_name)
     if existing_open:
         raise HTTPException(
             status_code=409,
             detail="Esiste già un articolo aperto con questo prodotto nella lista.",
         )
 
-    db_product = repo.get_or_create_product_by_name(db, normalized_name, current_user.id)
+    db_product = repo.get_or_create_product_by_name(
+        db,
+        normalized_name,
+        current_user.id,
+        brand_id=resolved_brand_id,
+    )
     now = _now()
 
     db_item = ShoppingListItem(
         shopping_list_id=db_list.id,
         product_id=db_product.id,
-        name_normalized=normalized_name,
+        name_normalized=list_item_normalized_name,
         quantity=item_in.quantity,
         unit_id=item_in.unit_id,
         notes=item_in.notes,
@@ -469,16 +530,35 @@ def update_item(
                 detail="Gli articoli già acquistati non possono essere modificati da questo ruolo.",
             )
 
-
     update_data = item_in.model_dump(exclude_unset=True)
 
-    if "product_name" in update_data and update_data["product_name"] is not None:
-        normalized_name = _normalize_name(update_data["product_name"])
+    has_name_change = "product_name" in update_data and update_data["product_name"] is not None
+    has_brand_change = ("brand_name" in update_data) or ("brand_id" in update_data)
+
+    if has_name_change or has_brand_change:
+        target_name = update_data.get("product_name") or (db_item.product.name_normalized if db_item.product else db_item.name_normalized)
+        normalized_name = _normalize_name(target_name)
+
+        if has_brand_change:
+            target_brand_name = update_data.get("brand_name")
+            target_brand_id = update_data.get("brand_id")
+            resolved_brand_id = _resolve_brand_id(
+                db,
+                current_user,
+                brand_name=target_brand_name,
+                brand_id=target_brand_id,
+            )
+        else:
+            resolved_brand_id = db_item.product.brand_id if db_item.product else None
+
+        db_brand = repo.get_supplier(db, resolved_brand_id) if resolved_brand_id else None
+        brand_suffix = f" ({db_brand.name_normalized})" if db_brand else ""
+        list_item_normalized_name = f"{normalized_name}{brand_suffix}"
 
         existing_open = repo.get_open_item_by_list_and_name(
             db,
             db_item.shopping_list_id,
-            normalized_name,
+            list_item_normalized_name,
         )
         if existing_open and existing_open.id != db_item.id:
             raise HTTPException(
@@ -486,10 +566,34 @@ def update_item(
                 detail="Esiste già un articolo aperto con questo prodotto nella lista.",
             )
 
-        db_product = repo.get_or_create_product_by_name(db, normalized_name, current_user.id)
+        db_product = repo.get_or_create_product_by_name(
+            db,
+            normalized_name,
+            current_user.id,
+            brand_id=resolved_brand_id,
+        )
+        old_product_id = db_item.product_id
         db_item.product_id = db_product.id
-        db_item.name_normalized = normalized_name
-        update_data.pop("product_name")
+        db_item.name_normalized = list_item_normalized_name
+
+        if old_product_id != db_product.id:
+            active_batches_to_update = (
+                db.query(InventoryBatch)
+                .filter(
+                    InventoryBatch.list_item_id == db_item.id,
+                    InventoryBatch.deleted_at.is_(None),
+                )
+                .all()
+            )
+            now_today = _today()
+            for b in active_batches_to_update:
+                b.product_id = db_product.id
+                b.updated_at = now_today
+                b.updated_by_user_id = current_user.id
+
+        update_data.pop("product_name", None)
+        update_data.pop("brand_name", None)
+        update_data.pop("brand_id", None)
 
     for field, value in update_data.items():
         setattr(db_item, field, value)
@@ -718,6 +822,36 @@ def add_inventory_batch(
         if user_role == "reader":
             raise HTTPException(status_code=403, detail="I lettori non possono registrare acquisti.")
 
+    # Se viene specificato un brand durante l'acquisto, risolvilo e collegalo
+    resolved_brand_id = _resolve_brand_id(
+        db,
+        current_user,
+        brand_name=batch_in.brand_name,
+        brand_id=batch_in.brand_id,
+    )
+
+    target_product_id = db_item.product_id
+    if resolved_brand_id is not None:
+        if db_item.product and db_item.product.brand_id is None:
+            db_item.product.brand_id = resolved_brand_id
+            db_item.product.updated_at = _now()
+            db_item.product.updated_by_user_id = current_user.id
+            db_brand = repo.get_supplier(db, resolved_brand_id)
+            brand_suffix = f" ({db_brand.name_normalized})" if db_brand else ""
+            db_item.name_normalized = f"{_normalize_name(db_item.product.name_normalized)}{brand_suffix}"
+        elif db_item.product and db_item.product.brand_id != resolved_brand_id:
+            new_prod = repo.get_or_create_product_by_name(
+                db,
+                db_item.product.name_normalized,
+                current_user.id,
+                brand_id=resolved_brand_id,
+            )
+            db_item.product_id = new_prod.id
+            target_product_id = new_prod.id
+            db_brand = repo.get_supplier(db, resolved_brand_id)
+            brand_suffix = f" ({db_brand.name_normalized})" if db_brand else ""
+            db_item.name_normalized = f"{_normalize_name(new_prod.name_normalized)}{brand_suffix}"
+
     if batch_in.product_id is not None and batch_in.product_id != db_item.product_id:
         raise HTTPException(
             status_code=400,
@@ -733,7 +867,7 @@ def add_inventory_batch(
 
     db_batch = InventoryBatch(
         list_item_id=item_id,
-        product_id=db_item.product_id,
+        product_id=target_product_id,
         supplier_id=batch_in.supplier_id,
         purchase_date=batch_in.purchase_date,
         expiration_date=batch_in.expiration_date,
@@ -755,6 +889,85 @@ def add_inventory_batch(
     repo.commit(db)
     repo.refresh(db, db_batch)
     return db_batch
+
+
+def create_quick_price_batch(
+    db: Session,
+    current_user: User,
+    batch_in: QuickPriceBatchCreate,
+) -> list:
+    created_batches = []
+    today = _today()
+
+    for rec in batch_in.records:
+        prod_name = rec.product_name.strip()
+        if not prod_name:
+            continue
+
+        normalized_prod_name = _normalize_name(prod_name)
+
+        # Risolvi brand se indicato
+        resolved_brand_id = None
+        if rec.brand_name or rec.brand_id:
+            resolved_brand_id = _resolve_brand_id(
+                db,
+                current_user,
+                brand_name=rec.brand_name,
+                brand_id=rec.brand_id,
+            )
+
+        # Risolvi o crea prodotto canonico
+        db_product = repo.get_or_create_product_by_name(
+            db,
+            normalized_prod_name,
+            current_user.id,
+            brand_id=resolved_brand_id,
+        )
+
+        # Risolvi fornitore se indicato
+        resolved_supplier_id = rec.supplier_id
+        if resolved_supplier_id is None and rec.supplier_name and rec.supplier_name.strip():
+            sup = repo.find_supplier_by_name(db, rec.supplier_name.strip())
+            if sup:
+                resolved_supplier_id = sup.id
+            else:
+                default_status_id = repo.active_supplier_status_id(db) or 1
+                new_sup = ShoppingSupplier(
+                    name=rec.supplier_name.strip(),
+                    name_normalized=_normalize_name(rec.supplier_name.strip()),
+                    type_code=1,
+                    status_id=default_status_id,
+                    created_by_user_id=current_user.id,
+                    updated_by_user_id=current_user.id,
+                    created_at=_now(),
+                    updated_at=_now(),
+                )
+                repo.add(db, new_sup)
+                repo.flush(db)
+                resolved_supplier_id = new_sup.id
+
+        batch = InventoryBatch(
+            product_id=db_product.id,
+            list_item_id=None,
+            supplier_id=resolved_supplier_id,
+            purchase_date=rec.purchase_date,
+            quantity_purchased=rec.quantity_purchased,
+            purchase_price=rec.purchase_price,
+            is_on_sale=rec.is_on_sale,
+            created_by_user_id=current_user.id,
+            purchased_by_user_id=current_user.id,
+            created_at=today,
+            updated_at=today,
+        )
+        repo.add(db, batch)
+        created_batches.append(batch)
+
+    repo.commit(db)
+    for b in created_batches:
+        repo.refresh(db, b)
+
+    # Ritorna serializzato coerente con list_all_batches
+    return list_all_batches(db, current_user)
 
 
 def update_inventory_batch(
@@ -833,6 +1046,15 @@ def list_item_batches(
         unit_price = (b.purchase_price / qty).quantize(D("0.01")) if qty else None
         list_name: Optional[str] = None
         unit_name: Optional[str] = None
+        brand_id: Optional[int] = None
+        brand_name: Optional[str] = None
+        if b.product and b.product.brand:
+            brand_id = b.product.brand.id
+            brand_name = b.product.brand.name
+        elif b.list_item and b.list_item.product and b.list_item.product.brand:
+            brand_id = b.list_item.product.brand.id
+            brand_name = b.list_item.product.brand.name
+
         if b.list_item:
             if b.list_item.shopping_list:
                 list_name = b.list_item.shopping_list.name
@@ -842,6 +1064,8 @@ def list_item_batches(
             "id": b.id,
             "product_id": b.product_id,
             "product_name": b.product.name_normalized if b.product else (b.list_item.name_normalized if b.list_item else "Prodotto"),
+            "brand_id": brand_id,
+            "brand_name": brand_name,
             "purchase_date": b.purchase_date,
             "quantity_purchased": b.quantity_purchased,
             "purchase_price": b.purchase_price,
@@ -866,10 +1090,19 @@ def list_all_batches(db: Session, current_user: User) -> list:
         list_name: Optional[str] = None
         unit_name: Optional[str] = None
         product_name: str = "Prodotto"
+        brand_id: Optional[int] = None
+        brand_name: Optional[str] = None
         if b.product:
             product_name = b.product.name_normalized
+            if b.product.brand:
+                brand_id = b.product.brand.id
+                brand_name = b.product.brand.name
         elif b.list_item and b.list_item.name_normalized:
             product_name = b.list_item.name_normalized
+            if b.list_item.product and b.list_item.product.brand:
+                brand_id = b.list_item.product.brand.id
+                brand_name = b.list_item.product.brand.name
+
         if b.list_item:
             if b.list_item.shopping_list:
                 list_name = b.list_item.shopping_list.name
@@ -879,7 +1112,8 @@ def list_all_batches(db: Session, current_user: User) -> list:
             "id": b.id,
             "product_id": b.product_id,
             "product_name": product_name,
-
+            "brand_id": brand_id,
+            "brand_name": brand_name,
             "purchase_date": b.purchase_date,
             "quantity_purchased": b.quantity_purchased,
             "purchase_price": b.purchase_price,
@@ -907,6 +1141,11 @@ def list_community_prices(
         qty = b.quantity_purchased or D("1")
         unit_price = (b.purchase_price / qty).quantize(D("0.01")) if qty else b.purchase_price
         unit_name: Optional[str] = None
+        brand_id: Optional[int] = None
+        brand_name: Optional[str] = None
+        if b.product and b.product.brand:
+            brand_id = b.product.brand.id
+            brand_name = b.product.brand.name
         if b.list_item and b.list_item.unit:
             unit_name = b.list_item.unit.code_value or b.list_item.unit.code_name
         result.append({
@@ -914,6 +1153,8 @@ def list_community_prices(
             "unit_price": unit_price,
             "supplier_id": b.supplier_id,
             "supplier_name": b.supplier.name if b.supplier else None,
+            "brand_id": brand_id,
+            "brand_name": brand_name,
             "unit_name": unit_name,
             "is_on_sale": b.is_on_sale,
         })

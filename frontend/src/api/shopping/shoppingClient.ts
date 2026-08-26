@@ -46,6 +46,10 @@ export const shoppingQueryKeys = {
   supplier: (supplierId: number) =>
     [...shoppingQueryKeys.all, 'suppliers', supplierId] as const,
 
+  brands: () => [...shoppingQueryKeys.all, 'brands'] as const,
+  brand: (brandId: number) =>
+    [...shoppingQueryKeys.all, 'brands', brandId] as const,
+
   config: () => [...shoppingQueryKeys.all, 'config'] as const,
   products: () => [...shoppingQueryKeys.all, 'products'] as const,
   groupMembers: (groupId: number) =>

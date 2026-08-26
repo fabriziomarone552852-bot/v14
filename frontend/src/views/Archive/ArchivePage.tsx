@@ -111,8 +111,8 @@ const MODULES: ArchiveModuleCard[] = [
   },
   {
     id: 'fornitori',
-    title: 'Fornitori & Negozi',
-    description: 'Gestisci supermercati, negozi di fiducia e listini prezzi per la spesa.',
+    title: 'Negozi & Brand',
+    description: 'Gestisci negozi di fiducia, supermercati e i marchi dei tuoi prodotti.',
     to: '/fornitori',
     icon: <StoreIcon className="w-6 h-6" />,
     accentBg: 'bg-orange-50 hover:bg-orange-100/80',

@@ -49,6 +49,7 @@ export interface ShoppingItemsColumnHandle {
 interface ShoppingItemsColumnProps {
   items: ShoppingListItem[];
   suppliers: ShoppingSupplierOption[];
+  brands?: ShoppingSupplierOption[];
   products?: ShoppingProductOption[];
   unitOptions: ConfigOption[];
   currencyOptions: ConfigOption[];
@@ -61,6 +62,7 @@ interface ShoppingItemsColumnProps {
   onEditList?: (list: ShoppingListSummary) => void;
   onDeleteList?: (list: ShoppingListSummary) => void;
   onToggleCompleteList?: (list: ShoppingListSummary, isCompleted: boolean) => void;
+  onQuickPriceAdd?: () => void;
 }
 
 const ShoppingItemsColumn = forwardRef<
@@ -71,6 +73,7 @@ const ShoppingItemsColumn = forwardRef<
     {
       items,
       suppliers,
+      brands = [],
       products = [],
       unitOptions,
       currencyOptions,
@@ -83,6 +86,7 @@ const ShoppingItemsColumn = forwardRef<
       onEditList,
       onDeleteList,
       onToggleCompleteList,
+      onQuickPriceAdd,
     },
     ref
   ) => {
@@ -156,7 +160,11 @@ const ShoppingItemsColumn = forwardRef<
       }
 
       if (effectiveQuery) {
-        result = result.filter((item) => item.productName.toLowerCase().includes(effectiveQuery));
+        result = result.filter((item) => {
+          const pMatch = item.productName.toLowerCase().includes(effectiveQuery);
+          const bMatch = item.brandName ? item.brandName.toLowerCase().includes(effectiveQuery) : false;
+          return pMatch || bMatch;
+        });
       }
 
       return result;
@@ -181,6 +189,8 @@ const ShoppingItemsColumn = forwardRef<
       await mutations.createItem({
         shoppingListId: Number(itemForm.shoppingListId),
         productName: itemForm.productName.trim(),
+        brandName: itemForm.brandName.trim() || undefined,
+        brandId: itemForm.brandId ? Number(itemForm.brandId) : undefined,
         quantity: itemForm.quantity ? Number(itemForm.quantity) : undefined,
         unitId: itemForm.unitId ? Number(itemForm.unitId) : undefined,
         notes: itemForm.notes?.trim() || undefined,
@@ -212,6 +222,8 @@ const ShoppingItemsColumn = forwardRef<
         shoppingListId:
           item.shoppingListId != null ? String(item.shoppingListId) : '',
         productName: item.productName ?? '',
+        brandName: item.brandName ?? '',
+        brandId: item.brandId != null ? String(item.brandId) : '',
         quantity: item.quantity != null ? String(item.quantity) : '',
         unitId: item.unitId != null ? String(item.unitId) : '',
         notes: item.notes ?? '',
@@ -234,6 +246,8 @@ const ShoppingItemsColumn = forwardRef<
         listId: editModal.data.shoppingListId,
         data: {
           productName: editForm.productName.trim() || undefined,
+          brandName: editForm.brandName.trim() || undefined,
+          brandId: editForm.brandId ? Number(editForm.brandId) : undefined,
           quantity: editForm.quantity ? Number(editForm.quantity) : undefined,
           unitId: editForm.unitId ? Number(editForm.unitId) : undefined,
           notes: editForm.notes?.trim() || undefined,
@@ -271,7 +285,12 @@ const ShoppingItemsColumn = forwardRef<
 
     const handleOpenPurchase = (item: ShoppingListItem) => {
       setPurchaseForm({
-        ...emptyPurchaseForm(eurCurrencyId, item.quantity != null ? String(item.quantity) : '1'),
+        ...emptyPurchaseForm(
+          eurCurrencyId,
+          item.quantity != null ? String(item.quantity) : '1',
+          item.brandName ?? '',
+          item.brandId != null ? String(item.brandId) : ''
+        ),
         purchaseDate: getLocalTodayStr(),
       });
       purchaseModal.open(item);
@@ -301,6 +320,10 @@ const ShoppingItemsColumn = forwardRef<
           supplierId: purchaseForm.supplierId
             ? Number(purchaseForm.supplierId)
             : undefined,
+          brandId: purchaseForm.brandId
+            ? Number(purchaseForm.brandId)
+            : undefined,
+          brandName: purchaseForm.brandName?.trim() || undefined,
           purchaseDate: purchaseForm.purchaseDate,
           purchasePrice: Number(purchaseForm.price.replace(',', '.')),
           quantity: boughtQuantity,
@@ -359,7 +382,7 @@ const ShoppingItemsColumn = forwardRef<
 
 
     if (!activeListId || !activeList) {
-      return <ShoppingItemsEmptyState />;
+      return <ShoppingItemsEmptyState onQuickPriceAdd={onQuickPriceAdd} />;
     }
 
     return (
@@ -447,6 +470,7 @@ const ShoppingItemsColumn = forwardRef<
           activeListId={activeListId}
           unitOptions={unitOptions}
           products={products}
+          brands={brands}
         />
 
 
@@ -459,6 +483,7 @@ const ShoppingItemsColumn = forwardRef<
           setEditForm={setEditForm}
           unitOptions={unitOptions}
           products={products}
+          brands={brands}
         />
 
 
@@ -470,6 +495,8 @@ const ShoppingItemsColumn = forwardRef<
           purchaseForm={purchaseForm}
           setPurchaseForm={setPurchaseForm}
           suppliers={suppliers}
+          brands={brands}
+          products={products}
           currencyOptions={currencyOptions}
           offerFlagOptions={offerFlagOptions}
           itemName={purchaseModal.data?.productName ?? ''}

@@ -83,9 +83,14 @@ export const ShoppingItemPriceHistoryPanel: React.FC<ShoppingItemPriceHistoryPan
                     <div className="text-left text-gray-500 font-medium text-[11px] truncate">
                       {formatToItalianShortDate(b.purchaseDate)}
                     </div>
-                    <div className="text-center font-semibold text-gray-700 flex items-center justify-center gap-1 min-w-0 truncate">
+                    <div className="text-center font-semibold text-gray-700 flex items-center justify-center gap-1.5 min-w-0 truncate">
                       <StoreIcon className="w-3.5 h-3.5 text-orange-400 shrink-0" />
                       <span className="truncate">{b.supplierName || '—'}</span>
+                      {b.brandName && (
+                        <span className="text-[10px] font-medium px-1.5 py-0.5 rounded bg-indigo-50 text-indigo-700 border border-indigo-100 shrink-0 truncate">
+                          {b.brandName}
+                        </span>
+                      )}
                     </div>
                     <div className="text-right flex items-center justify-end gap-1.5">
                       {b.isOnSale && (
@@ -116,9 +121,14 @@ export const ShoppingItemPriceHistoryPanel: React.FC<ShoppingItemPriceHistoryPan
                   <div className="text-left text-gray-500 font-medium text-[11px] truncate">
                     {formatToItalianShortDate(p.purchaseDate)}
                   </div>
-                  <div className="text-center font-semibold text-gray-700 flex items-center justify-center gap-1 min-w-0 truncate">
+                  <div className="text-center font-semibold text-gray-700 flex items-center justify-center gap-1.5 min-w-0 truncate">
                     <StoreIcon className="w-3.5 h-3.5 text-orange-400 shrink-0" />
                     <span className="truncate">{p.supplierName || '—'}</span>
+                    {p.brandName && (
+                      <span className="text-[10px] font-medium px-1.5 py-0.5 rounded bg-indigo-50 text-indigo-700 border border-indigo-100 shrink-0 truncate">
+                        {p.brandName}
+                      </span>
+                    )}
                   </div>
                   <div className="text-right flex items-center justify-end gap-1.5">
                     {p.isOnSale && (

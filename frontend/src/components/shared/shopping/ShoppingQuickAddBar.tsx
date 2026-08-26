@@ -54,6 +54,7 @@ const ShoppingQuickAddBar: React.FC<ShoppingQuickAddBarProps> = ({
             value={quickName}
             onChange={(name) => onQuickNameChange(name)}
             products={products}
+            hideBrand={true}
             placeholder={
               hasActiveList
                 ? 'Aggiungi rapidamente un prodotto...'

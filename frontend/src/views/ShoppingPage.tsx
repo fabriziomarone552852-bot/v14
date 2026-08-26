@@ -28,6 +28,7 @@ import { extractErrorMessage } from '@/utils/errorUtils';
 import type { ConfigOption, PendingGroupInvite, ShoppingGroupSummary, ShoppingListSummary } from '@/types/shopping';
 import { ShoppingIcon } from '@/components/shared/utils/Icons';
 import { ShoppingListModal, makeEmptyForm, type ListFormState } from '@/components/shared/shopping/ShoppingListModal';
+import ShoppingQuickPriceModal from '@/components/archive/shopping/ShoppingQuickPriceModal';
 
 const ShoppingPage: React.FC = () => {
   const queryClient = useQueryClient();
@@ -38,6 +39,7 @@ const ShoppingPage: React.FC = () => {
   const [editingGroup, setEditingGroup] = useState<ShoppingGroupSummary | null>(null);
   const [detailGroup, setDetailGroup] = useState<ShoppingGroupSummary | null>(null);
   const [activeInviteGroup, setActiveInviteGroup] = useState<ShoppingGroupSummary | null>(null);
+  const quickPriceModal = useModal<null>();
 
   // Edit list modal state
   const editListModal = useModal<ShoppingListSummary>();
@@ -50,6 +52,7 @@ const ShoppingPage: React.FC = () => {
     setActiveListId,
     items,
     suppliers,
+    brands,
     products,
     config,
     listsLoading,
@@ -308,6 +311,7 @@ const ShoppingPage: React.FC = () => {
           <ShoppingItemsColumn
             items={items}
             suppliers={suppliers}
+            brands={brands}
             products={products}
             loading={itemsLoading}
             activeListId={activeListId}
@@ -320,6 +324,7 @@ const ShoppingPage: React.FC = () => {
             onEditList={handleOpenEditList}
             onDeleteList={handleDeleteList}
             onToggleCompleteList={handleToggleCompleteList}
+            onQuickPriceAdd={() => quickPriceModal.open(null)}
           />
         </div>
       </div>
@@ -423,6 +428,16 @@ const ShoppingPage: React.FC = () => {
           submitLabel={editListModal.data.id === 0 ? 'Crea Lista' : 'Salva Modifiche'}
         />
       )}
+
+      {/* Modale Aggiunta Rapida Prezzi */}
+      <ShoppingQuickPriceModal
+        isOpen={quickPriceModal.isOpen}
+        onClose={quickPriceModal.close}
+        products={products}
+        brands={brands}
+        suppliers={suppliers}
+        unitOptions={unitOptions}
+      />
     </div>
   );
 };

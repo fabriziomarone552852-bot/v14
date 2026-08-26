@@ -1,5 +1,6 @@
 // frontend/src/components/shared/utils/DatePicker.tsx
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import { nomiMesiLungo, getDaysInMonth, getFirstDayIndex, formatToItalianShortDate, generateWeeksGrid } from '@/utils/dateUtils';
 import { useOutsideClick } from '@/hooks/useOutsideClick';
 import { CalendarIcon, BackIcon, ForwardIcon } from '../Icons';
@@ -17,6 +18,7 @@ interface DatePickerProps {
   align?: 'left' | 'right' | 'center';
   customTrigger?: React.ReactNode; 
   selectionMode?: 'day' | 'week' | 'month' | 'year';
+  usePortal?: boolean;
 }
 
 const get9YearRangeStart = (y: number): number => {
@@ -32,15 +34,49 @@ const DatePicker: React.FC<DatePickerProps> = ({
   placeholder = 'Seleziona data', 
   align = 'left',
   customTrigger,
-  selectionMode = 'day'
+  selectionMode = 'day',
+  usePortal = false,
 }) => {
   const [pickerMonthDate, setPickerMonthDate] = useState<Date>(new Date());
   const [yearRangeStart, setYearRangeStart] = useState<number>(() => get9YearRangeStart(new Date().getFullYear()));
   const [openUpwards, setOpenUpwards] = useState<boolean>(false);
+  const [coords, setCoords] = useState<{ top: number; bottom: number; left: number }>({
+    top: 0,
+    bottom: 0,
+    left: 0,
+  });
 
-  const wrapperRef = useOutsideClick(() => {
+  const popupRef = useRef<HTMLDivElement>(null);
+
+  const wrapperRef = useOutsideClick<HTMLDivElement>((e: MouseEvent | TouchEvent) => {
+    if (usePortal && popupRef.current && popupRef.current.contains(e.target as Node)) {
+      return;
+    }
     if (isOpen) onClose();
   });
+
+  const updateCoords = useCallback(() => {
+    if (wrapperRef.current) {
+      const rect = wrapperRef.current.getBoundingClientRect();
+      const spaceBelow = window.innerHeight - rect.bottom;
+      const openUp = spaceBelow < 320;
+      setOpenUpwards(openUp);
+
+      let leftPos = rect.left;
+      if (align === 'center') {
+        leftPos = rect.left + rect.width / 2 - 128;
+      } else if (align === 'right') {
+        leftPos = rect.right - 256;
+      }
+      leftPos = Math.max(10, Math.min(leftPos, window.innerWidth - 266));
+
+      setCoords({
+        top: rect.bottom + 6,
+        bottom: window.innerHeight - rect.top + 6,
+        left: leftPos,
+      });
+    }
+  }, [align, wrapperRef]);
 
   useEffect(() => {
     if (isOpen) {
@@ -54,16 +90,26 @@ const DatePicker: React.FC<DatePickerProps> = ({
         setPickerMonthDate(now);
         setYearRangeStart(get9YearRangeStart(now.getFullYear()));
       }
+
+      if (usePortal) {
+        updateCoords();
+        window.addEventListener('resize', updateCoords);
+        window.addEventListener('scroll', updateCoords, true);
+        return () => {
+          window.removeEventListener('resize', updateCoords);
+          window.removeEventListener('scroll', updateCoords, true);
+        };
+      }
     }
-  }, [isOpen, value]);
+  }, [isOpen, value, usePortal, updateCoords]);
 
   useEffect(() => {
-    if (isOpen && wrapperRef.current) {
+    if (!usePortal && isOpen && wrapperRef.current) {
       const rect = wrapperRef.current.getBoundingClientRect();
       const spaceBelow = window.innerHeight - rect.bottom;
       setOpenUpwards(spaceBelow < 320);
     }
-  }, [isOpen, wrapperRef]);
+  }, [isOpen, usePortal, wrapperRef]);
 
   const year = pickerMonthDate.getFullYear();
   const month = pickerMonthDate.getMonth();
@@ -100,6 +146,82 @@ const DatePicker: React.FC<DatePickerProps> = ({
     }
   };
 
+  const popupContent = (
+    <div 
+      ref={popupRef}
+      className={`${usePortal ? '' : 'absolute'} z-[100] bg-white rounded-xl shadow-xl border border-gray-100 p-4 w-64 animate-fadeIn`}
+      style={
+        usePortal
+          ? {
+              position: 'fixed',
+              top: openUpwards ? 'auto' : `${coords.top}px`,
+              bottom: openUpwards ? `${coords.bottom}px` : 'auto',
+              left: `${coords.left}px`,
+              zIndex: 99999,
+            }
+          : {
+              [openUpwards ? 'bottom' : 'top']: '100%',
+              left: align === 'center' ? '50%' : align === 'right' ? undefined : 0,
+              right: align === 'right' ? 0 : undefined,
+              marginLeft: align === 'center' ? '-8rem' : undefined,
+              marginTop: openUpwards ? undefined : '0.5rem',
+              marginBottom: openUpwards ? '0.5rem' : undefined,
+            }
+      }
+      onClick={(e: React.MouseEvent<HTMLDivElement>) => e.stopPropagation()}
+    >
+      <div className="flex justify-between items-center mb-4 px-2">
+        <button type="button" onClick={handleBack} className="text-gray-400 hover:text-gray-800 transition-colors focus:outline-none">
+          <BackIcon className="w-4 h-4" />
+        </button>
+        <span className="font-bold text-gray-800 text-sm">
+          {selectionMode === 'year'
+            ? `${yearRangeStart} - ${yearRangeStart + 8}`
+            : selectionMode === 'month'
+            ? year
+            : `${nomiMesiLungo[month]} ${year}`}
+        </span>
+        <button type="button" onClick={handleForward} className="text-gray-400 hover:text-gray-800 transition-colors focus:outline-none">
+          <ForwardIcon className="w-4 h-4" />
+        </button>
+      </div>
+      
+      {selectionMode === 'year' ? (
+        <DatePickerYearGrid
+          startYear={yearRangeStart}
+          selectedYear={year}
+          currentYear={currentYear}
+          onChange={onChange}
+          onClose={onClose}
+        />
+      ) : selectionMode === 'month' ? (
+        // GRIGLIA MENSILE
+        <DatePickerMonthGrid 
+          year={year} 
+          currentYear={currentYear} 
+          currentMonth={currentMonth} 
+          value={value} 
+          onChange={onChange} 
+          onClose={onClose} 
+        />
+      ) : (
+        // GRIGLIA GIORNI / SETTIMANE
+        <DatePickerDayGrid 
+          weeks={weeks}
+          year={year}
+          month={month}
+          currentYear={currentYear}
+          currentMonth={currentMonth}
+          currentDay={currentDay}
+          value={value}
+          selectionMode={selectionMode}
+          onChange={onChange}
+          onClose={onClose}
+        />
+      )}
+    </div>
+  );
+
   return (
     <div className="relative flex justify-center w-full" ref={wrapperRef}>
       
@@ -122,70 +244,7 @@ const DatePicker: React.FC<DatePickerProps> = ({
         </div>
       )}
       
-      {isOpen && (
-        <div 
-          className="absolute z-[100] bg-white rounded-xl shadow-xl border border-gray-100 p-4 w-64 animate-fadeIn"
-          style={{
-            [openUpwards ? 'bottom' : 'top']: '100%',
-            left: align === 'center' ? '50%' : align === 'right' ? undefined : 0,
-            right: align === 'right' ? 0 : undefined,
-            transform: align === 'center' ? 'translateX(-50%)' : undefined,
-            marginTop: openUpwards ? undefined : '0.5rem',
-            marginBottom: openUpwards ? '0.5rem' : undefined,
-          }}
-          onClick={(e: React.MouseEvent<HTMLDivElement>) => e.stopPropagation()}
-        >
-          <div className="flex justify-between items-center mb-4 px-2">
-            <button type="button" onClick={handleBack} className="text-gray-400 hover:text-gray-800 transition-colors focus:outline-none">
-              <BackIcon className="w-4 h-4" />
-            </button>
-            <span className="font-bold text-gray-800 text-sm">
-              {selectionMode === 'year'
-                ? `${yearRangeStart} - ${yearRangeStart + 8}`
-                : selectionMode === 'month'
-                ? year
-                : `${nomiMesiLungo[month]} ${year}`}
-            </span>
-            <button type="button" onClick={handleForward} className="text-gray-400 hover:text-gray-800 transition-colors focus:outline-none">
-              <ForwardIcon className="w-4 h-4" />
-            </button>
-          </div>
-          
-          {selectionMode === 'year' ? (
-            <DatePickerYearGrid
-              startYear={yearRangeStart}
-              selectedYear={year}
-              currentYear={currentYear}
-              onChange={onChange}
-              onClose={onClose}
-            />
-          ) : selectionMode === 'month' ? (
-            // GRIGLIA MENSILE
-            <DatePickerMonthGrid 
-              year={year} 
-              currentYear={currentYear} 
-              currentMonth={currentMonth} 
-              value={value} 
-              onChange={onChange} 
-              onClose={onClose} 
-            />
-          ) : (
-            // GRIGLIA GIORNI / SETTIMANE
-            <DatePickerDayGrid 
-              weeks={weeks}
-              year={year}
-              month={month}
-              currentYear={currentYear}
-              currentMonth={currentMonth}
-              currentDay={currentDay}
-              value={value}
-              selectionMode={selectionMode}
-              onChange={onChange}
-              onClose={onClose}
-            />
-          )}
-        </div>
-      )}
+      {isOpen && (usePortal ? createPortal(popupContent, document.body) : popupContent)}
     </div>
   );
 };

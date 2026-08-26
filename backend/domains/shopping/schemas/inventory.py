@@ -23,6 +23,8 @@ class InventoryBatchBase(StrictBaseModel):
     product_id: Optional[int] = None
     list_item_id: Optional[int] = None
     supplier_id: Optional[int] = None
+    brand_id: Optional[int] = None
+    brand_name: Optional[str] = None
 
     purchase_date: date
     expiration_date: Optional[date] = None
@@ -57,10 +59,54 @@ class InventoryBatchCreate(InventoryBatchBase):
     pass
 
 
+class QuickPriceRecordCreate(StrictBaseModel):
+    product_name: str = Field(..., min_length=1, max_length=255)
+    brand_name: Optional[str] = None
+    brand_id: Optional[int] = None
+    supplier_id: Optional[int] = None
+    supplier_name: Optional[str] = None
+    unit_id: Optional[int] = None
+    purchase_date: date
+    quantity_purchased: Decimal = Field(
+        default=Decimal("1"),
+        max_digits=12,
+        decimal_places=2,
+        gt=Decimal("0"),
+    )
+    purchase_price: Decimal = Field(
+        ...,
+        max_digits=12,
+        decimal_places=2,
+        ge=Decimal("0"),
+    )
+    is_on_sale: bool = False
+
+    @field_validator("quantity_purchased", "purchase_price", mode="before")
+    @classmethod
+    def truncate_decimals(cls, value: object) -> object:
+        if value is None or value == "":
+            return value
+        return _truncate_2_decimals(value)
+
+    @field_validator("product_name")
+    @classmethod
+    def normalize_product_name(cls, value: str) -> str:
+        v = value.strip()
+        if not v:
+            raise ValueError("Il nome del prodotto è obbligatorio.")
+        return v
+
+
+class QuickPriceBatchCreate(StrictBaseModel):
+    records: list[QuickPriceRecordCreate] = Field(..., min_length=1)
+
+
 class InventoryBatchUpdate(StrictBaseModel):
     product_id: Optional[int] = None
     list_item_id: Optional[int] = None
     supplier_id: Optional[int] = None
+    brand_id: Optional[int] = None
+    brand_name: Optional[str] = None
 
     purchase_date: Optional[date] = None
     expiration_date: Optional[date] = None
@@ -137,6 +183,8 @@ class ItemBatchResponse(ORMBaseModel):
     id: int
     product_id: Optional[int] = None
     product_name: Optional[str] = None
+    brand_id: Optional[int] = None
+    brand_name: Optional[str] = None
     purchase_date: date
     quantity_purchased: Decimal
     purchase_price: Decimal
@@ -155,5 +203,7 @@ class CommunityPricePoint(ORMBaseModel):
     unit_price: Decimal                           # prezzo totale / quantità
     supplier_id: Optional[int] = None
     supplier_name: Optional[str] = None
+    brand_id: Optional[int] = None
+    brand_name: Optional[str] = None
     unit_name: Optional[str] = None               # unità di misura associata all'acquisto
     is_on_sale: bool = False

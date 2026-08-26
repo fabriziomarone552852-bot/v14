@@ -17,8 +17,8 @@ export const SupplierStatsOverview: React.FC<SupplierStatsOverviewProps> = ({
           <StoreIcon />
         </div>
       }
-      title="Fornitori & Negozi"
-      subtitle="Anagrafica dei negozi, supermercati e fornitori per monitorare i prezzi e la spesa."
+      title="Negozi & Brand"
+      subtitle="Anagrafica dei punti vendita, negozi di fiducia e dei marchi per monitorare i prezzi e la spesa."
       className={panelClass}
     />
   );

@@ -22,6 +22,7 @@ from backend.domains.shopping.schemas.inventory import (
     InventoryBatchUpdate,
     ItemBatchResponse,
     CommunityPricePoint,
+    QuickPriceBatchCreate,
 )
 
 from backend.domains.shopping.schemas.lists import (
@@ -389,6 +390,19 @@ def list_all_inventory_batches(
     current_user: User = Depends(deps.get_current_app_user),
 ):
     return service.list_all_batches(db, current_user)
+
+
+@router.post(
+    "/inventory-batches/quick-add",
+    response_model=List[ItemBatchResponse],
+    status_code=status.HTTP_201_CREATED,
+)
+def create_quick_price_batch(
+    batch_in: QuickPriceBatchCreate,
+    db: Session = Depends(deps.get_db),
+    current_user: User = Depends(deps.get_current_app_user),
+):
+    return service.create_quick_price_batch(db, current_user, batch_in)
 
 
 @router.get(

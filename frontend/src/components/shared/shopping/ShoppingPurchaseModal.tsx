@@ -1,7 +1,7 @@
-// src/components/shared/shopping/ShoppingPurchaseModal.tsx
 import React, { useState } from 'react';
 import type {
   ConfigOption,
+  ShoppingProductOption,
   ShoppingSupplierOption,
 } from '@/types/shopping';
 import type { PurchaseFormState } from './shoppingItems.utils';
@@ -9,6 +9,7 @@ import BaseModal from '@/components/shared/dialog/BaseModal';
 import ShoppingQuantityInput from './ShoppingQuantityInput';
 import ShoppingCurrencySelect from './ShoppingCurrencySelect';
 import ShoppingSupplierSelect from './ShoppingSupplierSelect';
+import ShoppingBrandAutocomplete from './ShoppingBrandAutocomplete';
 import DatePicker from '@/components/shared/utils/DatePicker/DatePicker';
 import { ShoppingIcon } from '@/components/shared/utils/Icons';
 
@@ -22,6 +23,8 @@ interface ShoppingPurchaseModalProps {
   purchaseForm: PurchaseFormState;
   setPurchaseForm: React.Dispatch<React.SetStateAction<PurchaseFormState>>;
   suppliers: ShoppingSupplierOption[];
+  brands?: ShoppingSupplierOption[];
+  products?: ShoppingProductOption[];
   currencyOptions: ConfigOption[];
   offerFlagOptions: ConfigOption[];
   onClose: () => void;
@@ -36,6 +39,8 @@ const ShoppingPurchaseModal: React.FC<ShoppingPurchaseModalProps> = ({
   purchaseForm,
   setPurchaseForm,
   suppliers,
+  brands = [],
+  products = [],
   currencyOptions,
   onClose,
   onSubmit,
@@ -145,7 +150,27 @@ const ShoppingPurchaseModal: React.FC<ShoppingPurchaseModalProps> = ({
           </div>
         )}
 
-        {/* Riga 2: Negozio con Tasto + e Data Acquisto con DatePicker */}
+        {/* Riga 2: Marchio / Brand */}
+        <div>
+          <label className="block text-xs font-bold text-gray-500 uppercase mb-1">
+            Marchio / Brand <span className="text-gray-400 font-normal lowercase">(opzionale)</span>
+          </label>
+          <ShoppingBrandAutocomplete
+            value={purchaseForm.brandName}
+            onChange={(bName, brandObj) =>
+              setPurchaseForm((prev) => ({
+                ...prev,
+                brandName: bName,
+                brandId: brandObj?.id ? String(brandObj.id) : '',
+              }))
+            }
+            brands={brands}
+            productName={itemName}
+            products={products}
+          />
+        </div>
+
+        {/* Riga 3: Negozio con Tasto + e Data Acquisto con DatePicker */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 items-end">
           {/* Negozio */}
           <div>

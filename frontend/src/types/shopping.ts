@@ -90,6 +90,7 @@ export interface ItemPriceHistoryPoint {
 export interface ShoppingSupplierOption {
   id: number;
   name: string;
+  typeCode?: number;
   statusId?: number | null;
   statusCodeName?: string | null;
   isActive?: boolean;
@@ -99,6 +100,8 @@ export interface ShoppingProductOption {
   id: number;
   nameNormalized: string;
   displayName: string;
+  brandId?: number | null;
+  brandName?: string | null;
   defaultUnitId?: number | null;
   defaultUnitCodeName?: string | null;
   lastPurchasePrice?: number | null;
@@ -140,9 +143,10 @@ export interface ShoppingListItem {
   shoppingListId: number;
   productId: number;
   
-  // Refactor: nameOriginal rimosso, introdotto productName
   productName: string; 
   nameNormalized: string;
+  brandId?: number | null;
+  brandName?: string | null;
 
   quantity?: number | null;
   unitId?: number | null;
@@ -205,6 +209,8 @@ export interface ItemBatchRecord {
   id: number;
   productId?: number | null;
   productName?: string | null;
+  brandId?: number | null;
+  brandName?: string | null;
   purchaseDate: string;
   quantityPurchased: number;
   purchasePrice: number;
@@ -221,6 +227,8 @@ export interface CommunityPriceRecord {
   unitPrice: number;
   supplierId: number | null;
   supplierName: string | null;
+  brandId?: number | null;
+  brandName?: string | null;
   unitName: string | null;
   isOnSale: boolean;
 }
@@ -307,18 +315,20 @@ export interface ShoppingListUpdatePayload {
 }
 
 
-// REFACTOR: Usa productName invece di productId e nameOriginal
 export interface ShoppingListItemCreatePayload {
   shoppingListId: number;
   productName: string;
+  brandName?: string | null;
+  brandId?: number | null;
   quantity?: number | null;
   unitId?: number | null;
   notes?: string | null;
 }
 
-// REFACTOR: Usa productName invece di productId e nameOriginal
 export interface ShoppingListItemUpdatePayload {
   productName?: string;
+  brandName?: string | null;
+  brandId?: number | null;
   quantity?: number | null;
   unitId?: number | null;
   notes?: string | null;
@@ -331,11 +341,13 @@ export interface ToggleShoppingListItemPurchasedPayload {
 
 export interface ShoppingSupplierCreatePayload {
   name: string;
+  typeCode?: number;
   statusId?: number | null;
 }
 
 export interface ShoppingSupplierUpdatePayload {
   name?: string;
+  typeCode?: number;
   statusId?: number | null;
 }
 
@@ -397,6 +409,7 @@ export interface UseShoppingDataResult {
   items: ShoppingListItem[];
 
   suppliers: ShoppingSupplierOption[];
+  brands: ShoppingSupplierOption[];
   products: ShoppingProductOption[];
   config: ShoppingConfigBundle | null;
 
@@ -404,6 +417,7 @@ export interface UseShoppingDataResult {
   groupsLoading: boolean;
   itemsLoading: boolean;
   suppliersLoading: boolean;
+  brandsLoading: boolean;
   configLoading: boolean;
   productsLoading: boolean;
 
@@ -416,6 +430,7 @@ export interface UseShoppingDataResult {
   refreshGroups: () => Promise<unknown>;
   refreshItems: (listId?: number | null) => Promise<unknown>;
   refreshSuppliers: () => Promise<unknown>;
+  refreshBrands: () => Promise<unknown>;
   refreshConfig: () => Promise<unknown>;
 }
 
@@ -458,6 +473,8 @@ export interface UseShoppingMutationsResult {
 
   deleteInventoryBatch: (args: DeleteInventoryBatchArgs) => Promise<void>;
 
+  createQuickPriceBatch: (payload: QuickPriceBatchCreatePayload) => Promise<ItemBatchRecord[]>;
+
   addPrice: (payload: ShoppingPriceCreatePayload) => Promise<void>;
 
   updatePrice: (args: UpdateShoppingPriceArgs) => Promise<void>;
@@ -475,6 +492,8 @@ export interface UseShoppingMutationsResult {
 export interface InventoryBatchCreatePayload {
   productId?: number;
   supplierId?: number | null;
+  brandId?: number | null;
+  brandName?: string | null;
   quantity?: number | null;
   unitId?: number | null;
   purchasePrice: number;
@@ -495,4 +514,21 @@ export interface AddInventoryBatchArgs {
 export interface DeleteInventoryBatchArgs {
   batchId: number;
   listId: number;
+}
+
+export interface QuickPriceRecordPayload {
+  productName: string;
+  brandName?: string | null;
+  brandId?: number | null;
+  supplierId?: number | null;
+  supplierName?: string | null;
+  unitId?: number | null;
+  purchaseDate: string;
+  quantityPurchased: number;
+  purchasePrice: number;
+  isOnSale?: boolean;
+}
+
+export interface QuickPriceBatchCreatePayload {
+  records: QuickPriceRecordPayload[];
 }
