@@ -91,7 +91,7 @@ export const BrandModal: React.FC<BrandModalProps> = ({
         {/* Nome Brand */}
         <div>
           <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">
-            Nome Marchio / Produttore <span className="text-red-500">*</span>
+            Nome Marchio
           </label>
           <input
             type="text"

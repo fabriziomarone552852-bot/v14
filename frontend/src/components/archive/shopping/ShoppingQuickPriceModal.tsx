@@ -19,6 +19,11 @@ import type {
 } from '@/types/shopping';
 import ShoppingProductAutocomplete from '@/components/shared/shopping/ShoppingProductAutocomplete';
 import ShoppingBrandAutocomplete from '@/components/shared/shopping/ShoppingBrandAutocomplete';
+import {
+  ORDERED_UNIT_KEYS,
+  UNIT_DICTIONARY,
+  getUnitDisplayName,
+} from '@/components/shared/shopping/ShoppingUnitSelect';
 
 interface QuickPriceRow {
   id: string;
@@ -231,12 +236,28 @@ export const ShoppingQuickPriceModal: React.FC<ShoppingQuickPriceModalProps> = (
   }, [suppliers]);
 
   const unitDropdownOptions: DropdownOption[] = useMemo(() => {
+    const sorted = [...unitOptions].sort((a, b) => {
+      const valA = (a.codeValue || a.codeName || '').toLowerCase().replace(/^unit\./i, '').trim();
+      const valB = (b.codeValue || b.codeName || '').toLowerCase().replace(/^unit\./i, '').trim();
+      const keyA = UNIT_DICTIONARY[valA]?.singular || valA;
+      const keyB = UNIT_DICTIONARY[valB]?.singular || valB;
+      const idxA = ORDERED_UNIT_KEYS.indexOf(keyA);
+      const idxB = ORDERED_UNIT_KEYS.indexOf(keyB);
+      const posA = idxA === -1 ? 999 : idxA;
+      const posB = idxB === -1 ? 999 : idxB;
+      return posA - posB;
+    });
+
     return [
-      { value: '', label: 'Nessuna' },
-      ...unitOptions.map((u) => ({
-        value: String(u.id),
-        label: u.codeValue || u.codeName || `Unità ${u.id}`,
-      })),
+      { value: '', label: 'Nessuna unità' },
+      ...sorted.map((u) => {
+        const name = getUnitDisplayName(u);
+        const capitalized = name.charAt(0).toUpperCase() + name.slice(1);
+        return {
+          value: String(u.id),
+          label: capitalized,
+        };
+      }),
     ];
   }, [unitOptions]);
 
@@ -447,11 +468,11 @@ export const ShoppingQuickPriceModal: React.FC<ShoppingQuickPriceModalProps> = (
               <thead className="bg-slate-50 border-b border-slate-200 text-[11px] font-bold uppercase tracking-wider text-slate-500 sticky top-0 z-20">
                 <tr>
                   <th className="py-2.5 px-3 min-w-[170px]">
-                    Prodotto <span className="text-red-500">*</span>
+                    Prodotto
                   </th>
                   <th className="py-2.5 px-3 min-w-[150px]">Brand / Marchio</th>
                   <th className="py-2.5 px-2.5 w-24">
-                    Prezzo (€) <span className="text-red-500">*</span>
+                    Prezzo
                   </th>
                   <th className="py-2.5 px-2 w-16">Qtà</th>
                   <th className="py-2.5 px-2.5 min-w-[110px]">Unità</th>
@@ -476,6 +497,7 @@ export const ShoppingQuickPriceModal: React.FC<ShoppingQuickPriceModalProps> = (
                           handleProductSelect(row.id, name, prod)
                         }
                         products={products}
+                        hideBrand={true}
                         placeholder="Es. Pasta..."
                         className="w-full text-xs"
                         usePortal={true}
