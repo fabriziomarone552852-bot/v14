@@ -7,6 +7,8 @@ import { useYearBingo } from './useYearBingo';
 import { useYearReview } from './useYearReview';
 import { useYearHighlights } from './useYearHighlights';
 
+import type { DailyEntry } from '@/types/dailyentries';
+
 export type YearSidebarTab = 'propositi' | 'moods' | 'spheres';
 
 export interface UseYearPageLogicResult {
@@ -21,6 +23,7 @@ export interface UseYearPageLogicResult {
   nav: ReturnType<typeof useYearNavigation>;
   apiData: {
     entries: ReturnType<typeof useYearEntries>;
+    dailyEntries: DailyEntry[];
   };
   handlers: {
     handlePrevYear: () => void;
@@ -68,6 +71,7 @@ export const useYearPageLogic = (): UseYearPageLogicResult => {
     nav,
     apiData: {
       entries,
+      dailyEntries: agendaYear.yearData?.dailyEntries || [],
     },
     handlers: {
       handlePrevYear: nav.handlePrevYear,

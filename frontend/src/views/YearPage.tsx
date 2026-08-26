@@ -157,6 +157,7 @@ const YearPage: React.FC = () => {
         tasksByMonth={{}}
         tasksByWeekday={{}}
         habits={[]}
+        dailyEntries={apiData.dailyEntries}
       />
     </div>
   );

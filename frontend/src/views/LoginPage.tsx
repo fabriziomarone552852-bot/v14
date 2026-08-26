@@ -42,7 +42,7 @@ const LoginPage: React.FC = () => {
       } else {
         await register(username, email, password);
       }
-      // Il redirect lo fa l'useEffect su isAuthenticated
+      navigate('/', { replace: true });
     } catch {
       // error già gestito nel context
     }

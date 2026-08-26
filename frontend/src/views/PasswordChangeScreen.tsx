@@ -66,6 +66,7 @@ const PasswordChangeScreen: React.FC = () => {
     try {
       await changePassword(currentPassword, newPassword);
       setSuccess(true);
+      navigate('/', { replace: true });
     } catch {
       // error gestito dal context
     }

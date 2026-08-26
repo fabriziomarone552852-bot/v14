@@ -1,8 +1,9 @@
-// frontend/src/components/dashboard/calendar/MonthDayCell.tsx
 import React, { useRef, useState } from 'react';
 import { getHexColor } from '@/utils/uiUtils';
 import { TimeDisplay, DateRangeDisplay } from '@/components/shared/utils/DateTimeDisplays';
 import { useOutsideClick } from '@/hooks/useOutsideClick';
+import { CalendarIcon, TaskListIcon } from '@/components/shared/utils/Icons';
+import { nomiMesiLungo } from '@/utils/dateUtils';
 import type { CalendarGridItem } from './MonthGrid';
 
 // 1. IMPORTIAMO I TIPI RIGOROSI DAL CONTRATTO (Zero 'any')
@@ -12,6 +13,7 @@ import { CategoryGenre, type Category } from '@/types';
 interface MonthDayCellProps {
   dateKey: string;
   dayNum: number;
+  colIndex?: number;
   isToday: boolean;
   items: CalendarGridItem[];
   
@@ -32,6 +34,7 @@ interface MonthDayCellProps {
 export const MonthDayCell: React.FC<MonthDayCellProps> = ({ 
   dateKey, 
   dayNum, 
+  colIndex,
   isToday, 
   items, 
   moodCategoryId = null, 
@@ -59,9 +62,26 @@ export const MonthDayCell: React.FC<MonthDayCellProps> = ({
   // Troviamo l'oggetto completo del mood attualmente assegnato a questo giorno
   const activeMood: Category | null = userMoods.find((c: Category) => c.id === moodCategoryId) || null;
 
-  const hasItems = items.length > 0;
+  const dayEvents = items.filter(i => i.type === 'event');
+  const dayTasks = items.filter(i => i.type === 'task');
+  const hasItems = dayEvents.length > 0 || dayTasks.length > 0;
   const multiDayItems = items.filter(i => i.isMultiDay);
   const singleDayItems = items.filter(i => !i.isMultiDay);
+
+  const [yearStr, monthStr, dayStr] = dateKey.split('-');
+  const monthIdx = parseInt(monthStr, 10) - 1;
+  const meseName = nomiMesiLungo[monthIdx]?.toUpperCase() || '';
+  const dayNumber = parseInt(dayStr, 10);
+  const headerDateTitle = `${dayNumber} ${meseName} ${yearStr}`;
+
+  const popoverAlignClass = 
+    colIndex !== undefined
+      ? colIndex >= 5 
+        ? 'right-0 left-auto transform translate-x-0' 
+        : colIndex <= 1 
+        ? 'left-0 right-auto transform translate-x-0' 
+        : 'left-1/2 transform -translate-x-1/2'
+      : 'left-1/2 transform -translate-x-1/2';
 
   const handleSingleClick = () => {
     if (clickTimeoutRef.current) return;
@@ -193,26 +213,65 @@ export const MonthDayCell: React.FC<MonthDayCellProps> = ({
         )}
       </div>
       
-      {/* TOOLTIP HOVER (Invariato) */}
-      {isHovered && !isMoodMenuOpen && (
-        <div className="absolute left-1/2 bottom-full transform -translate-x-1/2 w-56 pb-2 cursor-default" onClick={(e) => e.stopPropagation()}>
-          <div className="bg-gray-900 text-white rounded-xl shadow-xl p-3 text-left border border-gray-800 animate-fadeIn relative">
-            <p className="text-[10px] font-extrabold text-blue-400 uppercase tracking-wider mb-2 border-b border-gray-800 pb-1">
-              Impegni del {dateKey.split('-').reverse().slice(0,2).join('/')}
-            </p>
-            <div className="space-y-1.5 max-h-32 overflow-y-auto pr-1 custom-scrollbar">
-              {items.map((item, idx) => (
-                <div key={idx} className="flex items-center gap-2 text-xs w-full min-w-0 py-0.5">
-                  <span className={`h-1.5 rounded-full flex-shrink-0 ${item.isMultiDay ? 'w-3' : 'w-1.5'}`} style={{ backgroundColor: getHexColor(item.categoryColor) }} />
-                  <div className="flex-1 min-w-0 text-gray-200 flex items-center gap-1.5 truncate">
-                    {item.type === 'event' && <span className="text-[9px] font-bold text-gray-400 shrink-0 inline-flex items-center">{item.dateStr && item.endDateStr && item.dateStr !== item.endDateStr ? <DateRangeDisplay startStr={item.dateStr} endStr={item.endDateStr} /> : <TimeDisplay time={item.time} endTime={item.endTime} />}</span>}
-                    <span className={`truncate ${item.done ? 'line-through text-gray-500 italic' : ''}`} title={item.title}>{item.title}</span>
-                  </div>
-                </div>
-              ))}
-            </div>
-            <div className="absolute top-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-t-gray-900"></div>
+      {/* POPOVER HOVER: mostra eventi e task del giorno in hover (Stile YearPage con orari eventi) */}
+      {isHovered && !isMoodMenuOpen && (dayEvents.length > 0 || dayTasks.length > 0) && (
+        <div 
+          className={`absolute bottom-full mb-2 bg-slate-900 text-white rounded-xl shadow-xl p-3 border border-slate-800 text-xs z-[100] w-64 animate-fadeIn pointer-events-none ${popoverAlignClass}`}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <div className="font-extrabold text-[11px] text-blue-300 uppercase tracking-wider border-b border-slate-700 pb-1 mb-2 text-left">
+            {headerDateTitle}
           </div>
+
+          {dayEvents.length > 0 && (
+            <div className={dayTasks.length > 0 ? "mb-2" : ""}>
+              <div className="text-[10px] font-bold uppercase text-slate-400 mb-1 flex items-center gap-1">
+                <CalendarIcon className="w-3 h-3 text-blue-400" /> Eventi
+              </div>
+              <div className="flex flex-col gap-1 max-h-36 overflow-y-auto pr-0.5 custom-scrollbar">
+                {dayEvents.map((item, idx) => (
+                  <div 
+                    key={item.id || idx} 
+                    className="bg-slate-800/80 rounded px-2 py-1 text-[11px] font-medium text-slate-200 truncate flex items-center gap-1.5 border-l-2 border-blue-500 text-left"
+                    style={item.categoryColor ? { borderLeftColor: getHexColor(item.categoryColor) } : undefined}
+                  >
+                    <span className="text-[9px] font-bold text-slate-400 shrink-0 inline-flex items-center">
+                      {item.dateStr && item.endDateStr && item.dateStr !== item.endDateStr ? (
+                        <DateRangeDisplay startStr={item.dateStr} endStr={item.endDateStr} />
+                      ) : (
+                        <TimeDisplay time={item.time} endTime={item.endTime} />
+                      )}
+                    </span>
+                    <span className="truncate flex-1" title={item.title}>
+                      {item.title}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {dayTasks.length > 0 && (
+            <div>
+              <div className="text-[10px] font-bold uppercase text-slate-400 mb-1 flex items-center gap-1">
+                <TaskListIcon className="w-3 h-3 text-emerald-400" /> Task in Scadenza
+              </div>
+              <div className="flex flex-col gap-1 max-h-36 overflow-y-auto pr-0.5 custom-scrollbar">
+                {dayTasks.map((item, idx) => (
+                  <div 
+                    key={item.id || idx} 
+                    className="bg-slate-800/80 rounded px-2 py-1 text-[11px] font-medium text-slate-200 truncate flex items-center justify-between border-l-2 border-emerald-500 text-left"
+                    style={item.categoryColor ? { borderLeftColor: getHexColor(item.categoryColor) } : undefined}
+                  >
+                    <span className={`truncate flex-1 ${item.done ? 'line-through text-slate-500 italic' : ''}`} title={item.title}>
+                      {item.title}
+                    </span>
+                    {item.done && <span className="text-[9px] text-emerald-400 font-bold ml-1 shrink-0">✓ Fatto</span>}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       )}
     </div>

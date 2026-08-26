@@ -6,7 +6,7 @@ import type { TrackerItem } from '@/types/monthlyentries';
 
 export interface ReviewTabButton<T extends string = string> {
   id: T;
-  emoji: string;
+  emoji: React.ReactNode;
   title?: string;
 }
 

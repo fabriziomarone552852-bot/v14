@@ -3,7 +3,7 @@ import { useState, useMemo, useCallback } from 'react';
 import type { DbYearlyEntry } from '@/types/yearlyentries';
 import type { Category } from '@/types/categories';
 
-export type YearReviewSidebarTab = 'tasks' | 'habits';
+export type YearReviewSidebarTab = 'tasks' | 'habits' | 'pixels';
 
 export interface YearReviewData {
   yearlyEntries: DbYearlyEntry[];

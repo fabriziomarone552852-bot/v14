@@ -53,6 +53,8 @@ const AppRouter: React.FC = () => {
     <>
       {isAuthenticated ? (
         <Routes>
+          <Route path="/login" element={<Navigate to="/" replace />} />
+          <Route path="/change-password" element={<Navigate to="/" replace />} />
           <Route element={<AppShellLayout onLogout={logout} />}>
             <Route path="/" element={<HomePage />} />
             <Route path="/giorno" element={<DayPage />} />
