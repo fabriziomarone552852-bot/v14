@@ -617,7 +617,7 @@ def list_suppliers(
             query = query.filter(ShoppingSupplier.type_code.in_([type_code, 3]))
         else:
             query = query.filter(ShoppingSupplier.type_code == type_code)
-    return query.order_by(ShoppingSupplier.name.asc()).all()
+    return query.order_by(ShoppingSupplier.name_normalized.asc()).all()
 
 
 def list_brands(db: Session) -> List[ShoppingSupplier]:
@@ -654,14 +654,10 @@ def search_suppliers(
     limit: int = 50,
 ) -> List[ShoppingSupplier]:
     normalized = normalize_name(search)
-    raw = search.strip()
 
     query = db.query(ShoppingSupplier).filter(
         ShoppingSupplier.deleted_at.is_(None),
-        or_(
-            ShoppingSupplier.name_normalized.ilike(f"{normalized}%"),
-            ShoppingSupplier.name.ilike(f"{raw}%"),
-        ),
+        ShoppingSupplier.name_normalized.ilike(f"%{normalized}%"),
     )
 
     if type_code is not None:
@@ -671,7 +667,7 @@ def search_suppliers(
             query = query.filter(ShoppingSupplier.type_code == type_code)
 
     return (
-        query.order_by(ShoppingSupplier.name.asc())
+        query.order_by(ShoppingSupplier.name_normalized.asc())
         .limit(limit)
         .all()
     )
@@ -943,8 +939,8 @@ def bulk_create_suppliers_if_missing(
         if existing is None:
             db.add(
                 ShoppingSupplier(
-                    name=supplier_name,
                     name_normalized=normalized,
+                    type_code=1,
                     status_id=status_id,
                     created_by_user_id=created_by_user_id,
                 )

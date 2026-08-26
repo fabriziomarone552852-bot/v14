@@ -100,7 +100,6 @@ class ShoppingSupplier(Base):
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
 
-    name: Mapped[str] = mapped_column(String(255), nullable=False)
     name_normalized: Mapped[str] = mapped_column(String(255), nullable=False, index=True)
 
     # 1 = Fornitore / Punto vendita, 2 = Produttore / Brand, 3 = Entrambi (es. Private Label)
@@ -175,4 +174,4 @@ class ShoppingSupplier(Base):
     )
 
     def __repr__(self) -> str:
-        return f"<ShoppingSupplier id={self.id} name={self.name!r} type_code={self.type_code}>"
+        return f"<ShoppingSupplier id={self.id} name_normalized={self.name_normalized!r} type_code={self.type_code}>"

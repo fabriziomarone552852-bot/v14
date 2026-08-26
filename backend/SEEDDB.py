@@ -438,8 +438,8 @@ def _seed_default_suppliers(db, created_by_user_id: int, supplier_status_id: int
 
         db.add(
             ShoppingSupplier(
-                name=supplier_name,
                 name_normalized=normalized,
+                type_code=1,
                 status_id=supplier_status_id,
                 created_by_user_id=created_by_user_id,
             )
