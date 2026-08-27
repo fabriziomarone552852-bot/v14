@@ -1,5 +1,6 @@
 import React from 'react';
 import type { Category, Priorita, TaskCreateFormState } from '@/types';
+import { LocationAutocompleteInput } from '@/components/shared/form';
 
 interface TaskCreateFormProps {
   form: TaskCreateFormState;
@@ -185,21 +186,11 @@ const TaskCreateForm: React.FC<TaskCreateFormProps> = ({
           </div>
 
           <div>
-            <label
-              style={{
-                display: 'block',
-                fontWeight: 600,
-                marginBottom: 4,
-              }}
-            >
-              Luogo
-            </label>
-            <input
+            <LocationAutocompleteInput
+              label="Luogo"
+              placeholder="Es. Via Roma 10, Milano o Ufficio..."
               value={form.luogo}
-              onChange={(e) =>
-                setForm((p) => ({ ...p, luogo: e.target.value }))
-              }
-              placeholder="Es. Casa, Ufficio..."
+              onChange={(val) => setForm((p) => ({ ...p, luogo: val }))}
             />
           </div>
         </div>

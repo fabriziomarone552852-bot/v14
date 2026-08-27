@@ -6,6 +6,8 @@ import type {
   EditTaskFormState,
   Priorita,
 } from '@/types/tasks';
+import { LocationAutocompleteInput } from '@/components/shared/form';
+import { openInGoogleMaps } from '@/utils/mapUtils';
 
 interface TaskRowsProps {
   tasks: Task[];
@@ -65,7 +67,24 @@ const TaskRows: React.FC<TaskRowsProps> = ({
           <td>{task.data_scadenza || '-'}</td>
           <td>{task.priorita}</td>
           <td>{task.category_name || '-'}</td>
-          <td>{task.luogo || '-'}</td>
+          <td>
+            {task.luogo ? (
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  openInGoogleMaps(task.luogo!);
+                }}
+                className="text-blue-600 hover:text-blue-800 hover:underline inline-flex items-center gap-1 text-left cursor-pointer"
+                title="Apri su Google Maps"
+              >
+                <span>{task.luogo}</span>
+                <span className="text-xs">🗺️</span>
+              </button>
+            ) : (
+              '-'
+            )}
+          </td>
           <td>
             <input
               type="checkbox"
@@ -399,21 +418,14 @@ const TaskRows: React.FC<TaskRowsProps> = ({
                   </div>
 
                   <div>
-                    <label
-                      style={{
-                        display: 'block',
-                        fontWeight: 600,
-                        marginBottom: 4,
-                      }}
-                    >
-                      Luogo
-                    </label>
-                    <input
+                    <LocationAutocompleteInput
+                      label="Luogo"
+                      placeholder="Es. Via Roma 10, Milano o Ufficio..."
                       value={editForm.luogo}
-                      onChange={(e) =>
+                      onChange={(val) =>
                         setEditForm((p) => ({
                           ...p,
-                          luogo: e.target.value,
+                          luogo: val,
                         }))
                       }
                     />

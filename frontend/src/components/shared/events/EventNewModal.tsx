@@ -14,7 +14,7 @@ import { useCategories } from '@/hooks/useCategories';
 import { useEventMutations } from '@/hooks/mutations/useEventMutations';
 import TimeInput from '@/components/shared/utils/TimeInput';
 import { logger } from '@/utils/logger';
-import { FormInput, FormTextarea } from '@/components/shared/form';
+import { FormInput, FormTextarea, LocationAutocompleteInput } from '@/components/shared/form';
 
 interface NewEventModalProps {
   isOpen: boolean;
@@ -378,13 +378,12 @@ const NewEventModal: React.FC<NewEventModalProps> = ({
           </div>
 
           <div className="w-full">
-            <FormInput
+            <LocationAutocompleteInput
               label="Luogo"
-              type="text"
-              placeholder="Es. Ufficio, Roma..."
+              placeholder="Es. Via Roma 10, Milano o Ufficio..."
               value={newEventForm.luogo}
-              onChange={(e) =>
-                setNewEventForm({ ...newEventForm, luogo: e.target.value })
+              onChange={(val) =>
+                setNewEventForm({ ...newEventForm, luogo: val })
               }
             />
           </div>

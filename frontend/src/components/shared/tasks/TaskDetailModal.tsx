@@ -4,7 +4,7 @@ import type { DbTask, TaskSummary } from '@/types';
 import BaseModal from '@/components/shared/dialog/BaseModal'; 
 import { useConfirm } from '@/context/ConfirmContext';
 import { Badge } from '@/components/shared/utils/Badges';
-import { TrashIcon, EditIcon, LocationIcon } from '@/components/shared/utils/Icons';
+import { TrashIcon, EditIcon } from '@/components/shared/utils/Icons';
 import { useTaskMutations } from '@/hooks/mutations/useTaskMutations';
 import { useQuery } from '@tanstack/react-query';
 import { api } from '@/api/apiService';
@@ -13,6 +13,7 @@ import { TaskTreeNode } from '../utils/TaskTreeNode';
 import { buildTaskTree } from '@/utils/taskUtils';
 import type { UITask } from '@/types';
 import { formatToItalianShortDate } from '@/utils/dateUtils';
+import { LocationPreview } from '@/components/shared/form';
 
 interface TaskDetailModalProps {
   isOpen: boolean;
@@ -212,10 +213,7 @@ const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
         </div>
 
         {selectedTask.location && (
-          <div className="flex items-center gap-2 text-gray-600 text-sm">
-            <LocationIcon className="h-5 w-5 text-gray-400" />
-            {selectedTask.location}
-          </div>
+          <LocationPreview location={selectedTask.location} />
         )}
         
         {selectedTask.description && (
