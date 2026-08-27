@@ -267,12 +267,15 @@ def build_month_review_bundle(
     )
     
     # Task stats del mese
+    start_dt = datetime(year, month, 1, 0, 0, 0, tzinfo=UTC)
+    end_dt = datetime(year, month, last_day.day, 23, 59, 59, 999999, tzinfo=UTC)
+    
     tasks_total = (
         db.query(func.count(Task.id))
         .filter(
             Task.user_id == user_id,
-            Task.data_start >= str(first_day),
-            Task.data_start <= str(last_day),
+            Task.data_start >= start_dt,
+            Task.data_start <= end_dt,
         )
         .scalar() or 0
     )
@@ -282,8 +285,8 @@ def build_month_review_bundle(
         .filter(
             Task.user_id == user_id,
             Task.fatto.is_(True),
-            Task.data_fatto >= str(first_day),
-            Task.data_fatto <= str(last_day),
+            Task.data_fatto >= start_dt,
+            Task.data_fatto <= end_dt,
         )
         .scalar() or 0
     )

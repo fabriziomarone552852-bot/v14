@@ -15,9 +15,10 @@ export interface SystemConfigCodeItem {
   code_value: string;
   code_name: string;
   display_name?: string | null;
-  sort_order: number;
-  is_active: boolean;
-  is_default: boolean;
+  sort_order?: number | null;
+  active: boolean;
+  is_active?: boolean;
+  description?: string | null;
   notes?: string | null;
 }
 
@@ -54,19 +55,29 @@ export async function createSystemCode(payload: {
   code_type: string;
   code_value: string;
   code_name: string;
-  display_name?: string;
+  description?: string;
   sort_order?: number;
-  is_active?: boolean;
-  is_default?: boolean;
-  notes?: string;
+  active?: boolean;
 }): Promise<SystemConfigCodeItem> {
-  const res = await apiClient.post<SystemConfigCodeItem>('/admin/catalogs/codes', payload);
+  const res = await apiClient.post<SystemConfigCodeItem>('/admin/catalogs/codes', {
+    code_type: payload.code_type,
+    code_value: payload.code_value,
+    code_name: payload.code_name,
+    description: payload.description,
+    sort_order: payload.sort_order,
+    active: payload.active ?? true,
+  });
   return res.data;
 }
 
 export async function updateSystemCode(
   codeId: number,
-  payload: Partial<SystemConfigCodeItem>
+  payload: {
+    code_name?: string;
+    description?: string;
+    active?: boolean;
+    sort_order?: number;
+  }
 ): Promise<SystemConfigCodeItem> {
   const res = await apiClient.patch<SystemConfigCodeItem>(`/admin/catalogs/codes/${codeId}`, payload);
   return res.data;

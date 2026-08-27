@@ -942,8 +942,8 @@ def create_quick_price_batch(
                     created_at=_now(),
                     updated_at=_now(),
                 )
-                repo.add(db, new_sup)
-                repo.flush(db)
+                db.add(new_sup)
+                db.flush()
                 resolved_supplier_id = new_sup.id
 
         batch = InventoryBatch(
@@ -959,12 +959,12 @@ def create_quick_price_batch(
             created_at=today,
             updated_at=today,
         )
-        repo.add(db, batch)
+        db.add(batch)
         created_batches.append(batch)
 
-    repo.commit(db)
+    db.commit()
     for b in created_batches:
-        repo.refresh(db, b)
+        db.refresh(b)
 
     # Ritorna serializzato coerente con list_all_batches
     return list_all_batches(db, current_user)

@@ -102,7 +102,7 @@ apiClient.interceptors.response.use(
 
       try {
         // Diamo un tipo anche al risultato di axios.post, così response.data non sarà 'any'
-        const response = await axios.post<RefreshResponse>(apiUrl('/refresh'), {
+        const response = await axios.post<RefreshResponse>(apiUrl('/auth/refresh'), {
           refresh_token: refreshToken
         });
 

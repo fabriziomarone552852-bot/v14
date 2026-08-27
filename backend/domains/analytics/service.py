@@ -125,9 +125,13 @@ def get_price_history(
     for batch in sorted(batches, key=lambda b: (b.purchase_date, b.id)):
         history.append(
             {
+                "id": batch.id,
                 "batch_id": batch.id,
                 "date": batch.purchase_date,
+                "purchase_date": batch.purchase_date,
                 "price": batch.purchase_price,
+                "purchase_price": batch.purchase_price,
+                "quantity_purchased": batch.quantity_purchased,
                 "supplier_id": batch.supplier.id if batch.supplier else None,
                 "supplier_name": batch.supplier.name_normalized if batch.supplier else None,
                 "is_on_sale": batch.is_on_sale,

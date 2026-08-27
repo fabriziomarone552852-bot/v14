@@ -14,7 +14,7 @@ router = APIRouter(prefix="/countdowns", tags=["countdowns"])
 CountdownStatus = Literal["active", "closed"]
 
 
-@router.get("/", response_model=List[schemas.CountdownResponse])
+@router.get("", response_model=List[schemas.CountdownResponse])
 def list_countdowns(
     status_filter: Optional[CountdownStatus] = Query(default=None, alias="status"),
     target_date_from: Optional[datetime] = Query(default=None),
@@ -36,7 +36,7 @@ def get_countdown(
     return service.get_countdown(db, current_user, countdown_id)
 
 
-@router.post("/", response_model=schemas.CountdownResponse, status_code=status.HTTP_201_CREATED)
+@router.post("", response_model=schemas.CountdownResponse, status_code=status.HTTP_201_CREATED)
 def create_countdown(
     payload: schemas.CountdownCreate,
     db: Session = Depends(deps.get_db),

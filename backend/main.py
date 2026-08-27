@@ -26,6 +26,7 @@ from backend.domains.habits.router import router as habits_router
 from backend.domains.monthly_entries.router import router as monthly_entries_router
 from backend.domains.yearly_entries.router import router as yearly_entries_router
 from backend.domains.bingo.router import router as bingo_router
+from backend.domains.notifications.router import router as notifications_router
 from backend.domains.planning.router import router as daily_entries_router
 from backend.domains.shopping.router import router as shopping_router
 from backend.domains.sync.router import router as sync_router
@@ -78,6 +79,7 @@ app.include_router(catalogs_router)
 app.include_router(monthly_entries_router)
 app.include_router(yearly_entries_router)
 app.include_router(bingo_router)
+app.include_router(notifications_router)
 
 
 @app.get("/favicon.ico", include_in_schema=False)

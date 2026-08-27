@@ -55,9 +55,9 @@ export const AdminCodesSection: React.FC<AdminCodesSectionProps> = ({ codes, onR
         code_type: form.code_type.trim().toLowerCase(),
         code_value: form.code_value.trim().toLowerCase(),
         code_name: form.code_name.trim(),
-        display_name: form.display_name.trim() || undefined,
+        description: form.notes.trim() || undefined,
         sort_order: Number(form.sort_order) || 0,
-        notes: form.notes.trim() || undefined,
+        active: true,
       });
 
       setMessage({ text: 'Nuovo ConfigCode creato con successo!', type: 'success' });
@@ -73,10 +73,11 @@ export const AdminCodesSection: React.FC<AdminCodesSectionProps> = ({ codes, onR
 
   const handleToggleActive = async (code: SystemConfigCodeItem) => {
     try {
-      if (code.is_active) {
+      const isCurrentlyActive = code.active ?? code.is_active ?? true;
+      if (isCurrentlyActive) {
         await deactivateSystemCode(code.id);
       } else {
-        await updateSystemCode(code.id, { is_active: true });
+        await updateSystemCode(code.id, { active: true });
       }
       await onRefresh();
     } catch (err: unknown) {
@@ -177,7 +178,7 @@ export const AdminCodesSection: React.FC<AdminCodesSectionProps> = ({ codes, onR
                     </td>
                     <td className="px-4 py-3 font-mono text-slate-500">{c.sort_order}</td>
                     <td className="px-4 py-3">
-                      {c.is_active ? (
+                      {(c.active ?? c.is_active) ? (
                         <span className="inline-flex rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-bold text-emerald-700">
                           Attivo
                         </span>
@@ -191,13 +192,13 @@ export const AdminCodesSection: React.FC<AdminCodesSectionProps> = ({ codes, onR
                       <button
                         type="button"
                         onClick={() => handleToggleActive(c)}
-                        className={`rounded-lg border px-2.5 py-1 text-xs font-medium transition ${
-                          c.is_active
+                        className={`rounded-lg border px-2.5 py-1 text-xs font-medium transition cursor-pointer ${
+                          (c.active ?? c.is_active)
                             ? 'border-rose-200 bg-rose-50 text-rose-700 hover:bg-rose-100'
                             : 'border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100'
                         }`}
                       >
-                        {c.is_active ? 'Disattiva' : 'Riattiva'}
+                        {(c.active ?? c.is_active) ? 'Disattiva' : 'Riattiva'}
                       </button>
                     </td>
                   </tr>
