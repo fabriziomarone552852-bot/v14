@@ -153,11 +153,11 @@ def update_member_role(
 
     db_member = repo.get_member(db, group_id, user_id)
     if not db_member:
-        raise HTTPException(status_code=404, detail[_MEMBER_NOT_FOUND])
+        raise HTTPException(status_code=404, detail=_MEMBER_NOT_FOUND)
 
     role_id = repo.resolve_role_id(db, role_in.role_code)
     if role_id is None:
-        raise HTTPException(status_code=400, detail[_ROLE_NOT_FOUND])
+        raise HTTPException(status_code=400, detail=_ROLE_NOT_FOUND)
 
     db_member.role_id = role_id
     db_member.updated_at = _now()
@@ -171,7 +171,7 @@ def remove_member(db: Session, current_user: User, group_id: int, user_id: int) 
 
     db_member = repo.get_member(db, group_id, user_id)
     if not db_member:
-        raise HTTPException(status_code=404, detail[_MEMBER_NOT_FOUND])
+        raise HTTPException(status_code=404, detail=_MEMBER_NOT_FOUND)
 
     if db_member.user_id == current_user.id:
         raise HTTPException(
