@@ -11,6 +11,10 @@ from backend.domains.events import repository as repo
 from backend.domains.events import schemas
 from backend.domains.events.models import Event
 from backend.domains.events.recurrence import expand_events_for_range
+from backend.domains.google_calendar.service import (
+    delete_event_from_google,
+    sync_event_to_google,
+)
 from backend.domains.users.models import User
 
 _NOT_FOUND = "Impegno non trovato o non accessibile"
@@ -76,6 +80,13 @@ def create_event(db: Session, current_user: User, event_in: schemas.EventCreate)
 
     db_event = repo.get_with_category(db, db_event.id)
     populate_category_name(db_event)
+
+    # Sincronizzazione automatica su Google Calendar se collegato
+    try:
+        sync_event_to_google(db, current_user, db_event)
+    except Exception:
+        pass
+
     return db_event
 
 
@@ -142,6 +153,13 @@ def update_event(
 
     db_event = repo.get_with_category(db, db_event.id)
     populate_category_name(db_event)
+
+    # Sincronizzazione automatica aggiornamento su Google Calendar
+    try:
+        sync_event_to_google(db, current_user, db_event)
+    except Exception:
+        pass
+
     return db_event
 
 
@@ -149,4 +167,13 @@ def delete_event(db: Session, current_user: User, event_id: int) -> None:
     db_event = repo.get_owned(db, event_id, current_user.id)
     if not db_event:
         raise HTTPException(status_code=404, detail=_NOT_FOUND)
+
+    google_event_id = db_event.google_event_id
     repo.delete(db, db_event)
+
+    # Sincronizzazione automatica cancellazione su Google Calendar
+    if google_event_id:
+        try:
+            delete_event_from_google(db, current_user, google_event_id)
+        except Exception:
+            pass

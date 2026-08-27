@@ -21,6 +21,7 @@ import backend.domains.categories.models
 import backend.domains.config.models
 import backend.domains.countdowns.models
 import backend.domains.events.models
+import backend.domains.google_calendar.models
 import backend.domains.habits.models
 import backend.domains.monthly_entries.models
 import backend.domains.notifications.models

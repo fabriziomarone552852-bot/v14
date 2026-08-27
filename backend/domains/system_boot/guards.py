@@ -51,7 +51,12 @@ def _compute_boot_status(db: Session) -> BootStatus:
 
 
 def _is_public_boot_path(path: str) -> bool:
-    return path in BOOT_PUBLIC_PATHS or path.startswith("/auth/")
+    return (
+        path in BOOT_PUBLIC_PATHS
+        or path.startswith("/auth/")
+        or path.startswith("/google-calendar/callback")
+        or path.startswith("/api/v1/google-calendar/callback")
+    )
 
 
 async def system_boot_guard(request: Request, call_next):

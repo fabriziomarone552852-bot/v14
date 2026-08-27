@@ -1,6 +1,14 @@
 // src/types/settings.ts
 
-export type SettingsTabId = 'profile' | 'tasks' | 'memory' | 'danger';
+export type SettingsTabId = 'profile' | 'tasks' | 'integrations' | 'memory' | 'danger';
+
+export interface GoogleCalendarStatus {
+  is_connected: boolean;
+  google_email: string | null;
+  sync_enabled: boolean;
+  created_at?: string;
+  updated_at?: string;
+}
 
 export interface UserServerSettings {
   id: number;

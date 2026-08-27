@@ -16,6 +16,7 @@ import { LOADING_MESSAGES, ERROR_MESSAGES } from '@/data/loadingMessages';
 
 import ProfileSection from '@/components/settings/ProfileSection';
 import TaskHierarchySection from '@/components/settings/TaskHierarchySection';
+import IntegrationsSection from '@/components/settings/IntegrationsSection';
 import MemorySection from '@/components/settings/MemorySection';
 import DangerZoneSection from '@/components/settings/DangerZoneSection';
 
@@ -211,6 +212,7 @@ export const UserSettingsPage: React.FC = () => {
   const tabs: { id: SettingsTabId; label: string; icon: string }[] = [
     { id: 'profile', label: 'Profilo', icon: '👤' },
     { id: 'tasks', label: 'Gerarchia Task', icon: '📋' },
+    { id: 'integrations', label: 'Integrazioni', icon: '🔗' },
     { id: 'memory', label: 'Memoria', icon: '⚡' },
     { id: 'danger', label: 'Zona Pericolo', icon: '⚠️' },
   ];
@@ -267,14 +269,14 @@ export const UserSettingsPage: React.FC = () => {
                 Impostazioni Utente
               </h1>
               <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
-                Personalizza il tuo profilo, la gerarchia dei task e la memoria locale.
+                Personalizza il tuo profilo, la gerarchia dei task, le integrazioni e la memoria.
               </p>
             </div>
           </div>
         </section>
 
         {/* SELETTORE TAB ADATTIVO (Senza Scrollbar) */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5 w-full">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2.5 w-full">
           {tabs.map((tab) => {
             const isActive = activeTab === tab.id;
             return (
@@ -315,6 +317,8 @@ export const UserSettingsPage: React.FC = () => {
                 disabled={saving}
               />
             )}
+
+            {activeTab === 'integrations' && <IntegrationsSection />}
 
             {activeTab === 'memory' && (
               <MemorySection

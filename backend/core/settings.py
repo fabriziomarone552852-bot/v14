@@ -59,6 +59,10 @@ class Settings(BaseSettings):
     password_min_length: int = 5
     password_max_length: int = 128
 
+    google_client_id: str | None = None
+    google_client_secret: SecretStr | None = None
+    google_redirect_uri: str = "http://localhost:8000/api/v1/google-calendar/callback"
+
     @field_validator("database_url")
     @classmethod
     def validate_database_url(cls, value: str) -> str:

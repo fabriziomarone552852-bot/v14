@@ -5,8 +5,10 @@ from backend.core.models import import_all_models
 
 import_all_models()
 
-from fastapi import FastAPI
+from contextlib import asynccontextmanager
+from fastapi import FastAPI, Response
 from fastapi.middleware.cors import CORSMiddleware
+from backend.core.models import ensure_database_schema_compat
 
 from backend.domains.system_boot import router as system_boot_router
 from backend.domains.system_boot.guards import system_boot_guard
@@ -19,6 +21,7 @@ from backend.domains.catalogs.router import router as catalogs_router
 from backend.domains.categories.router import router as categories_router
 from backend.domains.countdowns.router import router as countdowns_router
 from backend.domains.events.router import router as events_router
+from backend.domains.google_calendar.router import router as google_calendar_router
 from backend.domains.habits.router import router as habits_router
 from backend.domains.monthly_entries.router import router as monthly_entries_router
 from backend.domains.yearly_entries.router import router as yearly_entries_router
@@ -29,7 +32,14 @@ from backend.domains.sync.router import router as sync_router
 from backend.domains.tasks.router import router as tasks_router
 from backend.domains.users.router import router as users_router
 
-app = FastAPI(title="Smart Agenda API", version="4.0")
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    ensure_database_schema_compat()
+    yield
+
+
+app = FastAPI(title="Smart Agenda API", version="4.0", lifespan=lifespan)
 
 app.middleware("http")(system_boot_guard)
 
@@ -54,6 +64,8 @@ app.include_router(auth_router, prefix="/auth")
 app.include_router(users_router, prefix="/users")
 app.include_router(tasks_router)
 app.include_router(events_router)
+app.include_router(google_calendar_router)
+app.include_router(google_calendar_router, prefix="/api/v1")
 app.include_router(categories_router)
 app.include_router(shopping_router)
 app.include_router(analytics_router)
@@ -66,3 +78,8 @@ app.include_router(catalogs_router)
 app.include_router(monthly_entries_router)
 app.include_router(yearly_entries_router)
 app.include_router(bingo_router)
+
+
+@app.get("/favicon.ico", include_in_schema=False)
+def favicon():
+    return Response(status_code=204)

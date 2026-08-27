@@ -88,6 +88,7 @@ class EventResponse(ORMBaseModel):
     category_name: Optional[str] = None
     rrule: Optional[str] = Field(None, max_length=255)
     esclusioni: Optional[str] = None
+    google_event_id: Optional[str] = None
 
 
 class PaginatedBase(ORMBaseModel, Generic[T]):

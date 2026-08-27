@@ -57,6 +57,7 @@ class Event(Base):
 
     rrule: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
     esclusioni: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    google_event_id: Mapped[Optional[str]] = mapped_column(String(255), nullable=True, index=True)
 
     category: Mapped[Optional["UserCategory"]] = relationship(
         "UserCategory",
