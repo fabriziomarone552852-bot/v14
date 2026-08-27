@@ -5,8 +5,9 @@ import { translateRRule } from '@/utils/rruleUtils';
 import BaseModal from '@/components/shared/dialog/BaseModal';
 import { useConfirm } from '@/context/ConfirmContext';
 import { Badge } from '@/components/shared/utils/Badges';
-import { EditIcon, TrashIcon, ArrowRightLongIcon, LocationIcon } from '@/components/shared/utils/Icons';
+import { EditIcon, TrashIcon, ArrowRightLongIcon } from '@/components/shared/utils/Icons';
 import { formatToItalianShortDate } from '@/utils/dateUtils';
+import { LocationPreview } from '@/components/shared/form';
 
 export interface EventDeletePayload {
   id: number;
@@ -166,10 +167,7 @@ const EventDetailModal: React.FC<EventDetailModalProps> = ({
           </div>
 
           {selectedEvent.location && (
-            <div className="flex items-center gap-2 text-gray-600 text-sm">
-              <LocationIcon className="w-5 h-5 text-gray-400" />
-              {selectedEvent.location}
-            </div>
+            <LocationPreview location={selectedEvent.location} />
           )}
           
           {selectedEvent.description && (

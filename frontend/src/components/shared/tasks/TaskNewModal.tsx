@@ -16,7 +16,7 @@ import { useCategories } from '@/hooks/useCategories';
 import { useTaskMutations } from '@/hooks/mutations/useTaskMutations';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/api/apiService';
-import { FormInput, FormTextarea } from '@/components/shared/form';
+import { FormInput, FormTextarea, LocationAutocompleteInput } from '@/components/shared/form';
 
 interface TaskNewModalProps {
   isOpen: boolean;
@@ -271,12 +271,11 @@ const TaskNewModal: React.FC<TaskNewModalProps> = ({ isOpen, onClose, taskToEdit
             />
           </div>
 
-            <FormInput
+            <LocationAutocompleteInput
               label="Luogo"
-              type="text"
-              placeholder="Es. Scrivania..."
+              placeholder="Es. Via Roma 10, Milano o Scrivania..."
               value={newTaskForm.luogo}
-              onChange={(e) => setNewTaskForm({...newTaskForm, luogo: e.target.value})}
+              onChange={(val) => setNewTaskForm({ ...newTaskForm, luogo: val })}
             />
         </div>
 
