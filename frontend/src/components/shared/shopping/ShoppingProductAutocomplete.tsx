@@ -1,7 +1,9 @@
 // src/components/shared/shopping/ShoppingProductAutocomplete.tsx
-import React, { useRef, useEffect, useState, useMemo, useCallback } from 'react';
+import React, { useRef, useEffect, useState, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import type { ShoppingProductOption } from '@/types/shopping';
+import { useDropdownPosition } from '@/hooks/useDropdownPosition';
+import { useAutocompleteKeyboard } from '@/hooks/useAutocompleteKeyboard';
 
 interface ShoppingProductAutocompleteProps {
   value: string;
@@ -29,39 +31,20 @@ export const ShoppingProductAutocomplete: React.FC<ShoppingProductAutocompletePr
   usePortal = false,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
-  const [highlightedIndex, setHighlightedIndex] = useState<number>(-1);
-  const [coords, setCoords] = useState<{
-    top: number;
-    bottom: number;
-    left: number;
-    width: number;
-    openUpwards: boolean;
-  }>({
-    top: 0,
-    bottom: 0,
-    left: 0,
-    width: 0,
-    openUpwards: false,
-  });
 
   const inputRef = useRef<HTMLInputElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  const updateCoords = useCallback(() => {
-    if (containerRef.current) {
-      const rect = containerRef.current.getBoundingClientRect();
-      const spaceBelow = window.innerHeight - rect.bottom;
-      const openUp = spaceBelow < 220;
-      setCoords({
-        top: rect.bottom + 4,
-        bottom: window.innerHeight - rect.top + 4,
-        left: rect.left,
-        width: Math.max(rect.width, 200),
-        openUpwards: openUp,
-      });
-    }
-  }, []);
+  const { openUpwards, coords: rawCoords } = useDropdownPosition(containerRef, { isOpen, threshold: 220 });
+
+  const coords = useMemo(() => ({
+    top: rawCoords.top + 4,
+    bottom: rawCoords.bottom + 4,
+    left: rawCoords.left,
+    width: Math.max(rawCoords.width, 200),
+    openUpwards,
+  }), [rawCoords, openUpwards]);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -74,21 +57,16 @@ export const ShoppingProductAutocomplete: React.FC<ShoppingProductAutocompletePr
         !dropdownRef.current.contains(target)
       ) {
         setIsOpen(false);
-        setHighlightedIndex(-1);
+        resetHighlight();
       }
     };
 
-    updateCoords();
     document.addEventListener('mousedown', handleClickOutside);
-    window.addEventListener('resize', updateCoords);
-    window.addEventListener('scroll', updateCoords, true);
 
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
-      window.removeEventListener('resize', updateCoords);
-      window.removeEventListener('scroll', updateCoords, true);
     };
-  }, [isOpen, updateCoords]);
+  }, [isOpen]);
 
   // Filtro in tempo reale su tutti i prodotti nel database (case-insensitive substring)
   const suggestions = useMemo(() => {
@@ -134,7 +112,7 @@ export const ShoppingProductAutocomplete: React.FC<ShoppingProductAutocompletePr
     const name = product.displayName || product.nameNormalized || '';
     onChange(name, product);
     setIsOpen(false);
-    setHighlightedIndex(-1);
+    resetHighlight();
   };
 
   const handleSelectCustom = () => {
@@ -142,49 +120,23 @@ export const ShoppingProductAutocomplete: React.FC<ShoppingProductAutocompletePr
     if (!trimmed) return;
     onChange(trimmed);
     setIsOpen(false);
-    setHighlightedIndex(-1);
+    resetHighlight();
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Escape') {
-      setIsOpen(false);
-      setHighlightedIndex(-1);
-      return;
-    }
-
-    if (e.key === 'ArrowDown') {
-      e.preventDefault();
-      if (!isOpen) {
-        setIsOpen(true);
+  // Navigazione da tastiera unificata tramite hook condiviso
+  const { highlightedIndex, setHighlightedIndex, resetHighlight, handleKeyDown } = useAutocompleteKeyboard({
+    items: suggestions,
+    isOpen,
+    setIsOpen,
+    onSelect: handleSelect,
+    onEnterWithoutHighlight: () => {
+      const first = suggestions[0];
+      const firstName = (first?.displayName || first?.nameNormalized || '').toLowerCase();
+      if (firstName === (value || '').trim().toLowerCase()) {
+        handleSelect(first);
       }
-      setHighlightedIndex((prev) =>
-        prev < suggestions.length - 1 ? prev + 1 : 0
-      );
-      return;
-    }
-
-    if (e.key === 'ArrowUp') {
-      e.preventDefault();
-      setHighlightedIndex((prev) =>
-        prev > 0 ? prev - 1 : suggestions.length - 1
-      );
-      return;
-    }
-
-    if (e.key === 'Enter') {
-      if (isOpen && suggestions.length > 0 && highlightedIndex >= 0 && highlightedIndex < suggestions.length) {
-        e.preventDefault();
-        handleSelect(suggestions[highlightedIndex]);
-      } else if (isOpen && suggestions.length > 0 && highlightedIndex === -1) {
-        const first = suggestions[0];
-        const firstName = (first?.displayName || first?.nameNormalized || '').toLowerCase();
-        if (firstName === (value || '').trim().toLowerCase()) {
-          e.preventDefault();
-          handleSelect(first);
-        }
-      }
-    }
-  };
+    },
+  });
 
   const dropdownMenu = (
     <div

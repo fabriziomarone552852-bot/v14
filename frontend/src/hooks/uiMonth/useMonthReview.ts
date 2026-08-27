@@ -1,18 +1,18 @@
 // frontend/src/hooks/uiMonth/useMonthReview.ts
 import { useState, useMemo, useCallback } from 'react';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { api } from '@/api/apiService';
 import { useCategories } from '@/hooks/useCategories';
 import { useMonthlyEntryMutations } from '@/hooks/mutations/useMonthlyEntryMutations';
+import { useOptimisticTag } from '@/hooks/useOptimisticTag';
 import type { MonthCacheData } from '@/hooks/useAgendaMonth';
 import type { DbMonthlyEntry, MonthlyType, TrackerItem } from '@/types/monthlyentries';
 import type { DailyEntry } from '@/types/dailyentries';
 import type { DbTask } from '@/types/tasks';
 import type { Habit } from '@/types/habits';
 import type { Category } from '@/types/categories';
-import { logger } from '@/utils/logger';
-import { MOOD_NAMES, SPHERE_NAMES, getNumericValue } from '@/types/monthlyentries';
-import { getTrackerColor, TRACKER_CODES } from '@/utils/trackerUtils';
+import { getNumericValue, MOOD_NAMES, SPHERE_NAMES } from '@/utils/monthlyEntriesUtils';
+import { getTrackerColor, TRACKER_CODES } from '@/utils/trackerConstants';
 
 export type ReviewSidebarTab = 'events' | 'tasks' | 'habits';
 
@@ -61,7 +61,6 @@ export const useMonthReview = (
 
   const { saveMonthlyEntry, deleteMonthlyEntry } = useMonthlyEntryMutations(queryKey);
   const { data: dbCategories = [] } = useCategories();
-  const queryClient = useQueryClient();
 
   // Controlla se è un mese passato
   const now = new Date();
@@ -182,103 +181,32 @@ export const useMonthReview = (
     });
   }, [saveMonthlyEntry, firstDayStr]);
 
-  // Handler crea nuovo tag — ottimistico: mostra subito, API in background
-  const handleCreateAndAddTag = useCallback((tagName: string) => {
-    // Se esiste già un tag (genre=5) con lo stesso nome, usalo
-    const existing = allTags.find(
-      t => t.category_name.toLowerCase() === tagName.toLowerCase()
-    );
-    if (existing) {
-      handleAddTag(existing.id);
-      return;
-    }
-
-    const tempCatId = -(Date.now());
-    const tempEntryId = tempCatId - 1;
-
-    // 1. Inietta categoria temporanea nella cache
-    const tempCategory: Category = {
-      id: tempCatId,
-      category_name: tagName.trim().toLowerCase(),
-      colore: '#6366f1',
-      user_id: null,
-      genre: 5,
-    };
-    queryClient.setQueryData<Category[]>(['categories'], (old) =>
-      old ? [...old, tempCategory] : [tempCategory]
-    );
-
-    // 2. Inietta monthly entry TG temporaneo nella cache (SOLO cache, NO chiamata API)
-    queryClient.setQueryData(queryKey, (old: Record<string, unknown> | undefined) => {
-      if (!old) return old;
-      const entries = (old.monthly_entries as DbMonthlyEntry[]) || [];
-      const tempEntry: DbMonthlyEntry = {
-        id: tempEntryId,
+  // Handler crea nuovo tag — logica ottimistica delegata all'hook condiviso useOptimisticTag
+  const { handleCreateAndAddTag } = useOptimisticTag<DbMonthlyEntry>(
+    allTags,
+    handleAddTag,
+    queryKey,
+    {
+      fieldName: 'monthly_field',
+      typeName: 'monthly_type',
+      entriesKey: 'monthly_entries',
+      createTempEntry: (tempId, tempCatId) => ({
+        id: tempId,
         user_id: 0,
         year,
         month,
         monthly_type: 'TG' as MonthlyType,
         monthly_field: String(tempCatId),
-      };
-      return { ...old, monthly_entries: [...entries, tempEntry] };
-    });
-
-    // 3. In background: crea categoria VERA → poi crea monthly entry VERO
-    api.post<Category>('/categories', {
-      category_name: tagName,
-      colore: '#6366f1',
-      genre: 5,
-    }).then(newCat => {
-      if (!newCat) throw new Error('Creazione categoria fallita');
-
-      // Aggiorna categoria E monthly_field insieme → zero flash
-      queryClient.setQueryData<Category[]>(['categories'], (old) =>
-        (old || []).map(c => c.id === tempCatId ? newCat : c)
-      );
-      queryClient.setQueryData(queryKey, (old: Record<string, unknown> | undefined) => {
-        if (!old) return old;
-        const entries = (old.monthly_entries as DbMonthlyEntry[]) || [];
-        return {
-          ...old,
-          monthly_entries: entries.map(e =>
-            e.id === tempEntryId
-              ? { ...e, monthly_field: String(newCat.id) }
-              : e
-          ),
-        };
-      });
-
-      // Crea il monthly entry VERO con l'ID categoria reale
-      return api.post<DbMonthlyEntry>('/monthly-entries', {
-        year,
-        month,
-        monthly_type: 'TG',
-        monthly_field: String(newCat.id),
-      }).then(realEntry => {
-        if (!realEntry) return;
-        // Sostituisci l'entry temporaneo con quello reale
-        queryClient.setQueryData(queryKey, (old: Record<string, unknown> | undefined) => {
-          if (!old) return old;
-          const entries = (old.monthly_entries as DbMonthlyEntry[]) || [];
-          return {
-            ...old,
-            monthly_entries: entries.map(e => e.id === tempEntryId ? realEntry : e),
-          };
-        });
-      });
-    }).catch(err => {
-      logger.error('Errore creazione tag:', err);
-      // Rollback: rimuovi temporanei
-      queryClient.setQueryData<Category[]>(['categories'], (old) =>
-        (old || []).filter(c => c.id !== tempCatId)
-      );
-      queryClient.setQueryData(queryKey, (old: Record<string, unknown> | undefined) => {
-        if (!old) return old;
-        const entries = (old.monthly_entries as DbMonthlyEntry[]) || [];
-        return { ...old, monthly_entries: entries.filter(e => e.id !== tempEntryId) };
-      });
-    });
-  }, [handleAddTag, allTags, queryClient, queryKey, year, month]);
+      }),
+      createRealEntry: (realCatId) =>
+        api.post<DbMonthlyEntry>('/monthly-entries', {
+          year,
+          month,
+          monthly_type: 'TG',
+          monthly_field: String(realCatId),
+        }),
+    },
+  );
 
   const handleRemoveTag = useCallback((monthlyEntryId: number) => {
     deleteMonthlyEntry(monthlyEntryId);

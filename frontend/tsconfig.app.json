@@ -15,11 +15,15 @@
     "noEmit": true,
     "jsx": "react-jsx",
 
+    /* Strict Mode */
+    "strict": true,
+
     /* Linting */
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "erasableSyntaxOnly": true,
     "noFallthroughCasesInSwitch": true,
+    "noImplicitReturns": true,
   
     "paths": {
       "@/*": ["./src/*"]

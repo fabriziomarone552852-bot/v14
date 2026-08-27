@@ -1,16 +1,12 @@
 // src/components/shared/form/LocationAutocompleteInput.tsx
 import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { useAutocompleteKeyboard } from '@/hooks/useAutocompleteKeyboard';
 import { LocationIcon, ExternalLinkIcon, LoadingIcon } from '@/components/shared/utils/Icons';
 import { loadGoogleMaps } from '@/utils/googleMapsLoader';
 import { openInGoogleMaps } from '@/utils/mapUtils';
+import { fetchGooglePlacesSuggestions, fetchPhotonSuggestions, type LocationSuggestion } from '@/api/geocodingApi';
 
-export interface LocationSuggestion {
-  id: string;
-  mainText: string;
-  secondaryText?: string;
-  fullText: string;
-  source: 'google' | 'osm';
-}
+export type { LocationSuggestion } from '@/api/geocodingApi';
 
 interface LocationAutocompleteInputProps {
   label?: string;
@@ -35,7 +31,6 @@ export const LocationAutocompleteInput: React.FC<LocationAutocompleteInputProps>
   const [suggestions, setSuggestions] = useState<LocationSuggestion[]>([]);
   const [isOpen, setIsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [highlightedIndex, setHighlightedIndex] = useState(-1);
 
   const containerRef = useRef<HTMLDivElement>(null);
   const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -48,82 +43,6 @@ export const LocationAutocompleteInput: React.FC<LocationAutocompleteInputProps>
   // Initialize Google Maps on mount
   useEffect(() => {
     loadGoogleMaps();
-  }, []);
-
-  // Fetch fallback suggestions from Photon / Nominatim (OpenStreetMap)
-  const fetchFallbackSuggestions = useCallback(async (query: string): Promise<LocationSuggestion[]> => {
-    const trimmed = query.trim();
-    if (!trimmed) return [];
-
-    try {
-      // 1. Try Photon (fast search)
-      const response = await fetch(
-        `https://photon.komoot.io/api/?q=${encodeURIComponent(trimmed)}&limit=5`
-      );
-      if (response.ok) {
-        const data = await response.json();
-        const features: any[] = data.features || [];
-        if (features.length > 0) {
-          return features.map((f: any): LocationSuggestion => {
-            const p = f.properties || {};
-            const streetAndNum = [p.street, p.housenumber].filter(Boolean).join(' ');
-            const main = p.name || streetAndNum || p.city || trimmed;
-            const secondaryParts = [
-              streetAndNum && streetAndNum !== main ? streetAndNum : null,
-              p.city || p.town || p.village,
-              p.state,
-              p.country,
-            ].filter(Boolean);
-
-            const fullParts = [
-              p.name,
-              streetAndNum && streetAndNum !== p.name ? streetAndNum : null,
-              p.city || p.town || p.village,
-              p.state,
-              p.country,
-            ].filter(Boolean);
-
-            const uniqueFull = fullParts.filter((v, idx, arr) => arr.indexOf(v) === idx).join(', ');
-
-            return {
-              id: `osm-${p.osm_id || Math.random()}`,
-              mainText: main,
-              secondaryText: secondaryParts.join(', '),
-              fullText: uniqueFull || main,
-              source: 'osm',
-            };
-          });
-        }
-      }
-    } catch {
-      // Fall through to Nominatim
-    }
-
-    try {
-      // 2. OpenStreetMap Nominatim
-      const nomRes = await fetch(
-        `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(trimmed)}&format=json&addressdetails=1&limit=5&accept-language=it`
-      );
-      if (nomRes.ok) {
-        const items: any[] = await nomRes.json();
-        return items.map((item) => {
-          const parts = (item.display_name || '').split(',');
-          const main = parts[0] || trimmed;
-          const secondary = parts.slice(1, 4).join(',').trim();
-          return {
-            id: `nom-${item.place_id || Math.random()}`,
-            mainText: main,
-            secondaryText: secondary,
-            fullText: item.display_name,
-            source: 'osm',
-          };
-        });
-      }
-    } catch {
-      // Empty
-    }
-
-    return [];
   }, []);
 
   // Fetch predictions from Google Places (New API) or fallback to OSM
@@ -139,50 +58,20 @@ export const LocationAutocompleteInput: React.FC<LocationAutocompleteInputProps>
 
       setIsLoading(true);
 
-      // 1. Try modern Google Places AutocompleteSuggestion (New Places API)
-      const placesLib = window.google?.maps?.places as any;
-      if (placesLib?.AutocompleteSuggestion?.fetchAutocompleteSuggestions) {
-        try {
-          const response = await placesLib.AutocompleteSuggestion.fetchAutocompleteSuggestions({
-            input: trimmed,
-          });
-          const suggestionsList = response?.suggestions || [];
-          if (suggestionsList.length > 0) {
-            const formatted: LocationSuggestion[] = suggestionsList
-              .filter((s: any) => s.placePrediction)
-              .map((s: any) => {
-                const p = s.placePrediction;
-                const main = p.mainText?.text || p.text?.text || trimmed;
-                const secondary = p.secondaryText?.text || '';
-                const full = p.text?.text || (secondary ? `${main}, ${secondary}` : main);
-                return {
-                  id: p.placeId || `google-${Math.random()}`,
-                  mainText: main,
-                  secondaryText: secondary,
-                  fullText: full,
-                  source: 'google',
-                };
-              });
-
-            if (formatted.length > 0) {
-              setSuggestions(formatted);
-              setIsOpen(true);
-              setIsLoading(false);
-              return;
-            }
-          }
-        } catch {
-          // Google Places API error (e.g. 403 Forbidden or API not enabled) -> silently fall back
-        }
+      const googleSuggestions = await fetchGooglePlacesSuggestions(trimmed);
+      if (googleSuggestions.length > 0) {
+        setSuggestions(googleSuggestions);
+        setIsOpen(true);
+        setIsLoading(false);
+        return;
       }
 
-      // 2. OpenStreetMap / Photon Fallback
-      const osmResults = await fetchFallbackSuggestions(trimmed);
+      const osmResults = await fetchPhotonSuggestions(trimmed);
       setSuggestions(osmResults);
       setIsOpen(osmResults.length > 0);
       setIsLoading(false);
     },
-    [fetchFallbackSuggestions]
+    []
   );
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -205,7 +94,7 @@ export const LocationAutocompleteInput: React.FC<LocationAutocompleteInputProps>
     onChange(suggestion.fullText);
     setSuggestions([]);
     setIsOpen(false);
-    setHighlightedIndex(-1);
+    resetHighlight();
   };
 
   const handleClear = () => {
@@ -215,25 +104,13 @@ export const LocationAutocompleteInput: React.FC<LocationAutocompleteInputProps>
     setIsOpen(false);
   };
 
-  // Keyboard navigation
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (!isOpen || suggestions.length === 0) return;
-
-    if (e.key === 'ArrowDown') {
-      e.preventDefault();
-      setHighlightedIndex((prev) => (prev < suggestions.length - 1 ? prev + 1 : 0));
-    } else if (e.key === 'ArrowUp') {
-      e.preventDefault();
-      setHighlightedIndex((prev) => (prev > 0 ? prev - 1 : suggestions.length - 1));
-    } else if (e.key === 'Enter') {
-      if (highlightedIndex >= 0 && highlightedIndex < suggestions.length) {
-        e.preventDefault();
-        handleSelectSuggestion(suggestions[highlightedIndex]);
-      }
-    } else if (e.key === 'Escape') {
-      setIsOpen(false);
-    }
-  };
+  // Navigazione da tastiera unificata tramite hook condiviso
+  const { highlightedIndex, setHighlightedIndex, resetHighlight, handleKeyDown } = useAutocompleteKeyboard({
+    items: suggestions,
+    isOpen,
+    setIsOpen,
+    onSelect: handleSelectSuggestion,
+  });
 
   // Close dropdown on click outside
   useEffect(() => {

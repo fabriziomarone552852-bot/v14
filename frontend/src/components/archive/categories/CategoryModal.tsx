@@ -46,6 +46,7 @@ export const CategoryModal: React.FC<CategoryModalProps> = ({
 
   useEffect(() => {
     if (categoryToEdit) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- Form state reset when modal opens or edit target changes
       setName(categoryToEdit.category_name);
       setColor(categoryToEdit.colore || '#3B82F6');
       setGenre(categoryToEdit.genre || defaultGenre);

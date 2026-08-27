@@ -27,16 +27,17 @@ export const ShoppingPriceTableRow: React.FC<ShoppingPriceTableRowProps> = ({
   productSummary,
   onSelectProduct,
 }) => {
-  if (!productSummary) return null;
-
-  // Mostra unità solo se tutti i record condividono la stessa unità
+  // Hook SEMPRE chiamato per primo (regola di React: mai dopo un return condizionale)
   const uniqueUnits = useMemo(() => {
+    if (!productSummary) return [];
     const set = new Set<string>();
     for (const b of productSummary.batches || []) {
       if (b.unitName) set.add(b.unitName);
     }
     return Array.from(set);
-  }, [productSummary.batches]);
+  }, [productSummary]);
+
+  if (!productSummary) return null;
 
   const isSingleUnit = uniqueUnits.length === 1;
   const commonUnitDisplay = isSingleUnit

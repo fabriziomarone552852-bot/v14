@@ -1,188 +1,26 @@
 // src/components/archive/shopping/ShoppingQuickPriceModal.tsx
-import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
-import { createPortal } from 'react-dom';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
+export * from './QuickPriceTypes';
+export * from './InlineDropdownSelect';
+export * from './QuickPriceRowItem';
+export * from './QuickPriceTable';
+
 import BaseModal from '@/components/shared/dialog/BaseModal';
-import {
-  TagIcon,
-  TrashIcon,
-  PlusIcon,
-  DropdownIcon,
-} from '@/components/shared/utils/Icons';
+import { TagIcon } from '@/components/shared/utils/Icons';
 import { useShoppingMutations } from '@/hooks/shopping/useShoppingMutations';
-import { useOutsideClick } from '@/hooks/useOutsideClick';
 import { getLocalTodayStr } from '@/utils/dateUtils';
-import DatePicker from '@/components/shared/utils/DatePicker/DatePicker';
 import type {
   ConfigOption,
   ShoppingProductOption,
   ShoppingSupplierOption,
 } from '@/types/shopping';
-import ShoppingProductAutocomplete from '@/components/shared/shopping/ShoppingProductAutocomplete';
-import ShoppingBrandAutocomplete from '@/components/shared/shopping/ShoppingBrandAutocomplete';
 import {
   ORDERED_UNIT_KEYS,
   UNIT_DICTIONARY,
   getUnitDisplayName,
 } from '@/components/shared/shopping/ShoppingUnitSelect';
-
-interface QuickPriceRow {
-  id: string;
-  productName: string;
-  brandName: string;
-  brandId: string;
-  price: string;
-  quantity: string;
-  unitId: string;
-  purchaseDate: string;
-  supplierId: string;
-  isOnSale: boolean;
-}
-
-interface DropdownOption {
-  value: string;
-  label: string;
-}
-
-interface InlineDropdownSelectProps {
-  value: string;
-  onChange: (val: string) => void;
-  options: DropdownOption[];
-  placeholder?: string;
-  className?: string;
-  id?: string;
-}
-
-const InlineDropdownSelect: React.FC<InlineDropdownSelectProps> = ({
-  value,
-  onChange,
-  options,
-  placeholder = 'Seleziona...',
-  className = '',
-  id,
-}) => {
-  const [isOpen, setIsOpen] = useState(false);
-  const [coords, setCoords] = useState<{
-    top: number;
-    bottom: number;
-    left: number;
-    width: number;
-    openUpwards: boolean;
-  }>({
-    top: 0,
-    bottom: 0,
-    left: 0,
-    width: 0,
-    openUpwards: false,
-  });
-
-  const buttonRef = useRef<HTMLButtonElement>(null);
-  const dropdownRef = useRef<HTMLDivElement>(null);
-
-  const wrapperRef = useOutsideClick<HTMLDivElement>((e: MouseEvent | TouchEvent) => {
-    const target = e.target as Node;
-    if (
-      (buttonRef.current && buttonRef.current.contains(target)) ||
-      (dropdownRef.current && dropdownRef.current.contains(target))
-    ) {
-      return;
-    }
-    if (isOpen) setIsOpen(false);
-  });
-
-  const selectedOption = options.find((o) => o.value === value);
-  const displayLabel = selectedOption ? selectedOption.label : placeholder;
-
-  const updateCoords = useCallback(() => {
-    if (buttonRef.current) {
-      const rect = buttonRef.current.getBoundingClientRect();
-      const spaceBelow = window.innerHeight - rect.bottom;
-      const openUp = spaceBelow < 200;
-      setCoords({
-        top: rect.bottom + 4,
-        bottom: window.innerHeight - rect.top + 4,
-        left: rect.left,
-        width: Math.max(rect.width, 140),
-        openUpwards: openUp,
-      });
-    }
-  }, []);
-
-  useEffect(() => {
-    if (isOpen) {
-      updateCoords();
-      window.addEventListener('resize', updateCoords);
-      window.addEventListener('scroll', updateCoords, true);
-      return () => {
-        window.removeEventListener('resize', updateCoords);
-        window.removeEventListener('scroll', updateCoords, true);
-      };
-    }
-  }, [isOpen, updateCoords]);
-
-  const dropdownMenu = (
-    <div
-      ref={dropdownRef}
-      style={{
-        position: 'fixed',
-        top: coords.openUpwards ? 'auto' : `${coords.top}px`,
-        bottom: coords.openUpwards ? `${coords.bottom}px` : 'auto',
-        left: `${coords.left}px`,
-        width: `${coords.width}px`,
-        zIndex: 99999,
-      }}
-      className="bg-white border border-gray-100 rounded-xl shadow-2xl py-1 animate-fadeIn max-h-48 overflow-y-auto divide-y divide-gray-50"
-    >
-      {options.length === 0 ? (
-        <div className="px-3 py-2 text-xs text-gray-400">Nessuna opzione</div>
-      ) : (
-        options.map((opt) => {
-          const isSelected = opt.value === value;
-          return (
-            <div
-              key={opt.value}
-              onClick={() => {
-                onChange(opt.value);
-                setIsOpen(false);
-              }}
-              className={`px-3 py-2 text-xs cursor-pointer transition-colors flex items-center justify-between ${
-                isSelected
-                  ? 'bg-blue-50 text-blue-700 font-bold'
-                  : 'text-slate-700 hover:bg-slate-50'
-              }`}
-            >
-              <span className="truncate">{opt.label}</span>
-              {isSelected && (
-                <span className="w-1.5 h-1.5 rounded-full bg-blue-600 shrink-0 ml-1" />
-              )}
-            </div>
-          );
-        })
-      )}
-    </div>
-  );
-
-  return (
-    <div className={`relative ${className}`} ref={wrapperRef}>
-      <button
-        id={id}
-        ref={buttonRef}
-        type="button"
-        onClick={() => {
-          updateCoords();
-          setIsOpen((prev) => !prev);
-        }}
-        className="w-full px-2.5 py-2 border border-gray-200 rounded-xl text-xs font-semibold bg-white cursor-pointer flex justify-between items-center hover:border-blue-500 transition-colors text-left"
-      >
-        <span className={`truncate ${value ? 'text-slate-800' : 'text-slate-400'}`}>
-          {displayLabel}
-        </span>
-        <DropdownIcon isDropdownOpen={isOpen} className="w-3.5 h-3.5 text-slate-400 shrink-0 ml-1" />
-      </button>
-
-      {isOpen && createPortal(dropdownMenu, document.body)}
-    </div>
-  );
-};
+import { QuickPriceTable } from './QuickPriceTable';
+import type { QuickPriceRow, DropdownOption } from './QuickPriceTypes';
 
 /* =========================================================================
  * ShoppingQuickPriceModal Component
@@ -263,6 +101,7 @@ export const ShoppingQuickPriceModal: React.FC<ShoppingQuickPriceModalProps> = (
 
   useEffect(() => {
     if (isOpen) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- Reset state when modal opens
       setRows([createEmptyRow(), createEmptyRow(), createEmptyRow()]);
       setErrorMessage(null);
       setFocusTargetId(null);
@@ -271,16 +110,15 @@ export const ShoppingQuickPriceModal: React.FC<ShoppingQuickPriceModalProps> = (
   }, [isOpen]);
 
   useEffect(() => {
-    if (focusTargetId) {
-      const timer = setTimeout(() => {
-        const el = document.getElementById(focusTargetId);
-        if (el) {
-          el.focus();
-        }
-        setFocusTargetId(null);
-      }, 40);
-      return () => clearTimeout(timer);
-    }
+    if (!focusTargetId) return;
+    const timer = setTimeout(() => {
+      const el = document.getElementById(focusTargetId);
+      if (el) {
+        el.focus();
+      }
+      setFocusTargetId(null);
+    }, 40);
+    return () => clearTimeout(timer);
   }, [focusTargetId, rows]);
 
   const handleAddRow = useCallback(() => {
@@ -289,15 +127,16 @@ export const ShoppingQuickPriceModal: React.FC<ShoppingQuickPriceModalProps> = (
     setFocusTargetId(`prod-${newRow.id}`);
   }, []);
 
-  const handleRemoveRow = (id: string) => {
-    if (rows.length === 1) {
-      setRows([createEmptyRow()]);
-      return;
-    }
-    setRows((prev) => prev.filter((r) => r.id !== id));
-  };
+  const handleRemoveRow = useCallback((id: string) => {
+    setRows((prev) => {
+      if (prev.length === 1) {
+        return [createEmptyRow()];
+      }
+      return prev.filter((r) => r.id !== id);
+    });
+  }, []);
 
-  const updateRow = <K extends keyof QuickPriceRow>(
+  const updateRow = useCallback(<K extends keyof QuickPriceRow>(
     id: string,
     field: K,
     value: QuickPriceRow[K]
@@ -305,9 +144,9 @@ export const ShoppingQuickPriceModal: React.FC<ShoppingQuickPriceModalProps> = (
     setRows((prev) =>
       prev.map((row) => (row.id === id ? { ...row, [field]: value } : row))
     );
-  };
+  }, []);
 
-  const handleProductSelect = (
+  const handleProductSelect = useCallback((
     rowId: string,
     productName: string,
     product?: ShoppingProductOption
@@ -325,9 +164,9 @@ export const ShoppingQuickPriceModal: React.FC<ShoppingQuickPriceModalProps> = (
         return updated;
       })
     );
-  };
+  }, []);
 
-  const handleBrandSelect = (
+  const handleBrandSelect = useCallback((
     rowId: string,
     brandName: string,
     brand?: ShoppingSupplierOption
@@ -342,9 +181,9 @@ export const ShoppingQuickPriceModal: React.FC<ShoppingQuickPriceModalProps> = (
         };
       })
     );
-  };
+  }, []);
 
-  const handleKeyDownOnLastField = (
+  const handleKeyDownOnLastField = useCallback((
     e: React.KeyboardEvent,
     rowIndex: number
   ) => {
@@ -354,7 +193,7 @@ export const ShoppingQuickPriceModal: React.FC<ShoppingQuickPriceModalProps> = (
         handleAddRow();
       }
     }
-  };
+  }, [rows.length, handleAddRow]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -461,186 +300,21 @@ export const ShoppingQuickPriceModal: React.FC<ShoppingQuickPriceModalProps> = (
           </div>
         )}
 
-        {/* Tabella interattiva */}
-        <div className="border border-slate-200/90 rounded-2xl overflow-hidden bg-white shadow-2xs">
-          <div className="overflow-x-auto max-h-[55vh] custom-scrollbar">
-            <table className="w-full text-left text-xs border-collapse min-w-[840px]">
-              <thead className="bg-slate-50 border-b border-slate-200 text-[11px] font-bold uppercase tracking-wider text-slate-500 sticky top-0 z-20">
-                <tr>
-                  <th className="py-2.5 px-3 min-w-[170px]">
-                    Prodotto
-                  </th>
-                  <th className="py-2.5 px-3 min-w-[150px]">Brand / Marchio</th>
-                  <th className="py-2.5 px-2.5 w-24">
-                    Prezzo
-                  </th>
-                  <th className="py-2.5 px-2 w-16">Qtà</th>
-                  <th className="py-2.5 px-2.5 min-w-[110px]">Unità</th>
-                  <th className="py-2.5 px-2.5 min-w-[140px]">Data</th>
-                  <th className="py-2.5 px-2.5 min-w-[140px]">Negozio</th>
-                  <th className="py-2.5 px-2.5 w-16 text-center">Offerta</th>
-                  <th className="py-2.5 px-2 w-10 text-center"></th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {rows.map((row, index) => (
-                  <tr
-                    key={row.id}
-                    className="hover:bg-slate-50/70 transition-colors group"
-                  >
-                    {/* Prodotto Autocomplete con Portal Overlay */}
-                    <td className="py-2 px-3">
-                      <ShoppingProductAutocomplete
-                        id={`prod-${row.id}`}
-                        value={row.productName}
-                        onChange={(name, prod) =>
-                          handleProductSelect(row.id, name, prod)
-                        }
-                        products={products}
-                        hideBrand={true}
-                        placeholder="Es. Pasta..."
-                        className="w-full text-xs"
-                        usePortal={true}
-                      />
-                    </td>
-
-                    {/* Brand Autocomplete con Portal Overlay */}
-                    <td className="py-2 px-3">
-                      <ShoppingBrandAutocomplete
-                        id={`brand-${row.id}`}
-                        value={row.brandName}
-                        onChange={(name, brand) =>
-                          handleBrandSelect(row.id, name, brand)
-                        }
-                        brands={brands}
-                        productName={row.productName}
-                        products={products}
-                        placeholder="Es. Barilla..."
-                        className="w-full text-xs"
-                        usePortal={true}
-                      />
-                    </td>
-
-                    {/* Prezzo */}
-                    <td className="py-2 px-2.5">
-                      <input
-                        id={`price-${row.id}`}
-                        type="text"
-                        inputMode="decimal"
-                        value={row.price}
-                        onChange={(e) =>
-                          updateRow(row.id, 'price', e.target.value)
-                        }
-                        placeholder="0.00"
-                        className="w-full px-2.5 py-2 border border-gray-200 rounded-xl text-xs font-bold text-slate-800 focus:outline-none focus:border-blue-500 bg-white"
-                      />
-                    </td>
-
-                    {/* Quantità */}
-                    <td className="py-2 px-2">
-                      <input
-                        id={`qty-${row.id}`}
-                        type="text"
-                        inputMode="decimal"
-                        value={row.quantity}
-                        onChange={(e) =>
-                          updateRow(row.id, 'quantity', e.target.value)
-                        }
-                        placeholder="1"
-                        className="w-full px-2 py-2 border border-gray-200 rounded-xl text-xs text-center text-slate-700 focus:outline-none focus:border-blue-500 bg-white"
-                      />
-                    </td>
-
-                    {/* Unità di Misura Dropdown con Portal Overlay */}
-                    <td className="py-2 px-2.5">
-                      <InlineDropdownSelect
-                        id={`unit-${row.id}`}
-                        value={row.unitId}
-                        onChange={(val) => updateRow(row.id, 'unitId', val)}
-                        options={unitDropdownOptions}
-                        placeholder="Unità"
-                        className="w-full"
-                      />
-                    </td>
-
-                    {/* Data Acquisto con DatePicker standard via usePortal */}
-                    <td className="py-2 px-2.5">
-                      <DatePicker
-                        value={row.purchaseDate}
-                        onChange={(newDate) => {
-                          updateRow(row.id, 'purchaseDate', newDate);
-                          setOpenDatePickerRowId(null);
-                        }}
-                        isOpen={openDatePickerRowId === row.id}
-                        onToggle={() =>
-                          setOpenDatePickerRowId(
-                            openDatePickerRowId === row.id ? null : row.id
-                          )
-                        }
-                        onClose={() => setOpenDatePickerRowId(null)}
-                        align="left"
-                        usePortal={true}
-                      />
-                    </td>
-
-                    {/* Negozio / Fornitore Dropdown con Portal Overlay */}
-                    <td className="py-2 px-2.5">
-                      <InlineDropdownSelect
-                        id={`supplier-${row.id}`}
-                        value={row.supplierId}
-                        onChange={(val) => updateRow(row.id, 'supplierId', val)}
-                        options={supplierDropdownOptions}
-                        placeholder="Negozio"
-                        className="w-full"
-                      />
-                    </td>
-
-                    {/* Offerta Checkbox */}
-                    <td className="py-2 px-2.5 text-center">
-                      <input
-                        id={`sale-${row.id}`}
-                        type="checkbox"
-                        checked={row.isOnSale}
-                        onChange={(e) =>
-                          updateRow(row.id, 'isOnSale', e.target.checked)
-                        }
-                        onKeyDown={(e) =>
-                          handleKeyDownOnLastField(e, index)
-                        }
-                        className="w-4 h-4 text-emerald-600 rounded border-slate-300 focus:ring-emerald-500 cursor-pointer"
-                      />
-                    </td>
-
-                    {/* Elimina Riga */}
-                    <td className="py-2 px-2 text-center">
-                      <button
-                        type="button"
-                        tabIndex={-1}
-                        onClick={() => handleRemoveRow(row.id)}
-                        className="p-1.5 text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors cursor-pointer"
-                        title="Elimina riga"
-                      >
-                        <TrashIcon className="w-4 h-4" />
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-
-          {/* Tasto Aggiungi Riga posizionato sotto l'ultima riga */}
-          <div className="p-2.5 bg-slate-50/60 border-t border-slate-200/80 flex items-center">
-            <button
-              type="button"
-              onClick={handleAddRow}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 font-bold text-xs shadow-2xs transition cursor-pointer"
-            >
-              <PlusIcon className="w-4 h-4 text-slate-500" />
-              <span>Aggiungi riga</span>
-            </button>
-          </div>
-        </div>
+        <QuickPriceTable
+          rows={rows}
+          products={products}
+          brands={brands}
+          unitDropdownOptions={unitDropdownOptions}
+          supplierDropdownOptions={supplierDropdownOptions}
+          openDatePickerRowId={openDatePickerRowId}
+          onUpdateRow={updateRow}
+          onProductSelect={handleProductSelect}
+          onBrandSelect={handleBrandSelect}
+          onRemoveRow={handleRemoveRow}
+          onDatePickerToggle={setOpenDatePickerRowId}
+          onKeyDownOnLastField={handleKeyDownOnLastField}
+          onAddRow={handleAddRow}
+        />
       </form>
     </BaseModal>
   );

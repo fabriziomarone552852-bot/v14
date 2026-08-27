@@ -1,6 +1,11 @@
 // frontend/src/components/dashboard/quotes/QuoteCard.tsx
 import React from 'react';
-import type { QuoteCardProps } from '@/types';
+import type { Quote } from '@/types';
+
+export interface QuoteCardProps {
+  quote: Quote;
+  isTodayQuote: boolean;
+}
 
 /**
  * Componente atomico per la visualizzazione della card citazione sul lato sinistro.

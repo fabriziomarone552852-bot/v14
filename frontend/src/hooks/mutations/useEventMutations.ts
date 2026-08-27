@@ -140,22 +140,25 @@ export function useEventMutations<T extends CacheWithEvents>(queryKey: QueryKey)
     mutationFn: async (payload: EventDeletePayload) => {
       const { id, mode, dateStr, currentRrule, currentEsclusioni } = payload;
 
-      if (mode === 'all') {
-        return await api.delete(`/events/${id}`);
-      }
-      if (mode === 'single') {
-        const newEsclusioni = currentEsclusioni ? `${currentEsclusioni},${dateStr}` : dateStr;
-        return await api.patch(`/events/${id}`, { esclusioni: newEsclusioni });
-      }
-      if (mode === 'future') {
-        const untilDate = dateStr.replace(/-/g, '');
-        let newRrule = currentRrule || '';
-        if (newRrule.includes('UNTIL=')) {
-          newRrule = newRrule.replace(/UNTIL=\d{8}/, `UNTIL=${untilDate}`);
-        } else {
-          newRrule = `${newRrule};UNTIL=${untilDate}`;
+      switch (mode) {
+        case 'all':
+          return await api.delete(`/events/${id}`);
+        case 'single': {
+          const newEsclusioni = currentEsclusioni ? `${currentEsclusioni},${dateStr}` : dateStr;
+          return await api.patch(`/events/${id}`, { esclusioni: newEsclusioni });
         }
-        return await api.patch(`/events/${id}`, { rrule: newRrule });
+        case 'future': {
+          const untilDate = dateStr.replace(/-/g, '');
+          let newRrule = currentRrule || '';
+          if (newRrule.includes('UNTIL=')) {
+            newRrule = newRrule.replace(/UNTIL=\d{8}/, `UNTIL=${untilDate}`);
+          } else {
+            newRrule = `${newRrule};UNTIL=${untilDate}`;
+          }
+          return await api.patch(`/events/${id}`, { rrule: newRrule });
+        }
+        default:
+          throw new Error(`Modalità di eliminazione non supportata: ${mode}`);
       }
     },
     
@@ -207,7 +210,7 @@ export function useEventMutations<T extends CacheWithEvents>(queryKey: QueryKey)
     
     onError: (error) => {
       logger.error("Errore durante l'eliminazione dell'evento:", error);
-      alert("Si è verificato un errore durante l'eliminazione.");
+      logger.error("Si è verificato un errore durante l'eliminazione.");
       invalidateAllViewsAndEvents(queryClient);
     }
   });

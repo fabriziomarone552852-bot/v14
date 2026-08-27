@@ -1,4 +1,4 @@
-// src/components/shared/shopping/ShoppingItemCreateModal.tsx
+// src/components/shared/shopping/ShoppingItemModal.tsx
 import React from 'react';
 import BaseModal from '@/components/shared/dialog/BaseModal';
 import ShoppingUnitSelect from './ShoppingUnitSelect';
@@ -7,22 +7,23 @@ import ShoppingProductAutocomplete from './ShoppingProductAutocomplete';
 import ShoppingBrandAutocomplete from './ShoppingBrandAutocomplete';
 import type { ConfigOption, ShoppingProductOption, ShoppingSupplierOption } from '@/types/shopping';
 import type { ItemFormState } from './shoppingItems.utils';
-import { ShoppingIcon } from '@/components/shared/utils/Icons';
+import { ShoppingIcon, EditIcon } from '@/components/shared/utils/Icons';
 
-interface ShoppingItemCreateModalProps {
+interface ShoppingItemModalProps {
+  mode: 'create' | 'edit';
   open: boolean;
   onClose: () => void;
   onSubmit: (e: React.FormEvent<HTMLFormElement>) => void;
   itemForm: ItemFormState;
   setItemForm: React.Dispatch<React.SetStateAction<ItemFormState>>;
-  activeListId: number | null;
+  activeListId?: number | null;
   unitOptions: ConfigOption[];
   products?: ShoppingProductOption[];
   brands?: ShoppingSupplierOption[];
 }
 
-
-const ShoppingItemCreateModal: React.FC<ShoppingItemCreateModalProps> = ({
+const ShoppingItemModal: React.FC<ShoppingItemModalProps> = ({
+  mode,
   open,
   onClose,
   onSubmit,
@@ -35,27 +36,41 @@ const ShoppingItemCreateModal: React.FC<ShoppingItemCreateModalProps> = ({
 }) => {
   if (!open) return null;
 
+  const isCreate = mode === 'create';
   const hasActiveList = activeListId != null;
+  const disabled = isCreate ? !hasActiveList : false;
+  
+  const title = isCreate ? (
+    <span className="flex items-center gap-2 text-base font-bold text-gray-800">
+      <ShoppingIcon className="w-5 h-5 text-blue-600" />
+      <span>Nuovo Prodotto</span>
+    </span>
+  ) : (
+    <span className="flex items-center gap-2 text-base font-bold text-gray-800">
+      <EditIcon className="w-5 h-5 text-blue-600" />
+      <span>Modifica Prodotto</span>
+    </span>
+  );
+
+  const confirmText = isCreate ? "Aggiungi Prodotto" : "Salva Modifiche";
+  const formId = isCreate ? "create-item-form" : "edit-item-form";
+  
+  const isConfirmDisabled = disabled || !itemForm.productName.trim();
 
   return (
     <BaseModal
       isOpen={open}
       onClose={onClose}
-      title={
-        <span className="flex items-center gap-2 text-base font-bold text-gray-800">
-          <ShoppingIcon className="w-5 h-5 text-blue-600" />
-          <span>Nuovo Prodotto</span>
-        </span>
-      }
-      formId="create-item-form"
-      confirmText="Aggiungi Prodotto"
+      title={title}
+      formId={formId}
+      confirmText={confirmText}
       cancelText="Annulla"
-      isConfirmDisabled={!hasActiveList || !itemForm.productName.trim()}
+      isConfirmDisabled={isConfirmDisabled}
       maxWidthClass="max-w-md"
       overflowVisible={true}
     >
-      <form id="create-item-form" onSubmit={onSubmit} className="space-y-4">
-        {!hasActiveList && (
+      <form id={formId} onSubmit={onSubmit} className="space-y-4">
+        {isCreate && !hasActiveList && (
           <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-xs text-amber-800">
             Seleziona prima una lista per aggiungere un prodotto.
           </div>
@@ -78,14 +93,14 @@ const ShoppingItemCreateModal: React.FC<ShoppingItemCreateModalProps> = ({
                       brandId: selectedProd.brandId ? String(selectedProd.brandId) : '',
                     }
                   : {}),
-                ...(selectedProd?.defaultUnitId && !prev.unitId
+                ...(isCreate && selectedProd?.defaultUnitId && !prev.unitId
                   ? { unitId: String(selectedProd.defaultUnitId) }
                   : {}),
               }))
             }
             products={products}
             autoFocus
-            disabled={!hasActiveList}
+            disabled={disabled}
           />
         </div>
 
@@ -106,14 +121,13 @@ const ShoppingItemCreateModal: React.FC<ShoppingItemCreateModalProps> = ({
             brands={brands}
             productName={itemForm.productName}
             products={products}
-            disabled={!hasActiveList}
+            disabled={disabled}
           />
         </div>
 
 
         {/* Quantità & Unità di Misura */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 items-end">
-
           <div>
             <label className="block text-xs font-bold text-gray-500 uppercase mb-1">
               Quantità
@@ -127,7 +141,7 @@ const ShoppingItemCreateModal: React.FC<ShoppingItemCreateModalProps> = ({
                 }))
               }
               placeholder="Es. 1"
-              disabled={!hasActiveList}
+              disabled={disabled}
             />
           </div>
 
@@ -144,7 +158,7 @@ const ShoppingItemCreateModal: React.FC<ShoppingItemCreateModalProps> = ({
                 }))
               }
               unitOptions={unitOptions}
-              disabled={!hasActiveList}
+              disabled={disabled}
             />
           </div>
         </div>
@@ -154,7 +168,6 @@ const ShoppingItemCreateModal: React.FC<ShoppingItemCreateModalProps> = ({
           <label className="block text-xs font-bold text-gray-500 uppercase mb-1">
             Note
           </label>
-
           <textarea
             rows={2}
             className="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-blue-500 transition-colors resize-none"
@@ -166,7 +179,7 @@ const ShoppingItemCreateModal: React.FC<ShoppingItemCreateModalProps> = ({
               }))
             }
             placeholder="Es. Marca preferita, offerte..."
-            disabled={!hasActiveList}
+            disabled={disabled}
           />
         </div>
       </form>
@@ -174,4 +187,4 @@ const ShoppingItemCreateModal: React.FC<ShoppingItemCreateModalProps> = ({
   );
 };
 
-export default ShoppingItemCreateModal;
+export default ShoppingItemModal;

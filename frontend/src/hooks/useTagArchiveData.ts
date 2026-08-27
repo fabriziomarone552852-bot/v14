@@ -5,6 +5,7 @@ import { it } from 'date-fns/locale';
 import { CategoryGenre, type Category } from '@/types/categories';
 import type { MonthlyEntryResponse } from '@/types/monthlyentries';
 import type { DbYearlyEntry } from '@/types/yearlyentries';
+import { paginate } from '@/utils/paginationUtils';
 
 export interface AssociatedReview {
   id: string;
@@ -165,10 +166,7 @@ export const useTagArchiveData = ({
     });
 
     // Paginazione
-    const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
-    const safePage = Math.min(currentPage, totalPages);
-    const startIdx = (safePage - 1) * pageSize;
-    const paginated = filtered.slice(startIdx, startIdx + pageSize);
+    const { paginatedItems: paginated, totalPages } = paginate(filtered, currentPage, pageSize);
 
     return {
       allTags: sortedList,

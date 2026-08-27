@@ -7,8 +7,9 @@ import {
   deleteNote as apiDeleteNote,
   type CreateNotePayload,
   type UpdateNotePayload,
-} from '@/api/notes';
+} from '@/api/notesApi';
 import type { DailyEntry } from '@/types/dailyentries';
+import { invalidateAllViews } from '@/utils/queryCacheUtils';
 
 export const NOTES_QUERY_KEY = ['notes'];
 
@@ -26,9 +27,7 @@ export const useCreateNote = () => {
     mutationFn: (payload: CreateNotePayload) => apiCreateNote(payload),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: NOTES_QUERY_KEY });
-      queryClient.invalidateQueries({ queryKey: ['day'] });
-      queryClient.invalidateQueries({ queryKey: ['week'] });
-      queryClient.invalidateQueries({ queryKey: ['month'] });
+      invalidateAllViews(queryClient);
     },
   });
 };
@@ -56,9 +55,7 @@ export const useUpdateNote = () => {
     },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: NOTES_QUERY_KEY });
-      queryClient.invalidateQueries({ queryKey: ['day'] });
-      queryClient.invalidateQueries({ queryKey: ['week'] });
-      queryClient.invalidateQueries({ queryKey: ['month'] });
+      invalidateAllViews(queryClient);
     },
   });
 };
@@ -85,9 +82,7 @@ export const useDeleteNote = () => {
     },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: NOTES_QUERY_KEY });
-      queryClient.invalidateQueries({ queryKey: ['day'] });
-      queryClient.invalidateQueries({ queryKey: ['week'] });
-      queryClient.invalidateQueries({ queryKey: ['month'] });
+      invalidateAllViews(queryClient);
     },
   });
 };

@@ -1,7 +1,7 @@
 // src/components/archive/suppliers/BrandTableRow.tsx
 import React from 'react';
 import { ShoppingIcon, ClockIcon } from '@/components/shared/utils/Icons';
-import type { EnrichedBrand } from '@/hooks/useSupplierArchiveData';
+import type { EnrichedBrand } from '@/hooks/useBrandArchiveData';
 import { formatToItalianShortDate } from '@/utils/dateUtils';
 
 interface BrandTableRowProps {

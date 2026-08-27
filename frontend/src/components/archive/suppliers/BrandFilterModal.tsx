@@ -1,6 +1,6 @@
 // src/components/archive/suppliers/BrandFilterModal.tsx
 import React from 'react';
-import type { BrandFilterState } from '@/hooks/useSupplierArchiveData';
+import type { BrandFilterState } from '@/hooks/useBrandArchiveData';
 import {
   ArchiveFilterModal,
   ArchiveFilterSearchInput,

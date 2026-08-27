@@ -1,4 +1,4 @@
-// src/api/notes.ts
+// src/api/notesApi.ts
 import { api } from '@/api/apiService';
 import type { DailyEntry } from '@/types/dailyentries';
 import type { NoteVariant } from '@/types';

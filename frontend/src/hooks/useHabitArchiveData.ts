@@ -7,6 +7,7 @@ import { translateRRule } from '@/utils/rruleUtils';
 import { formatToItalianShortDate } from '@/utils/dateUtils';
 import { rrulestr } from 'rrule';
 import { logger } from '@/utils/logger';
+import { paginate } from '@/utils/paginationUtils';
 
 export interface HabitFilterState {
   keyword: string;
@@ -61,10 +62,10 @@ export const formatRoutineFrequency = (
  */
 export const calculateNextRoutineOccurrence = (
   rruleStr?: string | null,
-  _startDateStr?: string
+  startDateStr?: string
 ): { date: Date | null; label: string } => {
   if (!rruleStr) {
-    const today = new Date();
+    const today = startDateStr ? new Date(startDateStr) : new Date();
     today.setHours(0, 0, 0, 0);
     return {
       date: today,
@@ -208,16 +209,13 @@ export const useHabitArchiveData = ({
     });
 
     // 5. Paginazione fluida a 12 card per pagina
-    const totalPagesCount = Math.max(1, Math.ceil(sorted.length / pageSize));
-    const safePage = Math.min(currentPage, totalPagesCount);
-    const startIdx = (safePage - 1) * pageSize;
-    const paginated = sorted.slice(startIdx, startIdx + pageSize);
+    const { paginatedItems, totalPages: totalPagesCount } = paginate(sorted, currentPage, pageSize);
 
     return {
       routinesCount: enrichedRoutines.length,
       habitsCount: enrichedHabits.length,
       filteredItems: sorted,
-      paginatedItems: paginated,
+      paginatedItems,
       totalPages: totalPagesCount,
       totalCount: sorted.length,
     };

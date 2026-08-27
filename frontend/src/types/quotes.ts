@@ -6,7 +6,3 @@ export interface Quote {
   author: string;
 }
 
-export interface QuoteCardProps {
-  quote: Quote;
-  isTodayQuote: boolean;
-}

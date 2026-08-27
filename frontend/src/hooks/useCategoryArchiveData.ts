@@ -1,5 +1,6 @@
 // src/hooks/useCategoryArchiveData.ts
 import { useMemo } from 'react';
+import { paginate } from '@/utils/paginationUtils';
 import { CategoryGenre, type Category } from '@/types/categories';
 import type { CategoryFilterState } from '@/components/archive/categories/CategoryFilterModal';
 import type { CategorySortField, CategorySortDirection } from '@/components/archive/categories/CategoryTableHeader';
@@ -79,7 +80,7 @@ export const useCategoryArchiveData = ({
 
     // 3. Ordinamento
     const sorted = [...filtered].sort((a, b) => {
-      let comparison = 0;
+      let comparison: number;
       switch (sortField) {
         case 'name':
           comparison = a.category_name.localeCompare(b.category_name);
@@ -98,15 +99,12 @@ export const useCategoryArchiveData = ({
       return sortDirection === 'asc' ? comparison : -comparison;
     });
 
-    // 4. Paginazione
-    const totalPagesCount = Math.max(1, Math.ceil(sorted.length / pageSize));
-    const safePage = Math.min(currentPage, totalPagesCount);
-    const startIdx = (safePage - 1) * pageSize;
-    const paginated = sorted.slice(startIdx, startIdx + pageSize);
+    // 4. Paginazione (via utility condivisa)
+    const { paginatedItems, totalPages: totalPagesCount } = paginate(sorted, currentPage, pageSize);
 
     return {
       filteredCategories: sorted,
-      paginatedCategories: paginated,
+      paginatedCategories: paginatedItems,
       stats: {
         total,
         tasks,

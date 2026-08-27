@@ -1,7 +1,7 @@
 // src/components/day/NotesSidebar.tsx
 import React, { useState, useEffect } from 'react';
 import type { LocalNoteEntry, NoteVariant } from '@/types';
-import { isNoteVariant } from '@/types'; // 🪄 Importiamo la guardia di tipo!
+import { isNoteVariant } from '@/utils/noteUtils'; // 🪄 Importiamo la guardia di tipo!
 import { CloseIcon, TrashIcon, PlusIcon, NoteIcon } from '@/components/shared/utils/Icons';
 import { useAutoResizeTextArea } from '@/hooks/useAutoResizeTextArea';
 import { useDebounce } from '@/hooks/useDebounce';

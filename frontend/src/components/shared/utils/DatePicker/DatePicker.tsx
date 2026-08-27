@@ -1,8 +1,8 @@
-// frontend/src/components/shared/utils/DatePicker.tsx
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { nomiMesiLungo, getDaysInMonth, getFirstDayIndex, formatToItalianShortDate, generateWeeksGrid } from '@/utils/dateUtils';
 import { useOutsideClick } from '@/hooks/useOutsideClick';
+import { useDropdownPosition } from '@/hooks/useDropdownPosition';
 import { CalendarIcon, BackIcon, ForwardIcon } from '../Icons';
 import { DatePickerMonthGrid } from './DatePickerMonthGrid';
 import { DatePickerDayGrid } from './DatePickerDayGrid';
@@ -39,12 +39,6 @@ const DatePicker: React.FC<DatePickerProps> = ({
 }) => {
   const [pickerMonthDate, setPickerMonthDate] = useState<Date>(new Date());
   const [yearRangeStart, setYearRangeStart] = useState<number>(() => get9YearRangeStart(new Date().getFullYear()));
-  const [openUpwards, setOpenUpwards] = useState<boolean>(false);
-  const [coords, setCoords] = useState<{ top: number; bottom: number; left: number }>({
-    top: 0,
-    bottom: 0,
-    left: 0,
-  });
 
   const popupRef = useRef<HTMLDivElement>(null);
 
@@ -55,28 +49,26 @@ const DatePicker: React.FC<DatePickerProps> = ({
     if (isOpen) onClose();
   });
 
-  const updateCoords = useCallback(() => {
-    if (wrapperRef.current) {
-      const rect = wrapperRef.current.getBoundingClientRect();
-      const spaceBelow = window.innerHeight - rect.bottom;
-      const openUp = spaceBelow < 320;
-      setOpenUpwards(openUp);
+  const { openUpwards, coords: rawCoords } = useDropdownPosition(wrapperRef, { 
+    isOpen, 
+    threshold: 320 
+  });
 
-      let leftPos = rect.left;
-      if (align === 'center') {
-        leftPos = rect.left + rect.width / 2 - 128;
-      } else if (align === 'right') {
-        leftPos = rect.right - 256;
-      }
-      leftPos = Math.max(10, Math.min(leftPos, window.innerWidth - 266));
-
-      setCoords({
-        top: rect.bottom + 6,
-        bottom: window.innerHeight - rect.top + 6,
-        left: leftPos,
-      });
+  const coords = React.useMemo(() => {
+    let leftPos = rawCoords.left;
+    if (align === 'center') {
+      leftPos = rawCoords.left + rawCoords.width / 2 - 128;
+    } else if (align === 'right') {
+      leftPos = rawCoords.right - 256;
     }
-  }, [align, wrapperRef]);
+    leftPos = Math.max(10, Math.min(leftPos, window.innerWidth - 266));
+
+    return {
+      top: rawCoords.top + 6,
+      bottom: rawCoords.bottom + 6,
+      left: leftPos,
+    };
+  }, [align, rawCoords]);
 
   useEffect(() => {
     if (isOpen) {
@@ -90,26 +82,8 @@ const DatePicker: React.FC<DatePickerProps> = ({
         setPickerMonthDate(now);
         setYearRangeStart(get9YearRangeStart(now.getFullYear()));
       }
-
-      if (usePortal) {
-        updateCoords();
-        window.addEventListener('resize', updateCoords);
-        window.addEventListener('scroll', updateCoords, true);
-        return () => {
-          window.removeEventListener('resize', updateCoords);
-          window.removeEventListener('scroll', updateCoords, true);
-        };
-      }
     }
-  }, [isOpen, value, usePortal, updateCoords]);
-
-  useEffect(() => {
-    if (!usePortal && isOpen && wrapperRef.current) {
-      const rect = wrapperRef.current.getBoundingClientRect();
-      const spaceBelow = window.innerHeight - rect.bottom;
-      setOpenUpwards(spaceBelow < 320);
-    }
-  }, [isOpen, usePortal, wrapperRef]);
+  }, [isOpen, value]);
 
   const year = pickerMonthDate.getFullYear();
   const month = pickerMonthDate.getMonth();

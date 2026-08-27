@@ -5,7 +5,8 @@ import type { EventFilterState } from '@/components/archive/events/EventFilterMo
 import type { EventSortField, EventSortDirection } from '@/components/archive/events/EventTableHeader';
 import { mapDbEventsToCalendarEvents } from '@/utils/eventUtils';
 import { getLocalTodayStr } from '@/utils/dateUtils';
-import { formatEventRecurrence } from '@/components/archive/events/EventTableRow';
+import { formatEventRecurrence } from '@/components/archive/events/eventRecurrenceUtils';
+import { paginate } from '@/utils/paginationUtils';
 
 interface UseEventArchiveDataOptions {
   rawEvents: DbEvent[];
@@ -83,7 +84,7 @@ export const useEventArchiveData = ({
 
     // 3. Ordinamento colonne
     const sorted = [...filtered].sort((a, b) => {
-      let comparison = 0;
+      let comparison: number;
       switch (sortField) {
         case 'title':
           comparison = a.title.localeCompare(b.title);
@@ -124,15 +125,12 @@ export const useEventArchiveData = ({
     });
 
     // 4. Paginazione
-    const totalPagesCount = Math.max(1, Math.ceil(sorted.length / pageSize));
-    const safePage = Math.min(currentPage, totalPagesCount);
-    const startIdx = (safePage - 1) * pageSize;
-    const paginated = sorted.slice(startIdx, startIdx + pageSize);
+    const { paginatedItems, totalPages: totalPagesCount } = paginate(sorted, currentPage, pageSize);
 
     return {
       filteredEvents: sorted,
       totalPages: totalPagesCount,
-      paginatedEvents: paginated,
+      paginatedEvents: paginatedItems,
     };
   }, [
     rawEvents,

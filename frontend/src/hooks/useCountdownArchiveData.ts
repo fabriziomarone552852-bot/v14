@@ -1,5 +1,6 @@
 // src/hooks/useCountdownArchiveData.ts
 import { useMemo } from 'react';
+import { paginate } from '@/utils/paginationUtils';
 import type { CountdownItem } from '@/components/day/CountdownWidget';
 import type { CountdownFilterState } from '@/components/archive/countdowns/CountdownFilterModal';
 
@@ -69,15 +70,12 @@ export const useCountdownArchiveData = ({
       return timeA - timeB;
     });
 
-    // 4. Paginazione
-    const totalPagesCount = Math.max(1, Math.ceil(sorted.length / pageSize));
-    const safePage = Math.min(currentPage, totalPagesCount);
-    const startIdx = (safePage - 1) * pageSize;
-    const paginated = sorted.slice(startIdx, startIdx + pageSize);
+    // 4. Paginazione (via utility condivisa)
+    const { paginatedItems, totalPages: totalPagesCount } = paginate(sorted, currentPage, pageSize);
 
     return {
       filteredCountdowns: sorted,
-      paginatedCountdowns: paginated,
+      paginatedCountdowns: paginatedItems,
       totalPages: totalPagesCount,
       totalCount,
       activeCount,

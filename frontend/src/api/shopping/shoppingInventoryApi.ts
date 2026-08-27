@@ -136,9 +136,6 @@ export async function fetchCommunityPrices(productId: number): Promise<Community
   }));
 }
 
-export async function addShoppingPrice(_payload: unknown): Promise<void> {
-  throw new Error('addShoppingPrice non supportato: usare addInventoryBatch.');
-}
 
 export async function createQuickPriceBatch(
   payload: import('@/types/shopping').QuickPriceBatchCreatePayload
@@ -194,11 +191,3 @@ export async function createQuickPriceBatch(
   }));
 }
 
-
-export async function updateShoppingPrice(_priceId: number, _payload: unknown): Promise<void> {
-  throw new Error('updateShoppingPrice non supportato nel backend attuale.');
-}
-
-export async function deleteShoppingPrice(_priceId: number): Promise<void> {
-  throw new Error('deleteShoppingPrice non supportato nel backend attuale.');
-}

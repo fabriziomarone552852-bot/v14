@@ -6,6 +6,7 @@ import axios from 'axios';
 import { apiUrl, apiClient } from '@/api/client';
 import type { TokenResponse, UserResponse } from '@/types/auth';
 import { logger } from '@/utils/logger';
+import { extractErrorMessage } from '@/utils/errorUtils';
 
 interface AuthContextValue {
   token: string | null;
@@ -144,13 +145,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       persistUser(userData);
 
     } catch (e: unknown) {
-      let msg = 'Errore di login';
-
-      if (axios.isAxiosError(e)) {
-        msg = e.response?.data?.detail || e.message || 'Errore del server';
-      } else if (e instanceof Error) {
-        msg = e.message;
-      }
+      const msg = extractErrorMessage(e, 'Errore di login');
 
       setError(msg);
       persistTokens(null, null);
@@ -177,13 +172,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       await login(normalizedUsername, password);
     } catch (e: unknown) {
-      let msg = 'Errore di registrazione';
-
-      if (axios.isAxiosError(e)) {
-        msg = e.response?.data?.detail || e.message || 'Errore del server';
-      } else if (e instanceof Error) {
-        msg = e.message;
-      }
+      const msg = extractErrorMessage(e, 'Errore di registrazione');
 
       setError(msg);
       throw e;
@@ -210,13 +199,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       persistUser(userRes.data);
 
     } catch (e: unknown) {
-      let msg = 'Errore nel cambio password';
-
-      if (axios.isAxiosError(e)) {
-        msg = e.response?.data?.detail || e.message || 'Errore del server';
-      } else if (e instanceof Error) {
-        msg = e.message;
-      }
+      const msg = extractErrorMessage(e, 'Errore nel cambio password');
 
       setError(msg);
       throw e;

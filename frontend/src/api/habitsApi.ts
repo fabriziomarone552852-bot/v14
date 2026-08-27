@@ -1,4 +1,4 @@
-// src/api/habits.ts
+// src/api/habitsApi.ts
 import { api } from '@/api/apiService';
 import type { Habit, HabitPeriod, SaveHabitPayload } from '@/types/habits';
 
@@ -14,7 +14,8 @@ export const getHabit = async (id: number): Promise<Habit> => {
 };
 
 export const createHabit = async (payload: SaveHabitPayload['data']): Promise<Habit> => {
-  const { data_inizio, target_completamenti, data_fine, periodId, periods, ...baseData } = payload;
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars -- Destructured to exclude from baseData spread
+  const { data_inizio, target_completamenti, data_fine: _data_fine, periodId: _periodId, periods, ...baseData } = payload;
   const initialPeriods = periods && periods.length > 0
     ? periods
     : [{ data_inizio: data_inizio || new Date().toISOString().substring(0, 10), target: target_completamenti || 1 }];
@@ -28,7 +29,7 @@ export const createHabit = async (payload: SaveHabitPayload['data']): Promise<Ha
 };
 
 export const updateHabit = async (id: number, payload: Partial<SaveHabitPayload['data']>): Promise<Habit> => {
-  const { data_inizio, target_completamenti, data_fine, periodId, periods, ...baseData } = payload;
+  const { data_inizio: _data_inizio, target_completamenti: _target, data_fine: _data_fine, periodId: _periodId, periods: _periods, ...baseData } = payload;
   const data = await api.patch<Habit>(`/habits/${id}`, baseData);
   if (!data) throw new Error('Errore nell\'aggiornamento dell\'abitudine');
   return data;

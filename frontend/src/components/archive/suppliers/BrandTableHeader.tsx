@@ -1,6 +1,7 @@
 // src/components/archive/suppliers/BrandTableHeader.tsx
 import React from 'react';
-import type { BrandSortField, SupplierSortDirection } from '@/hooks/useSupplierArchiveData';
+import type { SupplierSortDirection } from '@/hooks/useSupplierArchiveData';
+import type { BrandSortField } from '@/hooks/useBrandArchiveData';
 
 interface BrandTableHeaderProps {
   sortField: BrandSortField;

@@ -32,6 +32,7 @@ const CategoryForm: React.FC<CategoryFormProps> = ({
 
   useEffect(() => {
     if (initialValues) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- Initialize form state from props
       setValues(initialValues);
     } else {
       setValues(defaultValues);

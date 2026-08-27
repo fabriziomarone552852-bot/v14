@@ -6,6 +6,8 @@ import type { TaskSortField, TaskSortDirection } from '@/components/archive/task
 import type { TaskStats } from '@/components/archive/tasks/TaskStatsOverview';
 import { getLocalTodayStr } from '@/utils/dateUtils';
 import type { TaskTreeNode } from '@/components/archive/tasks/TaskTreeRow';
+import { paginate } from '@/utils/paginationUtils';
+import { getPriorityWeight } from '@/utils/calendarLayoutUtils';
 
 interface UseTaskArchiveTreeOptions {
   rawTasks: DbTask[];
@@ -23,12 +25,6 @@ export interface TaskArchiveTreeResult {
   totalPages: number;
   isSearchMode: boolean;
 }
-
-const priorityWeights: Record<string, number> = {
-  Alta: 3,
-  Media: 2,
-  Bassa: 1,
-};
 
 export const useTaskArchiveTree = ({
   rawTasks,
@@ -129,16 +125,13 @@ export const useTaskArchiveTree = ({
     // 6. Selezione elementi da mostrare:
     // - In modalità normale: albero canonico con radici principali
     // - In modalità ricerca: estrazione di tutte le task e sottotask corrispondenti come entità singole
-    let displayNodes: TaskTreeNode[] = [];
-    if (!hasModalSearch) {
-      displayNodes = roots;
-    } else {
-      displayNodes = allTasksList.filter((node) => matchesModalFilters(node));
-    }
+    const displayNodes: TaskTreeNode[] = !hasModalSearch
+      ? roots
+      : allTasksList.filter((node) => matchesModalFilters(node));
 
     // 7. Ordinamento
     const sorted = [...displayNodes].sort((a, b) => {
-      let comparison = 0;
+      let comparison: number;
       switch (sortField) {
         case 'title':
           comparison = a.titolo.localeCompare(b.titolo);
@@ -150,8 +143,8 @@ export const useTaskArchiveTree = ({
           break;
         }
         case 'priority': {
-          const weightA = priorityWeights[a.priorita] || 0;
-          const weightB = priorityWeights[b.priorita] || 0;
+          const weightA = getPriorityWeight(a.priorita);
+          const weightB = getPriorityWeight(b.priorita);
           comparison = weightA - weightB;
           break;
         }
@@ -170,14 +163,11 @@ export const useTaskArchiveTree = ({
     });
 
     // 8. Paginazione
-    const totalPagesCount = Math.max(1, Math.ceil(sorted.length / pageSize));
-    const safePage = Math.min(currentPage, totalPagesCount);
-    const startIdx = (safePage - 1) * pageSize;
-    const paginated = sorted.slice(startIdx, startIdx + pageSize);
+    const { paginatedItems, totalPages: totalPagesCount } = paginate(sorted, currentPage, pageSize);
 
     return {
       filteredRoots: sorted,
-      paginatedRoots: paginated,
+      paginatedRoots: paginatedItems,
       totalStats: {
         total: totalCount,
         active: activeCount,

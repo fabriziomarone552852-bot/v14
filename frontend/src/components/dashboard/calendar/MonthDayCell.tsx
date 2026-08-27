@@ -4,6 +4,7 @@ import { TimeDisplay, DateRangeDisplay } from '@/components/shared/utils/DateTim
 import { useOutsideClick } from '@/hooks/useOutsideClick';
 import { CalendarIcon, TaskListIcon } from '@/components/shared/utils/Icons';
 import { nomiMesiLungo } from '@/utils/dateUtils';
+import { getPopoverAlignClass, getMoodCellStyles } from '@/utils/monthCellUtils';
 import type { CalendarGridItem } from './MonthGrid';
 
 // 1. IMPORTIAMO I TIPI RIGOROSI DAL CONTRATTO (Zero 'any')
@@ -74,14 +75,7 @@ export const MonthDayCell: React.FC<MonthDayCellProps> = ({
   const dayNumber = parseInt(dayStr, 10);
   const headerDateTitle = `${dayNumber} ${meseName} ${yearStr}`;
 
-  const popoverAlignClass = 
-    colIndex !== undefined
-      ? colIndex >= 5 
-        ? 'right-0 left-auto transform translate-x-0' 
-        : colIndex <= 1 
-        ? 'left-0 right-auto transform translate-x-0' 
-        : 'left-1/2 transform -translate-x-1/2'
-      : 'left-1/2 transform -translate-x-1/2';
+  const popoverAlignClass = getPopoverAlignClass(colIndex);
 
   const handleSingleClick = () => {
     if (clickTimeoutRef.current) return;
@@ -106,14 +100,7 @@ export const MonthDayCell: React.FC<MonthDayCellProps> = ({
     if (onMoodChange) onMoodChange(dateKey, categoryId);
   };
 
-  // --- STILI DINAMICI BASATI SULLA TABELLA CATEGORIES ---
-  // 1. Dichiariamo una variabile sicura: se il colore è null o vuoto, usiamo un grigio di default.
-  // In questo modo 'moodColor' sarà SEMPRE e SOLO una 'string'.
-  const moodColor: string = activeMood?.colore || '#9CA3AF'; 
-
-  // 2. Ora possiamo passare la stringa sicura a React senza che TypeScript si lamenti.
-  const cellBgStyle = activeMood ? { backgroundColor: `${moodColor}15` } : {};
-  const cellBorderStyle = activeMood ? { borderColor: moodColor } : {};
+  const { cellBgStyle, cellBorderStyle } = getMoodCellStyles(activeMood?.colore);
 
   return (
     <div 

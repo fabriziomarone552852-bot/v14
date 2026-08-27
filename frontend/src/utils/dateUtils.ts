@@ -25,7 +25,7 @@ export const pad = (num: number) => String(num).padStart(2, '0');
 export const getDaysInMonth = (year: number, month: number) => dfGetDaysInMonth(new Date(year, month));
 
 export const getFirstDayIndex = (year: number, month: number) => {
-  let index = new Date(year, month, 1).getDay();
+  const index = new Date(year, month, 1).getDay();
   return index === 0 ? 6 : index - 1; 
 };
 
@@ -110,7 +110,7 @@ export const formatToItalianShortDate = (isoString?: string | null): string => {
   try {
     const datePart = isoString.split('T')[0];
     return datePart.split('-').reverse().join('/');
-  } catch (e) {
+  } catch {
     return isoString;
   }
 };

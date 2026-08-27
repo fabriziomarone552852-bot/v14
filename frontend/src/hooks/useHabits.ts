@@ -7,8 +7,9 @@ import {
   deleteHabit as apiDeleteHabit,
   createHabitPeriod,
   updateHabitPeriod,
-} from '@/api/habits';
+} from '@/api/habitsApi';
 import type { Habit, HabitPeriod, SaveHabitPayload } from '@/types/habits';
+import { invalidateAllViews } from '@/utils/queryCacheUtils';
 
 export const HABITS_QUERY_KEY = ['habits'];
 
@@ -55,7 +56,7 @@ export const useSaveHabit = () => {
     },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: HABITS_QUERY_KEY });
-      queryClient.invalidateQueries({ queryKey: ['day'] });
+      invalidateAllViews(queryClient);
     },
   });
 };
@@ -85,7 +86,7 @@ export const useDeleteHabit = () => {
     },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: HABITS_QUERY_KEY });
-      queryClient.invalidateQueries({ queryKey: ['day'] });
+      invalidateAllViews(queryClient);
     },
   });
 };
@@ -136,7 +137,7 @@ export const useSuspendHabit = () => {
     },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: HABITS_QUERY_KEY });
-      queryClient.invalidateQueries({ queryKey: ['day'] });
+      invalidateAllViews(queryClient);
     },
   });
 };
@@ -190,7 +191,7 @@ export const useResumeHabit = () => {
     },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: HABITS_QUERY_KEY });
-      queryClient.invalidateQueries({ queryKey: ['day'] });
+      invalidateAllViews(queryClient);
     },
   });
 };

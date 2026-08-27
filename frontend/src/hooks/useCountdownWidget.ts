@@ -8,13 +8,20 @@ export const useCountdownWidget = (countdowns: CountdownItem[]) => {
   // Usiamo un ref per ricordare quali countdown hanno già fatto "esplosione".
   // Inizializziamo il Set con i countdown CHE SONO GIÀ SCADUTI al caricamento della pagina,
   // così l'app non salta continuamente sulle vecchie card appena la apri!
-  const notifiedSet = useRef<Set<number>>(
-    new Set(
-      countdowns
-        .filter(cd => new Date(cd.targetDateStr).getTime() <= Date.now())
-        .map(cd => cd.id)
-    )
-  );
+  const notifiedSet = useRef<Set<number>>(new Set());
+  const isInitialized = useRef(false);
+
+  useEffect(() => {
+    if (!isInitialized.current) {
+      isInitialized.current = true;
+      const now = Date.now();
+      countdowns.forEach((cd) => {
+        if (new Date(cd.targetDateStr).getTime() <= now) {
+          notifiedSet.current.add(cd.id);
+        }
+      });
+    }
+  }, [countdowns]);
 
   // EFFETTO 1: ROTAZIONE NORMALE (Ogni 10 secondi)
   useEffect(() => {

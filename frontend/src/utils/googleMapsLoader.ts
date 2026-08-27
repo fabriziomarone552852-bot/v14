@@ -50,9 +50,12 @@ export function loadGoogleMaps(apiKey?: string): Promise<boolean> {
       return;
     }
 
-    const callbackName = '__googleMapsCallback_' + Math.random().toString(36).substring(2, 9);
-    (window as any)[callbackName] = async () => {
-      delete (window as any)[callbackName];
+    // Genera un nome callback unico con il prefisso tipizzato in global.d.ts
+    const suffix = Math.random().toString(36).substring(2, 9);
+    const callbackName = `__googleMapsCallback_${suffix}` as const;
+
+    window[callbackName] = async () => {
+      delete window[callbackName];
       try {
         if (window.google?.maps?.importLibrary) {
           await window.google.maps.importLibrary('places');
@@ -68,7 +71,7 @@ export function loadGoogleMaps(apiKey?: string): Promise<boolean> {
     script.async = true;
     script.defer = true;
     script.onerror = () => {
-      delete (window as any)[callbackName];
+      delete window[callbackName];
       console.warn('Google Maps script failed to load. Falling back to open autocomplete.');
       resolve(false);
     };

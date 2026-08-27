@@ -29,15 +29,17 @@ import { BrandModal } from '@/components/archive/suppliers/BrandModal';
 
 import {
   useSupplierArchiveData,
-  useBrandArchiveData,
   type EnrichedSupplier,
-  type EnrichedBrand,
   type SupplierFilterState,
-  type BrandFilterState,
   type SupplierSortField,
-  type BrandSortField,
   type SupplierSortDirection,
 } from '@/hooks/useSupplierArchiveData';
+import {
+  useBrandArchiveData,
+  type EnrichedBrand,
+  type BrandFilterState,
+  type BrandSortField,
+} from '@/hooks/useBrandArchiveData';
 
 export const ARCHIVE_PANEL_CLASS = 'rounded-2xl border border-slate-200/90 bg-white shadow-xs';
 

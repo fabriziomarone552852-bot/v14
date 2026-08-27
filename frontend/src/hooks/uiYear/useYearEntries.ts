@@ -3,10 +3,11 @@ import { useMemo } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { yearlyEntriesApi } from '@/api/yearlyEntriesApi';
 import { useCategories } from '@/hooks/useCategories';
-import { api } from '@/api/apiService';
+import { useOptimisticTag } from '@/hooks/useOptimisticTag';
+import { logger } from '@/utils/logger';
 import type { SyncYearResponse } from '@/hooks/useAgendaYear';
 import type { DbYearlyEntry, YearlyType } from '@/types/yearlyentries';
-import { YEARLY_MOOD_COLORS, YEARLY_MOOD_LABELS, YEARLY_SPHERE_COLORS, YEARLY_SPHERE_LABELS } from '@/types/yearlyentries';
+import { YEARLY_MOOD_COLORS, YEARLY_MOOD_LABELS, YEARLY_SPHERE_COLORS, YEARLY_SPHERE_LABELS } from '@/utils/yearlyEntriesUtils';
 import type { Category } from '@/types/categories';
 import type { TrackerItem } from '@/types/monthlyentries';
 
@@ -35,7 +36,7 @@ export interface UseYearEntriesResult {
   handleUpdateEvento: (id: number, testo: string) => Promise<void>;
   handleDeleteEvento: (id: number) => Promise<void>;
   handleAddTag: (categoryId: number) => Promise<void>;
-  handleCreateAndAddTag: (tagName: string) => Promise<void>;
+  handleCreateAndAddTag: (tagName: string) => void;
   handleRemoveTag: (yearlyEntryId: number) => Promise<void>;
 }
 
@@ -230,85 +231,37 @@ export const useYearEntries = (yearData: SyncYearResponse | undefined, year: num
         updateEntriesState(prev => prev.map(e => e.id === tempId ? created : e));
       }
     } catch (err) {
-      console.error('Errore aggiunta tag anno:', err);
+      logger.error('Errore aggiunta tag anno:', err);
       updateEntriesState(prev => prev.filter(e => e.id !== tempId));
     } finally {
       queryClient.invalidateQueries({ queryKey });
     }
   };
 
-  const handleCreateAndAddTag = async (tagName: string) => {
-    const existing = allTags.find(t => t.category_name.toLowerCase() === tagName.toLowerCase());
-    if (existing) {
-      await handleAddTag(existing.id);
-      return;
-    }
-
-    const tempCatId = -Date.now();
-    const tempCat: Category = {
-      id: tempCatId,
-      category_name: tagName,
-      colore: '#6366f1',
-      genre: 5,
-      user_id: 0,
-    };
-
-    // 1. Aggiornamento ottimistico cache categorie (mazzo di carte)
-    queryClient.setQueryData<Category[]>(['categories'], (old) => (old ? [...old, tempCat] : [tempCat]));
-
-    const tempEntryId = -(Date.now() + 1);
-    const tempEntry: DbYearlyEntry = {
-      id: tempEntryId,
-      user_id: 0,
-      year,
-      yearly_type: 'TG',
-      yearly_field: String(tempCatId),
-    };
-    updateEntriesState(prev => [...prev, tempEntry]);
-
-    try {
-      const newCat = await api.post<Category>('/categories', {
-        category_name: tagName,
-        colore: '#6366f1',
-        genre: 5,
-      });
-
-      if (!newCat) throw new Error('Creazione categoria fallita');
-
-      // Sostituisci categoria temporanea con quella reale
-      queryClient.setQueryData<Category[]>(['categories'], (old) =>
-        (old || []).map(c => c.id === tempCatId ? newCat : c)
-      );
-
-      // Aggiorna entry temporaneo con il category_id reale
-      updateEntriesState(prev =>
-        prev.map(e => e.id === tempEntryId ? { ...e, yearly_field: String(newCat.id) } : e)
-      );
-
-      // Crea l'entry yearly definitivo sul backend
-      const created = await yearlyEntriesApi.create({
+  // Handler crea nuovo tag — logica ottimistica delegata all'hook condiviso useOptimisticTag
+  const { handleCreateAndAddTag } = useOptimisticTag<DbYearlyEntry>(
+    allTags,
+    handleAddTag,
+    queryKey,
+    {
+      fieldName: 'yearly_field',
+      typeName: 'yearly_type',
+      entriesKey: 'entries',
+      createTempEntry: (tempId, tempCatId) => ({
+        id: tempId,
+        user_id: 0,
         year,
-        yearly_type: 'TG',
-        yearly_field: String(newCat.id),
-      });
-
-      if (created) {
-        updateEntriesState(prev => prev.map(e => e.id === tempEntryId ? created : e));
-      }
-    } catch (err) {
-      console.error('Errore creazione e aggiunta tag:', err);
-      // Rollback
-      queryClient.setQueryData<Category[]>(['categories'], (old) =>
-        (old || []).filter(c => c.id !== tempCatId)
-      );
-      updateEntriesState(prev => prev.filter(e => e.id !== tempEntryId));
-    } finally {
-      await Promise.all([
-        queryClient.invalidateQueries({ queryKey: ['categories'] }),
-        queryClient.invalidateQueries({ queryKey }),
-      ]);
-    }
-  };
+        yearly_type: 'TG' as YearlyType,
+        yearly_field: String(tempCatId),
+      }),
+      createRealEntry: (realCatId) =>
+        yearlyEntriesApi.create({
+          year,
+          yearly_type: 'TG',
+          yearly_field: String(realCatId),
+        }),
+    },
+  );
 
   const handleRemoveTag = async (yearlyEntryId: number) => {
     const backup = entries.find(e => e.id === yearlyEntryId);
@@ -317,7 +270,7 @@ export const useYearEntries = (yearData: SyncYearResponse | undefined, year: num
     try {
       await yearlyEntriesApi.delete(yearlyEntryId);
     } catch (err) {
-      console.error('Errore rimozione tag:', err);
+      logger.error('Errore rimozione tag:', err);
       if (backup) {
         updateEntriesState(prev => [...prev, backup]);
       }

@@ -1,5 +1,6 @@
 // src/api/analyticsApi.ts
 import { api } from '@/api/apiService';
+import { toNumberOrNull } from '@/api/shopping/shoppingClient';
 import type { SupplierPriceSummary, ItemPriceHistoryPoint } from '@/types/shopping';
 
 const ANALYTICS_API_BASE = '/analytics';
@@ -23,12 +24,6 @@ type ItemPriceHistoryPointApi = {
   is_on_sale?: boolean;
   quantity_purchased?: number | string | null;
 };
-
-function toNumberOrNull(value: unknown): number | null {
-  if (value === null || value === undefined || value === '') return null;
-  const parsed = Number(value);
-  return Number.isFinite(parsed) ? parsed : null;
-}
 
 export async function fetchItemSupplierPrices(
   shoppingListItemId: number,

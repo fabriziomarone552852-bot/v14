@@ -2,6 +2,7 @@ import React, { useRef, useState, useMemo } from 'react';
 import { getHexColor } from '@/utils/uiUtils';
 import { TimeDisplay, DateRangeDisplay } from '@/components/shared/utils/DateTimeDisplays';
 import { useOutsideClick } from '@/hooks/useOutsideClick';
+import { getPopoverAlignClass, getMoodCellStyles } from '@/utils/monthCellUtils';
 import type { CalendarGridItem } from './MonthGrid';
 import type { Category, DbTask, CalendarEvent } from '@/types'; 
 import { AddButton } from '@/components/shared/utils/AddButton';
@@ -110,17 +111,8 @@ export const MonthPageDayCell: React.FC<MonthPageDayCellProps> = ({
     if (onMoodChange) onMoodChange(dateKey, categoryId);
   };
 
-  const moodColor: string = activeMood?.colore || '#9CA3AF'; 
-  const cellBgStyle = activeMood ? { backgroundColor: `${moodColor}15` } : {};
-  const cellBorderStyle = activeMood ? { borderColor: moodColor } : {};
-
-  // Posizionamento Smart per evitare che il popover esca dai bordi (SAB/DOM -> a destra; LUN/MAR -> a sinistra; centro -> centrato)
-  const popoverAlignClass = 
-    colIndex >= 5 
-      ? 'right-0 left-auto transform translate-x-0' 
-      : colIndex <= 1 
-      ? 'left-0 right-auto transform translate-x-0' 
-      : 'left-1/2 transform -translate-x-1/2';
+  const { cellBgStyle, cellBorderStyle } = getMoodCellStyles(activeMood?.colore);
+  const popoverAlignClass = getPopoverAlignClass(colIndex);
 
   return (
     <div 

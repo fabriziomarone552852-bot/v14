@@ -9,7 +9,7 @@ import {
   TagIcon,
   StoreIcon,
 } from '@/components/shared/utils/Icons';
-import type { EnrichedBrand } from '@/hooks/useSupplierArchiveData';
+import type { EnrichedBrand } from '@/hooks/useBrandArchiveData';
 import { formatUnitForQuantity } from '@/components/shared/shopping/ShoppingUnitSelect';
 import { formatToItalianShortDate } from '@/utils/dateUtils';
 

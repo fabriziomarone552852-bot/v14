@@ -20,13 +20,9 @@ const LoginPage: React.FC = () => {
     }
   }, [isAuthenticated, navigate]);
 
-  // ogni volta che cambio modalità o password, azzero l'errore locale
-  useEffect(() => {
-    setLocalError(null);
-  }, [mode, password, confirmPassword]);
-
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setLocalError(null);
 
     // Validazione lato client solo in modalità registrazione
     if (mode === 'register') {

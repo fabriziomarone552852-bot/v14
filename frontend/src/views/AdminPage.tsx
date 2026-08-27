@@ -19,11 +19,7 @@ type AdminTab = 'config' | 'codes' | 'users' | 'health';
 
 const AdminPage: React.FC = () => {
   const { user, isAuthenticated } = useAuth();
-
-  // Sicurezza: Reindirizza utenti non superuser
-  if (!isAuthenticated || !user?.is_superuser) {
-    return <Navigate to="/" replace />;
-  }
+  const isSuperUser = Boolean(isAuthenticated && user?.is_superuser);
 
   const [activeTab, setActiveTab] = useState<AdminTab>('config');
   const [configs, setConfigs] = useState<SystemConfigItem[]>([]);
@@ -34,6 +30,7 @@ const AdminPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
 
   const loadData = useCallback(async () => {
+    if (!isSuperUser) return;
     setLoading(true);
     setError(null);
     try {
@@ -57,11 +54,18 @@ const AdminPage: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [isSuperUser]);
 
   useEffect(() => {
-    loadData();
-  }, [loadData]);
+    if (isSuperUser) {
+      loadData();
+    }
+  }, [isSuperUser, loadData]);
+
+  // Sicurezza: Reindirizza utenti non superuser
+  if (!isSuperUser) {
+    return <Navigate to="/" replace />;
+  }
 
   return (
     <div className="mx-auto flex min-h-full max-w-[1400px] flex-col gap-6 p-4 md:p-6">

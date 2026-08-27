@@ -1,9 +1,10 @@
 // src/context/EventModalContext.tsx
-import React, { createContext, useContext, useState, type ReactNode } from 'react';
+import React, { createContext, useContext, type ReactNode } from 'react';
 import type { CalendarEvent } from '@/types';
 import EventDetailModal, { type EventDeletePayload } from '@/components/shared/events/EventDetailModal';
 import NewEventModal from '@/components/shared/events/EventNewModal';
-import { useEventMutations } from '@/hooks/mutations/useEventMutations'; 
+import { useEventMutations } from '@/hooks/mutations/useEventMutations';
+import { useModal } from '@/hooks/useModals';
 
 // 1. Definiamo l'interfaccia del Context con tipi stringenti (Zero any!)
 interface EventModalContextType {
@@ -21,79 +22,59 @@ interface EventModalContextType {
 // Creiamo il context impostando il valore iniziale come undefined per sicurezza
 const EventModalContext = createContext<EventModalContextType | undefined>(undefined);
 
+interface EventFormModalState {
+  eventToEdit?: CalendarEvent | null;
+  initialDate?: string | null;
+}
+
 export const EventModalProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [isDetailOpen, setIsDetailOpen] = useState<boolean>(false);
-  const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null);
-  const [isFormOpen, setIsFormOpen] = useState<boolean>(false);
-  const [eventToEdit, setEventToEdit] = useState<CalendarEvent | null>(null);
-  const [initialDate, setInitialDate] = useState<string | null>(null);
+  const detailModal = useModal<CalendarEvent>();
+  const formModal = useModal<EventFormModalState>();
+
   const { deleteRecurringEvent } = useEventMutations(['events']);
 
-  const openEventDetail = (event: CalendarEvent): void => {
-    setSelectedEvent(event);
-    setIsDetailOpen(true);
-  };
-
-  const closeEventDetail = (): void => {
-    setIsDetailOpen(false);
-    setSelectedEvent(null);
-  };
-
-  const openEventForm = (
-    editEvent: CalendarEvent | null = null, 
-    date: string | null = null
-  ): void => {
-    setEventToEdit(editEvent);
-    setInitialDate(date);
-    setIsFormOpen(true);
-  };
-
-  const closeEventForm = (): void => {
-    setIsFormOpen(false);
-    setEventToEdit(null);
-    setInitialDate(null);
-  };
-
   const handleEditEvent = () => {
-    if (selectedEvent) {
-      openEventForm(selectedEvent, null);
-      closeEventDetail();
+    if (detailModal.data) {
+      formModal.open({ eventToEdit: detailModal.data, initialDate: null });
+      detailModal.close();
     }
   };
 
   const handleDeleteEvent = (payload: EventDeletePayload) => {
     deleteRecurringEvent(payload);
-    closeEventDetail();
+    detailModal.close();
   };
 
   return (
     <EventModalContext.Provider
       value={{
-        isDetailOpen,
-        selectedEvent,
-        isFormOpen,
-        eventToEdit,
-        initialDate,
-        openEventDetail,
-        closeEventDetail,
-        openEventForm,
-        closeEventForm,
+        isDetailOpen: detailModal.isOpen,
+        selectedEvent: detailModal.data || null,
+        isFormOpen: formModal.isOpen,
+        eventToEdit: formModal.data?.eventToEdit || null,
+        initialDate: formModal.data?.initialDate || null,
+        openEventDetail: (event) => detailModal.open(event),
+        closeEventDetail: detailModal.close,
+        openEventForm: (eventToEdit = null, initialDate = null) => {
+          formModal.open({ eventToEdit, initialDate });
+        },
+        closeEventForm: formModal.close,
       }}
     >
       {children}
       <EventDetailModal 
-        isOpen={isDetailOpen} 
-        onClose={closeEventDetail} 
-        selectedEvent={selectedEvent} 
+        isOpen={detailModal.isOpen} 
+        onClose={detailModal.close} 
+        selectedEvent={detailModal.data} 
         onDeleteClick={handleDeleteEvent} 
         onEditClick={handleEditEvent} 
       />
 
       <NewEventModal 
-        isOpen={isFormOpen} 
-        onClose={closeEventForm} 
-        eventToEdit={eventToEdit} 
-        initialDate={initialDate}
+        isOpen={formModal.isOpen} 
+        onClose={formModal.close} 
+        eventToEdit={formModal.data?.eventToEdit || null} 
+        initialDate={formModal.data?.initialDate || null}
         onEventSaved={() => {}}  
       />
     </EventModalContext.Provider>

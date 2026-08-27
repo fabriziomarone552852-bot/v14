@@ -5,6 +5,7 @@ import { it } from 'date-fns/locale';
 import type { MonthlyEntryResponse } from '@/types/monthlyentries';
 import type { DbYearlyEntry } from '@/types/yearlyentries';
 import type { Category } from '@/types/categories';
+import { paginate } from '@/utils/paginationUtils';
 
 export type ReviewTabType = 'months' | 'years';
 
@@ -228,16 +229,13 @@ export const useReviewArchiveData = ({
     });
 
     // --- 5. PAGINAZIONE ---
-    const totalPagesCount = Math.max(1, Math.ceil(filtered.length / pageSize));
-    const safePage = Math.min(currentPage, totalPagesCount);
-    const startIdx = (safePage - 1) * pageSize;
-    const paginated = filtered.slice(startIdx, startIdx + pageSize);
+    const { paginatedItems, totalPages: totalPagesCount } = paginate(filtered, currentPage, pageSize);
 
     return {
       monthsCount: allMonths.length,
       yearsCount: allYears.length,
       filteredItems: filtered,
-      paginatedItems: paginated,
+      paginatedItems,
       totalPages: totalPagesCount,
       totalCount: filtered.length,
       availableTags,

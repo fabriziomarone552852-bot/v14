@@ -11,7 +11,7 @@ export interface DbTask {
   descrizione?: string | null;
   data_start: string;
   data_scadenza?: string | null;
-  priorita: 'Alta' | 'Media' | 'Bassa';
+  priorita: Priorita;
   user_category_id?: number | null;
   category?: Category | null;
   category_name?: string | null;
@@ -29,7 +29,7 @@ export interface TaskSummary {
   deadline: string;
   dateStr: string;
   done: boolean;
-  priority: 'Alta' | 'Media' | 'Bassa';
+  priority: Priorita;
   category: string;
   categoryColor?: string;
   description: string;

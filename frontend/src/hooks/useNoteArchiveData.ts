@@ -2,6 +2,7 @@
 import { useMemo } from 'react';
 import type { DailyEntry } from '@/types/dailyentries';
 import type { NoteVariant } from '@/types';
+import { paginate } from '@/utils/paginationUtils';
 
 export interface NoteFilterState {
   keyword: string;
@@ -67,14 +68,11 @@ export const useNoteArchiveData = ({
     };
 
     // 4. Paginazione fluida a 12 note per pagina
-    const totalPagesCount = Math.max(1, Math.ceil(sorted.length / pageSize));
-    const safePage = Math.min(currentPage, totalPagesCount);
-    const startIdx = (safePage - 1) * pageSize;
-    const paginated = sorted.slice(startIdx, startIdx + pageSize);
+    const { paginatedItems, totalPages: totalPagesCount } = paginate(sorted, currentPage, pageSize);
 
     return {
       filteredNotes: sorted,
-      paginatedNotes: paginated,
+      paginatedNotes: paginatedItems,
       totalPages: totalPagesCount,
       totalCount: sorted.length,
       stats,

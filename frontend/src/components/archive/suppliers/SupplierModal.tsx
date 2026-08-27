@@ -29,6 +29,7 @@ export const SupplierModal: React.FC<SupplierModalProps> = ({
 
   useEffect(() => {
     if (supplierToEdit) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- Reset form state when modal opens or edit target changes
       setName(supplierToEdit.nameNormalized || supplierToEdit.name || '');
       const activeState =
         supplierToEdit.isActive ??

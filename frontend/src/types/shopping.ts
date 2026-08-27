@@ -428,12 +428,12 @@ export interface UseShoppingDataResult {
 
   setActiveListId: (id: number | null) => void;
 
-  refreshLists: () => Promise<unknown>;
-  refreshGroups: () => Promise<unknown>;
-  refreshItems: (listId?: number | null) => Promise<unknown>;
-  refreshSuppliers: () => Promise<unknown>;
-  refreshBrands: () => Promise<unknown>;
-  refreshConfig: () => Promise<unknown>;
+  refreshLists: () => Promise<void>;
+  refreshGroups: () => Promise<void>;
+  refreshItems: (listId?: number | null) => Promise<void>;
+  refreshSuppliers: () => Promise<void>;
+  refreshBrands: () => Promise<void>;
+  refreshConfig: () => Promise<void>;
 }
 
 export interface UseShoppingMutationsResult {
@@ -476,12 +476,6 @@ export interface UseShoppingMutationsResult {
   deleteInventoryBatch: (args: DeleteInventoryBatchArgs) => Promise<void>;
 
   createQuickPriceBatch: (payload: QuickPriceBatchCreatePayload) => Promise<ItemBatchRecord[]>;
-
-  addPrice: (payload: ShoppingPriceCreatePayload) => Promise<void>;
-
-  updatePrice: (args: UpdateShoppingPriceArgs) => Promise<void>;
-
-  deletePrice: (priceId: number) => Promise<void>;
 
   createGroup: (payload: ShoppingGroupCreatePayload) => Promise<ShoppingGroupSummary>;
   updateGroup: (id: number, data: ShoppingGroupUpdatePayload) => Promise<ShoppingGroupSummary>;

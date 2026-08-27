@@ -1,8 +1,9 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { CategoryGenre, type Category } from '@/types'; 
 import { useOutsideClick } from '@/hooks/useOutsideClick'; 
 import { DropdownIcon, CloseIcon } from '@/components/shared/utils/Icons'; 
 import { useCategories, useCreateCategory } from '@/hooks/useCategories';
+import { useDropdownPosition } from '@/hooks/useDropdownPosition';
 import { logger } from '@/utils/logger';
 
 interface MoodPixelSelectorProps {
@@ -34,7 +35,6 @@ export const MoodPixelSelector: React.FC<MoodPixelSelectorProps> = ({
   const [isNewModalOpen, setIsNewModalOpen] = useState<boolean>(false);
   const [newMoodForm, setNewMoodForm] = useState<NewMoodFormState>({ name: '', color: '#3B82F6' });
   const [errorMsg, setErrorMsg] = useState<string>('');
-  const [openUpwards, setOpenUpwards] = useState<boolean>(false);
 
   // Troviamo il mood selezionato
   const selectedMood: Category | undefined = moodCategories.find(
@@ -46,14 +46,7 @@ export const MoodPixelSelector: React.FC<MoodPixelSelectorProps> = ({
     if (isDropdownOpen) setIsDropdownOpen(false);
   });
 
-  // Calcolo intelligente dello spazio per il menu a cascata[cite: 10]
-  useEffect(() => {
-    if (isDropdownOpen && wrapperRef.current) {
-      const rect = wrapperRef.current.getBoundingClientRect();
-      const spaceBelow = window.innerHeight - rect.bottom;
-      setOpenUpwards(spaceBelow < 220); 
-    }
-  }, [isDropdownOpen]);
+  const { openUpwards } = useDropdownPosition(wrapperRef, { isOpen: isDropdownOpen, threshold: 220 });
 
   const handleSaveNew = async () => {
     const nomePulito = newMoodForm.name.trim();

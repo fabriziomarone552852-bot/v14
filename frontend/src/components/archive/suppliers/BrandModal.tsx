@@ -22,6 +22,7 @@ export const BrandModal: React.FC<BrandModalProps> = ({
 
   useEffect(() => {
     if (brandToEdit) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- Reset form state when modal opens or edit target changes
       setName(brandToEdit.nameNormalized || brandToEdit.name || '');
     } else {
       setName('');

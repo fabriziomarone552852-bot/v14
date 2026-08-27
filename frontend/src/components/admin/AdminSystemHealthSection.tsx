@@ -22,6 +22,7 @@ export const AdminSystemHealthSection: React.FC = () => {
   };
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- Initial data fetch on mount, not a cascading render
     checkHealth();
   }, []);
 

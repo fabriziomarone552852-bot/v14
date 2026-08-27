@@ -3,7 +3,7 @@ import React from 'react';
 import type { DailyEntry } from '@/types/dailyentries';
 import type { NoteVariant } from '@/types';
 import { formatToItalianShortDate } from '@/utils/dateUtils';
-import { isNoteVariant } from '@/types';
+import { isNoteVariant } from '@/utils/noteUtils';
 import { TrashIcon } from '@/components/shared/utils/Icons';
 
 interface NoteCardProps {

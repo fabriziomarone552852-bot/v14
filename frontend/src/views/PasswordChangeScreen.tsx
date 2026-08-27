@@ -41,12 +41,9 @@ const PasswordChangeScreen: React.FC = () => {
     }
   }, [isAuthenticated, mustChangePassword, navigate]);
 
-  useEffect(() => {
-    setLocalError(null);
-  }, [currentPassword, newPassword, confirmPassword]);
-
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setLocalError(null);
 
     if (newPassword !== confirmPassword) {
       setLocalError('Le nuove password non coincidono.');

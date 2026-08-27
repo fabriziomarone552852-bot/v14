@@ -1,15 +1,13 @@
 // frontend/src/hooks/uiMonth/useMonthSidebar.ts
 import { useState, useMemo } from 'react';
 import { useMonthlyEntryMutations } from '@/hooks/mutations/useMonthlyEntryMutations';
+import { getNumericValue, MOOD_NAMES, SPHERE_NAMES } from '@/utils/monthlyEntriesUtils';
+import { getTrackerColor, TRACKER_CODES } from '@/utils/trackerConstants';
 import {
-  MOOD_NAMES,
-  SPHERE_NAMES,
   type SyncMonthResponse,
   type TrackerItem,
   type MonthlyType,
 } from '@/types';
-import { getNumericValue } from '@/types/monthlyentries';
-import { getTrackerColor, TRACKER_CODES } from '@/utils/trackerUtils';
 
 export type MonthSidebarTab = 'moods' | 'spheres' | 'todos' | 'reflections';
 

@@ -5,7 +5,7 @@ import DatePicker from '@/components/shared/utils/DatePicker/DatePicker';
 import type { DailyEntry } from '@/types/dailyentries';
 import type { NoteVariant } from '@/types';
 import { getLocalDateString } from '@/utils/dateUtils';
-import { isNoteVariant } from '@/types';
+import { isNoteVariant } from '@/utils/noteUtils';
 import { logger } from '@/utils/logger';
 
 interface NoteModalProps {
@@ -37,6 +37,7 @@ export const NoteModal: React.FC<NoteModalProps> = ({
   useEffect(() => {
     if (isOpen) {
       if (noteToEdit) {
+        // eslint-disable-next-line react-hooks/set-state-in-effect -- Form state reset when modal opens or edit target changes
         setDataRiferimento(noteToEdit.data_riferimento?.substring(0, 10) || getLocalDateString());
         setTipo(isNoteVariant(noteToEdit.tipo) ? noteToEdit.tipo : 'N1');
         setTesto(noteToEdit.testo || '');

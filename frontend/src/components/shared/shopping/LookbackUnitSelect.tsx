@@ -62,15 +62,14 @@ export const LookbackUnitSelect: React.FC<LookbackUnitSelectProps> = ({
   };
 
   useEffect(() => {
-    if (isOpen) {
-      updateCoords();
-      window.addEventListener('resize', updateCoords);
-      window.addEventListener('scroll', updateCoords, true);
-      return () => {
-        window.removeEventListener('resize', updateCoords);
-        window.removeEventListener('scroll', updateCoords, true);
-      };
-    }
+    if (!isOpen) return;
+    updateCoords();
+    window.addEventListener('resize', updateCoords);
+    window.addEventListener('scroll', updateCoords, true);
+    return () => {
+      window.removeEventListener('resize', updateCoords);
+      window.removeEventListener('scroll', updateCoords, true);
+    };
   }, [isOpen]);
 
   const options: LookbackUnit[] = ['days', 'months', 'years'];

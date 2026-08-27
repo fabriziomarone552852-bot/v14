@@ -5,7 +5,7 @@ import {
   getCategories,
   getCategory,
   updateCategory,
-} from '@/api/categories';
+} from '@/api/categoriesApi';
 import { invalidateAllViews } from '@/utils/queryCacheUtils';
 import type {
   CategoryCreatePayload,
