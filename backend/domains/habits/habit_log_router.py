@@ -18,7 +18,7 @@ def list_habit_logs(
     habit_id: Optional[int] = Query(default=None),
     dal: Optional[date] = Query(default=None),
     al: Optional[date] = Query(default=None),
-    current_user: User = Depends(deps.get_current_user),
+    current_user: User = Depends(deps.get_current_app_user),
     db: Session = Depends(deps.get_db),
 ):
     return service.list_logs(db, current_user, habit_id, dal, al)
@@ -28,7 +28,7 @@ def list_habit_logs(
 def get_habit_log(
     habit_id: int,
     data_riferimento: date,
-    current_user: User = Depends(deps.get_current_user),
+    current_user: User = Depends(deps.get_current_app_user),
     db: Session = Depends(deps.get_db),
 ):
     return service.get_log_state(db, current_user, habit_id, data_riferimento)
@@ -38,7 +38,7 @@ def get_habit_log(
 def create_or_increment_habit_log(
     log_in: schemas.HabitLogCreate,
     habit_id: int = Query(...),
-    current_user: User = Depends(deps.get_current_user),
+    current_user: User = Depends(deps.get_current_app_user),
     db: Session = Depends(deps.get_db),
 ):
     return service.increment(db, current_user, habit_id, log_in.data_riferimento)
@@ -48,7 +48,7 @@ def create_or_increment_habit_log(
 def toggle_habit_log(
     log_in: schemas.HabitLogCreate,
     habit_id: int = Query(...),
-    current_user: User = Depends(deps.get_current_user),
+    current_user: User = Depends(deps.get_current_app_user),
     db: Session = Depends(deps.get_db),
 ):
     return service.increment(db, current_user, habit_id, log_in.data_riferimento)
@@ -58,7 +58,7 @@ def toggle_habit_log(
 def decrement_habit_log(
     log_in: schemas.HabitLogCreate,
     habit_id: int = Query(...),
-    current_user: User = Depends(deps.get_current_user),
+    current_user: User = Depends(deps.get_current_app_user),
     db: Session = Depends(deps.get_db),
 ):
     return service.decrement(db, current_user, habit_id, log_in.data_riferimento)
@@ -68,7 +68,7 @@ def decrement_habit_log(
 def delete_habit_log(
     habit_id: int,
     data_riferimento: date,
-    current_user: User = Depends(deps.get_current_user),
+    current_user: User = Depends(deps.get_current_app_user),
     db: Session = Depends(deps.get_db),
 ):
     service.delete_log(db, current_user, habit_id, data_riferimento)
