@@ -1,4 +1,4 @@
-# Script di build ed export per NAS QNAP (Eseguire su PC Windows)
+﻿# Script di build ed export per NAS QNAP (Eseguire su PC Windows)
 Write-Host "===========================================================" -ForegroundColor Cyan
 Write-Host " 🚀 Avvio Build Docker per NAS QNAP (Smart Agenda VxAme14) " -ForegroundColor Cyan
 Write-Host "===========================================================" -ForegroundColor Cyan
