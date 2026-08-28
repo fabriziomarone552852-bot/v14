@@ -149,26 +149,6 @@ def load_seed_configs() -> List[Dict[str, str]]:
     ]
 
 
-def load_seed_users(default_max_subtask_depth: int = 10) -> List[Dict[str, Any]]:
-    """Carica gli utenti di sistema predefiniti da users.csv."""
-    rows = _read_csv("users.csv")
-    users: List[Dict[str, Any]] = []
-    for r in rows:
-        uid = int(r["id"]) if r.get("id") else len(users) + 1
-        is_su = r.get("is_superuser", "").lower() in ("true", "1", "yes")
-        must_cp = r.get("must_change_password", "").lower() in ("true", "1", "yes")
-        depth = int(r["max_subtask_depth_user"]) if r.get("max_subtask_depth_user") else default_max_subtask_depth
-
-        users.append({
-            "id": uid,
-            "username": r.get("username", ""),
-            "email": r.get("email", ""),
-            "password": r.get("password", ""),
-            "is_superuser": is_su,
-            "must_change_password": must_cp,
-            "max_subtask_depth_user": depth,
-        })
-    return users
 
 
 def load_seed_shopping_suppliers() -> List[Dict[str, Any]]:

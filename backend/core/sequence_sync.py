@@ -19,7 +19,6 @@ logger = logging.getLogger(__name__)
 DEFAULT_SYNC_TABLES: List[str] = [
     "users",
     "user_categories",
-    "config",
     "config_codes",
     "tasks",
     "events",
@@ -36,13 +35,11 @@ DEFAULT_SYNC_TABLES: List[str] = [
     "shopping_list_items",
     "shopping_suppliers",
     "shopping_products",
-    "shopping_product_suppliers",
-    "inventory_batches",
-    "shopping_prices",
-    "shared_activity_logs",
+    "inventory_batch",
+    "notifications",
+    "shared_activity_log",
     "system_metadata",
     "bingo_cards",
-    "bingo_items",
 ]
 
 
@@ -56,15 +53,22 @@ def sync_table_id_sequence(db: Session, table_name: str, id_column: str = "id") 
         return False
 
     try:
-        query = text(f"""
-            SELECT setval(
-                pg_get_serial_sequence(:table_name, :id_column),
-                COALESCE((SELECT MAX({id_column}) FROM {table_name}), 1),
-                (SELECT MAX({id_column}) IS NOT NULL FROM {table_name})
-            )
-        """)
-        db.execute(query, {"table_name": table_name, "id_column": id_column})
-        db.flush()
+        with db.begin_nested():
+            seq_name = db.execute(
+                text("SELECT pg_get_serial_sequence(:table_name, :id_column)"),
+                {"table_name": table_name, "id_column": id_column}
+            ).scalar()
+            if not seq_name:
+                return False
+
+            query = text(f"""
+                SELECT setval(
+                    :seq_name,
+                    COALESCE((SELECT MAX({id_column}) FROM {table_name}), 1),
+                    (SELECT MAX({id_column}) IS NOT NULL FROM {table_name})
+                )
+            """)
+            db.execute(query, {"seq_name": seq_name})
         return True
     except Exception as exc:
         logger.debug("Sincronizzazione sequenza per %s non applicabile: %s", table_name, exc)

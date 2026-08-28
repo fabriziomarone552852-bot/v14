@@ -12,27 +12,111 @@ from backend.core.seeders import register_seeder
 from backend.domains.shopping import repository as repo
 from backend.domains.shopping.models.catalog import ShoppingProduct, ShoppingSupplier
 
-from backend.core.csv_seed_loader import load_seed_suppliers
-
-
-def seed_default_shopping_suppliers_for_user(db: Session, user_id: int) -> None:
-    """Popola i fornitori di spesa di default per l'utente specificato leggendoli da suppliers.csv."""
-    from backend.domains.config import repository as config_repo
-
-    supplier_status_code = config_repo.get_config_code(db, "supplier_status", "active")
-    if supplier_status_code is None:
-        return
-
-    suppliers = load_seed_suppliers()
-    repo.bulk_create_suppliers_if_missing(
-        db=db,
-        supplier_names=suppliers,
-        created_by_user_id=user_id,
-        status_id=supplier_status_code.id,
-    )
+from backend.core.csv_seed_loader import (
+    load_seed_shopping_suppliers,
+    load_seed_shopping_products,
+    load_seed_inventory_batches,
+)
 from backend.domains.shopping.models.groups import ShoppingGroup, ShoppingGroupMember
 from backend.domains.shopping.models.inventory import InventoryBatch
 from backend.domains.shopping.models.lists import ShoppingList, ShoppingListItem
+
+
+def seed_default_shopping_suppliers_for_user(db: Session, user_id: int) -> None:
+    """Popola tutti i negozi e marchi da shopping_suppliers.csv mantenendo gli ID e associandoli all'utente."""
+    from backend.domains.config import repository as config_repo
+    from sqlalchemy import or_
+
+    supplier_status_code = config_repo.get_config_code(db, "supplier_status", "active")
+    default_status_id = supplier_status_code.id if supplier_status_code else 1
+
+    suppliers_data = load_seed_shopping_suppliers()
+    for item in suppliers_data:
+        normalized = item["name_normalized"]
+        existing = db.query(ShoppingSupplier).filter(
+            or_(
+                ShoppingSupplier.id == item["id"],
+                ShoppingSupplier.name_normalized == normalized,
+            )
+        ).first()
+        if existing is not None:
+            continue
+
+        obj = ShoppingSupplier(
+            id=item["id"],
+            name_normalized=normalized,
+            type_code=item.get("type_code") or 1,
+            status_id=item.get("status_id") or default_status_id,
+            created_by_user_id=user_id,
+            created_at=item.get("created_at") or _now(),
+        )
+        db.add(obj)
+    db.flush()
+
+
+def seed_default_shopping_products_for_user(db: Session, user_id: int) -> None:
+    """Popola i prodotti da shopping_products.csv collegandoli ai marchi corretti."""
+    from sqlalchemy import or_
+
+    all_suppliers = db.query(ShoppingSupplier).all()
+    suppliers_by_name = {s.name_normalized: s.id for s in all_suppliers}
+
+    products_data = load_seed_shopping_products()
+    for item in products_data:
+        normalized = item["name_normalized"]
+        existing = db.query(ShoppingProduct).filter(
+            or_(
+                ShoppingProduct.id == item["id"],
+                ShoppingProduct.name_normalized == normalized,
+            )
+        ).first()
+        if existing is not None:
+            continue
+
+        brand_id = item.get("brand_id")
+        if not brand_id and item.get("brand_name_text"):
+            brand_id = suppliers_by_name.get(item["brand_name_text"])
+
+        obj = ShoppingProduct(
+            id=item["id"],
+            name_normalized=normalized,
+            brand_id=brand_id,
+            created_by_user_id=user_id,
+            created_at=item.get("created_at") or _now(),
+        )
+        db.add(obj)
+    db.flush()
+
+
+def seed_default_inventory_batches_for_user(db: Session, user_id: int) -> None:
+    """Popola i lotti di spesa e lo storico prezzi da inventory_batch.csv."""
+    batches_data = load_seed_inventory_batches()
+    for item in batches_data:
+        existing = db.query(InventoryBatch).filter(InventoryBatch.id == item["id"]).first()
+        if existing is not None:
+            continue
+
+        prod_exists = db.query(ShoppingProduct).filter(ShoppingProduct.id == item["product_id"]).first()
+        if not prod_exists:
+            continue
+
+        obj = InventoryBatch(
+            id=item["id"],
+            product_id=item["product_id"],
+            list_item_id=item.get("list_item_id"),
+            purchase_date=item["purchase_date"],
+            quantity_purchased=item["quantity_purchased"],
+            purchase_price=item["purchase_price"],
+            supplier_id=item.get("supplier_id"),
+            is_on_sale=item.get("is_on_sale", False),
+            expiration_date=item.get("expiration_date"),
+            created_by_user_id=user_id,
+            purchased_by_user_id=user_id,
+            created_at=item.get("created_at") or item["purchase_date"],
+            updated_at=item.get("updated_at") or item["purchase_date"],
+        )
+        db.add(obj)
+    db.flush()
 from backend.domains.shopping.schemas.catalog import (
     ShoppingProductCreate,
     ShoppingProductUpdate,

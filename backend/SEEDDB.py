@@ -103,7 +103,6 @@ from backend.core.csv_seed_loader import (
     load_seed_shopping_products,
     load_seed_shopping_suppliers,
     load_seed_user_categories,
-    load_seed_users,
 )
 from backend.core.sequence_sync import sync_all_table_sequences, sync_table_id_sequence
 
@@ -370,7 +369,6 @@ def seed_database(
     env_values: valori letti deterministicamente da .env.<env>.
     """
     default_max_subtask_depth = _get_default_max_subtask_depth(env_values)
-    default_users = load_seed_users(default_max_subtask_depth)
 
     print("=" * 70)
     print("AVVIO SEED DATI INIZIALI (Smart Agenda API)")
@@ -380,22 +378,29 @@ def seed_database(
 
     db = session_factory()
     try:
-        print("[1/7] Verifica o creazione utenti di default (da users.csv)...")
-        seed_users = _seed_default_users(db, default_users)
-        db.commit()
-        sync_table_id_sequence(db, "users")
-        db.commit()
-
-        for user in seed_users:
-            db.refresh(user)
-            print(
-                f"-> Utente pronto: id={user.id}, "
-                f"username={user.username}, email={user.email}, "
-                f"is_superuser={user.is_superuser}, "
-                f"must_change_password={user.must_change_password}"
+        print("[1/7] Verifica o creazione utente di sistema predefinito...")
+        seed_owner = db.query(User).filter(User.is_superuser == True).first()
+        if seed_owner is None:
+            seed_owner = db.query(User).first()
+        if seed_owner is None:
+            seed_owner = User(
+                username="admin",
+                email="admin@example.com",
+                password_hash=_build_password_hash("AdminPass123!"),
+                is_superuser=True,
+                must_change_password=False,
             )
+            db.add(seed_owner)
+            db.commit()
+            sync_table_id_sequence(db, "users")
+            db.commit()
+            db.refresh(seed_owner)
 
-        seed_owner = seed_users[0]
+        print(
+            f"-> Utente di riferimento: id={seed_owner.id}, "
+            f"username={seed_owner.username}, email={seed_owner.email}"
+        )
+        seed_users = [seed_owner]
 
         print("[2/7] Seed user_categories di default (da user_categories.csv)...")
         inserted_user_categories = _seed_default_user_categories(db, seed_users)
