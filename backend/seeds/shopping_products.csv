@@ -1,0 +1,36 @@
+id;name_normalized;brand_id;created_by_user_id;updated_by_user_id;created_at;updated_at;deleted_at;brand_id2
+1;patate;coop;1;NULL;26/08/2026 19:00;NULL;NULL;1
+2;cipolle dorate;coop;1;NULL;26/08/2026 19:00;NULL;NULL;1
+3;tonno 65 g;rio mare;1;NULL;26/08/2026 19:00;NULL;NULL;7
+4;salsa di soia suzi wan 143 ml;coop;1;NULL;26/08/2026 19:00;NULL;NULL;1
+5;salsa teriyaki kikkoma 150 ml;coop;1;NULL;26/08/2026 19:00;NULL;NULL;1
+6;tonno 104 g;coop;1;NULL;26/08/2026 19:00;NULL;NULL;1
+7;pesce spada affumicato;coop;1;NULL;26/08/2026 19:00;NULL;NULL;1
+8;mozzarelle santa lucia;galbani;1;NULL;26/08/2026 19:00;NULL;NULL;8
+9;yogurt activia misto frutta;danone;1;NULL;26/08/2026 19:00;NULL;NULL;9
+10;falafel mini;coop;1;NULL;26/08/2026 19:00;NULL;NULL;1
+11;salmone filetti surg 250 g;;1;NULL;26/08/2026 19:00;NULL;NULL;5
+12;orata filetti surg 380 g;;1;NULL;26/08/2026 19:00;NULL;NULL;5
+13;tonno filetti surg 250 g;;1;NULL;26/08/2026 19:00;NULL;NULL;5
+14;yogurt land 8x125 g;;1;NULL;26/08/2026 19:00;NULL;NULL;5
+15;insalata con ravanelli ;;1;NULL;26/08/2026 19:00;NULL;NULL;5
+16;prosciutto crudo 100 g;;1;NULL;26/08/2026 19:00;NULL;NULL;5
+17;salmone aff norvegia 150 g;;1;NULL;26/08/2026 19:00;NULL;NULL;5
+18;limone succo 200 ml;;1;NULL;26/08/2026 19:00;NULL;NULL;5
+19;pesche polpa gialla 1 kg;;1;NULL;26/08/2026 19:00;NULL;NULL;5
+20;pomodoro piccadilly 1 kg;;1;NULL;26/08/2026 19:00;NULL;NULL;5
+21;banane 1 kg;;1;NULL;26/08/2026 19:00;NULL;NULL;5
+22;uova grandi 6 pz;;1;NULL;26/08/2026 19:00;NULL;NULL;5
+23;mozzarella agerola 1 kg;;1;NULL;26/08/2026 19:00;NULL;NULL;2
+24;nodini stornarella 1 kg;;1;NULL;26/08/2026 19:00;NULL;NULL;2
+25;fesa di tacchino aequilibrium aia;;1;NULL;26/08/2026 19:00;NULL;NULL;10
+26;mastrolindo 930 ml;;1;NULL;26/08/2026 19:00;NULL;NULL;12
+27;sgrassatore chanteclair 600 ml;;1;NULL;26/08/2026 19:00;NULL;NULL;13
+28;sgrassatore chanteclair ric 600 ml;;1;NULL;26/08/2026 19:00;NULL;NULL;13
+29;carta igienica regina;;1;NULL;26/08/2026 19:00;NULL;NULL;15
+30;kinder crispy x 5;;1;NULL;26/08/2026 19:00;NULL;NULL;16
+31;wc net brilliant;;1;NULL;26/08/2026 19:00;NULL;NULL;17
+32;sapone liquido milmil 2 l;;1;NULL;26/08/2026 19:00;NULL;NULL;18
+33;ricotta montrone 125 g;;1;NULL;26/08/2026 19:00;NULL;NULL;19
+34;prosciutto aff praga beretta;;1;NULL;26/08/2026 19:00;NULL;NULL;20
+35;mozzarella aff montrone;;1;NULL;26/08/2026 19:00;NULL;NULL;19
