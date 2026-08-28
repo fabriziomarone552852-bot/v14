@@ -37,6 +37,9 @@ docker run -d \
   -e DATABASE_URL="postgresql+psycopg://PostGre:Password-Robusta@PostGre-Server:5432/family-smart" \
   -e APP_ENV=prod \
   -e SECRET_KEY="DB_POOL_RECYCLE=1800DB_POOL_TIMEOUT=30DEFAULT_MAX_SUBTASK_DEPTH=3" \
+  -e GOOGLE_CLIENT_ID="948133104741-hsv9jk7ujtsavhq315m6j0oklcabu995.apps.googleusercontent.com" \
+  -e GOOGLE_CLIENT_SECRET="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" \
+  -e GOOGLE_REDIRECT_URI="http://smart-agenda.duckdns.org:8181/api/v1/google-calendar/callback" \
   vxame14_backend:latest
 
 # 5. Avvio Frontend
