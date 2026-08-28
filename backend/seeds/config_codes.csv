@@ -1,0 +1,99 @@
+﻿code_type;code_value;code_name;description;active;sort_order
+currency;EUR;Euro;Euro;True;1
+group_status;active;Active;Gruppo attivo;True;
+group_status;archived;Archived;Gruppo archiviato;True;
+item_status;active;Active;Item attivo;True;
+item_status;purchased;Purchased;Item acquistato;True;
+list_status;active;Active;Lista attiva;True;
+list_status;closed;Closed;Lista chiusa;True;
+list_visibility;group;Group;Lista di gruppo;True;
+list_visibility;private;Private;Lista privata;True;
+notification_type;generic;Generic;Notifica generica;True;
+offer_flag;no;No offer;Prezzo non in offerta;True;1
+offer_flag;yes;Offer;Prezzo in offerta;True;2
+shared_activity_action_type;create;Create;Creazione;True;
+shared_activity_action_type;update;Update;Aggiornamento;True;
+shared_activity_action_type;delete;Delete;Eliminazione logica o fisica;True;
+shared_activity_action_type;restore;Restore;Ripristino;True;
+shared_activity_action_type;archive;Archive;Archiviazione;True;
+shared_activity_action_type;close;Close;Chiusura;True;
+shared_activity_action_type;reopen;Reopen;Riapertura;True;
+shared_activity_action_type;complete;Complete;Completamento;True;
+shared_activity_action_type;uncomplete;Uncomplete;Annullamento completamento;True;
+shared_activity_action_type;add_member;Add Member;Aggiunta membro;True;
+shared_activity_action_type;remove_member;Remove Member;Rimozione membro;True;
+shared_activity_action_type;update_role;Update Role;Aggiornamento ruolo;True;
+shared_activity_action_type;share;Share;Condivisione;True;
+shared_activity_action_type;unshare;Unshare;Revoca condivisione;True;
+shared_activity_action_type;login;Login;Accesso utente;True;
+shared_activity_action_type;logout;Logout;Uscita utente;True;
+shared_activity_entity_type;shopping_group;Shopping Group;Entità gruppo shopping;True;
+shared_activity_entity_type;shopping_group_member;Shopping Group Member;Entità membro gruppo shopping;True;
+shared_activity_entity_type;shopping_list;Shopping List;Entità lista shopping;True;
+shared_activity_entity_type;shopping_list_item;Shopping List Item;Entità elemento lista shopping;True;
+shared_activity_entity_type;shopping_supplier;Shopping Supplier;Entità fornitore shopping;True;
+shared_activity_entity_type;shopping_price;Shopping Price;Entità prezzo shopping;True;
+shared_activity_entity_type;task;Task;Entità task;True;
+shared_activity_entity_type;event;Event;Entità evento;True;
+shared_activity_entity_type;countdown;Countdown;Entità countdown;True;
+shared_activity_entity_type;habit;Habit;Entità habit;True;
+shared_activity_entity_type;habit_period;Habit Period;Periodo habit;True;
+shared_activity_entity_type;habit_log;Habit Log;Log giornaliero habit;True;
+shared_activity_entity_type;daily_entry;Daily Entry;Voce giornaliera;True;
+shared_activity_entity_type;category;Category;Categoria condivisa;True;
+shared_activity_entity_type;user;User;Utente;True;
+shared_activity_entity_type;config;Config;Configurazione applicativa;True;
+shared_activity_module;shopping;Shopping;Modulo shopping;True;
+shared_activity_module;tasks;Tasks;Modulo task condivisi;True;
+shared_activity_module;events;Events;Modulo eventi condivisi;True;
+shared_activity_module;countdowns;Countdowns;Modulo countdown condivisi;True;
+shared_activity_module;habits;Habits;Modulo habit condivise;True;
+shared_activity_module;daily;Daily;Modulo daily entries condivise;True;
+shared_activity_module;sharing;Sharing;Operazioni trasversali di condivisione;True;
+shared_activity_module;system;System;Operazioni di sistema;True;
+shopping_group_role;owner;Owner;Proprietario del gruppo shopping;True;1
+shopping_group_role;admin;Admin;Amministratore del gruppo shopping;True;2
+shopping_group_role;editor;Editor;Può modificare liste e acquisti aperti;True;3
+shopping_group_role;reader;Reader;Può solo visualizzare;True;4
+shopping_group_status;active;Active;Stato attivo per gruppi shopping;True;
+shopping_group_status;inactive;Inactive;Stato inattivo per gruppi shopping;True;
+shopping_item_status;open;Open;Elemento aperto;True;1
+shopping_item_status;purchased;Purchased;Elemento acquistato;True;2
+shopping_item_status;archived;Archived;Elemento archiviato;True;3
+shopping_list_status;active;Active;Lista attiva;True;1
+shopping_list_status;closed;Closed;Lista chiusa;True;2
+shopping_list_status;archived;Archived;Lista archiviata;True;3
+shopping_list_visibility;private;Private;Lista privata;True;1
+shopping_list_visibility;group;Group;Lista condivisa con un gruppo;True;2
+shopping_unit;conf;CONF;Confezione;True;10
+shopping_unit;paq;PAQ;Pacco;True;20
+shopping_unit;bt;BT;Bottiglia;True;30
+shopping_unit;bar;BAR;Barattolo;True;40
+shopping_unit;g;G;Grammi;True;50
+shopping_unit;hg;HG;Ettogrammi;True;60
+shopping_unit;kg;KG;Chilogrammi;True;70
+shopping_unit;lt;LT;Litri;True;80
+shopping_unit;pz;PZ;Pezzi;True;90
+shopping_unit;rot;ROT;Rotolo;True;100
+shopping_unit;scat;SCAT;Scatola;True;110
+shopping_unit;tub;TUB;Tubetto;True;120
+shopping_unit;bust;BUST;Busta;True;130
+shopping_unit;fl;FL;Flacone;True;140
+shopping_unit;vas;VAS;Vaschetta;True;150
+shopping_unit;brik;BRIK;Brik;True;160
+shopping_unit;mazz;MAZZ;Mazzo;True;170
+shopping_unit;fett;FETT;Fette;True;180
+shopping_unit;m;M;Metri;True;190
+shopping_unit;latt;LATT;Lattina;True;200
+shopping_unit;ret;RET;Retina;True;210
+shopping_unit;paqf;PAQF;Pacco famiglia;True;220
+shopping_unit;ric;RIC;Ricarica;True;230
+shopping_unit;cm;CM;Centimetri;True;240
+shopping_unit;grapp;GRAPP;Grappolo;True;250
+shopping_unit;spic;SPIC;Spicchi;True;260
+shopping_unit;kit;KIT;Kit;True;270
+shopping_unit;mm;MM;Millimetri;True;280
+shopping_unit;cl;CL;Centilitri;True;290
+shopping_unit;ml;ML;Millilitri;True;300
+supplier_status;active;Active;Fornitore attivo;True;
+supplier_status;inactive;Inactive;Fornitore inattivo;True;

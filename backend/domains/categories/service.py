@@ -13,25 +13,16 @@ from backend.domains.categories.models import UserCategory
 from backend.domains.users.models import User
 
 
-DEFAULT_USER_CATEGORY_TEMPLATES = [
-    {"category_name": "Lavoro", "colore": "#68EEB4", "genre": 3},
-    {"category_name": "Famiglia", "colore": "#68EEB4", "genre": 3},
-    {"category_name": "Salute", "colore": "#68EEB4", "genre": 3},
-    {"category_name": "Studio", "colore": "#68EEB4", "genre": 3},
-    {"category_name": "Gioia", "colore": "#68EEB4", "genre": 4},
-    {"category_name": "Tristezza", "colore": "#68EEB4", "genre": 4},
-    {"category_name": "Rabbia", "colore": "#68EEB4", "genre": 4},
-    {"category_name": "Disgusto", "colore": "#68EEB4", "genre": 4},
-    {"category_name": "Paura", "colore": "#68EEB4", "genre": 4},
-]
+from backend.core.csv_seed_loader import load_seed_user_categories
 
 
 def seed_default_user_categories_for_user(db: Session, user_id: int) -> None:
     """
-    Inserisce le nove categorie di default per il nuovo utente.
+    Inserisce le categorie di default per il nuovo utente leggendole da user_categories.csv.
     La funzione è idempotente: se richiamata più volte non duplica le categorie.
     """
-    repo.bulk_create_user_categories_if_missing(db, user_id, DEFAULT_USER_CATEGORY_TEMPLATES)
+    templates = load_seed_user_categories()
+    repo.bulk_create_user_categories_if_missing(db, user_id, templates)
 
 
 def _to_response(user_category: UserCategory) -> schemas.CategoryResponse:

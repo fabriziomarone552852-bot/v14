@@ -1,0 +1,5 @@
+﻿id;username;email;password;is_superuser;must_change_password;max_subtask_depth_user
+1;amedeo;amedeo@sinasce.lol;amedeo;True;False;10
+2;marcello;marcello@sinasce.lol;marcello;True;False;10
+3;signore;signore@sinasce.lol;signore;False;False;10
+4;signori;signori@sinasce.lol;signori;False;False;10

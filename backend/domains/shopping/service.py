@@ -12,20 +12,21 @@ from backend.core.seeders import register_seeder
 from backend.domains.shopping import repository as repo
 from backend.domains.shopping.models.catalog import ShoppingProduct, ShoppingSupplier
 
-DEFAULT_SUPPLIERS = ["Coop", "Carni e Affini", "MD", "Lidl", "Eurospin", "Famila"]
+from backend.core.csv_seed_loader import load_seed_suppliers
 
 
 def seed_default_shopping_suppliers_for_user(db: Session, user_id: int) -> None:
-    """Popola i fornitori di spesa di default per l'utente specificato."""
+    """Popola i fornitori di spesa di default per l'utente specificato leggendoli da suppliers.csv."""
     from backend.domains.config import repository as config_repo
 
     supplier_status_code = config_repo.get_config_code(db, "supplier_status", "active")
     if supplier_status_code is None:
         return
 
+    suppliers = load_seed_suppliers()
     repo.bulk_create_suppliers_if_missing(
         db=db,
-        supplier_names=DEFAULT_SUPPLIERS,
+        supplier_names=suppliers,
         created_by_user_id=user_id,
         status_id=supplier_status_code.id,
     )

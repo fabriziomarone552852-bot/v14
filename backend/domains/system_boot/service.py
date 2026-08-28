@@ -7,6 +7,7 @@ from backend.core.database import Base
 from backend.core.deps import get_password_hash
 from backend.core.models import import_all_models
 from backend.core.seeders import run_all_system_seeders
+from backend.core.sequence_sync import sync_all_table_sequences
 from backend.domains.categories.service import seed_default_user_categories_for_user
 from backend.domains.shopping.service import seed_default_shopping_suppliers_for_user
 from backend.domains.users.models import User
@@ -183,6 +184,7 @@ class SystemBootService:
             import backend.core.bootstrap_seeders  # noqa: F401
 
             run_all_system_seeders(self.db)
+            sync_all_table_sequences(self.db)
 
             self.repo.create_system_metadata_table()
             if not self.repo.get_system_metadata():
@@ -192,6 +194,7 @@ class SystemBootService:
                     seed_version="1.0",
                     notes="Automated system bootstrap via system_boot domain",
                 )
+            sync_all_table_sequences(self.db)
             self.db.commit()
         except Exception:
             self.db.rollback()
@@ -285,6 +288,7 @@ class SystemBootService:
         seed_default_user_categories_for_user(self.db, user.id)
         seed_default_shopping_suppliers_for_user(self.db, user.id)
         self.repo.update_superuser_in_system_metadata(user.id)
+        sync_all_table_sequences(self.db)
         self.db.commit()
 
         return SuperUserBootstrapResponse(

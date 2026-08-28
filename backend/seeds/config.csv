@@ -1,0 +1,3 @@
+﻿key;value;descrizione
+max_subtask_depth;10;Numero massimo di livelli consentiti per la nidificazione dei sottotask.
+price_stats_lookback_days;365;Numero di giorni di storico da considerare per il calcolo del prezzo medio e migliore nella spesa (es. 365 per 1 anno, 90 per 3 mesi).
