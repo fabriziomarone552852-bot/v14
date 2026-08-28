@@ -43,6 +43,13 @@ All'invocazione di `/api/system-boot/run`, il metodo `SystemBootService.run_boot
 
 ---
 
-## 👤 Creazione SuperUser Iniziale
+## 👤 Creazione SuperUser Iniziale e Seeding Dataset
 
-La creazione del SuperUser iniziale tramite `/api/system-boot/superuser` provvede automaticamente all'assegnazione delle **9 categorie utente di base** (*Lavoro, Famiglia, Salute, Studio, Gioia, Tristezza, Rabbia, Disgusto, Paura*) per rendere l'account amministrativo immediatamente operativo.
+La creazione del SuperUser iniziale tramite `/api/system-boot/superuser` (Fase 2 del boot) provvede automaticamente a:
+1. Creare l'account SuperUser con password protetta da hash `bcrypt`.
+2. Assegnare le **9 categorie utente di base** (*Lavoro, Famiglia, Salute, Studio, Gioia, Tristezza, Rabbia, Disgusto, Paura*) da `user_categories.csv`.
+3. Popolare l'intero catalogo **fornitori e marchi** da `shopping_suppliers.csv`.
+4. Popolare il catalogo **prodotti shopping predefiniti** da `shopping_products.csv`.
+5. Popolare lo **storico lotti e prezzi di inventario** da `inventory_batch.csv`.
+6. Sincronizzare tutte le sequenze PostgreSQL delle tabelle ID per prevenire conflitti autoincrement.
+7. Aggiornare `system_metadata` e portare il sistema allo stato `READY`.

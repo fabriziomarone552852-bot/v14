@@ -25,8 +25,9 @@ Da qualsiasi computer, smartphone o tablet connesso alla rete locale (LAN o Wi-F
 | **Applicazione Web (Frontend)** | [`http://192.168.11.20:8181`](http://192.168.11.20:8181) | Interfaccia utente React SPA |
 | **Schermata di Login** | [`http://192.168.11.20:8181/login`](http://192.168.11.20:8181/login) | Accesso con credenziali utente |
 | **Pannello Amministrazione SU** | [`http://192.168.11.20:8181/admin`](http://192.168.11.20:8181/admin) | Gestione variabili, codici catalogo e utenti |
-| **API Docs & Swagger** | [`http://192.168.11.20:8000/docs`](http://192.168.11.20:8000/docs) | Documentazione interattiva OpenAPI/Swagger |
-| **API ReDoc** | [`http://192.168.11.20:8000/redoc`](http://192.168.11.20:8000/redoc) | Documentazione alternativa API FastAPI |
+| **API Docs & Swagger (Frontend Proxy)** | [`http://192.168.11.20:8181/docs`](http://192.168.11.20:8181/docs) | Swagger UI inoltrato tramite Nginx (Porta 8181) |
+| **API Docs & Swagger (Backend Diretto)** | [`http://192.168.11.20:8000/docs`](http://192.168.11.20:8000/docs) | Swagger UI diretto su FastAPI (Porta 8000) |
+| **API ReDoc** | [`http://192.168.11.20:8181/redoc`](http://192.168.11.20:8181/redoc) | Documentazione alternativa ReDoc |
 
 ---
 
