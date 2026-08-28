@@ -25,6 +25,10 @@ export const SmartObiettivoTextarea: React.FC<SmartObiettivoTextareaProps> = ({
   // Lo stato interno che protegge il testo durante la digitazione
   const [text, setText] = useState(initialText);
 
+  React.useEffect(() => {
+    setText(initialText);
+  }, [initialText]);
+
   return (
     <textarea 
       value={text} 

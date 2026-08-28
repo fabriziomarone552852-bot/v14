@@ -34,7 +34,7 @@ const WeekGridClassic: React.FC<WeekGridClassicProps> = ({
     hoveredDay, setHoveredDay, 
     popupRect, setPopupRect, 
     todayStr, daysOfWeekData, 
-    hours24, setIsSelectingDate 
+    hours24 
   } = state;
 
   const navigate = useNavigate();
@@ -122,7 +122,6 @@ const WeekGridClassic: React.FC<WeekGridClassicProps> = ({
               onClick={(e: React.MouseEvent<HTMLDivElement>) => {
                  // 🪄 4. Controllo del target senza usare 'any'
                  if (e.target instanceof Element && e.target.closest('.event-dot')) return;
-                 setIsSelectingDate(true);
                  if (onDayClick) onDayClick(day.dateStr);
               }}
               className="bg-white relative border-l border-gray-100 flex flex-col group/col cursor-crosshair"

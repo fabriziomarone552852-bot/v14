@@ -28,10 +28,13 @@ export const ConfirmProvider: React.FC<{ children: ReactNode }> = ({ children })
   }, []);
 
   const handleConfirm = async () => {
-    if (options?.onConfirm) {
-      await options.onConfirm();
+    try {
+      if (options?.onConfirm) {
+        await options.onConfirm();
+      }
+    } finally {
+      setIsOpen(false);
     }
-    setIsOpen(false);
   };
 
   const handleCancel = () => {

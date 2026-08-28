@@ -3,7 +3,8 @@ import { useAuth } from '@/context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 
 const LoginPage: React.FC = () => {
-  const { login, register, loading, error, isAuthenticated } = useAuth();
+  const auth = useAuth();
+  const { login, register, loading, error, isAuthenticated } = auth;
   const navigate = useNavigate();
 
   const [mode, setMode] = useState<'login' | 'register'>('login');
@@ -203,6 +204,7 @@ const LoginPage: React.FC = () => {
               setPassword('');
               setConfirmPassword('');
               setLocalError(null);
+              auth.clearError();
             }}
             className="text-sm font-medium text-blue-500 hover:text-blue-400 focus:outline-none transition-colors"
           >

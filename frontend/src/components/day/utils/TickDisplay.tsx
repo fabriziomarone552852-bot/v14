@@ -54,7 +54,16 @@ export const TickDisplay: React.FC<TickDisplayProps> = ({ targetDateStr, variant
   // --- VARIANTE VISIVA ORIGINALE (MODAL) ---
   return (
     <div className="flex flex-col items-center gap-4 w-full">
-       {(timeLeft.months > 0) && (
+       {(timeLeft.years > 0) && (
+         <div className="flex gap-4">
+            <div className="flex flex-col items-center">
+              <span className="text-5xl font-black text-white drop-shadow-md">{timeLeft.years}</span>
+              <span className="text-xs font-bold text-gray-400 uppercase tracking-widest mt-1">{timeLeft.years === 1 ? 'Anno' : 'Anni'}</span>
+            </div>
+         </div>
+       )}
+       {(timeLeft.years > 0) && <div className="w-16 h-px bg-white/20 my-2"></div>}
+       {(timeLeft.months > 0 || timeLeft.years > 0) && (
          <div className="flex gap-4">
             <div className="flex flex-col items-center">
               <span className="text-5xl font-black text-white drop-shadow-md">{timeLeft.months}</span>
@@ -62,7 +71,7 @@ export const TickDisplay: React.FC<TickDisplayProps> = ({ targetDateStr, variant
             </div>
          </div>
        )}
-       {(timeLeft.months > 0) && <div className="w-16 h-px bg-white/20 my-2"></div>}
+       {(timeLeft.months > 0 || timeLeft.years > 0) && <div className="w-16 h-px bg-white/20 my-2"></div>}
 
        {(timeLeft.days > 0) && (
          <div className="flex gap-4">

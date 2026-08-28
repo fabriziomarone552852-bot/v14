@@ -10,19 +10,19 @@ import AppErrorBoundary from '@/components/AppErrorBoundary';
 function App() {
   return (
     <BrowserRouter>
-      <AuthProvider>
-        <ConfirmProvider>
-          <DayProvider>
-            <EventModalProvider>
-              <TaskModalProvider>
-                <AppErrorBoundary>
+      <AppErrorBoundary>
+        <AuthProvider>
+          <ConfirmProvider>
+            <DayProvider>
+              <EventModalProvider>
+                <TaskModalProvider>
                   <AppRouter />
-                </AppErrorBoundary>
-              </TaskModalProvider>
-            </EventModalProvider>
-          </DayProvider>
-        </ConfirmProvider>
-      </AuthProvider>
+                </TaskModalProvider>
+              </EventModalProvider>
+            </DayProvider>
+          </ConfirmProvider>
+        </AuthProvider>
+      </AppErrorBoundary>
     </BrowserRouter>
   );
 }

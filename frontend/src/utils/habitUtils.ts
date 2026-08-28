@@ -11,7 +11,7 @@ export const isHabitScheduledForDay = (h: Habit, targetDate: string): boolean =>
 
   // 🪄 SOSTITUITO || CON ??
   const activePeriod = (h.periods ?? []).find(p => 
-    p.data_inizio <= targetDate && (!p.data_fine || p.data_fine >= targetDate)
+    p.data_inizio.substring(0, 10) <= targetDate && (!p.data_fine || p.data_fine.substring(0, 10) >= targetDate)
   ) ?? h.periods?.[0];
 
   if (!activePeriod) return false;
@@ -30,10 +30,26 @@ export const isHabitScheduledForDay = (h: Habit, targetDate: string): boolean =>
   const interval = intervalMatch ? parseInt(intervalMatch[1], 10) : 1;
 
   if (h.rrule.includes('FREQ=DAILY')) return diffDays % interval === 0;
-  if (h.rrule.includes('FREQ=WEEKLY')) return diffDays % (7 * interval) === 0;
+  if (h.rrule.includes('FREQ=WEEKLY')) {
+    const rruleStr = h.rrule || '';
+    const byDayMatch = rruleStr.match(/BYDAY=([^;]+)/);
+    if (byDayMatch) {
+      const days = byDayMatch[1].split(',');
+      const dayNames = ['SU', 'MO', 'TU', 'WE', 'TH', 'FR', 'SA'];
+      const currentDayName = dayNames[currentDate.getDay()];
+      
+      const startDayNum = (startDate.getDay() + 6) % 7; 
+      const currentDayNum = (currentDate.getDay() + 6) % 7;
+      const diffWeeks = Math.floor((diffDays + startDayNum - currentDayNum) / 7);
+      
+      return days.includes(currentDayName) && (diffWeeks % interval === 0);
+    }
+    return diffDays % (7 * interval) === 0;
+  }
   if (h.rrule.includes('FREQ=MONTHLY')) {
     const diffMonths = (currentDate.getFullYear() - startDate.getFullYear()) * 12 + (currentDate.getMonth() - startDate.getMonth());
-    return diffMonths % interval === 0 && currentDate.getDate() === startDate.getDate();
+    const targetDay = Math.min(startDate.getDate(), new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0).getDate());
+    return diffMonths % interval === 0 && currentDate.getDate() === targetDay;
   }
   if (h.rrule.includes('FREQ=YEARLY')) {
     const diffYears = currentDate.getFullYear() - startDate.getFullYear();
@@ -49,7 +65,7 @@ export const isHabitScheduledForDay = (h: Habit, targetDate: string): boolean =>
 export const getActivePeriod = (periods: HabitPeriod[] | undefined, targetDateStr: string): HabitPeriod => {
   // 🪄 SOSTITUITO || CON ??
   const active = (periods ?? []).find(p => 
-    p.data_inizio <= targetDateStr && (!p.data_fine || p.data_fine >= targetDateStr)
+    p.data_inizio.substring(0, 10) <= targetDateStr && (!p.data_fine || p.data_fine.substring(0, 10) >= targetDateStr)
   );
   if (active) return active;
   

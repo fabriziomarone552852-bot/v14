@@ -43,6 +43,11 @@ export const LocationAutocompleteInput: React.FC<LocationAutocompleteInputProps>
   // Initialize Google Maps on mount
   useEffect(() => {
     loadGoogleMaps();
+    return () => {
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+      }
+    };
   }, []);
 
   // Fetch predictions from Google Places (New API) or fallback to OSM

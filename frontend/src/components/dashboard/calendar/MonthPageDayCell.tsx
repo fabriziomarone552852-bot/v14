@@ -4,7 +4,7 @@ import { TimeDisplay, DateRangeDisplay } from '@/components/shared/utils/DateTim
 import { useOutsideClick } from '@/hooks/useOutsideClick';
 import { getPopoverAlignClass, getMoodCellStyles } from '@/utils/monthCellUtils';
 import type { CalendarGridItem } from './MonthGrid';
-import type { Category, DbTask, CalendarEvent } from '@/types'; 
+import { type Category, type DbTask, type CalendarEvent, CategoryGenre } from '@/types'; 
 import { AddButton } from '@/components/shared/utils/AddButton';
 import { CreateMoodModal } from '@/components/modals/CreateMoodModal'; 
 import { useCategories } from '@/hooks/useCategories'; 
@@ -72,10 +72,10 @@ export const MonthPageDayCell: React.FC<MonthPageDayCellProps> = ({
 
   const filteredMoods: Category[] = categoriesToUse.filter((c: Category) => {
     if (!c) return false;
-    const g = (c as unknown as { genre?: unknown }).genre;
-    return g === 4 || g === '4' || g === 'MOOD' || String(g).toUpperCase() === 'MOOD' || Number(g) === 4;
+    const g = c.genre;
+    return g === CategoryGenre.MOOD || Number(g) === 4;
   });
-  const userMoods: Category[] = filteredMoods.length > 0 ? filteredMoods : categoriesToUse;
+  const userMoods: Category[] = filteredMoods;
   const activeMood: Category | null = userMoods.find((c: Category) => c.id === moodCategoryId || String(c.id) === String(moodCategoryId)) || null;
 
   const sortedUserMoods = useMemo(() => {

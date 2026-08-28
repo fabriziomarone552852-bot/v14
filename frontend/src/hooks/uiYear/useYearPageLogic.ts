@@ -8,6 +8,7 @@ import { useYearReview } from './useYearReview';
 import { useYearHighlights } from './useYearHighlights';
 
 import type { DailyEntry } from '@/types/dailyentries';
+import type { Habit } from '@/types/habits';
 
 export type YearSidebarTab = 'propositi' | 'moods' | 'spheres';
 
@@ -24,6 +25,11 @@ export interface UseYearPageLogicResult {
   apiData: {
     entries: ReturnType<typeof useYearEntries>;
     dailyEntries: DailyEntry[];
+    tasksCompleted: number;
+    tasksTotal: number;
+    tasksByMonth: Record<number, number>;
+    tasksByWeekday: Record<number, number>;
+    habits: Habit[];
   };
   handlers: {
     handlePrevYear: () => void;
@@ -72,6 +78,31 @@ export const useYearPageLogic = (): UseYearPageLogicResult => {
     apiData: {
       entries,
       dailyEntries: agendaYear.yearData?.dailyEntries || [],
+      ...(() => {
+        const tasks = agendaYear.yearData?.tasks || [];
+        const tasksCompleted = tasks.filter(t => t.fatto).length;
+        const tasksTotal = tasks.length;
+        const tasksByMonth: Record<number, number> = {};
+        const tasksByWeekday: Record<number, number> = {};
+        
+        tasks.forEach(t => {
+          if (t.data_scadenza) {
+            const d = new Date(t.data_scadenza);
+            const m = d.getMonth() + 1;
+            const w = d.getDay() === 0 ? 7 : d.getDay();
+            tasksByMonth[m] = (tasksByMonth[m] || 0) + 1;
+            tasksByWeekday[w] = (tasksByWeekday[w] || 0) + 1;
+          }
+        });
+        
+        return {
+          tasksCompleted,
+          tasksTotal,
+          tasksByMonth,
+          tasksByWeekday,
+          habits: agendaYear.yearData?.habits || [],
+        };
+      })(),
     },
     handlers: {
       handlePrevYear: nav.handlePrevYear,

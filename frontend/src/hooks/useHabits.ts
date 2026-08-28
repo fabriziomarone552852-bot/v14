@@ -120,7 +120,7 @@ export const useSuspendHabit = () => {
           return {
             ...habit,
             periods: (habit.periods || []).map((p) =>
-              p.id === periodId || !p.data_fine
+              p.id === periodId
                 ? { ...p, data_fine: endDate }
                 : p
             ),

@@ -12,7 +12,7 @@ export const useWeekNavigation = () => {
   const weekNumber = useMemo((): number => getISOWeekNumber(targetDate), [targetDate]);
   
   const today = new Date();
-  const isCurrentWeek = weekNumber === getISOWeekNumber(today) && monday.getFullYear() === today.getFullYear();
+  const isCurrentWeek = monday.getTime() === getMonday(today).getTime();
 
   const mondayStr = useMemo((): string => formatDateString(monday), [monday]);
   const sundayStr = useMemo((): string => formatDateString(sunday), [sunday]);

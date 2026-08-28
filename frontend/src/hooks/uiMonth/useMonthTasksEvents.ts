@@ -45,11 +45,19 @@ export const useMonthTasksEvents = (
     toggleTask({ id: task.id, isDone: newStatus });
   }, [toggleTask]);
 
-  // 🪄 Aggiornato per cercare dentro i task UI
   const handleSelectTask = useCallback((task: { id: number }): void => {
-    // La ricerca su un albero potrebbe richiedere una funzione ricorsiva se il task è annidato,
-    // ma per l'apertura base cerchiamo il task nell'array principale.
-    const uiTask = mappedTasks.find((t: UITask) => t.id === task.id);
+    const findTaskInTree = (tasks: UITask[], id: number): UITask | undefined => {
+      for (const t of tasks) {
+        if (t.id === id) return t;
+        if (t.subtasks?.length) {
+          const found = findTaskInTree(t.subtasks, id);
+          if (found) return found;
+        }
+      }
+      return undefined;
+    };
+    
+    const uiTask = findTaskInTree(mappedTasks, task.id);
     if (uiTask) openTaskDetail(uiTask);
   }, [mappedTasks, openTaskDetail]);
 

@@ -105,8 +105,8 @@ export function useTaskMutations(_queryKey: QueryKey = ['tasks']) {
           ...newTask,
           id: tempId,
           titolo: newTask.titolo || "Nuovo Task",
-          completato: newTask.fatto ?? false,
-          fatto: newTask.fatto ?? false,
+          completato: newTask.fatto ?? existingTask?.fatto ?? false,
+          fatto: newTask.fatto ?? existingTask?.fatto ?? false,
         } as DbTask;
 
         return isUpdate

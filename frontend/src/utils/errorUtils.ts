@@ -32,7 +32,7 @@ export function extractErrorMessage(err: unknown, fallback = 'Errore sconosciuto
     if (Array.isArray(data?.detail)) {
       // Errore di validazione FastAPI (422)
       return data.detail
-        .map((e) => `${e.loc.join(' → ')}: ${e.msg}`)
+        .map((e) => `${Array.isArray(e?.loc) ? e.loc.join(' → ') : String(e?.loc ?? '')}: ${e.msg}`)
         .join(' | ');
     }
     if (typeof data?.detail === 'string') return data.detail;

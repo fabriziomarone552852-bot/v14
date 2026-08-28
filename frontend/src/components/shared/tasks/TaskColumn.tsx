@@ -40,7 +40,7 @@ const TaskColumn: React.FC<TaskColumnProps> = ({
   }, [tasks, showWithDeadline]);
 
   const refDateStr = selectedDate 
-    ? formatDateString(new Date(selectedDate.getTime() - selectedDate.getTimezoneOffset() * 60000))
+    ? formatDateString(selectedDate)
     : getLocalTodayStr();
     const isPastDay = selectedDate ? refDateStr < getLocalTodayStr() : false;
 

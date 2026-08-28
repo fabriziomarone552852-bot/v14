@@ -19,7 +19,9 @@ const queryClient = new QueryClient({
 });
 
 // Niente più bootstrap() asincrono! Renderizziamo subito l'app!
-ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
+const rootEl = document.getElementById('root');
+if (!rootEl) throw new Error('Root element #root not found in document');
+ReactDOM.createRoot(rootEl).render(
   <React.StrictMode>
     <QueryClientProvider client={queryClient}>
       <App />

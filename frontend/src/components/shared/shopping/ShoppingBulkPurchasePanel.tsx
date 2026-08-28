@@ -295,7 +295,7 @@ const ShoppingBulkPurchasePanel: React.FC<ShoppingBulkPurchasePanelProps> = ({
 
 
       setRows((prev) => prev.filter((r) => r.item.id !== itemId));
-    } finally {
+    } catch (error) {
       setRows((prev) =>
         prev.map((r) =>
           r.item.id === itemId ? { ...r, saving: false } : r

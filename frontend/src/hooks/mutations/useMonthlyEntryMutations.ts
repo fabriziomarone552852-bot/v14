@@ -31,10 +31,9 @@ export const useMonthlyEntryMutations = (queryKey: string[]) => {
       }
 
       // Altrimenti è un nuovo inserimento (POST)
-      const dateObj = new Date(payload.dateStr);
       const dataForServer = {
-        year: dateObj.getFullYear(),
-        month: dateObj.getMonth() + 1,
+        year: parseInt(payload.dateStr.substring(0, 4), 10),
+        month: parseInt(payload.dateStr.substring(5, 7), 10),
         monthly_type: payload.monthly_type,
         monthly_field: payload.monthly_field,
       };

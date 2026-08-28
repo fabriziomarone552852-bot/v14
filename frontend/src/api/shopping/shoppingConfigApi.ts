@@ -57,7 +57,11 @@ export function normalizeShoppingConfigBundle(
     return {
       id: Number(option.id),
       codeName: codeName,
+      codeValue: option.code_value ?? null,
       displayName: displayName,
+      description: option.description ?? null,
+      sortOrder: option.sort_order ?? null,
+      isActive: option.is_active ?? true,
     };
   };
 

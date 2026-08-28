@@ -41,6 +41,9 @@ export type ShoppingListSummaryApi = {
   status_code_name?: string | null;
   is_completed?: boolean | null;
   items?: ShoppingListItemApi[];
+  open_items_count?: number;
+  purchased_items_count?: number;
+  total_items_count?: number;
 };
 
 export function normalizeShoppingListItem(item: ShoppingListItemApi): ShoppingListItem {
@@ -67,9 +70,9 @@ export function normalizeShoppingListSummary(
   list: ShoppingListSummaryApi
 ): ShoppingListSummary {
   const items = list.items ?? [];
-  const openItemsCount = items.filter((item) => !item.is_purchased).length;
-  const purchasedItemsCount = items.filter((item) => item.is_purchased).length;
-  const totalItemsCount = items.length;
+  const openItemsCount = list.open_items_count ?? items.filter((item) => !item.is_purchased).length;
+  const purchasedItemsCount = list.purchased_items_count ?? items.filter((item) => item.is_purchased).length;
+  const totalItemsCount = list.total_items_count ?? items.length;
 
   return {
     id: Number(list.id),
@@ -133,6 +136,7 @@ export function serializeShoppingListItemUpdatePayload(
     ...(payload.quantity !== undefined ? { quantity: payload.quantity } : {}),
     ...(payload.unitId !== undefined ? { unit_id: payload.unitId } : {}),
     ...(payload.notes !== undefined ? { notes: payload.notes } : {}),
+    ...(payload.isPurchased !== undefined ? { is_purchased: payload.isPurchased } : {}),
   };
 }
 

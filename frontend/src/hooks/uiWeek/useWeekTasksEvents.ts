@@ -19,10 +19,21 @@ export const useWeekTasksEvents = (
 
   const filteredTasks = useMemo((): DbTask[] => {
     if (!weekData?.tasks) return [];
+    
+    const mYear = monday.getFullYear();
+    const mMonth = String(monday.getMonth() + 1).padStart(2, '0');
+    const mDay = String(monday.getDate()).padStart(2, '0');
+    const monStr = `${mYear}-${mMonth}-${mDay}`;
+    
+    const sYear = sunday.getFullYear();
+    const sMonth = String(sunday.getMonth() + 1).padStart(2, '0');
+    const sDay = String(sunday.getDate()).padStart(2, '0');
+    const sunStr = `${sYear}-${sMonth}-${sDay}`;
+    
     return weekData.tasks.filter((t: DbTask) => {
       if (!t.data_scadenza) return true;
-      const taskDate = new Date(t.data_scadenza);
-      return taskDate >= monday && taskDate <= sunday;
+      const tStr = t.data_scadenza.substring(0, 10);
+      return tStr >= monStr && tStr <= sunStr;
     });
   }, [weekData?.tasks, monday, sunday]);
 

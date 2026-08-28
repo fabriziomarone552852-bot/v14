@@ -17,8 +17,7 @@ interface EventsColumnProps {
 }
 
 const getFormattedDateString = (date: Date) => {
-  const offset = date.getTimezoneOffset() * 60000;
-  return formatDateString(new Date(date.getTime() - offset));
+  return formatDateString(date);
 };
 
 const EventsColumn: React.FC<EventsColumnProps> = ({ events, selectedDate, onSelectEvent, onAddEventClick }) => {

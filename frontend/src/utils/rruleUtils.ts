@@ -30,7 +30,7 @@ export const translateRRule = (rruleString?: string, startDateStr?: string): str
       // Usiamo una Type Guard (typeof) per capire con cosa stiamo lavorando
       const dayIndex = typeof d === 'number' ? d : d.weekday;
       return daysMap[dayIndex];
-      }).join(', ');
+      }).filter(Boolean).join(', ');
       return `${base} di ${days}`;
       } 
     
@@ -41,6 +41,7 @@ export const translateRRule = (rruleString?: string, startDateStr?: string): str
       
       // Fissiamo la data a mezzogiorno per evitare salti dovuti al cambio di ora legale (DST)!
       const safeDate = new Date(year, month - 1, day, 12, 0, 0);
+      if (isNaN(safeDate.getTime())) return base;
       
       let dayName = safeDate.toLocaleDateString('it-IT', { weekday: 'long' });
       // Capitalizziamo la prima lettera (lunedì -> Lunedì)

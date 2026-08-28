@@ -1,5 +1,5 @@
 // src/components/shared/feedback/PageLoadingState.tsx
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { LoadingIcon } from '@/components/shared/utils/Icons';
 
 interface PageLoadingStateProps {
@@ -16,18 +16,20 @@ interface PageLoadingStateProps {
 const PageLoadingState: React.FC<PageLoadingStateProps> = ({ messages, intervalMs = 2500 }) => {
   const [currentIndex, setCurrentIndex] = useState<number>(0);
   const [isVisible, setIsVisible] = useState<boolean>(true);
+  const timeoutRef = useRef<number | null>(null);
 
   const cycleMessage = useCallback(() => {
     // Fase 1: fade-out
     setIsVisible(false);
 
     // Fase 2: dopo la transizione, cambiamo il testo e fade-in
-    const swapTimer = window.setTimeout(() => {
+    if (timeoutRef.current !== null) {
+      window.clearTimeout(timeoutRef.current);
+    }
+    timeoutRef.current = window.setTimeout(() => {
       setCurrentIndex((prev) => (prev + 1) % messages.length);
       setIsVisible(true);
     }, 300); // 300ms per il fade-out
-
-    return swapTimer;
   }, [messages.length]);
 
   useEffect(() => {
@@ -39,6 +41,9 @@ const PageLoadingState: React.FC<PageLoadingStateProps> = ({ messages, intervalM
 
     return () => {
       window.clearInterval(interval);
+      if (timeoutRef.current !== null) {
+        window.clearTimeout(timeoutRef.current);
+      }
     };
   }, [cycleMessage, intervalMs, messages.length]);
 

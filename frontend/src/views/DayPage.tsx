@@ -39,7 +39,8 @@ const DayPage: React.FC = () => {
   useEffect(() => {
     const state = location.state as { selectedDate?: string } | null;
     if (state?.selectedDate) {
-      setTargetDate(new Date(state.selectedDate));
+      const [y, m, d] = state.selectedDate.split('-').map(Number);
+      setTargetDate(new Date(y, m - 1, d));
       navigate(location.pathname, { replace: true, state: {} }); 
     }
   }, [location.state, setTargetDate, navigate, location.pathname]);

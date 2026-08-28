@@ -36,6 +36,19 @@ export function loadGoogleMaps(apiKey?: string): Promise<boolean> {
         resolve(true);
         return;
       }
+      if (window.google?.maps) {
+        (async () => {
+          try {
+            if (window.google?.maps?.importLibrary) {
+              await window.google.maps.importLibrary('places');
+            }
+            resolve(isGoogleMapsLoaded());
+          } catch {
+            resolve(false);
+          }
+        })();
+        return;
+      }
       existingScript.addEventListener('load', async () => {
         try {
           if (window.google?.maps?.importLibrary) {
@@ -46,7 +59,10 @@ export function loadGoogleMaps(apiKey?: string): Promise<boolean> {
           resolve(false);
         }
       });
-      existingScript.addEventListener('error', () => resolve(false));
+      existingScript.addEventListener('error', () => {
+        googleMapsPromise = null;
+        resolve(false);
+      });
       return;
     }
 
@@ -73,6 +89,7 @@ export function loadGoogleMaps(apiKey?: string): Promise<boolean> {
     script.onerror = () => {
       delete window[callbackName];
       console.warn('Google Maps script failed to load. Falling back to open autocomplete.');
+      googleMapsPromise = null;
       resolve(false);
     };
 

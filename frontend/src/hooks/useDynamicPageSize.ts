@@ -24,9 +24,7 @@ export function useDynamicPageSize<T extends HTMLElement = HTMLDivElement>({
   const [element, setElement] = useState<T | null>(null);
 
   const containerRef = useCallback((node: T | null) => {
-    if (node) {
-      setElement(node);
-    }
+    setElement(node);
   }, []);
 
   useEffect(() => {

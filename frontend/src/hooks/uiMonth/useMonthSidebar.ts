@@ -61,9 +61,10 @@ export const useMonthSidebar = (
   }, [monthData]);
 
   const handleUpdateMood = (codeStr: string, value: number): void => {
-    const existingEntry = monthData?.monthly_entries?.find(e => e.monthly_type === codeStr);
+    const type = codeStr as MonthlyType;
+    const existingEntry = monthData?.monthly_entries?.find(e => e.monthly_type === type);
     saveMonthlyEntry({
-      monthly_type: codeStr as MonthlyType,
+      monthly_type: type,
       monthly_field: String(value),
       dateStr: currentMonthDateStr,
       existingEntryId: existingEntry?.id,
@@ -71,9 +72,10 @@ export const useMonthSidebar = (
   };
 
   const handleUpdateSphere = (codeStr: string, value: number): void => {
-    const existingEntry = monthData?.monthly_entries?.find(e => e.monthly_type === codeStr);
+    const type = codeStr as MonthlyType;
+    const existingEntry = monthData?.monthly_entries?.find(e => e.monthly_type === type);
     saveMonthlyEntry({
-      monthly_type: codeStr as MonthlyType,
+      monthly_type: type,
       monthly_field: String(value),
       dateStr: currentMonthDateStr,
       existingEntryId: existingEntry?.id,

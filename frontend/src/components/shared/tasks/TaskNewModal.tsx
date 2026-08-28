@@ -166,6 +166,13 @@ const TaskNewModal: React.FC<TaskNewModalProps> = ({ isOpen, onClose, taskToEdit
       
     } catch (errore) {
       logger.error("Errore nel salvataggio della task", errore);
+      confirm({
+        title: "Errore",
+        message: "Si è verificato un errore durante il salvataggio del task.",
+        confirmText: "Chiudi",
+        isDestructive: false,
+        onConfirm: () => {}
+      });
     } finally {
       setIsSaving(false); 
     }

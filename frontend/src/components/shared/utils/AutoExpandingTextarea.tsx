@@ -28,6 +28,10 @@ export const AutoExpandingTextarea: React.FC<AutoExpandingTextareaProps> = ({
   const [localValue, setLocalValue] = useState<string>(initialValue);
   const ref = useRef<HTMLTextAreaElement>(null);
 
+  useEffect(() => {
+    setLocalValue(initialValue);
+  }, [initialValue]);
+
   // Effetto per assegnare il focus automatico e posizionare il cursore alla fine del testo
   useEffect(() => {
     if (autoFocus && ref.current) {

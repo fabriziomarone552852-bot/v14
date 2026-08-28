@@ -39,18 +39,24 @@ export const mapTasksToSummaries = (tasks: DbTask[] | undefined): TaskSummary[] 
 export const getUpcomingTasks = (tasks: DbTask[] | undefined, days: number = 30, limit: number = 6): TaskSummary[] => {
   if (!tasks || !Array.isArray(tasks)) return [];
 
-  const now = Date.now();
-  const timeLimit = days * 24 * 60 * 60 * 1000;
+  const todayStr = getLocalTodayStr();
+  const nowMs = Date.now();
+  const timeLimitMs = days * 24 * 60 * 60 * 1000;
   
   return tasks
     .filter(t => !t.fatto && !!t.data_scadenza)
-    .map(t => ({
-      task: mapTaskToSummary(t),
-      time: t.data_scadenza ? new Date(t.data_scadenza.substring(0, 10)).getTime() : 0
-    }))
+    .map(t => {
+      const cleanDate = t.data_scadenza ? t.data_scadenza.substring(0, 10) : "";
+      return {
+        task: mapTaskToSummary(t),
+        cleanDate,
+        time: t.data_scadenza ? new Date(cleanDate).getTime() : 0
+      };
+    })
     .filter(item => {
-      const diff = item.time - now;
-      return diff >= 0 && diff <= timeLimit;
+      if (item.cleanDate < todayStr) return false;
+      const diff = item.time - nowMs;
+      return item.cleanDate === todayStr || (diff >= 0 && diff <= timeLimitMs);
     })
     .sort((a, b) => a.time - b.time) 
     .slice(0, limit)
@@ -258,8 +264,7 @@ const getLocalDateStr = (isoString?: string | null): string => {
   const d = new Date(isoString);
   // Se per caso la data non è valida, facciamo un fallback sicuro
   if (isNaN(d.getTime())) return isoString.substring(0, 10); 
-  const offset = d.getTimezoneOffset() * 60000;
-  return formatDateString(new Date(d.getTime() - offset));
+  return formatDateString(d);
 };
 
 // 4.3. FILTRAGGIO PER MODALITÀ "CON DATA" VS "SENZA DATA"

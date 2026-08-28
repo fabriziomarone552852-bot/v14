@@ -40,10 +40,12 @@ export const useMonthNotes = ({ firstDayStr, lastDayStr, monthData, saveNote, de
 
   const handleAutoSaveNote = useCallback((id: number, testo: string, tipo: NoteVariant, isNew?: boolean): void => {
     const existingNote = mappedNotes.find(n => n.id === id);
-    const existingDate = existingNote?.data_riferimento ?? firstDayStr; 
+    const todayStr = getLocalTodayStr();
+    const fallbackDate = (todayStr >= firstDayStr && todayStr <= lastDayStr) ? todayStr : firstDayStr;
+    const existingDate = existingNote?.data_riferimento ?? fallbackDate; 
 
     saveNote({ id, testo, data_riferimento: existingDate, tipo, isNew });
-  }, [mappedNotes, firstDayStr, saveNote]);
+  }, [mappedNotes, firstDayStr, lastDayStr, saveNote]);
 
   return {
     isNotesOpen, setIsNotesOpen,

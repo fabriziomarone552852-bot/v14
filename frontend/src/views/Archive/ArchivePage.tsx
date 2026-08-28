@@ -178,8 +178,6 @@ export const ArchivePage: React.FC = () => {
           </button>
         ))}
 
-        {/* 10° Slot vuoto per future espansioni */}
-        <div className="hidden lg:block rounded-2xl border-2 border-dashed border-slate-200/60 bg-slate-50/40 p-5 h-full opacity-60" />
       </div>
     </div>
   );

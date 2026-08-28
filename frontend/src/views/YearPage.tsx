@@ -80,7 +80,7 @@ const YearPage: React.FC = () => {
             onSaveGoal={apiData.entries.handleSaveObiettivo}
             onSavePriority={(id, text) => {
               const idx = apiData.entries.priorita.findIndex(p => p?.id === id);
-              apiData.entries.handleSavePriority(idx >= 0 ? idx : 0, id, text);
+              if (idx >= 0) apiData.entries.handleSavePriority(idx, id, text);
             }}
           />
         </div>
@@ -152,11 +152,11 @@ const YearPage: React.FC = () => {
         onUpdateMood={apiData.entries.handleUpdateMood}
         onUpdateSphere={apiData.entries.handleUpdateSphere}
         onSaveAnswer={apiData.entries.handleSaveAnswer}
-        tasksCompleted={0}
-        tasksTotal={0}
-        tasksByMonth={{}}
-        tasksByWeekday={{}}
-        habits={[]}
+        tasksCompleted={apiData.tasksCompleted}
+        tasksTotal={apiData.tasksTotal}
+        tasksByMonth={apiData.tasksByMonth}
+        tasksByWeekday={apiData.tasksByWeekday}
+        habits={apiData.habits}
         dailyEntries={apiData.dailyEntries}
       />
     </div>

@@ -35,9 +35,9 @@ export const isSameWeek = (d1: Date, d2: Date) => dfIsSameWeek(d1, d2, { weekSta
 
 export const isDateInRange = (targetDate: string, startStr?: string, endStr?: string) => {
   if (!startStr) return false;
-  const t = new Date(targetDate).getTime();
-  const s = new Date(startStr).getTime();
-  const e = endStr ? new Date(endStr).getTime() : s;
+  const t = targetDate.substring(0, 10);
+  const s = startStr.substring(0, 10);
+  const e = endStr ? endStr.substring(0, 10) : s;
   return t >= s && t <= e;
 };
 
@@ -93,9 +93,14 @@ export const smontaOrario = (timeStr: string) => {
 
 export const combineDateAndTime = (dateStr: string, timeStr?: string): string => {
   try {
+    if (!dateStr) return '';
     const time = timeStr || '00:00';
     const [year, month, day] = dateStr.split('-').map(Number);
     const [hours, minutes] = time.split(':').map(Number);
+    
+    if (isNaN(year) || isNaN(month) || isNaN(day)) {
+      return '';
+    }
     
     // Niente .toISOString() ! Costruiamo il naive datetime per FastAPI
     return `${year}-${pad(month)}-${pad(day)}T${pad(hours)}:${pad(minutes)}:00`;

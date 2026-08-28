@@ -87,6 +87,7 @@ export const computeWeekLayout = (
 
     clusters.forEach(cluster => {
       const columns: DayEventItem[][] = [];
+      const clusterPosEvents: PositionedEvent[] = [];
       cluster.forEach(ev => {
         const top = parsePercent(ev.seg.top);
         let colIdx = 0;
@@ -103,13 +104,14 @@ export const computeWeekLayout = (
           }
           colIdx++;
         }
-        positionedEvents.push({ ...ev, column: colIdx, totalColumns: 0 });
+        const posEv = { ...ev, column: colIdx, totalColumns: 0 };
+        clusterPosEvents.push(posEv);
+        positionedEvents.push(posEv);
       });
 
       const numCols = columns.length;
-      cluster.forEach(ev => {
-        const pEv = positionedEvents.find(pe => pe.ev.id === ev.ev.id);
-        if (pEv) pEv.totalColumns = numCols;
+      clusterPosEvents.forEach(pEv => {
+        pEv.totalColumns = numCols;
       });
     });
 

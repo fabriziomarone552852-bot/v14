@@ -151,7 +151,7 @@ export function useEventMutations<T extends CacheWithEvents>(queryKey: QueryKey)
           const untilDate = dateStr.replace(/-/g, '');
           let newRrule = currentRrule || '';
           if (newRrule.includes('UNTIL=')) {
-            newRrule = newRrule.replace(/UNTIL=\d{8}/, `UNTIL=${untilDate}`);
+            newRrule = newRrule.replace(/UNTIL=[^;]+/, `UNTIL=${untilDate}`);
           } else {
             newRrule = `${newRrule};UNTIL=${untilDate}`;
           }

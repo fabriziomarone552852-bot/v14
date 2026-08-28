@@ -8,6 +8,8 @@ import type { DbYearlyEntry, DbBingoEntry } from '@/types/yearlyentries';
 import type { DbEvent } from '@/types/events';
 import type { DbTask } from '@/types/tasks';
 import type { DailyEntry } from '@/types/dailyentries';
+import type { Habit } from '@/types/habits';
+import { getHabits } from '@/api/habitsApi';
 
 export interface SyncYearResponse {
   year: number;
@@ -16,24 +18,27 @@ export interface SyncYearResponse {
   events: DbEvent[];
   tasks: DbTask[];
   dailyEntries: DailyEntry[];
+  habits: Habit[];
 }
 
 export const fetchYearData = async (year: number): Promise<SyncYearResponse> => {
   const startStr = `${year}-01-01`;
   const endStr = `${year}-12-31`;
 
-  const [entries, bingoRaw, eventsRaw, tasksRaw, dailyEntriesRaw] = await Promise.all([
+  const [entries, bingoRaw, eventsRaw, tasksRaw, dailyEntriesRaw, habitsRaw] = await Promise.all([
     yearlyEntriesApi.getAll(year),
     bingoApi.getAll(year),
     api.get<{ items?: DbEvent[] } | DbEvent[]>(`/events?start_date=${startStr}&end_date=${endStr}`),
     api.get<{ items?: DbTask[] } | DbTask[]>('/tasks'),
-    api.get<DailyEntry[]>(`/daily-entries?start_date=${startStr}&end_date=${endStr}&tipo=PX`),
+    api.get<DailyEntry[]>(`/daily-entries?start_date=${startStr}&end_date=${endStr}`),
+    getHabits(),
   ]);
 
   const events = Array.isArray(eventsRaw) ? eventsRaw : (eventsRaw?.items ?? []);
   const tasks = Array.isArray(tasksRaw) ? tasksRaw : (tasksRaw?.items ?? []);
   const bingo = (bingoRaw || []).sort((a, b) => (a.posizione ?? a.id) - (b.posizione ?? b.id));
-  const dailyEntries = Array.isArray(dailyEntriesRaw) ? dailyEntriesRaw : [];
+  const dailyEntries = Array.isArray(dailyEntriesRaw) ? dailyEntriesRaw.filter(e => e.tipo === 'PX') : [];
+  const habits = Array.isArray(habitsRaw) ? habitsRaw : [];
 
   return {
     year,
@@ -42,6 +47,7 @@ export const fetchYearData = async (year: number): Promise<SyncYearResponse> => 
     events: events || [],
     tasks: tasks || [],
     dailyEntries,
+    habits,
   };
 };
 

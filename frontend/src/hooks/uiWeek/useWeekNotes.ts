@@ -45,7 +45,9 @@ export const useWeekNotes = ({ mondayStr, sundayStr, weekData, saveNote, deleteN
     // Cerchiamo dentro 'mappedNotes' invece che dentro 'weekData.note'.
     // TypeScript capisce da solo che 'n' è una LocalNoteEntry.
     const existingNote = mappedNotes.find(n => n.id === id);
-    const existingDate = existingNote?.data_riferimento ?? mondayStr; 
+    const todayStr = getLocalTodayStr();
+    const fallbackDate = (todayStr >= mondayStr && todayStr <= sundayStr) ? todayStr : mondayStr;
+    const existingDate = existingNote?.data_riferimento ?? fallbackDate; 
 
     saveNote({ 
       id, 
@@ -54,7 +56,7 @@ export const useWeekNotes = ({ mondayStr, sundayStr, weekData, saveNote, deleteN
       tipo, 
       isNew 
     });
-  }, [mappedNotes, mondayStr, saveNote]); // 🪄 NOTA: abbiamo aggiunto mappedNotes nelle dipendenze
+  }, [mappedNotes, mondayStr, sundayStr, saveNote]); // 🪄 NOTA: abbiamo aggiunto mappedNotes nelle dipendenze
 
   const handleDeleteNote = useCallback((id: number): void => {
     deleteNote(id); 

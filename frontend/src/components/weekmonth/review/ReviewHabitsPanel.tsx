@@ -23,7 +23,7 @@ export const ReviewHabitsPanel: React.FC<ReviewHabitsPanelProps> = ({ habits, ye
   const habitGrid = useMemo(() => {
     return habits.map(habit => {
       const logDates = new Set(
-        habit.logs.map(log => new Date(log.data_riferimento).getDate())
+        habit.logs.map(log => parseInt(log.data_riferimento.split('-')[2], 10))
       );
       return { habit, logDates, completedDays: logDates.size };
     });

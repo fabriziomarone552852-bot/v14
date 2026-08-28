@@ -12,7 +12,7 @@ export const useCountdownWidget = (countdowns: CountdownItem[]) => {
   const isInitialized = useRef(false);
 
   useEffect(() => {
-    if (!isInitialized.current) {
+    if (!isInitialized.current && countdowns.length > 0) {
       isInitialized.current = true;
       const now = Date.now();
       countdowns.forEach((cd) => {
@@ -22,6 +22,16 @@ export const useCountdownWidget = (countdowns: CountdownItem[]) => {
       });
     }
   }, [countdowns]);
+
+  // Clamp current index when array shrinks
+  useEffect(() => {
+    if (currentIndex >= countdowns.length && countdowns.length > 0) {
+      setCurrentIndex(countdowns.length - 1);
+    } else if (countdowns.length === 0) {
+      setCurrentIndex(0);
+    }
+  }, [countdowns.length, currentIndex]);
+
 
   // EFFETTO 1: ROTAZIONE NORMALE (Ogni 10 secondi)
   useEffect(() => {

@@ -36,6 +36,7 @@ export const useGoogleCalendarIntegration = () => {
 
     // Listener per i messaggi postMessage dal popup OAuth
     const handleAuthMessage = (event: MessageEvent) => {
+      if (event.origin !== window.location.origin) return;
       if (event.data?.type === 'GOOGLE_AUTH_SUCCESS') {
         setMessage({
           type: 'success',

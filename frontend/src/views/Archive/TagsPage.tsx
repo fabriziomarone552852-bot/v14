@@ -96,7 +96,7 @@ export const TagsPage: React.FC = () => {
           id: tagId,
           data: { category_name: newName },
         });
-      } catch (err) {
+      } catch (err: unknown) {
         logger.error('Errore durante l\'aggiornamento del tag:', err);
       }
     }

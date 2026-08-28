@@ -34,10 +34,9 @@ export const toLocalDateKey = (date: Date = new Date()): string => {
  * Calcola il giorno progressivo dell'anno per una data specificata (1-366).
  */
 export const getDayOfYear = (date: Date = new Date()): number => {
-  const startOfYear = new Date(date.getFullYear(), 0, 0);
-  const diff = date.getTime() - startOfYear.getTime();
-  const oneDayMs = 1000 * 60 * 60 * 24;
-  return Math.floor(diff / oneDayMs);
+  const utcDate = Date.UTC(date.getFullYear(), date.getMonth(), date.getDate());
+  const utcStart = Date.UTC(date.getFullYear(), 0, 1);
+  return Math.floor((utcDate - utcStart) / (1000 * 60 * 60 * 24)) + 1;
 };
 
 /**

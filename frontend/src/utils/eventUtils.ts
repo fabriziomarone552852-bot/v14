@@ -84,6 +84,7 @@ export const getEventSegmentsForDay = (
     
     if (renderEnd.getHours() === 23 && renderEnd.getMinutes() === 59) endMins = 1440;
     if (endMins - startMins < 30) endMins = startMins + 30;
+    endMins = Math.min(1440, endMins);
 
     return { 
       startMins, 
@@ -150,7 +151,7 @@ export const calculateDailyEventLayout = (
       overlayHeight: Math.max(20, getY(item.seg.endMins) - getY(item.seg.startMins)), 
       colIdx: 0, 
       totalCols: 1
-  }));
+  })).sort((a, b) => a.seg.startMins - b.seg.startMins);
 
   // Uso sicuro del tipo Array per i gruppi invece di typeof
   const groups: OverlayEventItem[][] = [];

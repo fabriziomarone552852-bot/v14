@@ -37,7 +37,7 @@ export function useResizeObserver(
       clearTimeout(timeoutId);
       observer.disconnect();
     };
-  }, [ref, delayMs]);
+  }, [ref.current, delayMs]);
 
   return dimensions;
 }

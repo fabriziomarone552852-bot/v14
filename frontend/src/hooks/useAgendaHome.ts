@@ -10,8 +10,10 @@ export const useAgendaHome = (currentMonth: Date) => {
   const month = currentMonth.getMonth();
 
   // Prendiamo un range largo (dal mese scorso al prossimo)
-  const startStr = new Date(year, month - 1, 1).toISOString().split('T')[0];
-  const endStr = new Date(year, month + 2, 0).toISOString().split('T')[0];
+  const startDate = new Date(year, month - 1, 1);
+  const startStr = `${startDate.getFullYear()}-${String(startDate.getMonth() + 1).padStart(2, '0')}-01`;
+  const endDate = new Date(year, month + 2, 0);
+  const endStr = `${endDate.getFullYear()}-${String(endDate.getMonth() + 1).padStart(2, '0')}-${String(endDate.getDate()).padStart(2, '0')}`;
 
   // 1. QUERY DEGLI EVENTI DEL CALENDARIO (Ora il backend espanderà le ricorrenze per questo range!)
   const { 

@@ -7,10 +7,10 @@ import { formatDateString } from '@/utils/dateUtils';
 
 interface UseRoutineManagerProps {
   targetDateStr: string;
-  suspendRoutine: (params: { habitId: number; periodId: number; endDate: string }) => void;
-  resumeRoutine: (params: { habitId: number; target: number; startDate: string }) => void;
-  updateHabitPeriod: (params: { habitId: number; periodId: number; target: number }) => void;
-  saveHabit: (payload: SaveHabitPayload) => void;
+  suspendRoutine: (params: { habitId: number; periodId: number; endDate: string }) => Promise<unknown> | void;
+  resumeRoutine: (params: { habitId: number; target: number; startDate: string }) => Promise<unknown> | void;
+  updateHabitPeriod: (params: { habitId: number; periodId: number; target: number }) => Promise<unknown> | void;
+  saveHabit: (payload: SaveHabitPayload) => Promise<unknown> | void;
 }
 
 export const useRoutineManager = ({ 
@@ -33,7 +33,8 @@ export const useRoutineManager = ({
     const { sortedPeriods } = getRoutineStatus(routine);
     if (sortedPeriods.length === 0) return;
     
-    const ieri = new Date(targetDateStr);
+    const [y, m, d] = targetDateStr.split('-').map(Number);
+    const ieri = new Date(y, m - 1, d);
     ieri.setDate(ieri.getDate() - 1);
     
     suspendRoutine({ 

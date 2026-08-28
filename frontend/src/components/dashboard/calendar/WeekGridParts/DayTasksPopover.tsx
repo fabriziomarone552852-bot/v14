@@ -27,7 +27,7 @@ interface DayTasksPopoverProps {
 
 const getTaskColorHex = (task: SafeTask): string => {
   const rawColor = 
-    task.category?.color || 
+    task.category?.colore || 
     task.category?.color || 
     task.category_color || 
     task.categoryColor || 

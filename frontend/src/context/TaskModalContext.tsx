@@ -59,7 +59,7 @@ export const TaskModalProvider: React.FC<{ children: ReactNode }> = ({ children 
           parentId = initialParentIdOrDate;
         } else if (typeof initialParentIdOrDate === 'string' && initialParentIdOrDate.includes('-')) {
           dateVal = initialParentIdOrDate;
-        } else if (typeof initialParentIdOrDate === 'string' && !isNaN(Number(initialParentIdOrDate))) {
+        } else if (typeof initialParentIdOrDate === 'string' && initialParentIdOrDate.trim() !== '' && !isNaN(Number(initialParentIdOrDate))) {
           parentId = Number(initialParentIdOrDate);
         }
 

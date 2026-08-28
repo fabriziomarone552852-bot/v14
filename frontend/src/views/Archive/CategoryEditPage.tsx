@@ -12,12 +12,13 @@ const CategoryEditPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const categoryId = Number(id);
   const navigate = useNavigate();
+  const isValidId = !isNaN(categoryId) && categoryId > 0;
 
   const {
     data: category,
     isPending,
     isError,
-  } = useCategory(categoryId);
+  } = useCategory(isValidId ? categoryId : undefined);
 
   const updateCategoryMutation = useUpdateCategory();
 
@@ -35,7 +36,7 @@ const CategoryEditPage: React.FC = () => {
       });
 
       navigate('/categories');
-    } catch (err) {
+    } catch (err: unknown) {
       logger.error('Exception in handleUpdate', err);
     }
   };

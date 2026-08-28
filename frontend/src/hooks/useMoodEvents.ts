@@ -109,7 +109,10 @@ export const useMoodEvents = (mondayStr: string, sundayStr: string) => {
       // Se oggi è dentro la settimana visualizzata, salva con la data di oggi.
       // Altrimenti (settimana passata/futura), salva al lunedì della settimana visualizzata.
       const today = new Date();
-      const todayStr = today.toISOString().slice(0, 10);
+      const y = today.getFullYear();
+      const m = String(today.getMonth() + 1).padStart(2, '0');
+      const d = String(today.getDate()).padStart(2, '0');
+      const todayStr = `${y}-${m}-${d}`;
       const dateToSave = (todayStr >= mondayStr && todayStr <= sundayStr) ? todayStr : mondayStr;
       return addMoodMutation.mutateAsync({ tipo: type, testo: text, data_riferimento: dateToSave });
     },

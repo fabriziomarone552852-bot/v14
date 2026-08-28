@@ -153,7 +153,11 @@ export function useNoteMutations<T extends CacheWithNotes>(queryKey: QueryKey) {
   });
 
   return {
-    saveNote: saveNoteMutation.mutate,
+    saveNote: (payload: SaveNotePayload) => {
+      const textVal = (payload.testo || payload.text || '').trim();
+      if (!textVal) return;
+      saveNoteMutation.mutate(payload);
+    },
     deleteNote: deleteNoteMutation.mutate,
   };
 }

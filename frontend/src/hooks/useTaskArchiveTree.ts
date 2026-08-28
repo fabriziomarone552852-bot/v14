@@ -56,6 +56,10 @@ export const useTaskArchiveTree = ({
         const parent = taskMap.get(parentId);
         if (parent) {
           parent.children.push(node);
+        } else {
+          if (!roots.some((r) => r.id === node.id)) {
+            roots.push(node);
+          }
         }
       } else {
         if (!roots.some((r) => r.id === node.id)) {

@@ -34,8 +34,12 @@ const handleAxiosError = (error: unknown): never => {
     }
   }
   
-  const genericError = error as Error;
-  throw new Error(genericError.message || "Errore di rete o server non raggiungibile");
+  const message = error instanceof Error 
+    ? error.message 
+    : typeof error === 'string' 
+      ? error 
+      : 'Errore di rete o server non raggiungibile';
+  throw new Error(message);
 };
 
 // L'oggetto 'api' è un modulo utility TypeScript puro (Singleton)

@@ -13,7 +13,7 @@ export function useAutoFitPagination<T>(
 
   // Calcola quante righe entrano. Il gap serve a compensare i margini
   const itemsPerPage = clientHeight > 0 
-    ? Math.max(1, Math.floor((clientHeight + gapPx) / itemHeightPx))
+    ? Math.max(1, Math.floor((clientHeight + gapPx) / (itemHeightPx + gapPx)))
     : 3; // Fallback iniziale
 
   const totalPages = Math.ceil(items.length / itemsPerPage);

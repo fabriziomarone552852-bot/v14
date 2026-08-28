@@ -31,7 +31,7 @@ export function paginate<T>(
   pageSize: number,
 ): PaginationResult<T> {
   const totalPages = Math.max(1, Math.ceil(items.length / pageSize));
-  const safePage = Math.min(currentPage, totalPages);
+  const safePage = Math.max(1, Math.min(currentPage, totalPages));
   const startIdx = (safePage - 1) * pageSize;
   const paginatedItems = items.slice(startIdx, startIdx + pageSize);
 

@@ -25,11 +25,11 @@ interface HabitsRoutinesSectionProps {
   routines: RoutineItem[];
   updateHabitLog: (params: { habitId: number; delta: number }) => void;
   updateHabitCount: (params: { habitId: number; delta: number }) => void;
-  saveHabit: (payload: SaveHabitPayload) => void;
   deleteHabit: (id: number) => void;
-  suspendRoutine: (params: { habitId: number; periodId: number; endDate: string }) => void;
-  resumeRoutine: (params: { habitId: number; target: number; startDate: string }) => void;
-  updateHabitPeriod: (params: { habitId: number; periodId: number; target: number }) => void;
+  suspendRoutine: (params: { habitId: number; periodId: number; endDate: string }) => Promise<unknown> | void;
+  resumeRoutine: (params: { habitId: number; target: number; startDate: string }) => Promise<unknown> | void;
+  updateHabitPeriod: (params: { habitId: number; periodId: number; target: number }) => Promise<unknown> | void;
+  saveHabit: (payload: SaveHabitPayload) => Promise<unknown> | void;
   targetDateStr: string;
 }
 

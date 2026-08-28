@@ -138,6 +138,13 @@ export function useDailyEntryMutations<T extends CacheWithDailyEntries>(queryKey
               return { ...old, eventi_positivi: swapEntry(old.eventi_positivi) };
             case 'EN': 
               return { ...old, eventi_negativi: swapEntry(old.eventi_negativi) };
+            case 'PX': {
+              const oldDailyEntries = (old as unknown as { daily_entries?: DailyEntry[] }).daily_entries || [];
+              return {
+                ...old,
+                daily_entries: oldDailyEntries.map(item => item.id === tempId ? (savedEntryFromDB as unknown as DailyEntry) : item)
+              };
+            }
               
             default: 
               return old;

@@ -141,23 +141,25 @@ export const useYearEntries = (yearData: SyncYearResponse | undefined, year: num
   };
 
   const handleUpdateMood = async (id: string, newValue: number) => {
-    const existing = entries.find(e => e.yearly_type === id);
+    const yearlyType = id as YearlyType;
+    const existing = entries.find(e => e.yearly_type === yearlyType);
     if (existing) {
       const updated = await yearlyEntriesApi.update(existing.id, { yearly_field: newValue.toString() });
       if (updated) updateEntriesState(prev => prev.map(e => e.id === existing.id ? updated : e));
     } else {
-      const created = await yearlyEntriesApi.create({ year, yearly_type: id as YearlyType, yearly_field: newValue.toString() });
+      const created = await yearlyEntriesApi.create({ year, yearly_type: yearlyType, yearly_field: newValue.toString() });
       if (created) updateEntriesState(prev => [...prev, created]);
     }
   };
 
   const handleUpdateSphere = async (id: string, newValue: number) => {
-    const existing = entries.find(e => e.yearly_type === id);
+    const yearlyType = id as YearlyType;
+    const existing = entries.find(e => e.yearly_type === yearlyType);
     if (existing) {
       const updated = await yearlyEntriesApi.update(existing.id, { yearly_field: newValue.toString() });
       if (updated) updateEntriesState(prev => prev.map(e => e.id === existing.id ? updated : e));
     } else {
-      const created = await yearlyEntriesApi.create({ year, yearly_type: id as YearlyType, yearly_field: newValue.toString() });
+      const created = await yearlyEntriesApi.create({ year, yearly_type: yearlyType, yearly_field: newValue.toString() });
       if (created) updateEntriesState(prev => [...prev, created]);
     }
   };

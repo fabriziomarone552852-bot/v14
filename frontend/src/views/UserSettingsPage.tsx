@@ -160,10 +160,15 @@ export const UserSettingsPage: React.FC = () => {
       confirm_new_password: confirmPw,
     };
 
-    const updated = await api.patch<UserServerSettings>('/users/me/settings', payload);
-    if (updated) {
-      setSettings(updated);
-      setSuccess('Password aggiornata con successo.');
+    try {
+      const updated = await api.patch<UserServerSettings>('/users/me/settings', payload);
+      if (updated) {
+        setSettings(updated);
+        setSuccess('Password aggiornata con successo.');
+      }
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Errore durante l\'aggiornamento della password.';
+      setError(message);
     }
   };
 

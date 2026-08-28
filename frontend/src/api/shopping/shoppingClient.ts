@@ -19,7 +19,7 @@ export async function apiRequest<T>(
     case 'POST':   return (await api.post<T>(fullPath, body, { params, signal }))!;
     case 'PATCH':  return (await api.patch<T>(fullPath, body, { params, signal }))!;
     case 'PUT':    return (await api.put<T>(fullPath, body, { params, signal }))!;
-    case 'DELETE': await api.delete(fullPath, { params, signal }); return undefined as T;
+    case 'DELETE': await api.delete(fullPath, { params, signal }); return undefined as unknown as T;
     default:       return (await api.get<T>(fullPath, { params, signal }))!;
   }
 }

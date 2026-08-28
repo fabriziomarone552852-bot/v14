@@ -57,7 +57,6 @@ export async function fetchShoppingBrands(
 ): Promise<ShoppingSupplierOption[]> {
   const data = await apiRequest<ShoppingSupplierOptionApi[]>('/brands', {
     method: 'GET',
-    params: { limit: 100 },
     signal,
   });
 
