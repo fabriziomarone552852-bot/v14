@@ -19,6 +19,7 @@ interface SupplierDetailModalProps {
   supplier: EnrichedSupplier | null;
   onEditClick: (supplier: EnrichedSupplier) => void;
   onDeleteClick: (supplier: EnrichedSupplier) => void;
+  isSuperuser?: boolean;
 }
 
 export const SupplierDetailModal: React.FC<SupplierDetailModalProps> = ({
@@ -27,12 +28,13 @@ export const SupplierDetailModal: React.FC<SupplierDetailModalProps> = ({
   supplier,
   onEditClick,
   onDeleteClick,
+  isSuperuser = false,
 }) => {
   if (!isOpen || !supplier) return null;
 
   const batches = supplier.batches || [];
 
-  const HeaderTags = (
+  const HeaderTags = isSuperuser ? (
     <span
       className={`text-xs font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-md ${
         supplier.isActive
@@ -42,7 +44,7 @@ export const SupplierDetailModal: React.FC<SupplierDetailModalProps> = ({
     >
       {supplier.isActive ? 'Attivo' : 'Inattivo'}
     </span>
-  );
+  ) : undefined;
 
   const HeaderActions = (
     <div className="flex items-center gap-1">

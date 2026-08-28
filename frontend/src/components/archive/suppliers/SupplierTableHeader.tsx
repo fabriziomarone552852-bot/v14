@@ -1,11 +1,12 @@
 // src/components/archive/suppliers/SupplierTableHeader.tsx
-import React from 'react';
+import React, { useMemo } from 'react';
 import type { SupplierSortField, SupplierSortDirection } from '@/hooks/useSupplierArchiveData';
 
 interface SupplierTableHeaderProps {
   sortField: SupplierSortField;
   sortDirection: SupplierSortDirection;
   onSort: (field: SupplierSortField) => void;
+  isSuperuser?: boolean;
 }
 
 interface ColumnDef {
@@ -14,36 +15,51 @@ interface ColumnDef {
   className: string;
 }
 
-const columns: ColumnDef[] = [
-  {
-    field: 'name',
-    label: 'Negozio / Fornitore',
-    className: 'flex items-center gap-1.5 cursor-pointer hover:text-slate-900 transition-colors pl-2',
-  },
-  {
-    field: 'status',
-    label: 'Stato',
-    className: 'w-[140px] flex items-center justify-center gap-1.5 cursor-pointer hover:text-slate-900 transition-colors text-center',
-  },
-  {
-    field: 'purchases',
-    label: 'Acquisti Registrati',
-    className: 'w-[160px] flex items-center justify-center gap-1.5 cursor-pointer hover:text-slate-900 transition-colors text-center',
-  },
-  {
-    field: 'lastPurchase',
-    label: 'Ultimo Acquisto',
-    className: 'w-[180px] flex items-center justify-center gap-1.5 cursor-pointer hover:text-slate-900 transition-colors text-center',
-  },
-];
-
 export const SupplierTableHeader: React.FC<SupplierTableHeaderProps> = ({
   sortField,
   sortDirection,
   onSort,
+  isSuperuser = false,
 }) => {
+  const columns: ColumnDef[] = useMemo(() => {
+    const baseCols: ColumnDef[] = [
+      {
+        field: 'name',
+        label: 'Negozio / Fornitore',
+        className: 'flex items-center gap-1.5 cursor-pointer hover:text-slate-900 transition-colors pl-2',
+      },
+    ];
+
+    if (isSuperuser) {
+      baseCols.push({
+        field: 'status',
+        label: 'Stato',
+        className: 'w-[140px] flex items-center justify-center gap-1.5 cursor-pointer hover:text-slate-900 transition-colors text-center',
+      });
+    }
+
+    baseCols.push(
+      {
+        field: 'purchases',
+        label: 'Acquisti Registrati',
+        className: 'w-[160px] flex items-center justify-center gap-1.5 cursor-pointer hover:text-slate-900 transition-colors text-center',
+      },
+      {
+        field: 'lastPurchase',
+        label: 'Ultimo Acquisto',
+        className: 'w-[180px] flex items-center justify-center gap-1.5 cursor-pointer hover:text-slate-900 transition-colors text-center',
+      }
+    );
+
+    return baseCols;
+  }, [isSuperuser]);
+
+  const gridClass = isSuperuser
+    ? 'grid grid-cols-[1fr_140px_160px_180px]'
+    : 'grid grid-cols-[1fr_160px_180px]';
+
   return (
-    <div className="grid grid-cols-[1fr_140px_160px_180px] items-center gap-3 px-4 py-2.5 border-b border-slate-200/80 bg-slate-50/75 text-[11px] font-bold uppercase tracking-wider text-slate-500 select-none shrink-0">
+    <div className={`${gridClass} items-center gap-3 px-4 py-2.5 border-b border-slate-200/80 bg-slate-50/75 text-[11px] font-bold uppercase tracking-wider text-slate-500 select-none shrink-0`}>
       {columns.map((col) => {
         const isActive = sortField === col.field;
         return (
@@ -74,3 +90,4 @@ export const SupplierTableHeader: React.FC<SupplierTableHeaderProps> = ({
 };
 
 export default SupplierTableHeader;
+

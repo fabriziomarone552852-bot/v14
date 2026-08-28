@@ -1,6 +1,7 @@
 // src/views/Archive/SuppliersPage.tsx
 import React, { useMemo, useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useAuth } from '@/context/AuthContext';
 import { useShoppingData } from '@/hooks/shopping/useShoppingData';
 import { useShoppingMutations } from '@/hooks/shopping/useShoppingMutations';
 import { useConfirm } from '@/context/ConfirmContext';
@@ -56,6 +57,8 @@ const initialBrandFilterState: BrandFilterState = {
 
 export const SuppliersPage: React.FC = () => {
   const queryClient = useQueryClient();
+  const { user } = useAuth();
+  const isSuperuser = Boolean(user?.is_superuser);
   const [activeTab, setActiveTab] = useState<SupplierArchiveTab>('negozi');
 
   const { suppliers, brands, config, suppliersLoading, brandsLoading } = useShoppingData();
@@ -272,6 +275,7 @@ export const SuppliersPage: React.FC = () => {
               sortField={supplierSortField}
               sortDirection={supplierSortDirection}
               onSort={handleSupplierSort}
+              isSuperuser={isSuperuser}
             />
           }
           loading={loading}
@@ -300,6 +304,7 @@ export const SuppliersPage: React.FC = () => {
               key={supplier.id}
               supplier={supplier}
               onSelect={(s) => supplierDetailModal.open(s)}
+              isSuperuser={isSuperuser}
             />
           ))}
         </ArchiveTableContainer>
@@ -354,6 +359,7 @@ export const SuppliersPage: React.FC = () => {
         }}
         onReset={handleResetFilters}
         hasActiveFilters={hasActiveFilters}
+        isSuperuser={isSuperuser}
       />
 
       <SupplierDetailModal
@@ -365,6 +371,7 @@ export const SuppliersPage: React.FC = () => {
           supplierFormModal.open(supplier);
         }}
         onDeleteClick={handleDeleteSupplier}
+        isSuperuser={isSuperuser}
       />
 
       <SupplierModal
@@ -372,6 +379,7 @@ export const SuppliersPage: React.FC = () => {
         onClose={supplierFormModal.close}
         supplierToEdit={supplierFormModal.data}
         config={config}
+        isSuperuser={isSuperuser}
       />
 
       {/* 5. MODALI BRAND */}

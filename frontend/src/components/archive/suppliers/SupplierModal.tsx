@@ -10,6 +10,7 @@ interface SupplierModalProps {
   onClose: () => void;
   supplierToEdit?: ShoppingSupplierOption | null;
   config?: ShoppingConfigBundle | null;
+  isSuperuser?: boolean;
 }
 
 export const SupplierModal: React.FC<SupplierModalProps> = ({
@@ -17,6 +18,7 @@ export const SupplierModal: React.FC<SupplierModalProps> = ({
   onClose,
   supplierToEdit,
   config,
+  isSuperuser = false,
 }) => {
   const mutations = useShoppingMutations();
   const isEdit = Boolean(supplierToEdit);
@@ -126,7 +128,7 @@ export const SupplierModal: React.FC<SupplierModalProps> = ({
         {/* Nome fornitore */}
         <div>
           <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">
-            Nome Negozio / Fornitore <span className="text-red-500">*</span>
+            Nome Negozio
           </label>
           <input
             type="text"
@@ -139,22 +141,24 @@ export const SupplierModal: React.FC<SupplierModalProps> = ({
           />
         </div>
 
-        {/* Checkbox Stato Attivo */}
-        <div className="flex items-center gap-3 p-3.5 bg-slate-50 border border-slate-200/80 rounded-xl">
-          <input
-            type="checkbox"
-            id="supplier-is-active"
-            checked={isActive}
-            onChange={(e) => setIsActive(e.target.checked)}
-            className="w-4 h-4 text-blue-600 rounded border-slate-300 focus:ring-blue-500 cursor-pointer"
-          />
-          <label htmlFor="supplier-is-active" className="cursor-pointer select-none">
-            <span className="block text-xs font-bold text-slate-800">Negozio Attivo</span>
-            <span className="block text-[11px] text-slate-400">
-              Deseleziona se il negozio ha chiuso o non viene più utilizzato.
-            </span>
-          </label>
-        </div>
+        {/* Checkbox Stato Attivo (Visibile solo per Superuser) */}
+        {isSuperuser && (
+          <div className="flex items-center gap-3 p-3.5 bg-slate-50 border border-slate-200/80 rounded-xl">
+            <input
+              type="checkbox"
+              id="supplier-is-active"
+              checked={isActive}
+              onChange={(e) => setIsActive(e.target.checked)}
+              className="w-4 h-4 text-blue-600 rounded border-slate-300 focus:ring-blue-500 cursor-pointer"
+            />
+            <label htmlFor="supplier-is-active" className="cursor-pointer select-none">
+              <span className="block text-xs font-bold text-slate-800">Negozio Attivo</span>
+              <span className="block text-[11px] text-slate-400">
+                Deseleziona se il negozio ha chiuso o non viene più utilizzato.
+              </span>
+            </label>
+          </div>
+        )}
       </form>
     </BaseModal>
   );
