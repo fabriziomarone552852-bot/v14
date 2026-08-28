@@ -193,6 +193,7 @@ class ItemBatchResponse(ORMBaseModel):
     supplier_name: Optional[str] = None
     unit_name: Optional[str] = None               # unità di misura associata all'acquisto
     list_name: Optional[str] = None               # nome della lista da cui proviene
+    notes: Optional[str] = None                   # note associate all'item della lista
     is_on_sale: bool = False
 
 

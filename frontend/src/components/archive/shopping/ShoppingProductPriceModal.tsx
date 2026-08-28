@@ -134,9 +134,17 @@ export const ShoppingProductPriceModal: React.FC<ShoppingProductPriceModalProps>
                       <span className="truncate">Lista: {b.listName || 'Senza Lista'}</span>
                     </span>
                   </div>
-                  <div className="grid grid-cols-3 items-center gap-2 text-xs">
-                    <div className="text-left text-gray-500 font-medium text-[11px] truncate">
-                      {formatToItalianShortDate(b.purchaseDate)}
+                  <div className="grid grid-cols-[1.3fr_1fr_1fr] sm:grid-cols-[1.4fr_1fr_1fr] items-center gap-2 text-xs">
+                    <div className="text-left text-gray-500 font-medium text-[11px] truncate flex items-center gap-1.5 min-w-0">
+                      <span className="shrink-0">{formatToItalianShortDate(b.purchaseDate)}</span>
+                      {b.notes && (
+                        <span
+                          className="text-[11px] text-gray-400 font-normal truncate italic"
+                          title={b.notes}
+                        >
+                          · {b.notes}
+                        </span>
+                      )}
                     </div>
                     <div className="text-center font-semibold text-gray-700 flex items-center justify-center gap-1 min-w-0 truncate">
                       <StoreIcon className="w-3.5 h-3.5 text-orange-400 shrink-0" />

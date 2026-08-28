@@ -159,7 +159,7 @@ const ShoppingItemDetailModal: React.FC<ShoppingItemDetailModalProps> = ({
       onClick={onClose}
     >
       <div
-        className="flex flex-col md:flex-row gap-4 items-stretch w-full max-w-4xl justify-center pointer-events-none"
+        className="flex flex-col md:flex-row gap-4 items-stretch w-full max-w-5xl justify-center pointer-events-none"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Pannello Sinistro: Storico Prezzi */}

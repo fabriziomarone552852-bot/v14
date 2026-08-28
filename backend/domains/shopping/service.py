@@ -1056,7 +1056,9 @@ def list_item_batches(
             brand_id = b.list_item.product.brand.id
             brand_name = b.list_item.product.brand.name_normalized
 
+        notes: Optional[str] = None
         if b.list_item:
+            notes = b.list_item.notes
             if b.list_item.shopping_list:
                 list_name = b.list_item.shopping_list.name
             if b.list_item.unit:
@@ -1075,6 +1077,7 @@ def list_item_batches(
             "supplier_name": b.supplier.name_normalized if b.supplier else None,
             "unit_name": unit_name,
             "list_name": list_name,
+            "notes": notes,
             "is_on_sale": b.is_on_sale,
         })
     return result
@@ -1090,6 +1093,7 @@ def list_all_batches(db: Session, current_user: User) -> list:
         unit_price = (b.purchase_price / qty).quantize(D("0.01")) if qty else None
         list_name: Optional[str] = None
         unit_name: Optional[str] = None
+        notes: Optional[str] = None
         product_name: str = "Prodotto"
         brand_id: Optional[int] = None
         brand_name: Optional[str] = None
@@ -1105,6 +1109,7 @@ def list_all_batches(db: Session, current_user: User) -> list:
                 brand_name = b.list_item.product.brand.name_normalized
 
         if b.list_item:
+            notes = b.list_item.notes
             if b.list_item.shopping_list:
                 list_name = b.list_item.shopping_list.name
             if b.list_item.unit:
@@ -1123,6 +1128,7 @@ def list_all_batches(db: Session, current_user: User) -> list:
             "supplier_name": b.supplier.name_normalized if b.supplier else None,
             "unit_name": unit_name,
             "list_name": list_name,
+            "notes": notes,
             "is_on_sale": b.is_on_sale,
         })
     return result

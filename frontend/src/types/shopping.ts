@@ -221,6 +221,7 @@ export interface ItemBatchRecord {
   supplierName: string | null;
   unitName: string | null;
   listName: string | null;
+  notes?: string | null;
   isOnSale: boolean;
 }
 

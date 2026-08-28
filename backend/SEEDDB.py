@@ -22,7 +22,7 @@ from backend.core.models import import_all_models
 from backend.core.deps import get_password_hash
 from backend.domains.categories.models import UserCategory
 from backend.domains.config import Config, ConfigCode
-from backend.domains.shopping.models import ShoppingSupplier
+from backend.domains.shopping.models import InventoryBatch, ShoppingProduct, ShoppingSupplier
 from backend.domains.users.models import User
 
 
@@ -99,7 +99,9 @@ def _get_default_max_subtask_depth(env_values: dict[str, str]) -> int:
 from backend.core.csv_seed_loader import (
     load_seed_config_codes,
     load_seed_configs,
-    load_seed_suppliers,
+    load_seed_inventory_batches,
+    load_seed_shopping_products,
+    load_seed_shopping_suppliers,
     load_seed_user_categories,
     load_seed_users,
 )
@@ -256,29 +258,103 @@ def _get_code_id(code_ids: dict[tuple[str, str], int], code_type: str, code_valu
     return code_ids[key]
 
 
-def _seed_default_suppliers(db, created_by_user_id: int, supplier_status_id: int) -> int:
+def _seed_shopping_suppliers(db, supplier_status_id: int, fallback_user_id: int) -> tuple[dict[str, int], int]:
+    """Popola tutti i negozi e marchi da shopping_suppliers.csv mantenendo gli ID."""
+    suppliers_data = load_seed_shopping_suppliers()
+    suppliers_by_name: dict[str, int] = {}
     inserted = 0
-    suppliers = load_seed_suppliers()
 
-    for supplier_name in suppliers:
-        normalized = supplier_name.strip().lower()
+    for item in suppliers_data:
+        normalized = item["name_normalized"]
+        existing = db.query(ShoppingSupplier).filter(
+            or_(
+                ShoppingSupplier.id == item["id"],
+                ShoppingSupplier.name_normalized == normalized,
+            )
+        ).first()
 
-        existing = (
-            db.query(ShoppingSupplier)
-            .filter(ShoppingSupplier.name_normalized == normalized)
-            .first()
+        if existing is not None:
+            suppliers_by_name[normalized] = existing.id
+            continue
+
+        obj = ShoppingSupplier(
+            id=item["id"],
+            name_normalized=normalized,
+            type_code=item["type_code"],
+            status_id=supplier_status_id,
+            created_by_user_id=item.get("created_by_user_id") or fallback_user_id,
+            created_at=item.get("created_at"),
         )
+        db.add(obj)
+        db.flush()
+        suppliers_by_name[normalized] = obj.id
+        inserted += 1
+
+    return suppliers_by_name, inserted
+
+
+def _seed_shopping_products(db, suppliers_by_name: dict[str, int], fallback_user_id: int) -> int:
+    """Popola i prodotti da shopping_products.csv collegandoli ai marchi corretti."""
+    products_data = load_seed_shopping_products()
+    inserted = 0
+
+    for item in products_data:
+        normalized = item["name_normalized"]
+        existing = db.query(ShoppingProduct).filter(
+            or_(
+                ShoppingProduct.id == item["id"],
+                ShoppingProduct.name_normalized == normalized,
+            )
+        ).first()
+
         if existing is not None:
             continue
 
-        db.add(
-            ShoppingSupplier(
-                name_normalized=normalized,
-                type_code=1,
-                status_id=supplier_status_id,
-                created_by_user_id=created_by_user_id,
-            )
+        # Risoluzione brand_id
+        brand_id = item.get("brand_id")
+        if not brand_id and item.get("brand_name_text"):
+            brand_id = suppliers_by_name.get(item["brand_name_text"])
+
+        obj = ShoppingProduct(
+            id=item["id"],
+            name_normalized=normalized,
+            brand_id=brand_id,
+            created_by_user_id=item.get("created_by_user_id") or fallback_user_id,
+            created_at=item.get("created_at"),
         )
+        db.add(obj)
+        db.flush()
+        inserted += 1
+
+    return inserted
+
+
+def _seed_inventory_batches(db, fallback_user_id: int) -> int:
+    """Popola i lotti di spesa e lo storico prezzi da inventory_batch.csv."""
+    batches_data = load_seed_inventory_batches()
+    inserted = 0
+
+    for item in batches_data:
+        existing = db.query(InventoryBatch).filter(InventoryBatch.id == item["id"]).first()
+        if existing is not None:
+            continue
+
+        obj = InventoryBatch(
+            id=item["id"],
+            product_id=item["product_id"],
+            list_item_id=item["list_item_id"],
+            purchase_date=item["purchase_date"],
+            quantity_purchased=item["quantity_purchased"],
+            purchase_price=item["purchase_price"],
+            supplier_id=item["supplier_id"],
+            is_on_sale=item["is_on_sale"],
+            expiration_date=item["expiration_date"],
+            created_by_user_id=item.get("created_by_user_id") or fallback_user_id,
+            purchased_by_user_id=item.get("purchased_by_user_id") or fallback_user_id,
+            created_at=item.get("created_at"),
+            updated_at=item.get("updated_at"),
+        )
+        db.add(obj)
         db.flush()
         inserted += 1
 
@@ -304,7 +380,7 @@ def seed_database(
 
     db = session_factory()
     try:
-        print("[1/5] Verifica o creazione utenti di default (da users.csv)...")
+        print("[1/7] Verifica o creazione utenti di default (da users.csv)...")
         seed_users = _seed_default_users(db, default_users)
         db.commit()
         sync_table_id_sequence(db, "users")
@@ -321,7 +397,7 @@ def seed_database(
 
         seed_owner = seed_users[0]
 
-        print("[2/5] Seed user_categories di default (da user_categories.csv)...")
+        print("[2/7] Seed user_categories di default (da user_categories.csv)...")
         inserted_user_categories = _seed_default_user_categories(db, seed_users)
         db.commit()
         for user in seed_users:
@@ -330,26 +406,47 @@ def seed_database(
                 f"{inserted_user_categories.get(user.id, 0)}."
             )
 
-        print("[3/5] Seed configurazioni amministrative di base (da config.csv)...")
+        print("[3/7] Seed configurazioni amministrative di base (da config.csv)...")
         inserted_config = _ensure_config(db, default_max_subtask_depth)
         db.commit()
         print(f"-> Config base inserita: {1 if inserted_config else 0}.")
 
-        print("[4/5] Seed ConfigCode globali (da config_codes.csv)...")
+        print("[4/7] Seed ConfigCode globali (da config_codes.csv)...")
         code_ids = _seed_config_codes(db)
         db.commit()
         print(f"-> ConfigCode disponibili/allineati: {len(code_ids)}.")
 
-        print("[5/5] Seed fornitori di default (da suppliers.csv)...")
+        print("[5/7] Seed negozi e marchi shopping (da shopping_suppliers.csv)...")
         supplier_status_id = _get_code_id(code_ids, "supplier_status", "active")
-        inserted_suppliers = _seed_default_suppliers(
+        suppliers_by_name, inserted_suppliers = _seed_shopping_suppliers(
             db=db,
-            created_by_user_id=seed_owner.id,
             supplier_status_id=supplier_status_id,
+            fallback_user_id=seed_owner.id,
         )
         db.commit()
         print(
-            f"-> Fornitori inseriti: {inserted_suppliers}."
+            f"-> Negozi e brand inseriti: {inserted_suppliers} (totale attivi: {len(suppliers_by_name)})."
+        )
+
+        print("[6/7] Seed catalogo prodotti (da shopping_products.csv)...")
+        inserted_products = _seed_shopping_products(
+            db=db,
+            suppliers_by_name=suppliers_by_name,
+            fallback_user_id=seed_owner.id,
+        )
+        db.commit()
+        print(
+            f"-> Prodotti inseriti: {inserted_products}."
+        )
+
+        print("[7/7] Seed storico acquisti e lotti (da inventory_batch.csv)...")
+        inserted_batches = _seed_inventory_batches(
+            db=db,
+            fallback_user_id=seed_owner.id,
+        )
+        db.commit()
+        print(
+            f"-> Lotti acquisto inseriti: {inserted_batches}."
         )
 
         print("\nSincronizzazione finale di tutte le sequenze e contatori PostgreSQL...")
