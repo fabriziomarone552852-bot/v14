@@ -43,6 +43,7 @@ export const useSaveHabit = () => {
             titolo: payload.data.titolo ?? h.titolo,
             rrule: payload.data.rrule !== undefined ? payload.data.rrule : h.rrule,
             immagine_url: payload.data.immagine_url !== undefined ? payload.data.immagine_url : h.immagine_url,
+            immagine_posizione: payload.data.immagine_posizione !== undefined ? payload.data.immagine_posizione : h.immagine_posizione,
           };
         })
       );

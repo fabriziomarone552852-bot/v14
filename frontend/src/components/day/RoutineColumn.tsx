@@ -19,6 +19,7 @@ export interface RoutineItem {
   id: number;
   title: string;
   imageUrl: string;
+  immaginePosizione?: string;
   currentCompletions: number;
   targetCompletions: number; 
   periods?: RoutinePeriod[];
@@ -57,8 +58,11 @@ const RoutineColumn: React.FC<RoutineColumnProps> = ({ routines, onUpdateRoutine
           return (
             <div key={routine.id} className={`relative h-20 w-full rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-all duration-300 group ${isCompleted ? 'opacity-70 grayscale-[30%]' : ''}`}>
               <div 
-                className="absolute inset-0 bg-cover bg-center transition-transform duration-700 group-hover:scale-105" 
-                style={{ backgroundImage: `url(${routine.imageUrl || DEFAULT_COVER_IMAGE})` }} 
+                className="absolute inset-0 bg-cover transition-transform duration-700 group-hover:scale-105" 
+                style={{
+                  backgroundImage: `url(${routine.imageUrl || DEFAULT_COVER_IMAGE})`,
+                  backgroundPosition: routine.immaginePosizione || 'center',
+                }} 
               />
               <div className={`absolute inset-0 transition-colors duration-300 ${isCompleted ? 'bg-black/60' : 'bg-gradient-to-r from-black/80 via-black/40 to-transparent'}`} />
 

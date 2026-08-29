@@ -68,6 +68,7 @@ def create_habit(db: Session, current_user: User, habit_in: schemas.HabitCreate)
         tipo=habit_in.tipo,
         rrule=habit_in.rrule,
         immagine_url=habit_in.immagine_url,
+        immagine_posizione=habit_in.immagine_posizione,
     )
     repo.add(db, new_habit)
     repo.flush(db)

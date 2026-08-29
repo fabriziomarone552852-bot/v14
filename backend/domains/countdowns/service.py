@@ -45,6 +45,7 @@ def create_countdown(db: Session, current_user: User, payload: schemas.Countdown
         target_date=payload.target_date,
         status="active",
         immagine_url=payload.immagine_url,
+        immagine_posizione=payload.immagine_posizione,
         created_at=now_utc,
         updated_at=now_utc,
         closed_at=None,

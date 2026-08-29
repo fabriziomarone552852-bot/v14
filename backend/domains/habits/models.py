@@ -33,6 +33,7 @@ class Habit(Base):
     tipo: Mapped[str] = mapped_column(String(1), nullable=False)
     rrule: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
     immagine_url: Mapped[Optional[str]] = mapped_column(String(1024), nullable=True)
+    immagine_posizione: Mapped[Optional[str]] = mapped_column(String(50), nullable=True)
 
     user: Mapped["User"] = relationship("User", back_populates="habits")
     logs: Mapped[List["HabitLog"]] = relationship(

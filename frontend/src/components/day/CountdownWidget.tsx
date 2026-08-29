@@ -10,6 +10,7 @@ export interface CountdownItem {
   title: string;
   targetDateStr: string; 
   imageUrl: string;
+  immaginePosizione?: string;
 }
 
 interface CountdownWidgetProps {
@@ -40,7 +41,13 @@ const CountdownWidget: React.FC<CountdownWidgetProps> = ({ countdowns, onClick }
 
         return (
           <div key={item.id} className={`absolute inset-0 w-full h-full transition-opacity duration-1000 ease-in-out ${isActive ? 'opacity-100 z-10' : 'opacity-0 z-0 pointer-events-none'}`}>
-            <div className="absolute inset-0 bg-cover bg-center transition-transform duration-700 group-hover:scale-105" style={{ backgroundImage: `url(${item.imageUrl})` }} />
+            <div
+              className="absolute inset-0 bg-cover transition-transform duration-700 group-hover:scale-105"
+              style={{
+                backgroundImage: `url(${item.imageUrl})`,
+                backgroundPosition: item.immaginePosizione || 'center',
+              }}
+            />
             <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-black/20" />
             
             {/* OVERLAY STELLE */}

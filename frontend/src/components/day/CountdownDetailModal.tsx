@@ -56,7 +56,13 @@ const CountdownDetailModal: React.FC<CountdownDetailModalProps> = ({ isOpen, onC
         className="relative w-full max-w-sm h-[70vh] rounded-3xl shadow-2xl overflow-hidden transform transition-all animate-fadeIn"
         onClick={e => e.stopPropagation()}
       >
-        <div className="absolute inset-0 bg-cover bg-center" style={{ backgroundImage: `url(${countdown.imageUrl})` }} />
+        <div
+          className="absolute inset-0 bg-cover"
+          style={{
+            backgroundImage: `url(${countdown.imageUrl})`,
+            backgroundPosition: countdown.immaginePosizione || 'center',
+          }}
+        />
         
         {hasExpired && (
           <div 

@@ -20,10 +20,13 @@ export const RoutineCard: React.FC<RoutineCardProps> = ({ routine, onClick }) =>
     >
       {/* 1. IMMAGINE DI SFONDO CON ZOOM FLUIDO (E BIANCO/NERO SE IN PAUSA) */}
       <div
-        className={`absolute inset-0 bg-cover bg-center transition-all duration-700 group-hover:scale-105 ${
+        className={`absolute inset-0 bg-cover transition-all duration-700 group-hover:scale-105 ${
           isPaused ? 'grayscale contrast-125 brightness-75' : ''
         }`}
-        style={{ backgroundImage: `url(${routine.imageUrl || DEFAULT_COVER_IMAGE})` }}
+        style={{
+          backgroundImage: `url(${routine.imageUrl || DEFAULT_COVER_IMAGE})`,
+          backgroundPosition: routine.immaginePosizione || 'center',
+        }}
       />
 
       {/* 2. GRADIENTE OVERLAY SCURO PER LEGGIBILITÀ OTTIMALE */}

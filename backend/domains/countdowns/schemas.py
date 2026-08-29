@@ -20,6 +20,7 @@ class CountdownBase(StrictBaseModel):
     title: str = Field(..., min_length=1, max_length=255)
     target_date: datetime
     immagine_url: Optional[str] = Field(None, max_length=1024)
+    immagine_posizione: Optional[str] = Field(None, max_length=50)
 
     @field_validator("title")
     @classmethod
@@ -41,6 +42,7 @@ class CountdownUpdate(StrictBaseModel):
     target_date: Optional[datetime] = None
     status: Optional[str] = Field(None, min_length=1, max_length=20)
     immagine_url: Optional[str] = Field(None, max_length=1024)
+    immagine_posizione: Optional[str] = Field(None, max_length=50)
     closed_at: Optional[datetime] = None
     reopened_at: Optional[datetime] = None
 
@@ -73,6 +75,7 @@ class CountdownResponse(ORMBaseModel):
     target_date: datetime
     status: str
     immagine_url: Optional[str] = None
+    immagine_posizione: Optional[str] = None
     created_at: datetime
     updated_at: Optional[datetime] = None
     closed_at: Optional[datetime] = None

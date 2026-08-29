@@ -5,6 +5,7 @@ export interface Countdown {
   target_date: string; 
   status: 'active' | 'closed';
   immagine_url?: string | null;
+  immagine_posizione?: string | null;
   created_at: string; 
   updated_at?: string | null;
   closed_at?: string | null;
@@ -18,4 +19,5 @@ export interface RawCountdown {
   target_date?: string;       
   data_riferimento?: string;  
   immagine_url?: string | null;
+  immagine_posizione?: string | null;
 }

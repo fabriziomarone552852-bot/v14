@@ -111,3 +111,12 @@ export const SyncIcon = ({ className = "w-4 h-4 text-gray-500" }: { className?: 
     <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
   </svg>
 );
+
+// Icona Bersaglio / Centra Immagine
+export const TargetIcon = ({ className = "w-4 h-4" }: { className?: string }) => (
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className={className}>
+    <circle cx="12" cy="12" r="7" />
+    <circle cx="12" cy="12" r="2" fill="currentColor" />
+    <path strokeLinecap="round" strokeLinejoin="round" d="M12 2v3m0 14v3M2 12h3m14 0h3" />
+  </svg>
+);

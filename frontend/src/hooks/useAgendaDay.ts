@@ -13,6 +13,7 @@ export interface SaveCountdownPayload {
   title: string;
   targetDateStr: string;
   imageUrl?: string | null;
+  immaginePosizione?: string | null;
 }
 
 export const useAgendaDay = (dateStr: string) => {
@@ -66,7 +67,8 @@ export const useAgendaDay = (dateStr: string) => {
       const payload = {
         title: countdown.title ?? "Nuovo Countdown",
         target_date: countdown.targetDateStr ?? new Date().toISOString(),
-        immagine_url: countdown.imageUrl ?? null
+        immagine_url: countdown.imageUrl ?? null,
+        immagine_posizione: countdown.immaginePosizione ?? null
       };
       const result = isUpdate
         ? await api.patch<Countdown>(`/countdowns/${countdown.id}`, payload)

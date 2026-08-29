@@ -36,10 +36,13 @@ export const CountdownCard: React.FC<CountdownCardProps> = ({ countdown, onClick
     >
       {/* 1. IMMAGINE DI SFONDO CON ZOOM FLUIDO ED EFFETTO BIANCO E NERO SE SCADUTO */}
       <div
-        className={`absolute inset-0 bg-cover bg-center transition-all duration-700 group-hover:scale-105 ${
+        className={`absolute inset-0 bg-cover transition-all duration-700 group-hover:scale-105 ${
           hasExpired ? 'grayscale contrast-125 brightness-75' : ''
         }`}
-        style={{ backgroundImage: `url(${countdown.imageUrl})` }}
+        style={{
+          backgroundImage: `url(${countdown.imageUrl})`,
+          backgroundPosition: countdown.immaginePosizione || 'center',
+        }}
       />
 
       {/* 2. GRADIENTE OVERLAY SCURO PER LEGGIBILITÀ OTTIMALE */}

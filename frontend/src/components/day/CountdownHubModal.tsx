@@ -83,7 +83,13 @@ const CountdownsHubModal: React.FC<CountdownsHubModalProps> = ({
               }}
               className={`relative h-24 w-full rounded-xl overflow-hidden cursor-pointer shadow-sm hover:shadow-md transition-all group ${isPast ? 'opacity-60 grayscale' : ''}`}
             >
-              <div className="absolute inset-0 bg-cover bg-center transition-transform group-hover:scale-105" style={{ backgroundImage: `url(${cd.imageUrl})` }} />
+              <div
+                className="absolute inset-0 bg-cover transition-transform group-hover:scale-105"
+                style={{
+                  backgroundImage: `url(${cd.imageUrl})`,
+                  backgroundPosition: cd.immaginePosizione || 'center',
+                }}
+              />
               {isPast && (
                 <div 
                   className="absolute inset-0 bg-cover bg-center opacity-60 z-0 mix-blend-screen" 

@@ -46,6 +46,7 @@ class Countdown(Base):
         server_default=text("'active'"),
     )
     immagine_url: Mapped[Optional[str]] = mapped_column(String(1024), nullable=True)
+    immagine_posizione: Mapped[Optional[str]] = mapped_column(String(50), nullable=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         nullable=False,

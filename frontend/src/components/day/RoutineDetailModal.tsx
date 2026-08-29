@@ -151,7 +151,13 @@ const RoutineDetailModal: React.FC<RoutineDetailModalProps> = ({
       >
         <div className="space-y-4">
           {/* L'immagine è ora un elemento pulito del body, invece che un overlay assoluto */}
-          <div className="w-full h-40 rounded-xl bg-cover bg-center shadow-sm" style={{ backgroundImage: `url(${selectedRoutine.imageUrl || DEFAULT_COVER_IMAGE})` }}></div>
+          <div
+            className="w-full h-40 rounded-xl bg-cover shadow-sm"
+            style={{
+              backgroundImage: `url(${selectedRoutine.imageUrl || DEFAULT_COVER_IMAGE})`,
+              backgroundPosition: selectedRoutine.immaginePosizione || 'center',
+            }}
+          />
           
           <div>
             <h2 className="text-2xl font-extrabold text-gray-800">{selectedRoutine.title}</h2>

@@ -54,6 +54,7 @@ export const useRoutineManager = ({
           titolo: payload.titolo,
           tipo: payload.tipo,
           immagine_url: payload.immagine_url,
+          immagine_posizione: payload.immagine_posizione,
           rrule: payload.rrule
         }
       });
@@ -78,6 +79,7 @@ export const useRoutineManager = ({
           titolo: payload.titolo,
           tipo: payload.tipo,
           immagine_url: payload.immagine_url,
+          immagine_posizione: payload.immagine_posizione,
           rrule: payload.rrule,
           periods: [{
             data_inizio: payload.data_inizio,

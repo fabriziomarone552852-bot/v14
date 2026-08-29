@@ -90,6 +90,7 @@ class HabitBase(StrictBaseModel):
     tipo: str = Field(..., min_length=1, max_length=1)
     rrule: Optional[str] = Field(default=None, max_length=255)
     immagine_url: Optional[str] = Field(default=None, max_length=1024)
+    immagine_posizione: Optional[str] = Field(default=None, max_length=50)
 
     @field_validator("titolo")
     @classmethod
@@ -121,6 +122,7 @@ class HabitUpdate(StrictBaseModel):
     tipo: Optional[str] = Field(default=None, min_length=1, max_length=1)
     rrule: Optional[str] = Field(default=None, max_length=255)
     immagine_url: Optional[str] = Field(default=None, max_length=1024)
+    immagine_posizione: Optional[str] = Field(default=None, max_length=50)
 
     @field_validator("titolo")
     @classmethod
@@ -152,6 +154,7 @@ class HabitResponse(ORMBaseModel):
     tipo: str
     rrule: Optional[str] = None
     immagine_url: Optional[str] = None
+    immagine_posizione: Optional[str] = None
     periods: List[HabitPeriodResponse] = Field(default_factory=list)
     logs: List[HabitLogResponse] = Field(default_factory=list)
 

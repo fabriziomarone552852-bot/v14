@@ -50,6 +50,7 @@ export const CountdownsPage: React.FC = () => {
         title: payload.title,
         target_date: payload.targetDateStr,
         immagine_url: payload.imageUrl,
+        immagine_posizione: payload.immaginePosizione,
       };
       if (payload.id) {
         return await api.patch(`/countdowns/${payload.id}`, dbPayload);

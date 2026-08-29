@@ -104,6 +104,7 @@ export const mapHabitsToRoutines = (habits: Habit[], targetDateStr: string): Rou
         title: h.titolo,
         // 🪄 SOSTITUITO || CON ??
         imageUrl: h.immagine_url ?? DEFAULT_COVER_IMAGE,
+        immaginePosizione: h.immagine_posizione || 'center',
         currentCompletions,
         targetCompletions: activePeriod.target,
         titolo: h.titolo,

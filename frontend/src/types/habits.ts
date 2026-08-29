@@ -20,6 +20,7 @@ export interface Habit {
   tipo: 'R' | 'H'; 
   rrule?: string | null;
   immagine_url?: string | null;
+  immagine_posizione?: string | null;
   
   // Rigorosi: sono sempre array!
   periods: HabitPeriod[];
@@ -31,6 +32,7 @@ export interface HabitFormData {
   tipo: 'R' | 'H'; // R = Routine, H = Habit
   rrule?: string | null;
   immagine_url?: string | null;
+  immagine_posizione?: string | null;
   data_inizio?: string;
   data_fine?: string | null;
   target_completamenti?: number;

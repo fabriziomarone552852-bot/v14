@@ -129,6 +129,7 @@ export const useHabitArchiveData = ({
         rrule: h.rrule || '',
         data_inizio: startDate,
         imageUrl: h.immagine_url || '',
+        immaginePosizione: h.immagine_posizione || 'center',
         targetCompletions,
         currentCompletions: 0,
         currentCount: 0,
