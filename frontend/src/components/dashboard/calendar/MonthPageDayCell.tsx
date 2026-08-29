@@ -2,6 +2,7 @@ import React, { useRef, useState, useMemo } from 'react';
 import { getHexColor } from '@/utils/uiUtils';
 import { TimeDisplay, DateRangeDisplay } from '@/components/shared/utils/DateTimeDisplays';
 import { useOutsideClick } from '@/hooks/useOutsideClick';
+import { useDropdownPosition } from '@/hooks/useDropdownPosition';
 import { getPopoverAlignClass, getMoodCellStyles } from '@/utils/monthCellUtils';
 import type { CalendarGridItem } from './MonthGrid';
 import { type Category, type DbTask, type CalendarEvent, CategoryGenre } from '@/types'; 
@@ -63,8 +64,18 @@ export const MonthPageDayCell: React.FC<MonthPageDayCellProps> = ({
     if (isMoodMenuOpen) setIsMoodMenuOpen(false);
   });
 
+  const { openUpwards: openMoodUpwards } = useDropdownPosition(moodMenuRef, {
+    isOpen: isMoodMenuOpen,
+    threshold: 250,
+  });
+
   const taskPopoverRef = useOutsideClick<HTMLDivElement>(() => {
     if (isTaskPopoverOpen) setIsTaskPopoverOpen(false);
+  });
+
+  const { openUpwards: openTaskUpwards } = useDropdownPosition(taskPopoverRef, {
+    isOpen: isTaskPopoverOpen,
+    threshold: 280,
   });
 
   const { data: dbCategories = [] } = useCategories();
@@ -163,7 +174,7 @@ export const MonthPageDayCell: React.FC<MonthPageDayCellProps> = ({
               {/* FINESTRA POPOVER TASK PER IL GIORNO */}
               {isTaskPopoverOpen && (
                 <div 
-                  className={`absolute bottom-full mb-2 w-60 max-h-[260px] overflow-y-auto custom-scrollbar pointer-events-auto bg-white p-2.5 rounded-xl shadow-2xl border border-gray-200 flex flex-col gap-1.5 transition-all z-[1000] ${popoverAlignClass}`} 
+                  className={`absolute ${openTaskUpwards ? 'bottom-full mb-2' : 'top-full mt-2'} w-60 max-h-[260px] overflow-y-auto custom-scrollbar pointer-events-auto bg-white p-2.5 rounded-xl shadow-2xl border border-gray-200 flex flex-col gap-1.5 transition-all z-[1000] ${popoverAlignClass}`} 
                   onClick={(e) => e.stopPropagation()}
                 >
                   <p className="text-[10px] font-extrabold text-blue-600 uppercase tracking-wider border-b border-gray-100 pb-1.5 flex justify-between items-center">
@@ -250,7 +261,7 @@ export const MonthPageDayCell: React.FC<MonthPageDayCellProps> = ({
               </button>
 
               {isMoodMenuOpen && (
-                <div className={`absolute z-[1000] top-full mt-1 w-48 bg-white border border-gray-100 rounded-xl shadow-xl p-1.5 animate-fadeIn cursor-default overflow-hidden flex flex-col ${popoverAlignClass}`}>
+                <div className={`absolute z-[1000] ${openMoodUpwards ? 'bottom-full mb-1' : 'top-full mt-1'} w-48 bg-white border border-gray-100 rounded-xl shadow-xl p-1.5 animate-fadeIn cursor-default overflow-hidden flex flex-col ${popoverAlignClass}`}>
                   <div className="max-h-40 overflow-y-auto space-y-1">
                     {sortedUserMoods.map((mood: Category) => {
                       const isSelected = moodCategoryId === mood.id || String(moodCategoryId) === String(mood.id);

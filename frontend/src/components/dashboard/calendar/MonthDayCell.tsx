@@ -2,6 +2,7 @@ import React, { useRef, useState } from 'react';
 import { getHexColor } from '@/utils/uiUtils';
 import { TimeDisplay, DateRangeDisplay } from '@/components/shared/utils/DateTimeDisplays';
 import { useOutsideClick } from '@/hooks/useOutsideClick';
+import { useDropdownPosition } from '@/hooks/useDropdownPosition';
 import { CalendarIcon, TaskListIcon } from '@/components/shared/utils/Icons';
 import { nomiMesiLungo } from '@/utils/dateUtils';
 import { getPopoverAlignClass, getMoodCellStyles } from '@/utils/monthCellUtils';
@@ -54,6 +55,11 @@ export const MonthDayCell: React.FC<MonthDayCellProps> = ({
 
   const moodMenuRef = useOutsideClick<HTMLDivElement>(() => {
     if (isMoodMenuOpen) setIsMoodMenuOpen(false);
+  });
+
+  const { openUpwards: openMoodUpwards } = useDropdownPosition(moodMenuRef, {
+    isOpen: isMoodMenuOpen,
+    threshold: 250,
   });
 
   // --- LOGICA FRONTEND RIGOROSA ---
@@ -145,7 +151,7 @@ export const MonthDayCell: React.FC<MonthDayCellProps> = ({
 
             {/* IL MENU A CASCATA GENERATO DAL DATABASE */}
             {isMoodMenuOpen && (
-              <div className="absolute z-[100] right-0 top-full mt-1 w-40 bg-white border border-gray-100 rounded-xl shadow-xl py-1 animate-fadeIn cursor-default overflow-hidden flex flex-col">
+              <div className={`absolute z-[100] right-0 ${openMoodUpwards ? 'bottom-full mb-1' : 'top-full mt-1'} w-40 bg-white border border-gray-100 rounded-xl shadow-xl py-1 animate-fadeIn cursor-default overflow-hidden flex flex-col`}>
                 <div className="max-h-40 overflow-y-auto">
                   {userMoods.map((mood: Category) => (
                     <div 
