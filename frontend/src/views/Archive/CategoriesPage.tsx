@@ -6,6 +6,7 @@ import { useConfirm } from '@/context/ConfirmContext';
 import { useCategoryArchiveData } from '@/hooks/useCategoryArchiveData';
 import { useDynamicPageSize } from '@/hooks/useDynamicPageSize';
 import { useModal } from '@/hooks/useModals';
+import { useArchiveHeader } from '@/context/ArchiveHeaderContext';
 import { CategoryIcon } from '@/components/shared/utils/Icons';
 import { ArchiveTableContainer } from '@/components/shared/layout/ArchiveTableContainer';
 import { CategoryStatsOverview } from '@/components/archive/categories/CategoryStatsOverview';
@@ -76,6 +77,16 @@ export const CategoriesPage: React.FC = () => {
     return count;
   }, [filters]);
 
+  const handleOpenNewCategory = () => formModal.open(null);
+
+  // 5. REGISTRAZIONE HEADER ARCHIVIO PER MOBILE
+  useArchiveHeader({
+    title: 'Categorie & Ambiti',
+    onOpenSearch: filterModal.open,
+    onOpenNew: handleOpenNewCategory,
+    activeFiltersCount,
+  });
+
   const hasActiveFilters = activeFiltersCount > 0;
 
   const handleResetFilters = () => {
@@ -92,8 +103,6 @@ export const CategoriesPage: React.FC = () => {
     }
     setCurrentPage(1);
   };
-
-  const handleOpenNewCategory = () => formModal.open(null);
 
   const handleSelectCategory = (category: Category) => detailModal.open(category);
 
@@ -120,11 +129,11 @@ export const CategoriesPage: React.FC = () => {
   };
 
   return (
-    <div className="h-full flex flex-col gap-3.5 max-w-[1600px] mx-auto relative z-10 pb-1">
-      {/* 1. HEADER COMPATTO CON PANORAMICA STATS */}
+    <div className="h-full flex flex-col gap-2 sm:gap-3.5 w-full max-w-[1600px] mx-auto relative z-10 pb-1">
+      {/* 1. HEADER COMPATTO CON PANORAMICA STATS (su mobile mostra solo le targhette) */}
       <CategoryStatsOverview stats={stats} panelClass={ARCHIVE_PANEL_CLASS} />
 
-      {/* 2. RIGA AZIONI: TASTO NUOVA CATEGORIA E LENTE DI RICERCA */}
+      {/* 2. RIGA AZIONI: TASTO NUOVA CATEGORIA E LENTE DI RICERCA (nascosta su mobile) */}
       <CategoryFilterBar
         onOpenNewCategory={handleOpenNewCategory}
         onOpenSearch={filterModal.open}

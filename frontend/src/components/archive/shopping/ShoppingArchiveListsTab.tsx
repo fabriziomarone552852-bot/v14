@@ -10,8 +10,10 @@ import {
   type ShoppingListSortDirection,
 } from './ShoppingListTableHeader';
 import { ShoppingListTableRow } from './ShoppingListTableRow';
+import { useIsMobile } from '@/mobile/hooks/useIsMobile';
 import { ShoppingListFilterModal, type ShoppingListFilterState } from './ShoppingListFilterModal';
 import { ShoppingListDetailModal } from './ShoppingListDetailModal';
+import { MobileShoppingListDetailModal } from '@/mobile/components/modals/shopping/MobileShoppingListDetailModal';
 
 interface ShoppingArchiveListsTabProps {
   lists: ShoppingListSummary[];
@@ -36,6 +38,7 @@ export const ShoppingArchiveListsTab: React.FC<ShoppingArchiveListsTabProps> = (
   onResetFilters,
   className = '',
 }) => {
+  const isMobile = useIsMobile();
   const [selectedListForDetail, setSelectedListForDetail] = useState<ShoppingListSummary | null>(null);
 
   // Ordinamento & Paginazione
@@ -45,7 +48,7 @@ export const ShoppingArchiveListsTab: React.FC<ShoppingArchiveListsTabProps> = (
 
   // Dynamic Page Size
   const { containerRef, pageSize } = useDynamicPageSize({
-    rowHeight: 48,
+    rowHeight: 44,
     defaultPageSize: 8,
     minItems: 3,
     maxItems: 25,
@@ -180,11 +183,19 @@ export const ShoppingArchiveListsTab: React.FC<ShoppingArchiveListsTabProps> = (
 
       {/* Modale Dettagli Lista Spesa */}
       {selectedListForDetail && (
-        <ShoppingListDetailModal
-          isOpen={true}
-          onClose={() => setSelectedListForDetail(null)}
-          list={selectedListForDetail}
-        />
+        isMobile ? (
+          <MobileShoppingListDetailModal
+            isOpen={true}
+            onClose={() => setSelectedListForDetail(null)}
+            list={selectedListForDetail}
+          />
+        ) : (
+          <ShoppingListDetailModal
+            isOpen={true}
+            onClose={() => setSelectedListForDetail(null)}
+            list={selectedListForDetail}
+          />
+        )
       )}
 
       {/* Modale Filtri Liste */}

@@ -22,6 +22,7 @@ export interface ShoppingListModalProps {
   form: ListFormState;
   setForm: React.Dispatch<React.SetStateAction<ListFormState>>;
   groups: ShoppingGroupSummary[];
+  isDefault?: boolean;
   onClose: () => void;
   onSubmit: (e: React.FormEvent<HTMLFormElement>) => Promise<void> | void;
   submitLabel: string;
@@ -32,6 +33,7 @@ export const ShoppingListModal: React.FC<ShoppingListModalProps> = ({
   form,
   setForm,
   groups,
+  isDefault = false,
   onClose,
   onSubmit,
   submitLabel,
@@ -85,16 +87,24 @@ export const ShoppingListModal: React.FC<ShoppingListModalProps> = ({
           <label className="block text-xs font-bold text-gray-500 uppercase mb-1">
             Condivisione (Gruppo o Privata)
           </label>
-          <ShoppingDestinationSelect
-            value={form.destinationValue}
-            onChange={(val) => setForm((prev) => ({ ...prev, destinationValue: val }))}
-            groups={groups}
-          />
-          <p className="text-[11px] text-gray-400 mt-1">
-            {form.destinationValue
-              ? 'Questa lista sarà visibile a tutti i collaboratori del gruppo selezionato.'
-              : 'Lista privata accessibile esclusivamente da te.'}
-          </p>
+          {isDefault ? (
+            <div className="p-3 bg-gray-50 border border-gray-200 rounded-xl text-xs text-gray-600">
+              🔒 <span className="font-semibold">Lista Personale di Sistema:</span> non può essere associata a un gruppo.
+            </div>
+          ) : (
+            <>
+              <ShoppingDestinationSelect
+                value={form.destinationValue}
+                onChange={(val) => setForm((prev) => ({ ...prev, destinationValue: val }))}
+                groups={groups}
+              />
+              <p className="text-[11px] text-gray-400 mt-1">
+                {form.destinationValue
+                  ? 'Questa lista sarà visibile a tutti i collaboratori del gruppo selezionato.'
+                  : 'Lista privata accessibile esclusivamente da te.'}
+              </p>
+            </>
+          )}
         </div>
       </form>
     </BaseModal>

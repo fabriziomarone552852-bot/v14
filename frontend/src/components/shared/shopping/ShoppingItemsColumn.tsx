@@ -27,6 +27,7 @@ interface ShoppingItemsColumnProps {
   suppliers: ShoppingSupplierOption[];
   brands?: ShoppingSupplierOption[];
   products?: ShoppingProductOption[];
+  lists?: ShoppingListSummary[];
   unitOptions: ConfigOption[];
   currencyOptions: ConfigOption[];
   offerFlagOptions: ConfigOption[];
@@ -51,6 +52,7 @@ const ShoppingItemsColumn = forwardRef<
       suppliers,
       brands = [],
       products = [],
+      lists = [],
       unitOptions,
       currencyOptions,
       offerFlagOptions,
@@ -135,7 +137,13 @@ const ShoppingItemsColumn = forwardRef<
               loading={loading && items.length === 0}
               containerRef={containerRef}
               onToggle={columnLogic.handleTogglePurchased}
-              onOpenDetail={(item) => columnLogic.detailModal.open(item)}
+              onOpenDetail={(item) => {
+                if (item.isPurchased) {
+                  columnLogic.purchasedDetailModal.open(item);
+                } else {
+                  columnLogic.detailModal.open(item);
+                }
+              }}
               userRole={userRole}
             />
           </div>
@@ -152,6 +160,8 @@ const ShoppingItemsColumn = forwardRef<
 
         <ShoppingItemsColumnModals
           detailModal={columnLogic.detailModal}
+          purchasedDetailModal={columnLogic.purchasedDetailModal}
+          purchasedEditModal={columnLogic.purchasedEditModal}
           editModal={columnLogic.editModal}
           purchaseModal={columnLogic.purchaseModal}
           isCreateOpen={columnLogic.isCreateOpen}
@@ -163,6 +173,7 @@ const ShoppingItemsColumn = forwardRef<
           purchaseForm={columnLogic.purchaseForm}
           setPurchaseForm={columnLogic.setPurchaseForm}
           activeListId={activeListId}
+          lists={lists}
           unitOptions={unitOptions}
           products={products}
           brands={brands}
@@ -176,6 +187,7 @@ const ShoppingItemsColumn = forwardRef<
           handleClosePurchase={columnLogic.handleClosePurchase}
           handlePurchase={columnLogic.handlePurchase}
           handleOpenEdit={columnLogic.handleOpenEdit}
+          handlePurchasedEdit={columnLogic.handlePurchasedEdit}
           handleDelete={columnLogic.handleDelete}
           setHistoryModalItem={columnLogic.setHistoryModalItem}
           canEditItem={canEditItem}

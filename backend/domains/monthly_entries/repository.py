@@ -19,7 +19,7 @@ def list_entries(
     if monthly_type is not None:
         stmt = stmt.where(MonthlyEntry.monthly_type == monthly_type)
         
-    stmt = stmt.order_by(MonthlyEntry.year.desc(), MonthlyEntry.month.desc(), MonthlyEntry.id.desc())
+    stmt = stmt.order_by(MonthlyEntry.year.desc(), MonthlyEntry.month.desc(), MonthlyEntry.id.asc())
     return list(db.scalars(stmt).all())
 
 def get_entry(db: Session, entry_id: int, user_id: int) -> Optional[MonthlyEntry]:

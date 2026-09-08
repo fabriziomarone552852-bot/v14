@@ -36,11 +36,11 @@ const YearPage: React.FC = () => {
   };
 
   // Caricamento iniziale e gestione errori uniformata a MonthPage, WeekPage e DayPage
-  if (state.isLoading && !apiData) {
+  if (state.isLoading && !state.yearData) {
     return <PageLoadingState messages={LOADING_MESSAGES.year} />;
   }
 
-  if (state.isError) {
+  if (state.isError && !state.yearData) {
     return <PageErrorState message={ERROR_MESSAGES.year} onRetry={() => queryClient.refetchQueries()} />;
   }
 

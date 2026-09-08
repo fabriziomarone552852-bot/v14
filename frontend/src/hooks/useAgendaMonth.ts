@@ -67,7 +67,7 @@ export const useAgendaMonth = (startStr: string, endStr: string) => {
     return {
       ...rawData,
       obiettivi: me.filter(e => e.monthly_type === 'OM'),
-      priorita: me.filter(e => e.monthly_type === 'PM'),
+      priorita: me.filter(e => e.monthly_type === 'PM').sort((a, b) => (a.id || 0) - (b.id || 0)),
       eventi_positivi: me.filter(e => e.monthly_type === 'EP'),
       eventi_negativi: me.filter(e => e.monthly_type === 'EN'),
     };

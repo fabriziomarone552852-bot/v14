@@ -7,26 +7,26 @@ echo " 🚀 Deployment Smart Agenda (VxAme14) su NAS QNAP "
 echo "==========================================================="
 
 # 1. Creazione rete Docker condivisa se non esiste
-echo "\n[1/5] Configurazione rete Docker interna (vxame14_net)..."
+echo "\n[1/6] Configurazione rete Docker interna (vxame14_net)..."
 docker network create vxame14_net 2>/dev/null || true
 
 # 2. Collegamento di PostgreSQL alla rete
-echo "[2/5] Connessione di PostGre-Server alla rete interna..."
+echo "[2/6] Connessione di PostGre-Server alla rete interna..."
 docker network connect vxame14_net PostGre-Server 2>/dev/null || true
 
 # 3. Caricamento delle immagini tar se presenti
 if [ -f vxame14_backend.tar ]; then
-    echo "[3/5] Caricamento immagine Backend..."
+    echo "[3/6] Caricamento immagine Backend..."
     docker load -i vxame14_backend.tar
 fi
 
 if [ -f vxame14_frontend.tar ]; then
-    echo "[3/5] Caricamento immagine Frontend..."
+    echo "[3/6] Caricamento immagine Frontend..."
     docker load -i vxame14_frontend.tar
 fi
 
 # 4. Avvio Backend
-echo "\n[4/5] Avvio container Backend..."
+echo "\n[4/6] Avvio container Backend..."
 docker rm -f backend 2>/dev/null || true
 docker run -d \
   --name backend \
@@ -42,8 +42,13 @@ docker run -d \
   -e GOOGLE_REDIRECT_URI="http://smart-agenda.duckdns.org:8181/api/v1/google-calendar/callback" \
   vxame14_backend:latest
 
-# 5. Avvio Frontend
-echo "[5/5] Avvio container Frontend..."
+# 5. Allineamento Database con Alembic
+echo "\n[5/6] Allineamento automatico schema database (Alembic)..."
+sleep 2
+docker exec backend alembic upgrade head || true
+
+# 6. Avvio Frontend
+echo "\n[6/6] Avvio container Frontend..."
 docker rm -f vxame14_frontend 2>/dev/null || true
 docker run -d \
   --name vxame14_frontend \

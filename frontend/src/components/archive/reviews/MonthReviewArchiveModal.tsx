@@ -1,8 +1,11 @@
-// src/components/reviews/MonthReviewArchiveModal.tsx
+// src/components/archive/reviews/MonthReviewArchiveModal.tsx
 import React from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { useAgendaMonth } from '@/hooks/useAgendaMonth';
 import { useMonthReview } from '@/hooks/uiMonth/useMonthReview';
 import { MonthReviewModal } from '@/components/weekmonth/review/MonthReviewModal';
+import { useIsMobile } from '@/mobile/hooks/useIsMobile';
+import { MobileMonthReviewModal } from '@/mobile/components/modals/MobileMonthReviewModal';
 
 interface MonthReviewArchiveModalProps {
   isOpen: boolean;
@@ -15,9 +18,15 @@ export const MonthReviewArchiveModal: React.FC<MonthReviewArchiveModalProps> = (
   onClose,
   monthDate,
 }) => {
+  const queryClient = useQueryClient();
   if (!isOpen || !monthDate) return null;
 
-  return <MonthReviewArchiveModalContent isOpen={isOpen} onClose={onClose} monthDate={monthDate} />;
+  const handleClose = () => {
+    queryClient.invalidateQueries({ queryKey: ['monthly_entries'] });
+    onClose();
+  };
+
+  return <MonthReviewArchiveModalContent isOpen={isOpen} onClose={handleClose} monthDate={monthDate} />;
 };
 
 const MonthReviewArchiveModalContent: React.FC<{
@@ -25,6 +34,7 @@ const MonthReviewArchiveModalContent: React.FC<{
   onClose: () => void;
   monthDate: Date;
 }> = ({ isOpen, onClose, monthDate }) => {
+  const isMobile = useIsMobile();
   const year = monthDate.getFullYear();
   const month = monthDate.getMonth() + 1;
   const firstDayStr = `${year}-${String(month).padStart(2, '0')}-01`;
@@ -34,6 +44,20 @@ const MonthReviewArchiveModalContent: React.FC<{
   const agenda = useAgendaMonth(firstDayStr, lastDayStr);
   const monthQueryKey = ['monthSync', firstDayStr, lastDayStr];
   const review = useMonthReview(agenda.monthData, monthDate, monthQueryKey);
+
+  if (isMobile) {
+    return (
+      <MobileMonthReviewModal
+        isOpen={isOpen}
+        onClose={onClose}
+        monthDate={monthDate}
+        reviewData={review.reviewData}
+        moodsUI={review.moodsUI}
+        spheresUI={review.spheresUI}
+        onSaveAnswer={review.handleSaveAnswer}
+      />
+    );
+  }
 
   return (
     <MonthReviewModal

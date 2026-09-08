@@ -2,13 +2,17 @@ import React from 'react';
 import type {
   ConfigOption,
   ShoppingListItem,
+  ShoppingListSummary,
   ShoppingProductOption,
   ShoppingSupplierOption,
 } from '@/types/shopping';
 import type { ItemFormState, PurchaseFormState } from './shoppingItems.utils';
+import type { PurchasedItemEditFormData } from '@/mobile/components/modals/shopping/MobilePurchasedItemEditModal';
 
 import ShoppingItemModal from './ShoppingItemModal';
 import ShoppingItemDetailModal from './ShoppingItemDetailModal';
+import ShoppingPurchasedItemDetailModal from './ShoppingPurchasedItemDetailModal';
+import ShoppingPurchasedItemEditModal from './ShoppingPurchasedItemEditModal';
 import ShoppingPurchaseModal from './ShoppingPurchaseModal';
 import ShoppingPriceHistoryModal from './ShoppingPriceHistoryModal';
 
@@ -16,6 +20,8 @@ import { useModal } from '@/hooks/useModals';
 
 interface ShoppingItemsColumnModalsProps {
   detailModal: ReturnType<typeof useModal<ShoppingListItem>>;
+  purchasedDetailModal: ReturnType<typeof useModal<ShoppingListItem>>;
+  purchasedEditModal: ReturnType<typeof useModal<ShoppingListItem>>;
   editModal: ReturnType<typeof useModal<ShoppingListItem>>;
   purchaseModal: ReturnType<typeof useModal<ShoppingListItem>>;
   isCreateOpen: boolean;
@@ -29,6 +35,7 @@ interface ShoppingItemsColumnModalsProps {
   setPurchaseForm: React.Dispatch<React.SetStateAction<PurchaseFormState>>;
 
   activeListId: number | null;
+  lists?: ShoppingListSummary[];
   unitOptions: ConfigOption[];
   products: ShoppingProductOption[];
   brands: ShoppingSupplierOption[];
@@ -43,6 +50,7 @@ interface ShoppingItemsColumnModalsProps {
   handleClosePurchase: () => void;
   handlePurchase: (e: React.FormEvent<HTMLFormElement>) => void;
   handleOpenEdit: (item: ShoppingListItem) => void;
+  handlePurchasedEdit: (formData: PurchasedItemEditFormData) => Promise<void> | void;
   handleDelete: (item: ShoppingListItem) => void;
   setHistoryModalItem: React.Dispatch<React.SetStateAction<ShoppingListItem | null>>;
 
@@ -53,6 +61,8 @@ interface ShoppingItemsColumnModalsProps {
 
 export function ShoppingItemsColumnModals({
   detailModal,
+  purchasedDetailModal,
+  purchasedEditModal,
   editModal,
   purchaseModal,
   isCreateOpen,
@@ -64,6 +74,7 @@ export function ShoppingItemsColumnModals({
   purchaseForm,
   setPurchaseForm,
   activeListId,
+  lists = [],
   unitOptions,
   products,
   brands,
@@ -77,6 +88,7 @@ export function ShoppingItemsColumnModals({
   handleClosePurchase,
   handlePurchase,
   handleOpenEdit,
+  handlePurchasedEdit,
   handleDelete,
   setHistoryModalItem,
   canEditItem,
@@ -85,6 +97,7 @@ export function ShoppingItemsColumnModals({
 }: ShoppingItemsColumnModalsProps) {
   return (
     <>
+      {/* 1. Dettaglio Articolo Non Acquistato */}
       <ShoppingItemDetailModal
         isOpen={detailModal.isOpen}
         onClose={detailModal.close}
@@ -95,6 +108,32 @@ export function ShoppingItemsColumnModals({
         canDelete={canDeleteItem}
       />
 
+      {/* 2. Dettaglio Articolo Acquistato */}
+      <ShoppingPurchasedItemDetailModal
+        isOpen={purchasedDetailModal.isOpen}
+        onClose={purchasedDetailModal.close}
+        item={purchasedDetailModal.data}
+        onEditPurchase={(item) => purchasedEditModal.open(item)}
+        onDeleteClick={handleDelete}
+        canEdit={canEditPurchasedItem}
+        canDelete={canDeleteItem}
+      />
+
+      {/* 3. Modale Modifica Unificata Articolo Acquistato (Prodotto + Acquisto) */}
+      <ShoppingPurchasedItemEditModal
+        open={purchasedEditModal.isOpen}
+        onClose={purchasedEditModal.close}
+        onSubmit={handlePurchasedEdit}
+        item={purchasedEditModal.data}
+        lists={lists}
+        suppliers={suppliers}
+        brands={brands}
+        products={products}
+        unitOptions={unitOptions}
+        currencyOptions={currencyOptions}
+      />
+
+      {/* 4. Modale Creazione Articolo */}
       <ShoppingItemModal
         mode="create"
         open={isCreateOpen}
@@ -103,11 +142,13 @@ export function ShoppingItemsColumnModals({
         itemForm={itemForm}
         setItemForm={setItemForm}
         activeListId={activeListId}
+        lists={lists}
         unitOptions={unitOptions}
         products={products}
         brands={brands}
       />
 
+      {/* 5. Modale Modifica Articolo Non Acquistato */}
       <ShoppingItemModal
         mode="edit"
         open={editModal.isOpen}
@@ -115,11 +156,13 @@ export function ShoppingItemsColumnModals({
         onSubmit={handleEdit}
         itemForm={editForm}
         setItemForm={setEditForm}
+        lists={lists}
         unitOptions={unitOptions}
         products={products}
         brands={brands}
       />
 
+      {/* 6. Modale Registrazione Acquisto al check */}
       <ShoppingPurchaseModal
         open={purchaseModal.isOpen}
         onClose={handleClosePurchase}
@@ -136,6 +179,7 @@ export function ShoppingItemsColumnModals({
         unitCodeName={purchaseModal.data?.unitCodeName ?? null}
       />
 
+      {/* 7. Modale Storico Prezzi Separato */}
       {historyModalItem ? (
         <ShoppingPriceHistoryModal
           isOpen={Boolean(historyModalItem)}
@@ -147,3 +191,5 @@ export function ShoppingItemsColumnModals({
     </>
   );
 }
+
+export default ShoppingItemsColumnModals;

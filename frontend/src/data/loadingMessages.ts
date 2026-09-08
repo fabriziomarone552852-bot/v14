@@ -115,13 +115,13 @@ export const LOADING_MESSAGES: Record<string, string[]> = {
 // =============================================
 
 export const ERROR_MESSAGES: Record<string, string> = {
-  home: 'I dati della tua agenda si sono persi lungo la strada',
-  day: 'La pagina sembra insolitamente vuota',
-  week: 'I giorni della settimana si sono incrociati sfortunatamente',
-  month: 'Abbiamo ricercato i dati sbagliati',
-  year: '365 giorni sono tanti da visualizzare, riproviamo con uno per volta',
+  home: 'Le pagine della tua agenda mi sono volate via lungo la strada',
+  day: 'Oggi mi sembra una giornata insolitamente piatta',
+  week: 'Sfortunatamente ho incrociato i giorni della settimana sbagliati',
+  month: 'Abbiamo trovato i dati sbagliati',
+  year: '365 giorni sono tanti da portare insieme, riproviamo con uno per volta',
   shopping: 'Mi sono cadute le liste della spesa, aiutami a riordinarle',
   archive: 'Qualcuno ha archiviato i dati fin troppo bene',
   admin: 'La sala comandi è ben sigillata',
-  settings: 'Il pannello delle impostazioni si è momentaneamente bloccato',
+  settings: 'Gli ingranaggi delle impostazioni sono un po\' arrugginiti, mettiamo un po\' di olio',
 };

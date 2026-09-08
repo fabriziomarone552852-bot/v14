@@ -118,6 +118,8 @@ export interface ShoppingProductOption {
  * Read models
  * ========================= */
 
+export type PinStatus = 'PN' | 'FV' | 'PF' | null;
+
 export interface ShoppingListSummary {
   id: number;
   name: string;
@@ -132,6 +134,8 @@ export interface ShoppingListSummary {
   purchasedItemsCount: number;
   totalItemsCount: number;
   isCompleted: boolean;
+  pinStatus?: PinStatus;
+  isDefault?: boolean;
   canEdit: boolean;
   canDelete: boolean;
   canArchive?: boolean;
@@ -182,29 +186,58 @@ export interface ShoppingListItem {
 
 export interface InventoryBatchRow {
   id: number;
-  productId: number;
+  productId?: number | null;
+  product_id?: number | null;
   productNameNormalized?: string | null;
+  productName?: string | null;
+  product_name?: string | null;
+
+  brandId?: number | null;
+  brand_id?: number | null;
+  brandName?: string | null;
+  brand_name?: string | null;
 
   shoppingListItemId?: number | null;
+  shopping_list_item_id?: number | null;
   shoppingListId?: number | null;
+  shopping_list_id?: number | null;
   shoppingListName?: string | null;
+  shopping_list_name?: string | null;
+  listName?: string | null;
+  list_name?: string | null;
 
   supplierId?: number | null;
+  supplier_id?: number | null;
   supplierName?: string | null;
+  supplier_name?: string | null;
 
   quantity?: number | null;
+  quantityPurchased?: number | null;
+  quantity_purchased?: number | null;
   unitId?: number | null;
+  unit_id?: number | null;
   unitCodeName?: string | null;
+  unitName?: string | null;
+  unit_name?: string | null;
+  unitPrice?: number | null;
+  unit_price?: number | null;
 
   purchasePrice: number;
+  purchase_price?: number;
   currencyId?: number | null;
+  currency_id?: number | null;
   currencyCodeName?: string | null;
 
   offerFlagId?: number | null;
+  offer_flag_id?: number | null;
   offerFlagCodeName?: string | null;
+  isOnSale?: boolean;
+  is_on_sale?: boolean;
 
   purchaseDate: string;
+  purchase_date?: string;
   expirationDate?: string | null;
+  expiration_date?: string | null;
 }
 
 export interface ItemBatchRecord {
@@ -306,6 +339,8 @@ export interface ShoppingListCreatePayload {
   visibilityId?: number | null;
   statusId?: number | null;
   isCompleted?: boolean;
+  pinStatus?: PinStatus;
+  isDefault?: boolean;
 }
 
 export interface ShoppingListUpdatePayload {
@@ -315,6 +350,8 @@ export interface ShoppingListUpdatePayload {
   visibilityId?: number | null;
   statusId?: number | null;
   isCompleted?: boolean;
+  pinStatus?: PinStatus;
+  isDefault?: boolean;
 }
 
 
@@ -329,6 +366,7 @@ export interface ShoppingListItemCreatePayload {
 }
 
 export interface ShoppingListItemUpdatePayload {
+  shoppingListId?: number | null;
   productName?: string;
   brandName?: string | null;
   brandId?: number | null;
@@ -473,6 +511,7 @@ export interface UseShoppingMutationsResult {
   deleteSupplier: (id: number, asType?: number) => Promise<void>;
 
   addInventoryBatch: (args: AddInventoryBatchArgs) => Promise<void>;
+  updateInventoryBatch: (args: UpdateInventoryBatchArgs) => Promise<void>;
 
   deleteInventoryBatch: (args: DeleteInventoryBatchArgs) => Promise<void>;
 
@@ -506,6 +545,12 @@ export interface AddInventoryBatchArgs {
   itemId: number;
   listId: number;
   data: InventoryBatchCreatePayload;
+}
+
+export interface UpdateInventoryBatchArgs {
+  batchId: number;
+  listId: number;
+  data: Partial<InventoryBatchCreatePayload>;
 }
 
 export interface DeleteInventoryBatchArgs {

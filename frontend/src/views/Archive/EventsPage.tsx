@@ -6,6 +6,8 @@ import { useCategories } from '@/hooks/useCategories';
 import { useEventModals } from '@/context/EventModalContext';
 import { useEventArchiveData } from '@/hooks/useEventArchiveData';
 import { useDynamicPageSize } from '@/hooks/useDynamicPageSize';
+import { useArchiveHeader } from '@/context/ArchiveHeaderContext';
+import { formatDateString } from '@/utils/dateUtils';
 import { CalendarIcon } from '@/components/shared/utils/Icons';
 import { ArchiveTableContainer } from '@/components/shared/layout/ArchiveTableContainer';
 import { EventStatsOverview } from '@/components/archive/events/EventStatsOverview';
@@ -80,6 +82,14 @@ export const EventsPage: React.FC = () => {
     return count;
   }, [modalFilters]);
 
+  // 5. REGISTRAZIONE HEADER ARCHIVIO PER MOBILE
+  useArchiveHeader({
+    title: 'Gestione Eventi',
+    onOpenSearch: () => setIsFilterModalOpen(true),
+    onOpenNew: () => openEventForm(null, formatDateString(new Date())),
+    activeFiltersCount,
+  });
+
   const hasActiveFilters = activeFiltersCount > 0;
 
   const handleResetFilters = () => {
@@ -98,11 +108,11 @@ export const EventsPage: React.FC = () => {
   };
 
   return (
-    <div className="h-full flex flex-col gap-3.5 max-w-[1600px] mx-auto relative z-10 pb-1">
-      {/* 1. HEADER COMPATTO PULITO */}
+    <div className="h-full flex flex-col gap-2 sm:gap-3.5 w-full max-w-[1600px] mx-auto relative z-10 pb-1">
+      {/* 1. HEADER COMPATTO PULITO (su mobile mostra solo le targhette) */}
       <EventStatsOverview panelClass={PANEL_CLASS} />
 
-      {/* 2. RIGA FILTRI: AddButton A SINISTRA E LENTE A DESTRA */}
+      {/* 2. RIGA FILTRI: AddButton A SINISTRA E LENTE A DESTRA (nascosta su mobile) */}
       <EventFilterBar
         onOpenNewEvent={() => openEventForm()}
         onOpenSearch={() => setIsFilterModalOpen(true)}

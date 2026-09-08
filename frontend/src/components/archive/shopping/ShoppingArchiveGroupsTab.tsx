@@ -1,8 +1,10 @@
 // src/components/archive/shopping/ShoppingArchiveGroupsTab.tsx
 import React, { useState, useMemo } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { UsersIcon } from '@/components/shared/utils/Icons';
 import type { ShoppingGroupSummary, ShoppingListSummary, ShoppingGroupMember } from '@/types/shopping';
 import { useShoppingMutations } from '@/hooks/shopping/useShoppingMutations';
+import { inviteGroupMember, shoppingQueryKeys } from '@/api/shoppingApi';
 import { useConfirm } from '@/context/ConfirmContext';
 import { useDynamicPageSize } from '@/hooks/useDynamicPageSize';
 import { ArchiveTableContainer } from '@/components/shared/layout/ArchiveTableContainer';
@@ -13,7 +15,14 @@ import {
 } from './ShoppingGroupTableHeader';
 import { ShoppingGroupTableRow } from './ShoppingGroupTableRow';
 import { ShoppingGroupFilterModal, type ShoppingGroupFilterState } from './ShoppingGroupFilterModal';
+import { useNavigate } from 'react-router-dom';
+import { useIsMobile } from '@/mobile/hooks/useIsMobile';
 import ShoppingGroupDetailModal from '@/components/shared/shopping/ShoppingGroupDetailModal';
+import ShoppingGroupCreateModal from '@/components/shared/shopping/ShoppingGroupCreateModal';
+import ShoppingGroupInviteModal from '@/components/shared/shopping/ShoppingGroupInviteModal';
+import MobileShoppingGroupDetailModal from '@/mobile/components/modals/shopping/MobileShoppingGroupDetailModal';
+import MobileShoppingGroupCreateModal from '@/mobile/components/modals/shopping/MobileShoppingGroupCreateModal';
+import MobileShoppingGroupInviteModal from '@/mobile/components/modals/shopping/MobileShoppingGroupInviteModal';
 
 interface ShoppingArchiveGroupsTabProps {
   groups: ShoppingGroupSummary[];
@@ -40,10 +49,15 @@ export const ShoppingArchiveGroupsTab: React.FC<ShoppingArchiveGroupsTabProps> =
   onResetFilters,
   className = '',
 }) => {
+  const isMobile = useIsMobile();
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const mutations = useShoppingMutations();
   const { confirm } = useConfirm();
 
   const [selectedGroupForDetail, setSelectedGroupForDetail] = useState<ShoppingGroupSummary | null>(null);
+  const [selectedGroupForEdit, setSelectedGroupForEdit] = useState<ShoppingGroupSummary | null>(null);
+  const [selectedGroupForInvite, setSelectedGroupForInvite] = useState<ShoppingGroupSummary | null>(null);
 
   // Ordinamento & Paginazione
   const [sortField, setSortField] = useState<ShoppingGroupSortField>('name');
@@ -52,7 +66,7 @@ export const ShoppingArchiveGroupsTab: React.FC<ShoppingArchiveGroupsTabProps> =
 
   // Dynamic Page Size
   const { containerRef, pageSize } = useDynamicPageSize({
-    rowHeight: 48,
+    rowHeight: 44,
     defaultPageSize: 8,
     minItems: 3,
     maxItems: 25,
@@ -259,24 +273,161 @@ export const ShoppingArchiveGroupsTab: React.FC<ShoppingArchiveGroupsTabProps> =
 
       {/* Modale Dettagli Gruppo */}
       {selectedGroupForDetail && (
-        <ShoppingGroupDetailModal
-          group={selectedGroupForDetail}
-          lists={lists}
-          isOpen={true}
-          onClose={() => setSelectedGroupForDetail(null)}
-          onDeleteClick={(g) => {
-            setSelectedGroupForDetail(null);
-            handleDeleteGroup(g, { stopPropagation: () => {} } as React.MouseEvent);
-          }}
-          onArchiveClick={(g) => {
-            setSelectedGroupForDetail(null);
-            handleToggleArchive(g, { stopPropagation: () => {} } as React.MouseEvent);
-          }}
-          onUnarchiveClick={(g) => {
-            setSelectedGroupForDetail(null);
-            handleToggleArchive(g, { stopPropagation: () => {} } as React.MouseEvent);
-          }}
-        />
+        isMobile ? (
+          <MobileShoppingGroupDetailModal
+            group={selectedGroupForDetail}
+            lists={lists}
+            isOpen={true}
+            onClose={() => setSelectedGroupForDetail(null)}
+            onDeleteClick={(g) => {
+              setSelectedGroupForDetail(null);
+              handleDeleteGroup(g, { stopPropagation: () => {} } as React.MouseEvent);
+            }}
+            onArchiveClick={(g) => {
+              setSelectedGroupForDetail(null);
+              handleToggleArchive(g, { stopPropagation: () => {} } as React.MouseEvent);
+            }}
+            onUnarchiveClick={(g) => {
+              setSelectedGroupForDetail(null);
+              handleToggleArchive(g, { stopPropagation: () => {} } as React.MouseEvent);
+            }}
+            onEditClick={(g) => {
+              setSelectedGroupForDetail(null);
+              setSelectedGroupForEdit(g);
+            }}
+            onOpenInvite={(g) => {
+              setSelectedGroupForInvite(g);
+            }}
+            onSelectList={(listId) => {
+              setSelectedGroupForDetail(null);
+              navigate(`/shopping?listId=${listId}`);
+            }}
+            onCreateListInGroup={(groupId) => {
+              setSelectedGroupForDetail(null);
+              navigate(`/shopping?new=true&groupId=${groupId}`);
+            }}
+          />
+        ) : (
+          <ShoppingGroupDetailModal
+            group={selectedGroupForDetail}
+            lists={lists}
+            isOpen={true}
+            onClose={() => setSelectedGroupForDetail(null)}
+            onDeleteClick={(g) => {
+              setSelectedGroupForDetail(null);
+              handleDeleteGroup(g, { stopPropagation: () => {} } as React.MouseEvent);
+            }}
+            onArchiveClick={(g) => {
+              setSelectedGroupForDetail(null);
+              handleToggleArchive(g, { stopPropagation: () => {} } as React.MouseEvent);
+            }}
+            onUnarchiveClick={(g) => {
+              setSelectedGroupForDetail(null);
+              handleToggleArchive(g, { stopPropagation: () => {} } as React.MouseEvent);
+            }}
+            onEditClick={(g) => {
+              setSelectedGroupForDetail(null);
+              setSelectedGroupForEdit(g);
+            }}
+            onOpenInvite={(g) => {
+              setSelectedGroupForInvite(g);
+            }}
+            onSelectList={(listId) => {
+              setSelectedGroupForDetail(null);
+              navigate(`/shopping?listId=${listId}`);
+            }}
+            onCreateListInGroup={(groupId) => {
+              setSelectedGroupForDetail(null);
+              navigate(`/shopping?new=true&groupId=${groupId}`);
+            }}
+          />
+        )
+      )}
+
+      {/* Modale Modifica Gruppo */}
+      {selectedGroupForEdit && (
+        isMobile ? (
+          <MobileShoppingGroupCreateModal
+            isOpen={true}
+            onClose={() => setSelectedGroupForEdit(null)}
+            initialData={selectedGroupForEdit}
+            title="Modifica Gruppo Spesa"
+            submitLabel="Salva Modifiche"
+            onSubmit={async (data) => {
+              await mutations.updateGroup(selectedGroupForEdit.id, {
+                name: data.name,
+                description: data.description,
+                icon: data.icon,
+              });
+              setSelectedGroupForEdit(null);
+            }}
+          />
+        ) : (
+          <ShoppingGroupCreateModal
+            isOpen={true}
+            onClose={() => setSelectedGroupForEdit(null)}
+            initialData={selectedGroupForEdit}
+            title="Modifica Gruppo Spesa"
+            submitLabel="Salva Modifiche"
+            onSubmit={async (data) => {
+              await mutations.updateGroup(selectedGroupForEdit.id, {
+                name: data.name,
+                description: data.description,
+                icon: data.icon,
+              });
+              setSelectedGroupForEdit(null);
+            }}
+          />
+        )
+      )}
+
+      {/* Modale Invita Membri */}
+      {selectedGroupForInvite && (
+        isMobile ? (
+          <MobileShoppingGroupInviteModal
+            isOpen={true}
+            onClose={() => setSelectedGroupForInvite(null)}
+            groupName={selectedGroupForInvite.name}
+            currentUserRole={selectedGroupForInvite.userRole || undefined}
+            onSubmit={async (invites) => {
+              const groupId = selectedGroupForInvite.id;
+              for (const inv of invites) {
+                await inviteGroupMember(groupId, {
+                  username: inv.type === 'username' ? inv.value : undefined,
+                  email: inv.type === 'email' ? inv.value : undefined,
+                  roleCode: inv.roleCode,
+                });
+              }
+              await Promise.all([
+                queryClient.invalidateQueries({ queryKey: shoppingQueryKeys.groupMembers(groupId) }),
+                queryClient.invalidateQueries({ queryKey: shoppingQueryKeys.groups() }),
+              ]);
+              setSelectedGroupForInvite(null);
+            }}
+          />
+        ) : (
+          <ShoppingGroupInviteModal
+            isOpen={true}
+            onClose={() => setSelectedGroupForInvite(null)}
+            groupName={selectedGroupForInvite.name}
+            currentUserRole={selectedGroupForInvite.userRole || undefined}
+            onSubmit={async (invites) => {
+              const groupId = selectedGroupForInvite.id;
+              for (const inv of invites) {
+                await inviteGroupMember(groupId, {
+                  username: inv.type === 'username' ? inv.value : undefined,
+                  email: inv.type === 'email' ? inv.value : undefined,
+                  roleCode: inv.roleCode,
+                });
+              }
+              await Promise.all([
+                queryClient.invalidateQueries({ queryKey: shoppingQueryKeys.groupMembers(groupId) }),
+                queryClient.invalidateQueries({ queryKey: shoppingQueryKeys.groups() }),
+              ]);
+              setSelectedGroupForInvite(null);
+            }}
+          />
+        )
       )}
     </>
   );

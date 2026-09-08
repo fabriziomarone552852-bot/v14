@@ -26,6 +26,8 @@ class ShoppingListCreate(StrictBaseModel):
     name: str = Field(..., min_length=1, max_length=255)
     description: Optional[str] = None
     is_completed: Optional[bool] = False
+    pin_status: Optional[str] = Field(None, max_length=2)
+    is_default: Optional[bool] = False
 
     @field_validator("name")
     @classmethod
@@ -35,6 +37,16 @@ class ShoppingListCreate(StrictBaseModel):
             raise ValueError("Il nome della lista non può essere vuoto.")
         return value
 
+    @field_validator("pin_status")
+    @classmethod
+    def validate_pin_status(cls, value: Optional[str]) -> Optional[str]:
+        if value is None or value == "":
+            return None
+        upper_val = value.strip().upper()
+        if upper_val not in ("PN", "FV", "PF"):
+            raise ValueError("pin_status deve essere 'PN' (pinnata), 'FV' (favorita), 'PF' (pinnata e favorita) oppure None.")
+        return upper_val
+
 
 class ShoppingListUpdate(StrictBaseModel):
     name: Optional[str] = Field(None, min_length=1, max_length=255)
@@ -43,9 +55,21 @@ class ShoppingListUpdate(StrictBaseModel):
     status_id: Optional[int] = None
     group_id: Optional[int] = None
     is_completed: Optional[bool] = None
+    pin_status: Optional[str] = Field(None, max_length=2)
+    is_default: Optional[bool] = None
     closed_at: Optional[datetime] = None
     archived_at: Optional[datetime] = None
     deleted_at: Optional[datetime] = None
+
+    @field_validator("pin_status")
+    @classmethod
+    def validate_pin_status(cls, value: Optional[str]) -> Optional[str]:
+        if value is None or value == "":
+            return None
+        upper_val = value.strip().upper()
+        if upper_val not in ("PN", "FV", "PF"):
+            raise ValueError("pin_status deve essere 'PN' (pinnata), 'FV' (favorita), 'PF' (pinnata e favorita) oppure None.")
+        return upper_val
 
 
     @field_validator("name")
@@ -98,6 +122,7 @@ class ShoppingListItemCreate(StrictBaseModel):
 
 
 class ShoppingListItemUpdate(StrictBaseModel):
+    shopping_list_id: Optional[int] = None
     product_name: Optional[str] = Field(None, min_length=1, max_length=255)
     brand_name: Optional[str] = Field(None, max_length=255)
     brand_id: Optional[int] = None
@@ -211,6 +236,8 @@ class ShoppingListResponse(ORMBaseModel):
     name: str
     description: Optional[str] = None
     is_completed: bool = False
+    pin_status: Optional[str] = None
+    is_default: bool = False
     created_at: datetime
     updated_at: Optional[datetime] = None
     closed_at: Optional[datetime] = None

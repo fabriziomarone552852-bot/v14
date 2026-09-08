@@ -1,14 +1,21 @@
 // src/api/client.ts
 import axios, { type AxiosError, type InternalAxiosRequestConfig } from 'axios';
 
-// 1. LA LOGICA DI TUO PADRE (Perfetta)
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '';
+// 1. URL BASE API (Supporta sia Web che Mobile con Proxy Tailscale Locale)
+export const getApiBaseUrl = (): string => {
+  if (typeof window !== 'undefined' && (window as unknown as { Capacitor?: { isNativePlatform?: () => boolean } }).Capacitor?.isNativePlatform?.()) {
+    return import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:8088';
+  }
+  return import.meta.env.VITE_API_BASE_URL || '';
+};
+
+const API_BASE_URL = getApiBaseUrl();
 
 export function apiUrl(path: string) {
-  return `${API_BASE_URL}${path}`;
+  return `${getApiBaseUrl()}${path}`;
 }
 
-// 2. CREIAMO AXIOS USANDO L'URL DI TUO PADRE
+// 2. CREIAMO AXIOS USANDO L'URL DINAMICO
 export const apiClient = axios.create({
   baseURL: API_BASE_URL 
 });

@@ -35,18 +35,21 @@ export const TickDisplay: React.FC<TickDisplayProps> = ({ targetDateStr, variant
     const isLong = timeLeft.years > 0 || timeLeft.months > 0;
     const isHub = variant === 'hub';
     
-    // Testi un po' più piccoli per l'Hub
-    const numClass = isHub ? "text-xl font-mono font-bold text-gray-200" : (isLong ? "text-2xl xl:text-3xl font-mono font-medium text-gray-200 leading-none drop-shadow-md tracking-tight" : "text-3xl xl:text-4xl font-mono font-medium text-gray-200 leading-none drop-shadow-md tracking-tight");
-    const gapClass = isHub ? "gap-2" : (isLong ? "gap-3 xl:gap-5" : "gap-5 xl:gap-7");
+    // Testi compatti per l'Hub su mobile
+    const numClass = isHub
+      ? "text-sm sm:text-xl font-mono font-bold text-gray-200 leading-none"
+      : (isLong ? "text-2xl xl:text-3xl font-mono font-medium text-gray-200 leading-none drop-shadow-md tracking-tight" : "text-3xl xl:text-4xl font-mono font-medium text-gray-200 leading-none drop-shadow-md tracking-tight");
+    const gapClass = isHub ? "gap-1.5 sm:gap-2" : (isLong ? "gap-3 xl:gap-5" : "gap-5 xl:gap-7");
+    const labelClass = isHub ? "text-[8px] sm:text-[10px] text-gray-400 mt-0.5 sm:mt-1 uppercase font-semibold" : "text-[9px] xl:text-[10px] text-gray-400 mt-1";
 
     return (
       <div className={`flex items-end ${gapClass}`}>
-        {timeLeft.years > 0 && <div className="flex flex-col items-center"><span className={numClass}>{timeLeft.years}</span><span className="text-[9px] xl:text-[10px] text-gray-400 mt-1">Anni</span></div>}
-        {(timeLeft.years > 0 || timeLeft.months > 0) && <div className="flex flex-col items-center"><span className={numClass}>{timeLeft.months}</span><span className="text-[9px] xl:text-[10px] text-gray-400 mt-1">Mesi</span></div>}
-        <div className="flex flex-col items-center"><span className={numClass}>{timeLeft.days}</span><span className="text-[9px] xl:text-[10px] text-gray-400 mt-1">Giorni</span></div>
-        <div className="flex flex-col items-center"><span className={numClass}>{pad(timeLeft.hours)}</span><span className="text-[9px] xl:text-[10px] text-gray-400 mt-1">Ore</span></div>
-        <div className="flex flex-col items-center"><span className={numClass}>{pad(timeLeft.minutes)}</span><span className="text-[9px] xl:text-[10px] text-gray-400 mt-1">Min</span></div>
-        <div className="flex flex-col items-center"><span className={numClass}>{pad(timeLeft.seconds)}</span><span className="text-[9px] xl:text-[10px] text-gray-400 mt-1">Sec</span></div>
+        {timeLeft.years > 0 && <div className="flex flex-col items-center"><span className={numClass}>{timeLeft.years}</span><span className={labelClass}>Anni</span></div>}
+        {(timeLeft.years > 0 || timeLeft.months > 0) && <div className="flex flex-col items-center"><span className={numClass}>{timeLeft.months}</span><span className={labelClass}>Mesi</span></div>}
+        <div className="flex flex-col items-center"><span className={numClass}>{timeLeft.days}</span><span className={labelClass}>Giorni</span></div>
+        <div className="flex flex-col items-center"><span className={numClass}>{pad(timeLeft.hours)}</span><span className={labelClass}>Ore</span></div>
+        <div className="flex flex-col items-center"><span className={numClass}>{pad(timeLeft.minutes)}</span><span className={labelClass}>Min</span></div>
+        <div className="flex flex-col items-center"><span className={numClass}>{pad(timeLeft.seconds)}</span><span className={labelClass}>Sec</span></div>
       </div>
     );
   }

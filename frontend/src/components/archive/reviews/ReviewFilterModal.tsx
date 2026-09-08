@@ -1,7 +1,12 @@
-// src/components/reviews/ReviewFilterModal.tsx
+// src/components/archive/reviews/ReviewFilterModal.tsx
 import React from 'react';
-import BaseModal from '@/components/shared/dialog/BaseModal';
-import { SearchIcon, TagIcon, UndoIcon } from '@/components/shared/utils/Icons';
+import { TagIcon } from '@/components/shared/utils/Icons';
+import {
+  ArchiveFilterModal,
+  ArchiveFilterSearchInput,
+  ArchiveFilterSegmentedGroup,
+  type FilterSegmentOption,
+} from '@/components/archive/common';
 import type { ReviewFilterState, ReviewTabType } from '@/hooks/useReviewArchiveData';
 
 interface ReviewFilterModalProps {
@@ -14,6 +19,12 @@ interface ReviewFilterModalProps {
   availableTags: string[];
   activeTab: ReviewTabType;
 }
+
+const statusOptions: FilterSegmentOption<ReviewFilterState['status']>[] = [
+  { value: 'all', label: 'Tutte' },
+  { value: 'completed', label: 'Completate' },
+  { value: 'pending', label: 'Da fare' },
+];
 
 export const ReviewFilterModal: React.FC<ReviewFilterModalProps> = ({
   isOpen,
@@ -37,60 +48,24 @@ export const ReviewFilterModal: React.FC<ReviewFilterModalProps> = ({
     });
   };
 
-  const modalFooter = (
-    <div className="flex items-center justify-between gap-3 w-full">
-      {hasActiveFilters ? (
-        <button
-          type="button"
-          onClick={onReset}
-          className="flex items-center gap-1.5 py-2.5 px-3 text-xs font-bold text-red-600 hover:text-red-700 hover:bg-red-50 rounded-xl transition-colors cursor-pointer"
-        >
-          <UndoIcon className="w-4 h-4" />
-          <span>Reset filtri</span>
-        </button>
-      ) : (
-        <div />
-      )}
-
-      <button
-        type="button"
-        onClick={onClose}
-        className="py-2.5 px-6 rounded-xl font-bold text-sm text-white bg-blue-600 hover:bg-blue-700 transition-colors shadow-sm cursor-pointer ml-auto"
-      >
-        {hasActiveFilters ? 'Applica Filtri' : 'Chiudi'}
-      </button>
-    </div>
-  );
-
   const titleSuffix = activeTab === 'months' ? 'Mesi' : 'Anni';
 
   return (
-    <BaseModal
+    <ArchiveFilterModal
       isOpen={isOpen}
       onClose={onClose}
       title={`Filtri & Ricerca Review ${titleSuffix}`}
-      maxWidthClass="max-w-md"
-      footer={modalFooter}
+      onReset={onReset}
+      hasActiveFilters={hasActiveFilters}
     >
       <div className="space-y-4">
         {/* 1. RICERCA PER PAROLA CHIAVE NELLE RISPOSTE O TITOLO */}
-        <div>
-          <label className="block text-xs font-bold text-gray-500 uppercase mb-1">
-            Parola Chiave nelle Risposte
-          </label>
-          <div className="relative">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
-              <SearchIcon className="w-4 h-4" />
-            </div>
-            <input
-              type="text"
-              value={filters.keyword}
-              onChange={(e) => handleFieldChange('keyword', e.target.value)}
-              placeholder="Cerca nelle risposte alle domande..."
-              className="w-full pl-9 pr-3 py-2 border border-gray-200 rounded-xl text-sm focus:border-blue-500 outline-none transition-colors"
-            />
-          </div>
-        </div>
+        <ArchiveFilterSearchInput
+          label="Parola Chiave nelle Risposte"
+          value={filters.keyword}
+          onChange={(val) => handleFieldChange('keyword', val)}
+          placeholder="Cerca nelle risposte alle domande..."
+        />
 
         {/* 2. RICERCA PER TAG CON SUGGERIMENTI */}
         <div>
@@ -133,35 +108,14 @@ export const ReviewFilterModal: React.FC<ReviewFilterModalProps> = ({
         </div>
 
         {/* 3. STATO COMPILAZIONE */}
-        <div>
-          <label className="block text-xs font-bold text-gray-500 uppercase mb-1">
-            Stato Compilazione
-          </label>
-          <div className="grid grid-cols-3 gap-2">
-            {[
-              { id: 'all', label: 'Tutte' },
-              { id: 'completed', label: 'Completate' },
-              { id: 'pending', label: 'Da Completare' },
-            ].map((item) => (
-              <button
-                key={item.id}
-                type="button"
-                onClick={() =>
-                  handleFieldChange('status', item.id as ReviewFilterState['status'])
-                }
-                className={`py-2 text-xs font-bold rounded-xl border transition-all cursor-pointer ${
-                  filters.status === item.id
-                    ? 'bg-gray-900 text-white border-gray-900 shadow-sm'
-                    : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
-                }`}
-              >
-                {item.label}
-              </button>
-            ))}
-          </div>
-        </div>
+        <ArchiveFilterSegmentedGroup<ReviewFilterState['status']>
+          label="Stato Compilazione"
+          options={statusOptions}
+          value={filters.status}
+          onChange={(val) => handleFieldChange('status', val)}
+        />
       </div>
-    </BaseModal>
+    </ArchiveFilterModal>
   );
 };
 

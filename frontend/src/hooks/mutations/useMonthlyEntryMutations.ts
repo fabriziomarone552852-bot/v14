@@ -21,7 +21,13 @@ export const useMonthlyEntryMutations = (queryKey: string[]) => {
   const queryClient = useQueryClient();
 
   const saveEntryMutation = useMutation({
-    mutationFn: async (payload: SaveMonthlyEntryPayload): Promise<DbMonthlyEntry> => {
+    mutationFn: async (payload: SaveMonthlyEntryPayload): Promise<DbMonthlyEntry | null> => {
+      // Se abbiamo un ID valido e testo vuoto -> eliminazione (DELETE)
+      if (payload.existingEntryId && payload.existingEntryId > 0 && !payload.monthly_field?.trim()) {
+        await api.delete(`/monthly-entries/${payload.existingEntryId}`);
+        return null;
+      }
+
       // Se abbiamo un ID valido, facciamo l'aggiornamento (PATCH)
       if (payload.existingEntryId && payload.existingEntryId > 0) {
         const response = await api.patch(`/monthly-entries/${payload.existingEntryId}`, {
@@ -47,25 +53,28 @@ export const useMonthlyEntryMutations = (queryKey: string[]) => {
 
       const previousData = queryClient.getQueryData<MonthCacheData>(queryKey);
       const tempId = -(Date.now());
+      const textTrimmed = (newEntry.monthly_field || '').trim();
 
       queryClient.setQueryData<MonthCacheData>(queryKey, (old) => {
         if (!old) return old;
 
         const currentEntries = old.monthly_entries || [];
-        // EP, EN, PM possono avere record multipli — per gli altri aggiorniamo l'esistente
-        const isMulti = ['EP', 'EN', 'PM'].includes(newEntry.monthly_type);
-
         let updatedEntries: DbMonthlyEntry[];
 
-        if (!isMulti && newEntry.existingEntryId && newEntry.existingEntryId > 0) {
-          // Aggiornamento ottimistico di un entry unico esistente
-          updatedEntries = currentEntries.map(e =>
-            e.id === newEntry.existingEntryId
-              ? { ...e, monthly_field: newEntry.monthly_field }
-              : e
-          );
+        if (newEntry.existingEntryId && newEntry.existingEntryId > 0) {
+          if (!textTrimmed) {
+            // Se testo vuoto, rimuovi l'entry
+            updatedEntries = currentEntries.filter(e => e.id !== newEntry.existingEntryId);
+          } else {
+            // Aggiornamento ottimistico sul record con quell'ID
+            updatedEntries = currentEntries.map(e =>
+              e.id === newEntry.existingEntryId
+                ? { ...e, monthly_field: newEntry.monthly_field }
+                : e
+            );
+          }
         } else {
-          // Creazione ottimistica (sia multi-record che primo inserimento)
+          // Creazione ottimistica nuovo record
           updatedEntries = [...currentEntries, {
             id: tempId,
             user_id: 0,
@@ -83,10 +92,16 @@ export const useMonthlyEntryMutations = (queryKey: string[]) => {
     },
 
     onSuccess: (savedEntry, _newEntry, context) => {
-      // Sostituiamo l'ID temporaneo con quello reale del DB
+      // Sostituiamo l'ID temporaneo con quello reale del DB o rimuoviamo se cancellato
       if (context?.tempId) {
         queryClient.setQueryData<MonthCacheData>(queryKey, (old) => {
           if (!old) return old;
+          if (!savedEntry) {
+            return {
+              ...old,
+              monthly_entries: (old.monthly_entries || []).filter(e => e.id !== context.tempId),
+            };
+          }
           const updatedEntries = (old.monthly_entries || []).map(e =>
             e.id === context.tempId ? savedEntry : e
           );
@@ -102,6 +117,8 @@ export const useMonthlyEntryMutations = (queryKey: string[]) => {
 
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey });
+      queryClient.invalidateQueries({ queryKey: ['monthly_entries'] });
+      queryClient.invalidateQueries({ queryKey: ['tags_archive'] });
     },
   });
 
@@ -133,6 +150,8 @@ export const useMonthlyEntryMutations = (queryKey: string[]) => {
 
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey });
+      queryClient.invalidateQueries({ queryKey: ['monthly_entries'] });
+      queryClient.invalidateQueries({ queryKey: ['tags_archive'] });
     },
   });
 

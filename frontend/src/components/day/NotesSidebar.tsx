@@ -22,6 +22,7 @@ const SmartNoteCard: React.FC<{
 }> = ({ nota, isInitiallyEditing, onAutoSave, onDelete, clearNewStatus }) => {
   const [isEditing, setIsEditing] = useState(isInitiallyEditing);
   const [testoLocal, setTestoLocal] = useState(nota.testo ?? '');
+  const isDeletingRef = React.useRef(false);
   
   const debouncedText = useDebounce(testoLocal, 1000);
   const textareaRef = useAutoResizeTextArea(testoLocal);
@@ -33,6 +34,7 @@ const SmartNoteCard: React.FC<{
   const styles = NOTE_STYLES[safeVariant];
 
   useEffect(() => {
+    if (isDeletingRef.current) return;
     if (debouncedText == null) return;
     if (debouncedText !== nota.testo) {
       if (debouncedText.trim() === "") {
@@ -45,6 +47,7 @@ const SmartNoteCard: React.FC<{
   }, [debouncedText]);
 
   const handleBlur = () => {
+    if (isDeletingRef.current) return;
     setIsEditing(false);
     const text = testoLocal ?? '';
     if (text.trim() === "") {
@@ -55,6 +58,12 @@ const SmartNoteCard: React.FC<{
     }
   };
 
+  const handleDelete = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    isDeletingRef.current = true;
+    onDelete(nota.id, nota.isNew);
+  };
+
   return (
     <div 
       onClick={() => { if (!isEditing) setIsEditing(true); }} 
@@ -63,7 +72,11 @@ const SmartNoteCard: React.FC<{
       <div className="absolute bottom-0 right-0 w-4 h-4 bg-black/10 rounded-tl-lg rounded-br-2xl pointer-events-none"></div>
       
       <button 
-        onClick={(e) => { e.stopPropagation(); onDelete(nota.id, nota.isNew); }} 
+        onMouseDown={(e) => {
+          isDeletingRef.current = true;
+          e.preventDefault();
+        }}
+        onClick={handleDelete} 
         className={`absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded-full z-10 ${styles.btnText} ${styles.btnBg} ${styles.btnHover}`} 
         title="Elimina nota"
       >

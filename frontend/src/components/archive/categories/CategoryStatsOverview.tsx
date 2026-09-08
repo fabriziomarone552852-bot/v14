@@ -20,7 +20,7 @@ export const CategoryStatsOverview: React.FC<CategoryStatsOverviewProps> = ({
       icon={<CategoryIcon className="w-5 h-5 text-white" />}
       className={panelClass}
       extra={
-        <div className="flex items-center gap-2 flex-wrap justify-end">
+        <>
           <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-50 border border-slate-200/80 text-xs font-semibold text-slate-600">
             <span>Totali:</span>
             <span className="font-extrabold text-slate-900">{stats.total}</span>
@@ -45,7 +45,7 @@ export const CategoryStatsOverview: React.FC<CategoryStatsOverviewProps> = ({
             <span>Stati d'animo:</span>
             <span className="font-extrabold text-amber-900">{stats.mood}</span>
           </div>
-        </div>
+        </>
       }
     />
   );

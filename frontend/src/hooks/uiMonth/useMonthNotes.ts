@@ -19,8 +19,9 @@ export const useMonthNotes = ({ firstDayStr, lastDayStr, monthData, saveNote, de
 
   // Filtraggio rigoroso senza 'any'
   const mappedNotes = useMemo((): LocalNoteEntry[] => {
-    return filterNotes(monthData?.daily_entries); 
-  }, [monthData?.daily_entries]);
+    const rawNotes = (monthData as { note?: SyncMonthResponse['daily_entries'] } | undefined)?.note ?? monthData?.daily_entries;
+    return filterNotes(rawNotes); 
+  }, [monthData]);
 
   const handleAddNote = useCallback((): void => {
     const tempId = Date.now();

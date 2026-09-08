@@ -212,6 +212,7 @@ const ShoppingPage: React.FC = () => {
             suppliers={suppliers}
             brands={brands}
             products={products}
+            lists={lists}
             loading={itemsLoading}
             activeListId={activeListId}
             activeList={activeList}
@@ -300,6 +301,7 @@ const ShoppingPage: React.FC = () => {
           form={listEditForm}
           setForm={setListEditForm}
           groups={groups}
+          isDefault={Boolean(editListModal.data.isDefault)}
           onClose={editListModal.close}
           onSubmit={async (e) => {
             if (editListModal.data?.id === 0) {

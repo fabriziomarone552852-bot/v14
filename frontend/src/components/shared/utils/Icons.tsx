@@ -29,6 +29,7 @@ export type IconName =
   | 'pause'
   | 'play'
   | 'plus-dashed' 
+  | 'repeat'
   | 'settings'
   | 'shopping'
   | 'switch'

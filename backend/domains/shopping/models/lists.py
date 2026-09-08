@@ -72,6 +72,15 @@ class ShoppingList(Base):
         nullable=False,
         default=False,
     )
+    pin_status: Mapped[Optional[str]] = mapped_column(
+        String(2),
+        nullable=True,
+    )
+    is_default: Mapped[bool] = mapped_column(
+        Boolean,
+        nullable=False,
+        default=False,
+    )
 
     created_at: Mapped[datetime] = mapped_column(
 

@@ -105,7 +105,18 @@ export const useShoppingItemMutations = () => {
   const updateItemMutation = useMutation({
     mutationFn: ({ id, listId, data }: UpdateShoppingListItemArgs) => updateShoppingListItem(id, listId, data),
     onMutate: async ({ id, listId, data }) => {
-      await queryClient.cancelQueries({ queryKey: shoppingQueryKeys.items(listId) });
+      const isMovingList = Boolean(
+        data.shoppingListId && Number(data.shoppingListId) !== Number(listId)
+      );
+
+      await Promise.all([
+        queryClient.cancelQueries({ queryKey: shoppingQueryKeys.items(listId) }),
+        ...(isMovingList && data.shoppingListId
+          ? [queryClient.cancelQueries({ queryKey: shoppingQueryKeys.items(Number(data.shoppingListId)) })]
+          : []),
+        queryClient.cancelQueries({ queryKey: shoppingQueryKeys.lists() }),
+      ]);
+
       const prevItems = queryClient.getQueriesData<ShoppingListItem[]>({
         queryKey: shoppingQueryKeys.items(listId),
       });
@@ -114,6 +125,9 @@ export const useShoppingItemMutations = () => {
         { queryKey: shoppingQueryKeys.items(listId) },
         (old) => {
           if (!old) return old;
+          if (isMovingList) {
+            return old.filter((item) => item.id !== id);
+          }
           return old.map((item) => {
             if (item.id !== id) return item;
             return {
@@ -130,7 +144,7 @@ export const useShoppingItemMutations = () => {
         }
       );
 
-      return { prevItems, listId };
+      return { prevItems, listId, targetListId: data.shoppingListId ? Number(data.shoppingListId) : null };
     },
     onError: (_err, _vars, context) => {
       if (context?.prevItems) {
@@ -138,12 +152,18 @@ export const useShoppingItemMutations = () => {
       }
     },
     onSettled: async (_updated, _err, vars) => {
-      await Promise.all([
+      const promises: Promise<unknown>[] = [
         invalidateLists(),
         invalidateItems(vars.listId),
         queryClient.invalidateQueries({ queryKey: shoppingQueryKeys.products() }),
         queryClient.invalidateQueries({ queryKey: shoppingQueryKeys.brands() }),
-      ]);
+      ];
+
+      if (vars.data.shoppingListId && Number(vars.data.shoppingListId) !== Number(vars.listId)) {
+        promises.push(invalidateItems(Number(vars.data.shoppingListId)));
+      }
+
+      await Promise.all(promises);
     },
   });
 

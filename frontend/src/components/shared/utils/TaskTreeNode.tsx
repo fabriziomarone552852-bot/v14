@@ -1,10 +1,10 @@
 // src/components/shared/utils/TaskTreeNode.tsx
-import React from 'react';
+import React, { useState, useRef } from 'react';
 import type { UITask } from '@/types';
 import { formatToItalianShortDate } from '@/utils/dateUtils';
 
 interface TaskTreeNodeProps {
-  task: UITask; // 🪄 FIX 1: Riceve direttamente il nodo dell'albero! Niente più Map o ID.
+  task: UITask;
   depth: number;
   selectedTaskId?: number;
   maxSubtaskDepth: number;
@@ -18,14 +18,56 @@ export const TaskTreeNode: React.FC<TaskTreeNodeProps> = ({
   maxSubtaskDepth, onToggleTask, onSelectTask, onAddSubtask
 }) => {
   const isSelected = selectedTaskId === task.id;
+  const [isLongPressed, setIsLongPressed] = useState(false);
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const touchStartPos = useRef<{ x: number; y: number } | null>(null);
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    const touch = e.touches[0];
+    touchStartPos.current = { x: touch.clientX, y: touch.clientY };
+    timerRef.current = setTimeout(() => {
+      setIsLongPressed((prev) => !prev);
+      if ('vibrate' in navigator) {
+        try {
+          navigator.vibrate(35);
+        } catch {}
+      }
+    }, 450);
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (!touchStartPos.current) return;
+    const touch = e.touches[0];
+    const deltaX = Math.abs(touch.clientX - touchStartPos.current.x);
+    const deltaY = Math.abs(touch.clientY - touchStartPos.current.y);
+    if (deltaX > 8 || deltaY > 8) {
+      if (timerRef.current) {
+        clearTimeout(timerRef.current);
+        timerRef.current = null;
+      }
+    }
+  };
+
+  const handleTouchEnd = () => {
+    if (timerRef.current) {
+      clearTimeout(timerRef.current);
+      timerRef.current = null;
+    }
+  };
 
   return (
-    <div className="w-full">
-      {/* Container "group" per triggerare l'hover del pulsante "+" */}
-      <div className="group">
+    <div className="w-full select-none">
+      {/* Container "group" per triggerare l'hover su PC o long-press su touch */}
+      <div 
+        className="group"
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+        onTouchCancel={handleTouchEnd}
+      >
         <div 
           className={`py-2 pr-4 text-sm flex items-start border-t border-gray-50 transition-colors ${
-            isSelected ? 'bg-blue-50 border-l-4 border-l-blue-500' : 'hover:bg-gray-50'
+            isSelected ? 'bg-blue-50 border-l-4 border-l-blue-500' : 'hover:bg-gray-50 active:bg-gray-100/70'
           }`}
           style={{ paddingLeft: `${12 + (depth * 16)}px` }}
         >
@@ -40,7 +82,7 @@ export const TaskTreeNode: React.FC<TaskTreeNodeProps> = ({
 
           <div 
             className="flex-1 flex items-center justify-between gap-2 cursor-pointer" 
-            onClick={() => onSelectTask(task)} // 🪄 FIX 2: Passiamo direttamente il task! È già formattato in taskUtils.
+            onClick={() => onSelectTask(task)}
           >
             <span className={`break-words flex-1 min-w-0 ${
               task.done ? "line-through text-gray-400" : isSelected ? "font-extrabold text-gray-900" : "text-gray-700"
@@ -58,10 +100,12 @@ export const TaskTreeNode: React.FC<TaskTreeNodeProps> = ({
           </div>
         </div>
 
-        {/* PULSANTE "+" */}
+        {/* PULSANTE "+" (visibile su PC con hover, su mobile con pressione prolungata) */}
         {depth < maxSubtaskDepth - 1 && (
           <div 
-            className="hidden group-hover:flex py-1 items-center gap-1.5 text-xs font-bold text-gray-400 hover:text-blue-600 cursor-pointer"
+            className={`${
+              isLongPressed ? 'flex animate-fadeIn' : 'hidden'
+            } group-hover:flex py-1 items-center gap-1.5 text-xs font-bold text-gray-400 hover:text-blue-600 active:text-blue-600 cursor-pointer transition-colors`}
             style={{ paddingLeft: `${12 + ((depth + 1) * 16)}px` }}
             onClick={(e) => {
               e.stopPropagation(); 
@@ -73,11 +117,11 @@ export const TaskTreeNode: React.FC<TaskTreeNodeProps> = ({
         )}
       </div>
 
-      {/* 🪄 FIX 3: RENDER RICORSIVO DEI FIGLI ESTREMAMENTE SEMPLIFICATO */}
+      {/* RENDER RICORSIVO DEI FIGLI */}
       {task.subtasks && task.subtasks.map((child: UITask) => (
         <TaskTreeNode 
           key={child.id}
-          task={child}             // Passiamo direttamente l'oggetto figlio
+          task={child}
           depth={depth + 1}
           selectedTaskId={selectedTaskId}
           maxSubtaskDepth={maxSubtaskDepth}
@@ -89,3 +133,5 @@ export const TaskTreeNode: React.FC<TaskTreeNodeProps> = ({
     </div>
   );
 };
+
+export default TaskTreeNode;

@@ -1,19 +1,13 @@
 // src/components/dashboard/TaskDetailModal.tsx
-import React, { useMemo } from 'react';
-import type { DbTask, TaskSummary } from '@/types';
+import React from 'react';
+import type { TaskSummary } from '@/types';
 import BaseModal from '@/components/shared/dialog/BaseModal'; 
-import { useConfirm } from '@/context/ConfirmContext';
 import { Badge } from '@/components/shared/utils/Badges';
 import { TrashIcon, EditIcon } from '@/components/shared/utils/Icons';
-import { useTaskMutations } from '@/hooks/mutations/useTaskMutations';
-import { useQuery } from '@tanstack/react-query';
-import { api } from '@/api/apiService';
-import { useAuth } from '@/context/AuthContext';
-import { TaskTreeNode } from '../utils/TaskTreeNode';
-import { buildTaskTree } from '@/utils/taskUtils';
-import type { UITask } from '@/types';
+import { TaskTreeNode } from '@/components/shared/utils/TaskTreeNode';
 import { formatToItalianShortDate } from '@/utils/dateUtils';
 import { LocationPreview } from '@/components/shared/form';
+import { useTaskDetailLogic } from '@/hooks/forms/useTaskDetailLogic';
 
 interface TaskDetailModalProps {
   isOpen: boolean;
@@ -30,113 +24,26 @@ interface TaskDetailModalProps {
 const TaskDetailModal: React.FC<TaskDetailModalProps> = ({ 
   isOpen, onClose, selectedTask, onToggleTask, onSelectTask, onEditClick, onAddSubtask, onTaskDeleted
 }) => {
-  const { toggleTask, deleteTask } = useTaskMutations(['tasks']);
-
-  const { confirm } = useConfirm();
-  const { user } = useAuth();
-
-  const maxSubtaskDepth = user?.max_subtask_depth_user ?? 3;
-
-  const { data: tasks = [] } = useQuery({ 
-    queryKey: ['tasks'], 
-    queryFn: async () => {
-      const data = await api.get<DbTask[] | { items: DbTask[] }>('/tasks');
-      return Array.isArray(data) ? data : (data?.items || []);
-    }
+  const {
+    rootUITask,
+    isTaskDone,
+    taskCategoryName,
+    taskCategoryColor,
+    taskPriority,
+    maxSubtaskDepth,
+    handleTaskToggle,
+    handleDelete,
+  } = useTaskDetailLogic({
+    isOpen,
+    onClose,
+    selectedTask,
+    onToggleTask,
+    onTaskDeleted,
   });
-
-  // 🪄 1. Costruiamo l'albero in 0.1 millisecondi
-  const taskTree: UITask[] = useMemo(() => {
-    return buildTaskTree(tasks);
-  }, [tasks]);
 
   if (!isOpen || !selectedTask) return null;
 
-  // 🪄 2. Troviamo il nodo "Radice" (Padre supremo) del task attualmente aperto
-  const getRootUITask = (taskId: number): UITask | undefined => {
-    let current = tasks.find((t: DbTask) => t.id === taskId);
-    while (current && current.parent_id != null) {
-      const parent = tasks.find((t: DbTask) => t.id === current!.parent_id);
-      if (parent) current = parent;
-      else break;
-    }
-    if (!current) return undefined;
-    
-    return taskTree.find(t => t.id === current!.id);
-  };
-
-  const rootUITask = getRootUITask(selectedTask.id);
-
-  const liveTask = tasks.find((t: DbTask) => t.id === selectedTask.id);
-  const isTaskDone = liveTask ? liveTask.fatto : selectedTask.done;
-
-  const taskCategoryName =
-    liveTask?.category?.category_name ||
-    liveTask?.category_name ||
-    (typeof selectedTask.category === 'string' ? selectedTask.category : undefined) ||
-    'Generico';
-
-  const taskCategoryColor =
-    liveTask?.category?.colore ||
-    selectedTask.categoryColor ||
-    '#9CA3AF';
-
-  const taskPriority =
-    liveTask?.priorita ||
-    selectedTask.priority ||
-    'Bassa';
-
-  const handleTaskToggle = async (taskId: number, isCurrentlyDone: boolean) => {
-    // 1. Troviamo se ci sono sottotask dirette non completate
-    const activeSubtasks = tasks.filter((t: DbTask) => t.parent_id === taskId && !t.fatto);
-
-    // 2. Isoliamo l'azione effettiva di "toggle"
-    const executeToggle = async () => {
-      if (taskId === selectedTask.id) {
-        // Se stiamo spuntando la task principale (quella aperta nel modale)
-        onToggleTask(taskId); 
-        // 🪄 MAGIA: Rimosso onClose() qui! La finestra resterà aperta.
-      } else {
-        // Se stiamo spuntando un genitore o un figlio nell'albero laterale
-        toggleTask({ id: taskId, isDone: !isCurrentlyDone });
-      }
-    };
-
-    // 3. Controlliamo se stiamo cercando di completare una task con figli in sospeso
-    if (!isCurrentlyDone && activeSubtasks.length > 0) {
-      confirm({
-        title: "Sottotask Incompiute",
-        message: "Questa task presenta ancora delle sottotask non completate. Sei sicuro di volerla chiudere?",
-        confirmText: "Conferma",
-        isDestructive: false,
-        onConfirm: () => {
-          executeToggle();
-        }
-      });
-    } else {
-      // Nessun ostacolo, procediamo direttamente
-      executeToggle();
-    }
-  };
-
-  const handleDelete = () => {
-    confirm({
-      title: "Elimina Task",
-      message: "Sei sicuro di voler eliminare definitivamente questa task e tutte le sue eventuali sottotask? L'azione non è reversibile.",
-      confirmText: "Elimina",
-      isDestructive: true,
-      onConfirm: async () => {
-        deleteTask(selectedTask.id);
-        if (onTaskDeleted) {
-          onTaskDeleted();
-        }
-        
-        onClose();
-      }
-    });
-  };
-
-  // 2. I COMPONENTI DA INIETTARE IN BASEMODAL
+  // I COMPONENTI DA INIETTARE IN BASEMODAL
   const SidePanel = rootUITask ? (
     <div className="bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden flex flex-col h-full">
       <div className="px-4 py-3 border-b border-gray-100 flex justify-between items-center bg-gray-50 shrink-0">
@@ -169,10 +76,10 @@ const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
 
   const HeaderActions = (
     <>
-      <button title="Modifica" onClick={onEditClick} className="p-1.5 text-gray-400 hover:text-blue-500 hover:bg-blue-50 rounded-lg transition-colors">
+      <button title="Modifica" onClick={onEditClick} className="p-1.5 text-gray-400 hover:text-blue-500 hover:bg-blue-50 rounded-lg transition-colors cursor-pointer">
         <EditIcon className="h-5 w-5" />
       </button>
-      <button title="Elimina" onClick={handleDelete} className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors">
+      <button title="Elimina" onClick={handleDelete} className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors cursor-pointer">
         <TrashIcon className="h-5 w-5" />
       </button>
     </>
@@ -181,7 +88,7 @@ const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
   const ModalFooter = (
     <button 
       onClick={() => handleTaskToggle(selectedTask.id, isTaskDone)} 
-      className={`w-full py-2.5 rounded-xl font-bold text-sm transition-colors shadow-sm ${
+      className={`w-full py-2.5 rounded-xl font-bold text-sm transition-colors shadow-sm cursor-pointer ${
         isTaskDone ? 'bg-gray-200 text-gray-700 hover:bg-gray-300' : 'bg-green-500 text-white hover:bg-green-600'
       }`}
     >
@@ -189,7 +96,6 @@ const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
     </button>
   );
 
-  // 3. IL RENDER REALE DEL MODALE
   return (
     <BaseModal
       isOpen={isOpen}

@@ -7,6 +7,7 @@ import {
   PlusIcon,
 } from '@/components/shared/utils/Icons';
 import { ShoppingListAccordionItem } from './ShoppingListAccordionItem';
+import { getRoleBadgeClass } from './shoppingUi';
 
 export interface ShoppingGroupAccordionSectionProps {
   group: ShoppingGroupSummary;
@@ -48,9 +49,20 @@ export const ShoppingGroupAccordionSection: React.FC<ShoppingGroupAccordionSecti
             {groupIcon}
           </div>
           <div className="min-w-0 flex-1">
-            <p className="truncate text-sm font-bold text-gray-800">
-              {group.name}
-            </p>
+            <div className="flex items-center gap-1.5 flex-wrap">
+              <p className="truncate text-sm font-bold text-gray-800">
+                {group.name}
+              </p>
+              {group.userRole && (
+                <span
+                  className={`text-[9px] font-bold px-1.5 py-0.2 rounded border uppercase shrink-0 ${getRoleBadgeClass(
+                    group.userRole
+                  )}`}
+                >
+                  {group.userRole}
+                </span>
+              )}
+            </div>
             <p className="truncate text-xs text-gray-400">
               {group.description || 'Gruppo condiviso'}
             </p>

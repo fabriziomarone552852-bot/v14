@@ -14,9 +14,6 @@ export function serializeInventoryBatchCreatePayload(
     ...(payload.productId !== undefined ? { product_id: payload.productId } : {}),
     ...(payload.brandId !== undefined ? { brand_id: payload.brandId } : {}),
     ...(payload.brandName !== undefined ? { brand_name: payload.brandName } : {}),
-    ...(payload.unitId !== undefined ? { unit_id: payload.unitId } : {}),
-    ...(payload.currencyId !== undefined ? { currency_id: payload.currencyId } : {}),
-    ...(payload.offerFlagId !== undefined ? { offer_flag_id: payload.offerFlagId } : {}),
     quantity_purchased: payload.quantity ?? 1,
     purchase_price: payload.purchasePrice,
     purchase_date: payload.purchaseDate,
@@ -30,6 +27,22 @@ export function serializeInventoryBatchCreatePayload(
   };
 }
 
+export function serializeInventoryBatchUpdatePayload(
+  payload: Partial<InventoryBatchCreatePayload>
+) {
+  return {
+    ...(payload.productId !== undefined ? { product_id: payload.productId } : {}),
+    ...(payload.brandId !== undefined ? { brand_id: payload.brandId } : {}),
+    ...(payload.brandName !== undefined ? { brand_name: payload.brandName } : {}),
+    ...(payload.quantity !== undefined ? { quantity_purchased: payload.quantity } : {}),
+    ...(payload.purchasePrice !== undefined ? { purchase_price: payload.purchasePrice } : {}),
+    ...(payload.purchaseDate !== undefined ? { purchase_date: payload.purchaseDate } : {}),
+    ...(payload.supplierId !== undefined ? { supplier_id: payload.supplierId } : {}),
+    ...(payload.expirationDate !== undefined ? { expiration_date: payload.expirationDate } : {}),
+    ...(payload.isOnSale !== undefined ? { is_on_sale: payload.isOnSale } : {}),
+  };
+}
+
 export async function addInventoryBatch(
   itemId: number,
   payload: InventoryBatchCreatePayload
@@ -37,6 +50,16 @@ export async function addInventoryBatch(
   await apiRequest<void>(`/items/${itemId}/inventory-batches`, {
     method: 'POST',
     body: serializeInventoryBatchCreatePayload(payload),
+  });
+}
+
+export async function updateInventoryBatch(
+  batchId: number,
+  payload: Partial<InventoryBatchCreatePayload>
+): Promise<void> {
+  await apiRequest<void>(`/inventory-batches/${batchId}`, {
+    method: 'PATCH',
+    body: serializeInventoryBatchUpdatePayload(payload),
   });
 }
 

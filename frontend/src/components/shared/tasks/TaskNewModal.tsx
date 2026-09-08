@@ -1,182 +1,53 @@
-// src/components/shared/TaskNewModal.tsx
-import React, { useState, useEffect } from 'react';
-import { useAuth } from '@/context/AuthContext';
-import { CategoryGenre } from '@/types';
-import type { TaskSummary, DbTask } from '@/types';
-import DatePicker from '@/components/shared/utils/DatePicker/DatePicker'; 
-import CategorySelect from '@/components/shared/utils/CategorySelect'; 
+// src/components/shared/tasks/TaskNewModal.tsx
+import React from 'react';
+import { type DbTask, type TaskSummary, CategoryGenre } from '@/types';
+import DatePicker from '@/components/shared/utils/DatePicker/DatePicker';
+import CategorySelect from '@/components/shared/utils/CategorySelect';
 import BaseModal from '@/components/shared/dialog/BaseModal';
-import { logger } from '@/utils/logger';
-import { useConfirm } from '@/context/ConfirmContext';
-import { CloseIcon, CheckCircleIcon } from '@/components/shared/utils/Icons';
 import TaskTreeSelector from '@/components/shared/utils/TaskTreeSelector';
+import { CloseIcon, CheckCircleIcon } from '@/components/shared/utils/Icons';
 import PrioritySelect from '@/components/shared/utils/PrioritySelect';
-import { getLocalTodayStr } from '@/utils/dateUtils';
-import { useCategories } from '@/hooks/useCategories';
-import { useTaskMutations } from '@/hooks/mutations/useTaskMutations';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { api } from '@/api/apiService';
 import { FormInput, FormTextarea, LocationAutocompleteInput } from '@/components/shared/form';
+import { useTaskFormLogic } from '@/hooks/forms/useTaskFormLogic';
 
 interface TaskNewModalProps {
   isOpen: boolean;
   onClose: () => void;
   taskToEdit?: TaskSummary | null;
+  onTaskSaved?: (savedTask?: DbTask) => void;
   initialParentId?: number | null;
   initialDate?: string | null;
-  onTaskSaved?: (savedTask?: DbTask) => void;
 }
 
-// ✅ AGGIUNTO onTaskSaved ALLE PROPS DEL COMPONENTE
-const TaskNewModal: React.FC<TaskNewModalProps> = ({ isOpen, onClose, taskToEdit, initialParentId, initialDate, onTaskSaved }) => {
-  const {  user } = useAuth();
-  const { saveTask } = useTaskMutations(['tasks']);
-  const [isSaving, setIsSaving] = useState(false);
-  const { data: dbCategories = [] } = useCategories();
-
-
-  const queryClient = useQueryClient();
-
-  const { data: tasks = [] } = useQuery({
-    queryKey: ['tasks'],
-    queryFn: async () => {
-      const data = await api.get<{ items?: DbTask[] } | DbTask[]>('/tasks');
-      return Array.isArray(data) ? data : (data?.items ?? []);
-    }
+const TaskNewModal: React.FC<TaskNewModalProps> = ({ 
+  isOpen, 
+  onClose, 
+  taskToEdit, 
+  onTaskSaved,
+  initialParentId,
+  initialDate
+}) => {
+  const {
+    newTaskForm,
+    setNewTaskForm,
+    tasks,
+    maxDepth,
+    isDatePickerOpen,
+    setIsDatePickerOpen,
+    isSubtaskPanelOpen,
+    setIsSubtaskPanelOpen,
+    isSaving,
+    handleSalvaNuovaTask,
+    isConfirmDisabled,
+    confirm,
+  } = useTaskFormLogic({
+    isOpen,
+    onClose,
+    taskToEdit,
+    initialParentId,
+    initialDate,
+    onTaskSaved,
   });
-
-  const maxDepth = user?.max_subtask_depth_user || 3;
-
-  const [newTaskForm, setNewTaskForm] = useState({
-    titolo: '',
-    descrizione: '',
-    data_start: getLocalTodayStr(),
-    data_scadenza: '',
-    priorita: 'Bassa' as 'Alta' | 'Media' | 'Bassa',
-    category: '',
-    luogo: '',
-    parent_id: ''
-  });
-
-  const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
-  
-  const [isSubtaskPanelOpen, setIsSubtaskPanelOpen] = useState(false);
-  const {confirm} = useConfirm();
-
-  useEffect(() => {
-    if (isOpen) {
-      if (taskToEdit) {
-        // 🪄 MAGIA: Invece di fidarci della data formattata (es. "15 Ago"), 
-        // peschiamo il task grezzo originale dalla cache!
-        const cachedTasks = queryClient.getQueryData<{items?: DbTask[]} | DbTask[]>(['tasks']);
-        let rawTasks: DbTask[] = [];
-        if (Array.isArray(cachedTasks)) rawTasks = cachedTasks;
-        else if (cachedTasks?.items) rawTasks = cachedTasks.items;
-        
-        // Se non c'è in cache, usiamo la variabile locale
-        if (rawTasks.length === 0) rawTasks = tasks; 
-        
-        const rawTask = rawTasks.find((t: DbTask) => t.id === taskToEdit.id);
-        
-        // Helper per sicurezza: controlliamo che una stringa sia YYYY-MM-DD
-        const isIsoDate = (d?: string) => d && /^\d{4}-\d{2}-\d{2}/.test(d);
-
-        setNewTaskForm({
-          titolo: taskToEdit.title || '',
-          descrizione: taskToEdit.description || '',
-          // 1. Usiamo la data grezza. Se manca, proviamo la stringa solo se è ISO, sennò oggi.
-          data_start: rawTask?.data_start || (isIsoDate(taskToEdit.dateStr) ? taskToEdit.dateStr : getLocalTodayStr()),
-          // 2. Stessa cosa per la scadenza! Niente più "15 Ago" nel form.
-          data_scadenza: rawTask?.data_scadenza || (isIsoDate(taskToEdit.deadline) ? taskToEdit.deadline : ''),
-          priorita: taskToEdit.priority || 'Bassa',
-          category: taskToEdit.category || '',
-          luogo: taskToEdit.location || '',
-          parent_id: taskToEdit.parent_id ? String(taskToEdit.parent_id) : ''
-        });
-        setIsSubtaskPanelOpen(!!taskToEdit.parent_id);
-      } else {
-        const defaultDate = initialDate || getLocalTodayStr();
-        setNewTaskForm({
-          titolo: '', 
-          descrizione: '', 
-          data_start: defaultDate,
-          data_scadenza: initialDate || '', 
-          priorita: 'Bassa', 
-          category: '', 
-          luogo: '', 
-          parent_id: initialParentId ? String(initialParentId) : ''
-        });
-        setIsSubtaskPanelOpen(!!initialParentId);
-      }
-    } else {
-      setIsDatePickerOpen(false);
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isOpen, taskToEdit, initialParentId, initialDate]);
-
-
-  const handleSalvaNuovaTask = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsSaving(true); // 🟢 Accendiamo il caricamento!
-
-    if (newTaskForm.data_scadenza && newTaskForm.data_start) {
-      const startDate = new Date(newTaskForm.data_start);
-      const endDate = new Date(newTaskForm.data_scadenza);
-      
-      if (endDate < startDate) {
-        setIsSaving(false); 
-        confirm({
-          title: "Data non valida",
-          message: "La data di scadenza non può essere precedente alla data di inizio del task.",
-          confirmText: "Ho capito",
-          isDestructive: false,
-          onConfirm: () => {}
-        });
-        return; 
-      }
-    }
-
-    try {
-      const categoriaScelta = dbCategories.find(c => c.category_name === newTaskForm.category);
-      const categoryId = categoriaScelta ? Number(categoriaScelta.id) : undefined;
-
-      const pacchettoPerIlServer: Partial<DbTask> = {
-        titolo: newTaskForm.titolo,
-        descrizione: newTaskForm.descrizione || null,
-        data_start: newTaskForm.data_start,
-        data_scadenza: newTaskForm.data_scadenza || null,
-        priorita: newTaskForm.priorita,
-        user_category_id: categoryId,
-        luogo: newTaskForm.luogo || null,
-        parent_id: newTaskForm.parent_id ? Number(newTaskForm.parent_id) : null
-      };
-
-      let savedTask: DbTask | undefined;
-
-      if (taskToEdit) {
-        savedTask = await saveTask({ ...pacchettoPerIlServer, id: taskToEdit?.id }); 
-      } else {
-        savedTask = await saveTask(pacchettoPerIlServer);
-      }
-      
-      if (onTaskSaved) {
-        onTaskSaved(savedTask); 
-      }
-      onClose(); 
-      
-    } catch (errore) {
-      logger.error("Errore nel salvataggio della task", errore);
-      confirm({
-        title: "Errore",
-        message: "Si è verificato un errore durante il salvataggio del task.",
-        confirmText: "Chiudi",
-        isDestructive: false,
-        onConfirm: () => {}
-      });
-    } finally {
-      setIsSaving(false); 
-    }
-  };
 
   if (!isOpen) return null;
 
@@ -185,12 +56,11 @@ const TaskNewModal: React.FC<TaskNewModalProps> = ({ isOpen, onClose, taskToEdit
     <div className="bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden flex flex-col h-full">
       <div className="px-4 py-3 border-b border-gray-100 flex justify-between items-center bg-gray-50 shrink-0">
         <h4 className="text-sm font-extrabold text-gray-800 uppercase tracking-wider">Scegli Task</h4>
-        <button type="button" onClick={() => { setIsSubtaskPanelOpen(false); setNewTaskForm({...newTaskForm, parent_id: ''}); }} className="text-gray-400 hover:text-red-500 transition-colors">
+        <button type="button" onClick={() => { setIsSubtaskPanelOpen(false); setNewTaskForm({...newTaskForm, parent_id: ''}); }} className="text-gray-400 hover:text-red-500 transition-colors cursor-pointer">
           <CloseIcon className="h-5 w-5" />
         </button>
       </div>
       <div className="max-h-[60vh] overflow-y-auto overflow-x-hidden custom-scrollbar">
-        {/* 🪄 MAGIA: Usiamo il componente condiviso! */}
         <TaskTreeSelector 
           tasks={tasks} 
           selectedParentId={newTaskForm.parent_id} 
@@ -203,20 +73,19 @@ const TaskNewModal: React.FC<TaskNewModalProps> = ({ isOpen, onClose, taskToEdit
   ) : undefined;
 
   return (
-    
-      <BaseModal
-        isOpen={isOpen}
-        onClose={onClose}
-        title={taskToEdit ? 'Modifica Task' : 'Nuova Task'}
-        maxWidthClass="max-w-md"
-        sidePanel={SubtaskPanel} 
-        formId="task-form"
-        confirmText={taskToEdit ? 'Aggiorna Task' : 'Salva Task'}
-        isLoading={isSaving}
-        isConfirmDisabled={!newTaskForm.titolo.trim()}
-        overflowVisible={true}
-      >
-        <form id="task-form" onSubmit={handleSalvaNuovaTask} className="space-y-4">
+    <BaseModal
+      isOpen={isOpen}
+      onClose={onClose}
+      title={taskToEdit ? 'Modifica Task' : 'Nuova Task'}
+      maxWidthClass="max-w-md"
+      sidePanel={SubtaskPanel} 
+      formId="task-form"
+      confirmText={taskToEdit ? 'Aggiorna Task' : 'Salva Task'}
+      isLoading={isSaving}
+      isConfirmDisabled={isConfirmDisabled}
+      overflowVisible={true}
+    >
+      <form id="task-form" onSubmit={handleSalvaNuovaTask} className="space-y-4">
         <FormInput
           label="Titolo Task"
           type="text"
@@ -258,7 +127,6 @@ const TaskNewModal: React.FC<TaskNewModalProps> = ({ isOpen, onClose, taskToEdit
 
           <div className="w-full">
             <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Priorità</label>
-            {/* 🪄 MAGIA: PrioritySelect pulitissimo! */}
             <PrioritySelect 
               value={newTaskForm.priorita} 
               onChange={(val) => setNewTaskForm({...newTaskForm, priorita: val})} 
@@ -278,16 +146,16 @@ const TaskNewModal: React.FC<TaskNewModalProps> = ({ isOpen, onClose, taskToEdit
             />
           </div>
 
-            <LocationAutocompleteInput
-              label="Luogo"
-              placeholder="Es. Via Roma 10, Milano o Scrivania..."
-              value={newTaskForm.luogo}
-              onChange={(val) => setNewTaskForm({ ...newTaskForm, luogo: val })}
-            />
+          <LocationAutocompleteInput
+            label="Luogo"
+            placeholder="Es. Via Roma 10, Milano o Scrivania..."
+            value={newTaskForm.luogo}
+            onChange={(val) => setNewTaskForm({ ...newTaskForm, luogo: val })}
+          />
         </div>
 
-        </form>
-      </BaseModal>
+      </form>
+    </BaseModal>
   );
 };
 

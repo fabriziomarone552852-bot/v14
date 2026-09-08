@@ -49,81 +49,67 @@ export const TaskTreeRow: React.FC<TaskTreeRowProps> = ({
   // È una sottotask visualizzata a livello principale nei risultati di ricerca?
   const isSubtaskInSearch = isSearchMode && level === 0 && Boolean(node.parent_id);
 
+  const getPriorityColor = (priority?: string) => {
+    switch (priority) {
+      case 'Alta':
+        return '#ef4444'; // red-500
+      case 'Media':
+        return '#f59e0b'; // amber-500
+      case 'Bassa':
+      default:
+        return '#eab308'; // yellow-500
+    }
+  };
+
   return (
     <div className="border-b border-gray-100 last:border-b-0">
       {/* Contenitore con scope hover locale per riga + tasto aggiungi sottotask */}
       <div className="group">
         {/* RIGA PRINCIPALE DEL TASK */}
         <div
-          className={`grid grid-cols-[1fr_130px_90px_110px] items-center gap-3 px-4 py-2.5 hover:bg-gray-50 transition-colors cursor-pointer ${
+          className={`grid grid-cols-[1fr_28px_28px_82px] sm:grid-cols-[1fr_130px_90px_110px] items-center gap-2 sm:gap-3 px-2 sm:px-4 py-2 sm:py-2.5 hover:bg-gray-50 transition-colors cursor-pointer ${
             node.fatto ? 'bg-gray-50/40 text-gray-400' : 'bg-white'
           }`}
           onClick={() => onSelectTask(node)}
         >
-          {/* COLONNA 1: Attività & Gerarchia */}
+          {/* COLONNA 1: Checkbox + Espansione + Titolo Task */}
           <div
-            className="flex items-center gap-2 min-w-0"
-            style={{ paddingLeft: `${level * 20}px` }}
+            className="flex items-center gap-1.5 sm:gap-2 min-w-0"
+            style={{ paddingLeft: level > 0 ? `${level * 14}px` : undefined }}
           >
+            {/* Checkbox di Completamento - Spostato a filo bordo sinistro */}
+            <input
+              type="checkbox"
+              checked={node.fatto}
+              onChange={(e) => {
+                e.stopPropagation();
+                onToggleTaskCompletion(node);
+              }}
+              className="w-4 h-4 rounded text-blue-600 border-gray-300 focus:ring-blue-500 shrink-0 cursor-pointer"
+            />
 
-            {/* Indicatore / Tasto Espansione */}
-            <div className="w-5 h-5 flex items-center justify-center shrink-0">
-              {isSubtaskInSearch ? (
-                hasChildren ? (
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onToggleExpand(node.id);
-                    }}
-                    className="p-0.5 rounded hover:bg-gray-200 text-gray-500 hover:text-gray-900 transition-colors cursor-pointer flex items-center justify-center w-5 h-5"
-                    title={isExpanded ? 'Comprimi sotto-task' : 'Espandi sotto-task'}
+            {/* Tasto Espansione se ha figli (mostrato solo se hasChildren o isSubtaskInSearch) */}
+            {hasChildren || isSubtaskInSearch ? (
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onToggleExpand(node.id);
+                }}
+                className="p-0.5 rounded hover:bg-gray-200 text-gray-500 hover:text-gray-900 transition-colors cursor-pointer flex items-center justify-center w-4 h-4 shrink-0"
+                title={isExpanded ? 'Comprimi sotto-task' : 'Espandi sotto-task'}
+              >
+                {isSubtaskInSearch ? (
+                  <svg
+                    className={`w-3.5 h-3.5 ${isExpanded ? 'text-blue-600' : 'text-gray-400'} select-none`}
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    strokeWidth={2.5}
                   >
-                    {isExpanded ? (
-                      <svg
-                        className="w-3.5 h-3.5 text-blue-600 select-none"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                        strokeWidth={2.5}
-                      >
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-                      </svg>
-                    ) : (
-                      <svg
-                        className="w-3.5 h-3.5 text-gray-400 select-none"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                        strokeWidth={2.5}
-                      >
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M5 12h14" />
-                      </svg>
-                    )}
-                  </button>
+                    <path strokeLinecap="round" strokeLinejoin="round" d={isExpanded ? "M19 9l-7 7-7-7" : "M5 12h14"} />
+                  </svg>
                 ) : (
-                  <div className="flex items-center justify-center w-5 h-5" title="Sottotask">
-                    <svg
-                      className="w-3.5 h-3.5 text-gray-400 select-none"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                      strokeWidth={2.5}
-                    >
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 12h14" />
-                    </svg>
-                  </div>
-                )
-              ) : hasChildren ? (
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onToggleExpand(node.id);
-                  }}
-                  className="p-0.5 rounded hover:bg-gray-200 text-gray-500 hover:text-gray-900 transition-colors cursor-pointer flex items-center justify-center w-5 h-5"
-                  title={isExpanded ? 'Comprimi sotto-task' : 'Espandi sotto-task'}
-                >
                   <svg
                     className={`w-3.5 h-3.5 transition-transform duration-150 ${
                       isExpanded ? 'rotate-90 text-blue-600' : 'text-gray-400'
@@ -135,59 +121,69 @@ export const TaskTreeRow: React.FC<TaskTreeRowProps> = ({
                   >
                     <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
                   </svg>
-                </button>
-              ) : null}
-            </div>
-
-            {/* Checkbox di Completamento */}
-            <input
-              type="checkbox"
-              checked={node.fatto}
-              onChange={(e) => {
-                e.stopPropagation();
-                onToggleTaskCompletion(node);
-              }}
-              className="w-4 h-4 rounded text-blue-600 border-gray-300 focus:ring-blue-500 shrink-0 cursor-pointer"
-            />
+                )}
+              </button>
+            ) : null}
 
             {/* Titolo e Descrizione Task */}
             <div className="min-w-0 flex flex-col justify-center flex-1">
               <span
-                className={`text-sm font-semibold truncate ${
+                className={`text-xs sm:text-sm font-semibold truncate ${
                   node.fatto
                     ? 'line-through text-gray-400'
                     : 'text-gray-900 group-hover:text-blue-600 transition-colors'
                 }`}
+                title={node.titolo}
               >
                 {node.titolo}
               </span>
               {node.descrizione && (
-                <span className="text-xs text-gray-400 truncate max-w-lg">
+                <span className="text-[10px] sm:text-xs text-gray-400 truncate max-w-lg">
                   {node.descrizione}
                 </span>
               )}
             </div>
           </div>
 
-          {/* COLONNA 2: Categoria */}
-          <div className="w-[130px] flex items-center min-w-0">
-            <Badge variant="category" colorHex={categoryColor} className="max-w-full truncate">
-              {categoryName}
-            </Badge>
+          {/* COLONNA 2: Categoria (Pallino colorato su mobile, Badge su desktop) */}
+          <div className="w-7 sm:w-[130px] flex items-center justify-center sm:justify-start min-w-0">
+            {/* Desktop: Badge completo */}
+            <div className="hidden sm:block max-w-full truncate">
+              <Badge variant="category" colorHex={categoryColor} className="max-w-full truncate">
+                {categoryName}
+              </Badge>
+            </div>
+            {/* Mobile: Pallino colorato compatto con tooltip */}
+            <div
+              className="sm:hidden w-3.5 h-3.5 rounded-full shadow-2xs border border-black/10 shrink-0"
+              style={{ backgroundColor: categoryColor }}
+              title={`Categoria: ${categoryName}`}
+              aria-label={`Categoria: ${categoryName}`}
+            />
           </div>
 
-          {/* COLONNA 3: Priorità */}
-          <div className="w-[90px] flex items-center">
-            <Badge variant="priority" priority={node.priorita || 'Bassa'}>
-              {node.priorita || 'Bassa'}
-            </Badge>
+          {/* COLONNA 3: Priorità (Pallino colorato su mobile, Badge su desktop) */}
+          <div className="w-7 sm:w-[90px] flex items-center justify-center sm:justify-start">
+            {/* Desktop: Badge completo */}
+            <div className="hidden sm:block">
+              <Badge variant="priority" priority={node.priorita || 'Bassa'}>
+                {node.priorita || 'Bassa'}
+              </Badge>
+            </div>
+            {/* Mobile: Pallino colorato compatto con tooltip */}
+            <div
+              className="sm:hidden w-3.5 h-3.5 rounded-full shadow-2xs border border-black/10 shrink-0"
+              style={{ backgroundColor: getPriorityColor(node.priorita) }}
+              title={`Priorità: ${node.priorita || 'Bassa'}`}
+              aria-label={`Priorità: ${node.priorita || 'Bassa'}`}
+            />
           </div>
 
           {/* COLONNA 4: Scadenza */}
-          <div className="w-[110px] flex items-center justify-start text-xs font-semibold">
+          <div className="w-[82px] sm:w-[110px] flex items-center justify-start text-[11px] sm:text-xs font-semibold">
             {formattedDeadline ? (
               <div
-                className={`flex items-center gap-1.5 ${
+                className={`flex items-center gap-1 ${
                   isOverdue
                     ? 'text-red-600 font-bold'
                     : node.fatto
@@ -196,14 +192,14 @@ export const TaskTreeRow: React.FC<TaskTreeRowProps> = ({
                 }`}
               >
                 <CalendarIcon
-                  className={`w-3.5 h-3.5 shrink-0 ${
+                  className={`w-3 h-3 sm:w-3.5 sm:h-3.5 shrink-0 ${
                     isOverdue ? 'text-red-500' : 'text-gray-400'
                   }`}
                 />
-                <span>{formattedDeadline}</span>
+                <span className="truncate">{formattedDeadline}</span>
               </div>
             ) : (
-              <span className="text-gray-300 font-medium px-2">—</span>
+              <span className="text-gray-300 font-medium px-1 sm:px-2">—</span>
             )}
           </div>
         </div>

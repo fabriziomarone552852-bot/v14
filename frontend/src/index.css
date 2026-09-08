@@ -17,6 +17,15 @@
     background-color: #4b5563; /* gray-600 al passaggio del mouse */
   }
 
+  /* Scrollbar nascosta per menu a scorrimento orizzontale */
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
   /* Animazione fluida per l'apertura dei sottomenu */
   .animate-fadeIn {
     animation: fadeIn 0.2s ease-out forwards;

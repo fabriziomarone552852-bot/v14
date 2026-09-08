@@ -30,7 +30,7 @@ export const CountdownCard: React.FC<CountdownCardProps> = ({ countdown, onClick
   return (
     <div
       onClick={onClick}
-      className={`relative h-48 w-full rounded-2xl overflow-hidden cursor-pointer shadow-xs hover:shadow-lg group transform transition-all duration-300 hover:-translate-y-1 bg-slate-900 border ${
+      className={`relative h-32 sm:h-44 md:h-48 w-full rounded-2xl overflow-hidden cursor-pointer shadow-xs hover:shadow-lg group transform transition-all duration-300 hover:-translate-y-1 bg-slate-900 border ${
         hasExpired ? 'border-slate-300/60 opacity-90' : 'border-slate-200/80'
       }`}
     >
@@ -57,13 +57,13 @@ export const CountdownCard: React.FC<CountdownCardProps> = ({ countdown, onClick
       )}
 
       {/* 4. BADGE STATO IN ALTO A DESTRA */}
-      <div className="absolute top-3 right-3 z-20">
+      <div className="absolute top-2.5 sm:top-3 right-2.5 sm:right-3 z-20">
         {hasExpired ? (
-          <span className="px-2.5 py-1 text-[10px] font-extrabold uppercase tracking-wider rounded-full bg-slate-700/85 backdrop-blur-md text-slate-200 border border-white/10 shadow-sm">
+          <span className="px-2 py-0.5 sm:px-2.5 sm:py-1 text-[9px] sm:text-[10px] font-extrabold uppercase tracking-wider rounded-full bg-slate-700/85 backdrop-blur-md text-slate-200 border border-white/10 shadow-sm">
             Scaduto
           </span>
         ) : (
-          <span className="px-2.5 py-1 text-[10px] font-extrabold uppercase tracking-wider rounded-full bg-emerald-500/80 backdrop-blur-md text-white shadow-sm flex items-center gap-1.5">
+          <span className="px-2 py-0.5 sm:px-2.5 sm:py-1 text-[9px] sm:text-[10px] font-extrabold uppercase tracking-wider rounded-full bg-emerald-500/80 backdrop-blur-md text-white shadow-sm flex items-center gap-1.5">
             <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
             In corso
           </span>
@@ -71,8 +71,8 @@ export const CountdownCard: React.FC<CountdownCardProps> = ({ countdown, onClick
       </div>
 
       {/* 5. DATA TARGET ED ORARIO IN ALTO A SINISTRA */}
-      <div className="absolute top-3 left-3 z-20">
-        <span className="text-[11px] font-bold text-white/90 bg-black/45 backdrop-blur-md px-2.5 py-1 rounded-full uppercase tracking-wider flex items-center gap-1.5 shadow-sm">
+      <div className="absolute top-2.5 sm:top-3 left-2.5 sm:left-3 z-20">
+        <span className="text-[10px] sm:text-[11px] font-bold text-white/90 bg-black/45 backdrop-blur-md px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-full uppercase tracking-wider flex items-center gap-1.5 shadow-sm">
           <span>{formattedDate}</span>
           {formattedTime && (
             <>
@@ -84,8 +84,8 @@ export const CountdownCard: React.FC<CountdownCardProps> = ({ countdown, onClick
       </div>
 
       {/* 6. CONTENUTO CENTRALE E TICK DISPLAY */}
-      <div className="absolute inset-0 p-4 sm:p-5 flex flex-col justify-end z-10">
-        <h3 className="text-white font-extrabold text-base uppercase tracking-wider truncate mb-2.5 drop-shadow-md group-hover:text-blue-200 transition-colors">
+      <div className="absolute inset-0 p-3 sm:p-5 flex flex-col justify-end z-10">
+        <h3 className="text-white font-extrabold text-xs sm:text-base uppercase tracking-wider truncate mb-1 sm:mb-2.5 drop-shadow-md group-hover:text-blue-200 transition-colors">
           {countdown.title}
         </h3>
 
@@ -95,7 +95,7 @@ export const CountdownCard: React.FC<CountdownCardProps> = ({ countdown, onClick
           </div>
         ) : (
           <div className="flex items-center gap-2">
-            <span className="text-sm font-black text-amber-300 drop-shadow-md uppercase tracking-widest animate-pulse">
+            <span className="text-xs sm:text-sm font-black text-amber-300 drop-shadow-md uppercase tracking-widest animate-pulse">
               🎉 Traguardo Raggiunto!
             </span>
           </div>

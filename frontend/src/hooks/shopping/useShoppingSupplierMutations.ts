@@ -4,6 +4,7 @@ import {
   updateShoppingSupplier,
   deleteShoppingSupplier,
   addInventoryBatch,
+  updateInventoryBatch,
   deleteInventoryBatch,
   createQuickPriceBatch,
   shoppingQueryKeys,
@@ -12,6 +13,7 @@ import type {
   ShoppingSupplierCreatePayload,
   UpdateShoppingSupplierArgs,
   AddInventoryBatchArgs,
+  UpdateInventoryBatchArgs,
   DeleteInventoryBatchArgs,
   QuickPriceBatchCreatePayload,
 } from '@/types/shopping';
@@ -69,6 +71,19 @@ export const useShoppingSupplierMutations = () => {
     },
   });
 
+  const updateInventoryBatchMutation = useMutation({
+    mutationFn: ({ batchId, data }: UpdateInventoryBatchArgs) => updateInventoryBatch(batchId, data),
+    onSuccess: async (_d, vars) => {
+      await Promise.all([
+        invalidateLists(),
+        invalidateItems(vars.listId),
+        queryClient.invalidateQueries({ queryKey: shoppingQueryKeys.products() }),
+        queryClient.invalidateQueries({ queryKey: shoppingQueryKeys.brands() }),
+        queryClient.invalidateQueries({ queryKey: shoppingQueryKeys.allBatches() }),
+      ]);
+    },
+  });
+
   const deleteInventoryBatchMutation = useMutation({
     mutationFn: ({ batchId }: DeleteInventoryBatchArgs) => deleteInventoryBatch(batchId),
     onSuccess: async (_d, vars) => {
@@ -77,6 +92,7 @@ export const useShoppingSupplierMutations = () => {
         invalidateItems(vars.listId),
         queryClient.invalidateQueries({ queryKey: shoppingQueryKeys.products() }),
         queryClient.invalidateQueries({ queryKey: shoppingQueryKeys.brands() }),
+        queryClient.invalidateQueries({ queryKey: shoppingQueryKeys.allBatches() }),
       ]);
     },
   });
@@ -98,6 +114,7 @@ export const useShoppingSupplierMutations = () => {
     updateSupplier: (args: UpdateShoppingSupplierArgs) => updateSupplierMutation.mutateAsync(args),
     deleteSupplier: (id: number, asType?: number) => deleteSupplierMutation.mutateAsync({ id, asType }),
     addInventoryBatch: (args: AddInventoryBatchArgs) => addInventoryBatchMutation.mutateAsync(args),
+    updateInventoryBatch: (args: UpdateInventoryBatchArgs) => updateInventoryBatchMutation.mutateAsync(args),
     deleteInventoryBatch: (args: DeleteInventoryBatchArgs) => deleteInventoryBatchMutation.mutateAsync(args),
     createQuickPriceBatch: (payload: QuickPriceBatchCreatePayload) =>
       createQuickPriceBatchMutation.mutateAsync(payload),

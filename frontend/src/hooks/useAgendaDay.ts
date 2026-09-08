@@ -185,12 +185,21 @@ export const useAgendaDay = (dateStr: string) => {
               const currentLog = h.logs.find((l: HabitLog) => l.data_riferimento === dateStr) ?? { count: 0 };
               const newLogs = h.logs.filter((l: HabitLog) => l.data_riferimento !== dateStr);
               
+              const activePeriod = (h.periods || []).find((p) => {
+                if (p.data_fine) {
+                  return dateStr >= p.data_inizio && dateStr <= p.data_fine;
+                }
+                return dateStr >= p.data_inizio;
+              }) || h.periods?.[0];
+
+              const maxTarget = activePeriod?.target ?? 1;
+              const nextCount = Math.min(maxTarget, Math.max(0, (currentLog.count ?? 0) + delta));
+
               newLogs.push({ 
                 ...currentLog, 
                 habit_id: habitId,
                 data_riferimento: dateStr, 
-                // 🪄 Rimosso || 0 per garantire che conteggi a zero siano considerati validi e corretti!
-                count: Math.max(0, (currentLog.count ?? 0) + delta) 
+                count: nextCount
               } as HabitLog);
               
               return { ...h, logs: newLogs };

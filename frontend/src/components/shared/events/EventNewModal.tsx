@@ -1,20 +1,14 @@
-import React, { useState, useEffect, useMemo } from 'react';
-import { type Category, CategoryGenre, type DbEvent } from '@/types';
-import type { CalendarEvent } from '@/types';
+// src/components/shared/events/EventNewModal.tsx
+import React from 'react';
+import { CategoryGenre, type DbEvent, type CalendarEvent } from '@/types';
 import DatePicker from '@/components/shared/utils/DatePicker/DatePicker';
-import { getLocalDateString, formatTimeToServer } from '@/utils/dateUtils';
 import CategorySelect from '@/components/shared/utils/CategorySelect';
 import BaseModal from '@/components/shared/dialog/BaseModal';
-import { useConfirm } from '@/context/ConfirmContext';
 import { CancelIcon } from '@/components/shared/utils/Icons';
-import { combineDateAndTime } from '@/utils/dateUtils';
-import { parseRRule, buildRRule } from '@/utils/rruleUtils';
 import { RecurrenceEditor } from '@/components/shared/utils/RecurrenceEditor';
-import { useCategories } from '@/hooks/useCategories';
-import { useEventMutations } from '@/hooks/mutations/useEventMutations';
 import TimeInput from '@/components/shared/utils/TimeInput';
-import { logger } from '@/utils/logger';
 import { FormInput, FormTextarea, LocationAutocompleteInput } from '@/components/shared/form';
+import { useEventFormLogic } from '@/hooks/forms/useEventFormLogic';
 
 interface NewEventModalProps {
   isOpen: boolean;
@@ -24,30 +18,6 @@ interface NewEventModalProps {
   initialDate?: string | null;
 }
 
-interface EventFormState {
-  titolo: string;
-  descrizione: string;
-  data_inizio: string;
-  data_fine: string;
-  ora_inizio: string;
-  ora_fine: string;
-  category: string;
-  luogo: string;
-  tutto_il_giorno: boolean;
-}
-
-interface EventPayload {
-  id?: number;
-  titolo: string;
-  descrizione: string | null;
-  data_inizio: string;
-  data_fine: string | null;
-  tutto_il_giorno: boolean;
-  user_category_id?: number;
-  luogo: string | null;
-  rrule: string | null;
-}
-
 const NewEventModal: React.FC<NewEventModalProps> = ({
   isOpen,
   onClose,
@@ -55,160 +25,30 @@ const NewEventModal: React.FC<NewEventModalProps> = ({
   initialDate,
   onEventSaved,
 }) => {
-  const { saveEvent } = useEventMutations<{ events: DbEvent[] }>(['events']);
-  const { data: categories = [] } = useCategories();
-
-  const [newEventForm, setNewEventForm] = useState<EventFormState>({
-    titolo: '',
-    descrizione: '',
-    data_inizio: getLocalDateString(),
-    data_fine: '',
-    ora_inizio: '',
-    ora_fine: '',
-    category: '',
-    luogo: '',
-    tutto_il_giorno: false,
+  const {
+    newEventForm,
+    setNewEventForm,
+    dynamicFormId,
+    activeDatePicker,
+    setActiveDatePicker,
+    isRecurrent,
+    setIsRecurrent,
+    rruleInterval,
+    setRruleInterval,
+    rruleFreq,
+    setRruleFreq,
+    rruleUntil,
+    setRruleUntil,
+    isSaving,
+    handleSalvaNuovoEvento,
+    isConfirmDisabled,
+  } = useEventFormLogic({
+    isOpen,
+    onClose,
+    eventToEdit,
+    initialDate,
+    onEventSaved,
   });
-
-  const { confirm } = useConfirm();
-  const dynamicFormId = useMemo(
-    () => `event-form-${Math.random().toString(36).substring(2, 9)}`,
-    []
-  );
-
-  const [activeDatePicker, setActiveDatePicker] = useState<
-    'start' | 'end' | 'until' | null
-  >(null);
-
-  const [isRecurrent, setIsRecurrent] = useState(false);
-  const [rruleInterval, setRruleInterval] = useState('1');
-  const [rruleFreq, setRruleFreq] = useState('WEEKLY');
-  const [rruleUntil, setRruleUntil] = useState('');
-
-  const [isSaving, setIsSaving] = useState(false);
-
-  useEffect(() => {
-    if (isOpen) {
-      if (eventToEdit) {
-        setNewEventForm({
-          titolo: eventToEdit.title || '',
-          descrizione: eventToEdit.description || '',
-          data_inizio: eventToEdit.dateStr || getLocalDateString(),
-          data_fine: eventToEdit.endDateStr || '',
-          ora_inizio: eventToEdit.time || '',
-          ora_fine: eventToEdit.endTime || '',
-          category: eventToEdit.category || '',
-          luogo: eventToEdit.location || '',
-          tutto_il_giorno: !!eventToEdit.tutto_il_giorno,
-        });
-
-        const {
-          isRecurrent: isRec,
-          freq,
-          interval,
-          until,
-        } = parseRRule(eventToEdit.rrule);
-
-        setIsRecurrent(isRec);
-        setRruleFreq(freq);
-        setRruleInterval(interval);
-        setRruleUntil(until);
-      } else {
-        setNewEventForm({
-          titolo: '',
-          descrizione: '',
-          data_inizio: initialDate || getLocalDateString(),
-          data_fine: '',
-          ora_inizio: '',
-          ora_fine: '',
-          category: '',
-          luogo: '',
-          tutto_il_giorno: false,
-        });
-        setIsRecurrent(false);
-        setRruleFreq('WEEKLY');
-        setRruleInterval('1');
-        setRruleUntil('');
-      }
-    } else {
-      setActiveDatePicker(null);
-    }
-  }, [isOpen, eventToEdit, initialDate]);
-
-  const handleSalvaNuovoEvento = async (e: React.FormEvent): Promise<void> => {
-    e.preventDefault();
-
-    setIsSaving(true);
-
-    const categoriaScelta = categories.find(
-      (c: Category) => c.category_name === newEventForm.category
-    );
-    const categoryId = categoriaScelta ? Number(categoriaScelta.id) : undefined;
-
-    const oraInizioPronta = formatTimeToServer(newEventForm.ora_inizio);
-    const oraFinePronta = formatTimeToServer(newEventForm.ora_fine);
-
-    const eTuttoIlGiorno =
-      newEventForm.tutto_il_giorno || (!oraInizioPronta && !oraFinePronta);
-
-    let oraInizioFinale = oraInizioPronta;
-    if (!oraInizioPronta && oraFinePronta) {
-      oraInizioFinale = oraFinePronta;
-    }
-
-    const dataInizioStr = combineDateAndTime(
-      newEventForm.data_inizio,
-      oraInizioFinale || '00:00'
-    );
-
-    let dataFineStr = null;
-    if (newEventForm.data_fine) {
-      dataFineStr = combineDateAndTime(
-        newEventForm.data_fine,
-        oraFinePronta || '23:59'
-      );
-    } else if (oraFinePronta) {
-      dataFineStr = combineDateAndTime(newEventForm.data_inizio, oraFinePronta);
-    }
-
-    let rruleString = null;
-    if (isRecurrent) {
-      rruleString = buildRRule(rruleFreq, rruleInterval, rruleUntil);
-    }
-
-    const veroId = eventToEdit
-      ? Number(String(eventToEdit.id).split('-')[0])
-      : undefined;
-
-    const pacchettoPerIlServer: EventPayload = {
-      id: veroId,
-      titolo: newEventForm.titolo,
-      descrizione: newEventForm.descrizione || null,
-      data_inizio: dataInizioStr,
-      data_fine: dataFineStr,
-      tutto_il_giorno: eTuttoIlGiorno,
-      user_category_id: categoryId,
-      luogo: newEventForm.luogo || null,
-      rrule: rruleString,
-    };
-
-    try {
-      const savedEvent = (await saveEvent(pacchettoPerIlServer)) as DbEvent;
-      if (onEventSaved) onEventSaved(savedEvent);
-      onClose();
-    } catch (errore: unknown) {
-      logger.error("Errore nel salvataggio dell'evento", errore);
-      confirm({
-        title: 'Attenzione',
-        message: "Si è verificato un errore durante il salvataggio.",
-        confirmText: 'Ho capito',
-        isDestructive: false,
-        onConfirm: () => {},
-      });
-    } finally {
-      setIsSaving(false);
-    }
-  };
 
   if (!isOpen) return null;
 
@@ -221,7 +61,7 @@ const NewEventModal: React.FC<NewEventModalProps> = ({
       formId={dynamicFormId}
       confirmText={eventToEdit ? 'Aggiorna Evento' : 'Salva Evento'}
       isLoading={isSaving}
-      isConfirmDisabled={!newEventForm.titolo.trim()}
+      isConfirmDisabled={isConfirmDisabled}
       overflowVisible={true}
     >
       <form
@@ -333,7 +173,8 @@ const NewEventModal: React.FC<NewEventModalProps> = ({
                   onClick={() =>
                     setNewEventForm({ ...newEventForm, data_fine: '' })
                   }
-                  className="text-red-400 hover:text-red-600"
+                  className="text-red-400 hover:text-red-600 cursor-pointer"
+                  title="Rimuovi data fine"
                 >
                   <CancelIcon className="h-5 w-5" />
                 </button>

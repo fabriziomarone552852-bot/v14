@@ -1,6 +1,7 @@
 // src/api/shopping/shoppingListsApi.ts
 import type { InventoryBatchRow } from '@/types';
 import type {
+  PinStatus,
   ShoppingListCreatePayload,
   ShoppingListItem,
   ShoppingListItemCreatePayload,
@@ -40,6 +41,8 @@ export type ShoppingListSummaryApi = {
   status_id?: number | null;
   status_code_name?: string | null;
   is_completed?: boolean | null;
+  pin_status?: string | null;
+  is_default?: boolean | null;
   items?: ShoppingListItemApi[];
   open_items_count?: number;
   purchased_items_count?: number;
@@ -88,8 +91,10 @@ export function normalizeShoppingListSummary(
     purchasedItemsCount,
     totalItemsCount,
     isCompleted: Boolean(list.is_completed),
+    pinStatus: (list.pin_status as PinStatus) ?? null,
+    isDefault: Boolean(list.is_default),
     canEdit: true,
-    canDelete: true,
+    canDelete: !list.is_default,
     canArchive: false,
     items: (list.items ?? []).map(normalizeShoppingListItem),
   };
@@ -109,6 +114,8 @@ export function serializeShoppingListPayload(
       : {}),
     ...(payload.statusId !== undefined ? { status_id: payload.statusId } : {}),
     ...(payload.isCompleted !== undefined ? { is_completed: payload.isCompleted } : {}),
+    ...(payload.pinStatus !== undefined ? { pin_status: payload.pinStatus } : {}),
+    ...(payload.isDefault !== undefined ? { is_default: payload.isDefault } : {}),
   };
 }
 
@@ -130,6 +137,7 @@ export function serializeShoppingListItemUpdatePayload(
   payload: ShoppingListItemUpdatePayload
 ) {
   return {
+    ...(payload.shoppingListId !== undefined ? { shopping_list_id: payload.shoppingListId } : {}),
     ...(payload.productName !== undefined ? { product_name: payload.productName } : {}),
     ...(payload.brandName !== undefined ? { brand_name: payload.brandName } : {}),
     ...(payload.brandId !== undefined ? { brand_id: payload.brandId } : {}),

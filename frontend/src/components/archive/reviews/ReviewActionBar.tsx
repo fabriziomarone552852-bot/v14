@@ -51,11 +51,11 @@ export const ReviewActionBar: React.FC<ReviewActionBarProps> = ({
         onChange={onTabChange}
       />
 
-      {/* 2. LENTE DI RICERCA & FILTRI A DESTRA */}
+      {/* 2. LENTE DI RICERCA & FILTRI A DESTRA (Nascosta su mobile) */}
       <button
         type="button"
         onClick={onOpenSearch}
-        className={`relative p-2.5 rounded-xl border transition-all cursor-pointer flex items-center justify-center ${
+        className={`hidden sm:flex relative p-2.5 rounded-xl border transition-all cursor-pointer items-center justify-center ${
           activeFiltersCount > 0
             ? 'bg-blue-50 border-blue-200 text-blue-600 shadow-2xs'
             : 'bg-slate-50 border-slate-200/80 text-slate-600 hover:bg-slate-100 hover:text-slate-900'

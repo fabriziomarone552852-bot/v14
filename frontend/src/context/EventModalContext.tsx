@@ -3,8 +3,11 @@ import React, { createContext, useContext, type ReactNode } from 'react';
 import type { CalendarEvent } from '@/types';
 import EventDetailModal, { type EventDeletePayload } from '@/components/shared/events/EventDetailModal';
 import NewEventModal from '@/components/shared/events/EventNewModal';
+import MobileEventDetailModal from '@/mobile/components/modals/MobileEventDetailModal';
+import MobileEventNewModal from '@/mobile/components/modals/MobileEventNewModal';
 import { useEventMutations } from '@/hooks/mutations/useEventMutations';
 import { useModal } from '@/hooks/useModals';
+import { useIsMobile } from '@/mobile/hooks/useIsMobile';
 
 // 1. Definiamo l'interfaccia del Context con tipi stringenti (Zero any!)
 interface EventModalContextType {
@@ -30,6 +33,7 @@ interface EventFormModalState {
 export const EventModalProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const detailModal = useModal<CalendarEvent>();
   const formModal = useModal<EventFormModalState>();
+  const isMobile = useIsMobile();
 
   const { deleteRecurringEvent } = useEventMutations(['events']);
 
@@ -62,21 +66,44 @@ export const EventModalProvider: React.FC<{ children: ReactNode }> = ({ children
       }}
     >
       {children}
-      <EventDetailModal 
-        isOpen={detailModal.isOpen} 
-        onClose={detailModal.close} 
-        selectedEvent={detailModal.data} 
-        onDeleteClick={handleDeleteEvent} 
-        onEditClick={handleEditEvent} 
-      />
 
-      <NewEventModal 
-        isOpen={formModal.isOpen} 
-        onClose={formModal.close} 
-        eventToEdit={formModal.data?.eventToEdit || null} 
-        initialDate={formModal.data?.initialDate || null}
-        onEventSaved={() => {}}  
-      />
+      {isMobile ? (
+        <>
+          <MobileEventDetailModal
+            isOpen={detailModal.isOpen}
+            onClose={detailModal.close}
+            selectedEvent={detailModal.data}
+            onDeleteClick={handleDeleteEvent}
+            onEditClick={handleEditEvent}
+          />
+
+          <MobileEventNewModal
+            isOpen={formModal.isOpen}
+            onClose={formModal.close}
+            eventToEdit={formModal.data?.eventToEdit || null}
+            initialDate={formModal.data?.initialDate || null}
+            onEventSaved={() => {}}
+          />
+        </>
+      ) : (
+        <>
+          <EventDetailModal 
+            isOpen={detailModal.isOpen} 
+            onClose={detailModal.close} 
+            selectedEvent={detailModal.data} 
+            onDeleteClick={handleDeleteEvent} 
+            onEditClick={handleEditEvent} 
+          />
+
+          <NewEventModal 
+            isOpen={formModal.isOpen} 
+            onClose={formModal.close} 
+            eventToEdit={formModal.data?.eventToEdit || null} 
+            initialDate={formModal.data?.initialDate || null}
+            onEventSaved={() => {}}  
+          />
+        </>
+      )}
     </EventModalContext.Provider>
   );
 };

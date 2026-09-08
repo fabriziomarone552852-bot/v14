@@ -21,8 +21,24 @@ def list_lists(db: Session, owner_id: int) -> List[ShoppingList]:
             ShoppingList.owner_id == owner_id,
             ShoppingList.deleted_at.is_(None),
         )
-        .order_by(ShoppingList.created_at.asc())
+        .order_by(
+            ShoppingList.is_default.desc(),
+            ShoppingList.created_at.asc(),
+        )
         .all()
+    )
+
+
+def get_default_list(db: Session, owner_id: int) -> Optional[ShoppingList]:
+    return (
+        db.query(ShoppingList)
+        .options(*list_loaders(), *soft_delete_criteria())
+        .filter(
+            ShoppingList.owner_id == owner_id,
+            ShoppingList.is_default.is_(True),
+            ShoppingList.deleted_at.is_(None),
+        )
+        .first()
     )
 
 

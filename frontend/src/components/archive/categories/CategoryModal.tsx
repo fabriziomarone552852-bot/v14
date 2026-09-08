@@ -1,8 +1,10 @@
 // src/components/categories/CategoryModal.tsx
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import BaseModal from '@/components/shared/dialog/BaseModal';
 import { CategoryGenre, type Category } from '@/types/categories';
 import { useCreateCategory, useUpdateCategory } from '@/hooks/useCategories';
+import { useIsMobile } from '@/mobile/hooks/useIsMobile';
+import MobileCategoryModal from '@/mobile/components/modals/MobileCategoryModal';
 import { logger } from '@/utils/logger';
 
 interface CategoryModalProps {
@@ -33,10 +35,12 @@ export const CategoryModal: React.FC<CategoryModalProps> = ({
   defaultGenre = CategoryGenre.TASKS,
   onSuccess,
 }) => {
+  const isMobile = useIsMobile();
   const [name, setName] = useState('');
   const [color, setColor] = useState('#3B82F6');
   const [genre, setGenre] = useState<number>(defaultGenre);
   const [errorMsg, setErrorMsg] = useState('');
+  const colorInputRef = useRef<HTMLInputElement>(null);
 
   const createCategoryMutation = useCreateCategory();
   const updateCategoryMutation = useUpdateCategory();
@@ -59,6 +63,18 @@ export const CategoryModal: React.FC<CategoryModalProps> = ({
   }, [categoryToEdit, defaultGenre, isOpen]);
 
   if (!isOpen) return null;
+
+  if (isMobile) {
+    return (
+      <MobileCategoryModal
+        isOpen={isOpen}
+        onClose={onClose}
+        categoryToEdit={categoryToEdit}
+        defaultGenre={defaultGenre}
+        onSuccess={onSuccess}
+      />
+    );
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -102,6 +118,21 @@ export const CategoryModal: React.FC<CategoryModalProps> = ({
         }
       }
       setErrorMsg(message);
+    }
+  };
+
+  const openNativeColorPicker = () => {
+    const input = colorInputRef.current;
+    if (input) {
+      if ('showPicker' in input && typeof input.showPicker === 'function') {
+        try {
+          input.showPicker();
+        } catch {
+          input.click();
+        }
+      } else {
+        input.click();
+      }
     }
   };
 
@@ -190,12 +221,19 @@ export const CategoryModal: React.FC<CategoryModalProps> = ({
             Colore Categoria
           </label>
           <div className="flex items-center gap-2 mb-2">
-            <input
-              type="color"
-              value={color}
-              onChange={(e) => setColor(e.target.value)}
-              className="w-10 h-10 p-0.5 border border-gray-200 rounded-xl cursor-pointer shrink-0 shadow-2xs"
-            />
+            <div
+              onClick={openNativeColorPicker}
+              className="relative cursor-pointer shrink-0"
+              title="Apri selettore colore RGB"
+            >
+              <input
+                ref={colorInputRef}
+                type="color"
+                value={color}
+                onChange={(e) => setColor(e.target.value)}
+                className="w-10 h-10 p-0.5 border border-gray-200 rounded-xl cursor-pointer shadow-2xs"
+              />
+            </div>
             <input
               type="text"
               value={color}

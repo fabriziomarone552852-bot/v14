@@ -54,6 +54,8 @@ export const useYearEntries = (yearData: SyncYearResponse | undefined, year: num
         entries: updater(old.entries ?? []),
       };
     });
+    queryClient.invalidateQueries({ queryKey: ['yearly_entries'] });
+    queryClient.invalidateQueries({ queryKey: ['tags_archive'] });
   };
 
   const obiettivo = useMemo(() => entries.find(e => e.yearly_type === 'OY') || null, [entries]);
@@ -105,23 +107,106 @@ export const useYearEntries = (yearData: SyncYearResponse | undefined, year: num
 
   const handleSaveObiettivo = async (text: string) => {
     const existing = obiettivo;
+    const trimmed = text.trim();
+
     if (existing) {
-      const updated = await yearlyEntriesApi.update(existing.id, { yearly_field: text });
-      if (updated) updateEntriesState(prev => prev.map(e => e.id === existing.id ? updated : e));
-    } else {
-      const created = await yearlyEntriesApi.create({ year, yearly_type: 'OY', yearly_field: text });
-      if (created) updateEntriesState(prev => [...prev, created]);
+      if (!trimmed) {
+        // Se svuotato -> cancellazione ottimistica immediata
+        updateEntriesState(prev => prev.filter(e => e.id !== existing.id));
+        try {
+          await yearlyEntriesApi.delete(existing.id);
+        } catch (err) {
+          logger.error('Errore eliminazione obiettivo:', err);
+          updateEntriesState(prev => [...prev, existing]);
+        }
+      } else {
+        // Aggiornamento ottimistico immediato
+        const optimistic: DbYearlyEntry = { ...existing, yearly_field: trimmed };
+        updateEntriesState(prev => prev.map(e => e.id === existing.id ? optimistic : e));
+        try {
+          const updated = await yearlyEntriesApi.update(existing.id, { yearly_field: trimmed });
+          if (updated) {
+            updateEntriesState(prev => prev.map(e => e.id === existing.id ? updated : e));
+          }
+        } catch (err) {
+          logger.error('Errore aggiornamento obiettivo:', err);
+          updateEntriesState(prev => prev.map(e => e.id === existing.id ? existing : e));
+        }
+      }
+    } else if (trimmed) {
+      // Creazione ottimistica immediata con tempId
+      const tempId = -Date.now();
+      const optimistic: DbYearlyEntry = {
+        id: tempId,
+        user_id: 0,
+        year,
+        yearly_type: 'OY',
+        yearly_field: trimmed,
+      };
+      updateEntriesState(prev => [...prev, optimistic]);
+
+      try {
+        const created = await yearlyEntriesApi.create({ year, yearly_type: 'OY', yearly_field: trimmed });
+        if (created) {
+          updateEntriesState(prev => prev.map(e => e.id === tempId ? created : e));
+        }
+      } catch (err) {
+        logger.error('Errore creazione obiettivo:', err);
+        updateEntriesState(prev => prev.filter(e => e.id !== tempId));
+      }
     }
   };
 
   const handleSavePriority = async (index: number, id: number | undefined, text: string) => {
     const type: YearlyType = `P${index + 1}` as YearlyType;
-    if (id) {
-      const updated = await yearlyEntriesApi.update(id, { yearly_field: text });
-      if (updated) updateEntriesState(prev => prev.map(e => e.id === id ? updated : e));
-    } else {
-      const created = await yearlyEntriesApi.create({ year, yearly_type: type, yearly_field: text });
-      if (created) updateEntriesState(prev => [...prev, created]);
+    const existing = id ? entries.find(e => e.id === id) : entries.find(e => e.yearly_type === type);
+    const trimmed = text.trim();
+
+    if (existing) {
+      if (!trimmed) {
+        // Eliminazione priorità ottimistica immediata
+        updateEntriesState(prev => prev.filter(e => e.id !== existing.id));
+        try {
+          await yearlyEntriesApi.delete(existing.id);
+        } catch (err) {
+          logger.error('Errore eliminazione priorità:', err);
+          updateEntriesState(prev => [...prev, existing]);
+        }
+      } else {
+        // Aggiornamento priorità ottimistico immediato
+        const optimistic: DbYearlyEntry = { ...existing, yearly_field: trimmed };
+        updateEntriesState(prev => prev.map(e => e.id === existing.id ? optimistic : e));
+        try {
+          const updated = await yearlyEntriesApi.update(existing.id, { yearly_field: trimmed });
+          if (updated) {
+            updateEntriesState(prev => prev.map(e => e.id === existing.id ? updated : e));
+          }
+        } catch (err) {
+          logger.error('Errore aggiornamento priorità:', err);
+          updateEntriesState(prev => prev.map(e => e.id === existing.id ? existing : e));
+        }
+      }
+    } else if (trimmed) {
+      // Creazione priorità ottimistica immediata
+      const tempId = -(Date.now() + index);
+      const optimistic: DbYearlyEntry = {
+        id: tempId,
+        user_id: 0,
+        year,
+        yearly_type: type,
+        yearly_field: trimmed,
+      };
+      updateEntriesState(prev => [...prev, optimistic]);
+
+      try {
+        const created = await yearlyEntriesApi.create({ year, yearly_type: type, yearly_field: trimmed });
+        if (created) {
+          updateEntriesState(prev => prev.map(e => e.id === tempId ? created : e));
+        }
+      } catch (err) {
+        logger.error('Errore creazione priorità:', err);
+        updateEntriesState(prev => prev.filter(e => e.id !== tempId));
+      }
     }
   };
 

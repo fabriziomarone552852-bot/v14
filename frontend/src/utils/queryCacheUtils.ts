@@ -44,6 +44,7 @@ export const invalidateAllViews = (queryClient: QueryClient): void => {
       SYNC_VIEW_KEYS.includes(query.queryKey[0] as SyncViewKey),
   });
   queryClient.invalidateQueries({ queryKey: ['tasks'] });
+  queryClient.invalidateQueries({ queryKey: ['notes'] });
 };
 
 /**

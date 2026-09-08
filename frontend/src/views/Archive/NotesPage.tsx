@@ -8,11 +8,14 @@ import { NoteFilterBar } from '@/components/archive/notes/NoteFilterBar';
 import { NoteCard } from '@/components/archive/notes/NoteCard';
 import { NoteFilterModal } from '@/components/archive/notes/NoteFilterModal';
 import { NoteModal } from '@/components/archive/notes/NoteModal';
+import { MobileNoteModal } from '@/mobile/components/modals/MobileNoteModal';
 import { useNotes, useCreateNote, useUpdateNote, useDeleteNote } from '@/hooks/useNotes';
 import { useNoteArchiveData, type NoteFilterState } from '@/hooks/useNoteArchiveData';
 import { useDynamicPageSize } from '@/hooks/useDynamicPageSize';
 import { useModal } from '@/hooks/useModals';
+import { useArchiveHeader } from '@/context/ArchiveHeaderContext';
 import { useConfirm } from '@/context/ConfirmContext';
+import { useIsMobile } from '@/mobile/hooks/useIsMobile';
 import { ARCHIVE_PANEL_CLASS } from './CategoriesPage';
 import { ERROR_MESSAGES } from '@/data/loadingMessages';
 import type { DailyEntry } from '@/types/dailyentries';
@@ -28,6 +31,7 @@ const initialFilterState: NoteFilterState = {
 export const NotesPage: React.FC = () => {
   const queryClient = useQueryClient();
   const { confirm } = useConfirm();
+  const isMobile = useIsMobile();
 
   // 1. CARICAMENTO DATI CON REACT QUERY
   const { data: rawNotes = [], isLoading: loading, isError } = useNotes();
@@ -124,9 +128,17 @@ export const NotesPage: React.FC = () => {
     formModal.close();
   };
 
+  // 6. REGISTRAZIONE HEADER ARCHIVIO PER MOBILE
+  useArchiveHeader({
+    title: 'Note & Appunti',
+    onOpenSearch: filterModal.open,
+    onOpenNew: handleOpenNew,
+    activeFiltersCount,
+  });
+
   return (
-    <div className="h-full flex flex-col gap-3.5 max-w-[1600px] mx-auto relative z-10 pb-1">
-      {/* 1. HEADER STANDARD */}
+    <div className="h-full flex flex-col gap-2 sm:gap-3.5 w-full max-w-[1600px] mx-auto relative z-10 pb-1">
+      {/* 1. HEADER STANDARD (su mobile mostra solo targhette se presenti) */}
       <ArchiveHeader
         title="NOTE & RIFLESSIONI"
         subtitle="Bacheca completa delle tue note, memo veloci e riflessioni giornaliere."
@@ -134,7 +146,7 @@ export const NotesPage: React.FC = () => {
         className={ARCHIVE_PANEL_CLASS}
       />
 
-      {/* 2. BARRA AZIONI (NUOVA NOTA + RICERCA) */}
+      {/* 2. BARRA AZIONI (NUOVA NOTA + RICERCA - nascosta su mobile) */}
       <NoteFilterBar
         onOpenNewNote={handleOpenNew}
         onOpenSearch={filterModal.open}
@@ -226,12 +238,21 @@ export const NotesPage: React.FC = () => {
       />
 
       {/* 5. MODALE CREAZIONE / MODIFICA NOTA */}
-      <NoteModal
-        isOpen={formModal.isOpen}
-        onClose={formModal.close}
-        noteToEdit={formModal.data}
-        onSave={handleSaveNote}
-      />
+      {isMobile ? (
+        <MobileNoteModal
+          isOpen={formModal.isOpen}
+          onClose={formModal.close}
+          noteToEdit={formModal.data}
+          onSave={handleSaveNote}
+        />
+      ) : (
+        <NoteModal
+          isOpen={formModal.isOpen}
+          onClose={formModal.close}
+          noteToEdit={formModal.data}
+          onSave={handleSaveNote}
+        />
+      )}
     </div>
   );
 };

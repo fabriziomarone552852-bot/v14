@@ -211,21 +211,24 @@ const AppShellLayout: React.FC<AppShellLayoutProps> = ({ onLogout }) => {
           </nav>
 
           {/* FOOTER SIDEBAR: Settings + Logout */}
-          <div className={`pt-4 mt-2 border-t border-gray-800 flex ${isSidebarOpen ? 'flex-row items-center justify-between px-6' : 'flex-col gap-6 items-center px-0'} shrink-0`}>
-            <Link
-              to="/settings"
-              className="p-2 rounded-xl text-gray-400 hover:bg-gray-700 hover:text-white transition-colors focus:outline-none"
-              title="Impostazioni"
-            >
-              <SettingsIcon className="w-6 h-6" />
-            </Link>
-            <button 
-              onClick={onLogout} 
-              className={`font-bold rounded-xl text-red-400 transition-colors focus:outline-none ${isSidebarOpen ? 'text-sm w-full py-1  hover:text-white hover:bg-red-600 ' : 'text-[14px] pb-2 hover:text-red-200'}`}
-              title="Disconnetti"
-            >
-              {isSidebarOpen ? 'Esci' : 'Esci'}
-            </button>
+          <div className="pt-4 mt-2 border-t border-gray-800 flex flex-col gap-2 shrink-0">
+
+            <div className={`flex ${isSidebarOpen ? 'flex-row items-center justify-between px-6' : 'flex-col gap-4 items-center px-0'}`}>
+              <Link
+                to="/settings"
+                className="p-2 rounded-xl text-gray-400 hover:bg-gray-700 hover:text-white transition-colors focus:outline-none"
+                title="Impostazioni"
+              >
+                <SettingsIcon className="w-6 h-6" />
+              </Link>
+              <button 
+                onClick={onLogout} 
+                className={`font-bold rounded-xl text-red-400 transition-colors focus:outline-none ${isSidebarOpen ? 'text-sm w-full py-1 hover:text-white hover:bg-red-600' : 'text-[14px] pb-2 hover:text-red-200'}`}
+                title="Disconnetti"
+              >
+                Esci
+              </button>
+            </div>
           </div>
 
         </div>

@@ -13,8 +13,15 @@ import { TagTableRow } from '@/components/archive/tags/TagTableRow';
 import { TagReviewsModal } from '@/components/archive/tags/TagReviewsModal';
 import { MonthReviewArchiveModal } from '@/components/archive/reviews/MonthReviewArchiveModal';
 import { YearReviewArchiveModal } from '@/components/archive/reviews/YearReviewArchiveModal';
-import { useTagArchiveData, type EnrichedTagItem, type AssociatedReview } from '@/hooks/useTagArchiveData';
+import {
+  useTagArchiveData,
+  type EnrichedTagItem,
+  type AssociatedReview,
+  type TagSortField,
+  type TagSortDirection,
+} from '@/hooks/useTagArchiveData';
 import { useDynamicPageSize } from '@/hooks/useDynamicPageSize';
+import { useArchiveHeader } from '@/context/ArchiveHeaderContext';
 import { ERROR_MESSAGES } from '@/data/loadingMessages';
 import type { MonthlyEntryResponse } from '@/types/monthlyentries';
 import type { DbYearlyEntry } from '@/types/yearlyentries';
@@ -48,14 +55,16 @@ export const TagsPage: React.FC = () => {
   const isLoading = loadingCategories || loadingMonthly || loadingYearly;
   const isError = catError || monthError || yearError;
 
-  // 2. STATO TAB VISUALIZZAZIONE (BACHECA / TABELLA) E RICERCA
+  // 2. STATO TAB VISUALIZZAZIONE (BACHECA / TABELLA), ORDINAMENTO E RICERCA
   const [activeTab, setActiveTab] = useState<TagViewTab>('cloud');
   const [searchQuery, setSearchQuery] = useState('');
+  const [sortField, setSortField] = useState<TagSortField>('name');
+  const [sortDirection, setSortDirection] = useState<TagSortDirection>('asc');
   const [currentPage, setCurrentPage] = useState<number>(1);
 
   // 3. CALCOLO DINAMICO DELLE RIGHE PER LA TABELLA INFERIORE
   const { containerRef, pageSize } = useDynamicPageSize({
-    rowHeight: 52,
+    rowHeight: 46,
     defaultPageSize: 8,
     minItems: 3,
     maxItems: 25,
@@ -74,6 +83,8 @@ export const TagsPage: React.FC = () => {
     searchQuery,
     currentPage,
     pageSize,
+    sortField,
+    sortDirection,
   });
 
   // 5. STATO MODALE REVIEW COLLEGATE (DOPPIO CLICK)
@@ -133,8 +144,23 @@ export const TagsPage: React.FC = () => {
     setCurrentPage(1);
   };
 
+  const handleSort = (field: TagSortField) => {
+    if (sortField === field) {
+      setSortDirection((prev) => (prev === 'asc' ? 'desc' : 'asc'));
+    } else {
+      setSortField(field);
+      setSortDirection('asc');
+    }
+    setCurrentPage(1);
+  };
+
+  // 7. REGISTRAZIONE HEADER ARCHIVIO PER MOBILE
+  useArchiveHeader({
+    title: 'Tag & Etichette',
+  });
+
   return (
-    <div className="h-full flex flex-col gap-3.5 max-w-[1600px] mx-auto relative z-10 pb-1">
+    <div className="h-full flex flex-col gap-2 sm:gap-3.5 w-full max-w-[1600px] mx-auto relative z-10 pb-1">
       {/* 1. HEADER STANDARD */}
       <ArchiveHeader
         title="TAG & ETICHETTE"
@@ -180,7 +206,13 @@ export const TagsPage: React.FC = () => {
         />
       ) : (
         <ArchiveTableContainer
-          header={<TagTableHeader />}
+          header={
+            <TagTableHeader
+              sortField={sortField}
+              sortDirection={sortDirection}
+              onSort={handleSort}
+            />
+          }
           loading={isLoading}
           loadingMessage="Caricamento tag in corso..."
           isError={isError}

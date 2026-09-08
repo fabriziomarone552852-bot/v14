@@ -31,13 +31,16 @@ export const ArchiveActionBar: React.FC<ArchiveActionBarProps> = ({
   className = '',
 }) => {
   const hasActiveFilters = activeFiltersCount > 0;
+  
+  // Se non c'è centerContent (es. tabs), la barra è nascosta su mobile perché + e 🔍 sono nell'header
+  const visibilityClass = !centerContent ? 'hidden sm:flex' : 'flex';
   const basePanelClass =
-    'rounded-2xl border border-slate-200/90 bg-white shadow-xs p-2.5 sm:px-4 shrink-0 flex items-center justify-between gap-3 text-xs relative z-10';
+    'rounded-2xl border border-slate-200/90 bg-white shadow-xs p-2.5 sm:px-4 shrink-0 items-center justify-between gap-3 text-xs relative z-10';
 
   return (
-    <section className={`${basePanelClass} ${className}`}>
-      {/* A SINISTRA: Pulsante Aggiungi / Azione Principale */}
-      <div className="w-44 sm:w-48 shrink-0">
+    <section className={`${basePanelClass} ${visibilityClass} ${className}`}>
+      {/* A SINISTRA: Pulsante Aggiungi / Azione Principale (nascosto su mobile) */}
+      <div className="hidden sm:block w-44 sm:w-48 shrink-0">
         {actionButton ? (
           actionButton
         ) : addLabel && onAdd ? (
@@ -57,8 +60,8 @@ export const ArchiveActionBar: React.FC<ArchiveActionBarProps> = ({
         </div>
       )}
 
-      {/* A DESTRA: Lente di Ricerca & Eventuali Filtri Rapidi */}
-      <div className="flex items-center gap-2.5 shrink-0">
+      {/* A DESTRA: Lente di Ricerca & Eventuali Filtri Rapidi (nascosti su mobile se non ci sono filtri extra) */}
+      <div className="hidden sm:flex items-center gap-2.5 shrink-0">
         {onOpenSearch && (
           <button
             type="button"

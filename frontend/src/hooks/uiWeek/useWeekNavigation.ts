@@ -1,6 +1,6 @@
 import { useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getMonday, getSunday, getISOWeekNumber, formatDateString } from '@/utils/dateUtils';
+import { getMonday, getSunday, getISOWeekNumber, formatDateString, isSameWeek } from '@/utils/dateUtils';
 import { useDay } from '@/context/DayContext';
 
 export const useWeekNavigation = () => {
@@ -11,8 +11,7 @@ export const useWeekNavigation = () => {
   const sunday = useMemo((): Date => getSunday(targetDate), [targetDate]);
   const weekNumber = useMemo((): number => getISOWeekNumber(targetDate), [targetDate]);
   
-  const today = new Date();
-  const isCurrentWeek = monday.getTime() === getMonday(today).getTime();
+  const isCurrentWeek = useMemo((): boolean => isSameWeek(targetDate, new Date()), [targetDate]);
 
   const mondayStr = useMemo((): string => formatDateString(monday), [monday]);
   const sundayStr = useMemo((): string => formatDateString(sunday), [sunday]);

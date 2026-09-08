@@ -7,6 +7,7 @@ import { useTaskMutations } from '@/hooks/mutations/useTaskMutations';
 import { useTaskModals } from '@/context/TaskModalContext';
 import { useTaskArchiveTree } from '@/hooks/useTaskArchiveTree';
 import { useDynamicPageSize } from '@/hooks/useDynamicPageSize';
+import { useArchiveHeader } from '@/context/ArchiveHeaderContext';
 import { TaskListIcon } from '@/components/shared/utils/Icons';
 import { mapTaskToSummary } from '@/utils/taskUtils';
 import { ArchiveTableContainer } from '@/components/shared/layout/ArchiveTableContainer';
@@ -84,6 +85,14 @@ export const TasksPage: React.FC = () => {
     return count;
   }, [modalFilters]);
 
+  // 5. REGISTRAZIONE HEADER ARCHIVIO PER MOBILE
+  useArchiveHeader({
+    title: 'Gestione Task',
+    onOpenSearch: () => setIsFilterModalOpen(true),
+    onOpenNew: () => openTaskForm(),
+    activeFiltersCount,
+  });
+
   const hasActiveFilters = activeFiltersCount > 0;
 
   const handleResetFilters = () => {
@@ -118,11 +127,11 @@ export const TasksPage: React.FC = () => {
   };
 
   return (
-    <div className="h-full flex flex-col gap-3.5 max-w-[1600px] mx-auto relative z-10 pb-1">
-      {/* 1. HEADER COMPATTO CON PANORAMICA STATS */}
+    <div className="h-full flex flex-col gap-2 sm:gap-3.5 w-full max-w-[1600px] mx-auto relative z-10 pb-1">
+      {/* 1. HEADER COMPATTO CON PANORAMICA STATS (su mobile mostra solo le targhette) */}
       <TaskStatsOverview stats={totalStats} panelClass={PANEL_CLASS} />
 
-      {/* 2. RIGA AZIONI: TASTO NUOVA TASK E LENTE DI RICERCA */}
+      {/* 2. RIGA AZIONI: TASTO NUOVA TASK E LENTE DI RICERCA (nascosta su mobile perché pulsanti sono nell'header) */}
       <TaskFilterBar
         onOpenNewTask={() => openTaskForm()}
         onOpenSearch={() => setIsFilterModalOpen(true)}

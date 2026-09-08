@@ -13,6 +13,7 @@ import { StoreIcon, TagIcon } from '@/components/shared/utils/Icons';
 import { ArchiveTableContainer } from '@/components/shared/layout/ArchiveTableContainer';
 import { ArchiveActionBar } from '@/components/shared/layout/ArchiveActionBar';
 import { SegmentedTabs, type TabItem } from '@/components/shared/layout/SegmentedTabs';
+import { useArchiveHeader } from '@/context/ArchiveHeaderContext';
 import { ERROR_MESSAGES } from '@/data/loadingMessages';
 
 import { SupplierStatsOverview } from '@/components/archive/suppliers/SupplierStatsOverview';
@@ -27,6 +28,12 @@ import { BrandTableRow } from '@/components/archive/suppliers/BrandTableRow';
 import { BrandFilterModal } from '@/components/archive/suppliers/BrandFilterModal';
 import { BrandDetailModal } from '@/components/archive/suppliers/BrandDetailModal';
 import { BrandModal } from '@/components/archive/suppliers/BrandModal';
+
+import { useIsMobile } from '@/mobile/hooks/useIsMobile';
+import { MobileSupplierModal } from '@/mobile/components/modals/shopping/MobileSupplierModal';
+import { MobileSupplierDetailModal } from '@/mobile/components/modals/shopping/MobileSupplierDetailModal';
+import { MobileBrandModal } from '@/mobile/components/modals/shopping/MobileBrandModal';
+import { MobileBrandDetailModal } from '@/mobile/components/modals/shopping/MobileBrandDetailModal';
 
 import {
   useSupplierArchiveData,
@@ -57,6 +64,7 @@ const initialBrandFilterState: BrandFilterState = {
 
 export const SuppliersPage: React.FC = () => {
   const queryClient = useQueryClient();
+  const isMobile = useIsMobile();
   const { user } = useAuth();
   const isSuperuser = Boolean(user?.is_superuser);
   const [activeTab, setActiveTab] = useState<SupplierArchiveTab>('negozi');
@@ -221,8 +229,8 @@ export const SuppliersPage: React.FC = () => {
   const handleDeleteSupplier = (supplier: EnrichedSupplier) => {
     const sName = supplier.nameNormalized || supplier.name;
     confirm({
-      title: 'Elimina Fornitore',
-      message: `Sei sicuro di voler eliminare il fornitore "${sName}"? Se è associato anche come marchio, rimarrà come brand.`,
+      title: 'Elimina Negozio',
+      message: `Sei sicuro di voler eliminare il negozio "${sName}"? Se è associato anche come marchio, rimarrà come brand.`,
       confirmText: 'Elimina',
       isDestructive: true,
       onConfirm: async () => {
@@ -246,9 +254,17 @@ export const SuppliersPage: React.FC = () => {
     });
   };
 
+  // 7. REGISTRAZIONE HEADER ARCHIVIO PER MOBILE
+  useArchiveHeader({
+    title: 'Negozi & Brand',
+    onOpenSearch: handleOpenSearch,
+    onOpenNew: activeTab === 'negozi' ? handleOpenNewSupplier : undefined,
+    activeFiltersCount,
+  });
+
   return (
-    <div className="h-full flex flex-col gap-3.5 max-w-[1600px] mx-auto relative z-10 pb-1">
-      {/* 1. HEADER COMPATTO CON ICONA IN BOX NERO */}
+    <div className="h-full flex flex-col gap-2 sm:gap-3.5 w-full max-w-[1600px] mx-auto relative z-10 pb-1">
+      {/* 1. HEADER COMPATTO CON ICONA IN BOX NERO (su mobile mostra solo le targhette) */}
       <SupplierStatsOverview panelClass={ARCHIVE_PANEL_CLASS} />
 
       {/* 2. RIGA AZIONI CON TASTO AGGIUNGI (SOLO NEGOZI), SLIDER TAB E LENTE DI RICERCA */}
@@ -279,17 +295,17 @@ export const SuppliersPage: React.FC = () => {
             />
           }
           loading={loading}
-          loadingMessage="Caricamento negozi e fornitori in corso..."
+          loadingMessage="Caricamento negozi e brand in corso..."
           isError={isError}
           errorMessage={ERROR_MESSAGES.archive}
           onRetry={() => queryClient.refetchQueries()}
           isEmpty={filteredSuppliers.length === 0}
           emptyIcon={<StoreIcon className="w-8 h-8 text-slate-400" />}
-          emptyTitle="Nessun negozio o fornitore trovato"
+          emptyTitle="Nessun negozio trovato"
           emptyDescription={
             hasActiveFilters
-              ? 'Nessun fornitore corrisponde ai filtri selezionati. Prova ad azzerarli.'
-              : 'Non ci sono negozi o fornitori registrati in archivio.'
+              ? 'Nessun negozio corrisponde ai filtri selezionati. Prova ad azzerarli.'
+              : 'Non ci sono negozi registrati in archivio.'
           }
           hasActiveFilters={hasActiveFilters}
           onResetFilters={handleResetFilters}
@@ -362,25 +378,51 @@ export const SuppliersPage: React.FC = () => {
         isSuperuser={isSuperuser}
       />
 
-      <SupplierDetailModal
-        isOpen={supplierDetailModal.isOpen}
-        onClose={supplierDetailModal.close}
-        supplier={supplierDetailModal.data}
-        onEditClick={(supplier) => {
-          supplierDetailModal.close();
-          supplierFormModal.open(supplier);
-        }}
-        onDeleteClick={handleDeleteSupplier}
-        isSuperuser={isSuperuser}
-      />
+      {isMobile ? (
+        <>
+          <MobileSupplierDetailModal
+            isOpen={supplierDetailModal.isOpen}
+            onClose={supplierDetailModal.close}
+            supplier={supplierDetailModal.data}
+            onEditClick={(supplier) => {
+              supplierDetailModal.close();
+              supplierFormModal.open(supplier);
+            }}
+            onDeleteClick={handleDeleteSupplier}
+            isSuperuser={isSuperuser}
+          />
 
-      <SupplierModal
-        isOpen={supplierFormModal.isOpen}
-        onClose={supplierFormModal.close}
-        supplierToEdit={supplierFormModal.data}
-        config={config}
-        isSuperuser={isSuperuser}
-      />
+          <MobileSupplierModal
+            isOpen={supplierFormModal.isOpen}
+            onClose={supplierFormModal.close}
+            supplierToEdit={supplierFormModal.data}
+            config={config}
+            isSuperuser={isSuperuser}
+          />
+        </>
+      ) : (
+        <>
+          <SupplierDetailModal
+            isOpen={supplierDetailModal.isOpen}
+            onClose={supplierDetailModal.close}
+            supplier={supplierDetailModal.data}
+            onEditClick={(supplier) => {
+              supplierDetailModal.close();
+              supplierFormModal.open(supplier);
+            }}
+            onDeleteClick={handleDeleteSupplier}
+            isSuperuser={isSuperuser}
+          />
+
+          <SupplierModal
+            isOpen={supplierFormModal.isOpen}
+            onClose={supplierFormModal.close}
+            supplierToEdit={supplierFormModal.data}
+            config={config}
+            isSuperuser={isSuperuser}
+          />
+        </>
+      )}
 
       {/* 5. MODALI BRAND */}
       <BrandFilterModal
@@ -395,22 +437,45 @@ export const SuppliersPage: React.FC = () => {
         hasActiveFilters={hasActiveFilters}
       />
 
-      <BrandDetailModal
-        isOpen={brandDetailModal.isOpen}
-        onClose={brandDetailModal.close}
-        brand={brandDetailModal.data}
-        onEditClick={(brand) => {
-          brandDetailModal.close();
-          brandFormModal.open(brand);
-        }}
-        onDeleteClick={handleDeleteBrand}
-      />
+      {isMobile ? (
+        <>
+          <MobileBrandDetailModal
+            isOpen={brandDetailModal.isOpen}
+            onClose={brandDetailModal.close}
+            brand={brandDetailModal.data}
+            onEditClick={(brand) => {
+              brandDetailModal.close();
+              brandFormModal.open(brand);
+            }}
+            onDeleteClick={handleDeleteBrand}
+          />
 
-      <BrandModal
-        isOpen={brandFormModal.isOpen}
-        onClose={brandFormModal.close}
-        brandToEdit={brandFormModal.data}
-      />
+          <MobileBrandModal
+            isOpen={brandFormModal.isOpen}
+            onClose={brandFormModal.close}
+            brandToEdit={brandFormModal.data}
+          />
+        </>
+      ) : (
+        <>
+          <BrandDetailModal
+            isOpen={brandDetailModal.isOpen}
+            onClose={brandDetailModal.close}
+            brand={brandDetailModal.data}
+            onEditClick={(brand) => {
+              brandDetailModal.close();
+              brandFormModal.open(brand);
+            }}
+            onDeleteClick={handleDeleteBrand}
+          />
+
+          <BrandModal
+            isOpen={brandFormModal.isOpen}
+            onClose={brandFormModal.close}
+            brandToEdit={brandFormModal.data}
+          />
+        </>
+      )}
     </div>
   );
 };

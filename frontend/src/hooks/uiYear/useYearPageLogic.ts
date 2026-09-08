@@ -1,7 +1,7 @@
 // frontend/src/hooks/uiYear/useYearPageLogic.ts
 import { useState } from 'react';
 import { useYearNavigation } from './useYearNavigation';
-import { useAgendaYear } from '@/hooks/useAgendaYear';
+import { useAgendaYear, type SyncYearResponse } from '@/hooks/useAgendaYear';
 import { useYearEntries } from './useYearEntries';
 import { useYearBingo } from './useYearBingo';
 import { useYearReview } from './useYearReview';
@@ -18,6 +18,7 @@ export interface UseYearPageLogicResult {
     isCurrentYear: boolean;
     isLoading: boolean;
     isError: boolean;
+    yearData: SyncYearResponse | undefined;
     activeSidebarTab: YearSidebarTab;
     setActiveSidebarTab: (tab: YearSidebarTab) => void;
   };
@@ -71,6 +72,7 @@ export const useYearPageLogic = (): UseYearPageLogicResult => {
       isCurrentYear: nav.isCurrentYear,
       isLoading: agendaYear.isLoading,
       isError: agendaYear.isError,
+      yearData: agendaYear.yearData,
       activeSidebarTab,
       setActiveSidebarTab,
     },
@@ -79,19 +81,31 @@ export const useYearPageLogic = (): UseYearPageLogicResult => {
       entries,
       dailyEntries: agendaYear.yearData?.dailyEntries || [],
       ...(() => {
-        const tasks = agendaYear.yearData?.tasks || [];
-        const tasksCompleted = tasks.filter(t => t.fatto).length;
-        const tasksTotal = tasks.length;
+        const allTasks = agendaYear.yearData?.tasks || [];
+        const yearTasks = allTasks.filter(t => {
+          if (!t.data_scadenza) return false;
+          const dStr = t.data_scadenza.split('T')[0];
+          const y = parseInt(dStr.split('-')[0], 10);
+          return y === nav.selectedYear;
+        });
+
+        const tasksCompleted = yearTasks.filter(t => t.fatto).length;
+        const tasksTotal = yearTasks.length;
         const tasksByMonth: Record<number, number> = {};
         const tasksByWeekday: Record<number, number> = {};
         
-        tasks.forEach(t => {
-          if (t.data_scadenza) {
-            const d = new Date(t.data_scadenza);
-            const m = d.getMonth() + 1;
-            const w = d.getDay() === 0 ? 7 : d.getDay();
-            tasksByMonth[m] = (tasksByMonth[m] || 0) + 1;
-            tasksByWeekday[w] = (tasksByWeekday[w] || 0) + 1;
+        yearTasks.forEach(t => {
+          // Solo i task completati concorrono alle statistiche di produttività
+          if (t.fatto && t.data_scadenza) {
+            const dStr = t.data_scadenza.split('T')[0];
+            const [y, mStr, dayStr] = dStr.split('-').map(Number);
+            if (y === nav.selectedYear) {
+              const d = new Date(y, mStr - 1, dayStr);
+              const m = mStr; // 1..12
+              const w = (d.getDay() + 6) % 7; // 0 = Lun, 1 = Mar, ..., 6 = Dom
+              tasksByMonth[m] = (tasksByMonth[m] || 0) + 1;
+              tasksByWeekday[w] = (tasksByWeekday[w] || 0) + 1;
+            }
           }
         });
         

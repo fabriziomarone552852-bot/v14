@@ -57,7 +57,8 @@ export const ArchiveFilterDateRange: React.FC<ArchiveFilterDateRangeProps> = ({
             isOpen={isStartDateOpen}
             onClose={() => setIsStartDateOpen(false)}
             onToggle={() => setIsStartDateOpen((prev) => !prev)}
-            align="left"
+            align="center"
+            overlay={true}
             customTrigger={
               <div
                 className={`w-full flex items-center justify-between px-3 py-2 border rounded-xl text-xs transition-colors cursor-pointer ${
@@ -85,7 +86,8 @@ export const ArchiveFilterDateRange: React.FC<ArchiveFilterDateRangeProps> = ({
             isOpen={isEndDateOpen}
             onClose={() => setIsEndDateOpen(false)}
             onToggle={() => setIsEndDateOpen((prev) => !prev)}
-            align="right"
+            align="center"
+            overlay={true}
             customTrigger={
               <div
                 className={`w-full flex items-center justify-between px-3 py-2 border rounded-xl text-xs transition-colors cursor-pointer ${

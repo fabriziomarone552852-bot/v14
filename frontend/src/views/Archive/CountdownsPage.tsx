@@ -15,9 +15,13 @@ import CountdownNewModal, {
   type CountdownSavePayload,
 } from '@/components/day/CountdownNewModal';
 import CountdownDetailModal from '@/components/day/CountdownDetailModal';
+import { MobileCountdownNewModal } from '@/mobile/components/modals/MobileCountdownNewModal';
+import { MobileCountdownDetailModal } from '@/mobile/components/modals/MobileCountdownDetailModal';
+import { useIsMobile } from '@/mobile/hooks/useIsMobile';
 import { useCountdownArchiveData } from '@/hooks/useCountdownArchiveData';
 import { useDynamicPageSize } from '@/hooks/useDynamicPageSize';
 import { useModal } from '@/hooks/useModals';
+import { useArchiveHeader } from '@/context/ArchiveHeaderContext';
 import { mapToCountdownItems } from '@/utils/countdownUtils';
 import { ARCHIVE_PANEL_CLASS } from './CategoriesPage';
 import { ERROR_MESSAGES } from '@/data/loadingMessages';
@@ -33,6 +37,7 @@ const initialFilterState: CountdownFilterState = {
 
 export const CountdownsPage: React.FC = () => {
   const queryClient = useQueryClient();
+  const isMobile = useIsMobile();
 
   // 1. CARICAMENTO DATI CON REACT QUERY
   const { data: rawCountdowns = [], isLoading: loading, isError } = useQuery<CountdownItem[]>({
@@ -85,7 +90,7 @@ export const CountdownsPage: React.FC = () => {
 
   // 5. CALCOLO DINAMICO DEL PAGE SIZE IN BASE ALL'ALTEZZA
   const { containerRef, pageSize } = useDynamicPageSize({
-    rowHeight: 230,
+    rowHeight: 155,
     columns: (w) => (w >= 1024 ? 3 : w >= 640 ? 2 : 1),
     defaultPageSize: 6,
     minItems: 2,
@@ -124,6 +129,14 @@ export const CountdownsPage: React.FC = () => {
   // --- AZIONI SUI COUNTDOWN ---
   const handleOpenNew = () => formModal.open(null);
 
+  // 7. REGISTRAZIONE HEADER ARCHIVIO PER MOBILE
+  useArchiveHeader({
+    title: 'Obiettivi & Countdown',
+    onOpenSearch: filterModal.open,
+    onOpenNew: handleOpenNew,
+    activeFiltersCount,
+  });
+
   const handleSelectCountdown = (cd: CountdownItem) => detailModal.open(cd);
 
   const handleEditFromDetail = () => {
@@ -153,8 +166,8 @@ export const CountdownsPage: React.FC = () => {
   };
 
   return (
-    <div className="h-full flex flex-col gap-3.5 max-w-[1600px] mx-auto relative z-10 pb-1">
-      {/* 1. HEADER STANDARD SENZA BOLLE STATS */}
+    <div className="h-full flex flex-col gap-2 sm:gap-3.5 w-full max-w-[1600px] mx-auto relative z-10 pb-1">
+      {/* 1. HEADER STANDARD (nascosto su mobile se senza extra) */}
       <ArchiveHeader
         title="GESTIONE COUNTDOWN"
         subtitle="Tieni traccia dei giorni mancanti alle tue date più importanti."
@@ -162,7 +175,7 @@ export const CountdownsPage: React.FC = () => {
         className={ARCHIVE_PANEL_CLASS}
       />
 
-      {/* 2. RIGA AZIONI: TASTO NUOVO COUNTDOWN E LENTE DI RICERCA */}
+      {/* 2. RIGA AZIONI: TASTO NUOVO COUNTDOWN E LENTE DI RICERCA (nascosta su mobile) */}
       <CountdownFilterBar
         onOpenNewCountdown={handleOpenNew}
         onOpenSearch={filterModal.open}
@@ -254,22 +267,42 @@ export const CountdownsPage: React.FC = () => {
       />
 
       {/* 5. MODALE DI DETTAGLIO COUNTDOWN */}
-      <CountdownDetailModal
-        isOpen={detailModal.isOpen}
-        onClose={detailModal.close}
-        countdown={detailModal.data}
-        onEditClick={handleEditFromDetail}
-        onDeleteClick={handleDelete}
-        onRenewClick={handleRenew}
-      />
+      {isMobile ? (
+        <MobileCountdownDetailModal
+          isOpen={detailModal.isOpen}
+          onClose={detailModal.close}
+          countdown={detailModal.data}
+          onEditClick={handleEditFromDetail}
+          onDeleteClick={handleDelete}
+          onRenewClick={handleRenew}
+        />
+      ) : (
+        <CountdownDetailModal
+          isOpen={detailModal.isOpen}
+          onClose={detailModal.close}
+          countdown={detailModal.data}
+          onEditClick={handleEditFromDetail}
+          onDeleteClick={handleDelete}
+          onRenewClick={handleRenew}
+        />
+      )}
 
       {/* 6. MODALE NUOVO / MODIFICA COUNTDOWN */}
-      <CountdownNewModal
-        isOpen={formModal.isOpen}
-        onClose={formModal.close}
-        countdownToEdit={formModal.data}
-        onSave={handleSaveCountdown}
-      />
+      {isMobile ? (
+        <MobileCountdownNewModal
+          isOpen={formModal.isOpen}
+          onClose={formModal.close}
+          countdownToEdit={formModal.data}
+          onSave={handleSaveCountdown}
+        />
+      ) : (
+        <CountdownNewModal
+          isOpen={formModal.isOpen}
+          onClose={formModal.close}
+          countdownToEdit={formModal.data}
+          onSave={handleSaveCountdown}
+        />
+      )}
     </div>
   );
 };

@@ -5,7 +5,8 @@ import ShoppingUnitSelect from './ShoppingUnitSelect';
 import ShoppingQuantityInput from './ShoppingQuantityInput';
 import ShoppingProductAutocomplete from './ShoppingProductAutocomplete';
 import ShoppingBrandAutocomplete from './ShoppingBrandAutocomplete';
-import type { ConfigOption, ShoppingProductOption, ShoppingSupplierOption } from '@/types/shopping';
+import ShoppingListSelect from './ShoppingListSelect';
+import type { ConfigOption, ShoppingListSummary, ShoppingProductOption, ShoppingSupplierOption } from '@/types/shopping';
 import type { ItemFormState } from './shoppingItems.utils';
 import { ShoppingIcon, EditIcon } from '@/components/shared/utils/Icons';
 
@@ -17,6 +18,7 @@ interface ShoppingItemModalProps {
   itemForm: ItemFormState;
   setItemForm: React.Dispatch<React.SetStateAction<ItemFormState>>;
   activeListId?: number | null;
+  lists?: ShoppingListSummary[];
   unitOptions: ConfigOption[];
   products?: ShoppingProductOption[];
   brands?: ShoppingSupplierOption[];
@@ -30,6 +32,7 @@ const ShoppingItemModal: React.FC<ShoppingItemModalProps> = ({
   itemForm,
   setItemForm,
   activeListId,
+  lists = [],
   unitOptions,
   products = [],
   brands = [],
@@ -37,7 +40,7 @@ const ShoppingItemModal: React.FC<ShoppingItemModalProps> = ({
   if (!open) return null;
 
   const isCreate = mode === 'create';
-  const hasActiveList = activeListId != null;
+  const hasActiveList = activeListId != null || Boolean(itemForm.shoppingListId);
   const disabled = isCreate ? !hasActiveList : false;
   
   const title = isCreate ? (
@@ -125,7 +128,6 @@ const ShoppingItemModal: React.FC<ShoppingItemModalProps> = ({
           />
         </div>
 
-
         {/* Quantità & Unità di Misura */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 items-end">
           <div>
@@ -162,6 +164,26 @@ const ShoppingItemModal: React.FC<ShoppingItemModalProps> = ({
             />
           </div>
         </div>
+
+        {/* Selettore Lista di Destinazione / Sposta Lista (Sotto quantità, prima delle note) */}
+        {lists.length > 0 && (
+          <div>
+            <label className="block text-xs font-bold text-gray-500 uppercase mb-1">
+              {isCreate ? 'Lista di destinazione' : 'Sposta in un\'altra lista'}
+            </label>
+            <ShoppingListSelect
+              value={itemForm.shoppingListId}
+              onChange={(val) =>
+                setItemForm((prev) => ({
+                  ...prev,
+                  shoppingListId: val,
+                }))
+              }
+              lists={lists}
+              disabled={disabled}
+            />
+          </div>
+        )}
 
         {/* Note / Dettagli con textarea non ridimensionabile */}
         <div>

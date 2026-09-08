@@ -1,3 +1,4 @@
+// src/components/shared/utils/DatePicker/DatePicker.tsx
 import React, { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { nomiMesiLungo, getDaysInMonth, getFirstDayIndex, formatToItalianShortDate, generateWeeksGrid } from '@/utils/dateUtils';
@@ -19,6 +20,7 @@ interface DatePickerProps {
   customTrigger?: React.ReactNode; 
   selectionMode?: 'day' | 'week' | 'month' | 'year';
   usePortal?: boolean;
+  overlay?: boolean; // Apre il datepicker come modale centrato in overlay a tutto schermo
 }
 
 const get9YearRangeStart = (y: number): number => {
@@ -36,6 +38,7 @@ const DatePicker: React.FC<DatePickerProps> = ({
   customTrigger,
   selectionMode = 'day',
   usePortal = false,
+  overlay = false,
 }) => {
   const [pickerMonthDate, setPickerMonthDate] = useState<Date>(new Date());
   const [yearRangeStart, setYearRangeStart] = useState<number>(() => get9YearRangeStart(new Date().getFullYear()));
@@ -43,6 +46,7 @@ const DatePicker: React.FC<DatePickerProps> = ({
   const popupRef = useRef<HTMLDivElement>(null);
 
   const wrapperRef = useOutsideClick<HTMLDivElement>((e: MouseEvent | TouchEvent) => {
+    if (overlay) return; // Se è overlay, il click sullo sfondo è gestito dal backdrop
     if (usePortal && popupRef.current && popupRef.current.contains(e.target as Node)) {
       return;
     }
@@ -50,11 +54,12 @@ const DatePicker: React.FC<DatePickerProps> = ({
   });
 
   const { openUpwards, coords: rawCoords } = useDropdownPosition(wrapperRef, { 
-    isOpen, 
+    isOpen: isOpen && !overlay, 
     threshold: 320 
   });
 
   const coords = React.useMemo(() => {
+    if (overlay) return { top: 0, bottom: 0, left: 0 };
     let leftPos = rawCoords.left;
     if (align === 'center') {
       leftPos = rawCoords.left + rawCoords.width / 2 - 128;
@@ -68,7 +73,7 @@ const DatePicker: React.FC<DatePickerProps> = ({
       bottom: rawCoords.bottom + 6,
       left: leftPos,
     };
-  }, [align, rawCoords]);
+  }, [align, rawCoords, overlay]);
 
   useEffect(() => {
     if (isOpen) {
@@ -120,12 +125,18 @@ const DatePicker: React.FC<DatePickerProps> = ({
     }
   };
 
-  const popupContent = (
+  const datePickerCard = (
     <div 
       ref={popupRef}
-      className={`${usePortal ? '' : 'absolute'} z-[100] bg-white rounded-xl shadow-xl border border-gray-100 p-4 w-64 animate-fadeIn`}
+      className={
+        overlay
+          ? 'bg-white rounded-2xl shadow-2xl border border-gray-100 p-4 w-72 max-w-[90vw] animate-fadeIn pointer-events-auto'
+          : `${usePortal ? '' : 'absolute'} z-[100] bg-white rounded-xl shadow-xl border border-gray-100 p-4 w-64 animate-fadeIn`
+      }
       style={
-        usePortal
+        overlay
+          ? undefined
+          : usePortal
           ? {
               position: 'fixed',
               top: openUpwards ? 'auto' : `${coords.top}px`,
@@ -145,7 +156,7 @@ const DatePicker: React.FC<DatePickerProps> = ({
       onClick={(e: React.MouseEvent<HTMLDivElement>) => e.stopPropagation()}
     >
       <div className="flex justify-between items-center mb-4 px-2">
-        <button type="button" onClick={handleBack} className="text-gray-400 hover:text-gray-800 transition-colors focus:outline-none">
+        <button type="button" onClick={handleBack} className="text-gray-400 hover:text-gray-800 transition-colors focus:outline-none cursor-pointer">
           <BackIcon className="w-4 h-4" />
         </button>
         <span className="font-bold text-gray-800 text-sm">
@@ -155,7 +166,7 @@ const DatePicker: React.FC<DatePickerProps> = ({
             ? year
             : `${nomiMesiLungo[month]} ${year}`}
         </span>
-        <button type="button" onClick={handleForward} className="text-gray-400 hover:text-gray-800 transition-colors focus:outline-none">
+        <button type="button" onClick={handleForward} className="text-gray-400 hover:text-gray-800 transition-colors focus:outline-none cursor-pointer">
           <ForwardIcon className="w-4 h-4" />
         </button>
       </div>
@@ -196,29 +207,44 @@ const DatePicker: React.FC<DatePickerProps> = ({
     </div>
   );
 
+  const popupContent = overlay ? (
+    <div
+      className="fixed inset-0 z-[10050] bg-black/50 backdrop-blur-2xs flex items-center justify-center p-4 animate-fadeIn pointer-events-auto select-none"
+      onClick={(e: React.MouseEvent<HTMLDivElement>) => {
+        e.stopPropagation();
+        onClose();
+      }}
+      aria-hidden="true"
+    >
+      {datePickerCard}
+    </div>
+  ) : (
+    datePickerCard
+  );
+
   return (
-    <div className="relative flex justify-center w-full" ref={wrapperRef}>
+    <div className={`relative flex ${align === 'left' ? 'justify-start text-left' : align === 'right' ? 'justify-end text-right' : 'justify-center text-center'} w-full`} ref={wrapperRef}>
       
       {customTrigger ? (
         <div 
           onClick={(e: React.MouseEvent<HTMLDivElement>) => { e.stopPropagation(); onToggle(); }} 
-          className="cursor-pointer inline-flex items-center justify-center w-full"
+          className={`cursor-pointer inline-flex items-center ${align === 'left' ? 'justify-start text-left' : align === 'right' ? 'justify-end text-right' : 'justify-center text-center'} w-full`}
         >
           {customTrigger}
         </div>
       ) : (
         <div 
           onClick={(e: React.MouseEvent<HTMLDivElement>) => { e.stopPropagation(); onToggle(); }} 
-          className="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm bg-white cursor-pointer flex justify-between items-center hover:border-blue-500 transition-colors shadow-sm"
+          className="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm bg-white cursor-pointer flex justify-between items-center hover:border-blue-500 transition-colors shadow-xs"
         >
-          <span className={value ? 'text-gray-700 font-medium' : 'text-gray-400 font-medium'}>
+          <span className={value ? 'text-gray-700 font-medium truncate' : 'text-gray-400 font-medium truncate'}>
             {value ? formatToItalianShortDate(value) : placeholder}
           </span>
-          <CalendarIcon className="w-4 h-4 text-gray-400" />
+          <CalendarIcon className="w-4 h-4 text-gray-400 shrink-0 ml-1.5" />
         </div>
       )}
       
-      {isOpen && (usePortal ? createPortal(popupContent, document.body) : popupContent)}
+      {isOpen && (overlay || usePortal ? createPortal(popupContent, document.body) : popupContent)}
     </div>
   );
 };

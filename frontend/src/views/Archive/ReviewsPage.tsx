@@ -6,7 +6,8 @@ import { useCategories } from '@/hooks/useCategories';
 import { ArchiveHeader } from '@/components/shared/layout/ArchiveHeader';
 import { ReviewIcon } from '@/components/shared/utils/Icons';
 import { ArchiveTableContainer } from '@/components/shared/layout/ArchiveTableContainer';
-import { ReviewActionBar } from '@/components/archive/reviews/ReviewActionBar';
+import { ArchiveActionBar } from '@/components/shared/layout/ArchiveActionBar';
+import { SegmentedTabs, type TabItem } from '@/components/shared/layout/SegmentedTabs';
 import { ReviewTableHeader } from '@/components/archive/reviews/ReviewTableHeader';
 import { ReviewTableRow } from '@/components/archive/reviews/ReviewTableRow';
 import { ReviewFilterModal } from '@/components/archive/reviews/ReviewFilterModal';
@@ -21,6 +22,7 @@ import {
 } from '@/hooks/useReviewArchiveData';
 import { useDynamicPageSize } from '@/hooks/useDynamicPageSize';
 import { useModal } from '@/hooks/useModals';
+import { useArchiveHeader } from '@/context/ArchiveHeaderContext';
 import { ARCHIVE_PANEL_CLASS } from './CategoriesPage';
 import { ERROR_MESSAGES } from '@/data/loadingMessages';
 import type { MonthlyEntryResponse } from '@/types/monthlyentries';
@@ -118,6 +120,27 @@ export const ReviewsPage: React.FC = () => {
     setCurrentPage(1);
   };
 
+  // Configurazione Slider / Tabs
+  const tabsConfig: TabItem<ReviewTabType>[] = useMemo(
+    () => [
+      {
+        id: 'months',
+        label: 'Mesi',
+        icon: '📅',
+        count: monthsCount,
+        badgeBg: 'bg-rose-50 text-rose-700 border-rose-200/60',
+      },
+      {
+        id: 'years',
+        label: 'Anni',
+        icon: '📆',
+        count: yearsCount,
+        badgeBg: 'bg-indigo-50 text-indigo-700 border-indigo-200/60',
+      },
+    ],
+    [monthsCount, yearsCount]
+  );
+
   // Apertura modale di revisione corrispondente
   const handleSelectReview = (item: MonthReviewItem | YearReviewItem) => {
     if (activeTab === 'months') {
@@ -127,8 +150,15 @@ export const ReviewsPage: React.FC = () => {
     }
   };
 
+  // 6. REGISTRAZIONE HEADER ARCHIVIO PER MOBILE
+  useArchiveHeader({
+    title: 'Review Mesi & Anni',
+    onOpenSearch: filterModal.open,
+    activeFiltersCount,
+  });
+
   return (
-    <div className="h-full flex flex-col gap-3.5 max-w-[1600px] mx-auto relative z-10 pb-1">
+    <div className="h-full flex flex-col gap-2 sm:gap-3.5 w-full max-w-[1600px] mx-auto relative z-10 pb-1">
       {/* 1. HEADER STANDARD */}
       <ArchiveHeader
         title="REVISIONI PERIODICHE"
@@ -137,15 +167,18 @@ export const ReviewsPage: React.FC = () => {
         className={ARCHIVE_PANEL_CLASS}
       />
 
-      {/* 2. RIGA AZIONI: SLIDER SCHEDE A SINISTRA E RICERCA A DESTRA */}
-      <ReviewActionBar
-        activeTab={activeTab}
-        onTabChange={handleTabSwitch}
-        monthsCount={monthsCount}
-        yearsCount={yearsCount}
+      {/* 2. RIGA AZIONI: SLIDER SCHEDE E RICERCA A DESTRA (Lente nascosta su mobile) */}
+      <ArchiveActionBar
+        centerContent={
+          <SegmentedTabs
+            tabs={tabsConfig}
+            activeTab={activeTab}
+            onChange={handleTabSwitch}
+          />
+        }
         onOpenSearch={filterModal.open}
         activeFiltersCount={activeFiltersCount}
-        panelClass={ARCHIVE_PANEL_CLASS}
+        className={ARCHIVE_PANEL_CLASS}
       />
 
       {/* 3. TABELLA REVISIONI CON ORDINAMENTO E PAGINAZIONE */}

@@ -13,7 +13,9 @@ import {
   ShoppingPriceTableRow,
   type ProductPriceSummary,
 } from './ShoppingPriceTableRow';
+import { useIsMobile } from '@/mobile/hooks/useIsMobile';
 import { ShoppingProductPriceModal } from './ShoppingProductPriceModal';
+import { MobileShoppingProductPriceModal } from '@/mobile/components/modals/shopping/MobileShoppingProductPriceModal';
 import { ShoppingPriceFilterModal, type ShoppingPriceFilterState } from './ShoppingPriceFilterModal';
 import {
   computeCutoffDate,
@@ -41,6 +43,7 @@ export const ShoppingArchivePricesTab: React.FC<ShoppingArchivePricesTabProps> =
   onResetFilters,
   className = '',
 }) => {
+  const isMobile = useIsMobile();
   const [selectedProductForModal, setSelectedProductForModal] = useState<ProductPriceSummary | null>(null);
 
   // Ordinamento & Paginazione
@@ -50,7 +53,7 @@ export const ShoppingArchivePricesTab: React.FC<ShoppingArchivePricesTabProps> =
 
   // Dynamic Page Size
   const { containerRef, pageSize } = useDynamicPageSize({
-    rowHeight: 48,
+    rowHeight: 44,
     defaultPageSize: 8,
     minItems: 3,
     maxItems: 25,
@@ -202,11 +205,19 @@ export const ShoppingArchivePricesTab: React.FC<ShoppingArchivePricesTabProps> =
 
       {/* Modale Storico Prezzi Prodotto */}
       {selectedProductForModal && (
-        <ShoppingProductPriceModal
-          isOpen={true}
-          onClose={() => setSelectedProductForModal(null)}
-          productSummary={selectedProductForModal}
-        />
+        isMobile ? (
+          <MobileShoppingProductPriceModal
+            isOpen={true}
+            onClose={() => setSelectedProductForModal(null)}
+            productSummary={selectedProductForModal}
+          />
+        ) : (
+          <ShoppingProductPriceModal
+            isOpen={true}
+            onClose={() => setSelectedProductForModal(null)}
+            productSummary={selectedProductForModal}
+          />
+        )
       )}
 
       {/* Modale Filtri Prezzi */}

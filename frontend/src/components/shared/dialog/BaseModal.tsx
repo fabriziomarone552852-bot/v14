@@ -24,6 +24,7 @@ interface BaseModalProps {
   formId?: string; // Se il modal contiene un form e il bottone deve fare il submit
 
   isLoading?: boolean;
+  zIndexClass?: string;
 }
 
 const BaseModal: React.FC<BaseModalProps> = ({ 
@@ -31,7 +32,8 @@ const BaseModal: React.FC<BaseModalProps> = ({
   sidePanel, headerActions, hideDefaultClose = false,
   onConfirm, onCancel, confirmText = 'Salva', cancelText = 'Annulla', 
   isConfirmDisabled = false, formId,
-  isLoading = false, overflowVisible = false
+  isLoading = false, overflowVisible = false,
+  zIndexClass = 'z-[9999]'
 }) => {
   if (!isOpen) return null;
 
@@ -69,7 +71,7 @@ const BaseModal: React.FC<BaseModalProps> = ({
   const activeFooter = renderFooter();
 
   const modalContent = (
-    <div className="fixed inset-0 bg-gray-900/40 backdrop-blur-sm flex items-center justify-center z-[9999] p-4 pointer-events-auto animate-fadeIn" onClick={!isLoading ? onClose : undefined}>
+    <div className={`fixed inset-0 bg-gray-900/40 backdrop-blur-sm flex items-center justify-center ${zIndexClass} p-4 pointer-events-auto animate-fadeIn`} onClick={!isLoading ? onClose : undefined}>
       <div className="flex gap-4 items-stretch w-full max-w-5xl justify-center pointer-events-none">
         
         {sidePanel && (

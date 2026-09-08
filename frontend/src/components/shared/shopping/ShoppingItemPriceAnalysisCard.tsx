@@ -15,25 +15,26 @@ export interface PriceStatsData {
 export interface ShoppingItemPriceAnalysisCardProps {
   currentStats: PriceStatsData | null;
   view: 'personal' | 'community';
+  className?: string;
+  hideHeader?: boolean;
 }
 
 export const ShoppingItemPriceAnalysisCard: React.FC<ShoppingItemPriceAnalysisCardProps> = ({
   currentStats,
   view,
+  className = '',
+  hideHeader = false,
 }) => {
   return (
-    <div className="pt-3 border-t border-gray-100">
-      <div className="flex items-center justify-between text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-2.5">
-        <span className="flex items-center gap-1.5 text-blue-700">
-          <ShoppingIcon className="w-3.5 h-3.5" />
-          <span>Analisi Prezzi ({view === 'personal' ? 'Miei Acquisti' : 'Community'})</span>
-        </span>
-        {currentStats && (
-          <span className="text-[10px] text-gray-400 font-medium lowercase">
-            {currentStats.count} {currentStats.count === 1 ? 'rilevazione' : 'rilevazioni'}
+    <div className={`space-y-2 ${className}`}>
+      {!hideHeader && (
+        <div className="flex items-center text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-2">
+          <span className="flex items-center gap-1.5 text-blue-700">
+            <ShoppingIcon className="w-3.5 h-3.5" />
+            <span>Analisi Prezzi ({view === 'personal' ? 'Miei Acquisti' : 'Community'})</span>
           </span>
-        )}
-      </div>
+        </div>
+      )}
 
       {currentStats ? (
         <div className="grid grid-cols-2 gap-2.5">

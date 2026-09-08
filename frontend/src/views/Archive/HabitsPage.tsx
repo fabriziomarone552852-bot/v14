@@ -17,6 +17,11 @@ import HabitDetailModal from '@/components/day/HabitDetailModal';
 import HabitNewModal, {
   type HabitSavePayload,
 } from '@/components/day/HabitNewModal';
+import { MobileRoutineDetailModal } from '@/mobile/components/modals/MobileRoutineDetailModal';
+import { MobileRoutineNewModal } from '@/mobile/components/modals/MobileRoutineNewModal';
+import { MobileHabitDetailModal } from '@/mobile/components/modals/MobileHabitDetailModal';
+import { MobileHabitNewModal } from '@/mobile/components/modals/MobileHabitNewModal';
+import { useIsMobile } from '@/mobile/hooks/useIsMobile';
 import {
   useHabits,
   useSaveHabit,
@@ -32,6 +37,7 @@ import {
 } from '@/hooks/useHabitArchiveData';
 import { useDynamicPageSize } from '@/hooks/useDynamicPageSize';
 import { useModal } from '@/hooks/useModals';
+import { useArchiveHeader } from '@/context/ArchiveHeaderContext';
 import { getLocalDateString } from '@/utils/dateUtils';
 import { ARCHIVE_PANEL_CLASS } from './CategoriesPage';
 import { ERROR_MESSAGES } from '@/data/loadingMessages';
@@ -45,6 +51,7 @@ const initialFilterState: HabitFilterState = {
 
 export const HabitsPage: React.FC = () => {
   const queryClient = useQueryClient();
+  const isMobile = useIsMobile();
   // 1. CARICAMENTO DATI CON REACT QUERY
   const { data: rawHabits = [], isLoading: loading, isError } = useHabits();
   const saveHabitMutation = useSaveHabit();
@@ -66,7 +73,7 @@ export const HabitsPage: React.FC = () => {
 
   // 4. CALCOLO DINAMICO DEL PAGE SIZE IN BASE ALL'ALTEZZA
   const { containerRef, pageSize } = useDynamicPageSize({
-    rowHeight: 230,
+    rowHeight: 145,
     columns: (w) => (w >= 1024 ? 3 : w >= 640 ? 2 : 1),
     defaultPageSize: 6,
     minItems: 2,
@@ -235,8 +242,16 @@ export const HabitsPage: React.FC = () => {
     habitFormModal.close();
   };
 
+  // 6. REGISTRAZIONE HEADER ARCHIVIO PER MOBILE
+  useArchiveHeader({
+    title: 'Abitudini & Routine',
+    onOpenSearch: filterModal.open,
+    onOpenNew: handleOpenNew,
+    activeFiltersCount,
+  });
+
   return (
-    <div className="h-full flex flex-col gap-3.5 max-w-[1600px] mx-auto relative z-10 pb-1">
+    <div className="h-full flex flex-col gap-2 sm:gap-3.5 w-full max-w-[1600px] mx-auto relative z-10 pb-1">
       {/* 1. HEADER STANDARD */}
       <ArchiveHeader
         title="HABITS & ROUTINE"
@@ -355,42 +370,90 @@ export const HabitsPage: React.FC = () => {
       />
 
       {/* 6. MODALI ROUTINE (DETTAGLIO E FORM) */}
-      <RoutineDetailModal
-        isOpen={routineDetailModal.isOpen}
-        onClose={routineDetailModal.close}
-        selectedRoutine={routineDetailModal.data}
-        onEditClick={handleEditRoutineFromDetail}
-        onDeleteClick={handleDeleteRoutine}
-        isAttiva={routineDetailModal.data?.isAttiva ?? true}
-        onSuspendClick={handleSuspendRoutine}
-        onResumeClick={handleResumeRoutine}
-      />
+      {isMobile ? (
+        <>
+          <MobileRoutineDetailModal
+            isOpen={routineDetailModal.isOpen}
+            onClose={routineDetailModal.close}
+            selectedRoutine={routineDetailModal.data}
+            onEditClick={handleEditRoutineFromDetail}
+            onDeleteClick={handleDeleteRoutine}
+            isAttiva={routineDetailModal.data?.isAttiva ?? true}
+            onSuspendClick={handleSuspendRoutine}
+            onResumeClick={handleResumeRoutine}
+          />
 
-      <RoutineNewModal
-        isOpen={routineFormModal.isOpen}
-        onClose={routineFormModal.close}
-        routineToEdit={routineFormModal.data}
-        onSave={handleSaveRoutine}
-      />
+          <MobileRoutineNewModal
+            isOpen={routineFormModal.isOpen}
+            onClose={routineFormModal.close}
+            routineToEdit={routineFormModal.data}
+            onSave={handleSaveRoutine}
+          />
+        </>
+      ) : (
+        <>
+          <RoutineDetailModal
+            isOpen={routineDetailModal.isOpen}
+            onClose={routineDetailModal.close}
+            selectedRoutine={routineDetailModal.data}
+            onEditClick={handleEditRoutineFromDetail}
+            onDeleteClick={handleDeleteRoutine}
+            isAttiva={routineDetailModal.data?.isAttiva ?? true}
+            onSuspendClick={handleSuspendRoutine}
+            onResumeClick={handleResumeRoutine}
+          />
+
+          <RoutineNewModal
+            isOpen={routineFormModal.isOpen}
+            onClose={routineFormModal.close}
+            routineToEdit={routineFormModal.data}
+            onSave={handleSaveRoutine}
+          />
+        </>
+      )}
 
       {/* 7. MODALI HABIT (DETTAGLIO E FORM) */}
-      <HabitDetailModal
-        isOpen={habitDetailModal.isOpen}
-        onClose={habitDetailModal.close}
-        selectedHabit={habitDetailModal.data}
-        onEditClick={handleEditHabitFromDetail}
-        onDeleteClick={handleDeleteHabit}
-        isAttiva={habitDetailModal.data?.isAttiva ?? true}
-        onSuspendClick={handleSuspendHabit}
-        onResumeClick={handleResumeHabit}
-      />
+      {isMobile ? (
+        <>
+          <MobileHabitDetailModal
+            isOpen={habitDetailModal.isOpen}
+            onClose={habitDetailModal.close}
+            selectedHabit={habitDetailModal.data}
+            onEditClick={handleEditHabitFromDetail}
+            onDeleteClick={handleDeleteHabit}
+            isAttiva={habitDetailModal.data?.isAttiva ?? true}
+            onSuspendClick={handleSuspendHabit}
+            onResumeClick={handleResumeHabit}
+          />
 
-      <HabitNewModal
-        isOpen={habitFormModal.isOpen}
-        onClose={habitFormModal.close}
-        habitToEdit={habitFormModal.data}
-        onSave={handleSaveHabit}
-      />
+          <MobileHabitNewModal
+            isOpen={habitFormModal.isOpen}
+            onClose={habitFormModal.close}
+            habitToEdit={habitFormModal.data}
+            onSave={handleSaveHabit}
+          />
+        </>
+      ) : (
+        <>
+          <HabitDetailModal
+            isOpen={habitDetailModal.isOpen}
+            onClose={habitDetailModal.close}
+            selectedHabit={habitDetailModal.data}
+            onEditClick={handleEditHabitFromDetail}
+            onDeleteClick={handleDeleteHabit}
+            isAttiva={habitDetailModal.data?.isAttiva ?? true}
+            onSuspendClick={handleSuspendHabit}
+            onResumeClick={handleResumeHabit}
+          />
+
+          <HabitNewModal
+            isOpen={habitFormModal.isOpen}
+            onClose={habitFormModal.close}
+            habitToEdit={habitFormModal.data}
+            onSave={handleSaveHabit}
+          />
+        </>
+      )}
     </div>
   );
 };

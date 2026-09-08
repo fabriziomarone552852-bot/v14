@@ -1,5 +1,6 @@
 // frontend/src/utils/quoteUtils.ts
 import type { Quote } from '@/types';
+import { ALL_QUOTES } from '@/data/quotesData';
 
 /** Chiave di memorizzazione nel localStorage per tracciare il mazzo di citazioni */
 export const QUOTES_STORAGE_KEY = 'smart_agenda_quotes_history_v1';
@@ -10,14 +11,10 @@ export interface QuoteHistoryStorage {
   usedQuoteIds: number[];
 }
 
-/** Fallback di sicurezza iniziale */
-export const DEFAULT_FALLBACK_QUOTE: Quote = {
-  id: 1,
-  text: "Non è perché le cose sono difficili che non osiamo, è perché non osiamo che sono difficili.",
-  author: "Lucio Anneo Seneca",
-};
+/** Fallback iniziale */
+export const DEFAULT_FALLBACK_QUOTE: Quote = ALL_QUOTES[0];
 
-export const DEFAULT_QUOTES_POOL: Quote[] = [DEFAULT_FALLBACK_QUOTE];
+export const DEFAULT_QUOTES_POOL: Quote[] = ALL_QUOTES;
 
 
 /**
@@ -180,11 +177,14 @@ export const getOrPickDailyQuote = (
   const todayKey = toLocalDateKey(date);
   const history = loadQuoteHistory();
 
-  // 1. Se per oggi abbiamo già pescato una citazione e questa esiste ancora nel pool, usala
+  // 1. Se per oggi abbiamo già pescato una citazione valida e questa esiste nel pool, usala
   if (history && history.lastDate === todayKey) {
-    const existingQuote = pool.find((q) => q.id === history.todayQuoteId);
-    if (existingQuote) {
-      return existingQuote;
+    const isStuckOnFallback = history.todayQuoteId === 1 && history.usedQuoteIds.length <= 1 && pool.length > 1;
+    if (!isStuckOnFallback) {
+      const existingQuote = pool.find((q) => q.id === history.todayQuoteId);
+      if (existingQuote) {
+        return existingQuote;
+      }
     }
   }
 

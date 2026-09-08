@@ -14,7 +14,7 @@ export const RoutineCard: React.FC<RoutineCardProps> = ({ routine, onClick }) =>
   return (
     <div
       onClick={onClick}
-      className={`relative h-48 w-full rounded-2xl overflow-hidden cursor-pointer shadow-xs hover:shadow-lg group transform transition-all duration-300 hover:-translate-y-1 bg-slate-900 border ${
+      className={`relative h-32 sm:h-44 md:h-48 w-full rounded-2xl overflow-hidden cursor-pointer shadow-xs hover:shadow-lg group transform transition-all duration-300 hover:-translate-y-1 bg-slate-900 border ${
         isPaused ? 'border-amber-200/60 opacity-90' : 'border-slate-200/80'
       }`}
     >
@@ -33,14 +33,14 @@ export const RoutineCard: React.FC<RoutineCardProps> = ({ routine, onClick }) =>
       <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/55 to-black/30" />
 
       {/* 3. BADGE STATO IN ALTO A DESTRA */}
-      <div className="absolute top-3 right-3 z-20">
+      <div className="absolute top-2.5 sm:top-3 right-2.5 sm:right-3 z-20">
         {isPaused ? (
-          <span className="px-2.5 py-1 text-[10px] font-extrabold uppercase tracking-wider rounded-full bg-amber-500/85 backdrop-blur-md text-white shadow-sm flex items-center gap-1">
+          <span className="px-2 py-0.5 sm:px-2.5 sm:py-1 text-[9px] sm:text-[10px] font-extrabold uppercase tracking-wider rounded-full bg-amber-500/85 backdrop-blur-md text-white shadow-sm flex items-center gap-1">
             <span>⏸</span>
             <span>In pausa</span>
           </span>
         ) : (
-          <span className="px-2.5 py-1 text-[10px] font-extrabold uppercase tracking-wider rounded-full bg-emerald-500/85 backdrop-blur-md text-white shadow-sm flex items-center gap-1.5">
+          <span className="px-2 py-0.5 sm:px-2.5 sm:py-1 text-[9px] sm:text-[10px] font-extrabold uppercase tracking-wider rounded-full bg-emerald-500/85 backdrop-blur-md text-white shadow-sm flex items-center gap-1.5">
             <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
             Attiva
           </span>
@@ -48,19 +48,19 @@ export const RoutineCard: React.FC<RoutineCardProps> = ({ routine, onClick }) =>
       </div>
 
       {/* 4. PROSSIMA SCADENZA IN ALTO A SINISTRA */}
-      <div className="absolute top-3 left-3 z-20">
-        <span className="text-[11px] font-bold text-white/90 bg-black/45 backdrop-blur-md px-2.5 py-1 rounded-full uppercase tracking-wider shadow-sm">
+      <div className="absolute top-2.5 sm:top-3 left-2.5 sm:left-3 z-20">
+        <span className="text-[10px] sm:text-[11px] font-bold text-white/90 bg-black/45 backdrop-blur-md px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-full uppercase tracking-wider shadow-sm">
           {routine.nextOccurrenceLabel}
         </span>
       </div>
 
       {/* 5. TITOLO E FREQUENZA IN BASSO */}
-      <div className="absolute inset-0 p-4 sm:p-5 flex flex-col justify-end z-10">
-        <h3 className="text-white font-extrabold text-base uppercase tracking-wider truncate mb-1.5 drop-shadow-md group-hover:text-blue-200 transition-colors">
+      <div className="absolute inset-0 p-3 sm:p-5 flex flex-col justify-end z-10">
+        <h3 className="text-white font-extrabold text-xs sm:text-base uppercase tracking-wider truncate mb-0.5 sm:mb-1.5 drop-shadow-md group-hover:text-blue-200 transition-colors">
           {routine.title}
         </h3>
 
-        <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-200/90 drop-shadow-sm truncate">
+        <div className="flex items-center gap-1.5 text-[11px] sm:text-xs font-semibold text-slate-200/90 drop-shadow-sm truncate">
           <span>🔄</span>
           <span className="truncate">{routine.frequencyLabel}</span>
         </div>

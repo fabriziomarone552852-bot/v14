@@ -40,7 +40,7 @@ export const SupplierFilterModal: React.FC<SupplierFilterModalProps> = ({
     <ArchiveFilterModal
       isOpen={isOpen}
       onClose={onClose}
-      title="Filtra Negozi & Fornitori"
+      title="Filtra Negozi"
       onReset={onReset}
       hasActiveFilters={hasActiveFilters}
     >

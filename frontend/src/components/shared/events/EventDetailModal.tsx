@@ -1,13 +1,12 @@
 // src/components/dashboard/EventDetailModal.tsx
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import type { CalendarEvent } from '@/types';
 import { translateRRule } from '@/utils/rruleUtils';
 import BaseModal from '@/components/shared/dialog/BaseModal';
-import { useConfirm } from '@/context/ConfirmContext';
 import { Badge } from '@/components/shared/utils/Badges';
 import { EditIcon, TrashIcon, ArrowRightLongIcon } from '@/components/shared/utils/Icons';
-import { formatToItalianShortDate } from '@/utils/dateUtils';
 import { LocationPreview } from '@/components/shared/form';
+import { useEventDetailLogic } from '@/hooks/forms/useEventDetailLogic';
 
 export interface EventDeletePayload {
   id: number;
@@ -28,64 +27,28 @@ interface EventDetailModalProps {
 const EventDetailModal: React.FC<EventDetailModalProps> = ({ 
   isOpen, onClose, selectedEvent, onEditClick, onDeleteClick 
 }) => {
-  const { confirm } = useConfirm();
-  const [showRecurringDeleteOptions, setShowRecurringDeleteOptions] = useState<boolean>(false);
-
-  useEffect(() => {
-    if (!isOpen) setShowRecurringDeleteOptions(false);
-  }, [isOpen, selectedEvent]);
+  const {
+    dataInizio,
+    dataFine,
+    haFine,
+    showRecurringDeleteOptions,
+    setShowRecurringDeleteOptions,
+    handleDeleteClick,
+    confirmRecurringDelete,
+  } = useEventDetailLogic({
+    isOpen,
+    selectedEvent,
+    onDeleteClick,
+  });
 
   if (!isOpen || !selectedEvent) return null;
 
-  const dataInizio = formatToItalianShortDate(selectedEvent.dateStr);
-  const dataFine = formatToItalianShortDate(selectedEvent.endDateStr);
-  const haFine = (dataFine && dataFine !== dataInizio) || selectedEvent.endTime;
-
-  // 1. Click sul Cestino
-  const handleDeleteClick = (): void => {
-    // 🛡️ Sicurezza: Blocchiamo l'esecuzione se manca l'ID originale (Niente "as number")
-    if (selectedEvent.originalId === undefined) return;
-
-    if (selectedEvent.rrule) {
-      setShowRecurringDeleteOptions(true);
-    } else {
-      confirm({
-        title: "Elimina Evento",
-        message: "Sei sicuro di voler eliminare definitivamente questo evento dal calendario? L'azione non è reversibile.",
-        confirmText: "Elimina",
-        isDestructive: true,
-        onConfirm: () => {
-          // Ora TypeScript sa che originalId esiste!
-          onDeleteClick({
-            id: selectedEvent.originalId!,
-            mode: 'all',
-            dateStr: selectedEvent.dateStr ?? '' 
-          });
-        }
-      });
-    }
-  };
-
-  // 2. Azione dei bottoni di conferma
-  const confirmRecurringDelete = (mode: 'single' | 'future' | 'all'): void => {
-    if (selectedEvent.originalId === undefined) return;
-    
-    onDeleteClick({
-      id: selectedEvent.originalId,
-      mode: mode,
-      dateStr: selectedEvent.dateStr ?? '', 
-      currentRrule: selectedEvent.rrule ?? undefined,
-      currentEsclusioni: selectedEvent.esclusioni ?? undefined 
-    });
-    setShowRecurringDeleteOptions(false);
-  };
-
   const HeaderActions = showRecurringDeleteOptions ? null : (
     <>
-      <button title="Modifica" onClick={onEditClick} className="p-1.5 text-gray-400 hover:text-blue-500 hover:bg-blue-50 rounded-lg transition-colors">
+      <button title="Modifica" onClick={onEditClick} className="p-1.5 text-gray-400 hover:text-blue-500 hover:bg-blue-50 rounded-lg transition-colors cursor-pointer">
         <EditIcon className="h-5 w-5" />
       </button>
-      <button title="Elimina" onClick={handleDeleteClick} className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors">
+      <button title="Elimina" onClick={handleDeleteClick} className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors cursor-pointer">
         <TrashIcon className="h-5 w-5" />
       </button>
     </>
@@ -118,25 +81,25 @@ const EventDetailModal: React.FC<EventDetailModalProps> = ({
           <div className="flex flex-col gap-3 w-full">
             <button 
               onClick={() => confirmRecurringDelete('single')} 
-              className="w-full py-3 px-4 bg-gray-50 hover:bg-gray-100 border border-gray-200 text-gray-700 font-bold rounded-xl transition-all shadow-sm hover:shadow"
+              className="w-full py-3 px-4 bg-gray-50 hover:bg-gray-100 border border-gray-200 text-gray-700 font-bold rounded-xl transition-all shadow-sm hover:shadow cursor-pointer"
             >
               Elimina solo questo evento
             </button>
             <button 
               onClick={() => confirmRecurringDelete('future')} 
-              className="w-full py-3 px-4 bg-gray-50 hover:bg-gray-100 border border-gray-200 text-gray-700 font-bold rounded-xl transition-all shadow-sm hover:shadow"
+              className="w-full py-3 px-4 bg-gray-50 hover:bg-gray-100 border border-gray-200 text-gray-700 font-bold rounded-xl transition-all shadow-sm hover:shadow cursor-pointer"
             >
               Elimina questo e i successivi
             </button>
             <button 
               onClick={() => confirmRecurringDelete('all')} 
-              className="w-full py-3 px-4 bg-red-50 hover:bg-red-100 border border-red-200 text-red-700 font-bold rounded-xl transition-all shadow-sm hover:shadow"
+              className="w-full py-3 px-4 bg-red-50 hover:bg-red-100 border border-red-200 text-red-700 font-bold rounded-xl transition-all shadow-sm hover:shadow cursor-pointer"
             >
               Elimina tutte le ripetizioni
             </button>
             <button 
               onClick={() => setShowRecurringDeleteOptions(false)} 
-              className="w-full py-3 px-4 mt-2 text-gray-500 hover:text-gray-800 hover:bg-gray-50 font-bold rounded-xl transition-all"
+              className="w-full py-3 px-4 mt-2 text-gray-500 hover:text-gray-800 hover:bg-gray-50 font-bold rounded-xl transition-all cursor-pointer"
             >
               Annulla operazione
             </button>

@@ -7,6 +7,9 @@ import type { MonthlyEntryResponse } from '@/types/monthlyentries';
 import type { DbYearlyEntry } from '@/types/yearlyentries';
 import { paginate } from '@/utils/paginationUtils';
 
+export type TagSortField = 'name' | 'totalUsage' | 'monthlyCount' | 'yearlyCount';
+export type TagSortDirection = 'asc' | 'desc';
+
 export interface AssociatedReview {
   id: string;
   type: 'month' | 'year';
@@ -35,6 +38,8 @@ interface UseTagArchiveDataOptions {
   searchQuery: string;
   currentPage: number;
   pageSize?: number;
+  sortField?: TagSortField;
+  sortDirection?: TagSortDirection;
 }
 
 export interface TagArchiveDataResult {
@@ -53,6 +58,8 @@ export const useTagArchiveData = ({
   searchQuery,
   currentPage,
   pageSize = 8,
+  sortField = 'name',
+  sortDirection = 'asc',
 }: UseTagArchiveDataOptions): TagArchiveDataResult => {
   return useMemo(() => {
     // 1. Filtriamo solo i tag reali (genre === 5)
@@ -146,37 +153,57 @@ export const useTagArchiveData = ({
 
     realEnrichedList.forEach((item) => {
       if (maxUsageFound > 0 && item.totalUsage > 0) {
-        // Scala da 1 a 5 proporzionale
         item.scale = Math.min(5, Math.max(1, 1 + Math.round((item.totalUsage / maxUsageFound) * 4)));
       } else {
         item.scale = 1;
       }
     });
 
-    // Ordinamento alfabetico A-Z
-    const sortedList = [...realEnrichedList].sort((a, b) =>
-      a.name.localeCompare(b.name, undefined, { sensitivity: 'base' })
-    );
-
     // Filtro di ricerca
     const query = searchQuery.trim().toLowerCase();
-    const filtered = sortedList.filter((item) => {
+    const filtered = realEnrichedList.filter((item) => {
       if (!query) return true;
       return item.name.toLowerCase().includes(query);
     });
 
+    // Ordinamento
+    const sorted = [...filtered].sort((a, b) => {
+      let comparison = 0;
+      switch (sortField) {
+        case 'totalUsage':
+          comparison = a.totalUsage - b.totalUsage;
+          break;
+        case 'monthlyCount':
+          comparison = a.monthlyCount - b.monthlyCount;
+          break;
+        case 'yearlyCount':
+          comparison = a.yearlyCount - b.yearlyCount;
+          break;
+        case 'name':
+        default:
+          comparison = a.name.localeCompare(b.name, undefined, { sensitivity: 'base' });
+          break;
+      }
+      return sortDirection === 'asc' ? comparison : -comparison;
+    });
+
     // Paginazione
-    const { paginatedItems: paginated, totalPages } = paginate(filtered, currentPage, pageSize);
+    const { paginatedItems: paginated, totalPages } = paginate(sorted, currentPage, pageSize);
+
+    // Bacheca (ordinata alfabeticamente A-Z)
+    const cloudTags = [...realEnrichedList].sort((a, b) =>
+      a.name.localeCompare(b.name, undefined, { sensitivity: 'base' })
+    );
 
     return {
-      allTags: sortedList,
-      filteredTags: filtered,
+      allTags: cloudTags,
+      filteredTags: sorted,
       paginatedTags: paginated,
       totalPages,
-      totalCount: filtered.length,
+      totalCount: sorted.length,
       maxUsage: maxUsageFound,
     };
-  }, [categories, rawMonthlyEntries, rawYearlyEntries, searchQuery, currentPage, pageSize]);
+  }, [categories, rawMonthlyEntries, rawYearlyEntries, searchQuery, currentPage, pageSize, sortField, sortDirection]);
 };
 
 export default useTagArchiveData;

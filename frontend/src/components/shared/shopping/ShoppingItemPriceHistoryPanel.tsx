@@ -1,9 +1,9 @@
-// src/components/shared/shopping/ShoppingItemPriceHistoryPanel.tsx
 import React from 'react';
 import type { ItemBatchRecord, CommunityPriceRecord } from '@/types/shopping';
 import { ShoppingIcon, StoreIcon } from '@/components/shared/utils/Icons';
 import { formatUnitForQuantity } from './ShoppingUnitSelect';
 import { formatToItalianShortDate } from '@/utils/dateUtils';
+import { ShoppingItemPriceAnalysisCard, type PriceStatsData } from './ShoppingItemPriceAnalysisCard';
 
 export interface ShoppingItemPriceHistoryPanelProps {
   view: 'personal' | 'community';
@@ -11,6 +11,8 @@ export interface ShoppingItemPriceHistoryPanelProps {
   personalBatches: ItemBatchRecord[];
   communityPrices: CommunityPriceRecord[];
   isLoading: boolean;
+  currentStats?: PriceStatsData | null;
+  className?: string;
 }
 
 export const ShoppingItemPriceHistoryPanel: React.FC<ShoppingItemPriceHistoryPanelProps> = ({
@@ -19,22 +21,21 @@ export const ShoppingItemPriceHistoryPanel: React.FC<ShoppingItemPriceHistoryPan
   personalBatches,
   communityPrices,
   isLoading,
+  currentStats,
+  className = '',
 }) => {
   return (
-    <div className="pointer-events-auto flex-1 bg-white rounded-2xl shadow-2xl border border-gray-200 p-5 flex flex-col max-h-[85vh]">
-      <div className="flex items-center justify-between pb-3 border-b border-gray-100 mb-3 shrink-0">
+    <div className={`pointer-events-auto flex-1 bg-white rounded-2xl border border-gray-200 p-4 flex flex-col space-y-3 ${className}`}>
+      <div className="flex items-center justify-between pb-2.5 border-b border-gray-100 shrink-0">
         <div className="flex items-center gap-2">
           <ShoppingIcon className="w-4 h-4 text-blue-600" />
           <h3 className="text-xs font-bold text-gray-800 uppercase tracking-wider">
-            Storico Prezzi Prodotto
+            {currentStats !== undefined ? 'Storico & Analisi Prezzi' : 'Storico Prezzi Prodotto'}
           </h3>
         </div>
-        <span className="text-[11px] font-semibold text-gray-400">
-          {view === 'personal' ? personalBatches.length : communityPrices.length} rilevazioni
-        </span>
       </div>
 
-      <div className="flex rounded-xl bg-gray-100 p-1 mb-3 shrink-0">
+      <div className="flex rounded-xl bg-gray-100 p-1 shrink-0">
         <button
           type="button"
           onClick={() => onViewChange('personal')}
@@ -58,6 +59,16 @@ export const ShoppingItemPriceHistoryPanel: React.FC<ShoppingItemPriceHistoryPan
           Dalla community ({communityPrices.length})
         </button>
       </div>
+
+      {currentStats !== undefined && (
+        <div className="shrink-0">
+          <ShoppingItemPriceAnalysisCard
+            currentStats={currentStats}
+            view={view}
+            hideHeader={true}
+          />
+        </div>
+      )}
 
       <div className="flex-1 overflow-y-auto space-y-2 pr-1 custom-scrollbar min-h-0">
         {isLoading ? (

@@ -461,6 +461,18 @@ def update_list(
     if not db_list:
         raise HTTPException(status_code=404, detail=_LIST_NOT_FOUND)
 
+    if db_list.is_default:
+        if list_in.group_id is not None:
+            raise HTTPException(
+                status_code=400,
+                detail="La lista predefinita 'Senza lista' deve rimanere personale e non può essere associata a un gruppo.",
+            )
+        if list_in.visibility_id is not None and list_in.visibility_id != 1:
+            raise HTTPException(
+                status_code=400,
+                detail="La lista predefinita 'Senza lista' deve rimanere privata.",
+            )
+
     for field, value in list_in.model_dump(exclude_unset=True).items():
         setattr(db_list, field, value)
     db_list.updated_at = _now()
@@ -474,6 +486,11 @@ def delete_list(db: Session, current_user: User, list_id: int) -> None:
     db_list = repo.get_list_owned(db, list_id, current_user.id)
     if not db_list:
         raise HTTPException(status_code=404, detail=_LIST_NOT_FOUND)
+    if db_list.is_default:
+        raise HTTPException(
+            status_code=400,
+            detail="Impossibile eliminare la lista predefinita di sistema",
+        )
     repo.delete(db, db_list)
 
 
@@ -615,6 +632,38 @@ def update_item(
             )
 
     update_data = item_in.model_dump(exclude_unset=True)
+
+    # Gestione spostamento articolo su un'altra lista
+    if "shopping_list_id" in update_data and update_data["shopping_list_id"] is not None:
+        target_list_id = update_data["shopping_list_id"]
+        if target_list_id != db_item.shopping_list_id:
+            target_list = repo.get_list_accessible(db, target_list_id, current_user.id)
+            if not target_list:
+                raise HTTPException(
+                    status_code=404,
+                    detail="Lista di destinazione non trovata o non accessibile.",
+                )
+            if target_list.group_id:
+                target_role = repo.get_user_role_code_in_group(db, target_list.group_id, current_user.id)
+                if target_role == "reader":
+                    raise HTTPException(
+                        status_code=403,
+                        detail="Non hai i permessi per spostare articoli in questa lista di gruppo.",
+                    )
+            # Verifica se nella lista di destinazione esiste già un articolo aperto con lo stesso nome
+            name_to_check = db_item.name_normalized
+            existing_in_target = repo.get_open_item_by_list_and_name(
+                db,
+                target_list.id,
+                name_to_check,
+            )
+            if existing_in_target and existing_in_target.id != db_item.id:
+                raise HTTPException(
+                    status_code=409,
+                    detail="Esiste già un articolo aperto con questo prodotto nella lista di destinazione.",
+                )
+            db_item.shopping_list_id = target_list.id
+        update_data.pop("shopping_list_id", None)
 
     has_name_change = "product_name" in update_data and update_data["product_name"] is not None
     has_brand_change = ("brand_name" in update_data) or ("brand_id" in update_data)

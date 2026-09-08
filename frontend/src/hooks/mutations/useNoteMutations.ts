@@ -1,4 +1,5 @@
 // frontend/src/hooks/mutations/useNoteMutations.ts
+import axios from 'axios';
 import { useMutation, useQueryClient, type QueryKey } from '@tanstack/react-query';
 import { api } from '@/api/apiService';
 import type { LocalNoteEntry, NoteVariant, DailyEntry } from '@/types';
@@ -108,28 +109,43 @@ export function useNoteMutations<T extends CacheWithNotes>(queryKey: QueryKey) {
           if (!old) return old;
           return {
             ...old,
-            note: (old.note || []).map(n => 
+            note: (old.note || []).map((n) =>
               n.id === context.tempId ? { ...savedNoteFromDB, isNew: false } : n
-            )
+            ),
           };
         });
       }
-    }
+
+      // Sincronizza istantaneamente l'Archivio Note e le altre viste dell'agenda
+      queryClient.invalidateQueries({ queryKey: ['notes'] });
+    },
   });
 
   // 4. Stessa cosa per l'eliminazione: Tipizziamo il Contesto per il Rollback
   const deleteNoteMutation = useMutation<
     number, 
     Error, 
-    number, 
+    { id: number; isNew?: boolean }, 
     { previousData: T | undefined }
   >({
-    mutationFn: async (id: number) => {
-       await api.delete(`/daily-entries/${id}`);
-       return id; 
+    mutationFn: async ({ id, isNew }) => {
+      // Se la nota è locale / nuova (tempId) e non è mai stata sincronizzata sul server, non chiamiamo l'API
+      if (isNew || id > 1000000000000) {
+        return id;
+      }
+      try {
+        await api.delete(`/daily-entries/${id}`);
+      } catch (err: unknown) {
+        // Se l'API restituisce 404, la nota non esiste già sul server: trattala come eliminata con successo
+        if (axios.isAxiosError(err) && (err.status === 404 || err.response?.status === 404)) {
+          return id;
+        }
+        throw err;
+      }
+      return id; 
     },
     
-    onMutate: async (deletedId): Promise<{ previousData: T | undefined }> => {
+    onMutate: async ({ id: deletedId }): Promise<{ previousData: T | undefined }> => {
       await queryClient.cancelQueries({ queryKey });
       const previousData = queryClient.getQueryData<T>(queryKey);
 
@@ -137,27 +153,36 @@ export function useNoteMutations<T extends CacheWithNotes>(queryKey: QueryKey) {
         if (!old) return old;
         return {
           ...old,
-          ...(old.note && { note: old.note.filter(n => n.id !== deletedId) }),
-          ...(old.eventi_positivi && { eventi_positivi: old.eventi_positivi.filter(e => e.id !== deletedId) }),
-          ...(old.eventi_negativi && { eventi_negativi: old.eventi_negativi.filter(e => e.id !== deletedId) }),
+          ...(old.note && { note: old.note.filter((n) => n.id !== deletedId) }),
+          ...(old.eventi_positivi && { eventi_positivi: old.eventi_positivi.filter((e) => e.id !== deletedId) }),
+          ...(old.eventi_negativi && { eventi_negativi: old.eventi_negativi.filter((e) => e.id !== deletedId) }),
         };
       });
 
       return { previousData };
     },
-    onError: (_err, _deletedId, context) => {
+    onError: (err, { id }, context) => {
+      logger.error("Errore cancellazione nota:", err);
+      if (id > 1000000000000) return;
       if (context?.previousData) {
         queryClient.setQueryData(queryKey, context.previousData);
       }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['notes'] });
     },
   });
 
   return {
     saveNote: (payload: SaveNotePayload) => {
       const textVal = (payload.testo || payload.text || '').trim();
-      if (!textVal) return;
+      if (!textVal && !payload.isNew) return;
       saveNoteMutation.mutate(payload);
     },
-    deleteNote: deleteNoteMutation.mutate,
+    deleteNote: (idOrPayload: number | { id: number; isNew?: boolean }, isNew?: boolean) => {
+      const id = typeof idOrPayload === 'number' ? idOrPayload : idOrPayload.id;
+      const isNewNote = typeof idOrPayload === 'object' ? idOrPayload.isNew : (isNew || id > 1000000000000);
+      deleteNoteMutation.mutate({ id, isNew: isNewNote });
+    },
   };
 }

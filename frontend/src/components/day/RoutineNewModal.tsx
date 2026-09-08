@@ -177,8 +177,8 @@ const RoutineNewModal: React.FC<RoutineNewModalProps> = ({ isOpen, onClose, rout
               <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Ricorrenza</label>
               
               <RecurrenceEditor 
-                isRecurrent={form.isRecurrent}
-                onRecurrentChange={(val) => setForm({...form, isRecurrent: val})}
+                hideToggle={true}
+                isRecurrent={true}
                 interval={form.rruleInterval}
                 onIntervalChange={(val) => setForm({...form, rruleInterval: val})}
                 freq={form.rruleFreq}

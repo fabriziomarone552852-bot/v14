@@ -4,47 +4,52 @@ import DatePicker from './DatePicker/DatePicker';
 import { CloseFillIcon } from './Icons';
 
 interface RecurrenceEditorProps {
-  isRecurrent: boolean;
-  onRecurrentChange: (val: boolean) => void;
+  isRecurrent?: boolean;
+  onRecurrentChange?: (val: boolean) => void;
   interval: string;
   onIntervalChange: (val: string) => void;
   freq: string;
   onFreqChange: (val: string) => void;
   untilDate: string;
   onUntilDateChange: (val: string) => void;
+  hideToggle?: boolean;
 }
 
 export const RecurrenceEditor: React.FC<RecurrenceEditorProps> = ({
-  isRecurrent, 
+  isRecurrent = true, 
   onRecurrentChange, 
   interval, 
   onIntervalChange, 
   freq, 
   onFreqChange, 
   untilDate, 
-  onUntilDateChange
+  onUntilDateChange,
+  hideToggle = false,
 }) => {
   const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
+  const showControls = hideToggle || isRecurrent;
 
   return (
-    <div className="bg-gray-50 p-3 rounded-xl border border-gray-100 mt-2">
-      {/* Toggle Ripetizione */}
-      <div className="flex items-center gap-2 mb-1">
-        <input 
-          type="checkbox" 
-          id="recurrenceToggle" 
-          checked={isRecurrent} 
-          onChange={(e) => onRecurrentChange(e.target.checked)} 
-          className="w-4 h-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500 cursor-pointer" 
-        />
-        <label htmlFor="recurrenceToggle" className="text-sm font-bold text-gray-700 cursor-pointer select-none">
-          Evento Ricorrente
-        </label>
-      </div>
+    <div className={`bg-gray-50 p-3 rounded-xl border border-gray-100 ${hideToggle ? '' : 'mt-2'}`}>
+      {/* Toggle Ripetizione (nascosto se hideToggle è true) */}
+      {!hideToggle && (
+        <div className="flex items-center gap-2 mb-1">
+          <input 
+            type="checkbox" 
+            id="recurrenceToggle" 
+            checked={isRecurrent} 
+            onChange={(e) => onRecurrentChange?.(e.target.checked)} 
+            className="w-4 h-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500 cursor-pointer" 
+          />
+          <label htmlFor="recurrenceToggle" className="text-sm font-bold text-gray-700 cursor-pointer select-none">
+            Evento Ricorrente
+          </label>
+        </div>
+      )}
       
-      {/* Controlli Ripetizione (visibili solo se attivata) */}
-      {isRecurrent && (
-        <div className="flex items-center gap-2 text-sm text-gray-700 mt-3 flex-wrap animate-fadeIn">
+      {/* Controlli Ripetizione */}
+      {showControls && (
+        <div className={`flex items-center gap-2 text-sm text-gray-700 flex-wrap animate-fadeIn ${hideToggle ? '' : 'mt-3'}`}>
           <span>Ripeti ogni</span>
           
           {/* Input Intervallo */}

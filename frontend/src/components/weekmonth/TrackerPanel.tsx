@@ -15,7 +15,7 @@ interface TrackerPanelProps {
   titleBottom?: string;
   showBottom?: boolean;
   items: TrackerItem[];
-  onUpdateValue: (id: string, newValue: number) => void;
+  onUpdateValue?: (id: string, newValue: number) => void;
 }
 
 // --- UTILITY MATEMATICA SVG ---
