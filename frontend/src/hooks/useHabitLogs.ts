@@ -5,17 +5,22 @@ import { api } from '@/api/apiService';
 import type { RoutinePeriod } from '@/components/day/RoutineColumn';
 
 // 1. LE TUE OTTIME INTERFACCE
-interface HabitLogItem {
+export interface HabitLogItem {
   id: number;
   habit_id: number;
   data_riferimento: string;
   count: number;
 }
 
-interface LogDisplayItem {
+export interface LogDisplayItem {
   date: string;
   done: number;
   target: number;
+}
+
+export interface MonthGroupedHabitLog {
+  month: string;
+  logs: LogDisplayItem[];
 }
 
 export const useHabitLogs = (habitId?: number, periods?: RoutinePeriod[]) => {

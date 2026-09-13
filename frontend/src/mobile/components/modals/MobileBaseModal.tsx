@@ -1,7 +1,7 @@
-// src/mobile/components/modals/MobileBaseModal.tsx
 import React, { type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import { CloseIcon, LoadingIcon } from '@/components/shared/utils/Icons';
+import { useBackHandler } from '@/utils/backButtonManager';
 
 interface MobileBaseModalProps {
   isOpen: boolean;
@@ -40,6 +40,9 @@ export const MobileBaseModal: React.FC<MobileBaseModalProps> = ({
   isLoading = false,
   zIndexClass = 'z-[9999]',
 }) => {
+  // Registra la chiusura automatica con il tasto Back hardware/sistema
+  useBackHandler(isOpen && !isLoading, onClose, 10);
+
   if (!isOpen) return null;
 
   const renderFooter = () => {

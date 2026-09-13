@@ -3,7 +3,7 @@ import { useState } from 'react';
 import type { RoutineItem } from '@/components/day/RoutineColumn';
 import type { RoutineSavePayload } from '@/components/day/RoutineNewModal';
 import type { SaveHabitPayload } from '@/types';
-import { formatDateString } from '@/utils/dateUtils';
+import { calculateSafeSuspendDate, getActivePeriodToSuspend } from '@/utils/habitUtils';
 
 interface UseRoutineManagerProps {
   targetDateStr: string;
@@ -20,27 +20,28 @@ export const useRoutineManager = ({
 
   // 1. Logica per capire se la routine è attiva estraendo i periodi
   const getRoutineStatus = (routine: RoutineItem | null) => {
-    const sortedPeriods = routine?.periods
-      ? [...routine.periods].sort((a, b) => new Date(b.data_inizio).getTime() - new Date(a.data_inizio).getTime())
-      : [];
-    
-    const isAttiva = sortedPeriods.length > 0 && !sortedPeriods[0].data_fine;
-    return { sortedPeriods, isAttiva };
+    const activePeriod = getActivePeriodToSuspend(routine, targetDateStr);
+    const isAttiva = Boolean(
+      routine &&
+        (activePeriod
+          ? !routine.periods?.find((p) => p.id === activePeriod.id)?.data_fine ||
+            (routine.periods?.find((p) => p.id === activePeriod.id)?.data_fine ?? '') >= targetDateStr
+          : true)
+    );
+    return { sortedPeriods: routine?.periods ?? [], isAttiva };
   };
 
   // 2. Logica per la sospensione
   const handleSuspend = (routine: RoutineItem) => {
-    const { sortedPeriods } = getRoutineStatus(routine);
-    if (sortedPeriods.length === 0) return;
+    const periodToSuspend = getActivePeriodToSuspend(routine, targetDateStr);
+    if (!periodToSuspend) return;
     
-    const [y, m, d] = targetDateStr.split('-').map(Number);
-    const ieri = new Date(y, m - 1, d);
-    ieri.setDate(ieri.getDate() - 1);
+    const endDate = calculateSafeSuspendDate(periodToSuspend.data_inizio, targetDateStr);
     
     suspendRoutine({ 
       habitId: routine.id, 
-      periodId: sortedPeriods[0].id, 
-      endDate: formatDateString(ieri)
+      periodId: periodToSuspend.id, 
+      endDate
     });
   };
 

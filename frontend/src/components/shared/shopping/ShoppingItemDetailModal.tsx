@@ -1,24 +1,21 @@
 // src/components/shared/shopping/ShoppingItemDetailModal.tsx
-import React, { useState, useEffect, useMemo } from 'react';
+import React from 'react';
 import { createPortal } from 'react-dom';
-import type { ShoppingListItem, ItemBatchRecord, CommunityPriceRecord } from '@/types/shopping';
+import type { ShoppingListItem } from '@/types/shopping';
 import ConfirmDialog from '@/components/shared/dialog/ConfirmDialog';
 import {
   EditIcon,
   TrashIcon,
-  CheckCircleIcon,
   ShoppingIcon,
   CloseIcon,
 } from '@/components/shared/utils/Icons';
 import { formatUnitForQuantity } from './ShoppingUnitSelect';
-import { fetchItemBatches, fetchCommunityPrices } from '@/api/shoppingApi';
-import { useShoppingMutations } from '@/hooks/shopping/useShoppingMutations';
-import { computePriceStatistics } from './shoppingPriceUtils';
 import { ShoppingItemPriceHistoryPanel } from './ShoppingItemPriceHistoryPanel';
 import { ShoppingItemNoteEditor } from './ShoppingItemNoteEditor';
-import { ShoppingItemPriceAnalysisCard, type PriceStatsData } from './ShoppingItemPriceAnalysisCard';
+import { ShoppingItemPriceAnalysisCard } from './ShoppingItemPriceAnalysisCard';
+import { useShoppingItemDetailStats } from './item';
 
-interface ShoppingItemDetailModalProps {
+export interface ShoppingItemDetailModalProps {
   isOpen: boolean;
   onClose: () => void;
   item: ShoppingListItem | null;
@@ -33,7 +30,7 @@ const capitalizeFirstLetter = (str: string): string => {
   return str.charAt(0).toUpperCase() + str.slice(1);
 };
 
-const ShoppingItemDetailModal: React.FC<ShoppingItemDetailModalProps> = ({
+export const ShoppingItemDetailModal: React.FC<ShoppingItemDetailModalProps> = ({
   isOpen,
   onClose,
   item,
@@ -42,113 +39,31 @@ const ShoppingItemDetailModal: React.FC<ShoppingItemDetailModalProps> = ({
   canEdit = true,
   canDelete = true,
 }) => {
-  const mutations = useShoppingMutations();
-
-  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const [view, setView] = useState<'personal' | 'community'>('personal');
-  const [personalBatches, setPersonalBatches] = useState<ItemBatchRecord[]>([]);
-  const [communityPrices, setCommunityPrices] = useState<CommunityPriceRecord[]>([]);
-  const [isLoadingHistory, setIsLoadingHistory] = useState(false);
-
-  const [isEditingNote, setIsEditingNote] = useState(false);
-  const [noteText, setNoteText] = useState('');
-  const [isSavingNote, setIsSavingNote] = useState(false);
-
-  useEffect(() => {
-    if (item) {
-      setNoteText(item.notes || '');
-      setIsEditingNote(false);
-    }
-  }, [item?.id, item?.notes]);
-
-  useEffect(() => {
-    if (!isOpen || !item) {
-      setPersonalBatches([]);
-      setCommunityPrices([]);
-      return;
-    }
-    const load = async () => {
-      setIsLoadingHistory(true);
-      try {
-        const [batches, community] = await Promise.all([
-          fetchItemBatches(item.id),
-          item.productId ? fetchCommunityPrices(item.productId) : Promise.resolve([]),
-        ]);
-        setPersonalBatches(batches);
-        setCommunityPrices(community);
-      } catch {
-        // silently fail
-      } finally {
-        setIsLoadingHistory(false);
-      }
-    };
-    load();
-  }, [isOpen, item?.id, item?.productId, item?.brandId, item?.isPurchased]);
-
-  const currentStats = useMemo<PriceStatsData | null>(() => {
-    const rawList = view === 'personal' ? personalBatches : communityPrices;
-    const now = new Date();
-    const cutoffDate = new Date();
-    cutoffDate.setDate(now.getDate() - 365);
-
-    const stats = computePriceStatistics(rawList, cutoffDate);
-    if (stats.count === 0) return null;
-
-    const defaultUnit = item ? formatUnitForQuantity(item.unitCodeName, 1) || 'unità' : 'unità';
-    const unit = stats.bestUnit || defaultUnit;
-
-    return {
-      avg: stats.avg ?? 0,
-      bestPrice: stats.bestPrice ?? 0,
-      bestSupplier: stats.bestSupplier,
-      bestDate: stats.bestDate,
-      unit,
-      count: stats.count,
-    };
-  }, [view, personalBatches, communityPrices, item]);
+  const {
+    view,
+    setView,
+    personalBatches,
+    communityPrices,
+    isLoadingHistory,
+    currentStats,
+    isDeleteDialogOpen,
+    setIsDeleteDialogOpen,
+    isEditingNote,
+    setIsEditingNote,
+    noteText,
+    setNoteText,
+    isSavingNote,
+    handleSaveNote,
+    handleCancelNote,
+    handleDeleteConfirm,
+  } = useShoppingItemDetailStats({
+    isOpen,
+    item,
+    onDeleteClick,
+    onClose,
+  });
 
   if (!isOpen || !item) return null;
-
-  const handleDeleteConfirm = () => {
-    onDeleteClick(item);
-    setIsDeleteDialogOpen(false);
-    onClose();
-  };
-
-  const handleSaveNote = async () => {
-    if (!item) return;
-    const cleanNote = noteText.trim();
-    setIsEditingNote(false);
-    if (cleanNote === (item.notes || '').trim()) return;
-
-    setIsSavingNote(true);
-    try {
-      await mutations.updateItem({
-        id: item.id,
-        listId: item.shoppingListId,
-        data: { notes: cleanNote || undefined },
-      });
-    } finally {
-      setIsSavingNote(false);
-    }
-  };
-
-  const handleCancelNote = () => {
-    setNoteText(item?.notes || '');
-    setIsEditingNote(false);
-  };
-
-  const statusBadge = item.isPurchased ? (
-    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-700 border border-emerald-200">
-      <CheckCircleIcon className="w-3.5 h-3.5" />
-      <span>Acquistato</span>
-    </span>
-  ) : (
-    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-700 border border-amber-200">
-      <ShoppingIcon className="w-3.5 h-3.5 text-amber-600" />
-      <span>Da Comprare</span>
-    </span>
-  );
 
   const formattedProductName = capitalizeFirstLetter(item.productName);
   const unitLabel = formatUnitForQuantity(item.unitCodeName, item.quantity);
@@ -162,21 +77,28 @@ const ShoppingItemDetailModal: React.FC<ShoppingItemDetailModalProps> = ({
         className="flex flex-col md:flex-row gap-4 items-stretch w-full max-w-5xl justify-center pointer-events-none"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Pannello Sinistro: Storico Prezzi */}
+        {/* Pannello Sinistro: Storico Prezzi & Analisi Integrata */}
         <ShoppingItemPriceHistoryPanel
           view={view}
           onViewChange={setView}
           personalBatches={personalBatches}
           communityPrices={communityPrices}
           isLoading={isLoadingHistory}
+          currentStats={currentStats}
         />
 
-        {/* Pannello Destro: Scheda Articolo */}
+        {/* Pannello Destro: Scheda Articolo & Dettagli */}
         <div className="pointer-events-auto flex-shrink-0 w-full md:w-96 flex flex-col justify-between gap-4">
           <div className="bg-white rounded-2xl shadow-2xl border border-gray-200 p-5 flex flex-col justify-between flex-1">
-            <div className="space-y-3.5">
+            <div className="space-y-4">
+              
+              {/* Header con Badge da Comprare ed Azioni */}
               <div className="flex items-center justify-between pb-3 border-b border-gray-100">
-                {statusBadge}
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-800 border border-amber-200">
+                  <ShoppingIcon className="w-3.5 h-3.5" />
+                  <span>Da Comprare</span>
+                </span>
+
                 <div className="flex items-center gap-1">
                   {canEdit && (
                     <button
@@ -186,7 +108,7 @@ const ShoppingItemDetailModal: React.FC<ShoppingItemDetailModalProps> = ({
                         onEditClick(item);
                       }}
                       className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors cursor-pointer"
-                      title="Modifica prodotto"
+                      title="Modifica articolo"
                     >
                       <EditIcon className="w-4 h-4" />
                     </button>
@@ -196,7 +118,7 @@ const ShoppingItemDetailModal: React.FC<ShoppingItemDetailModalProps> = ({
                       type="button"
                       onClick={() => setIsDeleteDialogOpen(true)}
                       className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors cursor-pointer"
-                      title="Elimina prodotto"
+                      title="Elimina articolo"
                     >
                       <TrashIcon className="w-4 h-4" />
                     </button>
@@ -212,54 +134,57 @@ const ShoppingItemDetailModal: React.FC<ShoppingItemDetailModalProps> = ({
                 </div>
               </div>
 
-              <div>
-                <div className="flex items-center gap-2 flex-wrap">
-                  <h2 className="text-xl font-black text-gray-900 leading-tight">
-                    {formattedProductName}
-                  </h2>
-                  {item.brandName && (
-                    <span className="text-sm px-2.5 py-0.5 rounded-lg font-bold bg-indigo-50 text-indigo-700 border border-indigo-200">
-                      {item.brandName}
-                    </span>
+              {/* Informazioni Prodotto */}
+              <div className="space-y-3">
+                <div>
+                  <div className="flex items-center gap-2 flex-wrap min-w-0">
+                    <h2 className="text-xl font-black text-gray-900 leading-tight truncate min-w-0 flex-1" title={formattedProductName}>
+                      {formattedProductName}
+                    </h2>
+                    {item.brandName && (
+                      <span className="text-sm px-2.5 py-0.5 rounded-lg font-bold bg-indigo-50 text-indigo-700 border border-indigo-200 shrink-0">
+                        {item.brandName}
+                      </span>
+                    )}
+                  </div>
+                  {item.groupName && (
+                    <p className="text-xs text-gray-400 mt-0.5 truncate">
+                      Lista: <span className="font-semibold text-gray-600">{item.listName}</span> • Gruppo: <span className="font-semibold text-gray-600">{item.groupName}</span>
+                    </p>
                   )}
                 </div>
-                {item.groupName && (
-                  <p className="text-xs text-gray-400 mt-0.5">
-                    Lista: <span className="font-semibold text-gray-600">{item.listName}</span> • Gruppo: <span className="font-semibold text-gray-600">{item.groupName}</span>
-                  </p>
+
+                {item.quantity != null && (
+                  <div className="flex items-center gap-2 pt-1">
+                    <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">
+                      Quantità:
+                    </span>
+                    <span className="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-bold bg-blue-50 text-blue-700 border border-blue-200 capitalize">
+                      {item.quantity} {unitLabel}
+                    </span>
+                  </div>
                 )}
+
+                {/* Note del Prodotto */}
+                <div className="pt-2 border-t border-gray-100">
+                  <ShoppingItemNoteEditor
+                    notes={item.notes}
+                    isEditing={isEditingNote}
+                    setIsEditing={setIsEditingNote}
+                    noteText={noteText}
+                    setNoteText={setNoteText}
+                    isSaving={isSavingNote}
+                    onSave={handleSaveNote}
+                    onCancel={handleCancelNote}
+                    canEdit={canEdit}
+                  />
+                </div>
               </div>
 
-              {item.quantity != null && (
-                <div className="flex items-center gap-2 pt-1">
-                  <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">
-                    Quantità Richiesta:
-                  </span>
-                  <span className="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-bold bg-blue-50 text-blue-700 border border-blue-200 capitalize">
-                    {item.quantity} {unitLabel}
-                  </span>
-                </div>
-              )}
+              {/* Scheda Analisi Prezzo Compatta */}
+              <ShoppingItemPriceAnalysisCard currentStats={currentStats} view={view} />
 
-              {/* Note del Prodotto */}
-              <ShoppingItemNoteEditor
-                notes={item.notes}
-                isEditing={isEditingNote}
-                setIsEditing={setIsEditingNote}
-                noteText={noteText}
-                setNoteText={setNoteText}
-                isSaving={isSavingNote}
-                onSave={handleSaveNote}
-                onCancel={handleCancelNote}
-                canEdit={canEdit}
-              />
             </div>
-
-            {/* Statistiche Prezzo */}
-            <ShoppingItemPriceAnalysisCard
-              currentStats={currentStats}
-              view={view}
-            />
           </div>
         </div>
       </div>

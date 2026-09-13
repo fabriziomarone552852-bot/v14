@@ -1,7 +1,7 @@
-// src/components/shared/dialog/BaseModal.tsx
 import React, { type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import { CloseIcon, LoadingIcon } from '@/components/shared/utils/Icons';
+import { useBackHandler } from '@/utils/backButtonManager';
 
 interface BaseModalProps {
   isOpen: boolean;
@@ -35,6 +35,9 @@ const BaseModal: React.FC<BaseModalProps> = ({
   isLoading = false, overflowVisible = false,
   zIndexClass = 'z-[9999]'
 }) => {
+  // Registra la chiusura automatica con il tasto Back hardware/sistema
+  useBackHandler(isOpen && !isLoading, onClose, 10);
+
   if (!isOpen) return null;
 
   // Funzione che decide quale footer mostrare

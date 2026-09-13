@@ -423,7 +423,29 @@ def remove_member(db: Session, current_user: User, group_id: int, user_id: int) 
 
 
 # ------------------------------------------------------------------ Lists
+def get_or_create_default_list(db: Session, current_user: User) -> ShoppingList:
+    default_list = repo.get_default_list(db, current_user.id)
+    if not default_list:
+        now = _now()
+        default_status_id = repo.active_list_status_id(db) or 1
+        default_list = ShoppingList(
+            owner_id=current_user.id,
+            visibility_id=1,
+            status_id=default_status_id,
+            name="Senza lista",
+            is_completed=False,
+            is_default=True,
+            created_at=now,
+            updated_at=now,
+        )
+        repo.add(db, default_list)
+        repo.commit(db)
+        repo.refresh(db, default_list)
+    return default_list
+
+
 def list_lists(db: Session, current_user: User) -> List[ShoppingList]:
+    get_or_create_default_list(db, current_user)
     return repo.list_lists(db, current_user.id)
 
 

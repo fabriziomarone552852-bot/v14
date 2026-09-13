@@ -33,8 +33,9 @@ export function normalizeShoppingSupplierOption(
 export function serializeShoppingSupplierPayload(
   payload: ShoppingSupplierCreatePayload | ShoppingSupplierUpdatePayload
 ) {
+  const name = payload.name ?? payload.nameNormalized;
   return {
-    ...(payload.nameNormalized !== undefined ? { name_normalized: payload.nameNormalized } : {}),
+    ...(name !== undefined ? { name } : {}),
     ...(payload.typeCode !== undefined ? { type_code: payload.typeCode } : {}),
     ...(payload.statusId !== undefined ? { status_id: payload.statusId } : {}),
   };

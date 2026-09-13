@@ -129,15 +129,17 @@ def _get_client_credentials() -> tuple[str, str, str]:
     return client_id, client_secret, redirect_uri
 
 
-def generate_auth_url(user_id: int) -> str:
-    """Genera l'URL di autorizzazione OAuth 2.0 con stato JWT cifrato."""
-    client_id, _, redirect_uri = _get_client_credentials()
+def generate_auth_url(user_id: int, custom_redirect_uri: Optional[str] = None) -> str:
+    """Genera l'URL di autorizzazione OAuth 2.0 con stato JWT cifrato e supporto redirect personalizzato."""
+    client_id, _, default_redirect_uri = _get_client_credentials()
+    redirect_uri = custom_redirect_uri or default_redirect_uri
     settings = get_settings()
 
-    # Creazione stato cifrato per verificare l'utente al ritorno
+    # Creazione stato cifrato per verificare l'utente e il redirect_uri al ritorno
     state_payload = {
         "user_id": user_id,
         "purpose": "google_calendar_oauth",
+        "redirect_uri": redirect_uri,
         "exp": datetime.now(timezone.utc) + timedelta(minutes=15),
     }
     state = jwt.encode(
@@ -158,8 +160,8 @@ def generate_auth_url(user_id: int) -> str:
     return f"{GOOGLE_AUTH_URL}?{urlencode(params)}"
 
 
-def verify_oauth_state(state: str) -> int:
-    """Verifica e decodifica il parametro state, restituendo lo user_id."""
+def verify_oauth_state(state: str) -> tuple[int, Optional[str]]:
+    """Verifica e decodifica il parametro state, restituendo user_id e eventuale redirect_uri."""
     settings = get_settings()
     try:
         payload = jwt.decode(
@@ -172,32 +174,64 @@ def verify_oauth_state(state: str) -> int:
         user_id = payload.get("user_id")
         if not user_id:
             raise ValueError("User ID assente nello stato.")
-        return int(user_id)
+        return int(user_id), payload.get("redirect_uri")
     except JWTError as exc:
         raise ValueError(f"Stato OAuth non valido o scaduto: {exc}") from exc
 
 
-def handle_oauth_callback(db: Session, code: str, state: str) -> dict[str, Any]:
+def handle_oauth_callback(
+    db: Session,
+    code: str,
+    state: Optional[str] = None,
+    custom_redirect_uri: Optional[str] = None,
+    is_native: bool = False,
+    user_id: Optional[int] = None,
+) -> dict[str, Any]:
     """Scambia l'authorization code con access & refresh token e salva i dati."""
-    user_id = verify_oauth_state(state)
-    client_id, client_secret, redirect_uri = _get_client_credentials()
+    client_id, client_secret, default_redirect_uri = _get_client_credentials()
+
+    if is_native:
+        if not user_id:
+            raise ValueError("User ID obbligatorio per l'autenticazione nativa.")
+        redirect_uri = ""
+    else:
+        if state:
+            verified_user_id, state_redirect_uri = verify_oauth_state(state)
+            user_id = verified_user_id
+            redirect_uri = custom_redirect_uri or state_redirect_uri or default_redirect_uri
+        elif user_id:
+            redirect_uri = custom_redirect_uri or default_redirect_uri
+        else:
+            raise ValueError("Stato OAuth o User ID mancante.")
 
     # 1. Scambio del code
+    token_req_data = {
+        "code": code,
+        "client_id": client_id,
+        "client_secret": client_secret,
+        "grant_type": "authorization_code",
+    }
+    if not is_native:
+        token_req_data["redirect_uri"] = redirect_uri
+    else:
+        token_req_data["redirect_uri"] = ""
+
     status_code, token_data = _http_request(
         GOOGLE_TOKEN_URL,
         method="POST",
-        data={
-            "code": code,
-            "client_id": client_id,
-            "client_secret": client_secret,
-            "redirect_uri": redirect_uri,
-            "grant_type": "authorization_code",
-        },
+        data=token_req_data,
         is_json=False,
     )
     if status_code != 200 or not isinstance(token_data, dict):
-        logger.error("Errore scambio token Google (%s): %s", status_code, token_data)
-        raise ValueError("Impossibile scambiare il codice di autorizzazione con Google.")
+        err_msg = token_data.get("error_description") if isinstance(token_data, dict) else str(token_data)
+        logger.error(
+            "Errore scambio token Google (%s): %s (redirect_uri=%s, is_native=%s)",
+            status_code,
+            token_data,
+            redirect_uri,
+            is_native,
+        )
+        raise ValueError(f"Impossibile scambiare il codice di autorizzazione con Google: {err_msg or 'Errore sconosciuto'}")
 
     access_token = token_data.get("access_token")
     refresh_token = token_data.get("refresh_token")

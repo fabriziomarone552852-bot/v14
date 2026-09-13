@@ -34,7 +34,7 @@ Sì, eseguendo semplicemente il comando nel terminale PowerShell:
 
 lo script fa **completamente tutto in automatico**:
 
-1. **Compila il Frontend React** (`npm run build` con Vite): genera la versione ottimizzata e minificata dell'interfaccia grafica.
+1. **Compila il Frontend React** (`npm run build:mobile` con Vite): genera la versione ottimizzata e minificata dell'interfaccia mobile escludendo i file desktop per ridurre al minimo il peso dell'app.
 2. **Sincronizza gli Asset** (`npx cap sync android`): copia i file web aggiornati dentro i sorgenti Android di Capacitor.
 3. **Compila il micro-proxy Tailscale Go** (`tsnetproxy.aar`): garantisce che il modulo WireGuard nativo per smartphone Android ARM64 sia aggiornato.
 4. **Compila l'APK Android con Gradle e JDK 21**: esegue il build in un container Docker isolato, risolve tutte le dipendenze e firma l'APK in modalità debug.

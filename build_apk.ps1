@@ -65,11 +65,23 @@ if ($LASTEXITCODE -ne 0) {
     exit 1
 }
 
+$oldApk = Join-Path $androidDir "app\build\outputs\apk\debug\app-debug.apk"
+if (Test-Path $oldApk) {
+    Remove-Item $oldApk -Force -ErrorAction SilentlyContinue
+}
+
 Write-Host "Esecuzione Gradle assembleDebug..." -ForegroundColor Yellow
 $frontendMount = $frontendDir -replace '\\', '/'
 docker rm -f apk-runner 2>$null
 docker run --name apk-runner -v "${frontendMount}:/app" -w /app/android apk-builder ./gradlew assembleDebug --no-daemon
+$gradleExitCode = $LASTEXITCODE
 docker rm -f apk-runner 2>$null
+
+if ($gradleExitCode -ne 0) {
+    Write-Host "`nErrore durante la compilazione Gradle (Exit Code: $gradleExitCode)!" -ForegroundColor Red
+    Set-Location $rootDir
+    exit 1
+}
 
 Set-Location $rootDir
 $finalApk = Join-Path $androidDir "app\build\outputs\apk\debug\app-debug.apk"

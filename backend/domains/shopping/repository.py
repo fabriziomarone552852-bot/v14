@@ -383,6 +383,19 @@ def list_lists(db: Session, user_id: int) -> List[ShoppingList]:
     )
 
 
+def get_default_list(db: Session, owner_id: int) -> Optional[ShoppingList]:
+    return (
+        db.query(ShoppingList)
+        .options(*_list_loaders(), *_soft_delete_criteria())
+        .filter(
+            ShoppingList.owner_id == owner_id,
+            ShoppingList.is_default.is_(True),
+            ShoppingList.deleted_at.is_(None),
+        )
+        .first()
+    )
+
+
 def get_list_owned(db: Session, list_id: int, owner_id: int) -> Optional[ShoppingList]:
     return (
         db.query(ShoppingList)

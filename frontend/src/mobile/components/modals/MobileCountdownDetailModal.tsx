@@ -5,13 +5,8 @@ import { startOfDay, isBefore } from 'date-fns';
 import type { CountdownItem } from '@/components/day/CountdownWidget';
 import ConfirmDialog from '@/components/shared/dialog/ConfirmDialog';
 import TickDisplay from '@/components/day/utils/TickDisplay';
-import {
-  TrashIcon,
-  EditIcon,
-  CloseIcon,
-  UndoIcon,
-} from '@/components/shared/utils/Icons';
 import starsGif from '@/assets/stars.gif';
+import { MobileCountdownDetailHeader } from './countdown/MobileCountdownDetailHeader';
 
 interface MobileCountdownDetailModalProps {
   isOpen: boolean;
@@ -89,50 +84,16 @@ export const MobileCountdownDetailModal: React.FC<MobileCountdownDetailModalProp
       {/* Overlay Gradiente Scuro a Pieno Schermo */}
       <div className="absolute inset-0 bg-gradient-to-b from-black/85 via-black/55 to-black/85 z-10" />
 
-      {/* 1. HEADER MODALE (Azioni a SINISTRA, Chiusura a DESTRA) */}
-      <div className="relative z-20 px-4 py-3.5 flex justify-between items-center shrink-0 pt-[max(env(safe-area-inset-top,0px),14px)] select-none">
-        {/* Azioni a Sinistra: Rinnova, Modifica, Elimina */}
-        <div className="flex items-center gap-2 shrink-0">
-          {canRenew && (
-            <button
-              type="button"
-              onClick={handleRenew}
-              className="p-2.5 bg-black/30 hover:bg-blue-500/80 active:bg-blue-600/90 active:scale-95 backdrop-blur-md rounded-full text-white transition-all shadow-xs cursor-pointer"
-              title="Rinnova per l'anno prossimo"
-            >
-              <UndoIcon className="w-4 h-4" />
-            </button>
-          )}
-          <button
-            type="button"
-            onClick={onEditClick}
-            className="p-2.5 bg-black/30 hover:bg-amber-500/80 active:bg-amber-600/90 active:scale-95 backdrop-blur-md rounded-full text-white transition-all shadow-xs cursor-pointer"
-            title="Modifica Countdown"
-          >
-            <EditIcon className="w-4 h-4" />
-          </button>
-          <button
-            type="button"
-            onClick={() => setIsDeleteDialogOpen(true)}
-            className="p-2.5 bg-black/30 hover:bg-red-500/80 active:bg-red-600/90 active:scale-95 backdrop-blur-md rounded-full text-white transition-all shadow-xs cursor-pointer"
-            title="Elimina Countdown"
-          >
-            <TrashIcon className="w-4 h-4" />
-          </button>
-        </div>
+      {/* 1. Header Modale con Azioni Rapide */}
+      <MobileCountdownDetailHeader
+        canRenew={canRenew}
+        onRenew={handleRenew}
+        onEdit={onEditClick}
+        onDelete={() => setIsDeleteDialogOpen(true)}
+        onClose={onClose}
+      />
 
-        {/* Chiusura a Destra */}
-        <button
-          type="button"
-          onClick={onClose}
-          className="p-2.5 bg-black/30 hover:bg-black/50 active:bg-black/70 active:scale-95 backdrop-blur-md rounded-full text-white transition-all shadow-xs cursor-pointer"
-          aria-label="Chiudi"
-        >
-          <CloseIcon className="w-5 h-5" />
-        </button>
-      </div>
-
-      {/* 2. CORPO MODALE CENTRATO A TUTTO SCHERMO */}
+      {/* 2. Corpo Modale Centrato a Tutto Schermo */}
       <div className="relative z-20 flex-1 min-h-0 flex flex-col items-center justify-center text-center px-6 py-4 overflow-y-auto pb-[max(env(safe-area-inset-bottom,0px),16px)]">
         <h2 className="text-2xl sm:text-3xl font-black text-white uppercase tracking-wider mb-2 drop-shadow-md max-w-xs sm:max-w-md line-clamp-3">
           {countdown.title}

@@ -5,10 +5,9 @@ import { useOutsideClick } from '@/hooks/useOutsideClick';
 import { useDropdownPosition } from '@/hooks/useDropdownPosition';
 import { PlusIcon, DropdownIcon, StoreIcon, CloseIcon } from '@/components/shared/utils/Icons';
 import type { ShoppingSupplierOption } from '@/types/shopping';
-import { createShoppingSupplier } from '@/api/shoppingApi';
-import BaseModal from '@/components/shared/dialog/BaseModal';
+import { ShoppingSupplierCreateModal } from './supplier';
 
-interface ShoppingSupplierSelectProps {
+export interface ShoppingSupplierSelectProps {
   value: string; // supplierId come stringa, oppure ""
   onChange: (val: string) => void;
   suppliers: ShoppingSupplierOption[];
@@ -31,9 +30,6 @@ export const ShoppingSupplierSelect: React.FC<ShoppingSupplierSelectProps> = ({
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-  const [newSupplierName, setNewSupplierName] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
   const ref = useOutsideClick<HTMLDivElement>(() => {
     if (!asModal) setIsOpen(false);
@@ -41,28 +37,6 @@ export const ShoppingSupplierSelect: React.FC<ShoppingSupplierSelectProps> = ({
   const { openUpwards } = useDropdownPosition(ref, { isOpen, threshold: 220 });
 
   const selectedSupplier = suppliers.find((s) => String(s.id) === value);
-
-  const handleCreateSupplier = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newSupplierName.trim()) return;
-
-    setIsSubmitting(true);
-    setError(null);
-    try {
-      const created = await createShoppingSupplier({ nameNormalized: newSupplierName.trim() });
-      if (onSupplierCreated) {
-        onSupplierCreated(created);
-      }
-      onChange(String(created.id));
-      setIsCreateModalOpen(false);
-      setNewSupplierName('');
-      setIsOpen(false);
-    } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Errore nella creazione del negozio');
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
 
   const handleSelect = (val: string) => {
     onChange(val);
@@ -99,195 +73,166 @@ export const ShoppingSupplierSelect: React.FC<ShoppingSupplierSelectProps> = ({
             onClick={() => {
               if (!disabled) setIsOpen(!isOpen);
             }}
-            className={`w-full px-3 py-2 bg-white border border-gray-200 hover:border-blue-500 rounded-xl text-xs font-semibold transition-colors outline-none cursor-pointer flex justify-between items-center shadow-xs ${
-              disabled ? 'opacity-60 cursor-not-allowed' : ''
+            className={`w-full px-3 py-2 text-sm bg-gray-50 border border-gray-200 rounded-xl flex items-center justify-between transition-all cursor-pointer select-none ${
+              disabled
+                ? 'opacity-60 cursor-not-allowed'
+                : 'hover:bg-white hover:border-gray-300 focus-within:ring-2 focus-within:ring-blue-500 focus-within:bg-white'
             }`}
           >
-            <span className="truncate text-gray-700 flex items-center gap-1.5">
-              <StoreIcon className="w-3.5 h-3.5 text-gray-400 shrink-0" />
-              <span className="truncate">
-                {selectedSupplier ? selectedSupplier.name : 'Seleziona negozio (opzionale)'}
+            <div className="flex items-center gap-2 min-w-0 flex-1">
+              <StoreIcon className="w-4 h-4 text-gray-400 shrink-0" />
+              <span className={`truncate text-sm ${selectedSupplier ? 'font-semibold text-gray-800' : 'text-gray-400'}`} title={selectedSupplier?.name}>
+                {selectedSupplier ? selectedSupplier.name : 'Seleziona negozio...'}
               </span>
-            </span>
-            <DropdownIcon isDropdownOpen={isOpen} />
+            </div>
+
+            <div className="flex items-center gap-1 shrink-0 ml-1">
+              {selectedSupplier && !disabled && (
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onChange('');
+                  }}
+                  className="p-0.5 text-gray-300 hover:text-gray-500 rounded-md transition cursor-pointer"
+                  title="Rimuovi negozio"
+                >
+                  <CloseIcon className="w-3.5 h-3.5" />
+                </button>
+              )}
+              <DropdownIcon className={`w-4 h-4 text-gray-400 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+            </div>
           </div>
 
-          {/* Modalità Dropdown Standard */}
-          {!asModal && isOpen && !disabled && (
+          {/* Menu a Discesa (Inline Desktop o Relativo) */}
+          {isOpen && !asModal && (
             <div
-              className={`absolute z-[100] w-full min-w-[200px] bg-white border border-gray-100 rounded-xl shadow-xl py-1 animate-fadeIn max-h-56 overflow-y-auto custom-scrollbar ${
+              className={`absolute z-50 left-0 right-0 bg-white border border-gray-200 rounded-xl shadow-xl overflow-hidden animate-fadeIn ${
                 openUpwards ? 'bottom-full mb-1' : 'top-full mt-1'
               }`}
             >
-              {/* Opzione Nessun Negozio */}
-              <div
-                onClick={() => handleSelect('')}
-                className={`px-3 py-2 text-xs font-medium cursor-pointer transition-colors hover:bg-gray-50 flex items-center justify-between ${
-                  !value ? 'text-blue-600 bg-blue-50/50 font-bold' : 'text-gray-500 italic'
-                }`}
-              >
-                <span>Nessun negozio specificato</span>
-                {!value && <span className="text-blue-600 font-bold">✓</span>}
+              <div className="max-h-48 overflow-y-auto p-1 space-y-0.5 custom-scrollbar">
+                <div
+                  onClick={() => handleSelect('')}
+                  className={`px-3 py-2 text-xs font-semibold rounded-lg cursor-pointer transition ${
+                    !value ? 'bg-blue-50 text-blue-700' : 'text-gray-500 hover:bg-gray-50'
+                  }`}
+                >
+                  Nessun negozio selezionato
+                </div>
+
+                {suppliers.map((s) => {
+                  const isSelected = String(s.id) === value;
+                  return (
+                    <div
+                      key={s.id}
+                      onClick={() => handleSelect(String(s.id))}
+                      className={`px-3 py-2 text-xs font-semibold rounded-lg cursor-pointer flex items-center justify-between transition min-w-0 ${
+                        isSelected
+                          ? 'bg-blue-50 text-blue-700 font-bold'
+                          : 'text-gray-700 hover:bg-gray-50'
+                      }`}
+                    >
+                      <span className="truncate min-w-0 flex-1" title={s.name}>{s.name}</span>
+                      {isSelected && <span className="text-blue-600 text-xs shrink-0 ml-1">✓</span>}
+                    </div>
+                  );
+                })}
               </div>
 
-              {suppliers.map((s) => {
-                const isSelected = String(s.id) === value;
-                return (
-                  <div
-                    key={s.id}
-                    onClick={() => handleSelect(String(s.id))}
-                    className={`px-3 py-2 text-xs font-medium cursor-pointer transition-colors hover:bg-gray-50 flex items-center justify-between ${
-                      isSelected ? 'text-blue-600 bg-blue-50/50 font-bold' : 'text-gray-700'
-                    }`}
-                  >
-                    <span className="truncate">{s.name}</span>
-                    {isSelected && <span className="text-blue-600 font-bold">✓</span>}
-                  </div>
-                );
-              })}
+              <div className="p-1.5 border-t border-gray-100 bg-gray-50/70">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsOpen(false);
+                    setIsCreateModalOpen(true);
+                  }}
+                  className="w-full py-1.5 px-2 text-xs font-bold text-blue-600 hover:bg-blue-50 rounded-lg transition flex items-center justify-center gap-1.5 cursor-pointer"
+                >
+                  <PlusIcon className="w-3.5 h-3.5" />
+                  <span>Crea Nuovo Negozio</span>
+                </button>
+              </div>
             </div>
           )}
         </div>
       </div>
 
-      {/* Modalità Finestra/Modale a Tutto Schermo al Centro */}
-      {asModal && isOpen && !disabled &&
+      {/* Modale Bottom Sheet Mobile (se asModal è true) */}
+      {isOpen && asModal && (
         createPortal(
           <div
-            className="fixed inset-0 z-[10030] bg-gray-900/60 backdrop-blur-xs flex items-center justify-center p-4 animate-fadeIn pointer-events-auto"
+            className="fixed inset-0 z-[9999] bg-black/40 backdrop-blur-xs flex items-end sm:items-center justify-center animate-fadeIn"
             onClick={() => setIsOpen(false)}
           >
             <div
-              className="bg-white rounded-3xl shadow-2xl w-full max-w-sm p-5 space-y-4 border border-gray-100 animate-scaleUp pointer-events-auto max-h-[85vh] flex flex-col"
+              className="bg-white w-full sm:max-w-md rounded-t-3xl sm:rounded-2xl p-5 shadow-2xl max-h-[80vh] flex flex-col animate-slideUp"
               onClick={(e) => e.stopPropagation()}
             >
-              {/* Header Finestra */}
-              <div className="flex items-center justify-between pb-2 border-b border-gray-100 shrink-0">
-                <div className="flex items-center gap-2">
-                  <StoreIcon className="w-5 h-5 text-blue-600" />
-                  <h3 className="text-sm font-extrabold text-gray-900 uppercase tracking-wide">
-                    Scegli Negozio
-                  </h3>
-                </div>
-
-                <div className="flex items-center gap-1.5">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setIsOpen(false);
-                      setIsCreateModalOpen(true);
-                    }}
-                    className="px-2.5 py-1 bg-blue-50 text-blue-600 hover:bg-blue-100 rounded-lg text-xs font-bold transition-colors cursor-pointer flex items-center gap-1"
-                  >
-                    <PlusIcon className="w-3.5 h-3.5" />
-                    <span>Nuovo</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setIsOpen(false)}
-                    className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-xl transition-colors cursor-pointer"
-                    title="Chiudi"
-                  >
-                    <CloseIcon className="w-5 h-5" />
-                  </button>
-                </div>
+              <div className="flex items-center justify-between pb-3 border-b border-gray-100">
+                <span className="text-sm font-bold text-gray-800">Seleziona Negozio</span>
+                <button
+                  type="button"
+                  onClick={() => setIsOpen(false)}
+                  className="p-1 text-gray-400 hover:text-gray-600 rounded-lg"
+                >
+                  <CloseIcon className="w-4 h-4" />
+                </button>
               </div>
 
-              {/* Elenco Negozi */}
-              <div className="flex-1 min-h-0 overflow-y-auto custom-scrollbar space-y-1.5 pr-0.5">
-                {/* Opzione Nessun Negozio */}
+              <div className="flex-1 overflow-y-auto py-2 space-y-1">
                 <button
                   type="button"
                   onClick={() => handleSelect('')}
-                  className={`w-full p-3 rounded-2xl text-left transition-all flex items-center justify-between border cursor-pointer active:scale-[0.98] ${
-                    !value
-                      ? 'bg-blue-50/90 border-blue-400 ring-2 ring-blue-400/20 font-bold text-blue-900'
-                      : 'bg-gray-50/80 hover:bg-gray-100 border-gray-200/80 text-gray-600 italic font-medium'
+                  className={`w-full text-left px-3 py-2.5 rounded-xl text-xs font-semibold ${
+                    !value ? 'bg-blue-50 text-blue-700' : 'text-gray-600 hover:bg-gray-50'
                   }`}
                 >
-                  <span className="text-xs">Nessun negozio specificato</span>
-                  {!value && (
-                    <div className="w-5 h-5 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-xs shrink-0 shadow-xs">
-                      ✓
-                    </div>
-                  )}
+                  Nessun negozio selezionato
                 </button>
+                {suppliers.map((s) => (
+                  <button
+                    key={s.id}
+                    type="button"
+                    onClick={() => handleSelect(String(s.id))}
+                    className={`w-full text-left px-3 py-2.5 rounded-xl text-xs flex items-center justify-between min-w-0 ${
+                      String(s.id) === value
+                        ? 'bg-blue-50 text-blue-700 font-bold'
+                        : 'text-gray-700 hover:bg-gray-50 font-medium'
+                    }`}
+                  >
+                    <span className="truncate min-w-0 flex-1" title={s.name}>{s.name}</span>
+                    {String(s.id) === value && <span className="text-blue-600 shrink-0 ml-1">✓</span>}
+                  </button>
+                ))}
+              </div>
 
-                {suppliers.map((s) => {
-                  const isSelected = String(s.id) === value;
-
-                  return (
-                    <button
-                      key={s.id}
-                      type="button"
-                      onClick={() => handleSelect(String(s.id))}
-                      className={`w-full p-3 rounded-2xl text-left transition-all flex items-center justify-between border cursor-pointer active:scale-[0.98] ${
-                        isSelected
-                          ? 'bg-blue-50/90 border-blue-400 ring-2 ring-blue-400/20 font-bold text-blue-900'
-                          : 'bg-gray-50/80 hover:bg-gray-100 border-gray-200/80 text-gray-800 font-medium'
-                      }`}
-                    >
-                      <div className="flex items-center gap-2 truncate min-w-0">
-                        <StoreIcon className="w-4 h-4 text-gray-400 shrink-0" />
-                        <span className="text-xs font-bold truncate">{s.name}</span>
-                      </div>
-
-                      {isSelected && (
-                        <div className="w-5 h-5 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-xs shrink-0 shadow-xs ml-2">
-                          ✓
-                        </div>
-                      )}
-                    </button>
-                  );
-                })}
+              <div className="pt-2 border-t border-gray-100">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsOpen(false);
+                    setIsCreateModalOpen(true);
+                  }}
+                  className="w-full py-2 px-3 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-xl transition flex items-center justify-center gap-1.5"
+                >
+                  <PlusIcon className="w-3.5 h-3.5" />
+                  <span>Nuovo Negozio</span>
+                </button>
               </div>
             </div>
           </div>,
           document.body
-        )}
-
-      {/* Modale Rapido Creazione Nuovo Negozio */}
-      {isCreateModalOpen && (
-        <BaseModal
-          isOpen={isCreateModalOpen}
-          onClose={() => setIsCreateModalOpen(false)}
-          zIndexClass="z-[10050]"
-          title={
-            <span className="flex items-center gap-2 text-base font-bold text-gray-800">
-              <StoreIcon className="w-5 h-5 text-blue-600" />
-              <span>Nuovo Negozio</span>
-            </span>
-          }
-          formId="create-supplier-form"
-          confirmText={isSubmitting ? 'Salvataggio...' : 'Crea Negozio'}
-          cancelText="Annulla"
-          isConfirmDisabled={isSubmitting || !newSupplierName.trim()}
-          maxWidthClass="max-w-sm"
-        >
-          <form id="create-supplier-form" onSubmit={handleCreateSupplier} className="space-y-3">
-            {error && (
-              <div className="rounded-xl bg-red-50 p-2.5 text-xs font-medium text-red-600">
-                {error}
-              </div>
-            )}
-            <div>
-              <label className="block text-xs font-bold text-gray-500 uppercase mb-1">
-                Nome Negozio
-              </label>
-
-              <input
-                type="text"
-                autoFocus
-                required
-                value={newSupplierName}
-                onChange={(e) => setNewSupplierName(e.target.value)}
-                placeholder="Es. Esselunga, Conad, Coop..."
-                className="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-blue-500 transition-colors"
-              />
-            </div>
-          </form>
-        </BaseModal>
+        )
       )}
+
+      {/* Modale Creazione Negozio */}
+      <ShoppingSupplierCreateModal
+        isOpen={isCreateModalOpen}
+        onClose={() => setIsCreateModalOpen(false)}
+        onSupplierCreated={onSupplierCreated}
+        onSelectSupplier={(newId) => onChange(newId)}
+      />
     </>
   );
 };

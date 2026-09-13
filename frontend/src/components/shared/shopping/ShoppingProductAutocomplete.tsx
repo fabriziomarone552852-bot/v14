@@ -68,42 +68,47 @@ export const ShoppingProductAutocomplete: React.FC<ShoppingProductAutocompletePr
     };
   }, [isOpen]);
 
-  // Filtro in tempo reale su tutti i prodotti nel database (case-insensitive substring)
+  // Filtro in tempo reale su tutti i prodotti nel database (case-insensitive substring) con deduplicazione
   const suggestions = useMemo(() => {
     const q = (value || '').trim().toLowerCase();
     if (!q || q.length < 1) return [];
 
-    if (hideBrand) {
-      const seenNames = new Set<string>();
-      const uniqueList: ShoppingProductOption[] = [];
-      for (const p of products) {
-        const baseName = (p?.nameNormalized || p?.displayName || '').trim().toLowerCase();
-        if (baseName && baseName.includes(q) && !seenNames.has(baseName)) {
-          seenNames.add(baseName);
+    const seen = new Set<string>();
+    const uniqueList: ShoppingProductOption[] = [];
+
+    for (const p of products) {
+      const displayName = (p?.displayName || p?.nameNormalized || '').trim();
+      const baseName = displayName.toLowerCase();
+      if (!baseName || !baseName.includes(q)) continue;
+
+      if (hideBrand) {
+        if (!seen.has(baseName)) {
+          seen.add(baseName);
           uniqueList.push({
             ...p,
-            displayName: p.nameNormalized || p.displayName,
+            displayName,
             brandName: null,
             brandId: null,
           });
         }
+      } else {
+        const brand = (p?.brandName || '').trim().toLowerCase();
+        const key = `${baseName}::${brand}`;
+        if (!seen.has(key)) {
+          seen.add(key);
+          uniqueList.push(p);
+        }
       }
-      return uniqueList.slice(0, 10);
     }
 
-    return products
-      .filter((p) => {
-        const name = (p?.displayName || p?.nameNormalized || '').toLowerCase();
-        return Boolean(name && name.includes(q));
-      })
-      .slice(0, 10);
+    return uniqueList.slice(0, 10);
   }, [value, products, hideBrand]);
 
   const exactMatch = useMemo(() => {
     const q = (value || '').trim().toLowerCase();
     if (!q) return false;
     return products.some((p) => {
-      const name = (p?.displayName || p?.nameNormalized || '').toLowerCase();
+      const name = (p?.displayName || p?.nameNormalized || '').trim().toLowerCase();
       return name === q;
     });
   }, [value, products]);

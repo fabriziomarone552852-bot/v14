@@ -1,7 +1,6 @@
 import { useState, useMemo, useEffect } from 'react';
 import { useShoppingMutations } from '@/hooks/shopping/useShoppingMutations';
 import { useModal } from '@/hooks/useModals';
-import { useConfirm } from '@/context/ConfirmContext';
 import { getLocalTodayStr } from '@/utils/dateUtils';
 import { fetchItemBatches } from '@/api/shoppingApi';
 import type { PurchasedItemEditFormData } from '@/mobile/components/modals/shopping/MobilePurchasedItemEditModal';
@@ -37,7 +36,6 @@ export function useShoppingItemsColumn({
   initialFiltroStato = 'aperti',
 }: UseShoppingItemsColumnProps) {
   const mutations = useShoppingMutations();
-  const { confirm } = useConfirm();
 
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const editModal = useModal<ShoppingListItem>();
@@ -191,16 +189,16 @@ export function useShoppingItemsColumn({
     purchaseModal.open(item);
   };
 
-  const handleTogglePurchased = (item: ShoppingListItem) => {
+  const handleTogglePurchased = async (item: ShoppingListItem) => {
     if (item.isPurchased) {
-      confirm({
-        title: 'Annulla Acquisto', message: `Vuoi segnare "${item.productName}" come non acquistato?`,
-        confirmText: 'Conferma',
-        onConfirm: async () => {
-          await mutations.togglePurchased({ id: item.id, listId: item.shoppingListId, data: { isPurchased: false } });
-        },
+      await mutations.togglePurchased({
+        id: item.id,
+        listId: item.shoppingListId,
+        data: { isPurchased: false },
       });
-    } else { handleOpenPurchase(item); }
+    } else {
+      handleOpenPurchase(item);
+    }
   };
 
   const handleClosePurchase = () => { setPurchaseForm(emptyPurchaseForm(eurCurrencyId)); purchaseModal.close(); };

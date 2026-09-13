@@ -123,7 +123,7 @@ export const mapHabitsToItems = (habits: Habit[], targetDateStr: string): HabitI
   return habits
     .filter((h) => h.tipo === 'H' && isHabitScheduledForDay(h, targetDateStr))
     .map((h) => {
-      const activePeriod = getActivePeriod(h.periods, targetDateStr);
+       const activePeriod = getActivePeriod(h.periods, targetDateStr);
       const currentCompletions = getLogForDate(h.logs, targetDateStr);
 
       return {
@@ -134,4 +134,74 @@ export const mapHabitsToItems = (habits: Habit[], targetDateStr: string): HabitI
         done: currentCompletions >= activePeriod.target 
       };
     });
+};
+
+/**
+ * 6. CALCOLO DATA SOSPENSIONE SICURA (data_fine >= data_inizio)
+ */
+export const calculateSafeSuspendDate = (
+  periodStartDateStr: string | undefined,
+  targetDateStr: string
+): string => {
+  const [y, m, d] = targetDateStr.substring(0, 10).split('-').map(Number);
+  const ieri = new Date(y, m - 1, d);
+  ieri.setDate(ieri.getDate() - 1);
+  const ieriStr = ieri.toISOString().substring(0, 10);
+
+  const startIso = (periodStartDateStr || '').substring(0, 10);
+  if (!startIso) return ieriStr;
+
+  return ieriStr < startIso ? startIso : ieriStr;
+};
+
+/**
+ * 7. ESTRAZIONE PERIODO DA SOSPENDERE IN MODO ROBUSTO
+ */
+export const getActivePeriodToSuspend = (
+  routine: {
+    periodId?: number;
+    data_inizio?: string;
+    activePeriod?: { id: number; data_inizio: string };
+    periods?: Array<{ id: number; data_inizio: string; data_fine?: string | null }>;
+  } | null,
+  targetDateStr?: string
+): { id: number; data_inizio: string } | null => {
+  if (!routine) return null;
+
+  if (routine.activePeriod && routine.activePeriod.id) {
+    return { id: routine.activePeriod.id, data_inizio: routine.activePeriod.data_inizio };
+  }
+
+  if (routine.periodId && routine.periods) {
+    const p = routine.periods.find((x) => x.id === routine.periodId);
+    if (p) return { id: p.id, data_inizio: p.data_inizio };
+  }
+
+  if (routine.periods && routine.periods.length > 0) {
+    if (targetDateStr) {
+      const activeForDate = routine.periods.find(
+        (p) =>
+          p.data_inizio.substring(0, 10) <= targetDateStr &&
+          (!p.data_fine || p.data_fine.substring(0, 10) >= targetDateStr)
+      );
+      if (activeForDate) return { id: activeForDate.id, data_inizio: activeForDate.data_inizio };
+    }
+
+    const openPeriod = routine.periods.find((p) => !p.data_fine);
+    if (openPeriod) return { id: openPeriod.id, data_inizio: openPeriod.data_inizio };
+
+    const sorted = [...routine.periods].sort(
+      (a, b) => new Date(b.data_inizio).getTime() - new Date(a.data_inizio).getTime()
+    );
+    return { id: sorted[0].id, data_inizio: sorted[0].data_inizio };
+  }
+
+  if (routine.periodId) {
+    return {
+      id: routine.periodId,
+      data_inizio: routine.data_inizio || new Date().toISOString().substring(0, 10),
+    };
+  }
+
+  return null;
 };

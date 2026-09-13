@@ -49,8 +49,8 @@ export const ShoppingGroupAccordionSection: React.FC<ShoppingGroupAccordionSecti
             {groupIcon}
           </div>
           <div className="min-w-0 flex-1">
-            <div className="flex items-center gap-1.5 flex-wrap">
-              <p className="truncate text-sm font-bold text-gray-800">
+            <div className="flex items-center gap-1.5 min-w-0">
+              <p className="truncate text-sm font-bold text-gray-800 min-w-0 flex-1" title={group.name}>
                 {group.name}
               </p>
               {group.userRole && (

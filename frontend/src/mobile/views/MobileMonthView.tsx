@@ -1,160 +1,53 @@
 // src/mobile/views/MobileMonthView.tsx
-import React, { useState, useMemo, useRef } from 'react';
-import { useQueryClient } from '@tanstack/react-query';
-import { format } from 'date-fns';
-import { it } from 'date-fns/locale';
+import React from 'react';
 
-// Logica e Hooks Centralizzati
-import { useMonthPageLogic } from '@/hooks/uiMonth/useMonthPageLogic';
-import { useDay } from '@/context/DayContext';
-import { useCategories } from '@/hooks/useCategories';
-import { useEventModals } from '@/context/EventModalContext';
-import { useTaskModals } from '@/context/TaskModalContext';
-import { mapDbEventsToCalendarEvents } from '@/utils/eventUtils';
+// Hooks & Logica
+import { useMobileMonthLogic } from '../hooks/useMobileMonthLogic';
 
 // Componenti Mobile Standardizzati
 import MobileAgendaPeriodHeader from '../components/MobileAgendaPeriodHeader';
-import MobileGoalsAndPrioritiesChips from '../components/MobileGoalsAndPrioritiesChips';
-import MobileMonthCalendar from '../components/MobileMonthCalendar';
-import MobileMoodEventsBoard from '../components/MobileMoodEventsBoard';
-import MobileNotesBottomSheet from '../components/MobileNotesBottomSheet';
-import { TrackerPanel } from '@/components/weekmonth/TrackerPanel';
+import { MobileMonthTrackersSlide } from '../components/month/MobileMonthTrackersSlide';
+import { MobileMonthCalendarSlide } from '../components/month/MobileMonthCalendarSlide';
+import { MobileMonthMoodSlide } from '../components/month/MobileMonthMoodSlide';
+import { MobileExpandedDayTasksModal } from '../components/modals/MobileExpandedDayTasksModal';
 import { MobileMonthReviewModal } from '../components/modals/MobileMonthReviewModal';
-import { TaskItem } from '@/components/shared/tasks/TaskItem';
-import { TaskListIcon, CloseIcon } from '@/components/shared/utils/Icons';
-import { EmptyState } from '@/components/shared/utils/EmptyState';
+import { MobileDateSwipeOverlay } from '../components/common/MobileDateSwipeOverlay';
+import MobileNotesBottomSheet from '../components/MobileNotesBottomSheet';
 
 // Feedback & Loading
 import PageLoadingState from '@/components/shared/feedback/PageLoadingState';
 import PageErrorState from '@/components/shared/feedback/PageErrorState';
 import { LOADING_MESSAGES, ERROR_MESSAGES } from '@/data/loadingMessages';
-import type { DbTask, Priorita, UITask } from '@/types';
-
-const mapDbTaskToUITask = (t: DbTask): UITask => ({
-  id: t.id,
-  title: t.titolo || '',
-  deadline: t.data_scadenza || '',
-  dateStr: t.data_start || '',
-  done: !!t.fatto,
-  priority: (t.priorita as Priorita) || 'Media',
-  category: t.category_name || t.category?.category_name || '',
-  categoryColor: t.category?.colore || undefined,
-  description: t.descrizione || '',
-  location: t.luogo || '',
-  parent_id: t.parent_id,
-  subtasks: [],
-});
 
 export const MobileMonthView: React.FC = () => {
-  const queryClient = useQueryClient();
-  const { changeDate: setTargetDate } = useDay();
-  const { openEventDetail } = useEventModals();
-  const { openTaskDetail } = useTaskModals();
-  const { data: dbCategories = [] } = useCategories();
+  const {
+    queryClient,
+    setTargetDate,
+    openEventDetail,
+    dbCategories,
+    state,
+    apiData,
+    handlers,
+    review,
+    monthTitle,
+    isCurrentMonth,
+    mappedEvents,
+    activePageIndex,
+    setActivePageIndex,
+    expandedTasksDay,
+    setExpandedTasksDay,
+    handleToggleTask,
+    handleToggleTaskFromCalendar,
+    handleSelectDbTask,
+    handleSelectTaskSummary,
+    handleTouchStart,
+    handleTouchEnd,
+    swipeDirection,
+    handlePrevMonth,
+    handleNextMonth,
+  } = useMobileMonthLogic();
 
-  const { state, apiData, handlers, review } = useMonthPageLogic();
-
-  // 1. TITOLO MENSILE
-  const monthTitle = useMemo(() => {
-    return format(state.monthTargetDate, 'MMMM yyyy', { locale: it }).toUpperCase();
-  }, [state.monthTargetDate]);
-
-  const isCurrentMonth = useMemo(() => {
-    const now = new Date();
-    return (
-      now.getMonth() === state.monthTargetDate.getMonth() &&
-      now.getFullYear() === state.monthTargetDate.getFullYear()
-    );
-  }, [state.monthTargetDate]);
-
-  // 2. MAPPATURA EVENTI MENSILI
-  const mappedEvents = useMemo(() => {
-    return mapDbEventsToCalendarEvents(apiData?.events || [], state.startStr);
-  }, [apiData?.events, state.startStr]);
-
-  // 3. STATO SLIDING & GESTURE TOUCH (0 = Grafici, 1 = Calendario, 2 = Eventi Emotivi)
-  const [activePageIndex, setActivePageIndex] = useState<0 | 1 | 2>(1);
-  const touchStartX = useRef<number | null>(null);
-  const touchStartY = useRef<number | null>(null);
-
-  // 4. STATO MODALE TASK ESPANSE (quando si clicca sul badge task di un giorno)
-  const [expandedTasksDay, setExpandedTasksDay] = useState<{
-    dateStr: string;
-    tasks: DbTask[];
-  } | null>(null);
-
-  const formattedExpandedTasksDate = useMemo(() => {
-    if (!expandedTasksDay?.dateStr) return '';
-    const [y, m, d] = expandedTasksDay.dateStr.split('-').map(Number);
-    const dateObj = new Date(y, m - 1, d);
-    const formatted = format(dateObj, 'EEEE d MMMM yyyy', { locale: it });
-    return formatted.charAt(0).toUpperCase() + formatted.slice(1);
-  }, [expandedTasksDay?.dateStr]);
-
-  const handleToggleTask = async (id: number, currentStatus: boolean, e?: React.MouseEvent) => {
-    e?.stopPropagation();
-    const allTasks = apiData?.tasks || [];
-    const targetTask = allTasks.find((t) => t.id === id);
-    if (targetTask) {
-      await handlers.handleToggleTaskGrid(targetTask, !currentStatus);
-      if (expandedTasksDay) {
-        setExpandedTasksDay((prev) =>
-          prev
-            ? {
-                ...prev,
-                tasks: prev.tasks.map((t) =>
-                  t.id === id ? { ...t, fatto: !currentStatus } : t
-                ),
-              }
-            : null
-        );
-      }
-    }
-  };
-
-  const handleToggleTaskFromCalendar = async (task: DbTask, newStatus: boolean) => {
-    await handlers.handleToggleTaskGrid(task, newStatus);
-    if (expandedTasksDay) {
-      setExpandedTasksDay((prev) =>
-        prev
-          ? {
-              ...prev,
-              tasks: prev.tasks.map((t) =>
-                t.id === task.id ? { ...t, fatto: newStatus } : t
-              ),
-            }
-          : null
-      );
-    }
-  };
-
-  const handleTouchStart = (e: React.TouchEvent) => {
-    touchStartX.current = e.touches[0].clientX;
-    touchStartY.current = e.touches[0].clientY;
-  };
-
-  const handleTouchEnd = (e: React.TouchEvent) => {
-    if (touchStartX.current === null || touchStartY.current === null) return;
-    const deltaX = e.changedTouches[0].clientX - touchStartX.current;
-    const deltaY = e.changedTouches[0].clientY - touchStartY.current;
-
-    // Solo se lo swipe orizzontale è prevalente e oltre la soglia
-    if (Math.abs(deltaX) > 45 && Math.abs(deltaX) > Math.abs(deltaY) * 1.5) {
-      if (deltaX < 0) {
-        // Swipe verso sinistra -> vai avanti
-        if (activePageIndex === 0) setActivePageIndex(1);
-        else if (activePageIndex === 1) setActivePageIndex(2);
-      } else if (deltaX > 0) {
-        // Swipe verso destra -> vai indietro
-        if (activePageIndex === 2) setActivePageIndex(1);
-        else if (activePageIndex === 1) setActivePageIndex(0);
-      }
-    }
-    touchStartX.current = null;
-    touchStartY.current = null;
-  };
-
-  // 5. STATI DI CARICAMENTO ED ERRORE
+  // Stati di Caricamento ed Errore
   if (state.isLoading && !apiData) {
     return <PageLoadingState messages={LOADING_MESSAGES.month} />;
   }
@@ -170,10 +63,7 @@ export const MobileMonthView: React.FC = () => {
 
   return (
     <div className="h-full w-full flex flex-col justify-between gap-1.5 overflow-hidden animate-fadeIn relative select-none">
-      
-      {/* ========================================================================= */}
-      {/* 1. HEADER COMUNE STANDARDIZZATO (Data periodo a sx, Icone Azione a dx)    */}
-      {/* ========================================================================= */}
+      {/* 1. Header Periodo */}
       <MobileAgendaPeriodHeader
         title={monthTitle}
         currentDate={state.monthTargetDate}
@@ -187,111 +77,61 @@ export const MobileMonthView: React.FC = () => {
         notesCount={state.mappedNotes.length}
       />
 
-      {/* ========================================================================= */}
-      {/* 2. CORPO PRINCIPALE IN SLIDING A 3 PAGINE (Transizioni Fluide Simmetriche)*/}
-      {/* ========================================================================= */}
+      {/* 2. Container 3 Slide */}
       <div
-        className="flex-1 min-h-0 w-full overflow-hidden relative"
+        className={`flex-1 min-h-0 w-full overflow-hidden relative ${
+          swipeDirection === 'down'
+            ? 'animate-content-down'
+            : swipeDirection === 'up'
+            ? 'animate-content-up'
+            : ''
+        }`}
         onTouchStart={handleTouchStart}
         onTouchEnd={handleTouchEnd}
       >
-        {/* --------------------------------------------------------------------- */}
-        {/* SLIDE 0 (SINISTRA): GRAFICI RADAR MOOD & SFERE DEL MESE CORRENTE      */}
-        {/* --------------------------------------------------------------------- */}
-        <div
-          className={`absolute inset-0 w-full h-full flex flex-col gap-2 overflow-hidden transition-transform duration-300 ease-out ${
-            activePageIndex === 0
-              ? 'translate-x-0 pointer-events-auto'
-              : activePageIndex === 1
-              ? '-translate-x-full pointer-events-none'
-              : '-translate-x-[200%] pointer-events-none'
-          }`}
-        >
-          {/* Card 1: Grafico Umore (Come mi sento) */}
-          <div className="flex-1 min-h-0 bg-white rounded-2xl border border-gray-200/90 shadow-xs p-1.5 overflow-hidden flex flex-col items-center">
-            <TrackerPanel
-              titleTop="Come mi sento"
-              showBottom={false}
-              items={state.moodsUI}
-              onUpdateValue={handlers.handleUpdateMood}
-            />
-          </div>
+        {/* Slide 0: Grafici Tracker (Umore & Sfere) */}
+        <MobileMonthTrackersSlide
+          activePageIndex={activePageIndex}
+          moodsUI={state.moodsUI}
+          spheresUI={state.spheresUI}
+          onUpdateMood={handlers.handleUpdateMood}
+          onUpdateSphere={handlers.handleUpdateSphere}
+        />
 
-          {/* Card 2: Grafico Sfere di Influenza */}
-          <div className="flex-1 min-h-0 bg-white rounded-2xl border border-gray-200/90 shadow-xs p-1.5 overflow-hidden flex flex-col items-center">
-            <TrackerPanel
-              titleTop="Sfere di Influenza"
-              showBottom={false}
-              items={state.spheresUI}
-              onUpdateValue={handlers.handleUpdateSphere}
-            />
-          </div>
-        </div>
+        {/* Slide 1: Obiettivi, Priorità & Calendario Mensile */}
+        <MobileMonthCalendarSlide
+          activePageIndex={activePageIndex}
+          goalText={apiData?.obiettivi?.[0]?.monthly_field}
+          priorities={apiData?.priorita}
+          onSaveGoal={handlers.handleSaveGoal}
+          onSavePriority={handlers.handleSavePriority}
+          targetDate={state.monthTargetDate}
+          events={mappedEvents}
+          tasks={apiData?.tasks || []}
+          dailyEntries={apiData?.daily_entries || []}
+          allCategories={dbCategories}
+          onDayClick={handlers.handleGoToDay}
+          onSelectEvent={openEventDetail}
+          onSelectTask={handleSelectDbTask}
+          onToggleTask={handleToggleTaskFromCalendar}
+          onMoodChange={handlers.handleMoodChange}
+          onOpenExpandedTasks={(dateStr, dayTasks) =>
+            setExpandedTasksDay({ dateStr, tasks: dayTasks })
+          }
+        />
 
-        {/* --------------------------------------------------------------------- */}
-        {/* SLIDE 1 (CENTRO / PRINCIPALE): FOCUS & CALENDARIO MENSILE COMPRESSO   */}
-        {/* --------------------------------------------------------------------- */}
-        <div
-          className={`absolute inset-0 w-full h-full flex flex-col gap-2 overflow-hidden transition-transform duration-300 ease-out ${
-            activePageIndex === 1
-              ? 'translate-x-0 pointer-events-auto'
-              : activePageIndex === 0
-              ? 'translate-x-full pointer-events-none'
-              : '-translate-x-full pointer-events-none'
-          }`}
-        >
-          {/* OBIETTIVO E PRIORITÀ MENSILI COMPATTI A CHIPS */}
-          <MobileGoalsAndPrioritiesChips
-            goalText={apiData?.obiettivi?.[0]?.monthly_field}
-            priorities={apiData?.priorita}
-            onSaveGoal={handlers.handleSaveGoal}
-            onSavePriority={handlers.handleSavePriority}
-            goalPlaceholder="Qual è il tuo obiettivo per il mese?"
-          />
-
-          {/* CALENDARIO MENSILE ZERO-SCROLL */}
-          <MobileMonthCalendar
-            targetDate={state.monthTargetDate}
-            events={mappedEvents}
-            tasks={apiData?.tasks || []}
-            dailyEntries={apiData?.daily_entries || []}
-            allCategories={dbCategories}
-            onDayClick={handlers.handleGoToDay}
-            onSelectEvent={openEventDetail}
-            onSelectTask={(task) => openTaskDetail(mapDbTaskToUITask(task))}
-            onToggleTask={handleToggleTaskFromCalendar}
-            onOpenExpandedTasks={(dateStr, dayTasks) =>
-              setExpandedTasksDay({ dateStr, tasks: dayTasks })
-            }
-          />
-        </div>
-
-        {/* --------------------------------------------------------------------- */}
-        {/* SLIDE 2 (DESTRA): EVENTI EMOTIVI / MOOD (Cose Positive & Negative)   */}
-        {/* --------------------------------------------------------------------- */}
-        <div
-          className={`absolute inset-0 w-full h-full flex flex-col gap-2.5 overflow-hidden transition-transform duration-300 ease-out ${
-            activePageIndex === 2
-              ? 'translate-x-0 pointer-events-auto'
-              : activePageIndex === 1
-              ? 'translate-x-full pointer-events-none'
-              : 'translate-x-[200%] pointer-events-none'
-          }`}
-        >
-          <MobileMoodEventsBoard
-            positiveEvents={apiData?.eventi_positivi || []}
-            negativeEvents={apiData?.eventi_negativi || []}
-            periodLabel="questo mese"
-            onAddMoodEvent={handlers.handleAddMoodEvent}
-            onUpdateMoodEvent={handlers.handleUpdateMoodEvent}
-            onDeleteMoodEvent={handlers.handleDeleteMoodEvent}
-          />
-        </div>
+        {/* Slide 2: Eventi Emotivi */}
+        <MobileMonthMoodSlide
+          activePageIndex={activePageIndex}
+          positiveEvents={apiData?.eventi_positivi || []}
+          negativeEvents={apiData?.eventi_negativi || []}
+          onAddMoodEvent={handlers.handleAddMoodEvent}
+          onUpdateMoodEvent={handlers.handleUpdateMoodEvent}
+          onDeleteMoodEvent={handlers.handleDeleteMoodEvent}
+        />
       </div>
 
-      {/* ========================================================================= */}
-      {/* 3. INDICATORE DI PAGINAZIONE (3 PILLOLE: [ ● ] [ ▬▬ ] [ ● ])              */}
-      {/* ========================================================================= */}
+      {/* 3. Indicatori di Paginazione Dots */}
       <div className="shrink-0 flex items-center justify-center gap-2 py-1 select-none">
         <button
           type="button"
@@ -328,61 +168,15 @@ export const MobileMonthView: React.FC = () => {
         />
       </div>
 
-      {/* ========================================================================= */}
-      {/* 4. MODALE A SCHERMO INTERO: TASK ESPANSE DEL GIORNO SELEZIONATO            */}
-      {/* ========================================================================= */}
-      {expandedTasksDay && (
-        <div className="absolute inset-0 z-50 bg-gray-50 flex flex-col p-3 rounded-2xl animate-fadeIn shadow-2xl border border-gray-200">
-          <div className="flex items-center justify-between pb-3 border-b border-gray-200 shrink-0">
-            <div className="flex items-center gap-2">
-              <div className="p-1.5 rounded-lg bg-emerald-100 text-emerald-600">
-                <TaskListIcon className="w-5 h-5" />
-              </div>
-              <div>
-                <h3 className="text-sm font-extrabold text-gray-900 uppercase tracking-wide">
-                  Task ({expandedTasksDay.tasks.length})
-                </h3>
-                <p className="text-xs text-gray-500 font-medium">
-                  {formattedExpandedTasksDate}
-                </p>
-              </div>
-            </div>
+      {/* 4. Modale Task Espanse per il giorno selezionato */}
+      <MobileExpandedDayTasksModal
+        expandedTasksDay={expandedTasksDay}
+        onClose={() => setExpandedTasksDay(null)}
+        onSelectTask={handleSelectTaskSummary}
+        onToggleTask={handleToggleTask}
+      />
 
-            <button
-              type="button"
-              onClick={() => setExpandedTasksDay(null)}
-              className="p-1.5 rounded-lg text-gray-400 hover:bg-gray-200 hover:text-red-500 transition-colors cursor-pointer"
-              title="Chiudi visualizzazione task"
-            >
-              <CloseIcon className="w-5 h-5" />
-            </button>
-          </div>
-
-          <div className="flex-1 min-h-0 overflow-y-auto custom-scrollbar space-y-2.5 pt-3 pr-1">
-            {expandedTasksDay.tasks.map((task) => (
-              <TaskItem
-                key={task.id}
-                task={mapDbTaskToUITask(task)}
-                onSelect={(t) => {
-                  setExpandedTasksDay(null);
-                  openTaskDetail(t);
-                }}
-                onToggle={handleToggleTask}
-              />
-            ))}
-
-            {expandedTasksDay.tasks.length === 0 && (
-              <div className="h-full flex items-center justify-center py-8">
-                <EmptyState message="Nessuna task in programma per questo giorno" />
-              </div>
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* ========================================================================= */}
-      {/* 5. REVIEW MENSILE (MODALE FULLSCREEN MOBILE)                              */}
-      {/* ========================================================================= */}
+      {/* 5. Review Mensile */}
       <MobileMonthReviewModal
         isOpen={review.isOpen}
         onClose={review.closeReview}
@@ -395,9 +189,7 @@ export const MobileMonthView: React.FC = () => {
         onUpdateSphere={handlers.handleUpdateSphere}
       />
 
-      {/* ========================================================================= */}
-      {/* 6. NOTE MENSILI (BOTTOM SHEET)                                            */}
-      {/* ========================================================================= */}
+      {/* 6. Note Mensili */}
       <MobileNotesBottomSheet
         isOpen={state.isNotesOpen}
         notes={state.mappedNotes}
@@ -407,6 +199,13 @@ export const MobileMonthView: React.FC = () => {
         onAutoSaveNote={handlers.handleAutoSaveNote}
         onDeleteNote={handlers.handleDeleteNote}
         clearEditingNoteId={() => state.setEditingNoteId(null)}
+      />
+
+      {/* 7. Overlay Onda Luminosa e Frecce Test Desktop */}
+      <MobileDateSwipeOverlay
+        swipeDirection={swipeDirection}
+        onSwipePrev={handlePrevMonth}
+        onSwipeNext={handleNextMonth}
       />
     </div>
   );

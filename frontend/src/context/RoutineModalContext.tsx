@@ -17,6 +17,8 @@ import {
   updateHabitPeriod as apiUpdateHabitPeriod,
 } from '@/api/habitsApi';
 import { formatDateString } from '@/utils/dateUtils';
+import { calculateSafeSuspendDate, getActivePeriodToSuspend } from '@/utils/habitUtils';
+import { invalidateAllViews } from '@/utils/queryCacheUtils';
 import { useDay } from './DayContext';
 
 interface RoutineModalContextType {
@@ -43,8 +45,8 @@ export const RoutineModalProvider: React.FC<{ children: ReactNode }> = ({ childr
   const [isResuming, setIsResuming] = useState(false);
 
   const invalidateHabitQueries = () => {
-    queryClient.invalidateQueries({ queryKey: ['daySync'] });
     queryClient.invalidateQueries({ queryKey: ['habits'] });
+    invalidateAllViews(queryClient);
   };
 
   const saveRoutineMutation = useMutation({
@@ -132,23 +134,25 @@ export const RoutineModalProvider: React.FC<{ children: ReactNode }> = ({ childr
 
   // Calcolo stato routine (attiva/sospesa)
   const selectedRoutine = detailModal.data || null;
-  const sortedPeriods = selectedRoutine?.periods
-    ? [...selectedRoutine.periods].sort(
-        (a, b) => new Date(b.data_inizio).getTime() - new Date(a.data_inizio).getTime()
-      )
-    : [];
-  const isAttiva = sortedPeriods.length > 0 && !sortedPeriods[0].data_fine;
+  const activePeriod = getActivePeriodToSuspend(selectedRoutine, targetDateStr);
+  const isAttiva = Boolean(
+    selectedRoutine &&
+      (activePeriod
+        ? !selectedRoutine.periods?.find((p) => p.id === activePeriod.id)?.data_fine ||
+          (selectedRoutine.periods?.find((p) => p.id === activePeriod.id)?.data_fine ?? '') >= targetDateStr
+        : true)
+  );
 
   const handleSuspend = (routine: RoutineItem) => {
-    if (sortedPeriods.length === 0) return;
-    const [y, m, d] = targetDateStr.split('-').map(Number);
-    const ieri = new Date(y, m - 1, d);
-    ieri.setDate(ieri.getDate() - 1);
+    const periodToSuspend = getActivePeriodToSuspend(routine, targetDateStr);
+    if (!periodToSuspend) return;
+
+    const endDate = calculateSafeSuspendDate(periodToSuspend.data_inizio, targetDateStr);
 
     suspendRoutineMutation.mutate({
       habitId: routine.id,
-      periodId: sortedPeriods[0].id,
-      endDate: formatDateString(ieri),
+      periodId: periodToSuspend.id,
+      endDate,
     });
   };
 

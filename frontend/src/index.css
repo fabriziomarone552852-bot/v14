@@ -41,6 +41,126 @@
       transform: translateY(0);
     }
   }
+
+  /* Animazione a cassetto dal basso verso l'alto */
+  .animate-slideUp {
+    animation: slideUp 0.28s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+
+  @keyframes slideUp {
+    from {
+      transform: translateY(100%);
+    }
+    to {
+      transform: translateY(0);
+    }
+  }
+
+  /* Animazione per drawer laterale */
+  .animate-slideRight {
+    animation: slideRight 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+
+  @keyframes slideRight {
+    from {
+      transform: translateX(-100%);
+    }
+    to {
+      transform: translateX(0);
+    }
+  }
+
+  /* Animazione dilatazione dal centro per indicatori e numeri */
+  .animate-popIn {
+    animation: popIn 0.15s cubic-bezier(0.175, 0.885, 0.32, 1.2) forwards;
+    transform-origin: center;
+    transform-box: fill-box;
+  }
+
+  @keyframes popIn {
+    from {
+      opacity: 0;
+      transform: scale(0.5);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+
+  /* Animazioni Onda Blu Chiaro per Navigazione Data (Swipe Verticale) */
+  .animate-wave-down {
+    animation: waveDown 0.72s cubic-bezier(0.25, 1, 0.4, 1) forwards;
+  }
+
+  .animate-wave-up {
+    animation: waveUp 0.72s cubic-bezier(0.25, 1, 0.4, 1) forwards;
+  }
+
+  @keyframes waveDown {
+    0% {
+      transform: translateY(-280px);
+      opacity: 0;
+    }
+    12% {
+      opacity: 0.95;
+    }
+    88% {
+      opacity: 0.95;
+    }
+    100% {
+      transform: translateY(100vh);
+      opacity: 0;
+    }
+  }
+
+  @keyframes waveUp {
+    0% {
+      transform: translateY(100vh);
+      opacity: 0;
+    }
+    12% {
+      opacity: 0.95;
+    }
+    88% {
+      opacity: 0.95;
+    }
+    100% {
+      transform: translateY(-280px);
+      opacity: 0;
+    }
+  }
+
+  /* Transizione Fluida dei Contenuti nella Direzione dell'Onda */
+  .animate-content-down {
+    animation: contentSlideDown 0.60s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+
+  .animate-content-up {
+    animation: contentSlideUp 0.60s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+
+  @keyframes contentSlideDown {
+    0% {
+      opacity: 0.25;
+      transform: translateY(-24px);
+    }
+    100% {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes contentSlideUp {
+    0% {
+      opacity: 0.25;
+      transform: translateY(24px);
+    }
+    100% {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
 }
 
 /* Scrollbar elegante per i modali e le finestrelle interne */

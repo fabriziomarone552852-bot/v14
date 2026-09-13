@@ -5,8 +5,9 @@ import { UsersIcon, EditIcon } from '@/components/shared/utils/Icons';
 import ShoppingGroupInviteListBuilder from '@/components/shared/shopping/ShoppingGroupInviteListBuilder';
 import type { PendingGroupInvite } from '@/types/shopping';
 import { extractErrorMessage } from '@/utils/errorUtils';
+import { MobileShoppingEmojiPicker } from './group';
 
-interface MobileShoppingGroupCreateModalProps {
+export interface MobileShoppingGroupCreateModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSubmit: (data: {
@@ -20,8 +21,6 @@ interface MobileShoppingGroupCreateModalProps {
   submitLabel?: string;
   zIndexClass?: string;
 }
-
-const COMMON_EMOJIS = ['👥', '🏠', '🛒', '👨‍👩‍👧‍👦', '🍕', '🍻', '🎉', '🏖️', '💼', '⭐', '🍎', '🚗'];
 
 export const MobileShoppingGroupCreateModal: React.FC<MobileShoppingGroupCreateModalProps> = ({
   isOpen,
@@ -105,7 +104,6 @@ export const MobileShoppingGroupCreateModal: React.FC<MobileShoppingGroupCreateM
       isConfirmDisabled={!name.trim() || isSubmitting}
     >
       <form id="mobile-group-create-form" onSubmit={handleSubmit} className="space-y-4 max-w-lg mx-auto pb-6">
-        
         {error && (
           <div className="p-3 bg-red-50 border border-red-200 rounded-xl text-xs text-red-700">
             {error}
@@ -113,40 +111,7 @@ export const MobileShoppingGroupCreateModal: React.FC<MobileShoppingGroupCreateM
         )}
 
         {/* Selettore & Personalizzazione Icona Emoji */}
-        <div>
-          <label className="block text-xs font-bold text-gray-600 uppercase mb-1.5">
-            Icona Gruppo
-          </label>
-          <div className="flex items-center gap-2.5 flex-wrap">
-            {/* Input Emoji personalizzabile libera come nella webpage */}
-            <input
-              type="text"
-              value={icon}
-              onChange={(e) => setIcon(e.target.value)}
-              maxLength={4}
-              className="w-12 h-10 text-center border-2 border-blue-500 rounded-xl text-xl focus:outline-none focus:ring-2 focus:ring-blue-400 bg-white shadow-2xs shrink-0"
-              title="Emoji personalizzabile"
-            />
-            
-            {/* Palette rapida di suggerimenti */}
-            <div className="flex items-center gap-1.5 flex-wrap">
-              {COMMON_EMOJIS.map((emoji) => (
-                <button
-                  key={emoji}
-                  type="button"
-                  onClick={() => setIcon(emoji)}
-                  className={`w-9 h-9 text-base rounded-xl flex items-center justify-center transition-all cursor-pointer ${
-                    icon === emoji
-                      ? 'bg-blue-600 text-white scale-110 shadow-xs ring-2 ring-blue-400 ring-offset-1'
-                      : 'bg-gray-100 hover:bg-gray-200 text-gray-800'
-                  }`}
-                >
-                  {emoji}
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
+        <MobileShoppingEmojiPicker icon={icon} setIcon={setIcon} />
 
         {/* Nome Gruppo */}
         <div>
@@ -190,7 +155,6 @@ export const MobileShoppingGroupCreateModal: React.FC<MobileShoppingGroupCreateM
             />
           </div>
         )}
-
       </form>
     </MobileBaseModal>
   );

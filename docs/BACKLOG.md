@@ -17,6 +17,9 @@ Questo documento serve a tracciare in modo strutturato:
 | **CORE-001** | **Refactoring Globale & Pulizia Architetturale** | `core` / arch | 🟢 Completato | 🟢 Completato | 🟢 **Completato** |
 | **FEAT-004** | **Sezione Media: Libri, Film e Serie TV** | `media` / ent | 🔴 Da Iniziare | 🔴 Da Iniziare | 🔴 **Massima (Passo Fondamentale)** |
 | **FEAT-005** | **Sezione Liste Tematiche & Personalizzate** | `custom_lists` | 🔴 Da Iniziare | 🔴 Da Iniziare | 🔴 **Massima (Passo Fondamentale)** |
+| **FEAT-006** | **Hub Spesa, Ricettario, Meal Prep & Wishlist Oggetti** | `shopping` / food | 🔴 Da Strutturare | 🔴 Da Implementare | 🔴 **Massima (Passo Fondamentale)** |
+| **FEAT-007** | **Sistema Amicizie & Condivisione Recensioni (Social/Sharing)** | `social` / media | 🔴 Da Strutturare | 🔴 Da Implementare | 🟠 **Alta (Passo Fondamentale)** |
+| **OFFLINE-001** | **Modalità Offline-First & Sincronizzazione Differita (Outbox Sync)** | `sync` / mobile | 🔴 Da Strutturare | 🔴 Da Implementare | 🟠 **Alta (Mobile & Web)** |
 | **AI-001** | **Studio & Integrazione Intelligenza Artificiale (AI)** | `ai` / assistant | 🔴 Da Analizzare | 🔴 Da Analizzare | 🟠 **Alta (Ricerca & Prototipo)** |
 | **FEAT-001** | Liste Spesa: Preferite & Pinnate (`pin_status`) | `shopping` | 🟢 Completato | 🔴 Da Implementare | Media-Alta |
 | **FEAT-002** | Gestione Inventario Spesa & Lotti (`inventory_batches`) | `shopping` | 🟢 Completato | 🟡 Parziale | Media |
@@ -121,6 +124,41 @@ Aggiungere la modalità di selezione multipla (*Multi-Select Mode*) nell'interfa
 - **UI & Feedback**:
   - Checkbox rotondi animati a sinistra di ogni elemento selezionabile.
   - Barra delle azioni contestuali inferiore (*Action Bar flottante*) con contatore elementi selezionati (es. "3 selezionati") e pulsanti azione: *Completa*, *Sposta*, *Elimina*, *Annulla*.
+
+---
+
+### [OFFLINE-001] Modalità Offline-First con Caching Locale & Sincronizzazione Differita (Outbox Queue)
+
+#### 📝 Descrizione
+Consentire l'utilizzo completo dell'applicazione (lettura, inserimento, modifica ed eliminazione di task, note, liste spesa, abitudini ed eventi) anche quando lo smartphone è offline o non ha ancora stabilito il tunnel Tailscale VPN. Al ripristino della connettività, tutte le modifiche accumulate in locale vengono inviate automaticamente e in modo trasparente al backend (*Sync Queue / Outbox Pattern*).
+
+#### 🎯 Obiettivi & Casi d'Uso Chiave
+1. **Disponibilità Immediata (Zero Latenza)**:
+   - All'apertura dell'app, i dati (agenda, spesa, note, abitudini) vengono caricati istantaneamente dallo storage locale (IndexedDB), senza attendere la risposta di rete.
+2. **Modifiche Offline Senza Blocchi**:
+   - Spunta articoli al supermercato (anche in zone senza copertura cellulare).
+   - Creazione rapida di task, appunti o cambio stato abitudini durante spostamenti offline.
+3. **Sincronizzazione Differita Automatica**:
+   - Rilevamento automatico dello stato online/offline (`navigator.onLine` e ping Tailscale).
+   - Svuotamento sequenziale della coda delle mutazioni verso il backend al ripristino del collegamento.
+
+#### 🛠️ Dettagli Architetturali & Tecnologici
+- **1. Livello di Storage Locale**:
+  - Persistenza della cache API tramite **TanStack Query Persist** (`@tanstack/react-query-persist-client`) con driver **IndexedDB** (`idb-keyval` o `dexie`).
+  - Dati residenti su disco protetti e persistenti anche tra riavvii completi dell'app.
+- **2. Coda delle Mutazioni (Outbox Pattern)**:
+  - Creazione di un modulo `syncEngine` / `offlineQueueStore` (Zustand + IndexedDB).
+  - Ogni operazione di mutazione (`POST`, `PUT`, `PATCH`, `DELETE`) eseguita offline viene registrata con ID univoco, timestamp, endpoint, metodo e payload JSON.
+  - Applicazione immediata dell'aggiornamento grafico tramite *Optimistic UI Updates* in React.
+- **3. Risoluzione Conflitti & Retry**:
+  - Strategia *Last-Write-Wins* con timestamp ISO per prevenire sovrascritture di dati obsoleti.
+  - Retry automatico con backoff esponenziale in caso di errori di rete temporanei.
+- **4. UI & Indicatori di Stato Connettività**:
+  - Badge discreto nell'header mobile e desktop:
+    - 🟢 *Online & Connesso*
+    - 🟡 *Offline (N modifiche salvate in locale)*
+    - 🔄 *Sincronizzazione in corso...*
+  - Notifica toast/snack non invasivo al termine della sincronizzazione.
 
 ---
 
@@ -229,6 +267,59 @@ Modulo polivalente per creare, organizzare e gestire molteplici tipologie di lis
 - **Ordinamento Flessibile**: Drag-and-drop o riordinamento manuale/alfabetico/per data di aggiunta.
 - **Archiviazione**: Archiviazione delle liste o degli elementi completati senza cancellare lo storico.
 - **Mobile First UX**: Aggiunta rapida con singolo tocco, swipe per completare/eliminare e condivisione rapida.
+
+---
+
+### [FEAT-006] Riorganizzazione Hub Spesa, Ricettario, Meal Prep & Wishlist Oggetti
+
+#### 📝 Descrizione
+Evoluzione della sezione Spesa in un ecosistema integrato e modulare per la gestione completa dell'alimentazione, della pianificazione pasti, della spesa e dei desideri di acquisto non alimentari.
+
+#### 🍳 1. Ricettario Personale (Cookbook)
+- **Gestione Ricette**: Titolo, foto/copertina del piatto, tempo di preparazione/cottura, porzioni/dosi, categoria (Primi, Secondi, Contorni, Dolci, Salse), passaggi di preparazione e note personali.
+- **Ingredienti Strutturati**: Ogni ricetta include una lista di ingredienti con quantità e unità di misura (es. 300g pasta, 2 spicchi aglio, 50ml olio).
+- **Azione Rapida "Aggiungi alla Lista Spesa"**: Pulsante touch/click con modale interattiva che permette di selezionare gli ingredienti desiderati (deselezionando quelli già presenti in dispensa) e aggiungerli direttamente nella lista della spesa prescelta.
+
+#### 🥗 2. Meal Prep & Pianificazione Pasti
+- **Planner Settimanale / Calendario Pasti**: Griglia settimanale e giornaliera suddivisa in fasce orarie (*Colazione, Pranzo, Cena, Snack/Spuntini*).
+- **Assegnazione Ricette o Piatti Liberi**: Possibilità di trascinare o selezionare ricette dal ricettario oppure scrivere piatti al volo.
+- **Generatore Automatico Lista Spesa**: Funzione intelligente che esamina i pasti pianificati per i giorni selezionati (es. "Prossimi 7 giorni"), raggruppa e somma tutti gli ingredienti necessari (es. 200g farina + 300g farina = 500g farina) e genera automaticamente una lista della spesa pronta per gli acquisti.
+
+#### 🛍️ 3. Wishlist Oggetti & Desideri (Acquisti Non Alimentari)
+- **Separazione Netta dalla Spesa Alimentare**: Spazio dedicato per salvare e ricordare oggetti, elettronica, libri, vestiti, attrezzi o idee regalo che si intende acquistare in futuro.
+- **Dati Tracciati**: Nome oggetto, prezzo stimato o attuale, link allo store online / e-commerce, livello di priorità/desiderio (*Bassa, Media, Alta*), immagini e note descrittive (es. taglia, colore, codice modello).
+- **Stato Oggetto**: `In lista desideri`, `In attesa offerta/sconto`, `Ordinato`, `Acquistato`.
+
+#### 🏠 4. Dashboard / Homepage Riassuntiva Shopping (Valutazione UX)
+- **Hub Panoramico**: Valutazione se creare una vista principale di riepilogo con:
+  - Widget liste spesa attive con barra di avanzamento articoli spuntati.
+  - Box "Cosa si mangia oggi" (pasti del giorno estratti dal Meal Prep).
+  - Alert prodotti in scadenza in dispensa/frigorifero.
+  - Accesso rapido a Ricettario, Meal Prep, Fornitori e Wishlist.
+
+---
+
+### [FEAT-007] Sistema di Amicizie & Condivisione Recensioni (Social & Sharing Network)
+
+#### 📝 Descrizione
+Studio e architettura di un sistema di connessione tra utenti (*Amicizie / Family & Friends Network*) per consentire la condivisione sociale di contenuti personali, con priorità iniziale per le recensioni e valutazioni della sezione Media (Libri, Film, Serie TV), ed estendibile a ricette e liste.
+
+#### 👥 1. Architettura delle Relazioni & Amicizie
+- **Ricerca & Connessione Utenti**: Ricerca per username o email, invio richiesta di amicizia, gestione stati (`pending`, `accepted`, `rejected`, `blocked`), lista amici attiva.
+- **Livelli di Privacy & Visibilità**: Configurazione granulare dei permessi per ogni contenuto creato:
+  - `Privato` (visibile solo all'autore).
+  - `Solo Amici` (visibile agli utenti confermati nella propria lista amici).
+  - `Gruppo/Famiglia` (visibile ai membri di un gruppo condiviso).
+
+#### 🍿 2. Condivisione Recensioni & Valutazioni Media (Film, Serie TV, Libri)
+- **Feed Attività Amici**: Timeline/Bacheca per visualizzare in tempo reale cosa stanno leggendo, guardando o valutando i propri amici (es. *"Marco ha votato 5 stelle e recensito 'Dune - Parte Due'"*).
+- **Schede Titolo Arricchite con Recensioni Amici**: Quando si visualizza la pagina di dettaglio di un film, serie o libro, mostrare in evidenza i commenti, i voti e le note lasciate dai propri amici.
+- **Consigli Diretti**: Pulsante rapido per raccomandare un titolo specifico a un amico con una nota personalizzata.
+
+#### 🌐 3. Estensioni Future del Sistema Social
+- Condivisione ricette preferite dal proprio Ricettario verso il ricettario di un amico.
+- Condivisione wishlist desideri per facilitare regali di compleanno, festività o occasioni speciali.
+- Condivisione collaborativa di liste tematiche (es. "Ristoranti consigliati", "Posti da visitare").
 
 ---
 

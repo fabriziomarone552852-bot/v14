@@ -1,10 +1,14 @@
 // src/mobile/components/modals/MobileChangePasswordModal.tsx
-import React, { useState } from 'react';
+import React from 'react';
 import MobileBaseModal from '@/mobile/components/modals/MobileBaseModal';
 import PasswordStrengthMeter from '@/components/shared/form/PasswordStrengthMeter';
-import { Key, Eye, EyeOff, AlertCircle } from 'lucide-react';
+import { Key, AlertCircle } from 'lucide-react';
+import {
+  MobilePasswordFieldItem,
+  useMobileChangePasswordLogic,
+} from './password';
 
-interface MobileChangePasswordModalProps {
+export interface MobileChangePasswordModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSubmit: (currentPassword: string, newPassword: string, confirmNewPassword: string) => Promise<void>;
@@ -17,60 +21,28 @@ export const MobileChangePasswordModal: React.FC<MobileChangePasswordModalProps>
   onSubmit,
   loading = false,
 }) => {
-  const [currentPassword, setCurrentPassword] = useState('');
-  const [newPassword, setNewPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-
-  const [showCurrent, setShowCurrent] = useState(false);
-  const [showNew, setShowNew] = useState(false);
-  const [showConfirm, setShowConfirm] = useState(false);
-
-  const [localError, setLocalError] = useState<string | null>(null);
+  const {
+    currentPassword,
+    setCurrentPassword,
+    newPassword,
+    setNewPassword,
+    confirmPassword,
+    setConfirmPassword,
+    showCurrent,
+    setShowCurrent,
+    showNew,
+    setShowNew,
+    showConfirm,
+    setShowConfirm,
+    localError,
+    setLocalError,
+    handleClose,
+    handleSubmit,
+    passwordsMatch,
+    isSubmitDisabled,
+  } = useMobileChangePasswordLogic({ onSubmit, onClose, loading });
 
   if (!isOpen) return null;
-
-  const handleClose = () => {
-    setCurrentPassword('');
-    setNewPassword('');
-    setConfirmPassword('');
-    setLocalError(null);
-    onClose();
-  };
-
-  const handleSubmit = async (e?: React.FormEvent) => {
-    if (e) e.preventDefault();
-    setLocalError(null);
-
-    if (!currentPassword || !newPassword || !confirmPassword) {
-      setLocalError('Compila tutti i campi richiesti.');
-      return;
-    }
-
-    if (newPassword !== confirmPassword) {
-      setLocalError('Le nuove password non coincidono.');
-      return;
-    }
-
-    if (newPassword.length < 6) {
-      setLocalError('La nuova password deve contenere almeno 6 caratteri.');
-      return;
-    }
-
-    if (newPassword === currentPassword) {
-      setLocalError('La nuova password deve essere diversa da quella attuale.');
-      return;
-    }
-
-    try {
-      await onSubmit(currentPassword, newPassword, confirmPassword);
-      handleClose();
-    } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Errore durante il cambio password.';
-      setLocalError(message);
-    }
-  };
-
-  const passwordsMatch = newPassword && confirmPassword ? newPassword === confirmPassword : true;
 
   return (
     <MobileBaseModal
@@ -81,7 +53,7 @@ export const MobileChangePasswordModal: React.FC<MobileChangePasswordModalProps>
       cancelText="Annulla"
       onConfirm={handleSubmit}
       onCancel={handleClose}
-      isConfirmDisabled={loading || !currentPassword || !newPassword || !confirmPassword || !passwordsMatch}
+      isConfirmDisabled={isSubmitDisabled}
       isLoading={loading}
     >
       <form onSubmit={handleSubmit} className="space-y-4 pb-4">
@@ -106,99 +78,56 @@ export const MobileChangePasswordModal: React.FC<MobileChangePasswordModalProps>
         )}
 
         {/* Password Attuale */}
-        <div className="space-y-1.5">
-          <label className="block text-xs font-bold uppercase tracking-wider text-gray-700">
-            Password Attuale
-          </label>
-          <div className="relative">
-            <input
-              type={showCurrent ? 'text' : 'password'}
-              value={currentPassword}
-              onChange={(e) => {
-                setCurrentPassword(e.target.value);
-                if (localError) setLocalError(null);
-              }}
-              disabled={loading}
-              autoComplete="current-password"
-              placeholder="Inserisci la password attuale"
-              className="w-full px-3.5 py-2.5 pr-10 rounded-xl border border-gray-200 text-gray-900 text-sm shadow-xs transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100 bg-white"
-            />
-            <button
-              type="button"
-              onClick={() => setShowCurrent(!showCurrent)}
-              className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 focus:outline-none cursor-pointer"
-              tabIndex={-1}
-            >
-              {showCurrent ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-            </button>
-          </div>
-        </div>
+        <MobilePasswordFieldItem
+          label="Password Attuale"
+          value={currentPassword}
+          onChange={(val) => {
+            setCurrentPassword(val);
+            if (localError) setLocalError(null);
+          }}
+          showPassword={showCurrent}
+          onToggleShow={() => setShowCurrent(!showCurrent)}
+          placeholder="Inserisci la password attuale"
+          autoComplete="current-password"
+          disabled={loading}
+        />
 
         {/* Nuova Password */}
-        <div className="space-y-1.5">
-          <label className="block text-xs font-bold uppercase tracking-wider text-gray-700">
-            Nuova Password
-          </label>
-          <div className="relative">
-            <input
-              type={showNew ? 'text' : 'password'}
-              value={newPassword}
-              onChange={(e) => {
-                setNewPassword(e.target.value);
-                if (localError) setLocalError(null);
-              }}
-              disabled={loading}
-              autoComplete="new-password"
-              placeholder="Almeno 6 caratteri"
-              className="w-full px-3.5 py-2.5 pr-10 rounded-xl border border-gray-200 text-gray-900 text-sm shadow-xs transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100 bg-white"
-            />
-            <button
-              type="button"
-              onClick={() => setShowNew(!showNew)}
-              className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 focus:outline-none cursor-pointer"
-              tabIndex={-1}
-            >
-              {showNew ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-            </button>
-          </div>
+        <MobilePasswordFieldItem
+          label="Nuova Password"
+          value={newPassword}
+          onChange={(val) => {
+            setNewPassword(val);
+            if (localError) setLocalError(null);
+          }}
+          showPassword={showNew}
+          onToggleShow={() => setShowNew(!showNew)}
+          placeholder="Almeno 6 caratteri"
+          autoComplete="new-password"
+          disabled={loading}
+        >
           <PasswordStrengthMeter password={newPassword} />
-        </div>
+        </MobilePasswordFieldItem>
 
         {/* Ripeti Nuova Password */}
-        <div className="space-y-1.5">
-          <label className="block text-xs font-bold uppercase tracking-wider text-gray-700">
-            Ripeti Nuova Password
-          </label>
-          <div className="relative">
-            <input
-              type={showConfirm ? 'text' : 'password'}
-              value={confirmPassword}
-              onChange={(e) => {
-                setConfirmPassword(e.target.value);
-                if (localError) setLocalError(null);
-              }}
-              disabled={loading}
-              autoComplete="new-password"
-              placeholder="Ripeti la nuova password"
-              className={`w-full px-3.5 py-2.5 pr-10 rounded-xl border text-gray-900 text-sm shadow-xs transition focus:outline-none focus:ring-2 bg-white ${
-                !passwordsMatch
-                  ? 'border-rose-300 bg-rose-50/40 focus:border-rose-500 focus:ring-rose-100'
-                  : 'border-gray-200 focus:border-blue-500 focus:ring-blue-100'
-              }`}
-            />
-            <button
-              type="button"
-              onClick={() => setShowConfirm(!showConfirm)}
-              className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 focus:outline-none cursor-pointer"
-              tabIndex={-1}
-            >
-              {showConfirm ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-            </button>
-          </div>
+        <MobilePasswordFieldItem
+          label="Ripeti Nuova Password"
+          value={confirmPassword}
+          onChange={(val) => {
+            setConfirmPassword(val);
+            if (localError) setLocalError(null);
+          }}
+          showPassword={showConfirm}
+          onToggleShow={() => setShowConfirm(!showConfirm)}
+          placeholder="Ripeti la nuova password"
+          autoComplete="new-password"
+          disabled={loading}
+          isError={!passwordsMatch}
+        >
           {!passwordsMatch && (
             <p className="text-xs font-semibold text-rose-600 mt-1">Le due password non coincidono.</p>
           )}
-        </div>
+        </MobilePasswordFieldItem>
       </form>
     </MobileBaseModal>
   );

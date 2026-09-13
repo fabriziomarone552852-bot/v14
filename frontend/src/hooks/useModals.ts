@@ -28,3 +28,5 @@ export function useModal<T = unknown>(initialData: T | null = null) {
 
   return { isOpen, data, open, close };
 }
+
+export type UseModalResult<T = unknown> = ReturnType<typeof useModal<T>>;

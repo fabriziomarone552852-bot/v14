@@ -13,6 +13,7 @@ interface RecurrenceEditorProps {
   untilDate: string;
   onUntilDateChange: (val: string) => void;
   hideToggle?: boolean;
+  overlay?: boolean;
 }
 
 export const RecurrenceEditor: React.FC<RecurrenceEditorProps> = ({
@@ -25,6 +26,7 @@ export const RecurrenceEditor: React.FC<RecurrenceEditorProps> = ({
   untilDate, 
   onUntilDateChange,
   hideToggle = false,
+  overlay = false,
 }) => {
   const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
   const showControls = hideToggle || isRecurrent;
@@ -85,6 +87,7 @@ export const RecurrenceEditor: React.FC<RecurrenceEditorProps> = ({
               onClose={() => setIsDatePickerOpen(false)}
               placeholder="Senza limite"
               align="right"
+              overlay={overlay}
             />
             
             {/* Tasto per resettare la data di fine */}

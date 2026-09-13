@@ -1,20 +1,16 @@
 // src/mobile/views/MobileYearView.tsx
-import React, { useState, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useQueryClient } from '@tanstack/react-query';
+import React from 'react';
 
-// Contesti & Hooks Centralizzati
-import { useDay } from '@/context/DayContext';
-import { useYearPageLogic } from '@/hooks/uiYear/useYearPageLogic';
+// Hooks & Logica Centralizzata
+import { useMobileYearLogic } from '../hooks/useMobileYearLogic';
 
 // Componenti Mobile Standardizzati
 import MobileAgendaPeriodHeader from '../components/MobileAgendaPeriodHeader';
-import MobileGoalsAndPrioritiesChips from '../components/MobileGoalsAndPrioritiesChips';
-import MobileYearCalendar from '../components/MobileYearCalendar';
-import MobileYearResolutionsColumn from '../components/MobileYearResolutionsColumn';
-import MiniBingoCard from '@/components/year/MiniBingoCard';
+import { MobileYearCalendarSlide } from '../components/year/MobileYearCalendarSlide';
+import { MobileYearBingoSlide } from '../components/year/MobileYearBingoSlide';
 import MobileBingoModal from '../components/modals/MobileBingoModal';
 import MobileYearReviewModal from '../components/modals/MobileYearReviewModal';
+import { MobileDateSwipeOverlay } from '../components/common/MobileDateSwipeOverlay';
 
 // Feedback & Loading
 import PageLoadingState from '@/components/shared/feedback/PageLoadingState';
@@ -22,51 +18,30 @@ import PageErrorState from '@/components/shared/feedback/PageErrorState';
 import { LOADING_MESSAGES, ERROR_MESSAGES } from '@/data/loadingMessages';
 
 export const MobileYearView: React.FC = () => {
-  const navigate = useNavigate();
-  const queryClient = useQueryClient();
-  const { changeDate } = useDay();
-  const { state, handlers, nav, apiData, highlights, bingo, review } = useYearPageLogic();
+  const {
+    queryClient,
+    state,
+    handlers,
+    nav,
+    apiData,
+    highlights,
+    bingo,
+    review,
+    activePageIndex,
+    setActivePageIndex,
+    isBingoModalOpen,
+    setIsBingoModalOpen,
+    mappedPriorities,
+    handleMonthClick,
+    handleSavePriority,
+    handleTouchStart,
+    handleTouchEnd,
+    swipeDirection,
+    handlePrevYear,
+    handleNextYear,
+  } = useMobileYearLogic();
 
-  // 1. STATO SLIDING & GESTURE TOUCH (0 = Calendario 12 Mesi, 1 = Bingo & Propositi)
-  const [activePageIndex, setActivePageIndex] = useState<0 | 1>(0);
-  const touchStartX = useRef<number | null>(null);
-  const touchStartY = useRef<number | null>(null);
-
-  // 2. STATO MODALE BINGO
-  const [isBingoModalOpen, setIsBingoModalOpen] = useState(false);
-
-  // Handlers Navigazione Calendario
-  const handleMonthClick = (yr: number, monthIndex: number) => {
-    const d = new Date(yr, monthIndex, 1);
-    changeDate(d);
-    const monthStr = String(monthIndex + 1).padStart(2, '0');
-    navigate(`/mese?date=${yr}-${monthStr}-01`);
-  };
-
-  // Touch Swipe Gestures
-  const handleTouchStart = (e: React.TouchEvent) => {
-    touchStartX.current = e.touches[0].clientX;
-    touchStartY.current = e.touches[0].clientY;
-  };
-
-  const handleTouchEnd = (e: React.TouchEvent) => {
-    if (touchStartX.current === null || touchStartY.current === null) return;
-    const deltaX = e.changedTouches[0].clientX - touchStartX.current;
-    const deltaY = e.changedTouches[0].clientY - touchStartY.current;
-
-    // Solo se lo swipe orizzontale è predominante rispetto a quello verticale
-    if (Math.abs(deltaX) > 45 && Math.abs(deltaX) > Math.abs(deltaY) * 1.5) {
-      if (deltaX < 0 && activePageIndex === 0) {
-        setActivePageIndex(1); // Swipe sinistra -> Pagina 2 (Bingo & Propositi)
-      } else if (deltaX > 0 && activePageIndex === 1) {
-        setActivePageIndex(0); // Swipe destra -> Pagina 1 (Calendario Annuale)
-      }
-    }
-    touchStartX.current = null;
-    touchStartY.current = null;
-  };
-
-  // 3. STATI DI CARICAMENTO ED ERRORE
+  // Stati di Caricamento ed Errore
   if (state.isLoading && !state.yearData) {
     return <PageLoadingState messages={LOADING_MESSAGES.year} />;
   }
@@ -82,10 +57,7 @@ export const MobileYearView: React.FC = () => {
 
   return (
     <div className="h-full w-full flex flex-col justify-between gap-1.5 overflow-hidden animate-fadeIn relative select-none">
-      
-      {/* ========================================================================= */}
-      {/* 1. HEADER COMUNE STANDARDIZZATO (Anno a sx, Icone Azione a dx)            */}
-      {/* ========================================================================= */}
+      {/* 1. Header Periodo Annuale */}
       <MobileAgendaPeriodHeader
         title={String(state.selectedYear)}
         currentDate={new Date(state.selectedYear, 0, 1)}
@@ -97,85 +69,47 @@ export const MobileYearView: React.FC = () => {
         onOpenReview={review.openReview}
       />
 
-      {/* ========================================================================= */}
-      {/* 2. CORPO PRINCIPALE IN SLIDING A 2 PAGINE                                 */}
-      {/* ========================================================================= */}
+      {/* 2. Container 2 Slide in Carousel */}
       <div
-        className="flex-1 min-h-0 w-full overflow-hidden relative"
+        className={`flex-1 min-h-0 w-full overflow-hidden relative ${
+          swipeDirection === 'down'
+            ? 'animate-content-down'
+            : swipeDirection === 'up'
+            ? 'animate-content-up'
+            : ''
+        }`}
         onTouchStart={handleTouchStart}
         onTouchEnd={handleTouchEnd}
       >
-        {/* --------------------------------------------------------------------- */}
-        {/* SLIDE 1 (PRINCIPALE): OBIETTIVO/PRIORITÀ + CALENDARIO 12 MESI         */}
-        {/* --------------------------------------------------------------------- */}
-        <div
-          className={`absolute inset-0 w-full h-full flex flex-col gap-2 overflow-hidden transition-transform duration-300 ease-out ${
-            activePageIndex === 0
-              ? 'translate-x-0 pointer-events-auto'
-              : '-translate-x-full pointer-events-none'
-          }`}
-        >
-          {/* OBIETTIVO E PRIORITÀ ANNUALI COMPATTI A CHIPS */}
-          <MobileGoalsAndPrioritiesChips
-            goalText={apiData.entries.obiettivo?.yearly_field}
-            priorities={apiData.entries.priorita.map((p) =>
-              p ? { id: p.id, testo: p.yearly_field ?? null } : null
-            )}
-            onSaveGoal={apiData.entries.handleSaveObiettivo}
-            onSavePriority={(id, text, index) => {
-              const idx = typeof index === 'number' ? index : apiData.entries.priorita.findIndex((p) => p?.id === id);
-              if (idx >= 0) {
-                apiData.entries.handleSavePriority(idx, id, text);
-              }
-            }}
-            goalPlaceholder="Qual è il tuo obiettivo per quest'anno?"
-          />
+        {/* Slide 0: Obiettivi/Priorità + Calendario 12 Mesi */}
+        <MobileYearCalendarSlide
+          activePageIndex={activePageIndex}
+          goalText={apiData.entries.obiettivo?.yearly_field}
+          priorities={mappedPriorities}
+          onSaveGoal={apiData.entries.handleSaveObiettivo}
+          onSavePriority={handleSavePriority}
+          year={state.selectedYear}
+          events={highlights.events}
+          tasks={highlights.tasks}
+          taskDays={highlights.taskDays}
+          eventDays={highlights.eventDays}
+          highlightedDays={highlights.highlightedDays}
+          onMonthClick={handleMonthClick}
+        />
 
-          {/* CALENDARIO ANNUALE 12 MESI ZERO-SCROLL */}
-          <MobileYearCalendar
-            year={state.selectedYear}
-            events={highlights.events}
-            tasks={highlights.tasks}
-            taskDays={highlights.taskDays}
-            eventDays={highlights.eventDays}
-            highlightedDays={highlights.highlightedDays}
-            onMonthClick={handleMonthClick}
-          />
-        </div>
-
-        {/* --------------------------------------------------------------------- */}
-        {/* SLIDE 2: MINI BINGO IN ANTEPRIMA + COLONNA BUONI PROPOSITI             */}
-        {/* --------------------------------------------------------------------- */}
-        <div
-          className={`absolute inset-0 w-full h-full flex flex-col gap-2.5 overflow-hidden transition-transform duration-300 ease-out ${
-            activePageIndex === 1
-              ? 'translate-x-0 pointer-events-auto'
-              : 'translate-x-full pointer-events-none'
-          }`}
-        >
-          {/* MINI BINGO CENTRATO IN ALTO */}
-          <div className="flex justify-center w-full shrink-0">
-            <MiniBingoCard
-              cells={bingo.cells}
-              onOpenModal={() => setIsBingoModalOpen(true)}
-            />
-          </div>
-
-          {/* COLONNA ADATTATA DEI BUONI PROPOSITI */}
-          <div className="flex-1 min-h-0 overflow-hidden flex flex-col">
-            <MobileYearResolutionsColumn
-              propositi={apiData.entries.propositi}
-              onAdd={apiData.entries.handleAddProposito}
-              onUpdate={apiData.entries.handleUpdateProposito}
-              onDelete={apiData.entries.handleDeleteProposito}
-            />
-          </div>
-        </div>
+        {/* Slide 1: Mini Bingo & Buoni Propositi */}
+        <MobileYearBingoSlide
+          activePageIndex={activePageIndex}
+          cells={bingo.cells}
+          onOpenBingoModal={() => setIsBingoModalOpen(true)}
+          propositi={apiData.entries.propositi}
+          onAddProposito={apiData.entries.handleAddProposito}
+          onUpdateProposito={apiData.entries.handleUpdateProposito}
+          onDeleteProposito={apiData.entries.handleDeleteProposito}
+        />
       </div>
 
-      {/* ========================================================================= */}
-      {/* 3. INDICATORE DI PAGINAZIONE (CAROUSEL DOTS & PILL: [ ▬▬ ] [ ● ])         */}
-      {/* ========================================================================= */}
+      {/* 3. Indicatore di Paginazione Dots */}
       <div className="shrink-0 flex items-center justify-center gap-2 py-1 select-none">
         <button
           type="button"
@@ -201,9 +135,7 @@ export const MobileYearView: React.FC = () => {
         />
       </div>
 
-      {/* ========================================================================= */}
-      {/* 4. MODALE FULLSCREEN BINGO CARD                                           */}
-      {/* ========================================================================= */}
+      {/* 4. Modale Fullscreen Bingo Card */}
       <MobileBingoModal
         isOpen={isBingoModalOpen}
         onClose={() => setIsBingoModalOpen(false)}
@@ -214,9 +146,7 @@ export const MobileYearView: React.FC = () => {
         onDeleteCell={bingo.handleDeleteCell}
       />
 
-      {/* ========================================================================= */}
-      {/* 5. MODALE ANALISI/REVIEW ANNUALE                                          */}
-      {/* ========================================================================= */}
+      {/* 5. Modale Review Annuale */}
       <MobileYearReviewModal
         isOpen={review.isOpen}
         onClose={review.closeReview}
@@ -233,6 +163,13 @@ export const MobileYearView: React.FC = () => {
         tasksByWeekday={apiData.tasksByWeekday}
         habits={apiData.habits}
         dailyEntries={apiData.dailyEntries}
+      />
+
+      {/* 6. Overlay Onda Luminosa e Frecce Test Desktop */}
+      <MobileDateSwipeOverlay
+        swipeDirection={swipeDirection}
+        onSwipePrev={handlePrevYear}
+        onSwipeNext={handleNextYear}
       />
     </div>
   );

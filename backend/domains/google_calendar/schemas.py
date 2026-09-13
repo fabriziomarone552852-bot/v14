@@ -13,6 +13,22 @@ from backend.core.schemas import ORMBaseModel, StrictBaseModel
 class GoogleAuthUrlResponse(StrictBaseModel):
     """Response model containing the OAuth URL."""
     url: str
+    client_id: Optional[str] = None
+
+
+class GoogleExchangeCodeRequest(StrictBaseModel):
+    """Request payload for exchanging authorization code from mobile app or web."""
+    code: str
+    state: Optional[str] = None
+    redirect_uri: Optional[str] = None
+    is_native: Optional[bool] = False
+
+
+class GoogleAuthExchangeResponse(StrictBaseModel):
+    """Response model for exchanged OAuth code."""
+    success: bool
+    user_id: int
+    google_email: Optional[str] = None
 
 
 class GoogleCalendarStatusResponse(ORMBaseModel):

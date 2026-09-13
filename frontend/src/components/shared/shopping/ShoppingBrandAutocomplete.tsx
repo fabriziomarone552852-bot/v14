@@ -89,19 +89,24 @@ export const ShoppingBrandAutocomplete: React.FC<ShoppingBrandAutocompleteProps>
     return set;
   }, [productName, products]);
 
-  // Lista brand filtrata e ordinata per rilevanza rispetto al prodotto
+  // Lista brand filtrata, deduplicata e ordinata per rilevanza rispetto al prodotto
   const suggestions = useMemo(() => {
     const q = (value || '').trim().toLowerCase();
-    let list = brands.filter((b) => Boolean(b && b.name));
+    const seen = new Set<string>();
+    const uniqueList: ShoppingSupplierOption[] = [];
 
-    if (q) {
-      list = list.filter((b) => {
-        const name = (b?.name || '').toLowerCase();
-        return name.includes(q);
-      });
+    for (const b of brands) {
+      const brandName = (b?.name || '').trim();
+      const normName = brandName.toLowerCase();
+      if (!normName) continue;
+      if (q && !normName.includes(q)) continue;
+      if (!seen.has(normName)) {
+        seen.add(normName);
+        uniqueList.push(b);
+      }
     }
 
-    return [...list].sort((a, b) => {
+    return uniqueList.sort((a, b) => {
       const aName = (a?.name || '').toLowerCase();
       const bName = (b?.name || '').toLowerCase();
       const aAssoc = productAssociatedBrandNames.has(aName);
@@ -117,7 +122,7 @@ export const ShoppingBrandAutocomplete: React.FC<ShoppingBrandAutocompleteProps>
     const q = (value || '').trim().toLowerCase();
     if (!q) return false;
     return brands.some((b) => {
-      const name = (b?.name || '').toLowerCase();
+      const name = (b?.name || '').trim().toLowerCase();
       return name === q;
     });
   }, [value, brands]);

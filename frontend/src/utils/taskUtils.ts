@@ -1,7 +1,23 @@
 // frontend/src/utils/taskUtils.ts
-import type { DbTask, TaskSummary, UITask } from '@/types';
+import type { DbTask, Priorita, TaskSummary, UITask } from '@/types';
 import { getLocalTodayStr, formatDateString } from '@/utils/dateUtils';
 import { getPriorityWeight } from '@/utils/calendarLayoutUtils';
+
+// 1. MAPPATURA DbTask -> UITask
+export const mapDbTaskToUITask = (t: DbTask): UITask => ({
+  id: t.id,
+  title: t.titolo || '',
+  deadline: t.data_scadenza || '',
+  dateStr: t.data_start || '',
+  done: !!t.fatto,
+  priority: (t.priorita as Priorita) || 'Media',
+  category: t.category_name || t.category?.category_name || '',
+  categoryColor: t.category?.colore || undefined,
+  description: t.descrizione || '',
+  location: t.luogo || '',
+  parent_id: t.parent_id,
+  subtasks: [],
+});
 
 // 2. MAPPATURA SINGOLA SICURA
 export const mapTaskToSummary = (

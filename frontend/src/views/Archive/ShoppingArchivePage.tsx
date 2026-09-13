@@ -1,124 +1,24 @@
 // src/views/Archive/ShoppingArchivePage.tsx
-import React, { useState, useMemo } from 'react';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import React, { useMemo } from 'react';
 import {
   UsersIcon,
   TaskListIcon,
   TagIcon,
 } from '@/components/shared/utils/Icons';
-import { useShoppingData } from '@/hooks/shopping/useShoppingData';
-import { useShoppingMutations } from '@/hooks/shopping/useShoppingMutations';
-import { fetchAllInventoryBatches, shoppingQueryKeys, type ItemBatchRecord } from '@/api/shoppingApi';
-import { useModal } from '@/hooks/useModals';
 import { ArchiveActionBar } from '@/components/shared/layout/ArchiveActionBar';
 import { SegmentedTabs, type TabItem } from '@/components/shared/layout/SegmentedTabs';
-import { useArchiveHeader } from '@/context/ArchiveHeaderContext';
 import { ShoppingStatsOverview } from '@/components/archive/shopping/ShoppingStatsOverview';
 import { ShoppingArchiveGroupsTab } from '@/components/archive/shopping/ShoppingArchiveGroupsTab';
 import { ShoppingArchiveListsTab } from '@/components/archive/shopping/ShoppingArchiveListsTab';
 import { ShoppingArchivePricesTab } from '@/components/archive/shopping/ShoppingArchivePricesTab';
+import { ShoppingArchivePageModals } from '@/components/archive/shopping/ShoppingArchivePageModals';
+import { useShoppingArchivePageLogic, type ShoppingArchiveTab } from '@/components/archive/shopping/useShoppingArchivePageLogic';
 import { ERROR_MESSAGES } from '@/data/loadingMessages';
-import type { ShoppingGroupFilterState } from '@/components/archive/shopping/ShoppingGroupFilterModal';
-import type { ShoppingListFilterState } from '@/components/archive/shopping/ShoppingListFilterModal';
-import type { ShoppingPriceFilterState } from '@/components/archive/shopping/ShoppingPriceFilterModal';
-import { useIsMobile } from '@/mobile/hooks/useIsMobile';
-import ShoppingGroupCreateModal from '@/components/shared/shopping/ShoppingGroupCreateModal';
-import ShoppingQuickPriceModal from '@/components/archive/shopping/ShoppingQuickPriceModal';
-import { ShoppingListModal, makeEmptyForm, type ListFormState } from '@/components/shared/shopping/ShoppingListModal';
-import MobileShoppingGroupCreateModal from '@/mobile/components/modals/shopping/MobileShoppingGroupCreateModal';
-import MobileShoppingQuickPriceModal from '@/mobile/components/modals/shopping/MobileShoppingQuickPriceModal';
-import { MobileShoppingListModal } from '@/mobile/components/modals/shopping/MobileShoppingListModal';
-
-export type ShoppingArchiveTab = 'gruppi' | 'liste' | 'prezzi';
 
 const PANEL_CLASS = 'rounded-2xl border border-slate-200/90 bg-white shadow-xs';
 
-const initialGroupFilters: ShoppingGroupFilterState = {
-  keyword: '',
-  status: 'all',
-  members: [],
-};
-
-const initialListFilters: ShoppingListFilterState = {
-  keyword: '',
-  status: 'all',
-  products: [],
-};
-
-const initialPriceFilters: ShoppingPriceFilterState = {
-  keyword: '',
-  lookbackValue: 1,
-  lookbackUnit: 'years',
-};
-
 export const ShoppingArchivePage: React.FC = () => {
-  const isMobile = useIsMobile();
-  const queryClient = useQueryClient();
-  const [activeTab, setActiveTab] = useState<ShoppingArchiveTab>('gruppi');
-  const { createGroup, createList } = useShoppingMutations();
-
-  // Caricamento Dati
-  const {
-    groups,
-    lists,
-    products,
-    brands,
-    suppliers,
-    config,
-    groupsLoading,
-    listsLoading,
-    isError: shoppingError,
-  } = useShoppingData();
-
-  const { data: allBatches = [], isLoading: batchesLoading, isError: batchesError } = useQuery<ItemBatchRecord[]>({
-    queryKey: shoppingQueryKeys.allBatches(),
-    queryFn: ({ signal }) => fetchAllInventoryBatches(signal),
-    staleTime: 30_000,
-  });
-
-  const isOverallLoading = groupsLoading || listsLoading;
-  const isError = Boolean(shoppingError || batchesError);
-
-  // Modali Creazione
-  const groupCreateModal = useModal<null>();
-  const quickPriceModal = useModal<null>();
-  const listCreateModal = useModal<null>();
-  const [listForm, setListForm] = useState<ListFormState>(() => makeEmptyForm(''));
-
-  // Stati dei Filtri per ciascuna Tab
-  const [groupFilters, setGroupFilters] = useState<ShoppingGroupFilterState>(initialGroupFilters);
-  const [isGroupFilterModalOpen, setIsGroupFilterModalOpen] = useState(false);
-
-  const [listFilters, setListFilters] = useState<ShoppingListFilterState>(initialListFilters);
-  const [isListFilterModalOpen, setIsListFilterModalOpen] = useState(false);
-
-  const [priceFilters, setPriceFilters] = useState<ShoppingPriceFilterState>(initialPriceFilters);
-  const [isPriceFilterModalOpen, setIsPriceFilterModalOpen] = useState(false);
-
-  // Conteggio filtri attivi in base alla tab selezionata
-  const activeFiltersCount = useMemo(() => {
-    if (activeTab === 'gruppi') {
-      let c = 0;
-      if (groupFilters.keyword.trim()) c++;
-      if (groupFilters.status !== 'all') c++;
-      if (groupFilters.members.length > 0) c += groupFilters.members.length;
-      return c;
-    }
-    if (activeTab === 'liste') {
-      let c = 0;
-      if (listFilters.keyword.trim()) c++;
-      if (listFilters.status !== 'all') c++;
-      if (listFilters.products.length > 0) c += listFilters.products.length;
-      return c;
-    }
-    if (activeTab === 'prezzi') {
-      let c = 0;
-      if (priceFilters.keyword.trim()) c++;
-      if (priceFilters.lookbackValue !== 1 || priceFilters.lookbackUnit !== 'years') c++;
-      return c;
-    }
-    return 0;
-  }, [activeTab, groupFilters, listFilters, priceFilters]);
+  const logic = useShoppingArchivePageLogic();
 
   // Configurazione SegmentedTabs
   const tabsConfig: TabItem<ShoppingArchiveTab>[] = useMemo(
@@ -127,223 +27,118 @@ export const ShoppingArchivePage: React.FC = () => {
         id: 'gruppi',
         label: 'Gruppi',
         icon: <UsersIcon className="w-3.5 h-3.5" />,
-        count: groups.length,
+        count: logic.groups.length,
         badgeBg: 'bg-indigo-50 text-indigo-700 border-indigo-200/60',
       },
       {
         id: 'liste',
         label: 'Liste',
         icon: <TaskListIcon className="w-3.5 h-3.5" />,
-        count: lists.length,
+        count: logic.lists.length,
         badgeBg: 'bg-blue-50 text-blue-700 border-blue-200/60',
       },
       {
         id: 'prezzi',
         label: 'Storico',
         icon: <TagIcon className="w-3.5 h-3.5" />,
-        count: allBatches.length,
+        count: logic.allBatches.length,
         badgeBg: 'bg-emerald-50 text-emerald-700 border-emerald-200/60',
       },
     ],
-    [groups.length, lists.length, allBatches.length]
+    [logic.groups.length, logic.lists.length, logic.allBatches.length]
   );
-
-  const handleOpenSearchModal = () => {
-    if (activeTab === 'gruppi') setIsGroupFilterModalOpen(true);
-    else if (activeTab === 'liste') setIsListFilterModalOpen(true);
-    else if (activeTab === 'prezzi') setIsPriceFilterModalOpen(true);
-  };
-
-  const handlePrimaryAddAction = () => {
-    if (activeTab === 'gruppi') {
-      groupCreateModal.open(null);
-    } else if (activeTab === 'liste') {
-      setListForm(makeEmptyForm(''));
-      listCreateModal.open(null);
-    } else if (activeTab === 'prezzi') {
-      quickPriceModal.open(null);
-    }
-  };
-
-  const handleCreateListSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    const trimmedName = listForm.name.trim();
-    if (!trimmedName) return;
-
-    const groupId = listForm.destinationValue ? Number(listForm.destinationValue) : undefined;
-    const visibilityId = groupId ? 2 : 1; // 2 = group, 1 = private
-
-    await createList({
-      name: trimmedName,
-      description: listForm.description.trim() || undefined,
-      groupId,
-      visibilityId,
-    });
-
-    listCreateModal.close();
-  };
-
-  const primaryAddLabel =
-    activeTab === 'gruppi'
-      ? 'Nuovo Gruppo'
-      : activeTab === 'liste'
-      ? 'Nuova Lista'
-      : 'Aggiunta Rapida';
-
-  // 6. REGISTRAZIONE HEADER ARCHIVIO PER MOBILE
-  useArchiveHeader({
-    title: 'Spesa & Liste',
-    onOpenSearch: handleOpenSearchModal,
-    onOpenNew: primaryAddLabel ? handlePrimaryAddAction : undefined,
-    activeFiltersCount,
-  });
 
   return (
     <div className="h-full flex flex-col gap-2 sm:gap-3.5 w-full max-w-[1600px] mx-auto relative z-10 pb-1">
-      {/* 1. HEADER COMPATTO (su mobile mostra solo le targhette) */}
+      {/* 1. HEADER COMPATTO CON STATS OVERVIEW */}
       <ShoppingStatsOverview panelClass={PANEL_CLASS} />
 
       {/* 2. RIGA AZIONI: ADDBUTTON, SEGMENTED TABS E LENTE RICERCA */}
       <ArchiveActionBar
-        addLabel={primaryAddLabel}
-        onAdd={handlePrimaryAddAction}
+        addLabel={logic.primaryAddLabel}
+        onAdd={logic.handlePrimaryAddAction}
         centerContent={
           <SegmentedTabs
             tabs={tabsConfig}
-            activeTab={activeTab}
-            onChange={setActiveTab}
+            activeTab={logic.activeTab}
+            onChange={logic.setActiveTab}
           />
         }
-        onOpenSearch={handleOpenSearchModal}
-        activeFiltersCount={activeFiltersCount}
+        onOpenSearch={logic.handleOpenSearchModal}
+        activeFiltersCount={logic.activeFiltersCount}
         className={PANEL_CLASS}
       />
 
-      {/* 3. CONTENUTO TABELLARE IN ARCHIVE CONTAINER */}
-      {isError ? (
+      {/* 3. CONTENUTO TABELLARE IN BASE ALLA TAB ATTIVA */}
+      {logic.isError ? (
         <div className={`${PANEL_CLASS} flex flex-col flex-1 items-center justify-center py-20 text-slate-400`}>
           <div className="text-3xl mb-3">⚠️</div>
           <p className="text-sm font-bold text-rose-700">{ERROR_MESSAGES.archive}</p>
           <div className="mt-4 p-1.5 bg-rose-50 border border-rose-200 rounded-2xl">
             <button
               type="button"
-              onClick={() => queryClient.refetchQueries()}
+              onClick={() => logic.queryClient.refetchQueries()}
               className="px-4 py-2 text-xs font-bold text-red-600 hover:bg-rose-100 rounded-xl transition cursor-pointer"
             >
               🔄 Riprova
             </button>
           </div>
         </div>
-      ) : activeTab === 'gruppi' ? (
+      ) : logic.activeTab === 'gruppi' ? (
         <ShoppingArchiveGroupsTab
-          groups={groups}
-          lists={lists}
-          loading={isOverallLoading}
-          isFilterModalOpen={isGroupFilterModalOpen}
-          onCloseFilterModal={() => setIsGroupFilterModalOpen(false)}
-          onOpenCreateModal={() => groupCreateModal.open(null)}
-          activeFiltersCount={activeFiltersCount}
-          filterState={groupFilters}
-          onFilterChange={setGroupFilters}
-          onResetFilters={() => setGroupFilters(initialGroupFilters)}
+          groups={logic.groups}
+          lists={logic.lists}
+          loading={logic.isOverallLoading}
+          isFilterModalOpen={logic.isGroupFilterModalOpen}
+          onCloseFilterModal={() => logic.setIsGroupFilterModalOpen(false)}
+          onOpenCreateModal={() => logic.groupCreateModal.open(null)}
+          activeFiltersCount={logic.activeFiltersCount}
+          filterState={logic.groupFilters}
+          onFilterChange={logic.setGroupFilters}
+          onResetFilters={() => logic.setGroupFilters(logic.initialGroupFilters)}
           className={PANEL_CLASS}
         />
-      ) : activeTab === 'liste' ? (
+      ) : logic.activeTab === 'liste' ? (
         <ShoppingArchiveListsTab
-          lists={lists}
-          products={products}
-          loading={isOverallLoading}
-          isFilterModalOpen={isListFilterModalOpen}
-          onCloseFilterModal={() => setIsListFilterModalOpen(false)}
-          filterState={listFilters}
-          onFilterChange={setListFilters}
-          onResetFilters={() => setListFilters(initialListFilters)}
+          lists={logic.lists}
+          products={logic.products}
+          loading={logic.isOverallLoading}
+          isFilterModalOpen={logic.isListFilterModalOpen}
+          onCloseFilterModal={() => logic.setIsListFilterModalOpen(false)}
+          filterState={logic.listFilters}
+          onFilterChange={logic.setListFilters}
+          onResetFilters={() => logic.setListFilters(logic.initialListFilters)}
           className={PANEL_CLASS}
         />
       ) : (
         <ShoppingArchivePricesTab
-          batches={allBatches}
-          loading={batchesLoading}
-          isFilterModalOpen={isPriceFilterModalOpen}
-          onCloseFilterModal={() => setIsPriceFilterModalOpen(false)}
-          filterState={priceFilters}
-          onFilterChange={setPriceFilters}
-          onResetFilters={() => setPriceFilters(initialPriceFilters)}
+          batches={logic.allBatches}
+          loading={logic.batchesLoading}
+          isFilterModalOpen={logic.isPriceFilterModalOpen}
+          onCloseFilterModal={() => logic.setIsPriceFilterModalOpen(false)}
+          filterState={logic.priceFilters}
+          onFilterChange={logic.setPriceFilters}
+          onResetFilters={() => logic.setPriceFilters(logic.initialPriceFilters)}
           className={PANEL_CLASS}
         />
       )}
 
-
-      {/* Modal Creazione Gruppo */}
-      {groupCreateModal.isOpen && (
-        isMobile ? (
-          <MobileShoppingGroupCreateModal
-            isOpen={true}
-            onClose={groupCreateModal.close}
-            onSubmit={async (data) => {
-              await createGroup(data);
-              groupCreateModal.close();
-            }}
-          />
-        ) : (
-          <ShoppingGroupCreateModal
-            isOpen={true}
-            onClose={groupCreateModal.close}
-            onSubmit={async (data) => {
-              await createGroup(data);
-              groupCreateModal.close();
-            }}
-          />
-        )
-      )}
-
-      {/* Modal Creazione Lista */}
-      {listCreateModal.isOpen && (
-        isMobile ? (
-          <MobileShoppingListModal
-            title="Nuova Lista Spesa"
-            form={listForm}
-            setForm={setListForm}
-            groups={groups}
-            onClose={listCreateModal.close}
-            onSubmit={handleCreateListSubmit}
-            submitLabel="Crea Lista"
-          />
-        ) : (
-          <ShoppingListModal
-            title="Nuova Lista Spesa"
-            form={listForm}
-            setForm={setListForm}
-            groups={groups}
-            onClose={listCreateModal.close}
-            onSubmit={handleCreateListSubmit}
-            submitLabel="Crea Lista"
-          />
-        )
-      )}
-
-      {/* Modal Aggiunta Rapida Prezzi */}
-      {quickPriceModal.isOpen && (
-        isMobile ? (
-          <MobileShoppingQuickPriceModal
-            isOpen={true}
-            onClose={quickPriceModal.close}
-            products={products}
-            brands={brands}
-            suppliers={suppliers}
-            unitOptions={config?.unitOptions}
-          />
-        ) : (
-          <ShoppingQuickPriceModal
-            isOpen={true}
-            onClose={quickPriceModal.close}
-            products={products}
-            brands={brands}
-            suppliers={suppliers}
-            unitOptions={config?.unitOptions}
-          />
-        )
-      )}
+      {/* 4. MODALI DI CREAZIONE */}
+      <ShoppingArchivePageModals
+        isMobile={logic.isMobile}
+        groupCreateModal={logic.groupCreateModal}
+        listCreateModal={logic.listCreateModal}
+        quickPriceModal={logic.quickPriceModal}
+        groups={logic.groups}
+        products={logic.products}
+        brands={logic.brands}
+        suppliers={logic.suppliers}
+        config={logic.config}
+        listForm={logic.listForm}
+        setListForm={logic.setListForm}
+        onCreateGroup={logic.createGroup}
+        onCreateListSubmit={logic.handleCreateListSubmit}
+      />
     </div>
   );
 };

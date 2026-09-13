@@ -6,13 +6,22 @@ import { useConfirm } from '@/context/ConfirmContext';
 import { formatToItalianShortDate } from '@/utils/dateUtils';
 import { type UITask, type TaskSummary } from '@/types'; 
 
-interface TaskItemProps {
+interface TaskItemProps extends Omit<React.HTMLAttributes<HTMLDivElement>, 'onSelect' | 'onToggle'> {
   task: UITask;
   onSelect: (task: TaskSummary) => void;
   onToggle: (id: number, currentStatus: boolean, e: React.MouseEvent) => void;
+  isSelected?: boolean;
 }
 
-export const TaskItem: React.FC<TaskItemProps> = ({ task, onSelect, onToggle }) => {
+export const TaskItem: React.FC<TaskItemProps> = ({
+  task,
+  onSelect,
+  onToggle,
+  isSelected,
+  className = '',
+  onClick,
+  ...rest
+}) => {
   const { confirm } = useConfirm();
 
   const handleToggleClick = (e: React.MouseEvent<HTMLInputElement>) => {
@@ -31,7 +40,9 @@ export const TaskItem: React.FC<TaskItemProps> = ({ task, onSelect, onToggle }) 
     }
   };
 
-  const containerClasses = task.isPromotedSubtask
+  const containerClasses = isSelected
+    ? 'ring-2 ring-blue-400 ring-inset bg-blue-50/90 border-blue-400 shadow-[0_0_12px_rgba(59,130,246,0.3)] relative z-10'
+    : task.isPromotedSubtask
     ? 'bg-red-100/50 border-red-200 hover:border-red-300 hover:bg-red-50/50'
     : 'bg-gray-50 border-gray-200 hover:border-blue-300 hover:bg-white';
 
@@ -45,8 +56,9 @@ export const TaskItem: React.FC<TaskItemProps> = ({ task, onSelect, onToggle }) 
 
   return (
     <div 
-      onClick={() => onSelect(task)} 
-      className={`w-full flex items-center justify-between group cursor-pointer border h-16 px-3 rounded-xl shadow-sm hover:shadow-md transition-all gap-3 ${containerClasses}`}
+      onClick={onClick || (() => onSelect(task))} 
+      className={`w-full flex items-center justify-between group cursor-pointer border h-16 px-3 rounded-xl shadow-sm hover:shadow-md transition-all gap-3 ${containerClasses} ${className}`}
+      {...rest}
     >
       <div className="flex items-center gap-3 flex-1 overflow-hidden min-w-0">
         <input 

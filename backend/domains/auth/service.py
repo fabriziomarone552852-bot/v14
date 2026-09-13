@@ -41,6 +41,8 @@ def register(db: Session, user_in: users_schemas.UserCreate) -> User:
     )
 
     seed_default_user_categories_for_user(db, user.id)
+    from backend.domains.shopping.service import get_or_create_default_list
+    get_or_create_default_list(db, user)
     db.refresh(user)
 
     return user

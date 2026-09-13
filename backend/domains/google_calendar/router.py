@@ -20,16 +20,49 @@ router = APIRouter(prefix="/google-calendar", tags=["google-calendar"])
 
 @router.get("/auth-url", response_model=schemas.GoogleAuthUrlResponse)
 def get_auth_url(
+    redirect_uri: Optional[str] = Query(None),
     current_user: User = Depends(deps.get_current_app_user),
 ):
     """Restituisce l'URL di autorizzazione Google per collegare l'account."""
     try:
-        url = service.generate_auth_url(current_user.id)
-        return schemas.GoogleAuthUrlResponse(url=url)
+        client_id, _, _ = service._get_client_credentials()
+        url = service.generate_auth_url(current_user.id, custom_redirect_uri=redirect_uri)
+        return schemas.GoogleAuthUrlResponse(url=url, client_id=client_id)
     except ValueError as exc:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=str(exc),
+        )
+
+
+@router.post("/exchange-code", response_model=schemas.GoogleAuthExchangeResponse)
+def exchange_oauth_code(
+    payload: schemas.GoogleExchangeCodeRequest,
+    current_user: User = Depends(deps.get_current_app_user),
+    db: Session = Depends(deps.get_db),
+):
+    """
+    Scambia il codice di autorizzazione con i token Google (usato dall'app mobile via deep link o nativo).
+    """
+    try:
+        result = service.handle_oauth_callback(
+            db,
+            code=payload.code,
+            state=payload.state,
+            custom_redirect_uri=payload.redirect_uri,
+            is_native=bool(payload.is_native),
+            user_id=current_user.id,
+        )
+        return schemas.GoogleAuthExchangeResponse(**result)
+    except ValueError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(exc),
+        )
+    except Exception as exc:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Errore durante lo scambio del codice: {exc}",
         )
 
 

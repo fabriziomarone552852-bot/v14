@@ -1,163 +1,18 @@
 // src/views/Archive/SuppliersPage.tsx
-import React, { useMemo, useState } from 'react';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { useAuth } from '@/context/AuthContext';
-import { useShoppingData } from '@/hooks/shopping/useShoppingData';
-import { useShoppingMutations } from '@/hooks/shopping/useShoppingMutations';
-import { useConfirm } from '@/context/ConfirmContext';
-import { useModal } from '@/hooks/useModals';
-import { useDynamicPageSize } from '@/hooks/useDynamicPageSize';
-import { fetchAllInventoryBatches, shoppingQueryKeys } from '@/api/shoppingApi';
-import type { ItemBatchRecord, ShoppingSupplierOption } from '@/types/shopping';
+import React, { useMemo } from 'react';
 import { StoreIcon, TagIcon } from '@/components/shared/utils/Icons';
-import { ArchiveTableContainer } from '@/components/shared/layout/ArchiveTableContainer';
 import { ArchiveActionBar } from '@/components/shared/layout/ArchiveActionBar';
 import { SegmentedTabs, type TabItem } from '@/components/shared/layout/SegmentedTabs';
-import { useArchiveHeader } from '@/context/ArchiveHeaderContext';
-import { ERROR_MESSAGES } from '@/data/loadingMessages';
-
 import { SupplierStatsOverview } from '@/components/archive/suppliers/SupplierStatsOverview';
-import { SupplierTableHeader } from '@/components/archive/suppliers/SupplierTableHeader';
-import { SupplierTableRow } from '@/components/archive/suppliers/SupplierTableRow';
-import { SupplierFilterModal } from '@/components/archive/suppliers/SupplierFilterModal';
-import { SupplierDetailModal } from '@/components/archive/suppliers/SupplierDetailModal';
-import { SupplierModal } from '@/components/archive/suppliers/SupplierModal';
-
-import { BrandTableHeader } from '@/components/archive/suppliers/BrandTableHeader';
-import { BrandTableRow } from '@/components/archive/suppliers/BrandTableRow';
-import { BrandFilterModal } from '@/components/archive/suppliers/BrandFilterModal';
-import { BrandDetailModal } from '@/components/archive/suppliers/BrandDetailModal';
-import { BrandModal } from '@/components/archive/suppliers/BrandModal';
-
-import { useIsMobile } from '@/mobile/hooks/useIsMobile';
-import { MobileSupplierModal } from '@/mobile/components/modals/shopping/MobileSupplierModal';
-import { MobileSupplierDetailModal } from '@/mobile/components/modals/shopping/MobileSupplierDetailModal';
-import { MobileBrandModal } from '@/mobile/components/modals/shopping/MobileBrandModal';
-import { MobileBrandDetailModal } from '@/mobile/components/modals/shopping/MobileBrandDetailModal';
-
-import {
-  useSupplierArchiveData,
-  type EnrichedSupplier,
-  type SupplierFilterState,
-  type SupplierSortField,
-  type SupplierSortDirection,
-} from '@/hooks/useSupplierArchiveData';
-import {
-  useBrandArchiveData,
-  type EnrichedBrand,
-  type BrandFilterState,
-  type BrandSortField,
-} from '@/hooks/useBrandArchiveData';
+import { SuppliersTabTable } from '@/components/archive/suppliers/SuppliersTabTable';
+import { BrandsTabTable } from '@/components/archive/suppliers/BrandsTabTable';
+import { SuppliersPageModals } from '@/components/archive/suppliers/SuppliersPageModals';
+import { useSuppliersPageLogic, type SupplierArchiveTab } from '@/components/archive/suppliers/useSuppliersPageLogic';
 
 export const ARCHIVE_PANEL_CLASS = 'rounded-2xl border border-slate-200/90 bg-white shadow-xs';
 
-export type SupplierArchiveTab = 'negozi' | 'brand';
-
-const initialSupplierFilterState: SupplierFilterState = {
-  keyword: '',
-  status: 'all',
-};
-
-const initialBrandFilterState: BrandFilterState = {
-  keyword: '',
-};
-
 export const SuppliersPage: React.FC = () => {
-  const queryClient = useQueryClient();
-  const isMobile = useIsMobile();
-  const { user } = useAuth();
-  const isSuperuser = Boolean(user?.is_superuser);
-  const [activeTab, setActiveTab] = useState<SupplierArchiveTab>('negozi');
-
-  const { suppliers, brands, config, suppliersLoading, brandsLoading } = useShoppingData();
-  const mutations = useShoppingMutations();
-  const { confirm } = useConfirm();
-
-  // Caricamento di tutti i lotti d'inventario per arricchire negozi e brand con dati acquisti
-  const { data: allBatches = [], isLoading: batchesLoading, isError } = useQuery<ItemBatchRecord[]>({
-    queryKey: shoppingQueryKeys.allBatches(),
-    queryFn: ({ signal }) => fetchAllInventoryBatches(signal),
-    staleTime: 30_000,
-  });
-
-  const loading = (activeTab === 'negozi' ? suppliersLoading : brandsLoading) || batchesLoading;
-
-  // 1. STATO FILTRI, ORDINAMENTO E PAGINAZIONE PER NEGOZI
-  const [supplierFilters, setSupplierFilters] = useState<SupplierFilterState>(initialSupplierFilterState);
-  const [supplierSortField, setSupplierSortField] = useState<SupplierSortField>('name');
-  const [supplierSortDirection, setSupplierSortDirection] = useState<SupplierSortDirection>('asc');
-
-  // 2. STATO FILTRI, ORDINAMENTO E PAGINAZIONE PER BRAND
-  const [brandFilters, setBrandFilters] = useState<BrandFilterState>(initialBrandFilterState);
-  const [brandSortField, setBrandSortField] = useState<BrandSortField>('name');
-  const [brandSortDirection, setBrandSortDirection] = useState<SupplierSortDirection>('asc');
-
-  const [currentPage, setCurrentPage] = useState<number>(1);
-
-  // 3. MODALI
-  const supplierFilterModal = useModal();
-  const supplierDetailModal = useModal<EnrichedSupplier>();
-  const supplierFormModal = useModal<ShoppingSupplierOption>();
-
-  const brandFilterModal = useModal();
-  const brandDetailModal = useModal<EnrichedBrand>();
-  const brandFormModal = useModal<ShoppingSupplierOption>();
-
-  // 4. CALCOLO DINAMICO DEL PAGE SIZE IN BASE ALL'ALTEZZA
-  const { containerRef, pageSize } = useDynamicPageSize({
-    rowHeight: 48,
-    defaultPageSize: 8,
-    minItems: 3,
-    maxItems: 30,
-  });
-
-  // 5. HOOK DATI ARCHIVIO NEGOZI
-  const {
-    filteredSuppliers,
-    paginatedSuppliers,
-    totalPages: totalSupplierPages,
-  } = useSupplierArchiveData({
-    suppliers,
-    batches: allBatches,
-    filters: supplierFilters,
-    sortField: supplierSortField,
-    sortDirection: supplierSortDirection,
-    currentPage,
-    pageSize,
-  });
-
-  // 6. HOOK DATI ARCHIVIO BRAND
-  const {
-    filteredBrands,
-    paginatedBrands,
-    totalPages: totalBrandPages,
-  } = useBrandArchiveData({
-    brands,
-    batches: allBatches,
-    filters: brandFilters,
-    sortField: brandSortField,
-    sortDirection: brandSortDirection,
-    currentPage,
-    pageSize,
-  });
-
-  // Conteggio filtri attivi
-  const activeSupplierFiltersCount = useMemo(() => {
-    let count = 0;
-    if (supplierFilters.keyword.trim()) count++;
-    if (supplierFilters.status !== 'all') count++;
-    return count;
-  }, [supplierFilters]);
-
-  const activeBrandFiltersCount = useMemo(() => {
-    let count = 0;
-    if (brandFilters.keyword.trim()) count++;
-    return count;
-  }, [brandFilters]);
-
-  const activeFiltersCount = activeTab === 'negozi' ? activeSupplierFiltersCount : activeBrandFiltersCount;
-  const hasActiveFilters = activeFiltersCount > 0;
-  const totalPages = activeTab === 'negozi' ? totalSupplierPages : totalBrandPages;
+  const logic = useSuppliersPageLogic();
 
   // Configurazione SegmentedTabs
   const tabsConfig: TabItem<SupplierArchiveTab>[] = useMemo(
@@ -166,316 +21,104 @@ export const SuppliersPage: React.FC = () => {
         id: 'negozi',
         label: 'Negozi',
         icon: <StoreIcon className="w-3.5 h-3.5" />,
-        count: suppliers.length,
+        count: logic.suppliersCount,
         badgeBg: 'bg-orange-50 text-orange-700 border-orange-200/60',
       },
       {
         id: 'brand',
         label: 'Marchi',
         icon: <TagIcon className="w-3.5 h-3.5" />,
-        count: brands.length,
+        count: logic.brandsCount,
         badgeBg: 'bg-indigo-50 text-indigo-700 border-indigo-200/60',
       },
     ],
-    [suppliers.length, brands.length]
+    [logic.suppliersCount, logic.brandsCount]
   );
-
-  const handleResetFilters = () => {
-    if (activeTab === 'negozi') {
-      setSupplierFilters(initialSupplierFilterState);
-    } else {
-      setBrandFilters(initialBrandFilterState);
-    }
-    setCurrentPage(1);
-  };
-
-  const handleTabChange = (tab: SupplierArchiveTab) => {
-    setActiveTab(tab);
-    setCurrentPage(1);
-  };
-
-  const handleSupplierSort = (field: SupplierSortField) => {
-    if (supplierSortField === field) {
-      setSupplierSortDirection((prev) => (prev === 'asc' ? 'desc' : 'asc'));
-    } else {
-      setSupplierSortField(field);
-      setSupplierSortDirection('asc');
-    }
-    setCurrentPage(1);
-  };
-
-  const handleBrandSort = (field: BrandSortField) => {
-    if (brandSortField === field) {
-      setBrandSortDirection((prev) => (prev === 'asc' ? 'desc' : 'asc'));
-    } else {
-      setBrandSortField(field);
-      setBrandSortDirection('asc');
-    }
-    setCurrentPage(1);
-  };
-
-  const handleOpenNewSupplier = () => {
-    supplierFormModal.open(null);
-  };
-
-  const handleOpenSearch = () => {
-    if (activeTab === 'negozi') {
-      supplierFilterModal.open();
-    } else {
-      brandFilterModal.open();
-    }
-  };
-
-  const handleDeleteSupplier = (supplier: EnrichedSupplier) => {
-    const sName = supplier.nameNormalized || supplier.name;
-    confirm({
-      title: 'Elimina Negozio',
-      message: `Sei sicuro di voler eliminare il negozio "${sName}"? Se è associato anche come marchio, rimarrà come brand.`,
-      confirmText: 'Elimina',
-      isDestructive: true,
-      onConfirm: async () => {
-        await mutations.deleteSupplier(supplier.id, 1);
-        supplierDetailModal.close();
-      },
-    });
-  };
-
-  const handleDeleteBrand = (brand: EnrichedBrand) => {
-    const bName = brand.nameNormalized || brand.name;
-    confirm({
-      title: 'Elimina Brand',
-      message: `Sei sicuro di voler eliminare il marchio "${bName}"? Se è associato anche come fornitore, rimarrà come negozio.`,
-      confirmText: 'Elimina',
-      isDestructive: true,
-      onConfirm: async () => {
-        await mutations.deleteSupplier(brand.id, 2);
-        brandDetailModal.close();
-      },
-    });
-  };
-
-  // 7. REGISTRAZIONE HEADER ARCHIVIO PER MOBILE
-  useArchiveHeader({
-    title: 'Negozi & Brand',
-    onOpenSearch: handleOpenSearch,
-    onOpenNew: activeTab === 'negozi' ? handleOpenNewSupplier : undefined,
-    activeFiltersCount,
-  });
 
   return (
     <div className="h-full flex flex-col gap-2 sm:gap-3.5 w-full max-w-[1600px] mx-auto relative z-10 pb-1">
-      {/* 1. HEADER COMPATTO CON ICONA IN BOX NERO (su mobile mostra solo le targhette) */}
+      {/* 1. HEADER COMPATTO CON STATS OVERVIEW */}
       <SupplierStatsOverview panelClass={ARCHIVE_PANEL_CLASS} />
 
-      {/* 2. RIGA AZIONI CON TASTO AGGIUNGI (SOLO NEGOZI), SLIDER TAB E LENTE DI RICERCA */}
+      {/* 2. RIGA AZIONI CON TASTO AGGIUNGI, SLIDER TAB E RICERCA */}
       <ArchiveActionBar
-        addLabel={activeTab === 'negozi' ? 'Nuovo Negozio' : undefined}
-        onAdd={activeTab === 'negozi' ? handleOpenNewSupplier : undefined}
+        addLabel={logic.activeTab === 'negozi' ? 'Nuovo Negozio' : undefined}
+        onAdd={logic.activeTab === 'negozi' ? logic.handleOpenNewSupplier : undefined}
         centerContent={
           <SegmentedTabs<SupplierArchiveTab>
             tabs={tabsConfig}
-            activeTab={activeTab}
-            onChange={handleTabChange}
+            activeTab={logic.activeTab}
+            onChange={logic.handleTabChange}
           />
         }
-        onOpenSearch={handleOpenSearch}
-        activeFiltersCount={activeFiltersCount}
+        onOpenSearch={logic.handleOpenSearch}
+        activeFiltersCount={logic.activeFiltersCount}
         className={ARCHIVE_PANEL_CLASS}
       />
 
-      {/* 3. TABELLA CORRISPONDENTE ALLA TAB ATTIVA */}
-      {activeTab === 'negozi' ? (
-        <ArchiveTableContainer
-          header={
-            <SupplierTableHeader
-              sortField={supplierSortField}
-              sortDirection={supplierSortDirection}
-              onSort={handleSupplierSort}
-              isSuperuser={isSuperuser}
-            />
-          }
-          loading={loading}
-          loadingMessage="Caricamento negozi e brand in corso..."
-          isError={isError}
-          errorMessage={ERROR_MESSAGES.archive}
-          onRetry={() => queryClient.refetchQueries()}
-          isEmpty={filteredSuppliers.length === 0}
-          emptyIcon={<StoreIcon className="w-8 h-8 text-slate-400" />}
-          emptyTitle="Nessun negozio trovato"
-          emptyDescription={
-            hasActiveFilters
-              ? 'Nessun negozio corrisponde ai filtri selezionati. Prova ad azzerarli.'
-              : 'Non ci sono negozi registrati in archivio.'
-          }
-          hasActiveFilters={hasActiveFilters}
-          onResetFilters={handleResetFilters}
-          currentPage={currentPage}
-          totalPages={totalPages}
-          onPageChange={setCurrentPage}
-          className={ARCHIVE_PANEL_CLASS}
-          bodyRef={containerRef}
-        >
-          {paginatedSuppliers.map((supplier) => (
-            <SupplierTableRow
-              key={supplier.id}
-              supplier={supplier}
-              onSelect={(s) => supplierDetailModal.open(s)}
-              isSuperuser={isSuperuser}
-            />
-          ))}
-        </ArchiveTableContainer>
+      {/* 3. TABELLA ATTIVA */}
+      {logic.activeTab === 'negozi' ? (
+        <SuppliersTabTable
+          filteredSuppliers={logic.filteredSuppliers}
+          paginatedSuppliers={logic.paginatedSuppliers}
+          sortField={logic.supplierSortField}
+          sortDirection={logic.supplierSortDirection}
+          onSort={logic.handleSupplierSort}
+          isSuperuser={logic.isSuperuser}
+          loading={logic.loading}
+          isError={Boolean(logic.isError)}
+          hasActiveFilters={logic.hasActiveFilters}
+          onResetFilters={logic.handleResetFilters}
+          onRetry={() => logic.queryClient.refetchQueries()}
+          currentPage={logic.currentPage}
+          totalPages={logic.totalPages}
+          onPageChange={logic.setCurrentPage}
+          containerRef={logic.containerRef}
+          onSelectSupplier={(s) => logic.supplierDetailModal.open(s)}
+          panelClass={ARCHIVE_PANEL_CLASS}
+        />
       ) : (
-        <ArchiveTableContainer
-          header={
-            <BrandTableHeader
-              sortField={brandSortField}
-              sortDirection={brandSortDirection}
-              onSort={handleBrandSort}
-            />
-          }
-          loading={loading}
-          loadingMessage="Caricamento marchi e brand in corso..."
-          isError={isError}
-          errorMessage={ERROR_MESSAGES.archive}
-          onRetry={() => queryClient.refetchQueries()}
-          isEmpty={filteredBrands.length === 0}
-          emptyIcon={<TagIcon className="w-8 h-8 text-slate-400" />}
-          emptyTitle="Nessun marchio o brand trovato"
-          emptyDescription={
-            hasActiveFilters
-              ? 'Nessun marchio corrisponde ai filtri selezionati. Prova ad azzerarli.'
-              : 'Non ci sono marchi o brand registrati in archivio.'
-          }
-          hasActiveFilters={hasActiveFilters}
-          onResetFilters={handleResetFilters}
-          currentPage={currentPage}
-          totalPages={totalPages}
-          onPageChange={setCurrentPage}
-          className={ARCHIVE_PANEL_CLASS}
-          bodyRef={containerRef}
-        >
-          {paginatedBrands.map((brand) => (
-            <BrandTableRow
-              key={brand.id}
-              brand={brand}
-              onSelect={(b) => brandDetailModal.open(b)}
-            />
-          ))}
-        </ArchiveTableContainer>
+        <BrandsTabTable
+          filteredBrands={logic.filteredBrands}
+          paginatedBrands={logic.paginatedBrands}
+          sortField={logic.brandSortField}
+          sortDirection={logic.brandSortDirection}
+          onSort={logic.handleBrandSort}
+          loading={logic.loading}
+          isError={Boolean(logic.isError)}
+          hasActiveFilters={logic.hasActiveFilters}
+          onResetFilters={logic.handleResetFilters}
+          onRetry={() => logic.queryClient.refetchQueries()}
+          currentPage={logic.currentPage}
+          totalPages={logic.totalPages}
+          onPageChange={logic.setCurrentPage}
+          containerRef={logic.containerRef}
+          onSelectBrand={(b) => logic.brandDetailModal.open(b)}
+          panelClass={ARCHIVE_PANEL_CLASS}
+        />
       )}
 
-      {/* 4. MODALI NEGOZI */}
-      <SupplierFilterModal
-        isOpen={supplierFilterModal.isOpen}
-        onClose={supplierFilterModal.close}
-        filters={supplierFilters}
-        onFilterChange={(newFilters) => {
-          setSupplierFilters(newFilters);
-          setCurrentPage(1);
-        }}
-        onReset={handleResetFilters}
-        hasActiveFilters={hasActiveFilters}
-        isSuperuser={isSuperuser}
+      {/* 4. MODALI NEGOZI E BRAND */}
+      <SuppliersPageModals
+        isMobile={logic.isMobile}
+        isSuperuser={logic.isSuperuser}
+        config={logic.config}
+        supplierFilterModal={logic.supplierFilterModal}
+        supplierDetailModal={logic.supplierDetailModal}
+        supplierFormModal={logic.supplierFormModal}
+        supplierFilters={logic.supplierFilters}
+        setSupplierFilters={logic.setSupplierFilters}
+        onResetFilters={logic.handleResetFilters}
+        hasActiveFilters={logic.hasActiveFilters}
+        onDeleteSupplier={logic.handleDeleteSupplier}
+        onPageReset={() => logic.setCurrentPage(1)}
+        brandFilterModal={logic.brandFilterModal}
+        brandDetailModal={logic.brandDetailModal}
+        brandFormModal={logic.brandFormModal}
+        brandFilters={logic.brandFilters}
+        setBrandFilters={logic.setBrandFilters}
+        onDeleteBrand={logic.handleDeleteBrand}
       />
-
-      {isMobile ? (
-        <>
-          <MobileSupplierDetailModal
-            isOpen={supplierDetailModal.isOpen}
-            onClose={supplierDetailModal.close}
-            supplier={supplierDetailModal.data}
-            onEditClick={(supplier) => {
-              supplierDetailModal.close();
-              supplierFormModal.open(supplier);
-            }}
-            onDeleteClick={handleDeleteSupplier}
-            isSuperuser={isSuperuser}
-          />
-
-          <MobileSupplierModal
-            isOpen={supplierFormModal.isOpen}
-            onClose={supplierFormModal.close}
-            supplierToEdit={supplierFormModal.data}
-            config={config}
-            isSuperuser={isSuperuser}
-          />
-        </>
-      ) : (
-        <>
-          <SupplierDetailModal
-            isOpen={supplierDetailModal.isOpen}
-            onClose={supplierDetailModal.close}
-            supplier={supplierDetailModal.data}
-            onEditClick={(supplier) => {
-              supplierDetailModal.close();
-              supplierFormModal.open(supplier);
-            }}
-            onDeleteClick={handleDeleteSupplier}
-            isSuperuser={isSuperuser}
-          />
-
-          <SupplierModal
-            isOpen={supplierFormModal.isOpen}
-            onClose={supplierFormModal.close}
-            supplierToEdit={supplierFormModal.data}
-            config={config}
-            isSuperuser={isSuperuser}
-          />
-        </>
-      )}
-
-      {/* 5. MODALI BRAND */}
-      <BrandFilterModal
-        isOpen={brandFilterModal.isOpen}
-        onClose={brandFilterModal.close}
-        filters={brandFilters}
-        onFilterChange={(newFilters) => {
-          setBrandFilters(newFilters);
-          setCurrentPage(1);
-        }}
-        onReset={handleResetFilters}
-        hasActiveFilters={hasActiveFilters}
-      />
-
-      {isMobile ? (
-        <>
-          <MobileBrandDetailModal
-            isOpen={brandDetailModal.isOpen}
-            onClose={brandDetailModal.close}
-            brand={brandDetailModal.data}
-            onEditClick={(brand) => {
-              brandDetailModal.close();
-              brandFormModal.open(brand);
-            }}
-            onDeleteClick={handleDeleteBrand}
-          />
-
-          <MobileBrandModal
-            isOpen={brandFormModal.isOpen}
-            onClose={brandFormModal.close}
-            brandToEdit={brandFormModal.data}
-          />
-        </>
-      ) : (
-        <>
-          <BrandDetailModal
-            isOpen={brandDetailModal.isOpen}
-            onClose={brandDetailModal.close}
-            brand={brandDetailModal.data}
-            onEditClick={(brand) => {
-              brandDetailModal.close();
-              brandFormModal.open(brand);
-            }}
-            onDeleteClick={handleDeleteBrand}
-          />
-
-          <BrandModal
-            isOpen={brandFormModal.isOpen}
-            onClose={brandFormModal.close}
-            brandToEdit={brandFormModal.data}
-          />
-        </>
-      )}
     </div>
   );
 };

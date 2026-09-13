@@ -381,12 +381,14 @@ export interface ToggleShoppingListItemPurchasedPayload {
 }
 
 export interface ShoppingSupplierCreatePayload {
-  nameNormalized: string;
+  name?: string;
+  nameNormalized?: string;
   typeCode?: number;
   statusId?: number | null;
 }
 
 export interface ShoppingSupplierUpdatePayload {
+  name?: string;
   nameNormalized?: string;
   typeCode?: number;
   statusId?: number | null;
