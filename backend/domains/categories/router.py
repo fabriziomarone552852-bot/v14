@@ -17,6 +17,7 @@ router = APIRouter(prefix="/categories", tags=["categories"])
 
 
 @router.post("", response_model=schemas.CategoryResponse, status_code=201)
+@router.post("/", response_model=schemas.CategoryResponse, status_code=201, include_in_schema=False)
 def create_category(
     category_in: schemas.CategoryCreate,
     current_user: User = Depends(deps.get_current_app_user),
@@ -26,6 +27,7 @@ def create_category(
 
 
 @router.get("", response_model=List[schemas.CategoryResponse])
+@router.get("/", response_model=List[schemas.CategoryResponse], include_in_schema=False)
 def get_categories(
     genre: Optional[int] = None,
     current_user: User = Depends(deps.get_current_app_user),

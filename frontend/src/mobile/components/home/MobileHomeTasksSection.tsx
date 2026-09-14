@@ -6,6 +6,9 @@ import type { ExpandedHomeViewMode } from '../../hooks/useMobileHomeLogic';
 
 export interface MobileHomeTasksSectionProps {
   displayedTaskTree: UITask[];
+  visibleTasks: UITask[];
+  hasMoreTasks: boolean;
+  tasksListRef: React.RefObject<HTMLDivElement | null>;
   showWithDeadline: boolean;
   setShowWithDeadline: React.Dispatch<React.SetStateAction<boolean>>;
   sortMode: 'chrono' | 'priority';
@@ -23,6 +26,9 @@ export interface MobileHomeTasksSectionProps {
 
 export const MobileHomeTasksSection: React.FC<MobileHomeTasksSectionProps> = ({
   displayedTaskTree,
+  visibleTasks,
+  hasMoreTasks,
+  tasksListRef,
   showWithDeadline,
   setShowWithDeadline,
   sortMode,
@@ -41,6 +47,9 @@ export const MobileHomeTasksSection: React.FC<MobileHomeTasksSectionProps> = ({
     <>
       <MobileHomeTasksCompact
         displayedTaskTree={displayedTaskTree}
+        visibleTasks={visibleTasks}
+        hasMoreTasks={hasMoreTasks}
+        tasksListRef={tasksListRef}
         showWithDeadline={showWithDeadline}
         setShowWithDeadline={setShowWithDeadline}
         sortMode={sortMode}

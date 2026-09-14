@@ -1,4 +1,3 @@
-// src/mobile/components/settings/MobileSettingsNavList.tsx
 import React from 'react';
 import { Capacitor } from '@capacitor/core';
 import {
@@ -6,10 +5,12 @@ import {
   Sliders,
   RefreshCw,
   Archive,
+  Info,
   Monitor,
   LogOut,
   ChevronRight,
 } from 'lucide-react';
+import { APP_VERSION_NAME } from '@/data/changelogData';
 
 interface MobileSettingsNavListProps {
   onNavigate: (path: string) => void;
@@ -113,6 +114,31 @@ export const MobileSettingsNavList: React.FC<MobileSettingsNavListProps> = ({
           </div>
         </div>
         <ChevronRight className="w-5 h-5 text-gray-400 group-hover:text-amber-600 shrink-0" />
+      </button>
+
+      {/* Voce 5: Info & Changelog */}
+      <button
+        type="button"
+        onClick={() => onNavigate('/settings/changelog')}
+        className="w-full flex items-center justify-between p-4 hover:bg-gray-50 active:bg-gray-100 transition-colors text-left group cursor-pointer"
+      >
+        <div className="flex items-center gap-3.5 min-w-0 pr-2">
+          <div className="p-2.5 rounded-xl bg-blue-50 text-blue-600 shrink-0">
+            <Info className="w-5 h-5" />
+          </div>
+          <div className="truncate">
+            <div className="text-sm font-bold text-gray-900 group-hover:text-blue-600 transition-colors flex items-center gap-2">
+              <span>Info & Changelog</span>
+              <span className="text-[10px] font-black px-1.5 py-0.5 rounded-md bg-blue-100 text-blue-700">
+                {APP_VERSION_NAME}
+              </span>
+            </div>
+            <div className="text-xs text-gray-500 truncate mt-0.5">
+              Note di rilascio, novità e versione
+            </div>
+          </div>
+        </div>
+        <ChevronRight className="w-5 h-5 text-gray-400 group-hover:text-blue-600 shrink-0" />
       </button>
 
       {/* Passa a Vista Desktop PC (visibile solo su browser Desktop) */}

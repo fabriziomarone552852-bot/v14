@@ -72,7 +72,7 @@ export const MobileShoppingPurchaseModal: React.FC<MobileShoppingPurchaseModalPr
       formId="mobile-purchase-form"
       confirmText={isAlreadyPurchased ? 'Salva Modifiche' : 'Conferma Acquisto'}
       cancelText="Annulla"
-      isConfirmDisabled={!purchaseForm.price.trim() || numericBought <= 0}
+      isConfirmDisabled={numericBought <= 0}
     >
       <MobileShoppingPurchaseForm
         itemTotalQuantity={itemTotalQuantity}

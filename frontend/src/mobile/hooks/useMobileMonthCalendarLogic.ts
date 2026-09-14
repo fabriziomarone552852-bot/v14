@@ -1,5 +1,4 @@
-// src/mobile/hooks/useMobileMonthCalendarLogic.ts
-import { useState, useMemo, useRef } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import { format } from 'date-fns';
 import { it } from 'date-fns/locale';
 import type { CalendarEvent, DbTask, Category, DailyEntry } from '@/types';
@@ -85,40 +84,15 @@ export const useMobileMonthCalendarLogic = ({
   // 5. STATO NUVOLETTA (POPOVER DEL GIORNO CLICCATO)
   const [selectedDateForPopup, setSelectedDateForPopup] = useState<string | null>(null);
 
-  // 6. GESTIONE LONG PRESS VS TAP RAPIDO SUL QUADRATO DEL GIORNO
-  const longPressTimerRef = useRef<number | null>(null);
-  const isLongPressTriggeredRef = useRef<boolean>(false);
+  // 6. GESTIONE AZIONI GIORNO (Apertura DayPage o Popover)
+  const handleOpenDay = useCallback((dateStr: string) => {
+    setSelectedDateForPopup(null);
+    onDayClick(dateStr);
+  }, [onDayClick]);
 
-  const startLongPress = (dateStr: string) => {
-    isLongPressTriggeredRef.current = false;
-    longPressTimerRef.current = window.setTimeout(() => {
-      isLongPressTriggeredRef.current = true;
-      if (typeof navigator !== 'undefined' && navigator.vibrate) {
-        navigator.vibrate(30);
-      }
-      setSelectedDateForPopup(null);
-      onDayClick(dateStr);
-    }, 450);
-  };
-
-  const cancelLongPress = () => {
-    if (longPressTimerRef.current) {
-      clearTimeout(longPressTimerRef.current);
-      longPressTimerRef.current = null;
-    }
-  };
-
-  const handleDayTouchEnd = (dateStr: string) => {
-    if (longPressTimerRef.current) {
-      clearTimeout(longPressTimerRef.current);
-      longPressTimerRef.current = null;
-    }
-
-    if (!isLongPressTriggeredRef.current) {
-      // Tap rapido: apri/chiudi la nuvoletta
-      setSelectedDateForPopup((prev) => (prev === dateStr ? null : dateStr));
-    }
-  };
+  const handleTogglePopup = useCallback((dateStr: string) => {
+    setSelectedDateForPopup((prev) => (prev === dateStr ? null : dateStr));
+  }, []);
 
   // Dati reattivi per la nuvoletta attualmente aperta
   const popupDayEvents = selectedDateForPopup ? eventsByDate[selectedDateForPopup] || [] : [];
@@ -145,9 +119,8 @@ export const useMobileMonthCalendarLogic = ({
     eventsByDate,
     selectedDateForPopup,
     setSelectedDateForPopup,
-    startLongPress,
-    cancelLongPress,
-    handleDayTouchEnd,
+    handleOpenDay,
+    handleTogglePopup,
     popupDayEvents,
     popupDayTasks,
     popupDayMood,

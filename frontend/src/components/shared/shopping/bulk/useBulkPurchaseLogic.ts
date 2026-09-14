@@ -77,21 +77,21 @@ export const useBulkPurchaseLogic = ({
     }));
 
     try {
-      if (row.form.price) {
-        await mutations.addInventoryBatch({
-          itemId,
-          listId,
-          data: {
-            productId: row.item.productId,
-            supplierId: row.form.supplierId ? Number(row.form.supplierId) : undefined,
-            purchaseDate: row.form.purchaseDate || getLocalTodayStr(),
-            purchasePrice: Number(row.form.price.replace(',', '.')),
-            quantity: Number(row.form.quantity.replace(',', '.')) || 1,
-            currencyId: row.form.currencyId ? Number(row.form.currencyId) : undefined,
-            isOnSale: row.form.isOnSale,
-          },
-        });
-      }
+      const parsedPrice = row.form.price.trim() ? Number(row.form.price.replace(',', '.')) : 0;
+      const purchasePrice = isNaN(parsedPrice) ? 0 : parsedPrice;
+      await mutations.addInventoryBatch({
+        itemId,
+        listId,
+        data: {
+          productId: row.item.productId,
+          supplierId: row.form.supplierId ? Number(row.form.supplierId) : undefined,
+          purchaseDate: row.form.purchaseDate || getLocalTodayStr(),
+          purchasePrice,
+          quantity: Number(row.form.quantity.replace(',', '.')) || 1,
+          currencyId: row.form.currencyId ? Number(row.form.currencyId) : undefined,
+          isOnSale: row.form.isOnSale,
+        },
+      });
 
       await mutations.togglePurchased({
         id: itemId,

@@ -107,6 +107,7 @@ export const useMobileBingoLogic = ({
       ? currentExpandedCell.rotazione
       : getFallbackRotation(currentExpandedCell.id, expandedState?.pos || 0)
     : 0;
+  const expandedStamp = currentExpandedCell?.timbro ?? null;
 
   const handleEmptySlotClick = (pos: number) => {
     setExpandedState({
@@ -122,6 +123,7 @@ export const useMobileBingoLogic = ({
     completedCount,
     isExpandedDone,
     expandedRotation,
+    expandedStamp,
     startLongPress,
     cancelLongPress,
     endLongPress,

@@ -1,4 +1,3 @@
-// src/mobile/components/settings/MobileSettingsMainHub.tsx
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import type { UserServerSettings } from '@/types/settings';

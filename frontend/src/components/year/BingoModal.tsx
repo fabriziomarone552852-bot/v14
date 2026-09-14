@@ -1,7 +1,7 @@
-// frontend/src/components/year/BingoModal.tsx
 import React, { useState } from 'react';
 import type { DbBingoEntry } from '@/types/yearlyentries';
 import { TrashIcon } from '@/components/shared/utils/Icons';
+import { getStampSrc } from '@/config/bingoStamps';
 
 interface BingoModalProps {
   isOpen: boolean;
@@ -140,7 +140,7 @@ export const BingoModal: React.FC<BingoModalProps> = ({
               style={{ transform: `rotate(${rotDeg}deg)` }}
             >
               <img
-                src="/stamp-star.png"
+                src={getStampSrc(cell.timbro)}
                 alt="✓"
                 className="w-4/5 h-4/5 object-contain opacity-85"
                 style={{ filter: 'drop-shadow(0 1px 2px rgba(200,0,0,0.3))' }}

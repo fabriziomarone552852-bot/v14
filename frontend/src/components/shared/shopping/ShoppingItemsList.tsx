@@ -10,6 +10,7 @@ interface ShoppingItemsListProps {
   containerRef?: React.RefObject<HTMLDivElement | null>;
   onToggle: (item: ShoppingListItem) => void;
   onOpenDetail?: (item: ShoppingListItem) => void;
+  onOpenPurchase?: (item: ShoppingListItem) => void;
   userRole?: string;
 }
 
@@ -19,6 +20,7 @@ const ShoppingItemsList: React.FC<ShoppingItemsListProps> = ({
   containerRef,
   onToggle,
   onOpenDetail,
+  onOpenPurchase,
   userRole = 'owner',
 }) => {
   return (
@@ -47,6 +49,7 @@ const ShoppingItemsList: React.FC<ShoppingItemsListProps> = ({
                   item={item}
                   onToggle={onToggle}
                   onOpenDetail={onOpenDetail}
+                  onOpenPurchase={onOpenPurchase}
                   userRole={userRole}
                 />
               </li>

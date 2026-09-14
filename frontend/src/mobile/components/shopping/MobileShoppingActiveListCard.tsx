@@ -78,6 +78,7 @@ export const MobileShoppingActiveListCard: React.FC<MobileShoppingActiveListCard
                     onToggleSelect={onToggleSelectShoppingItem}
                     onOpenDetail={(it) => columnLogic.detailModal.open(it)}
                     onTogglePurchased={(it) => columnLogic.handleTogglePurchased(it)}
+                    onOpenPurchase={(it) => columnLogic.handleOpenPurchase(it)}
                   />
                 ))}
               </div>

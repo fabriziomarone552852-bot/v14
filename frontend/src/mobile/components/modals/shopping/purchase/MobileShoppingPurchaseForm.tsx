@@ -82,13 +82,12 @@ export const MobileShoppingPurchaseForm: React.FC<MobileShoppingPurchaseFormProp
         {/* Prezzo Pagato */}
         <div>
           <label className="block text-xs font-bold text-gray-600 uppercase mb-1">
-            Prezzo Totale
+            Prezzo <span className="font-normal text-[10px] text-gray-400 lowercase">(opzionale)</span>
           </label>
           <div className="flex items-center gap-1.5">
             <input
               type="text"
               inputMode="decimal"
-              required
               autoFocus
               placeholder="0,00"
               value={purchaseForm.price}
@@ -107,7 +106,7 @@ export const MobileShoppingPurchaseForm: React.FC<MobileShoppingPurchaseFormProp
               currencyOptions={currencyOptions}
             />
           </div>
-          <p className="text-[11px] text-gray-400 mt-1">Prezzo complessivo</p>
+          <p className="text-[11px] text-gray-400 mt-1">Opzionale</p>
         </div>
       </div>
 

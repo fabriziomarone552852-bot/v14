@@ -26,7 +26,8 @@ def create_entry(db: Session, current_user: User, entry_in: BingoEntryCreate) ->
         year=entry_in.year,
         testo=entry_in.testo,
         posizione=entry_in.posizione,
-        rotazione=entry_in.rotazione
+        rotazione=entry_in.rotazione,
+        timbro=entry_in.timbro
     )
     created = repository.create_entry(db, entry)
     return _to_response(created)
@@ -47,6 +48,8 @@ def update_entry(db: Session, current_user: User, entry_id: int, entry_in: Bingo
         entry.posizione = entry_in.posizione
     if entry_in.rotazione is not None:
         entry.rotazione = entry_in.rotazione
+    if entry_in.timbro is not None:
+        entry.timbro = entry_in.timbro
         
     updated = repository.update_entry(db, entry)
     return _to_response(updated)

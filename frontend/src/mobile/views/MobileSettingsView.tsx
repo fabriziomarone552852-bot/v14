@@ -6,10 +6,11 @@ import { MobileUserSettingsSection } from '../components/settings/MobileUserSett
 import { MobileAppSettingsSection } from '../components/settings/MobileAppSettingsSection';
 import { MobileSyncSettingsSection } from '../components/settings/MobileSyncSettingsSection';
 import { MobileArchiveHubSection } from '../components/settings/MobileArchiveHubSection';
+import { MobileChangelogSection } from '../components/settings/MobileChangelogSection';
 import { MobileSettingsMainHub } from '../components/settings/MobileSettingsMainHub';
 
 interface MobileSettingsViewProps {
-  subview?: 'main' | 'user' | 'app' | 'sync' | 'archive';
+  subview?: 'main' | 'user' | 'app' | 'sync' | 'archive' | 'changelog';
 }
 
 export const MobileSettingsView: React.FC<MobileSettingsViewProps> = ({ subview: propSubview }) => {
@@ -22,6 +23,7 @@ export const MobileSettingsView: React.FC<MobileSettingsViewProps> = ({ subview:
     if (path === '/settings/app') return 'app';
     if (path === '/settings/sync') return 'sync';
     if (path === '/settings/archive' || path === '/settings/archivio') return 'archive';
+    if (path === '/settings/changelog' || path === '/settings/info') return 'changelog';
     return 'main';
   }, [propSubview, location.pathname]);
 
@@ -88,6 +90,10 @@ export const MobileSettingsView: React.FC<MobileSettingsViewProps> = ({ subview:
 
   if (currentSubview === 'archive') {
     return <MobileArchiveHubSection />;
+  }
+
+  if (currentSubview === 'changelog') {
+    return <MobileChangelogSection />;
   }
 
   return (

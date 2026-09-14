@@ -26,7 +26,7 @@ export const createEmptyRow = (): QuickPriceRow => ({
   productName: '',
   brandName: '',
   brandId: '',
-  price: '',
+  price: '0',
   quantity: '1',
   unitId: '',
   purchaseDate: getLocalTodayStr(),

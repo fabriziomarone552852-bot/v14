@@ -17,6 +17,7 @@ from backend.core.database import Base
 from backend.core.settings import get_settings
 
 import backend.domains.audit.models
+import backend.domains.bingo.models
 import backend.domains.categories.models
 import backend.domains.config.models
 import backend.domains.countdowns.models
@@ -30,6 +31,7 @@ import backend.domains.shopping.models
 import backend.domains.system_boot.models
 import backend.domains.tasks.models
 import backend.domains.users.models
+import backend.domains.yearly_entries.models
 
 config = context.config
 if config.config_file_name is not None:

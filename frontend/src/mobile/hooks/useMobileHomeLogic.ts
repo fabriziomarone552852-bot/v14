@@ -1,7 +1,7 @@
-// src/mobile/hooks/useMobileHomeLogic.ts
-import { useState, useMemo, useCallback, useEffect } from 'react';
+import { useState, useMemo, useCallback, useEffect, useRef } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { api } from '@/api/apiService';
+import { useResizeObserver } from '@/hooks/useResizeObserver';
 
 // Hooks & Contesti
 import { useAgendaHome } from '@/hooks/useAgendaHome';
@@ -84,6 +84,28 @@ export function useMobileHomeLogic() {
     const deadlineFiltered = filterTreeByDeadlineMode(rawTree, showWithDeadline);
     return filterAndSortTree(deadlineFiltered, false, sortMode, todayStr);
   }, [rawTree, showWithDeadline, sortMode, todayStr]);
+
+  // Misura dinamica dello spazio per Task compatte con indicatore •••
+  const tasksListRef = useRef<HTMLDivElement>(null);
+  const { clientHeight: tasksContainerHeight } = useResizeObserver(tasksListRef, 50);
+
+  const TASK_SLOT_HEIGHT = 70;
+  const INDICATOR_HEIGHT = 32;
+
+  const maxTasksFit = useMemo(() => {
+    if (tasksContainerHeight <= 0) return 2;
+    if (displayedTaskTree.length * TASK_SLOT_HEIGHT <= tasksContainerHeight) {
+      return displayedTaskTree.length;
+    }
+    const availableForItems = tasksContainerHeight - INDICATOR_HEIGHT;
+    return Math.max(1, Math.floor(availableForItems / TASK_SLOT_HEIGHT));
+  }, [tasksContainerHeight, displayedTaskTree.length]);
+
+  const visibleTasks = useMemo(() => {
+    return displayedTaskTree.slice(0, maxTasksFit);
+  }, [displayedTaskTree, maxTasksFit]);
+
+  const hasMoreTasks = displayedTaskTree.length > maxTasksFit;
 
   // Mappatura eventi del giorno corrente
   const todayEvents: CalendarEvent[] = useMemo(() => {
@@ -191,6 +213,9 @@ export function useMobileHomeLogic() {
   return {
     todayEvents,
     displayedTaskTree,
+    visibleTasks,
+    hasMoreTasks,
+    tasksListRef,
     yearProgress,
     formattedDate,
     sortMode,

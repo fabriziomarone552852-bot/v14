@@ -1,7 +1,18 @@
-﻿# Script di build ed export per NAS QNAP (Eseguire su PC Windows)
+# Script di build ed export per NAS QNAP (Eseguire su PC Windows)
 Write-Host "===========================================================" -ForegroundColor Cyan
 Write-Host " 🚀 Avvio Build Docker per NAS QNAP (Smart Agenda VxAme14) " -ForegroundColor Cyan
 Write-Host "===========================================================" -ForegroundColor Cyan
+
+# 0. Auto-finalizzazione dello stato changelog (se in sviluppo/bozza)
+$changelogPath = Join-Path (Get-Location) "frontend\src\data\changelogData.ts"
+if (Test-Path $changelogPath) {
+    $clContent = Get-Content $changelogPath -Raw -Encoding UTF8
+    if ($clContent -match 'published:\s*false') {
+        Write-Host "Marcatura versione changelog come pubblicata (published: true)..." -ForegroundColor Cyan
+        $clContent = $clContent -replace 'published:\s*false', 'published: true'
+        Set-Content -Path $changelogPath -Value $clContent -Encoding UTF8
+    }
+}
 
 # 1. Build Backend
 Write-Host "`n[1/4] Build immagine Backend Python/FastAPI..." -ForegroundColor Yellow

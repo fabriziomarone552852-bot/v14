@@ -2,6 +2,7 @@
 import React from 'react';
 import type { DbBingoEntry } from '@/types/yearlyentries';
 import { getFallbackRotation } from '@/mobile/hooks/useMobileBingoLogic';
+import { getStampSrc } from '@/config/bingoStamps';
 
 interface MobileBingoGridSlotProps {
   pos: number;
@@ -47,7 +48,7 @@ export const MobileBingoGridSlot: React.FC<MobileBingoGridSlotProps> = ({
             style={{ transform: `rotate(${rotDeg}deg)` }}
           >
             <img
-              src="/stamp-star.png"
+              src={getStampSrc(cell.timbro)}
               alt="✓"
               className="w-4/5 h-4/5 object-contain opacity-90"
               style={{ filter: 'drop-shadow(0 1px 2px rgba(200,0,0,0.3))' }}

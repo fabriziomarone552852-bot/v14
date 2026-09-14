@@ -1,6 +1,7 @@
 // frontend/src/components/year/MiniBingoCard.tsx
 import React from 'react';
 import type { DbBingoEntry } from '@/types/yearlyentries';
+import { getStampSrc } from '@/config/bingoStamps';
 
 interface MiniBingoCardProps {
   cells: DbBingoEntry[];
@@ -29,7 +30,7 @@ export const MiniBingoCard: React.FC<MiniBingoCardProps> = ({ cells, onOpenModal
             style={{ transform: `rotate(${rotDeg}deg)` }}
           >
             <img
-              src="/stamp-star.png"
+              src={getStampSrc(cell.timbro)}
               alt="✓"
               className="w-full h-full object-contain opacity-90"
             />

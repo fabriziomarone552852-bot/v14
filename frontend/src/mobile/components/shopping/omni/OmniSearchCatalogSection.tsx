@@ -34,7 +34,7 @@ export const OmniSearchCatalogSection: React.FC<OmniSearchCatalogSectionProps> =
               </h4>
               <div className="text-xs text-gray-400 flex items-center gap-2 mt-0.5">
                 {product.brandName && <span>{product.brandName}</span>}
-                {product.lastPurchasePrice != null && (
+                {product.lastPurchasePrice != null && product.lastPurchasePrice > 0 && (
                   <span className="text-emerald-600 font-semibold">
                     Ultimo: {product.lastPurchasePrice.toFixed(2)} €
                   </span>

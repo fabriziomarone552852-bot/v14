@@ -74,7 +74,7 @@ export function useMobileShoppingListDetailLogic({
   );
 
   const handleTogglePurchased = useCallback(
-    (item: ShoppingListItem, e: React.MouseEvent) => {
+    async (item: ShoppingListItem, e: React.MouseEvent) => {
       e.stopPropagation();
       if (item.isPurchased) {
         confirm({
@@ -90,20 +90,41 @@ export function useMobileShoppingListDetailLogic({
           },
         });
       } else {
-        handleOpenPurchase(item);
+        const boughtQuantity = item.quantity != null ? item.quantity : 1;
+        await mutations.addInventoryBatch({
+          itemId: item.id,
+          listId: item.shoppingListId,
+          data: {
+            productId: item.productId,
+            purchaseDate: getLocalTodayStr(),
+            purchasePrice: 0,
+            quantity: boughtQuantity,
+            brandId: item.brandId ?? undefined,
+            brandName: item.brandName ?? undefined,
+            currencyId: item.lastCurrencyId ? Number(item.lastCurrencyId) : (Number(eurCurrencyId) || undefined),
+            isOnSale: false,
+          },
+        });
+        await mutations.togglePurchased({
+          id: item.id,
+          listId: item.shoppingListId,
+          data: { isPurchased: true },
+        });
       }
     },
-    [confirm, mutations, handleOpenPurchase]
+    [confirm, mutations, eurCurrencyId]
   );
 
   const handlePurchaseSubmit = useCallback(
     async (e: React.FormEvent<HTMLFormElement>) => {
       e.preventDefault();
-      if (!purchaseModal.data || !list?.id || !purchaseForm.price) return;
+      if (!purchaseModal.data || !list?.id) return;
 
       const targetItem = purchaseModal.data;
       const boughtQuantity = Number(purchaseForm.quantity) || 1;
       const originalQuantity = targetItem.quantity != null ? targetItem.quantity : 1;
+      const parsedPrice = purchaseForm.price.trim() ? Number(purchaseForm.price.replace(',', '.')) : 0;
+      const purchasePrice = isNaN(parsedPrice) ? 0 : parsedPrice;
 
       try {
         await mutations.addInventoryBatch({
@@ -112,8 +133,10 @@ export function useMobileShoppingListDetailLogic({
           data: {
             productId: targetItem.productId,
             supplierId: purchaseForm.supplierId ? Number(purchaseForm.supplierId) : undefined,
-            purchaseDate: purchaseForm.purchaseDate,
-            purchasePrice: Number(purchaseForm.price.replace(',', '.')),
+            brandId: purchaseForm.brandId ? Number(purchaseForm.brandId) : undefined,
+            brandName: purchaseForm.brandName?.trim() || undefined,
+            purchaseDate: purchaseForm.purchaseDate || getLocalTodayStr(),
+            purchasePrice,
             quantity: boughtQuantity,
             currencyId: purchaseForm.currencyId ? Number(purchaseForm.currencyId) : undefined,
             isOnSale: purchaseForm.isOnSale,
@@ -167,6 +190,7 @@ export function useMobileShoppingListDetailLogic({
     totalCount,
     progressPercent,
     filteredItems,
+    handleOpenPurchase,
     handleTogglePurchased,
     handlePurchaseSubmit,
     handleOpenShoppingPage,

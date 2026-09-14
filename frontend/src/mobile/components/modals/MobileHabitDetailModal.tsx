@@ -40,19 +40,22 @@ export const MobileHabitDetailModal: React.FC<MobileHabitDetailModalProps> = ({
   );
 
   const periodsList: FormattedPeriodItem[] = useMemo(() => {
-    if (!selectedHabit?.periods) return [];
+    if (!selectedHabit?.periods || !Array.isArray(selectedHabit.periods)) return [];
 
     const sortedPeriods = [...selectedHabit.periods].sort((a, b) => {
+      if (!a || !b) return 0;
       if (!a.data_fine && b.data_fine) return -1;
       if (a.data_fine && !b.data_fine) return 1;
-      return new Date(b.data_inizio).getTime() - new Date(a.data_inizio).getTime();
+      const timeB = b.data_inizio ? new Date(b.data_inizio).getTime() : 0;
+      const timeA = a.data_inizio ? new Date(a.data_inizio).getTime() : 0;
+      return timeB - timeA;
     });
 
-    return sortedPeriods.map((p: HabitPeriod) => ({
+    return sortedPeriods.filter(Boolean).map((p: HabitPeriod) => ({
       id: p.id,
-      start: formatToItalianShortDate(p.data_inizio),
+      start: p.data_inizio ? formatToItalianShortDate(p.data_inizio) : '',
       end: p.data_fine ? formatToItalianShortDate(p.data_fine) : 'Presente',
-      target: p.target,
+      target: p.target ?? 1,
     }));
   }, [selectedHabit]);
 

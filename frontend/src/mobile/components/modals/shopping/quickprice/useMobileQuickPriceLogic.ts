@@ -21,7 +21,7 @@ export const createEmptyQuickPriceItem = (defaultProductName = ''): QuickPriceIt
   productName: defaultProductName,
   brandName: '',
   brandId: '',
-  price: '',
+  price: '0',
   quantity: '1',
   unitId: '',
   purchaseDate: getLocalTodayStr(),

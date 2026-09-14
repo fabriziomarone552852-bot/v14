@@ -1,13 +1,14 @@
-// src/mobile/components/modals/bingo/MobileBingoExpandedCard.tsx
 import React from 'react';
 import { TrashIcon, CloseIcon } from '@/components/shared/utils/Icons';
 import type { ExpandedCardState } from '@/mobile/hooks/useMobileBingoLogic';
+import { getStampSrc } from '@/config/bingoStamps';
 
 interface MobileBingoExpandedCardProps {
   expandedState: ExpandedCardState;
   setExpandedState: React.Dispatch<React.SetStateAction<ExpandedCardState | null>>;
   isExpandedDone: boolean;
   expandedRotation: number;
+  expandedStamp?: string | null;
   onDelete: () => void;
   onCollapse: () => void;
 }
@@ -17,6 +18,7 @@ export const MobileBingoExpandedCard: React.FC<MobileBingoExpandedCardProps> = (
   setExpandedState,
   isExpandedDone,
   expandedRotation,
+  expandedStamp,
   onDelete,
   onCollapse,
 }) => {
@@ -60,7 +62,7 @@ export const MobileBingoExpandedCard: React.FC<MobileBingoExpandedCardProps> = (
             style={{ transform: `rotate(${expandedRotation}deg)` }}
           >
             <img
-              src="/stamp-star.png"
+              src={getStampSrc(expandedStamp)}
               alt="✓"
               className="w-3/5 h-3/5 object-contain opacity-70"
               style={{ filter: 'drop-shadow(0 2px 4px rgba(200,0,0,0.2))' }}

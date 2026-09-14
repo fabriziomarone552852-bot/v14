@@ -32,6 +32,7 @@ export const MobileBingoModal: React.FC<MobileBingoModalProps> = ({
     completedCount,
     isExpandedDone,
     expandedRotation,
+    expandedStamp,
     startLongPress,
     cancelLongPress,
     endLongPress,
@@ -85,6 +86,7 @@ export const MobileBingoModal: React.FC<MobileBingoModalProps> = ({
               setExpandedState={setExpandedState}
               isExpandedDone={isExpandedDone}
               expandedRotation={expandedRotation}
+              expandedStamp={expandedStamp}
               onDelete={handleDelete}
               onCollapse={handleCollapse}
             />

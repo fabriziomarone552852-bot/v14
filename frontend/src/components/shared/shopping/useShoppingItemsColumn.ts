@@ -181,7 +181,7 @@ export function useShoppingItemsColumn({
         item.brandName ?? '',
         item.brandId != null ? String(item.brandId) : ''
       ),
-      price: item.lastPrice != null ? String(item.lastPrice) : '',
+      price: item.lastPrice != null && item.lastPrice > 0 ? String(item.lastPrice) : '',
       supplierId: item.lastSupplierId != null ? String(item.lastSupplierId) : '',
       purchaseDate: item.lastPurchaseDate || firstBatch?.purchase_date || getLocalTodayStr(),
       isOnSale: Boolean(firstBatch?.is_on_sale),
@@ -197,7 +197,27 @@ export function useShoppingItemsColumn({
         data: { isPurchased: false },
       });
     } else {
-      handleOpenPurchase(item);
+      const boughtQuantity = item.quantity != null ? item.quantity : 1;
+      await mutations.addInventoryBatch({
+        itemId: item.id,
+        listId: item.shoppingListId,
+        data: {
+          productId: item.productId,
+          purchaseDate: getLocalTodayStr(),
+          purchasePrice: 0,
+          quantity: boughtQuantity,
+          brandId: item.brandId ?? undefined,
+          brandName: item.brandName ?? undefined,
+          supplierId: item.lastSupplierId ?? undefined,
+          currencyId: item.lastCurrencyId ? Number(item.lastCurrencyId) : (Number(eurCurrencyId) || undefined),
+          isOnSale: false,
+        },
+      });
+      await mutations.togglePurchased({
+        id: item.id,
+        listId: item.shoppingListId,
+        data: { isPurchased: true },
+      });
     }
   };
 
@@ -205,18 +225,20 @@ export function useShoppingItemsColumn({
 
   const handlePurchase = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (!purchaseModal.data || activeListId == null || !purchaseForm.price) return;
+    if (!purchaseModal.data || activeListId == null) return;
     const targetItem = purchaseModal.data;
     const boughtQuantity = Number(purchaseForm.quantity) || 1;
     const originalQuantity = targetItem.quantity != null ? targetItem.quantity : 1;
+    const parsedPrice = purchaseForm.price.trim() ? Number(purchaseForm.price.replace(',', '.')) : 0;
+    const purchasePrice = isNaN(parsedPrice) ? 0 : parsedPrice;
 
     const batchData = {
       productId: targetItem.productId,
       supplierId: purchaseForm.supplierId ? Number(purchaseForm.supplierId) : undefined,
       brandId: purchaseForm.brandId ? Number(purchaseForm.brandId) : undefined,
       brandName: purchaseForm.brandName?.trim() || undefined,
-      purchaseDate: purchaseForm.purchaseDate,
-      purchasePrice: Number(purchaseForm.price.replace(',', '.')),
+      purchaseDate: purchaseForm.purchaseDate || getLocalTodayStr(),
+      purchasePrice,
       quantity: boughtQuantity,
       currencyId: purchaseForm.currencyId ? Number(purchaseForm.currencyId) : undefined,
       isOnSale: purchaseForm.isOnSale,

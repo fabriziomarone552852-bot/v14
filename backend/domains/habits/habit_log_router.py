@@ -14,6 +14,7 @@ router = APIRouter(prefix="/habit-log", tags=["habit_log"])
 
 
 @router.get("", response_model=List[schemas.HabitLogResponse])
+@router.get("/", response_model=List[schemas.HabitLogResponse], include_in_schema=False)
 def list_habit_logs(
     habit_id: Optional[int] = Query(default=None),
     dal: Optional[date] = Query(default=None),
@@ -25,6 +26,7 @@ def list_habit_logs(
 
 
 @router.get("/{habit_id}/{data_riferimento}", response_model=schemas.HabitLogToggleResponse)
+@router.get("/{habit_id}/{data_riferimento}/", response_model=schemas.HabitLogToggleResponse, include_in_schema=False)
 def get_habit_log(
     habit_id: int,
     data_riferimento: date,
@@ -35,6 +37,7 @@ def get_habit_log(
 
 
 @router.post("", response_model=schemas.HabitLogToggleResponse, status_code=status.HTTP_201_CREATED)
+@router.post("/", response_model=schemas.HabitLogToggleResponse, status_code=status.HTTP_201_CREATED, include_in_schema=False)
 def create_or_increment_habit_log(
     log_in: schemas.HabitLogCreate,
     habit_id: int = Query(...),
@@ -45,6 +48,7 @@ def create_or_increment_habit_log(
 
 
 @router.post("/toggle", response_model=schemas.HabitLogToggleResponse)
+@router.post("/toggle/", response_model=schemas.HabitLogToggleResponse, include_in_schema=False)
 def toggle_habit_log(
     log_in: schemas.HabitLogCreate,
     habit_id: int = Query(...),
@@ -55,6 +59,7 @@ def toggle_habit_log(
 
 
 @router.post("/decrement", response_model=schemas.HabitLogToggleResponse)
+@router.post("/decrement/", response_model=schemas.HabitLogToggleResponse, include_in_schema=False)
 def decrement_habit_log(
     log_in: schemas.HabitLogCreate,
     habit_id: int = Query(...),
@@ -65,6 +70,7 @@ def decrement_habit_log(
 
 
 @router.delete("/{habit_id}/{data_riferimento}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete("/{habit_id}/{data_riferimento}/", status_code=status.HTTP_204_NO_CONTENT, include_in_schema=False)
 def delete_habit_log(
     habit_id: int,
     data_riferimento: date,

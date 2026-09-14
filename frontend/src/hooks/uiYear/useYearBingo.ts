@@ -5,6 +5,8 @@ import { bingoApi } from '@/api/bingoApi';
 import type { SyncYearResponse } from '@/hooks/useAgendaYear';
 import type { DbBingoEntry } from '@/types/yearlyentries';
 
+import { getRandomStamp } from '@/config/bingoStamps';
+
 export interface UseYearBingoResult {
   cells: DbBingoEntry[];
   handleCreateCell: (testo: string, posizione?: number) => Promise<void>;
@@ -42,9 +44,14 @@ export const useYearBingo = (yearData: SyncYearResponse | undefined, year: numbe
   };
 
   const handleToggleDone = async (id: number, currentDone: boolean) => {
-    // Genera un angolo di rotazione casuale ad ampio raggio (0° - 360°) ad ogni click
+    const nextDone = !currentDone;
     const newRot = Math.floor(Math.random() * 360);
-    const updated = await bingoApi.update(id, { done: !currentDone, rotazione: newRot });
+    const newStamp = nextDone ? getRandomStamp() : undefined;
+    const updated = await bingoApi.update(id, {
+      done: nextDone,
+      rotazione: newRot,
+      ...(newStamp ? { timbro: newStamp } : {}),
+    });
     if (updated) updateCellsState(prev => prev.map(c => c.id === id ? updated : c));
   };
 

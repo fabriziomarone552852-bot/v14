@@ -74,7 +74,7 @@ const ShoppingPurchaseModal: React.FC<ShoppingPurchaseModalProps> = ({
       formId="purchase-form"
       confirmText="Conferma Acquisto"
       cancelText="Annulla"
-      isConfirmDisabled={!purchaseForm.price.trim() || numericBought <= 0}
+      isConfirmDisabled={numericBought <= 0}
       maxWidthClass="max-w-md"
       overflowVisible={true}
     >
@@ -107,14 +107,13 @@ const ShoppingPurchaseModal: React.FC<ShoppingPurchaseModalProps> = ({
           {/* Prezzo & Valuta accostata */}
           <div>
             <label className="block text-xs font-bold text-gray-500 uppercase mb-1">
-              Prezzo Pagato
+              Prezzo Pagato <span className="font-normal text-[10px] text-gray-400 lowercase">(opzionale)</span>
             </label>
 
             <div className="flex items-center gap-1.5">
               <input
                 type="text"
                 inputMode="decimal"
-                required
                 autoFocus
                 placeholder="0,00"
                 value={purchaseForm.price}
@@ -134,7 +133,7 @@ const ShoppingPurchaseModal: React.FC<ShoppingPurchaseModalProps> = ({
               />
             </div>
             <p className="text-[11px] text-gray-400 mt-1">
-              Prezzo totale per i pezzi presi.
+              Opzionale. Lascia vuoto se non vuoi tracciare il prezzo.
             </p>
           </div>
         </div>

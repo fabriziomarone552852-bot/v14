@@ -26,6 +26,7 @@ export interface DbBingoEntry {
   done: boolean;
   posizione?: number | null;
   rotazione?: number | null;
+  timbro?: string | null;
 }
 
 /** Payload creazione yearly entry */
@@ -46,6 +47,7 @@ export interface BingoEntryCreate {
   testo?: string | null;
   posizione?: number | null;
   rotazione?: number | null;
+  timbro?: string | null;
 }
 
 /** Payload update bingo cell */
@@ -54,4 +56,5 @@ export interface BingoEntryUpdate {
   done?: boolean;
   posizione?: number | null;
   rotazione?: number | null;
+  timbro?: string | null;
 }

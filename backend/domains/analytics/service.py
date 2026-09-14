@@ -63,13 +63,21 @@ def _group_metrics_by_supplier(
             reverse=True,
         )
 
-        last_batch = supplier_batches[0]
+        priced_batches = [
+            b for b in supplier_batches
+            if b.purchase_price is not None and b.purchase_price > Decimal("0")
+        ]
+
+        if not priced_batches:
+            continue
+
+        last_batch = priced_batches[0]
         best_batch = min(
-            supplier_batches,
+            priced_batches,
             key=lambda b: (b.purchase_price, b.purchase_date, b.id),
         )
 
-        normal_batches = [b for b in supplier_batches if not b.is_on_sale]
+        normal_batches = [b for b in priced_batches if not b.is_on_sale]
         avg_normal_price: Optional[Decimal] = None
         if normal_batches:
             total = sum((b.purchase_price for b in normal_batches), Decimal("0"))
@@ -123,6 +131,8 @@ def get_price_history(
 
     history = []
     for batch in sorted(batches, key=lambda b: (b.purchase_date, b.id)):
+        if not batch.purchase_price or batch.purchase_price <= Decimal("0"):
+            continue
         history.append(
             {
                 "id": batch.id,

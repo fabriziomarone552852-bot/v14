@@ -45,7 +45,7 @@ export const usePurchasedItemEditForm = ({
           ? item.lastPrice.toFixed(2).replace('.', ',')
           : latestBatch?.purchase_price != null || latestBatch?.purchasePrice != null
           ? Number(latestBatch.purchase_price ?? latestBatch.purchasePrice).toFixed(2).replace('.', ',')
-          : '';
+          : '0';
 
       const supplierVal =
         item.lastSupplierId != null

@@ -61,7 +61,7 @@ export const useArchiveListDetailLogic = ({
     purchaseModal.open(item);
   };
 
-  const handleTogglePurchased = (item: ShoppingListItem, e: React.MouseEvent) => {
+  const handleTogglePurchased = async (item: ShoppingListItem, e: React.MouseEvent) => {
     e.stopPropagation();
     if (item.isPurchased) {
       confirm({
@@ -77,7 +77,26 @@ export const useArchiveListDetailLogic = ({
         },
       });
     } else {
-      handleOpenPurchase(item);
+      const boughtQuantity = item.quantity != null ? item.quantity : 1;
+      await mutations.addInventoryBatch({
+        itemId: item.id,
+        listId: item.shoppingListId,
+        data: {
+          productId: item.productId,
+          purchaseDate: getLocalTodayStr(),
+          purchasePrice: 0,
+          quantity: boughtQuantity,
+          brandId: item.brandId ?? undefined,
+          brandName: item.brandName ?? undefined,
+          currencyId: item.lastCurrencyId ? Number(item.lastCurrencyId) : undefined,
+          isOnSale: false,
+        },
+      });
+      await mutations.togglePurchased({
+        id: item.id,
+        listId: item.shoppingListId,
+        data: { isPurchased: true },
+      });
     }
   };
 
@@ -85,22 +104,22 @@ export const useArchiveListDetailLogic = ({
     e.preventDefault();
     if (!purchaseModal.data) return;
     const it = purchaseModal.data;
+    const parsedPrice = purchaseForm.price.trim() ? Number(purchaseForm.price.replace(',', '.')) : 0;
+    const purchasePrice = isNaN(parsedPrice) ? 0 : parsedPrice;
 
-    if (purchaseForm.price) {
-      await mutations.addInventoryBatch({
-        itemId: it.id,
-        listId: it.shoppingListId,
-        data: {
-          productId: it.productId,
-          supplierId: purchaseForm.supplierId ? Number(purchaseForm.supplierId) : undefined,
-          purchaseDate: purchaseForm.purchaseDate || getLocalTodayStr(),
-          purchasePrice: Number(purchaseForm.price.replace(',', '.')),
-          quantity: Number(purchaseForm.quantity.replace(',', '.')) || 1,
-          currencyId: purchaseForm.currencyId ? Number(purchaseForm.currencyId) : undefined,
-          isOnSale: purchaseForm.isOnSale,
-        },
-      });
-    }
+    await mutations.addInventoryBatch({
+      itemId: it.id,
+      listId: it.shoppingListId,
+      data: {
+        productId: it.productId,
+        supplierId: purchaseForm.supplierId ? Number(purchaseForm.supplierId) : undefined,
+        purchaseDate: purchaseForm.purchaseDate || getLocalTodayStr(),
+        purchasePrice,
+        quantity: Number(purchaseForm.quantity.replace(',', '.')) || 1,
+        currencyId: purchaseForm.currencyId ? Number(purchaseForm.currencyId) : undefined,
+        isOnSale: purchaseForm.isOnSale,
+      },
+    });
 
     await mutations.togglePurchased({
       id: it.id,

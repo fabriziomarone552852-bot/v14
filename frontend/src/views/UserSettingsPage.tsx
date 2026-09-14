@@ -1,9 +1,10 @@
-// src/views/UserSettingsPage.tsx
-import React from 'react';
-import { SettingsIcon } from '@/components/shared/utils/Icons';
+import React, { useState } from 'react';
+import { SettingsIcon, InfoIcon } from '@/components/shared/utils/Icons';
 import PageLoadingState from '@/components/shared/feedback/PageLoadingState';
 import PageErrorState from '@/components/shared/feedback/PageErrorState';
 import { LOADING_MESSAGES, ERROR_MESSAGES } from '@/data/loadingMessages';
+import { ChangelogModal } from '@/components/modals/ChangelogModal';
+import { APP_VERSION_NAME } from '@/data/changelogData';
 
 import ProfileSection from '@/components/settings/ProfileSection';
 import TaskHierarchySection from '@/components/settings/TaskHierarchySection';
@@ -20,6 +21,7 @@ const panelClass =
 
 export const UserSettingsPage: React.FC = () => {
   const logic = useUserSettingsPageLogic();
+  const [isChangelogOpen, setIsChangelogOpen] = useState(false);
 
   if (logic.loading) {
     return <PageLoadingState messages={LOADING_MESSAGES.settings} />;
@@ -72,18 +74,34 @@ export const UserSettingsPage: React.FC = () => {
 
         {/* HEADER SEMPLIFICATO */}
         <section className={`${panelClass} p-6`}>
-          <div className="flex items-center gap-3">
-            <div className="p-2.5 bg-blue-50 text-blue-600 rounded-2xl">
-              <SettingsIcon className="w-7 h-7" />
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-3 min-w-0">
+              <div className="p-2.5 bg-blue-50 text-blue-600 rounded-2xl shrink-0">
+                <SettingsIcon className="w-7 h-7" />
+              </div>
+              <div className="truncate">
+                <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900 truncate">
+                  Impostazioni Utente
+                </h1>
+                <p className="text-xs sm:text-sm text-slate-500 mt-0.5 truncate">
+                  Personalizza il tuo profilo, la gerarchia dei task, le integrazioni e la memoria.
+                </p>
+              </div>
             </div>
-            <div>
-              <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900">
-                Impostazioni Utente
-              </h1>
-              <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
-                Personalizza il tuo profilo, la gerarchia dei task, le integrazioni e la memoria.
-              </p>
-            </div>
+
+            {/* Pulsante Info & Changelog (centrato verticalmente all'estrema destra) */}
+            <button
+              type="button"
+              onClick={() => setIsChangelogOpen(true)}
+              className="group flex items-center gap-2 px-3.5 py-2.5 rounded-2xl bg-blue-50 hover:bg-blue-100/80 text-blue-600 border border-blue-100 shadow-xs hover:shadow transition-all active:scale-95 shrink-0 cursor-pointer"
+              title={`Smart Agenda ${APP_VERSION_NAME} • Note di rilascio & Changelog`}
+              aria-label="Info Versione e Changelog"
+            >
+              <InfoIcon className="w-5 h-5 text-blue-600 group-hover:scale-110 transition-transform" />
+              <span className="text-xs font-black text-blue-700 hidden sm:inline">
+                {APP_VERSION_NAME}
+              </span>
+            </button>
           </div>
         </section>
 
@@ -140,6 +158,12 @@ export const UserSettingsPage: React.FC = () => {
           />
         </div>
       </div>
+
+      {/* Modale Changelog & Info Versione */}
+      <ChangelogModal
+        isOpen={isChangelogOpen}
+        onClose={() => setIsChangelogOpen(false)}
+      />
     </div>
   );
 };

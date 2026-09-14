@@ -15,6 +15,7 @@ class BingoEntry(Base):
     done: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
     posizione: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
     rotazione: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
+    timbro: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
 
     __table_args__ = (
         Index("ix_bingo_user_year", "user_id", "year"),

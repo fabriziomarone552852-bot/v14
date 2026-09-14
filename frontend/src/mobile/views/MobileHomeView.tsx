@@ -18,6 +18,9 @@ export const MobileHomeView: React.FC = () => {
   const {
     todayEvents,
     displayedTaskTree,
+    visibleTasks,
+    hasMoreTasks,
+    tasksListRef,
     yearProgress,
     formattedDate,
     sortMode,
@@ -83,6 +86,9 @@ export const MobileHomeView: React.FC = () => {
       {/* 3. Sezione Task di Oggi (Compatto & Fullscreen) */}
       <MobileHomeTasksSection
         displayedTaskTree={displayedTaskTree}
+        visibleTasks={visibleTasks}
+        hasMoreTasks={hasMoreTasks}
+        tasksListRef={tasksListRef}
         showWithDeadline={showWithDeadline}
         setShowWithDeadline={setShowWithDeadline}
         sortMode={sortMode}

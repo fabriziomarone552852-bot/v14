@@ -137,6 +137,7 @@ const ShoppingItemsColumn = forwardRef<
               loading={loading && items.length === 0}
               containerRef={containerRef}
               onToggle={columnLogic.handleTogglePurchased}
+              onOpenPurchase={columnLogic.handleOpenPurchase}
               onOpenDetail={(item) => {
                 if (item.isPurchased) {
                   columnLogic.purchasedDetailModal.open(item);

@@ -1,8 +1,8 @@
-// src/mobile/components/calendar/MobileMonthDayCell.tsx
 import React from 'react';
 import type { CalendarEvent, DbTask, Category } from '@/types';
 import { getHexColor, getDynamicStyles } from '@/utils/uiUtils';
 import { CheckIcon } from '@/components/shared/utils/Icons';
+import { useLongPress } from '@/mobile/hooks/useLongPress';
 
 interface MobileMonthDayCellProps {
   dayNum: number;
@@ -12,9 +12,8 @@ interface MobileMonthDayCellProps {
   dayEvents: CalendarEvent[];
   dayTasks: DbTask[];
   mood?: Category;
-  onStartLongPress: (dateKey: string) => void;
-  onDayTouchEnd: (dateKey: string) => void;
-  onCancelLongPress: () => void;
+  onOpenDay: (dateKey: string) => void;
+  onTogglePopup: (dateKey: string) => void;
 }
 
 export const MobileMonthDayCell: React.FC<MobileMonthDayCellProps> = ({
@@ -25,24 +24,24 @@ export const MobileMonthDayCell: React.FC<MobileMonthDayCellProps> = ({
   dayEvents,
   dayTasks,
   mood,
-  onStartLongPress,
-  onDayTouchEnd,
-  onCancelLongPress,
+  onOpenDay,
+  onTogglePopup,
 }) => {
   const completedTasksCount = dayTasks.filter((t) => !!t.fatto).length;
   const totalTasksCount = dayTasks.length;
+
+  const longPressHandlers = useLongPress({
+    delay: 500,
+    onLongPress: () => onOpenDay(dateKey),
+    onClick: () => onTogglePopup(dateKey),
+  });
 
   // Stile dinamico per il Mood di sfondo/bordo se registrato
   const moodColorHex = mood?.colore ? getHexColor(mood.colore) : undefined;
 
   return (
     <div
-      onTouchStart={() => onStartLongPress(dateKey)}
-      onTouchEnd={() => onDayTouchEnd(dateKey)}
-      onTouchMove={onCancelLongPress}
-      onMouseDown={() => onStartLongPress(dateKey)}
-      onMouseUp={() => onDayTouchEnd(dateKey)}
-      onMouseLeave={onCancelLongPress}
+      {...longPressHandlers}
       className={`relative rounded-xl border p-1 flex flex-col justify-between overflow-hidden cursor-pointer transition-all active:scale-[0.97] ${
         isSelected
           ? 'ring-2 ring-blue-500 border-blue-500 bg-blue-50/50 shadow-xs'

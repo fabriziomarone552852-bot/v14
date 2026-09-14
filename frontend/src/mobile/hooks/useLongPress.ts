@@ -3,22 +3,29 @@ import { useRef, useCallback } from 'react';
 
 interface UseLongPressOptions {
   delay?: number;
-  onLongPress: () => void;
-  onClick?: () => void;
+  onLongPress: (e?: React.TouchEvent | React.MouseEvent) => void;
+  onClick?: (e?: React.MouseEvent) => void;
+  stopPropagation?: boolean;
 }
 
 export function useLongPress({
   delay = 400,
   onLongPress,
   onClick,
+  stopPropagation = false,
 }: UseLongPressOptions) {
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isLongPressRef = useRef(false);
   const startPosRef = useRef<{ x: number; y: number } | null>(null);
+  const hasMovedRef = useRef(false);
 
   const start = useCallback(
     (e: React.TouchEvent | React.MouseEvent) => {
+      if (stopPropagation) {
+        e.stopPropagation();
+      }
       isLongPressRef.current = false;
+      hasMovedRef.current = false;
       if ('touches' in e && e.touches.length > 0) {
         startPosRef.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
       } else if ('clientX' in e) {
@@ -34,10 +41,10 @@ export function useLongPress({
             // Ignora se non permesso
           }
         }
-        onLongPress();
+        onLongPress(e);
       }, delay);
     },
-    [onLongPress, delay]
+    [onLongPress, delay, stopPropagation]
   );
 
   const cancel = useCallback(() => {
@@ -61,31 +68,45 @@ export function useLongPress({
       }
       const dx = Math.abs(currentX - startPosRef.current.x);
       const dy = Math.abs(currentY - startPosRef.current.y);
-      // Se l'utente si è spostato di oltre 10px (sta scrollando), annulla il long press
+      // Se l'utente si è spostato di oltre 10px (sta scrollando/swipando), annulla il long press e il click
       if (dx > 10 || dy > 10) {
+        hasMovedRef.current = true;
         cancel();
       }
     },
     [cancel]
   );
 
-  const end = useCallback(() => {
-    cancel();
-  }, [cancel]);
+  const end = useCallback(
+    (e?: React.TouchEvent | React.MouseEvent) => {
+      if (stopPropagation && e) {
+        e.stopPropagation();
+      }
+      cancel();
+    },
+    [cancel, stopPropagation]
+  );
 
   const handleClick = useCallback(
     (e: React.MouseEvent) => {
+      if (stopPropagation) {
+        e.stopPropagation();
+      }
       if (isLongPressRef.current) {
         e.preventDefault();
         e.stopPropagation();
         isLongPressRef.current = false;
         return;
       }
+      if (hasMovedRef.current) {
+        hasMovedRef.current = false;
+        return;
+      }
       if (onClick) {
-        onClick();
+        onClick(e);
       }
     },
-    [onClick]
+    [onClick, stopPropagation]
   );
 
   return {

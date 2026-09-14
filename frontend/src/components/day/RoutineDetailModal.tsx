@@ -28,22 +28,25 @@ const RoutineDetailModal: React.FC<RoutineDetailModalProps> = ({
   const { groupedLogs, isLoading } = useHabitLogs(isOpen ? selectedRoutine?.id : undefined, selectedRoutine?.periods);
 
   const periodsList = useMemo(() => {
-    if (!selectedRoutine?.periods) return [];
+    if (!selectedRoutine?.periods || !Array.isArray(selectedRoutine.periods)) return [];
     
     const sortedPeriods = [...selectedRoutine.periods].sort((a, b) => {
+      if (!a || !b) return 0;
       // 1. Priorità assoluta al periodo "Attuale" (quello senza data_fine)
       if (!a.data_fine && b.data_fine) return -1; // 'a' va sopra
       if (a.data_fine && !b.data_fine) return 1;  // 'b' va sopra
       
       // 2. Per tutti gli altri periodi conclusi, ordina dalla data_inizio più recente a quella più vecchia
-      return new Date(b.data_inizio).getTime() - new Date(a.data_inizio).getTime();
+      const timeB = b.data_inizio ? new Date(b.data_inizio).getTime() : 0;
+      const timeA = a.data_inizio ? new Date(a.data_inizio).getTime() : 0;
+      return timeB - timeA;
     });
 
-    return sortedPeriods.map((p: RoutinePeriod) => ({
+    return sortedPeriods.filter(Boolean).map((p: RoutinePeriod) => ({
       id: p.id,
-      start: formatToItalianShortDate(p.data_inizio),
+      start: p.data_inizio ? formatToItalianShortDate(p.data_inizio) : '',
       end: p.data_fine ? formatToItalianShortDate(p.data_fine) : 'Presente',
-      target: p.target
+      target: p.target ?? 1
     }));
   }, [selectedRoutine]);
 

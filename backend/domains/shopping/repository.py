@@ -876,6 +876,7 @@ def list_community_prices_for_product(
         .filter(
             InventoryBatch.product_id.in_(matching_product_ids),
             InventoryBatch.deleted_at.is_(None),
+            InventoryBatch.purchase_price > 0,
         )
         .order_by(InventoryBatch.purchase_date.desc(), InventoryBatch.created_at.desc())
         .limit(limit)

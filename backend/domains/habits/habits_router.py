@@ -14,6 +14,7 @@ router = APIRouter(prefix="/habits", tags=["habits"])
 
 
 @router.get("", response_model=List[schemas.HabitResponse])
+@router.get("/", response_model=List[schemas.HabitResponse], include_in_schema=False)
 def list_habits(
     tipo: Optional[str] = Query(default=None),
     attive_al: Optional[date] = Query(default=None),
@@ -24,6 +25,7 @@ def list_habits(
 
 
 @router.get("/{habit_id}", response_model=schemas.HabitResponse)
+@router.get("/{habit_id}/", response_model=schemas.HabitResponse, include_in_schema=False)
 def get_habit(
     habit_id: int,
     current_user: User = Depends(deps.get_current_app_user),
@@ -33,6 +35,7 @@ def get_habit(
 
 
 @router.post("", response_model=schemas.HabitResponse, status_code=status.HTTP_201_CREATED)
+@router.post("/", response_model=schemas.HabitResponse, status_code=status.HTTP_201_CREATED, include_in_schema=False)
 def create_habit(
     habit_in: schemas.HabitCreate,
     current_user: User = Depends(deps.get_current_app_user),

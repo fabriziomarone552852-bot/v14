@@ -5,11 +5,13 @@ import type { ShoppingListItem } from '@/types/shopping';
 import { shoppingCardClass } from './shoppingUi';
 import { StoreIcon } from '@/components/shared/utils/Icons';
 import { formatUnitForQuantity } from './ShoppingUnitSelect';
+import { useLongPress } from '@/mobile/hooks/useLongPress';
 
 interface ShoppingItemRowProps {
   item: ShoppingListItem;
   onToggle: (item: ShoppingListItem) => void;
   onOpenDetail?: (item: ShoppingListItem) => void;
+  onOpenPurchase?: (item: ShoppingListItem) => void;
   userRole?: string; // 'owner' | 'admin' | 'editor' | 'reader'
 }
 
@@ -22,6 +24,7 @@ const ShoppingItemRow: React.FC<ShoppingItemRowProps> = ({
   item,
   onToggle,
   onOpenDetail,
+  onOpenPurchase,
   userRole = 'owner',
 }) => {
   const itemLabel = item.productName || 'articolo';
@@ -30,6 +33,22 @@ const ShoppingItemRow: React.FC<ShoppingItemRowProps> = ({
 
   // Se l'articolo è già acquistato (chiuso), solo chi non è reader o l'owner può annullare/spuntare
   const canToggleCheck = !isReader && (!item.isPurchased || isOwner);
+
+  const checkLongPress = useLongPress({
+    stopPropagation: true,
+    onLongPress: () => {
+      if (canToggleCheck) {
+        if (!item.isPurchased && onOpenPurchase) {
+          onOpenPurchase(item);
+        } else {
+          onToggle(item);
+        }
+      }
+    },
+    onClick: () => {
+      if (canToggleCheck) onToggle(item);
+    },
+  });
 
   const unitDisplay = formatUnitForQuantity(item.unitCodeName, item.quantity);
   const formattedName = capitalizeFirstLetter(item.productName);
@@ -46,10 +65,7 @@ const ShoppingItemRow: React.FC<ShoppingItemRowProps> = ({
       {/* 1. CHECKBOX */}
       <button
         type="button"
-        onClick={(e) => {
-          e.stopPropagation();
-          if (canToggleCheck) onToggle(item);
-        }}
+        {...checkLongPress}
         disabled={!canToggleCheck}
         className={[
           'inline-flex min-h-[32px] min-w-[32px] shrink-0 items-center justify-center rounded-full border-2 transition focus:outline-none focus:ring-2 focus:ring-blue-400 cursor-pointer',
@@ -58,6 +74,11 @@ const ShoppingItemRow: React.FC<ShoppingItemRowProps> = ({
             : 'border-slate-300 bg-white text-transparent hover:border-emerald-500 hover:text-emerald-500',
           !canToggleCheck ? 'opacity-50 cursor-not-allowed' : '',
         ].join(' ')}
+        title={
+          item.isPurchased
+            ? 'Annulla acquisto'
+            : 'Spunta rapida (tieni premuto per inserire prezzo e dettagli)'
+        }
         aria-label={
           item.isPurchased
             ? `Segna ${itemLabel} come da acquistare`
@@ -117,7 +138,7 @@ const ShoppingItemRow: React.FC<ShoppingItemRowProps> = ({
           </span>
         )}
 
-        {item.lastPrice != null && (
+        {item.lastPrice != null && item.lastPrice > 0 && (
           <span className="font-bold text-slate-700 bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded-md border border-emerald-200">
             € {Number(item.lastPrice).toFixed(2)}
             {item.quantity && item.quantity > 1 ? '/pz' : ''}

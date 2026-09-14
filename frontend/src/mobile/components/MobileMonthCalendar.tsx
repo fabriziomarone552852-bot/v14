@@ -46,9 +46,8 @@ export const MobileMonthCalendar: React.FC<MobileMonthCalendarProps> = ({
     eventsByDate,
     selectedDateForPopup,
     setSelectedDateForPopup,
-    startLongPress,
-    cancelLongPress,
-    handleDayTouchEnd,
+    handleOpenDay,
+    handleTogglePopup,
     popupDayEvents,
     popupDayTasks,
     popupDayMood,
@@ -103,9 +102,8 @@ export const MobileMonthCalendar: React.FC<MobileMonthCalendarProps> = ({
               dayEvents={eventsByDate[dateKey] || []}
               dayTasks={tasksByDate[dateKey] || []}
               mood={moodsByDate[dateKey]}
-              onStartLongPress={startLongPress}
-              onDayTouchEnd={handleDayTouchEnd}
-              onCancelLongPress={cancelLongPress}
+              onOpenDay={handleOpenDay}
+              onTogglePopup={handleTogglePopup}
             />
           );
         })}

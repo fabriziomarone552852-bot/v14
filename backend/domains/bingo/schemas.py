@@ -8,12 +8,14 @@ class BingoEntryCreate(StrictBaseModel):
     testo: Optional[str] = None
     posizione: Optional[int] = Field(None, ge=1, le=25)
     rotazione: Optional[int] = Field(None, ge=-360, le=360)
+    timbro: Optional[str] = None
 
 class BingoEntryUpdate(StrictBaseModel):
     testo: Optional[str] = None
     done: Optional[bool] = None
     posizione: Optional[int] = Field(None, ge=1, le=25)
     rotazione: Optional[int] = Field(None, ge=-360, le=360)
+    timbro: Optional[str] = None
 
 class BingoEntryResponse(ORMBaseModel):
     id: int
@@ -23,3 +25,4 @@ class BingoEntryResponse(ORMBaseModel):
     done: bool
     posizione: Optional[int] = None
     rotazione: Optional[int] = None
+    timbro: Optional[str] = None

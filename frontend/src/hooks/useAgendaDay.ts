@@ -180,10 +180,10 @@ export const useAgendaDay = (dateStr: string) => {
         if (!old) return old;
         return {
           ...old,
-          habits: old.habits.map((h: Habit) => {
+          habits: (old.habits || []).map((h: Habit) => {
             if (h.id === habitId) {
-              const currentLog = h.logs.find((l: HabitLog) => l.data_riferimento === dateStr) ?? { count: 0 };
-              const newLogs = h.logs.filter((l: HabitLog) => l.data_riferimento !== dateStr);
+              const currentLog = (h.logs || []).find((l: HabitLog) => l.data_riferimento === dateStr) ?? { count: 0 };
+              const newLogs = (h.logs || []).filter((l: HabitLog) => l.data_riferimento !== dateStr);
               
               const activePeriod = (h.periods || []).find((p) => {
                 if (p.data_fine) {
@@ -195,12 +195,14 @@ export const useAgendaDay = (dateStr: string) => {
               const maxTarget = activePeriod?.target ?? 1;
               const nextCount = Math.min(maxTarget, Math.max(0, (currentLog.count ?? 0) + delta));
 
-              newLogs.push({ 
-                ...currentLog, 
-                habit_id: habitId,
-                data_riferimento: dateStr, 
-                count: nextCount
-              } as HabitLog);
+              if (nextCount > 0) {
+                newLogs.push({ 
+                  ...currentLog, 
+                  habit_id: habitId,
+                  data_riferimento: dateStr, 
+                  count: nextCount
+                } as HabitLog);
+              }
               
               return { ...h, logs: newLogs };
             }
@@ -214,8 +216,11 @@ export const useAgendaDay = (dateStr: string) => {
       logger.error("Errore del server durante l'untoggle!", err); 
       queryClient.setQueryData(queryKey, context?.previousData);
     },
-    onSettled: () => {
+    onSettled: (_data, _error, variables) => {
       queryClient.invalidateQueries({ queryKey });
+      if (variables?.habitId) {
+        queryClient.invalidateQueries({ queryKey: ['habitLogs', variables.habitId] });
+      }
     }
   });
 

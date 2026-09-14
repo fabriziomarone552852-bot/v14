@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import type { DbBingoEntry } from '@/types/yearlyentries';
+import { getStampSrc } from '@/config/bingoStamps';
 
 interface BingoCardProps {
   cells: DbBingoEntry[];
@@ -95,10 +96,10 @@ const BingoCard: React.FC<BingoCardProps> = ({
             </span>
             <div
               className="absolute inset-0 flex items-center justify-center pointer-events-none"
-              style={{ transform: `rotate(${getStampRotation(cell.id)})` }}
+              style={{ transform: `rotate(${typeof cell.rotazione === 'number' ? `${cell.rotazione}deg` : getStampRotation(cell.id)})` }}
             >
               <img
-                src="/stamp-star.png"
+                src={getStampSrc(cell.timbro)}
                 alt="completato"
                 className="w-3/4 h-3/4 object-contain opacity-80"
                 style={{ filter: 'drop-shadow(0 1px 2px rgba(200,0,0,0.3))' }}

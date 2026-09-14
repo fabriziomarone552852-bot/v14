@@ -57,3 +57,18 @@ export const updateHabitPeriod = async (
   if (!data) throw new Error('Errore nell\'aggiornamento del periodo');
   return data;
 };
+
+export const getHabitLogs = async (habitId: number): Promise<Habit['logs']> => {
+  const data = await api.get<Habit['logs'] | { items?: Habit['logs'] }>(`/habit-log?habit_id=${habitId}`);
+  if (!data) return [];
+  return Array.isArray(data) ? data : (data.items ?? []);
+};
+
+export const incrementHabitLog = async (habitId: number, dataRiferimento: string) => {
+  return await api.post(`/habit-log?habit_id=${habitId}`, { data_riferimento: dataRiferimento });
+};
+
+export const decrementHabitLog = async (habitId: number, dataRiferimento: string) => {
+  return await api.post(`/habit-log/decrement?habit_id=${habitId}`, { data_riferimento: dataRiferimento });
+};
+

@@ -10,6 +10,7 @@ export interface ShoppingItemRowProps {
   onToggleSelect: (id: number) => void;
   onOpenDetail: (item: ShoppingListItem) => void;
   onTogglePurchased: (item: ShoppingListItem) => void;
+  onOpenPurchase?: (item: ShoppingListItem) => void;
 }
 
 export const ShoppingItemRow: React.FC<ShoppingItemRowProps> = ({
@@ -19,6 +20,7 @@ export const ShoppingItemRow: React.FC<ShoppingItemRowProps> = ({
   onToggleSelect,
   onOpenDetail,
   onTogglePurchased,
+  onOpenPurchase,
 }) => {
   const longPressHandlers = useLongPress({
     onLongPress: () => onToggleSelect(item.id),
@@ -28,6 +30,20 @@ export const ShoppingItemRow: React.FC<ShoppingItemRowProps> = ({
       } else {
         onOpenDetail(item);
       }
+    },
+  });
+
+  const checkLongPress = useLongPress({
+    stopPropagation: true,
+    onLongPress: () => {
+      if (onOpenPurchase) {
+        onOpenPurchase(item);
+      } else {
+        onTogglePurchased(item);
+      }
+    },
+    onClick: () => {
+      onTogglePurchased(item);
     },
   });
 
@@ -42,12 +58,9 @@ export const ShoppingItemRow: React.FC<ShoppingItemRowProps> = ({
     >
       <button
         type="button"
-        onClick={(e) => {
-          e.stopPropagation();
-          onTogglePurchased(item);
-        }}
+        {...checkLongPress}
         className="w-7 h-7 rounded-lg border-2 border-gray-300 hover:border-blue-500 hover:bg-blue-50 active:scale-90 flex items-center justify-center shrink-0 transition-all cursor-pointer"
-        title="Segna come acquistato e registra spesa"
+        title="Spunta rapida (tieni premuto per dettagli acquisto)"
         aria-label={`Acquista ${item.productName}`}
       >
         <span className="opacity-0 group-hover:opacity-30 text-blue-600 text-xs">✓</span>
@@ -76,7 +89,7 @@ export const ShoppingItemRow: React.FC<ShoppingItemRowProps> = ({
               • {item.notes}
             </span>
           )}
-          {item.lastPrice != null && (
+          {item.lastPrice != null && item.lastPrice > 0 && (
             <span className="text-emerald-600 font-semibold ml-auto shrink-0">
               ~{item.lastPrice.toFixed(2)} €
             </span>
@@ -142,7 +155,7 @@ export const PurchasedShoppingItemRow: React.FC<PurchasedShoppingItemRowProps> =
           <h4 className="text-xs font-bold text-gray-500 line-through truncate">
             {item.productName}
           </h4>
-          {item.lastPrice != null && (
+          {item.lastPrice != null && item.lastPrice > 0 && (
             <span className="text-xs font-extrabold text-emerald-700 shrink-0">
               {item.lastPrice.toFixed(2)} €
             </span>
