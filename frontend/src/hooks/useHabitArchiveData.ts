@@ -8,6 +8,8 @@ import { formatToItalianShortDate } from '@/utils/dateUtils';
 import { rrulestr } from 'rrule';
 import { logger } from '@/utils/logger';
 import { paginate } from '@/utils/paginationUtils';
+import { DEFAULT_COVER_IMAGE } from '@/utils/constants';
+import { resolveImageUrl } from '@/utils/imageUtils';
 
 export interface HabitFilterState {
   keyword: string;
@@ -128,7 +130,7 @@ export const useHabitArchiveData = ({
         titolo: h.titolo,
         rrule: h.rrule || '',
         data_inizio: startDate,
-        imageUrl: h.immagine_url || '',
+        imageUrl: resolveImageUrl(h.immagine_url) || DEFAULT_COVER_IMAGE,
         immaginePosizione: h.immagine_posizione || 'center',
         targetCompletions,
         currentCompletions: 0,

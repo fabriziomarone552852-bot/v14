@@ -1,6 +1,7 @@
 import type { RawCountdown } from '@/types';
 import type { CountdownItem } from '@/components/day/CountdownWidget';
 import { DEFAULT_COVER_IMAGE } from '@/utils/constants';
+import { resolveImageUrl } from '@/utils/imageUtils';
 
 /**
  * TRASFORMATORE PER I COUNTDOWN
@@ -19,7 +20,7 @@ export const mapToCountdownItems = (rawCountdowns: RawCountdown[] | undefined): 
     
     targetDateStr: c.target_date ?? c.data_riferimento ?? '',
     
-    imageUrl: c.immagine_url ?? DEFAULT_COVER_IMAGE,
+    imageUrl: resolveImageUrl(c.immagine_url) || DEFAULT_COVER_IMAGE,
 
     immaginePosizione: c.immagine_posizione || 'center'
   }));

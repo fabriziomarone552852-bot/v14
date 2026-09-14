@@ -1,6 +1,8 @@
 // src/mobile/components/modals/countdown/MobileCountdownCoverInput.tsx
-import React from 'react';
-import { TargetIcon } from '@/components/shared/utils/Icons';
+import React, { useRef, useState } from 'react';
+import { TargetIcon, PhotoIcon, LoadingIcon } from '@/components/shared/utils/Icons';
+import { mediaService } from '@/api/mediaService';
+import { logger } from '@/utils/logger';
 
 interface MobileCountdownCoverInputProps {
   imageUrl: string;
@@ -13,34 +15,92 @@ export const MobileCountdownCoverInput: React.FC<MobileCountdownCoverInputProps>
   onChangeImageUrl,
   onOpenPositionModal,
 }) => {
+  const [isUploading, setIsUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    try {
+      setIsUploading(true);
+      const res = await mediaService.uploadImage(file, 'countdowns');
+      onChangeImageUrl(res.url);
+    } catch (error) {
+      logger.error('Errore durante il caricamento foto da mobile:', error);
+    } finally {
+      setIsUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
+  };
+
+  const handleUrlBlur = async () => {
+    const rawUrl = imageUrl?.trim();
+    if (!rawUrl || rawUrl.startsWith('/uploads/') || rawUrl.startsWith('data:') || rawUrl.startsWith('blob:')) {
+      return;
+    }
+
+    if (rawUrl.startsWith('http://') || rawUrl.startsWith('https://')) {
+      try {
+        setIsUploading(true);
+        const res = await mediaService.fetchImageFromUrl(rawUrl, 'countdowns');
+        onChangeImageUrl(res.url);
+      } catch (error) {
+        logger.warn('Download immagine da URL fallito:', error);
+      } finally {
+        setIsUploading(false);
+      }
+    }
+  };
+
   return (
     <div className="w-full bg-gray-50 p-3.5 rounded-xl border border-gray-200/80 shadow-2xs">
       <div className="flex justify-between items-center mb-1.5">
         <label className="text-xs font-bold text-gray-700 uppercase tracking-wider">
-          Sfondo Personalizzato (URL)
+          Sfondo Personalizzato
         </label>
-        {imageUrl && (
+        <div className="flex items-center gap-1.5">
+          <input
+            type="file"
+            ref={fileInputRef}
+            onChange={handleFileUpload}
+            accept="image/*"
+            className="hidden"
+          />
           <button
             type="button"
-            onClick={onOpenPositionModal}
-            className="hover:bg-blue-100 text-blue-600 bg-blue-50/80 border border-blue-200 px-2 py-0.5 rounded-lg transition-colors cursor-pointer flex items-center gap-1 text-[11px] font-bold shadow-2xs"
-            title="Regola inquadratura"
+            onClick={() => fileInputRef.current?.click()}
+            disabled={isUploading}
+            className="hover:bg-blue-100 text-blue-600 bg-blue-50/80 border border-blue-200 p-1 rounded-lg transition-colors cursor-pointer flex items-center justify-center shadow-2xs disabled:opacity-50"
+            title="Carica foto dal dispositivo"
           >
-            <TargetIcon className="h-3.5 w-3.5" />
-            <span>Inquadra</span>
+            {isUploading ? (
+              <LoadingIcon className="animate-spin h-3.5 w-3.5 text-blue-600" />
+            ) : (
+              <PhotoIcon className="h-3.5 w-3.5" />
+            )}
           </button>
-        )}
+          {imageUrl && (
+            <button
+              type="button"
+              onClick={onOpenPositionModal}
+              className="hover:bg-blue-100 text-blue-600 bg-blue-50/80 border border-blue-200 px-2 py-0.5 rounded-lg transition-colors cursor-pointer flex items-center gap-1 text-[11px] font-bold shadow-2xs"
+              title="Regola inquadratura"
+            >
+              <TargetIcon className="h-3.5 w-3.5" />
+              <span>Inquadra</span>
+            </button>
+          )}
+        </div>
       </div>
       <input
-        type="url"
+        type="text"
         value={imageUrl}
         onChange={(e) => onChangeImageUrl(e.target.value)}
-        placeholder="Incolla l'URL dell'immagine..."
+        onBlur={handleUrlBlur}
+        placeholder="Incolla URL o carica foto..."
         className="w-full px-3 py-2.5 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all shadow-xs"
       />
-      <p className="text-[11px] text-gray-400 font-medium mt-1">
-        Se vuoto, verrà utilizzata l'illustrazione di sfondo predefinita.
-      </p>
     </div>
   );
 };

@@ -1,13 +1,15 @@
 // src/components/day/CountdownNewModal.tsx
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import type { CountdownItem } from '@/components/day/CountdownWidget';
 import DatePicker from '@/components/shared/utils/DatePicker/DatePicker';
 import TimeInput from '@/components/shared/utils/TimeInput';
 import ImagePositionModal from '@/components/shared/dialog/ImagePositionModal';
-import { TargetIcon } from '@/components/shared/utils/Icons';
+import { TargetIcon, PhotoIcon, LoadingIcon } from '@/components/shared/utils/Icons';
 import { pad } from '@/utils/dateUtils';
 import { DEFAULT_COVER_IMAGE } from '@/utils/constants';
+import { resolveImageUrl } from '@/utils/imageUtils';
 import BaseModal from '@/components/shared/dialog/BaseModal';
+import { mediaService } from '@/api/mediaService';
 import { logger } from '@/utils/logger';
 
 export type CountdownSavePayload = Omit<CountdownItem, 'id'> & { id?: number };
@@ -29,6 +31,43 @@ const CountdownNewModal: React.FC<CountdownNewModalProps> = ({ isOpen, onClose, 
   const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
   const [isPositionModalOpen, setIsPositionModalOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    try {
+      setIsUploading(true);
+      const res = await mediaService.uploadImage(file, 'countdowns');
+      setImageUrl(res.url);
+    } catch (error) {
+      logger.error('Errore durante il caricamento foto per countdown:', error);
+    } finally {
+      setIsUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
+  };
+
+  const handleUrlBlur = async () => {
+    const rawUrl = imageUrl?.trim();
+    if (!rawUrl || rawUrl.startsWith('/uploads/') || rawUrl.startsWith('data:') || rawUrl.startsWith('blob:')) {
+      return;
+    }
+
+    if (rawUrl.startsWith('http://') || rawUrl.startsWith('https://')) {
+      try {
+        setIsUploading(true);
+        const res = await mediaService.fetchImageFromUrl(rawUrl, 'countdowns');
+        setImageUrl(res.url);
+      } catch (error) {
+        logger.warn('Download immagine da URL fallito, mantengo URL:', error);
+      } finally {
+        setIsUploading(false);
+      }
+    }
+  };
 
   useEffect(() => {
     if (countdownToEdit && isOpen) {
@@ -58,18 +97,13 @@ const CountdownNewModal: React.FC<CountdownNewModalProps> = ({ isOpen, onClose, 
     e.preventDefault();
     if (!title.trim() || !dateStr) return;
     
-    setIsSaving(true); // 🟢 Accendiamo lo spinner!
+    setIsSaving(true);
 
     try {
-        // 1. Uniamo data e ora SENZA specificare il fuso. 
-        // Il browser capirà in automatico che si tratta dell'ora locale italiana!
-        const timeToUse = timeStr || '00:00';
-        const localDate = new Date(`${dateStr}T${timeToUse}:00`);
+      const timeToUse = timeStr || '00:00';
+      const localDate = new Date(`${dateStr}T${timeToUse}:00`);
+      const finalIso = localDate.toISOString();
 
-        // 2. Ora possiamo convertirla in modo sicuro per il database
-        const finalIso = localDate.toISOString();
-
-      // Aspettiamo che il backend finisca di salvare
       await onSave({
         id: countdownToEdit?.id,
         title,
@@ -78,11 +112,11 @@ const CountdownNewModal: React.FC<CountdownNewModalProps> = ({ isOpen, onClose, 
         immaginePosizione: imagePosition,
       });
       
-      onClose(); // Chiudiamo solo se è andato tutto bene
+      onClose();
     } catch (error) {
       logger.error("Errore durante il salvataggio:", error);
     } finally {
-      setIsSaving(false); // 🔴 Spegniamo lo spinner in ogni caso
+      setIsSaving(false);
     }
   };
 
@@ -102,8 +136,6 @@ const CountdownNewModal: React.FC<CountdownNewModalProps> = ({ isOpen, onClose, 
         overflowVisible={true} 
       >
         <form id="countdown-form" onSubmit={handleSubmit} className="space-y-5">
-
-          
             <div>
               <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Titolo Evento</label>
               <input type="text" value={title} onChange={e => setTitle(e.target.value)} placeholder="Es. Esame di Stato, Compleanno..." className="w-full bg-white border border-gray-200 text-gray-800 text-sm rounded-xl focus:ring-blue-500 focus:border-blue-500 block p-3 shadow-sm" required />
@@ -113,7 +145,6 @@ const CountdownNewModal: React.FC<CountdownNewModalProps> = ({ isOpen, onClose, 
               <div>
                 <div className="w-full">
                 <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Data Scadenza</label>
-                {/* MAGIA 1: DatePicker */}
                 <DatePicker 
                   value={dateStr}
                   onChange={setDateStr}
@@ -127,7 +158,6 @@ const CountdownNewModal: React.FC<CountdownNewModalProps> = ({ isOpen, onClose, 
               <div>
                 <div className="relative w-full">
                  <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Ora Scadenza</label>
-                 {/* MAGIA 2: TimeInput */}
                  <TimeInput value={timeStr} onChange={setTimeStr} />
               </div>
             </div>
@@ -138,23 +168,47 @@ const CountdownNewModal: React.FC<CountdownNewModalProps> = ({ isOpen, onClose, 
                 <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">
                   Sfondo Personalizzato
                 </label>
-                <button
-                  type="button"
-                  onClick={() => setIsPositionModalOpen(true)}
-                  className="hover:bg-blue-100 text-gray-500 hover:text-blue-500 rounded p-0.5 transition-colors cursor-pointer"
-                  title="Centra l'immagine"
-                >
-                  <TargetIcon className="h-4 w-4" />
-                </button>
+                <div className="flex items-center gap-1">
+                  <input
+                    type="file"
+                    ref={fileInputRef}
+                    onChange={handleFileUpload}
+                    accept="image/*"
+                    className="hidden"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={isUploading}
+                    className="hover:bg-blue-100 text-blue-600 bg-blue-50/80 border border-blue-200 p-1 rounded-lg transition-colors cursor-pointer flex items-center justify-center shadow-2xs disabled:opacity-50"
+                    title="Carica foto dal dispositivo"
+                  >
+                    {isUploading ? (
+                      <LoadingIcon className="animate-spin h-4 w-4 text-blue-600" />
+                    ) : (
+                      <PhotoIcon className="h-4 w-4" />
+                    )}
+                  </button>
+                  {imageUrl && (
+                    <button
+                      type="button"
+                      onClick={() => setIsPositionModalOpen(true)}
+                      className="hover:bg-blue-100 text-gray-500 hover:text-blue-500 rounded p-1 transition-colors cursor-pointer"
+                      title="Centra l'immagine"
+                    >
+                      <TargetIcon className="h-4 w-4" />
+                    </button>
+                  )}
+                </div>
               </div>
               <input
-                type="url"
+                type="text"
                 value={imageUrl}
                 onChange={e => setImageUrl(e.target.value)}
-                placeholder="Incolla l'URL dell'immagine..."
+                onBlur={handleUrlBlur}
+                placeholder="Incolla URL o carica foto..."
                 className="w-full bg-white border border-gray-200 text-gray-800 text-sm rounded-xl focus:ring-blue-500 focus:border-blue-500 block p-3 shadow-sm"
               />
-              <p className="text-[10px] text-gray-400 font-medium mt-1.5 ml-1">Se lasciato vuoto, verrà utilizzata un'immagine di default.</p>
             </div>
 
           </form>
@@ -165,7 +219,7 @@ const CountdownNewModal: React.FC<CountdownNewModalProps> = ({ isOpen, onClose, 
       <ImagePositionModal
         isOpen={isPositionModalOpen}
         onClose={() => setIsPositionModalOpen(false)}
-        imageUrl={imageUrl || DEFAULT_COVER_IMAGE}
+        imageUrl={resolveImageUrl(imageUrl) || DEFAULT_COVER_IMAGE}
         value={imagePosition}
         onChange={setImagePosition}
         titlePreview={title || 'Titolo Countdown'}

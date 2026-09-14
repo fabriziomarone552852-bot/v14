@@ -58,3 +58,28 @@ L'assistente deve controllare la prima voce in cima a `CHANGELOG_HISTORY` in `fr
   - Da quel momento, le successive modifiche in qualsiasi chat apriranno un nuovo ciclo di versione (`published: false`).
 
 Per la guida completa e dettagliata, fare riferimento a [`docs/VERSIONING_GUIDE.md`](file:///c:/Users/Fabrizio/Desktop/app/smart/v14/docs/VERSIONING_GUIDE.md).
+
+---
+
+## 🏁 3. Protocollo di Chiusura Sessione (Trigger Parola Chiave "fine")
+
+Quando l'utente scrive **"fine"** (o frasi equivalenti come *"abbiamo finito"*, *"concludi sessione"*, *"chiudi"*), l'assistente AI deve eseguire **automaticamente e senza eccezioni** le seguenti azioni preimpostate:
+
+1. **📋 Sincronizzazione & Aggiornamento Backlog ([`docs/BACKLOG.md`](file:///c:/Users/Fabrizio/Desktop/app/smart/v14/docs/BACKLOG.md))**:
+   - Controllare le modifiche e le decisioni prese durante la sessione.
+   - Segnare come 🟢 **Completato** tutte le voci e gli ID completati (aggiornando sia la tabella riassuntiva sia i paragrafi di dettaglio).
+   - Inserire o aggiornare eventuali nuove funzionalità, idee o note emerse nella discussione.
+
+2. **📝 Aggiornamento Changelog & Versioning ([`frontend/src/data/changelogData.ts`](file:///c:/Users/Fabrizio/Desktop/app/smart/v14/frontend/src/data/changelogData.ts))**:
+   - Se ci sono state modifiche al codice o alle funzionalità, applicare la regola di versioning (Sezione 1):
+     - Se `published: false`: integrare `highlights`, `features`, `improvements`, `fixes` nella voce bozza in cima.
+     - Se `published: true`: incrementare la versione in `package.json` e creare la nuova voce con `published: false`.
+
+3. **🧪 Verifica Compilazione & Type-Check**:
+   - Eseguire `npm run build` all'interno di `frontend/` per verificare che non vi siano errori di compilazione TypeScript o problemi di bundling.
+
+4. **📊 Report Finale di Chiusura per l'Utente**:
+   - Fornire un riassunto finale conciso che elenca:
+     - Le modifiche registrate nel Backlog.
+     - Le voci aggiunte al Changelog.
+     - L'esito del controllo di compilazione.

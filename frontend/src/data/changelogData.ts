@@ -1,4 +1,4 @@
-﻿// src/data/changelogData.ts
+// src/data/changelogData.ts
 
 export interface ChangelogItem {
   id: string;
@@ -15,11 +15,45 @@ export interface ChangelogItem {
 
 export const CHANGELOG_HISTORY: ChangelogItem[] = [
   {
+    id: 'v14.2.0',
+    version: '14.2.0',
+    date: 'Settembre 2026',
+    title: 'Upload Foto da Dispositivo, Caching Immagini Locale & Ottimizzazione WebP',
+    isLatest: true,
+    published: false,
+    highlights: [
+      'Caricamento diretto di foto dal dispositivo (smartphone e PC) nei form di Routine e Countdown.',
+      'Supporto completo e nativo per GIF animate, preservate al 100% fotogramma per fotogramma con loop continuo.',
+      'Caching e download automatico sul server per le immagini inserite tramite URL web, evitando link rotti.',
+      'Salvataggio su filesystem del server anziché su database, con riduzione del 95%+ dello spazio.',
+      'Compressione e ridimensionamento a 960px in formato WebP per foto statiche, ultraleggere sui banner.',
+      'Risolto lo sfasamento orario di 2 ore nella sincronizzazione degli eventi con Google Calendar.',
+      'Pre-selezione automatica della data corrente visualizzata durante la creazione di eventi nella DayPage Mobile.',
+    ],
+    features: [
+      'Nuovo pulsante "Foto" nei form Desktop e Mobile per selezionare un\'immagine dalla galleria o scattarla direttamente da smartphone.',
+      'Nuovo dominio Media nel backend FastAPI con endpoint dedicati `/media/upload` (multipart) e `/media/fetch-url` (download asincrono).',
+      'Gestione intelligente dei formati: salvataggio as-is per GIF animate e pipeline WebP con correzione EXIF per foto statiche.',
+      'Serving statico della cartella `/uploads` direttamente dal backend con risoluzione trasparente degli URL per Web e App Mobile (Capacitor/Tailscale).',
+    ],
+    improvements: [
+      'Database alleggerito: memorizza solo il percorso relativo e non file binari pesanti.',
+      'Risoluzione calibrata a max 960px: ideale per banner nitidi e leggeri (~30-50 KB).',
+      'Mantenimento della struttura grafica e del layout del frontend senza stravolgimenti.',
+      'Download automatico e trasparente dell\'immagine quando viene incollato un URL web esterno.',
+      'Gestione bidirezionale accurata del fuso orario del calendario Google con allineamento agli orari locali.',
+    ],
+    fixes: [
+      'Prevenzione dei link rotti causati da immagini esterne cancellate o modificate sul web.',
+      'Corretto l\'orario degli eventi inviati a Google Calendar (risolto l\'offset di +2 ore).',
+      'La creazione di un evento dalla DayPage Mobile imposta automaticamente la data del giorno visualizzato anziché quella odierna.',
+    ],
+  },
+  {
     id: 'v14.1.0',
     version: '14.1.0',
     date: 'Settembre 2026',
     title: 'Timbri Bingo, Spunta Rapida Spesa & Gestione Prezzi Opzionali',
-    isLatest: true,
     published: true,
     highlights: [
       'Spunta rapida a 1-click degli articoli della spesa con long-press per inserire prezzo e dettagli.',

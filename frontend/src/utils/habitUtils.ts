@@ -2,6 +2,7 @@ import type { Habit, HabitLog, HabitPeriod } from '@/types';
 import type { RoutineItem } from '@/components/day/RoutineColumn';
 import type { HabitItem } from '@/components/day/HabitsBar';
 import { DEFAULT_COVER_IMAGE } from '@/utils/constants';
+import { resolveImageUrl } from '@/utils/imageUtils';
 
 /**
  * 1. Calcola se l'abitudine deve apparire oggi
@@ -102,8 +103,7 @@ export const mapHabitsToRoutines = (habits: Habit[], targetDateStr: string): Rou
       return {
         id: h.id,
         title: h.titolo,
-        // 🪄 SOSTITUITO || CON ??
-        imageUrl: h.immagine_url ?? DEFAULT_COVER_IMAGE,
+        imageUrl: resolveImageUrl(h.immagine_url) || DEFAULT_COVER_IMAGE,
         immaginePosizione: h.immagine_posizione || 'center',
         currentCompletions,
         targetCompletions: activePeriod.target,

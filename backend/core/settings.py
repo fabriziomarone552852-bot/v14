@@ -54,6 +54,8 @@ class Settings(BaseSettings):
     default_completed_task_lookback_days: int = Field(90, ge=1)
     default_price_stats_lookback_days: int = Field(365, ge=1)
 
+    upload_dir: str = Field(default="uploads", min_length=1)
+
 
 
     password_min_length: int = 5

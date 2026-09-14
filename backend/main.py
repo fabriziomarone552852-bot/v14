@@ -5,10 +5,13 @@ from backend.core.models import import_all_models
 
 import_all_models()
 
+import os
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, Response
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 from backend.core.models import ensure_database_schema_compat
+from backend.core.settings import get_settings
 
 from backend.domains.system_boot import router as system_boot_router
 from backend.domains.system_boot.guards import system_boot_guard
@@ -23,6 +26,7 @@ from backend.domains.countdowns.router import router as countdowns_router
 from backend.domains.events.router import router as events_router
 from backend.domains.google_calendar.router import router as google_calendar_router
 from backend.domains.habits.router import router as habits_router
+from backend.domains.media.router import router as media_router
 from backend.domains.monthly_entries.router import router as monthly_entries_router
 from backend.domains.yearly_entries.router import router as yearly_entries_router
 from backend.domains.bingo.router import router as bingo_router
@@ -36,6 +40,7 @@ from backend.domains.users.router import router as users_router
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    os.makedirs(get_settings().upload_dir, exist_ok=True)
     ensure_database_schema_compat()
     yield
 
@@ -80,8 +85,14 @@ app.include_router(monthly_entries_router)
 app.include_router(yearly_entries_router)
 app.include_router(bingo_router)
 app.include_router(notifications_router)
+app.include_router(media_router)
+
+# Serving file statici caricati su disco
+os.makedirs(get_settings().upload_dir, exist_ok=True)
+app.mount("/uploads", StaticFiles(directory=get_settings().upload_dir), name="uploads")
 
 
 @app.get("/favicon.ico", include_in_schema=False)
 def favicon():
     return Response(status_code=204)
+

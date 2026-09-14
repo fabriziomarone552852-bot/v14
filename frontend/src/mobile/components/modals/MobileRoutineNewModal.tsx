@@ -8,6 +8,7 @@ import { RecurrenceEditor } from '@/components/shared/utils/RecurrenceEditor';
 import ImagePositionModal from '@/components/shared/dialog/ImagePositionModal';
 import { FormInput } from '@/components/shared/form';
 import { DEFAULT_COVER_IMAGE } from '@/utils/constants';
+import { resolveImageUrl } from '@/utils/imageUtils';
 import { useMobileRoutineFormLogic } from '@/mobile/hooks/useMobileRoutineFormLogic';
 import { MobileRoutineCoverImageSection } from './routine/MobileRoutineCoverImageSection';
 import { MobileRoutineTargetSection } from './routine/MobileRoutineTargetSection';
@@ -130,7 +131,7 @@ export const MobileRoutineNewModal: React.FC<MobileRoutineNewModalProps> = ({
       <ImagePositionModal
         isOpen={isPositionModalOpen}
         onClose={() => setIsPositionModalOpen(false)}
-        imageUrl={form.immagine_url || DEFAULT_COVER_IMAGE}
+        imageUrl={resolveImageUrl(form.immagine_url) || DEFAULT_COVER_IMAGE}
         value={form.immagine_posizione}
         onChange={(val) => setForm({ ...form, immagine_posizione: val })}
         titlePreview={form.titolo || 'Titolo Routine'}

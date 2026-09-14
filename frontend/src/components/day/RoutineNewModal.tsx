@@ -1,5 +1,4 @@
-// src/components/day/RoutineNewModal.tsx
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import type { RoutineItem } from '@/components/day/RoutineColumn';
 import DatePicker from '@/components/shared/utils/DatePicker/DatePicker'; 
 import { getLocalDateString } from '@/utils/dateUtils'; 
@@ -7,9 +6,11 @@ import { parseRRule, buildRRule } from '@/utils/rruleUtils';
 import BaseModal from '@/components/shared/dialog/BaseModal';
 import { RecurrenceEditor } from '@/components/shared/utils/RecurrenceEditor';
 import ImagePositionModal from '@/components/shared/dialog/ImagePositionModal';
-import { TargetIcon } from '@/components/shared/utils/Icons';
+import { TargetIcon, PhotoIcon, LoadingIcon } from '@/components/shared/utils/Icons';
 import { DEFAULT_COVER_IMAGE } from '@/utils/constants';
+import { resolveImageUrl } from '@/utils/imageUtils';
 import { logger } from '@/utils/logger';
+import { mediaService } from '@/api/mediaService';
 
 export interface RoutineSavePayload {
   titolo: string;
@@ -45,6 +46,43 @@ const RoutineNewModal: React.FC<RoutineNewModalProps> = ({ isOpen, onClose, rout
   const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
   const [isPositionModalOpen, setIsPositionModalOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    try {
+      setIsUploading(true);
+      const res = await mediaService.uploadImage(file, 'habits');
+      setForm((prev) => ({ ...prev, immagine_url: res.url }));
+    } catch (error) {
+      logger.error('Errore durante il caricamento della foto:', error);
+    } finally {
+      setIsUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
+  };
+
+  const handleUrlBlur = async () => {
+    const rawUrl = form.immagine_url?.trim();
+    if (!rawUrl || rawUrl.startsWith('/uploads/') || rawUrl.startsWith('data:') || rawUrl.startsWith('blob:')) {
+      return;
+    }
+
+    if (rawUrl.startsWith('http://') || rawUrl.startsWith('https://')) {
+      try {
+        setIsUploading(true);
+        const res = await mediaService.fetchImageFromUrl(rawUrl, 'habits');
+        setForm((prev) => ({ ...prev, immagine_url: res.url }));
+      } catch (error) {
+        logger.warn('Download immagine da URL fallito, mantengo URL originale:', error);
+      } finally {
+        setIsUploading(false);
+      }
+    }
+  };
 
   useEffect(() => {
     if (isOpen) {
@@ -130,13 +168,15 @@ const RoutineNewModal: React.FC<RoutineNewModalProps> = ({ isOpen, onClose, rout
         <form id="routine-form" onSubmit={handleSubmit} className="space-y-5">
             
             <div>
-              <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Nome Routine</label>
-              <input type="text" required placeholder="Es. Skincare Serale, Lettura..." value={form.titolo} onChange={(e) => setForm({...form, titolo: e.target.value})} className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all shadow-sm" />
+              <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">Nome Routine</label>
+              <input type="text" required placeholder="Es. Skincare Serale, Lettura..." value={form.titolo} onChange={(e) => setForm({...form, titolo: e.target.value})} className="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all shadow-sm" />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 gap-4 items-start">
               <div>
-                <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">A partire dal</label>
+                <div className="flex items-center h-6 mb-1.5">
+                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider">A partire dal</label>
+                </div>
                 {/* MAGIA: DatePicker */}
                 <DatePicker 
                   value={form.data_inizio}
@@ -149,27 +189,51 @@ const RoutineNewModal: React.FC<RoutineNewModalProps> = ({ isOpen, onClose, rout
               </div> 
 
               <div>
-                <div className="flex justify-between items-center mb-1">
+                <div className="flex justify-between items-center h-6 mb-1.5">
                   <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">
-                    Immagine di Sfondo (URL)
+                    Immagine di Sfondo
                   </label>
-                  <button
-                    type="button"
-                    onClick={() => setIsPositionModalOpen(true)}
-                    className="hover:bg-blue-100 text-gray-500 hover:text-blue-500 rounded p-0.5 transition-colors cursor-pointer"
-                    title="Centra l'immagine"
-                  >
-                    <TargetIcon className="h-4 w-4" />
-                  </button>
+                  <div className="flex items-center gap-1">
+                    <input
+                      type="file"
+                      ref={fileInputRef}
+                      onChange={handleFileUpload}
+                      accept="image/*"
+                      className="hidden"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => fileInputRef.current?.click()}
+                      disabled={isUploading}
+                      className="hover:bg-blue-100 text-blue-600 bg-blue-50/80 border border-blue-200 p-0.5 rounded-lg transition-colors cursor-pointer flex items-center justify-center shadow-2xs disabled:opacity-50"
+                      title="Carica foto dal dispositivo"
+                    >
+                      {isUploading ? (
+                        <LoadingIcon className="animate-spin h-3.5 w-3.5 text-blue-600" />
+                      ) : (
+                        <PhotoIcon className="h-3.5 w-3.5" />
+                      )}
+                    </button>
+                    {form.immagine_url && (
+                      <button
+                        type="button"
+                        onClick={() => setIsPositionModalOpen(true)}
+                        className="hover:bg-blue-100 text-gray-500 hover:text-blue-500 rounded p-0.5 transition-colors cursor-pointer"
+                        title="Centra l'immagine"
+                      >
+                        <TargetIcon className="h-3.5 w-3.5" />
+                      </button>
+                    )}
+                  </div>
                 </div>
                 <input
-                  type="url"
+                  type="text"
                   value={form.immagine_url}
-                  onChange={e => setForm({...form, immagine_url: e.target.value})}
-                  placeholder="Incolla l'URL..."
-                  className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all shadow-sm"
+                  onChange={(e) => setForm({ ...form, immagine_url: e.target.value })}
+                  onBlur={handleUrlBlur}
+                  placeholder="Incolla URL o carica foto..."
+                  className="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all shadow-sm"
                 />
-                <p className="text-[10px] text-gray-400 font-medium mt-1 ml-1">Verrà usata per decorare la card.</p>
               </div>
             </div>
 
@@ -221,7 +285,7 @@ const RoutineNewModal: React.FC<RoutineNewModalProps> = ({ isOpen, onClose, rout
       <ImagePositionModal
         isOpen={isPositionModalOpen}
         onClose={() => setIsPositionModalOpen(false)}
-        imageUrl={form.immagine_url || DEFAULT_COVER_IMAGE}
+        imageUrl={resolveImageUrl(form.immagine_url) || DEFAULT_COVER_IMAGE}
         value={form.immagine_posizione}
         onChange={(val) => setForm({ ...form, immagine_posizione: val })}
         titlePreview={form.titolo || 'Titolo Routine'}

@@ -6,6 +6,7 @@ import { useTaskModals } from '@/context/TaskModalContext';
 import { useRoutineModals } from '@/context/RoutineModalContext';
 import { useShoppingModals } from '@/context/ShoppingModalContext';
 import { useArchiveHeader } from '@/context/ArchiveHeaderContext';
+import { useDayOptional } from '@/context/DayContext';
 import { formatDateString } from '@/utils/dateUtils';
 import { useBackHandler } from '@/utils/backButtonManager';
 import { useMobileSelection } from '../context/MobileSelectionContext';
@@ -60,6 +61,7 @@ export const useMobileHeaderLogic = () => {
   const { openEventForm } = useEventModals();
   const { openTaskForm } = useTaskModals();
   const { openRoutineForm } = useRoutineModals();
+  const dayContext = useDayOptional();
 
   // Modali Shopping
   const {
@@ -110,8 +112,11 @@ export const useMobileHeaderLogic = () => {
   // Handlers Agenda
   const handleNewEvent = () => {
     setIsAddMenuOpen(false);
-    const todayStr = formatDateString(new Date());
-    openEventForm(null, todayStr);
+    let eventDateStr = formatDateString(new Date());
+    if (isDay && dayContext?.dataRiferimento) {
+      eventDateStr = formatDateString(dayContext.dataRiferimento);
+    }
+    openEventForm(null, eventDateStr);
   };
 
   const handleNewTask = () => {

@@ -5,6 +5,7 @@ import DatePicker from '@/components/shared/utils/DatePicker/DatePicker';
 import TimeInput from '@/components/shared/utils/TimeInput';
 import ImagePositionModal from '@/components/shared/dialog/ImagePositionModal';
 import { DEFAULT_COVER_IMAGE } from '@/utils/constants';
+import { resolveImageUrl } from '@/utils/imageUtils';
 import MobileBaseModal from './MobileBaseModal';
 import {
   useMobileCountdownFormLogic,
@@ -122,7 +123,7 @@ export const MobileCountdownNewModal: React.FC<MobileCountdownNewModalProps> = (
       <ImagePositionModal
         isOpen={isPositionModalOpen}
         onClose={() => setIsPositionModalOpen(false)}
-        imageUrl={imageUrl || DEFAULT_COVER_IMAGE}
+        imageUrl={resolveImageUrl(imageUrl) || DEFAULT_COVER_IMAGE}
         value={imagePosition}
         onChange={setImagePosition}
         titlePreview={title || 'Titolo Countdown'}

@@ -14,6 +14,7 @@ from typing import Any, Optional
 from urllib.error import HTTPError, URLError
 from urllib.parse import urlencode
 import urllib.request
+from zoneinfo import ZoneInfo
 
 from jose import JWTError, jwt
 from sqlalchemy import select
@@ -312,7 +313,41 @@ def get_valid_access_token(db: Session, auth: UserGoogleAuth) -> Optional[str]:
     return auth.access_token
 
 
-def _format_event_payload(event: Event) -> dict[str, Any]:
+def get_calendar_timezone(access_token: str, calendar_id: str = "primary") -> str:
+    """Recupera il fuso orario del calendario Google dell'utente o fallback su Europe/Rome."""
+    url = f"{GOOGLE_CALENDAR_API_BASE}/calendars/{calendar_id}"
+    try:
+        status_code, data = _http_request(
+            url,
+            method="GET",
+            headers={"Authorization": f"Bearer {access_token}"},
+        )
+        if status_code == 200 and isinstance(data, dict):
+            tz = data.get("timeZone")
+            if tz:
+                return tz
+    except Exception as exc:
+        logger.debug("Impossibile recuperare il fuso orario da Google Calendar (%s), fallback su Europe/Rome", exc)
+    return "Europe/Rome"
+
+
+def _parse_google_datetime(dt_str: str, default_tz_name: str = "Europe/Rome") -> datetime:
+    """Converte una stringa dateTime ISO/RFC3339 da Google in un datetime naive nel fuso orario locale."""
+    clean_str = dt_str.replace("Z", "+00:00") if dt_str.endswith("Z") else dt_str
+    parsed = datetime.fromisoformat(clean_str)
+
+    try:
+        target_tz = ZoneInfo(default_tz_name)
+    except Exception:
+        target_tz = ZoneInfo("Europe/Rome")
+
+    if parsed.tzinfo is not None:
+        local_dt = parsed.astimezone(target_tz)
+        return local_dt.replace(tzinfo=None)
+    return parsed
+
+
+def _format_event_payload(event: Event, time_zone: str = "Europe/Rome") -> dict[str, Any]:
     """Costruisce il payload JSON per l'evento su Google Calendar v3."""
     payload: dict[str, Any] = {
         "summary": event.titolo,
@@ -333,13 +368,25 @@ def _format_event_payload(event: Event) -> dict[str, Any]:
         payload["start"] = {"date": start_date_str}
         payload["end"] = {"date": end_date_str}
     else:
-        # Eventi con orario
-        payload["start"] = {"dateTime": event.data_inizio.isoformat()}
+        # Eventi con orario: formattiamo come stringa locale naive e specifichiamo il timeZone esplicito
+        start_dt_str = event.data_inizio.strftime("%Y-%m-%dT%H:%M:%S")
+        payload["start"] = {
+            "dateTime": start_dt_str,
+            "timeZone": time_zone,
+        }
         if event.data_fine:
-            payload["end"] = {"dateTime": event.data_fine.isoformat()}
+            end_dt_str = event.data_fine.strftime("%Y-%m-%dT%H:%M:%S")
+            payload["end"] = {
+                "dateTime": end_dt_str,
+                "timeZone": time_zone,
+            }
         else:
             # Default: 1 ora dopo
-            payload["end"] = {"dateTime": (event.data_inizio + timedelta(hours=1)).isoformat()}
+            end_dt_str = (event.data_inizio + timedelta(hours=1)).strftime("%Y-%m-%dT%H:%M:%S")
+            payload["end"] = {
+                "dateTime": end_dt_str,
+                "timeZone": time_zone,
+            }
 
     if event.rrule:
         # Google Calendar accetta "RRULE:FREQ=..."
@@ -351,7 +398,12 @@ def _format_event_payload(event: Event) -> dict[str, Any]:
     return payload
 
 
-def sync_event_to_google(db: Session, user: User, event: Event) -> Optional[str]:
+def sync_event_to_google(
+    db: Session,
+    user: User,
+    event: Event,
+    time_zone: Optional[str] = None,
+) -> Optional[str]:
     """
     Sincronizza un singolo evento verso Google Calendar.
     Crea l'evento su Google se non esiste, o lo aggiorna se google_event_id è presente.
@@ -365,7 +417,8 @@ def sync_event_to_google(db: Session, user: User, event: Event) -> Optional[str]
         return None
 
     calendar_id = auth.calendar_id or "primary"
-    payload = _format_event_payload(event)
+    calendar_tz = time_zone or get_calendar_timezone(access_token, calendar_id)
+    payload = _format_event_payload(event, time_zone=calendar_tz)
 
     try:
         # 1. Se abbiamo già un google_event_id, proviamo l'aggiornamento (PUT)
@@ -460,6 +513,7 @@ def sync_bidirectional(db: Session, user: User) -> dict[str, Any]:
         raise ValueError("Impossibile autenticarsi con Google Calendar (token non valido).")
 
     calendar_id = auth.calendar_id or "primary"
+    time_zone = get_calendar_timezone(access_token, calendar_id)
 
     # 1. Recupero eventi da Google Calendar (mostrando anche i cancellati)
     url = f"{GOOGLE_CALENDAR_API_BASE}/calendars/{calendar_id}/events?maxResults=250&showDeleted=true&singleEvents=false"
@@ -533,13 +587,13 @@ def sync_bidirectional(db: Session, user: User) -> dict[str, Any]:
         elif "dateTime" in start_obj:
             tutto_il_giorno = False
             try:
-                data_inizio = datetime.fromisoformat(start_obj["dateTime"])
+                data_inizio = _parse_google_datetime(start_obj["dateTime"], default_tz_name=time_zone)
             except Exception:
                 continue
 
             if "dateTime" in end_obj:
                 try:
-                    data_fine = datetime.fromisoformat(end_obj["dateTime"])
+                    data_fine = _parse_google_datetime(end_obj["dateTime"], default_tz_name=time_zone)
                 except Exception:
                     data_fine = None
         else:
@@ -587,7 +641,7 @@ def sync_bidirectional(db: Session, user: User) -> dict[str, Any]:
     unsynced_events = list(db.execute(stmt_unsynced).scalars().all())
     for ev in unsynced_events:
         try:
-            res_gid = sync_event_to_google(db, user, ev)
+            res_gid = sync_event_to_google(db, user, ev, time_zone=time_zone)
             if res_gid:
                 pushed_count += 1
         except Exception:

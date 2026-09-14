@@ -15,17 +15,20 @@ Questo documento serve a tracciare in modo strutturato:
 | ID | Attività / Funzionalità | Ambito | Stato Backend | Stato Frontend | Priorità |
 | :--- | :--- | :--- | :---: | :---: | :---: |
 | **CORE-001** | **Refactoring Globale & Pulizia Architetturale** | `core` / arch | 🟢 Completato | 🟢 Completato | 🟢 **Completato** |
+| **MEDIA-001** | **Upload Foto Dispositivo, Caching URL, GIF As-Is & WebP** | `media` / storage | 🟢 Completato | 🟢 Completato | 🟢 **Completato** |
+| **CAL-001** | **Sincronizzazione Timezone Google Calendar & Data Mobile DayPage** | `calendar` / `mobile` | 🟢 Completato | 🟢 Completato | 🟢 **Completato** |
 | **FEAT-004** | **Sezione Media: Libri, Film e Serie TV** | `media` / ent | 🔴 Da Iniziare | 🔴 Da Iniziare | 🔴 **Massima (Passo Fondamentale)** |
 | **FEAT-005** | **Sezione Liste Tematiche & Personalizzate** | `custom_lists` | 🔴 Da Iniziare | 🔴 Da Iniziare | 🔴 **Massima (Passo Fondamentale)** |
 | **FEAT-006** | **Hub Spesa, Ricettario, Meal Prep & Wishlist Oggetti** | `shopping` / food | 🔴 Da Strutturare | 🔴 Da Implementare | 🔴 **Massima (Passo Fondamentale)** |
 | **FEAT-007** | **Sistema Amicizie & Condivisione Recensioni (Social/Sharing)** | `social` / media | 🔴 Da Strutturare | 🔴 Da Implementare | 🟠 **Alta (Passo Fondamentale)** |
+| **FEAT-008** | **Sistema Segnalazione Errori, Feedback & Bug Report** | `support` / feedback | 🔴 Da Strutturare | 🔴 Da Implementare | 🟠 **Alta (UX & Manutenzione)** |
 | **OFFLINE-001** | **Modalità Offline-First & Sincronizzazione Differita (Outbox Sync)** | `sync` / mobile | 🔴 Da Strutturare | 🔴 Da Implementare | 🟠 **Alta (Mobile & Web)** |
 | **AI-001** | **Studio & Integrazione Intelligenza Artificiale (AI)** | `ai` / assistant | 🔴 Da Analizzare | 🔴 Da Analizzare | 🟠 **Alta (Ricerca & Prototipo)** |
 | **FEAT-001** | Liste Spesa: Preferite & Pinnate (`pin_status`) | `shopping` | 🟢 Completato | 🔴 Da Implementare | Media-Alta |
 | **FEAT-002** | Gestione Inventario Spesa & Lotti (`inventory_batches`) | `shopping` | 🟢 Completato | 🟡 Parziale | Media |
-| **FEAT-003** | Dashboard Analytics & Storico Prezzi | `analytics` | 🟢 Completato | 🔴 Da Implementare | Bassa |
-| **UI-001** | Selezione Multipla nella Versione Mobile | `mobile` / UI | 🟢 Supportato | 🔴 Da Implementare | Alta |
-| **TECH-001** | Verifica & Ottimizzazione Bundle APK Android (Code-Splitting) | `build` / APK | N/A | 🟢 Completato | Media |
+| **FEAT-003** | **Dashboard Analytics & Storico Prezzi** | `analytics` | 🟢 Completato | 🔴 Da Implementare | Bassa |
+| **UI-001** | **Selezione Multipla nella Versione Mobile** | `mobile` / UI | 🟢 Completato | 🟢 Completato | 🟢 **Completato** |
+| **TECH-001** | **Verifica & Ottimizzazione Bundle APK Android (Code-Splitting)** | `build` / APK | N/A | 🟢 Completato | Media |
 | **TECH-002** | Spostamento Tasto Switch in Impostazioni / Danger Zone | `routing` / UI | N/A | 🟢 Completato | Bassa |
 
 *Legenda:*
@@ -100,30 +103,20 @@ Il backend supporta la gestione dettagliata di inventario con scadenze, lotti e 
 
 ## 📱 2. Funzionalità & UX Versione Mobile
 
-### [UI-001] Selezione Multipla nella Versione Mobile
+### [UI-001] Selezione Multipla nella Versione Mobile (✅ Completato)
 
 #### 📝 Descrizione
-Aggiungere la modalità di selezione multipla (*Multi-Select Mode*) nell'interfaccia mobile per consentire operazioni massive rapide con touch / tap prolungato.
+Modalità di selezione multipla (*Multi-Select Mode*) integrata e attiva nell'interfaccia mobile per consentire operazioni massive rapide con touch / tap prolungato e barra azioni contestuali.
 
-#### 🎯 Ambiti di Applicazione
+#### 🎯 Ambiti di Applicazione Integrati
 1. **🛒 Spesa Mobile (`MobileShoppingView`)**:
-   - Selezione multipla di articoli per:
-     - Spuntare/completare in blocco
-     - Eliminare più elementi contemporaneamente
-     - Spostare articoli da una lista all'altra
-2. **📅 Agenda & Task Mobile (`MobileAgendaView` & Liste Task)**:
-   - Selezione multipla di task per:
-     - Marcatura massiva come completati / da fare
-     - Eliminazione multipla
-     - Riassegnazione data/scadenza o categoria in blocco
+   - Selezione multipla di articoli per completamento in blocco, eliminazione, archiviazione o spostamento liste/gruppi.
+2. **📅 Agenda, Task & Eventi Mobile (`MobileHomeView`, `MobileDayView`)**:
+   - Selezione multipla e azioni batch per task, eventi di calendario e log abitudini/routine.
 
-#### 🛠️ Dettagli Tecnici & Implementazione Frontend
-- **Trigger di Attivazione**:
-  - Pressione prolungata (*long press*) su una riga/card, oppure
-  - Pulsante dedicato "Seleziona" nell'header mobile ([`MobileHeader.tsx`](file:///c:/Users/Fabrizio/Desktop/app/smart/v14/frontend/src/mobile/components/MobileHeader.tsx)).
-- **UI & Feedback**:
-  - Checkbox rotondi animati a sinistra di ogni elemento selezionabile.
-  - Barra delle azioni contestuali inferiore (*Action Bar flottante*) con contatore elementi selezionati (es. "3 selezionati") e pulsanti azione: *Completa*, *Sposta*, *Elimina*, *Annulla*.
+#### 🛠️ Dettagli Tecnici Raggiunti
+- **Contesto Globale Mobile**: Gestito tramite [`MobileSelectionContext.tsx`](file:///c:/Users/Fabrizio/Desktop/app/smart/v14/frontend/src/mobile/context/MobileSelectionContext.tsx).
+- **Trigger & UI**: Long press e pulsanti dedicati nell'header mobile ([`MobileHeader.tsx`](file:///c:/Users/Fabrizio/Desktop/app/smart/v14/frontend/src/mobile/components/MobileHeader.tsx)), checkbox rotondi e action bar contestuale.
 
 ---
 
@@ -209,6 +202,40 @@ Intervento strutturale di refactoring trasversale su Backend e Frontend completa
 
 ---
 
+### [MEDIA-001] Upload Foto Dispositivo, Caching URL, GIF As-Is & WebP (✅ Completato)
+
+#### 📝 Descrizione
+Sistema centralizzato per la gestione dei media visivi dell'applicazione (Routine, Countdown, ecc.): salvataggio su disco anziché su database (per azzerare l'impatto sul DB), upload da dispositivo (PC o smartphone), caching automatico da link URL web, supporto nativo a GIF animate (as-is) e conversione WebP a 960px per foto statiche.
+
+#### 🛠️ Risultati Raggiunti
+1. **Backend FastAPI**:
+   - ✅ Nuovo dominio `backend/domains/media/` con endpoint `POST /media/upload` (multipart) e `POST /media/fetch-url` (download asincrono con `httpx`).
+   - ✅ Pipeline intelligente con `Pillow`: le GIF animate vengono preservate byte-for-byte con loop e fotogrammi intatti; le foto statiche (JPG, PNG) vengono ridimensionate proporzionalmente a max 960px e convertite in `.webp` (~30-50 KB).
+   - ✅ Serving statico sicuro montato su `/uploads` con persistenza garantita su cartella del server.
+2. **Frontend Desktop & Mobile**:
+   - ✅ Pulsante compatto con icona foto nei form di Routine e Countdown (Desktop e Mobile) per upload immediato da dispositivo o fotocamera.
+   - ✅ Download e caching trasparente su blur quando viene incollato un link web esterno.
+   - ✅ Utility `resolveImageUrl` per gestire in modo trasparente URL relativi `/uploads/...` sia su Web sia su Mobile (Capacitor/Tailscale).
+
+---
+
+### [CAL-001] Sincronizzazione Timezone Google Calendar & Preselezione Data Mobile DayPage (✅ Completato)
+
+#### 📝 Descrizione
+Risolti due problemi critici di sincronizzazione e usabilità relativi al modulo Calendario ed Eventi:
+1. **Sfasamento Orario Google Calendar (+2h)**: Risolto il problema per cui la sincronizzazione con Google Calendar alterava l'orario di inizio e fine evento di +2 ore rispetto all'orario salvato nell'app (dovuto all'interpretazione UTC dell'API v3 di Google per payload privi di `timeZone`).
+2. **Pre-selezione Data Corrente su Mobile DayPage**: Cliccando su "Nuovo Evento" dal menu veloce (+) in Mobile DayView mentre si osserva un giorno specifico (es. 20/09), il form di creazione ora si apre pre-impostato su quel giorno anziché forzare la data odierna.
+
+#### 🛠️ Risultati Raggiunti
+1. **Backend (`backend/domains/google_calendar/service.py`)**:
+   - ✅ Rilevamento automatico e fallback resiliente del fuso orario del calendario Google (`get_calendar_timezone`, default `Europe/Rome`).
+   - ✅ Formattazione ISO naive locale con associazione esplicita del parametro `"timeZone": time_zone` sia su `start` che su `end` nel payload evento, evitando doppi offset e conversioni arbitrarie verso UTC.
+   - ✅ Parsing bidirezionale accurato (`_parse_google_datetime`) sia per timestamp ISO con offset esplicito (+02:00) sia per timestamp UTC (`Z`), convertendoli nel corretto orario locale prima del salvataggio nel database locale.
+2. **Frontend (`frontend/src/mobile/hooks/useMobileHeaderLogic.ts`)**:
+   - ✅ `handleNewEvent` integrato con `DayContext` (`useDayOptional`), passando la data visualizzata corrente a `openEventForm(null, dateStr)` in rotta `/giorno`.
+
+---
+
 ### [FEAT-004] Creazione Sezione Media & Intrattenimento: Libri, Film e Serie TV
 
 #### 📝 Descrizione
@@ -231,10 +258,79 @@ Nuovo modulo completo per gestire, catalogare e monitorare l'intrattenimento per
 - **Stato Serie**: `Da iniziare`, `In corso`, `In attesa di nuova stagione`, `Completata`, `Mollata`.
 - **Dettagli & Valutazione**: Voto complessivo, note per stagione, promemoria data di uscita della prossima stagione/episodio.
 
+#### 🔄 4. Analisi Integrazioni Esterne & Sincronizzazione (Goodreads, Fable, TV Time)
+- **Fattibilità Sincronizzazione Piattaforme Esterne**:
+  - **Goodreads, Fable & TV Time**: Piattaforme chiuse / senza API pubbliche attive con permessi di scrittura (Goodreads ha chiuso il programma sviluppatori nel 2020; Fable e TV Time sono sistemi proprietari chiusi). La **sincronizzazione bidirezionale automatica** (lettura e scrittura diretta nei due sensi) **non è realizzabile**.
+  - **Goodreads Feed RSS (Sincronizzazione Monodirezionale in Sola Lettura)**: Goodreads mette a disposizione per ciascun utente un **Feed RSS pubblico**. Inserendo l'URL del proprio Feed RSS nelle impostazioni di Smart Agenda, l'app può leggere periodicamente i libri aggiunti/modificati su Goodreads (`to-read`, `currently-reading`, `read`) e popolare la libreria in automatico (Goodreads ➔ Smart Agenda).
+- **Servizi Aperti e Gratuiti per Ricerca Libri, Copertine & Metadati**:
+  - **Google Books API**: Gratuita e immediata. Permette la ricerca per titolo, autore o ISBN recuperando in automatico copertina, descrizione/trama, autore, numero pagine e data di pubblicazione.
+  - **Open Library API**: Database gratuito e open-source gestito da Internet Archive.
+  - **Hardcover API**: Piattaforma moderna per lettori con API pubblica per metadati e catalogazione.
+  - **TMDB API (The Movie Database)**: Ricerca automatica di locandine, trame, cast e tracking stagioni/episodi per Film e Serie TV.
+
+#### 📐 5. Struttura Dati & Tipizzazione TypeScript (Strict - Zero `any`)
+Standardizzazione rigorosa delle interfacce per la ricerca libri e la sincronizzazione RSS:
+```typescript
+// --- Google Books API ---
+export interface BookImages {
+  smallThumbnail?: string;
+  thumbnail?: string;
+}
+
+export interface BookVolumeInfo {
+  title: string;
+  authors?: string[];
+  publisher?: string;
+  publishedDate?: string;
+  description?: string;
+  pageCount?: number;
+  imageLinks?: BookImages;
+}
+
+export interface BookItem {
+  id: string;
+  volumeInfo: BookVolumeInfo;
+}
+
+export interface GoogleBooksResponse {
+  totalItems: number;
+  items?: BookItem[];
+}
+
+export interface BookSearchState {
+  books: BookItem[];
+  isLoading: boolean;
+  errorMessage: string | null;
+}
+
+// --- Sincronizzazione Goodreads Feed RSS ---
+export type ReadingStatus = 'to-read' | 'currently-reading' | 'read';
+
+export interface GoodreadsBook {
+  id: string;
+  title: string;
+  author: string;
+  userRating: number; // 0..5
+  userReview: string;
+  bookLink: string;
+  imageUrl: string;
+  status: ReadingStatus;
+  dateAdded: string;
+}
+
+export interface GoodreadsSyncState {
+  isSyncing: boolean;
+  lastSyncedAt: string | null;
+  rssUrl: string;
+  importedBooks: GoodreadsBook[];
+  errorMessage: string | null;
+}
+```
+
 #### 🏗️ Requisiti Architetturali & Integrazione
-- **Backend**: Nuovo dominio modulare `backend/domains/media/` o suddiviso con modelli SQLAlchemy dedicati (`MediaItem`, `BookProgress`, `SeriesSeasonProgress`, `MediaReview`).
-- **Frontend Desktop**: Nuova voce di navigazione laterale con vista a schede (Tab: *Tutti*, *Libri*, *Film*, *Serie TV*) e visualizzazione a griglia di locandine o elenco tabellare con filtri e ordinamenti.
-- **Frontend Mobile**: Schermata dedicata nell'hub mobile con schede swipeabili, interfaccia card compatta e azioni rapide con un tap (es. segna come visto, avanza episodio).
+- **Backend**: Nuovo dominio modulare `backend/domains/media/` o suddiviso con modelli SQLAlchemy dedicati (`MediaItem`, `BookProgress`, `SeriesSeasonProgress`, `MediaReview`, `MediaExternalSync`).
+- **Frontend Desktop**: Nuova voce di navigazione laterale con vista a schede (Tab: *Tutti*, *Libri*, *Film*, *Serie TV*) e visualizzazione a griglia di locandine o elenco tabellare con filtri, ricerca Google Books e import RSS.
+- **Frontend Mobile**: Schermata dedicata nell'hub mobile con schede swipeabili, interfaccia card compatta, azioni rapide con un tap (es. segna come visto, avanza episodio, aggiorna pagina libro).
 
 ---
 
@@ -323,6 +419,55 @@ Studio e architettura di un sistema di connessione tra utenti (*Amicizie / Famil
 
 ---
 
+### [FEAT-008] Sistema di Segnalazione Errori, Feedback & Bug Report
+
+#### 📝 Descrizione
+Un sistema integrato end-to-end che consente agli utenti dell'applicazione (sia da Desktop sia da Smartphone Android) di inviare segnalazioni su bug riscontrati, problemi di layout, anomalie o proporre suggerimenti. Il sistema include la raccolta automatica del contesto tecnico (versione app, piattaforma, route corrente, stacktrace ed eventuali errori API recenti) per azzerare lo sforzo dell'utente e facilitare la risoluzione immediata da parte degli sviluppatori e amministratori.
+
+#### 📍 1. Punti di Accesso e Posizionamento UI / UX
+1. **Modalità / Pagina Changelog & Note di Versione (`ChangelogModal.tsx`)**:
+   - Inserimento di un footer dedicato in fondo allo storico delle versioni: *"Hai riscontrato un'anomalia o un bug in questa versione? [Segnala Errore / Feedback]"*.
+   - Posizionamento ideale per raccogliere riscontri immediati subito dopo il rilascio di una nuova release.
+2. **Impostazioni Utente (`UserSettingsPage.tsx` & `MobileSettingsView.tsx`)**:
+   - Voce dedicata *"Assistenza, Feedback & Segnalazione Errori"* (o *"Aiuto & Supporto"*), accessibile in qualsiasi momento dal menu impostazioni.
+3. **Schermate di Errore & Error Boundary (`PageErrorState.tsx` & Crash Fallback)**:
+   - In caso di eccezioni non gestite o errori HTTP 500/503, oltre al pulsante *"Ricarica"*, viene fornito il tasto rapido *"Invia segnalazione all'amministratore"*, che precompila in automatico la modale con stacktrace e dettagli della pagina.
+4. **Modale di Invio Segnalazione (Desktop & Mobile)**:
+   - **Tipologia**: `Bug / Malfunzionamento`, `Problema Grafico / Layout`, `Suggerimento / Miglioramento`, `Altro`.
+   - **Livello di Gravità**: `Bassa (Cosmetico)`, `Media (Fastidio minore)`, `Alta (Funzionalità bloccata)`, `Critica (Crash/Blocco totale)`.
+   - **Campi**: Titolo sintetico, descrizione dettagliata, passaggi per riprodurre (opzionale), screenshot o allegato visivo (sfruttando il modulo upload [`MEDIA-001`](file:///c:/Users/Fabrizio/Desktop/app/smart/v14/docs/BACKLOG.md)).
+   - **Contesto Automatico Trasparente**: Versione app (`package.json` / `changelogData`), Piattaforma (`Web Desktop`, `Web Mobile`, `Capacitor Android APK`), Risoluzione schermo, Percorso URL / Route attiva, Timestamp UTC, Ultimi log/errori API salvati in memoria RAM.
+
+#### 🛡️ 2. Architettura Backend & Dati
+- **Dominio Backend**: Modulo dedicato `backend/domains/feedback/` o integrato in `support` / `audit`.
+- **Modello DB (`feedback_reports`)**:
+  - `id`: UUID / Integer PK
+  - `user_id`: FK verso `users.id` (indicizzato)
+  - `report_type`: `bug`, `visual`, `feature_request`, `crash`, `other`
+  - `severity`: `low`, `medium`, `high`, `critical`
+  - `title`: `VARCHAR(200)`
+  - `description`: `TEXT`
+  - `steps_to_reproduce`: `TEXT` (opzionale)
+  - `app_version`: `VARCHAR(30)` (es. `14.2.0`)
+  - `platform`: `VARCHAR(50)` (es. `android_apk`, `web_desktop`)
+  - `current_route`: `VARCHAR(200)`
+  - `error_context`: `JSON` (stacktrace, ultimo endpoint API fallito, status code)
+  - `screenshot_url`: `VARCHAR(500)` (opzionale, file in `/uploads/...`)
+  - `status`: `new`, `in_progress`, `resolved`, `dismissed`
+  - `admin_notes`: `TEXT` (note interne amministratore)
+  - `created_at`, `updated_at`, `resolved_at`: Timestamp UTC
+- **Endpoint HTTP**:
+  - `POST /api/feedback/reports`: Invio segnalazione da parte dell'utente autenticato.
+  - `GET /api/feedback/reports`: Elenco di tutte le segnalazioni con filtri per stato/versione/gravità (riservato SuperUser).
+  - `PATCH /api/feedback/reports/{id}`: Modifica dello stato (es. da `new` a `resolved`) e note admin (riservato SuperUser).
+  - `GET /api/feedback/my-reports`: Elenco delle proprie segnalazioni per verificare lo stato di presa in carico.
+
+#### 🎛️ 3. Gestione nel Pannello Amministratore (`/admin`) & Notifiche
+- **Bacheca Feedback in `/admin`**: Nuova tab nel pannello SuperUser per consultare l'elenco dei report, ordinati per gravità e data, visualizzare screenshot e log allegati, e segnare le segnalazioni come risolte.
+- **Notifica In-App per Amministratori**: Creazione di una notifica interna per il SuperUser all'arrivo di segnalazioni ad alta priorità o crash.
+
+---
+
 ## 🧠 5. Ricerca, Studio di Fattibilità & Integrazione AI (Intelligenza Artificiale)
 
 ### [AI-001] Assistente Intelligente, Voice-to-Action & Automazioni LLM
@@ -389,7 +534,8 @@ Studio di fattibilità, analisi delle architetture e prototipazione per integrar
 - [ ] **Stima Totale Spesa Intelligente**: Calcolo del costo stimato del carrello prima della spesa basato sullo storico prezzi dei fornitori abituali.
 
 ### 🌐 6.4 Integrazioni & Arricchimento Dati Automatico
-- [ ] **Integrazione API Esterne per Media**: Ricerca automatica di copertine, trame e metadati per libri (OpenLibrary/Google Books) e film/serie TV (TMDB).
+- [ ] **Integrazione API Esterne per Media**: Ricerca automatica di copertine, trame, autori e metadati per libri (Google Books API, Open Library, Hardcover) e film/serie TV (TMDB).
+- [ ] **Sincronizzazione Feed RSS Goodreads**: Import automatico monodirezionale periodico dei libri (`to-read`, `currently-reading`, `read`) dal Feed RSS pubblico utente.
 - [ ] **Anteprime Link Web (OpenGraph)**: Generazione automatica di titolo, immagine di anteprima e descrizione per i siti salvati nella sezione "Liste".
 
 ---
