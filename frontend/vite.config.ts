@@ -28,6 +28,7 @@ export default defineConfig({
       '/analytics': 'http://127.0.0.1:8000',
       '/admin': 'http://127.0.0.1:8000',
       '/planning': 'http://127.0.0.1:8000',
+      '/daily-entries': 'http://127.0.0.1:8000',
       '/countdowns': 'http://127.0.0.1:8000',
       '/habits': 'http://127.0.0.1:8000',
       '/habit-log': 'http://127.0.0.1:8000',

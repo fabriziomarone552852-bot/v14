@@ -1,6 +1,6 @@
 # Script di build ed export per NAS QNAP (Eseguire su PC Windows)
 Write-Host "===========================================================" -ForegroundColor Cyan
-Write-Host " 🚀 Avvio Build Docker per NAS QNAP (Smart Agenda VxAme14) " -ForegroundColor Cyan
+Write-Host "  Avvio Build Docker per NAS QNAP (Smart Agenda VxAme14)   " -ForegroundColor Cyan
 Write-Host "===========================================================" -ForegroundColor Cyan
 
 # 0. Auto-finalizzazione dello stato changelog (se in sviluppo/bozza)
@@ -18,7 +18,7 @@ if (Test-Path $changelogPath) {
 Write-Host "`n[1/4] Build immagine Backend Python/FastAPI..." -ForegroundColor Yellow
 docker build -t vxame14_backend:latest -f Dockerfile.backend .
 if ($LASTEXITCODE -ne 0) {
-    Write-Host "❌ Errore durante il build del Backend!" -ForegroundColor Red
+    Write-Host "[ERRORE] Errore durante il build del Backend!" -ForegroundColor Red
     exit 1
 }
 
@@ -26,7 +26,7 @@ if ($LASTEXITCODE -ne 0) {
 Write-Host "`n[2/4] Build immagine Frontend React/Nginx..." -ForegroundColor Yellow
 docker build -t vxame14_frontend:latest -f frontend/Dockerfile frontend/
 if ($LASTEXITCODE -ne 0) {
-    Write-Host "❌ Errore durante il build del Frontend!" -ForegroundColor Red
+    Write-Host "[ERRORE] Errore durante il build del Frontend!" -ForegroundColor Red
     exit 1
 }
 
@@ -39,9 +39,9 @@ Write-Host "`n[4/4] Esportazione immagine Frontend in vxame14_frontend.tar..." -
 docker save -o vxame14_frontend.tar vxame14_frontend:latest
 
 Write-Host "`n===========================================================" -ForegroundColor Green
-Write-Host " ✅ Build ed esportazione completati con successo!" -ForegroundColor Green
-Write-Host " 📁 File generati nella cartella del progetto:" -ForegroundColor Green
+Write-Host " [OK] Build ed esportazione completati con successo!" -ForegroundColor Green
+Write-Host " File generati nella cartella del progetto:" -ForegroundColor Green
 Write-Host "    - vxame14_backend.tar" -ForegroundColor White
 Write-Host "    - vxame14_frontend.tar" -ForegroundColor White
-Write-Host " 👉 Ora copia i file sul NAS ed esegui: sh deploy_nas.sh" -ForegroundColor Cyan
+Write-Host " -> Ora copia i file sul NAS ed esegui: sh deploy_nas.sh" -ForegroundColor Cyan
 Write-Host "===========================================================" -ForegroundColor Green
