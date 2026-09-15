@@ -1,7 +1,7 @@
 {
   "name": "agenda-smart-frontend-react",
   "private": true,
-  "version": "14.2.0",
+  "version": "14.2.3",
   "type": "module",
   "scripts": {
     "dev": "vite",

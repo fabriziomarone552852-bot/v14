@@ -93,7 +93,7 @@ export const MobileQuickPriceItemCard: React.FC<MobileQuickPriceItemCardProps> =
             placeholder="0,00"
             value={item.price}
             onChange={(e) => {
-              const val = e.target.value.replace(/[^0-9.,]/g, '');
+              const val = e.target.value.replace(/[^0-9.,]/g, '').replace(/,/g, '.');
               onUpdateItem(item.id, 'price', val);
             }}
             className="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm font-bold focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"

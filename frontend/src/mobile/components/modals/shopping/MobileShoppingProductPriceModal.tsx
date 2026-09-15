@@ -1,14 +1,16 @@
-// src/mobile/components/modals/shopping/MobileShoppingProductPriceModal.tsx
-import React from 'react';
+import React, { useState } from 'react';
 import MobileBaseModal from '../MobileBaseModal';
 import { TagIcon, CalendarIcon } from '@/components/shared/utils/Icons';
 import type { ProductPriceSummary } from '@/components/archive/shopping/ShoppingPriceTableRow';
+import type { ItemBatchRecord } from '@/types/shopping';
 import LookbackUnitSelect, { type LookbackUnit } from '@/components/shared/shopping/LookbackUnitSelect';
 import {
   useMobileProductPriceStats,
   MobileProductPriceSummaryCards,
   MobileProductPriceBatchesList,
 } from './price';
+import ShoppingEditBatchModal from '@/components/archive/shopping/price/ShoppingEditBatchModal';
+import { useShoppingMutations } from '@/hooks/shopping/useShoppingMutations';
 
 export type { LookbackUnit };
 
@@ -25,6 +27,9 @@ export const MobileShoppingProductPriceModal: React.FC<MobileShoppingProductPric
   productSummary,
   zIndexClass = 'z-[10010]',
 }) => {
+  const mutations = useShoppingMutations();
+  const [editingBatch, setEditingBatch] = useState<ItemBatchRecord | null>(null);
+
   const {
     lookbackValue,
     setLookbackValue,
@@ -109,7 +114,36 @@ export const MobileShoppingProductPriceModal: React.FC<MobileShoppingProductPric
           personalBatches={personalBatches}
           communityPrices={communityPrices}
           isLoadingCommunity={isLoadingCommunity}
+          onEditBatch={(b) => setEditingBatch(b)}
+          onDeleteBatch={async (batchId) => {
+            await mutations.deleteInventoryBatch({
+              batchId,
+              listId: 0,
+            });
+          }}
         />
+
+        {/* Modale Modifica/Eliminazione Rilevazione Prezzo */}
+        {editingBatch && (
+          <ShoppingEditBatchModal
+            isOpen={Boolean(editingBatch)}
+            batch={editingBatch}
+            onClose={() => setEditingBatch(null)}
+            onSave={async (batchId, data) => {
+              await mutations.updateInventoryBatch({
+                batchId,
+                listId: 0,
+                data: {
+                  purchasePrice: data.purchasePrice,
+                  purchaseDate: data.purchaseDate,
+                  quantity: data.quantityPurchased,
+                  supplierId: data.supplierId,
+                  isOnSale: data.isOnSale,
+                },
+              });
+            }}
+          />
+        )}
       </div>
     </MobileBaseModal>
   );

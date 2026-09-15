@@ -347,6 +347,19 @@ def _parse_google_datetime(dt_str: str, default_tz_name: str = "Europe/Rome") ->
     return parsed
 
 
+def _format_datetime_with_tz(dt: datetime, tz_name: str = "Europe/Rome") -> str:
+    """Restituisce la data/ora formattata RFC3339 con l'offset del fuso orario corretto (es. +02:00 / +01:00)."""
+    try:
+        tz = ZoneInfo(tz_name)
+    except Exception:
+        tz = ZoneInfo("Europe/Rome")
+
+    # In Smart Agenda, i datetime rappresentano l'orario locale (wall-clock)
+    naive_dt = dt.replace(tzinfo=None)
+    localized = naive_dt.replace(tzinfo=tz)
+    return localized.isoformat()
+
+
 def _format_event_payload(event: Event, time_zone: str = "Europe/Rome") -> dict[str, Any]:
     """Costruisce il payload JSON per l'evento su Google Calendar v3."""
     payload: dict[str, Any] = {
@@ -368,21 +381,22 @@ def _format_event_payload(event: Event, time_zone: str = "Europe/Rome") -> dict[
         payload["start"] = {"date": start_date_str}
         payload["end"] = {"date": end_date_str}
     else:
-        # Eventi con orario: formattiamo come stringa locale naive e specifichiamo il timeZone esplicito
-        start_dt_str = event.data_inizio.strftime("%Y-%m-%dT%H:%M:%S")
+        # Eventi con orario: formattiamo come stringa ISO locale naive (senza offset Z o +02:00)
+        # e passiamo il timeZone esplicito. Questo impedisce a Google Calendar di applicare due volte l'offset (+2h).
+        start_dt_str = event.data_inizio.replace(tzinfo=None).strftime("%Y-%m-%dT%H:%M:%S")
         payload["start"] = {
             "dateTime": start_dt_str,
             "timeZone": time_zone,
         }
         if event.data_fine:
-            end_dt_str = event.data_fine.strftime("%Y-%m-%dT%H:%M:%S")
+            end_dt_str = event.data_fine.replace(tzinfo=None).strftime("%Y-%m-%dT%H:%M:%S")
             payload["end"] = {
                 "dateTime": end_dt_str,
                 "timeZone": time_zone,
             }
         else:
             # Default: 1 ora dopo
-            end_dt_str = (event.data_inizio + timedelta(hours=1)).strftime("%Y-%m-%dT%H:%M:%S")
+            end_dt_str = (event.data_inizio + timedelta(hours=1)).replace(tzinfo=None).strftime("%Y-%m-%dT%H:%M:%S")
             payload["end"] = {
                 "dateTime": end_dt_str,
                 "timeZone": time_zone,

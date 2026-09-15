@@ -73,7 +73,7 @@ export const QuickPriceRowItem: React.FC<QuickPriceRowItemProps> = ({
           type="text"
           inputMode="decimal"
           value={row.price}
-          onChange={(e) => onUpdateRow(row.id, 'price', e.target.value)}
+          onChange={(e) => onUpdateRow(row.id, 'price', e.target.value.replace(/[^0-9.,]/g, '').replace(/,/g, '.'))}
           placeholder="0.00"
           className="w-full px-2.5 py-2 border border-gray-200 rounded-xl text-xs font-bold text-slate-800 focus:outline-none focus:border-blue-500 bg-white"
         />

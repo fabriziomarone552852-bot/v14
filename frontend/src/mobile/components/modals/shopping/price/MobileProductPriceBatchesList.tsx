@@ -1,6 +1,5 @@
-// src/mobile/components/modals/shopping/price/MobileProductPriceBatchesList.tsx
 import React from 'react';
-import { ShoppingIcon, StoreIcon } from '@/components/shared/utils/Icons';
+import { ShoppingIcon, StoreIcon, EditIcon, TrashIcon } from '@/components/shared/utils/Icons';
 import { formatUnitForQuantity } from '@/components/shared/shopping/ShoppingUnitSelect';
 import { formatToItalianShortDate } from '@/utils/dateUtils';
 import type { ItemBatchRecord, CommunityPriceRecord } from '@/types/shopping';
@@ -12,6 +11,8 @@ export interface MobileProductPriceBatchesListProps {
   personalBatches: ItemBatchRecord[];
   communityPrices: CommunityPriceRecord[];
   isLoadingCommunity: boolean;
+  onEditBatch?: (batch: ItemBatchRecord) => void;
+  onDeleteBatch?: (batchId: number) => void;
 }
 
 export const MobileProductPriceBatchesList: React.FC<MobileProductPriceBatchesListProps> = ({
@@ -20,6 +21,8 @@ export const MobileProductPriceBatchesList: React.FC<MobileProductPriceBatchesLi
   personalBatches,
   communityPrices,
   isLoadingCommunity,
+  onEditBatch,
+  onDeleteBatch,
 }) => {
   return (
     <div className="space-y-2">
@@ -69,9 +72,35 @@ export const MobileProductPriceBatchesList: React.FC<MobileProductPriceBatchesLi
                       <ShoppingIcon className="w-3 h-3 text-blue-500 shrink-0" />
                       <span className="truncate">{b.listName || 'Senza Lista'}</span>
                     </span>
-                    <span className="text-[10px] text-gray-400 font-normal shrink-0">
-                      {formatToItalianShortDate(b.purchaseDate)}
-                    </span>
+                    <div className="flex items-center gap-2 shrink-0">
+                      <span className="text-[10px] text-gray-400 font-normal">
+                        {formatToItalianShortDate(b.purchaseDate)}
+                      </span>
+                      {onEditBatch && (
+                        <button
+                          type="button"
+                          onClick={() => onEditBatch(b)}
+                          className="p-1 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors cursor-pointer"
+                          title="Modifica rilevazione"
+                        >
+                          <EditIcon className="w-3.5 h-3.5" />
+                        </button>
+                      )}
+                      {onDeleteBatch && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (window.confirm('Sei sicuro di voler eliminare questa rilevazione di prezzo?')) {
+                              onDeleteBatch(b.id);
+                            }
+                          }}
+                          className="p-1 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors cursor-pointer"
+                          title="Elimina rilevazione"
+                        >
+                          <TrashIcon className="w-3.5 h-3.5" />
+                        </button>
+                      )}
+                    </div>
                   </div>
 
                   <div className="flex items-center justify-between gap-2">

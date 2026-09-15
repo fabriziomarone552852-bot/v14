@@ -1,6 +1,5 @@
-// src/components/archive/shopping/price/ProductPriceSidePanel.tsx
 import React from 'react';
-import { TagIcon, StoreIcon } from '@/components/shared/utils/Icons';
+import { TagIcon, StoreIcon, EditIcon, TrashIcon } from '@/components/shared/utils/Icons';
 import { formatToItalianShortDate } from '@/utils/dateUtils';
 import type { CommunityPriceRecord, ItemBatchRecord } from '@/types/shopping';
 import type { PriceSourceTab } from './useProductPriceModalStats';
@@ -11,6 +10,8 @@ export interface ProductPriceSidePanelProps {
   personalBatches: ItemBatchRecord[];
   communityPrices: CommunityPriceRecord[];
   isLoadingCommunity: boolean;
+  onEditBatch?: (batch: ItemBatchRecord) => void;
+  onDeleteBatch?: (batchId: number) => void;
 }
 
 export const ProductPriceSidePanel: React.FC<ProductPriceSidePanelProps> = ({
@@ -19,6 +20,8 @@ export const ProductPriceSidePanel: React.FC<ProductPriceSidePanelProps> = ({
   personalBatches,
   communityPrices,
   isLoadingCommunity,
+  onEditBatch,
+  onDeleteBatch,
 }) => {
   return (
     <div className="bg-white rounded-2xl shadow-2xl p-5 border border-gray-100 flex flex-col h-full w-full text-xs overflow-hidden">
@@ -74,12 +77,38 @@ export const ProductPriceSidePanel: React.FC<ProductPriceSidePanelProps> = ({
                   <span className="font-extrabold text-sm text-gray-900">
                     {b.purchasePrice != null ? `${b.purchasePrice.toFixed(2)} €` : 'Prezzo N/D'}
                   </span>
-                  {b.isOnSale && (
-                    <span className="inline-flex items-center gap-1 text-[10px] font-bold px-1.5 py-0.5 rounded bg-amber-100 text-amber-800">
-                      <TagIcon className="w-3 h-3 text-amber-600" />
-                      Offerta
-                    </span>
-                  )}
+                  <div className="flex items-center gap-1.5">
+                    {b.isOnSale && (
+                      <span className="inline-flex items-center gap-1 text-[10px] font-bold px-1.5 py-0.5 rounded bg-amber-100 text-amber-800">
+                        <TagIcon className="w-3 h-3 text-amber-600" />
+                        Offerta
+                      </span>
+                    )}
+                    {onEditBatch && (
+                      <button
+                        type="button"
+                        onClick={() => onEditBatch(b)}
+                        className="p-1 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors cursor-pointer"
+                        title="Modifica rilevazione"
+                      >
+                        <EditIcon className="w-3.5 h-3.5" />
+                      </button>
+                    )}
+                    {onDeleteBatch && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (window.confirm('Sei sicuro di voler eliminare questa rilevazione di prezzo?')) {
+                            onDeleteBatch(b.id);
+                          }
+                        }}
+                        className="p-1 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors cursor-pointer"
+                        title="Elimina rilevazione"
+                      >
+                        <TrashIcon className="w-3.5 h-3.5" />
+                      </button>
+                    )}
+                  </div>
                 </div>
 
                 <div className="flex items-center justify-between text-gray-500 text-[11px]">

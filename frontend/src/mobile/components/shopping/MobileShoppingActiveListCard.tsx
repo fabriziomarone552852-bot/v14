@@ -3,7 +3,7 @@ import React from 'react';
 import { ShoppingItemRow, PurchasedShoppingItemRow } from './MobileShoppingItemRows';
 import { MobileShoppingQuickAddBar } from './MobileShoppingQuickAddBar';
 import { MobileShoppingNoListEmptyState } from './MobileShoppingNoListEmptyState';
-import type { ConfigOption, ShoppingListItem, ShoppingListSummary } from '@/types/shopping';
+import type { ConfigOption, ShoppingListItem, ShoppingListSummary, ShoppingProductOption } from '@/types/shopping';
 import type { useShoppingItemsColumn } from '@/components/shared/shopping/useShoppingItemsColumn';
 
 export interface MobileShoppingActiveListCardProps {
@@ -12,6 +12,7 @@ export interface MobileShoppingActiveListCardProps {
   canCreateItem: boolean;
   columnLogic: ReturnType<typeof useShoppingItemsColumn>;
   unitOptions: ConfigOption[];
+  products?: ShoppingProductOption[];
   openItems: ShoppingListItem[];
   purchasedItems: ShoppingListItem[];
   isShoppingItemsSelection: boolean;
@@ -27,6 +28,7 @@ export const MobileShoppingActiveListCard: React.FC<MobileShoppingActiveListCard
   canCreateItem,
   columnLogic,
   unitOptions,
+  products = [],
   openItems,
   purchasedItems,
   isShoppingItemsSelection,
@@ -49,6 +51,7 @@ export const MobileShoppingActiveListCard: React.FC<MobileShoppingActiveListCard
             <MobileShoppingQuickAddBar
               columnLogic={columnLogic}
               unitOptions={unitOptions}
+              products={products}
             />
           )}
 

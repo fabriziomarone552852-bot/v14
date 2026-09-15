@@ -87,6 +87,7 @@ export const MobileShoppingView: React.FC = () => {
         canCreateItem={canCreateItem}
         columnLogic={columnLogic}
         unitOptions={unitOptions}
+        products={products}
         openItems={openItems}
         purchasedItems={purchasedItems}
         isShoppingItemsSelection={isShoppingItemsSelection}

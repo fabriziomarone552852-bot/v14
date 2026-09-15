@@ -7,7 +7,7 @@ import unicodedata
 from datetime import date, datetime, timezone
 from typing import List, Optional
 
-from sqlalchemy import or_
+from sqlalchemy import func, or_
 from sqlalchemy.orm import Session, selectinload, with_loader_criteria
 
 from backend.domains.config import ConfigCode
@@ -262,10 +262,16 @@ def find_user_by_username_or_email(
     email: Optional[str] = None,
 ) -> Optional[User]:
     query = db.query(User)
-    if username:
-        return query.filter(User.username == username).first()
-    if email:
-        return query.filter(User.email == email.lower()).first()
+    if username and username.strip():
+        u_clean = username.strip().lower()
+        found = query.filter(func.lower(User.username) == u_clean).first()
+        if found:
+            return found
+    if email and email.strip():
+        e_clean = email.strip().lower()
+        found = query.filter(func.lower(User.email) == e_clean).first()
+        if found:
+            return found
     return None
 
 
@@ -793,6 +799,7 @@ def list_batches_for_item(
                 (ShoppingListItem.deleted_at.is_(None) & ShoppingList.deleted_at.is_(None)),
             ),
             or_(
+                InventoryBatch.list_item_id.is_(None),
                 InventoryBatch.created_by_user_id == user_id,
                 InventoryBatch.purchased_by_user_id == user_id,
                 ShoppingList.owner_id == user_id,
@@ -887,8 +894,8 @@ def list_community_prices_for_product(
 def get_batch(db: Session, batch_id: int, user_id: int) -> Optional[InventoryBatch]:
     return (
         db.query(InventoryBatch)
-        .join(ShoppingListItem, ShoppingListItem.id == InventoryBatch.list_item_id)
-        .join(ShoppingList, ShoppingList.id == ShoppingListItem.shopping_list_id)
+        .outerjoin(ShoppingListItem, ShoppingListItem.id == InventoryBatch.list_item_id)
+        .outerjoin(ShoppingList, ShoppingList.id == ShoppingListItem.shopping_list_id)
         .outerjoin(ShoppingGroup, ShoppingList.group_id == ShoppingGroup.id)
         .outerjoin(
             ShoppingGroupMember,
@@ -899,9 +906,13 @@ def get_batch(db: Session, batch_id: int, user_id: int) -> Optional[InventoryBat
         .filter(
             InventoryBatch.id == batch_id,
             InventoryBatch.deleted_at.is_(None),
-            ShoppingListItem.deleted_at.is_(None),
-            ShoppingList.deleted_at.is_(None),
             or_(
+                ShoppingListItem.id.is_(None),
+                (ShoppingListItem.deleted_at.is_(None) & ShoppingList.deleted_at.is_(None)),
+            ),
+            or_(
+                InventoryBatch.created_by_user_id == user_id,
+                InventoryBatch.purchased_by_user_id == user_id,
                 ShoppingList.owner_id == user_id,
                 ShoppingGroup.owner_id == user_id,
                 ShoppingGroupMember.user_id == user_id,

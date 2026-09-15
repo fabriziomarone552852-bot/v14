@@ -49,20 +49,9 @@ export const ShoppingGroupAccordionSection: React.FC<ShoppingGroupAccordionSecti
             {groupIcon}
           </div>
           <div className="min-w-0 flex-1">
-            <div className="flex items-center gap-1.5 min-w-0">
-              <p className="truncate text-sm font-bold text-gray-800 min-w-0 flex-1" title={group.name}>
-                {group.name}
-              </p>
-              {group.userRole && (
-                <span
-                  className={`text-[9px] font-bold px-1.5 py-0.2 rounded border uppercase shrink-0 ${getRoleBadgeClass(
-                    group.userRole
-                  )}`}
-                >
-                  {group.userRole}
-                </span>
-              )}
-            </div>
+            <p className="truncate text-sm font-bold text-gray-800" title={group.name}>
+              {group.name}
+            </p>
             <p className="truncate text-xs text-gray-400">
               {group.description || 'Gruppo condiviso'}
             </p>
@@ -70,10 +59,21 @@ export const ShoppingGroupAccordionSection: React.FC<ShoppingGroupAccordionSecti
         </div>
 
         <div className="flex items-center gap-2 shrink-0">
-          <span className="text-xs font-semibold px-2.5 py-1 rounded-lg bg-gray-100 text-gray-600 border border-gray-200">
-            {openListsCount} {openListsCount === 1 ? 'lista aperta' : 'liste aperte'}
-          </span>
-          
+          <div className="flex flex-col items-end gap-1">
+            {group.userRole && (
+              <span
+                className={`text-[9px] font-bold px-1.5 py-0.5 rounded border uppercase shrink-0 ${getRoleBadgeClass(
+                  group.userRole
+                )}`}
+              >
+                {group.userRole}
+              </span>
+            )}
+            <span className="text-xs font-semibold px-2 py-0.5 rounded-lg bg-gray-100 text-gray-600 border border-gray-200">
+              {openListsCount} {openListsCount === 1 ? 'lista aperta' : 'liste aperte'}
+            </span>
+          </div>
+
           <button
             type="button"
             onClick={onToggleExpanded}

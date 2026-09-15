@@ -1,14 +1,16 @@
-// src/components/archive/shopping/ShoppingProductPriceModal.tsx
-import React from 'react';
+import React, { useState } from 'react';
 import BaseModal from '@/components/shared/dialog/BaseModal';
 import { TagIcon, ShoppingIcon } from '@/components/shared/utils/Icons';
 import type { ProductPriceSummary } from './ShoppingPriceTableRow';
+import type { ItemBatchRecord } from '@/types/shopping';
 import LookbackUnitSelect, { type LookbackUnit } from '@/components/shared/shopping/LookbackUnitSelect';
 import {
   useProductPriceModalStats,
   ProductPriceSummaryCards,
   ProductPriceSidePanel,
 } from './price';
+import ShoppingEditBatchModal from './price/ShoppingEditBatchModal';
+import { useShoppingMutations } from '@/hooks/shopping/useShoppingMutations';
 
 export type { LookbackUnit };
 
@@ -23,6 +25,9 @@ export const ShoppingProductPriceModal: React.FC<ShoppingProductPriceModalProps>
   onClose,
   productSummary,
 }) => {
+  const mutations = useShoppingMutations();
+  const [editingBatch, setEditingBatch] = useState<ItemBatchRecord | null>(null);
+
   const {
     lookbackValue,
     setLookbackValue,
@@ -51,6 +56,10 @@ export const ShoppingProductPriceModal: React.FC<ShoppingProductPriceModalProps>
       personalBatches={personalBatches}
       communityPrices={communityPrices}
       isLoadingCommunity={isLoadingCommunity}
+      onEditBatch={(b) => setEditingBatch(b)}
+      onDeleteBatch={async (batchId) => {
+        await mutations.deleteInventoryBatch({ batchId, listId: 0 });
+      }}
     />
   );
 
@@ -111,6 +120,34 @@ export const ShoppingProductPriceModal: React.FC<ShoppingProductPriceModalProps>
           commonUnitDisplay={commonUnitDisplay}
           currency="€"
         />
+
+        {/* Modale Modifica/Eliminazione Rilevazione Prezzo */}
+        {editingBatch && (
+          <ShoppingEditBatchModal
+            isOpen={Boolean(editingBatch)}
+            batch={editingBatch}
+            onClose={() => setEditingBatch(null)}
+            onSave={async (batchId, data) => {
+              await mutations.updateInventoryBatch({
+                batchId,
+                listId: 0,
+                data: {
+                  purchasePrice: data.purchasePrice,
+                  purchaseDate: data.purchaseDate,
+                  quantity: data.quantityPurchased,
+                  supplierId: data.supplierId,
+                  isOnSale: data.isOnSale,
+                },
+              });
+            }}
+            onDelete={async (batchId) => {
+              await mutations.deleteInventoryBatch({
+                batchId,
+                listId: 0,
+              });
+            }}
+          />
+        )}
       </div>
     </BaseModal>
   );

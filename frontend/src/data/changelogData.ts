@@ -15,11 +15,64 @@ export interface ChangelogItem {
 
 export const CHANGELOG_HISTORY: ChangelogItem[] = [
   {
+    id: 'v14.2.3',
+    version: '14.2.3',
+    date: 'Settembre 2026',
+    title: 'Miglioramenti Inserimento Rapido Prezzi (Mobile & Desktop), Prezzi SEED e Gestione Gruppi',
+    isLatest: true,
+    published: true,
+    highlights: [
+      'Aggiunto il suggerimento autocomplete in tempo reale nella barra di aggiunta rapida della spesa su mobile.',
+      'Rettificata la visibilità dei prezzi SEED e di catalogo nello storico prezzi dei prodotti per tutti gli utenti.',
+      'Standardizzazione del prezzo: auto-conversione della virgola in punto nei campi prezzo su mobile e desktop.',
+    ],
+    features: [
+      'Aggiunta la possibilità di modificare ed eliminare le rilevazioni di prezzo personali dal modale dettaglio dell\'archivio prezzi.',
+      'Aggiunto l\'icona "+" nell\'intestazione della colonna Negozio per creare al volo supermercati dal modale di inserimento rapido prezzi su desktop.',
+    ],
+    improvements: [
+      'Riorganizzato il badge del ruolo (Owner, Admin, Editor) nella lista gruppi spesa desktop, posizionandolo sopra il conteggio delle liste aperte su due righe.',
+    ],
+    fixes: [
+      'Risolto l\'errore "Lotto/Acquisto non trovato" durante la modifica o eliminazione di prezzi registrati da inserimento rapido o senza lista (sostituite le inner join con outerjoin in repo.get_batch).',
+      'Integrato il DatePicker dell\'applicazione e la select standard dei negozi (`ShoppingSupplierSelect`) con caricamento automatico nel modale di modifica del prezzo (`ShoppingEditBatchModal`).',
+      'Risolto il problema della schermata nera con "{"detail":"Not Found"}" al cambio scheda Chrome/focus finestra: aggiunta la gestione del bypass HTML per le rotte React Router in Vite dev proxy e Nginx.',
+      'Resa case-insensitive la ricerca e l\'aggiunta dei membri nei gruppi della spesa (es. "Marcello" equivale a "marcello").',
+      'Risolto il problema di Z-Index su mobile per il modale di selezione e creazione negozio nell\'aggiunta rapida dei prezzi.',
+      'Ottimizzato il layout del modale inserimento rapido prezzi su desktop: eliminata la scrollbar orizzontale ed ampliato il campo quantità per accogliere numeri a 3+ cifre.',
+    ],
+  },
+  {
+    id: 'v14.2.2',
+    version: '14.2.2',
+    date: 'Settembre 2026',
+    title: 'Ottimizzazione del Contesto Build Docker & Fix Crash Daemon Linux Engine',
+    published: true,
+    highlights: [
+      'Introdotto .dockerignore nella radice del progetto per escludere file d\'archivio (.tar), venv e dipendenze dal contesto inviato a Docker Desktop.',
+    ],
+    fixes: [
+      'Risolto il crash del demone Docker Desktop (500 Internal Server Error per dockerDesktopLinuxEngine) causato dal caricamento di oltre 4.5 GB di contesto durante il secondo deploy.',
+    ],
+  },
+  {
+    id: 'v14.2.1',
+    version: '14.2.1',
+    date: 'Settembre 2026',
+    title: 'Fix Definitivo Sincronizzazione Orari Google Calendar (Prevenzione Doppio Offset)',
+    published: true,
+    highlights: [
+      'Eliminata la doppia applicazione del fuso orario (+2h) su Google Calendar allineando la trasmissione al formato nativo di Google API v3.',
+    ],
+    fixes: [
+      'Rimossa la combinazione conflittuale dell\'offset UTC (+02:00) con la proprietà timeZone nei payload per Google Calendar, risolvendo definitivamente lo slittamento di 2 ore nell\'orario degli impegni.',
+    ],
+  },
+  {
     id: 'v14.2.0',
     version: '14.2.0',
     date: 'Settembre 2026',
     title: 'Upload Foto da Dispositivo, Caching Immagini Locale & Ottimizzazione WebP',
-    isLatest: true,
     published: true,
     highlights: [
       'Modalità Offline-First con caching locale su IndexedDB (TanStack Query Persist) e sincronizzazione automatica delle modifiche (Outbox Pattern).',
@@ -185,5 +238,9 @@ export const CHANGELOG_HISTORY: ChangelogItem[] = [
 export const APP_VERSION: string = CHANGELOG_HISTORY[0].version;
 export const APP_VERSION_NAME: string = `v${APP_VERSION}`;
 export const APP_LAST_UPDATE: string = CHANGELOG_HISTORY[0].date;
+
+
+
+
 
 

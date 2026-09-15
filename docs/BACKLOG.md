@@ -26,8 +26,9 @@ Questo documento serve a tracciare in modo strutturato:
 | **FEAT-009** | **Restyling & Rifinitura Grafica Schermate SuperUser (Admin Panel)** | `admin` / UI | 🟢 Supportato | 🔴 Da Implementare | 🟠 **Alta** |
 | **FEAT-010** | **Database & Sincronizzazione Centralizzata Citazioni Giornaliere (Quotes)** | `core` / quotes | 🔴 Da Implementare | 🔴 Da Implementare | Media |
 | **AI-001** | **Studio & Integrazione Intelligenza Artificiale (AI)** | `ai` / assistant | 🔴 Da Analizzare | 🔴 Da Analizzare | 🟠 **Alta (Ricerca & Prototipo)** |
+| **FEAT-011** | **Sezione Lavoro & Gestione Turni di Lavoro** | `work` / `shifts` | 🔴 Da Definire | 🔴 Da Definire | 🟠 **Alta (Punto da definire con Daniela)** |
 | **FEAT-001** | Liste Spesa: Preferite & Pinnate (`pin_status`) | `shopping` | 🟢 Completato | 🔴 Da Implementare | Media-Alta |
-| **FEAT-002** | Gestione Inventario Spesa & Lotti (`inventory_batches`) | `shopping` | 🟢 Completato | 🟡 Parziale | Media |
+| **FEAT-002** | Gestione Inventario Spesa, Inserimento Prezzi & Lotti (`inventory_batches`) | `shopping` | 🟢 Completato | 🟢 Completato | 🟢 **Completato** |
 | **FEAT-003** | **Dashboard Analytics & Storico Prezzi** | `analytics` | 🟢 Completato | 🔴 Da Implementare | Bassa |
 | **UI-001** | **Selezione Multipla nella Versione Mobile** | `mobile` / UI | 🟢 Completato | 🟢 Completato | 🟢 **Completato** |
 | **TECH-001** | **Verifica & Ottimizzazione Bundle APK Android (Code-Splitting)** | `build` / APK | N/A | 🟢 Completato | Media |
@@ -87,19 +88,22 @@ Content-Type: application/json
 
 ---
 
-### [FEAT-002] Gestione Avanzata Inventario & Lotti Articoli Spesa
+### [FEAT-002] Gestione Avanzata Inventario, Prezzi Rapidi & Lotti Spesa (✅ Completato)
 
 #### 📝 Descrizione
-Il backend supporta la gestione dettagliata di inventario con scadenze, lotti e quantità residue per articolo spesa (`inventory_batches`).
+Modulo completo per l'inserimento rapido dei prezzi a catalogo, tracciamento storico prezzi (SEED & utente), modifica ed eliminazione rilevazioni personali e selezione/creazione supermercati.
 
-#### ⚙️ Dettagli Implementazione Backend
-- **Dominio**: `backend/domains/shopping/` (`models/inventory.py`, `schemas/inventory.py`, `routes/inventory.py`)
-- **Modelli**: `InventoryBatch`, `ShoppingProduct`, `ShoppingSupplier`
-- **Funzionalità**: Tracciamento data di scadenza (`expiration_date`), data di acquisto, quantità residua, fornitore e prezzo unitario.
-
-#### 🎨 Cosa Manca da Implementare nel Frontend
-- Interfaccia dedicata per inserire la data di scadenza e il prezzo all'atto della spunta di un articolo acquistato.
-- Vista o alert visivo per i prodotti in scadenza nel frigorifero/dispensa.
+#### ⚙️ Dettagli Implementazione & Funzionalità Raggiunte
+- **Autocomplete Spesa Mobile**: Suggerimenti in tempo reale nella barra di aggiunta rapida della spesa su mobile.
+- **Visualizzazione Prezzi SEED**: Rettificata la visibilità dei prezzi SEED e di catalogo nello storico prezzi dei prodotti per tutti gli utenti.
+- **Conversione Decimale Prezzi**: Auto-conversione al volo della virgola `,` in punto `.` nei campi prezzo su mobile e desktop.
+- **Modifica ed Eliminazione Rilevazioni**: Modale dedicato `ShoppingEditBatchModal` ed icona cestino affiancata alla matita nello storico prezzi.
+- **DatePicker & Menu Negozi Standard**: Integrato il `DatePicker` dell'applicazione ed il componente `ShoppingSupplierSelect` (con auto-fetch dei negozi) nel modale di modifica del prezzo.
+- **Portal Overlay ed Eliminazione Scrollbar**: Renderizzato `ShoppingSupplierSelect` tramite React Portal su `document.body` (`usePortal=true`) con posizionamento sincrono per evitare che la lista estenda l'altezza dei modali causando la comparsa della scrollbar laterale.
+- **Centratura Overlay su Mobile**: Configurati `DatePicker` (`overlay={isMobile}`) e `ShoppingSupplierSelect` (`asModal={isMobile}`) per aprirsi come finestre modali modellate al centro dello schermo su dispositivi mobile.
+- **Inserimento Rapido Prezzi Desktop**: Modale espanso `max-w-5xl` senza scrollbar orizzontale, campo quantità fino a 3+ cifre e pulsante `+` nel titolo colonna Negozio.
+- **Fix Z-Index Negozio Mobile**: Modale di selezione e creazione negozio portati a `z-[20000]` per sovrapporsi correttamente alla modale rapida mobile.
+- **Invarianza Case-Insensitive Gruppi**: Invito membri nei gruppi spesa reso totalmente case-insensitive lato backend.
 
 ---
 
@@ -436,6 +440,19 @@ Studio e architettura di un sistema di connessione tra utenti (*Amicizie / Famil
 - Condivisione ricette preferite dal proprio Ricettario verso il ricettario di un amico.
 - Condivisione wishlist desideri per facilitare regali di compleanno, festività o occasioni speciali.
 - Condivisione collaborativa di liste tematiche (es. "Ristoranti consigliati", "Posti da visitare").
+
+---
+
+### [FEAT-011] Sezione Lavoro & Gestione Turni di Lavoro
+
+#### 📝 Descrizione
+Nuovo modulo dedicato alla gestione delle attività lavorative, tracciamento degli orari e organizzazione dei turni di lavoro.
+
+#### ❓ Punti da Definire & Note Operative
+- ⚠️ **Da chiedere a Daniela**: Pianificare un confronto con Daniela per stabilire i requisiti e l'impostazione ideale della sezione:
+  - Tipologia e modello dei turni (turni rotanti, riposi, orari spezzati, reperibilità, straordinari).
+  - Modalità di visualizzazione grafica (vista calendario turni dedicata, badge nei giorni dell'agenda o prospetto mensile).
+  - Tracciamento delle ore lavorate, note sui singoli turni e calcoli/statistiche periodiche.
 
 ---
 

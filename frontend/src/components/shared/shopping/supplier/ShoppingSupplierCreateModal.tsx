@@ -11,6 +11,7 @@ export interface ShoppingSupplierCreateModalProps {
   onClose: () => void;
   onSupplierCreated?: (newSupplier: ShoppingSupplierOption) => void;
   onSelectSupplier: (supplierIdStr: string) => void;
+  zIndexClass?: string;
 }
 
 export const ShoppingSupplierCreateModal: React.FC<ShoppingSupplierCreateModalProps> = ({
@@ -18,6 +19,7 @@ export const ShoppingSupplierCreateModal: React.FC<ShoppingSupplierCreateModalPr
   onClose,
   onSupplierCreated,
   onSelectSupplier,
+  zIndexClass = 'z-[20000]',
 }) => {
   const queryClient = useQueryClient();
   const [newSupplierName, setNewSupplierName] = useState('');
@@ -61,6 +63,7 @@ export const ShoppingSupplierCreateModal: React.FC<ShoppingSupplierCreateModalPr
     <BaseModal
       isOpen={isOpen}
       onClose={onClose}
+      zIndexClass={zIndexClass}
       title={
         <div className="flex items-center gap-2">
           <StoreIcon className="w-5 h-5 text-blue-600" />

@@ -5,6 +5,7 @@ Solo accesso ai dati, nessuna regola di business.
 
 from typing import List, Optional
 
+from sqlalchemy import func
 from sqlalchemy.orm import Session, joinedload
 
 from backend.domains.config import ConfigCode
@@ -176,10 +177,16 @@ def find_user_by_username_or_email(
     email: Optional[str] = None,
 ) -> Optional[User]:
     query = db.query(User)
-    if username:
-        return query.filter(User.username == username).first()
-    if email:
-        return query.filter(User.email == email.lower()).first()
+    if username and username.strip():
+        u_clean = username.strip().lower()
+        found = query.filter(func.lower(User.username) == u_clean).first()
+        if found:
+            return found
+    if email and email.strip():
+        e_clean = email.strip().lower()
+        found = query.filter(func.lower(User.email) == e_clean).first()
+        if found:
+            return found
     return None
 
 

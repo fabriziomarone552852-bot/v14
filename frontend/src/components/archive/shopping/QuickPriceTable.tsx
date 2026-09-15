@@ -18,6 +18,7 @@ export interface QuickPriceTableProps {
   onDatePickerToggle: (rowId: string | null) => void;
   onKeyDownOnLastField: (e: React.KeyboardEvent, rowIndex: number) => void;
   onAddRow: () => void;
+  onOpenSupplierCreateModal?: () => void;
 }
 
 export const QuickPriceTable: React.FC<QuickPriceTableProps> = ({
@@ -34,22 +35,37 @@ export const QuickPriceTable: React.FC<QuickPriceTableProps> = ({
   onDatePickerToggle,
   onKeyDownOnLastField,
   onAddRow,
+  onOpenSupplierCreateModal,
 }) => {
   return (
     <div className="border border-slate-200/90 rounded-2xl overflow-hidden bg-white shadow-2xs">
       <div className="overflow-x-auto max-h-[55vh] custom-scrollbar">
-        <table className="w-full text-left text-xs border-collapse min-w-[840px]">
+        <table className="w-full text-left text-xs border-collapse">
           <thead className="bg-slate-50 border-b border-slate-200 text-[11px] font-bold uppercase tracking-wider text-slate-500 sticky top-0 z-20">
             <tr>
-              <th className="py-2.5 px-3 min-w-[170px]">Prodotto</th>
-              <th className="py-2.5 px-3 min-w-[150px]">Brand / Marchio</th>
-              <th className="py-2.5 px-2.5 w-24">Prezzo</th>
-              <th className="py-2.5 px-2 w-16">Qtà</th>
-              <th className="py-2.5 px-2.5 min-w-[110px]">Unità</th>
-              <th className="py-2.5 px-2.5 min-w-[140px]">Data</th>
-              <th className="py-2.5 px-2.5 min-w-[140px]">Negozio</th>
-              <th className="py-2.5 px-2.5 w-16 text-center">Offerta</th>
-              <th className="py-2.5 px-2 w-10 text-center"></th>
+              <th className="py-2.5 px-2.5 min-w-[150px]">Prodotto</th>
+              <th className="py-2.5 px-2.5 min-w-[120px]">Brand / Marchio</th>
+              <th className="py-2.5 px-2 w-20">Prezzo</th>
+              <th className="py-2.5 px-2 w-20">Qtà</th>
+              <th className="py-2.5 px-2 w-24">Unità</th>
+              <th className="py-2.5 px-2.5 min-w-[125px]">Data</th>
+              <th className="py-2.5 px-2.5 min-w-[140px]">
+                <div className="flex items-center justify-between">
+                  <span>Negozio</span>
+                  {onOpenSupplierCreateModal && (
+                    <button
+                      type="button"
+                      onClick={onOpenSupplierCreateModal}
+                      className="p-1 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors cursor-pointer"
+                      title="Aggiungi nuovo negozio"
+                    >
+                      <PlusIcon className="w-3.5 h-3.5" />
+                    </button>
+                  )}
+                </div>
+              </th>
+              <th className="py-2.5 px-1.5 w-14 text-center">Offerta</th>
+              <th className="py-2.5 px-1 w-8 text-center"></th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100">

@@ -1,32 +1,36 @@
-// src/mobile/components/shopping/MobileShoppingQuickAddBar.tsx
 import React from 'react';
 import { PlusIcon } from '@/components/shared/utils/Icons';
 import ShoppingUnitSelect from '@/components/shared/shopping/ShoppingUnitSelect';
-import type { ConfigOption } from '@/types/shopping';
+import ShoppingProductAutocomplete from '@/components/shared/shopping/ShoppingProductAutocomplete';
+import type { ConfigOption, ShoppingProductOption } from '@/types/shopping';
 import type { useShoppingItemsColumn } from '@/components/shared/shopping/useShoppingItemsColumn';
 
 export interface MobileShoppingQuickAddBarProps {
   columnLogic: ReturnType<typeof useShoppingItemsColumn>;
   unitOptions: ConfigOption[];
+  products?: ShoppingProductOption[];
 }
 
 export const MobileShoppingQuickAddBar: React.FC<MobileShoppingQuickAddBarProps> = ({
   columnLogic,
   unitOptions,
+  products = [],
 }) => {
   return (
     <form
       onSubmit={columnLogic.handleQuickAdd}
       className="shrink-0 flex items-center gap-1.5 pb-2 border-b border-gray-100"
     >
-      {/* 1. Nome Prodotto */}
+      {/* 1. Nome Prodotto con Autocomplete */}
       <div className="relative flex-1 min-w-0">
-        <input
-          type="text"
+        <ShoppingProductAutocomplete
           value={columnLogic.quickName}
-          onChange={(e) => columnLogic.setQuickName(e.target.value)}
+          onChange={(name) => columnLogic.setQuickName(name)}
+          products={products}
+          hideBrand={true}
           placeholder="Aggiungi prodotto alla lista..."
-          className="w-full px-3 py-2 bg-gray-100/90 border border-gray-200 rounded-xl text-xs font-medium text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all"
+          usePortal={true}
+          inputClassName="w-full px-3 py-2 bg-gray-100/90 border border-gray-200 rounded-xl text-xs font-medium text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all"
         />
       </div>
 

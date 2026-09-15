@@ -1,5 +1,5 @@
 // src/components/shared/shopping/ShoppingSupplierSelect.tsx
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { useOutsideClick } from '@/hooks/useOutsideClick';
 import { useDropdownPosition } from '@/hooks/useDropdownPosition';
@@ -16,6 +16,7 @@ export interface ShoppingSupplierSelectProps {
   className?: string;
   asModal?: boolean;
   hideLabel?: boolean;
+  usePortal?: boolean;
 }
 
 export const ShoppingSupplierSelect: React.FC<ShoppingSupplierSelectProps> = ({
@@ -27,14 +28,23 @@ export const ShoppingSupplierSelect: React.FC<ShoppingSupplierSelectProps> = ({
   className = '',
   asModal = false,
   hideLabel = false,
+  usePortal = true,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
-  const ref = useOutsideClick<HTMLDivElement>(() => {
-    if (!asModal) setIsOpen(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  const ref = useOutsideClick<HTMLDivElement>((e: MouseEvent | TouchEvent) => {
+    if (!asModal) {
+      if (usePortal && dropdownRef.current && dropdownRef.current.contains(e.target as Node)) {
+        return;
+      }
+      setIsOpen(false);
+    }
   });
-  const { openUpwards } = useDropdownPosition(ref, { isOpen, threshold: 220 });
+
+  const { openUpwards, coords } = useDropdownPosition(ref, { isOpen, threshold: 220 });
 
   const selectedSupplier = suppliers.find((s) => String(s.id) === value);
 
@@ -42,6 +52,76 @@ export const ShoppingSupplierSelect: React.FC<ShoppingSupplierSelectProps> = ({
     onChange(val);
     setIsOpen(false);
   };
+
+  const dropdownMenu = (
+    <div
+      ref={dropdownRef}
+      style={
+        usePortal
+          ? {
+              position: 'fixed',
+              top: openUpwards ? undefined : `${coords.top + 4}px`,
+              bottom: openUpwards ? `${coords.bottom + 4}px` : undefined,
+              left: `${coords.left}px`,
+              width: `${coords.width}px`,
+              zIndex: 10030,
+            }
+          : undefined
+      }
+      className={`bg-white border border-gray-200 rounded-xl shadow-xl overflow-hidden animate-fadeIn ${
+        !usePortal
+          ? openUpwards
+            ? 'absolute bottom-full mb-1 left-0 right-0 z-50'
+            : 'absolute top-full mt-1 left-0 right-0 z-50'
+          : ''
+      }`}
+    >
+      <div className="max-h-48 overflow-y-auto p-1 space-y-0.5 custom-scrollbar">
+        <div
+          onClick={() => handleSelect('')}
+          className={`px-3 py-2 text-xs font-semibold rounded-lg cursor-pointer transition ${
+            !value ? 'bg-blue-50 text-blue-700' : 'text-gray-500 hover:bg-gray-50'
+          }`}
+        >
+          Nessun negozio selezionato
+        </div>
+
+        {suppliers.map((s) => {
+          const isSelected = String(s.id) === value;
+          return (
+            <div
+              key={s.id}
+              onClick={() => handleSelect(String(s.id))}
+              className={`px-3 py-2 text-xs font-semibold rounded-lg cursor-pointer flex items-center justify-between transition min-w-0 ${
+                isSelected
+                  ? 'bg-blue-50 text-blue-700 font-bold'
+                  : 'text-gray-700 hover:bg-gray-50'
+              }`}
+            >
+              <span className="truncate min-w-0 flex-1" title={s.name}>
+                {s.name}
+              </span>
+              {isSelected && <span className="text-blue-600 text-xs shrink-0 ml-1">✓</span>}
+            </div>
+          );
+        })}
+      </div>
+
+      <div className="p-1.5 border-t border-gray-100 bg-gray-50/70">
+        <button
+          type="button"
+          onClick={() => {
+            setIsOpen(false);
+            setIsCreateModalOpen(true);
+          }}
+          className="w-full py-1.5 px-2 text-xs font-bold text-blue-600 hover:bg-blue-50 rounded-lg transition flex items-center justify-center gap-1.5 cursor-pointer"
+        >
+          <PlusIcon className="w-3.5 h-3.5" />
+          <span>Crea Nuovo Negozio</span>
+        </button>
+      </div>
+    </div>
+  );
 
   return (
     <>
@@ -104,69 +184,20 @@ export const ShoppingSupplierSelect: React.FC<ShoppingSupplierSelectProps> = ({
             </div>
           </div>
 
-          {/* Menu a Discesa (Inline Desktop o Relativo) */}
-          {isOpen && !asModal && (
-            <div
-              className={`absolute z-50 left-0 right-0 bg-white border border-gray-200 rounded-xl shadow-xl overflow-hidden animate-fadeIn ${
-                openUpwards ? 'bottom-full mb-1' : 'top-full mt-1'
-              }`}
-            >
-              <div className="max-h-48 overflow-y-auto p-1 space-y-0.5 custom-scrollbar">
-                <div
-                  onClick={() => handleSelect('')}
-                  className={`px-3 py-2 text-xs font-semibold rounded-lg cursor-pointer transition ${
-                    !value ? 'bg-blue-50 text-blue-700' : 'text-gray-500 hover:bg-gray-50'
-                  }`}
-                >
-                  Nessun negozio selezionato
-                </div>
-
-                {suppliers.map((s) => {
-                  const isSelected = String(s.id) === value;
-                  return (
-                    <div
-                      key={s.id}
-                      onClick={() => handleSelect(String(s.id))}
-                      className={`px-3 py-2 text-xs font-semibold rounded-lg cursor-pointer flex items-center justify-between transition min-w-0 ${
-                        isSelected
-                          ? 'bg-blue-50 text-blue-700 font-bold'
-                          : 'text-gray-700 hover:bg-gray-50'
-                      }`}
-                    >
-                      <span className="truncate min-w-0 flex-1" title={s.name}>{s.name}</span>
-                      {isSelected && <span className="text-blue-600 text-xs shrink-0 ml-1">✓</span>}
-                    </div>
-                  );
-                })}
-              </div>
-
-              <div className="p-1.5 border-t border-gray-100 bg-gray-50/70">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setIsOpen(false);
-                    setIsCreateModalOpen(true);
-                  }}
-                  className="w-full py-1.5 px-2 text-xs font-bold text-blue-600 hover:bg-blue-50 rounded-lg transition flex items-center justify-center gap-1.5 cursor-pointer"
-                >
-                  <PlusIcon className="w-3.5 h-3.5" />
-                  <span>Crea Nuovo Negozio</span>
-                </button>
-              </div>
-            </div>
-          )}
+          {/* Menu a Discesa (Portal Overlay o Relativo) */}
+          {isOpen && !asModal && (usePortal ? createPortal(dropdownMenu, document.body) : dropdownMenu)}
         </div>
       </div>
 
-      {/* Modale Bottom Sheet Mobile (se asModal è true) */}
+      {/* Modale Overlay Centrato Mobile (se asModal è true) */}
       {isOpen && asModal && (
         createPortal(
           <div
-            className="fixed inset-0 z-[9999] bg-black/40 backdrop-blur-xs flex items-end sm:items-center justify-center animate-fadeIn"
+            className="fixed inset-0 z-[20000] bg-black/40 backdrop-blur-xs flex items-center justify-center p-4 animate-fadeIn"
             onClick={() => setIsOpen(false)}
           >
             <div
-              className="bg-white w-full sm:max-w-md rounded-t-3xl sm:rounded-2xl p-5 shadow-2xl max-h-[80vh] flex flex-col animate-slideUp"
+              className="bg-white w-full max-w-sm sm:max-w-md rounded-2xl p-5 shadow-2xl max-h-[80vh] flex flex-col animate-fadeIn"
               onClick={(e) => e.stopPropagation()}
             >
               <div className="flex items-center justify-between pb-3 border-b border-gray-100">

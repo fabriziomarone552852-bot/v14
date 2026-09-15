@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, type RefObject } from 'react';
+import { useState, useEffect, useLayoutEffect, useCallback, type RefObject } from 'react';
 
 interface UseDropdownPositionOptions {
   threshold?: number;
@@ -44,7 +44,9 @@ export const useDropdownPosition = (
     }
   }, [triggerRef, threshold]);
 
-  useEffect(() => {
+  const useIsomorphicLayoutEffect = typeof window !== 'undefined' ? useLayoutEffect : useEffect;
+
+  useIsomorphicLayoutEffect(() => {
     if (!isOpen) return;
     
     updatePosition();

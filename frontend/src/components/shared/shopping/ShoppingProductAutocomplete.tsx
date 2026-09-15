@@ -13,6 +13,7 @@ interface ShoppingProductAutocompleteProps {
   disabled?: boolean;
   autoFocus?: boolean;
   className?: string;
+  inputClassName?: string;
   id?: string;
   hideBrand?: boolean;
   usePortal?: boolean;
@@ -26,6 +27,7 @@ export const ShoppingProductAutocomplete: React.FC<ShoppingProductAutocompletePr
   disabled = false,
   autoFocus = false,
   className = '',
+  inputClassName,
   id,
   hideBrand = false,
   usePortal = false,
@@ -225,7 +227,10 @@ export const ShoppingProductAutocomplete: React.FC<ShoppingProductAutocompletePr
         placeholder={placeholder}
         disabled={disabled}
         autoFocus={autoFocus}
-        className="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-blue-500 transition-colors disabled:opacity-60 disabled:cursor-not-allowed bg-white shadow-2xs"
+        className={
+          inputClassName ||
+          'w-full px-3 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-blue-500 transition-colors disabled:opacity-60 disabled:cursor-not-allowed bg-white shadow-2xs'
+        }
         autoComplete="off"
       />
 

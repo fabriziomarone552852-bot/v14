@@ -1,5 +1,5 @@
 // src/components/archive/shopping/ShoppingQuickPriceModal.tsx
-import React from 'react';
+import React, { useState } from 'react';
 export * from './QuickPriceTypes';
 export * from './InlineDropdownSelect';
 export * from './QuickPriceRowItem';
@@ -15,6 +15,7 @@ import type {
 } from '@/types/shopping';
 import { QuickPriceTable } from './QuickPriceTable';
 import { useQuickPriceModalLogic } from './quickprice';
+import { ShoppingSupplierCreateModal } from '@/components/shared/shopping/supplier/ShoppingSupplierCreateModal';
 
 export interface ShoppingQuickPriceModalProps {
   isOpen: boolean;
@@ -33,6 +34,8 @@ export const ShoppingQuickPriceModal: React.FC<ShoppingQuickPriceModalProps> = (
   suppliers = [],
   unitOptions = [],
 }) => {
+  const [isSupplierModalOpen, setIsSupplierModalOpen] = useState(false);
+
   const {
     rows,
     isSubmitting,
@@ -56,57 +59,46 @@ export const ShoppingQuickPriceModal: React.FC<ShoppingQuickPriceModalProps> = (
   });
 
   return (
-    <BaseModal
-      isOpen={isOpen}
-      onClose={onClose}
-      title={
-        <div className="flex items-center gap-2">
-          <TagIcon className="w-5 h-5 text-blue-600" />
-          <span className="text-base font-bold text-gray-800">
-            Inserimento Rapido Prezzi
-          </span>
-        </div>
-      }
-      maxWidthClass="max-w-4xl"
-    >
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <p className="text-xs text-gray-500">
-          Registra velocemente più prezzi o scontrini contemporaneamente. Premi <strong>Tab</strong> sull'ultimo campo per aggiungere una nuova riga automaticamente.
-        </p>
-
-        {errorMessage && (
-          <div className="p-3 bg-red-50 text-red-700 text-xs font-semibold rounded-xl border border-red-200">
-            {errorMessage}
-          </div>
-        )}
-
-        <QuickPriceTable
-          rows={rows}
-          products={products}
-          brands={brands}
-          supplierDropdownOptions={supplierDropdownOptions}
-          unitDropdownOptions={unitDropdownOptions}
-          openDatePickerRowId={openDatePickerRowId}
-          onDatePickerToggle={setOpenDatePickerRowId}
-          onAddRow={handleAddRow}
-          onRemoveRow={handleRemoveRow}
-          onUpdateRow={updateRow}
-          onProductSelect={handleProductSelect}
-          onBrandSelect={handleBrandSelect}
-          onKeyDownOnLastField={handleKeyDownOnLastField}
-        />
-
-        {/* Pulsanti di Azione */}
-        <div className="flex items-center justify-between pt-3 border-t border-gray-100">
-          <button
-            type="button"
-            onClick={handleAddRow}
-            className="px-3 py-1.5 text-xs font-bold text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-xl transition cursor-pointer"
-          >
-            + Aggiungi Riga
-          </button>
-
+    <>
+      <BaseModal
+        isOpen={isOpen}
+        onClose={onClose}
+        title={
           <div className="flex items-center gap-2">
+            <TagIcon className="w-5 h-5 text-blue-600" />
+            <span className="text-base font-bold text-gray-800">
+              Inserimento Rapido Prezzi
+            </span>
+          </div>
+        }
+        maxWidthClass="max-w-5xl"
+      >
+        <form onSubmit={handleSubmit} className="space-y-4">
+          {errorMessage && (
+            <div className="p-3 bg-red-50 text-red-700 text-xs font-semibold rounded-xl border border-red-200">
+              {errorMessage}
+            </div>
+          )}
+
+          <QuickPriceTable
+            rows={rows}
+            products={products}
+            brands={brands}
+            supplierDropdownOptions={supplierDropdownOptions}
+            unitDropdownOptions={unitDropdownOptions}
+            openDatePickerRowId={openDatePickerRowId}
+            onDatePickerToggle={setOpenDatePickerRowId}
+            onAddRow={handleAddRow}
+            onRemoveRow={handleRemoveRow}
+            onUpdateRow={updateRow}
+            onProductSelect={handleProductSelect}
+            onBrandSelect={handleBrandSelect}
+            onKeyDownOnLastField={handleKeyDownOnLastField}
+            onOpenSupplierCreateModal={() => setIsSupplierModalOpen(true)}
+          />
+
+          {/* Pulsanti di Azione */}
+          <div className="flex items-center justify-end gap-2 pt-3 border-t border-gray-100">
             <button
               type="button"
               onClick={onClose}
@@ -122,9 +114,15 @@ export const ShoppingQuickPriceModal: React.FC<ShoppingQuickPriceModalProps> = (
               {isSubmitting ? 'Salvataggio...' : 'Salva Rilevazioni'}
             </button>
           </div>
-        </div>
-      </form>
-    </BaseModal>
+        </form>
+      </BaseModal>
+
+      <ShoppingSupplierCreateModal
+        isOpen={isSupplierModalOpen}
+        onClose={() => setIsSupplierModalOpen(false)}
+        onSelectSupplier={() => {}}
+      />
+    </>
   );
 };
 
