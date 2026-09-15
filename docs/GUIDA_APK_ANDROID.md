@@ -6,12 +6,12 @@ Questa guida illustra il funzionamento dell'applicazione Android **Smart Agenda*
 
 ## 📱 1. Come Installare l'APK sullo Smartphone
 
-Il file APK già pronto per l'installazione si trova nella root del progetto:
-👉 **`smartagenda.apk`**
+Il file APK già pronto per l'installazione si trova nella cartella **`apk/`** del progetto:
+👉 [`apk/smartagenda.apk`](file:///c:/Users/Fabrizio/Desktop/app/smart/v14/apk/smartagenda.apk) (oppure la specifica versione versionata [`apk/smartagenda-v14.1.0.apk`](file:///c:/Users/Fabrizio/Desktop/app/smart/v14/apk/smartagenda-v14.1.0.apk))
 
 ### Passaggi:
 1. **Trasferimento del file**:
-   - Invia il file `smartagenda.apk` al tuo smartphone (o a quello dei tuoi amici) tramite cavo USB, WhatsApp, Telegram, Google Drive, email o Nearby Share / Quick Share.
+   - Invia il file `smartagenda.apk` (dalla cartella `apk/`) al tuo smartphone (o a quello dei tuoi amici) tramite cavo USB, WhatsApp, Telegram, Google Drive, email o Nearby Share / Quick Share.
 2. **Installazione**:
    - Fai tap sul file `.apk` scaricato sullo smartphone.
    - Se Android mostra l'avviso di sicurezza, seleziona **"Impostazioni"** e consenti l'installazione da questa sorgente ("Origini sconosciute" o "Consenti da questa fonte").
@@ -38,7 +38,7 @@ lo script fa **completamente tutto in automatico**:
 2. **Sincronizza gli Asset** (`npx cap sync android`): copia i file web aggiornati dentro i sorgenti Android di Capacitor.
 3. **Compila il micro-proxy Tailscale Go** (`tsnetproxy.aar`): garantisce che il modulo WireGuard nativo per smartphone Android ARM64 sia aggiornato.
 4. **Compila l'APK Android con Gradle e JDK 21**: esegue il build in un container Docker isolato, risolve tutte le dipendenze e firma l'APK in modalità debug.
-5. **Copia il file finale**: rilascia il nuovo file **`smartagenda.apk`** aggiornato direttamente nella cartella principale del progetto.
+5. **Salvataggio dei file finali**: rilascia i file **`smartagenda.apk`** e **`smartagenda-vX.Y.Z.apk`** direttamente nella cartella dedicata **[`apk/`](file:///c:/Users/Fabrizio/Desktop/app/smart/v14/apk/)**.
 
 > [!NOTE]
 > L'unico prerequisito per eseguire `.\build_apk.ps1` è avere **Docker Desktop** aperto e in esecuzione sul PC.

@@ -1,6 +1,7 @@
 // src/mobile/components/settings/MobileChangelogSection.tsx
-import React from 'react';
+import React, { useState } from 'react';
 import { Sparkles, CheckCircle2, Calendar, Tag, ShieldCheck } from 'lucide-react';
+import { FeedbackModal } from '@/components/modals/FeedbackModal';
 import {
   CHANGELOG_HISTORY,
   APP_VERSION_NAME,
@@ -9,6 +10,8 @@ import {
 } from '@/data/changelogData';
 
 export const MobileChangelogSection: React.FC = () => {
+  const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
+
   return (
     <div className="w-full space-y-4 animate-fadeIn pb-12">
       {/* Header Sezione */}
@@ -48,6 +51,21 @@ export const MobileChangelogSection: React.FC = () => {
           </span>
         </div>
       </div>
+
+      {/* Card Invio Segnalazione / Feedback */}
+      <button
+        type="button"
+        onClick={() => setIsFeedbackOpen(true)}
+        className="w-full p-4 rounded-2xl bg-rose-50/70 border border-rose-200 shadow-xs hover:bg-rose-100/70 active:bg-rose-100 transition-colors text-left flex items-center justify-between gap-3 cursor-pointer"
+      >
+        <div className="truncate">
+          <div className="text-xs font-bold text-rose-700">Segnala un problema o feedback</div>
+          <div className="text-[11px] text-rose-600/80 truncate mt-0.5">Hai trovato un bug o hai un'idea per la nuova versione?</div>
+        </div>
+        <span className="px-3 py-1.5 rounded-xl bg-white border border-rose-200 text-rose-700 font-bold text-xs shrink-0 shadow-2xs">
+          Segnala
+        </span>
+      </button>
 
       {/* Lista Versioni Changelog */}
       <div className="space-y-3.5">
@@ -170,6 +188,11 @@ export const MobileChangelogSection: React.FC = () => {
           );
         })}
       </div>
+
+      <FeedbackModal
+        isOpen={isFeedbackOpen}
+        onClose={() => setIsFeedbackOpen(false)}
+      />
     </div>
   );
 };

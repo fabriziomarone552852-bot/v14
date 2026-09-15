@@ -1,4 +1,4 @@
-// src/data/changelogData.ts
+﻿// src/data/changelogData.ts
 
 export interface ChangelogItem {
   id: string;
@@ -20,23 +20,36 @@ export const CHANGELOG_HISTORY: ChangelogItem[] = [
     date: 'Settembre 2026',
     title: 'Upload Foto da Dispositivo, Caching Immagini Locale & Ottimizzazione WebP',
     isLatest: true,
-    published: false,
+    published: true,
     highlights: [
+      'Modalità Offline-First con caching locale su IndexedDB (TanStack Query Persist) e sincronizzazione automatica delle modifiche (Outbox Pattern).',
+      'Caricamento istantaneo dell\'app con zero latenza e consultazione completa di task, eventi, note, abitudini e liste spesa anche senza rete o con Tailscale in riconnessione.',
       'Caricamento diretto di foto dal dispositivo (smartphone e PC) nei form di Routine e Countdown.',
       'Supporto completo e nativo per GIF animate, preservate al 100% fotogramma per fotogramma con loop continuo.',
       'Caching e download automatico sul server per le immagini inserite tramite URL web, evitando link rotti.',
       'Salvataggio su filesystem del server anziché su database, con riduzione del 95%+ dello spazio.',
       'Compressione e ridimensionamento a 960px in formato WebP per foto statiche, ultraleggere sui banner.',
+      'Sistema integrato per la segnalazione errori, feedback e bug report con contesto diagnostico automatico e gestione SuperUser.',
       'Risolto lo sfasamento orario di 2 ore nella sincronizzazione degli eventi con Google Calendar.',
       'Pre-selezione automatica della data corrente visualizzata durante la creazione di eventi nella DayPage Mobile.',
     ],
     features: [
+      'Architettura Offline-First: persistenza locale asincrona su IndexedDB tramite `@tanstack/react-query-persist-client` e `idb-keyval`.',
+      'Coda Outbox per mutazioni offline: inserimento, modifica ed eliminazione di task, note e spesa eseguiti offline vengono sincronizzati automaticamente al ritorno online.',
+      'Indicatore di stato connettività (Badge Online/Offline/Sincronizzazione) e modale di gestione/ispezione della coda.',
       'Nuovo pulsante "Foto" nei form Desktop e Mobile per selezionare un\'immagine dalla galleria o scattarla direttamente da smartphone.',
       'Nuovo dominio Media nel backend FastAPI con endpoint dedicati `/media/upload` (multipart) e `/media/fetch-url` (download asincrono).',
+      'Nuova modale universale Feedback & Segnalazione Errori accessibile da Changelog, Impostazioni, Schermate di Errore ed Error Boundary.',
+      'Nuova scheda "Feedback & Bug Report" nel pannello Amministratore (`/admin`) con filtri, visualizzazione screenshot e gestione stati/note.',
       'Gestione intelligente dei formati: salvataggio as-is per GIF animate e pipeline WebP con correzione EXIF per foto statiche.',
       'Serving statico della cartella `/uploads` direttamente dal backend con risoluzione trasparente degli URL per Web e App Mobile (Capacitor/Tailscale).',
     ],
     improvements: [
+      'Cache retention locale a 7 giorni per mantenere disponibili i dati per consultazione offline prolungata.',
+      'Aggiornamenti ottimistici e intercettazione automatica dei fallimenti di rete per non bloccare l\'utente durante l\'uso offline.',
+      'Raccolta automatica del contesto tecnico e telemetria (versione app, piattaforma, log API recenti, risoluzione schermo) per agevolare il debug.',
+      'Refactoring e snellimento modulare dell\'intero frontend: scomposizione di AdminFeedbackSection, FeedbackModal, MobileFeedbackModal, useMobileDayLogic, MobileDayView, useShoppingItemsColumn e useYearEntries in sotto-hook e componenti specializzati (DRY e TypeScript Strict senza any).',
+      'Cattura automatica dei crash React in Error Boundary con possibilità di segnalazione immediata all\'amministratore.',
       'Database alleggerito: memorizza solo il percorso relativo e non file binari pesanti.',
       'Risoluzione calibrata a max 960px: ideale per banner nitidi e leggeri (~30-50 KB).',
       'Mantenimento della struttura grafica e del layout del frontend senza stravolgimenti.',
@@ -172,4 +185,5 @@ export const CHANGELOG_HISTORY: ChangelogItem[] = [
 export const APP_VERSION: string = CHANGELOG_HISTORY[0].version;
 export const APP_VERSION_NAME: string = `v${APP_VERSION}`;
 export const APP_LAST_UPDATE: string = CHANGELOG_HISTORY[0].date;
+
 

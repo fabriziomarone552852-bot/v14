@@ -12,10 +12,11 @@ import { LOADING_MESSAGES } from '@/data/loadingMessages';
 import { AdminConfigSection } from '@/components/admin/AdminConfigSection';
 import { AdminCodesSection } from '@/components/admin/AdminCodesSection';
 import { AdminUsersSection } from '@/components/admin/AdminUsersSection';
+import { AdminFeedbackSection } from '@/components/admin/AdminFeedbackSection';
 import { AdminSystemHealthSection } from '@/components/admin/AdminSystemHealthSection';
 import { extractErrorMessage } from '@/utils/errorUtils';
 
-type AdminTab = 'config' | 'codes' | 'users' | 'health';
+type AdminTab = 'config' | 'codes' | 'users' | 'feedback' | 'health';
 
 const AdminPage: React.FC = () => {
   const { user, isAuthenticated } = useAuth();
@@ -140,6 +141,19 @@ const AdminPage: React.FC = () => {
 
         <button
           type="button"
+          onClick={() => setActiveTab('feedback')}
+          className={`flex items-center gap-2 border-b-2 px-4 py-2.5 transition ${
+            activeTab === 'feedback'
+              ? 'border-sky-600 font-bold text-sky-600'
+              : 'border-transparent text-slate-500 hover:text-slate-700'
+          }`}
+        >
+          <span>🛠️</span>
+          <span>Feedback & Bug Report</span>
+        </button>
+
+        <button
+          type="button"
           onClick={() => setActiveTab('health')}
           className={`flex items-center gap-2 border-b-2 px-4 py-2.5 transition ${
             activeTab === 'health'
@@ -160,6 +174,7 @@ const AdminPage: React.FC = () => {
           {activeTab === 'config' && <AdminConfigSection configs={configs} onRefresh={loadData} />}
           {activeTab === 'codes' && <AdminCodesSection codes={codes} onRefresh={loadData} />}
           {activeTab === 'users' && <AdminUsersSection users={users} onRefresh={loadData} />}
+          {activeTab === 'feedback' && <AdminFeedbackSection />}
           {activeTab === 'health' && <AdminSystemHealthSection />}
         </div>
       )}

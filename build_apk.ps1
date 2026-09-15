@@ -3,7 +3,7 @@ $frontendDir = Join-Path $rootDir "frontend"
 $androidDir = Join-Path $frontendDir "android"
 $libsDir = Join-Path $androidDir "app\libs"
 $tsnetDir = Join-Path $rootDir "android-tsnet"
-$outputDir = Join-Path $rootDir "output-apk"
+$outputDir = Join-Path $rootDir "apk"
 
 # Estrazione dinamica della versione da package.json
 $packageJsonPath = Join-Path $frontendDir "package.json"
@@ -115,20 +115,15 @@ Set-Location $rootDir
 $finalApk = Join-Path $androidDir "app\build\outputs\apk\debug\app-debug.apk"
 
 if (Test-Path $finalApk) {
-    # Copia nella cartella output-apk
+    # Copia nella cartella apk/
     Copy-Item $finalApk (Join-Path $outputDir "smartagenda-v$appVersion.apk") -Force
     Copy-Item $finalApk (Join-Path $outputDir "smartagenda.apk") -Force
 
-    # Copia nella root del progetto
-    Copy-Item $finalApk (Join-Path $rootDir "smartagenda-v$appVersion.apk") -Force
-    Copy-Item $finalApk (Join-Path $rootDir "smartagenda.apk") -Force
-
     Write-Host "`n=====================================================" -ForegroundColor Green
     Write-Host "  APK COMPILATO CON SUCCESSO (v$appVersion)!" -ForegroundColor Green
-    Write-Host "  File generati:" -ForegroundColor Green
-    Write-Host "    - $rootDir\smartagenda-v$appVersion.apk" -ForegroundColor Green
-    Write-Host "    - $rootDir\smartagenda.apk" -ForegroundColor Green
+    Write-Host "  File generati in $($outputDir):" -ForegroundColor Green
     Write-Host "    - $outputDir\smartagenda-v$appVersion.apk" -ForegroundColor Green
+    Write-Host "    - $outputDir\smartagenda.apk" -ForegroundColor Green
     Write-Host "=====================================================" -ForegroundColor Green
 } else {
     Write-Host "`nAPK non trovato nel percorso atteso. Controlla i log precedenti." -ForegroundColor Red

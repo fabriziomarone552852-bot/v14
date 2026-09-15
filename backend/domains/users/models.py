@@ -17,6 +17,7 @@ if TYPE_CHECKING:
     from backend.domains.categories.models import UserCategory
     from backend.domains.countdowns.models import Countdown
     from backend.domains.events.models import Event
+    from backend.domains.feedback.models import FeedbackReport
     from backend.domains.habits.models import Habit
     from backend.domains.notifications.models import Notification
     from backend.domains.planning.models import DailyEntry
@@ -197,6 +198,11 @@ class User(Base):
     )
     habits: Mapped[List["Habit"]] = relationship(
         "Habit",
+        back_populates="user",
+        cascade="all, delete-orphan",
+    )
+    feedback_reports: Mapped[List["FeedbackReport"]] = relationship(
+        "FeedbackReport",
         back_populates="user",
         cascade="all, delete-orphan",
     )

@@ -21,8 +21,10 @@ Questo documento serve a tracciare in modo strutturato:
 | **FEAT-005** | **Sezione Liste Tematiche & Personalizzate** | `custom_lists` | 🔴 Da Iniziare | 🔴 Da Iniziare | 🔴 **Massima (Passo Fondamentale)** |
 | **FEAT-006** | **Hub Spesa, Ricettario, Meal Prep & Wishlist Oggetti** | `shopping` / food | 🔴 Da Strutturare | 🔴 Da Implementare | 🔴 **Massima (Passo Fondamentale)** |
 | **FEAT-007** | **Sistema Amicizie & Condivisione Recensioni (Social/Sharing)** | `social` / media | 🔴 Da Strutturare | 🔴 Da Implementare | 🟠 **Alta (Passo Fondamentale)** |
-| **FEAT-008** | **Sistema Segnalazione Errori, Feedback & Bug Report** | `support` / feedback | 🔴 Da Strutturare | 🔴 Da Implementare | 🟠 **Alta (UX & Manutenzione)** |
-| **OFFLINE-001** | **Modalità Offline-First & Sincronizzazione Differita (Outbox Sync)** | `sync` / mobile | 🔴 Da Strutturare | 🔴 Da Implementare | 🟠 **Alta (Mobile & Web)** |
+| **FEAT-008** | **Sistema Segnalazione Errori, Feedback & Bug Report** | `support` / feedback | 🟢 Completato | 🟢 Completato | 🟢 **Completato** |
+| **OFFLINE-001** | **Modalità Offline-First & Sincronizzazione Differita (Outbox Sync)** | `sync` / mobile | 🟢 Completato | 🟢 Completato | 🟢 **Completato** |
+| **FEAT-009** | **Restyling & Rifinitura Grafica Schermate SuperUser (Admin Panel)** | `admin` / UI | 🟢 Supportato | 🔴 Da Implementare | 🟠 **Alta** |
+| **FEAT-010** | **Database & Sincronizzazione Centralizzata Citazioni Giornaliere (Quotes)** | `core` / quotes | 🔴 Da Implementare | 🔴 Da Implementare | Media |
 | **AI-001** | **Studio & Integrazione Intelligenza Artificiale (AI)** | `ai` / assistant | 🔴 Da Analizzare | 🔴 Da Analizzare | 🟠 **Alta (Ricerca & Prototipo)** |
 | **FEAT-001** | Liste Spesa: Preferite & Pinnate (`pin_status`) | `shopping` | 🟢 Completato | 🔴 Da Implementare | Media-Alta |
 | **FEAT-002** | Gestione Inventario Spesa & Lotti (`inventory_batches`) | `shopping` | 🟢 Completato | 🟡 Parziale | Media |
@@ -120,12 +122,12 @@ Modalità di selezione multipla (*Multi-Select Mode*) integrata e attiva nell'in
 
 ---
 
-### [OFFLINE-001] Modalità Offline-First con Caching Locale & Sincronizzazione Differita (Outbox Queue)
+### [OFFLINE-001] Modalità Offline-First con Caching Locale & Sincronizzazione Differita (Outbox Queue) (✅ Completato)
 
 #### 📝 Descrizione
 Consentire l'utilizzo completo dell'applicazione (lettura, inserimento, modifica ed eliminazione di task, note, liste spesa, abitudini ed eventi) anche quando lo smartphone è offline o non ha ancora stabilito il tunnel Tailscale VPN. Al ripristino della connettività, tutte le modifiche accumulate in locale vengono inviate automaticamente e in modo trasparente al backend (*Sync Queue / Outbox Pattern*).
 
-#### 🎯 Obiettivi & Casi d'Uso Chiave
+#### 🎯 Obiettivi & Casi d'Uso Chiave Raggiunti
 1. **Disponibilità Immediata (Zero Latenza)**:
    - All'apertura dell'app, i dati (agenda, spesa, note, abitudini) vengono caricati istantaneamente dallo storage locale (IndexedDB), senza attendere la risposta di rete.
 2. **Modifiche Offline Senza Blocchi**:
@@ -135,23 +137,40 @@ Consentire l'utilizzo completo dell'applicazione (lettura, inserimento, modifica
    - Rilevamento automatico dello stato online/offline (`navigator.onLine` e ping Tailscale).
    - Svuotamento sequenziale della coda delle mutazioni verso il backend al ripristino del collegamento.
 
-#### 🛠️ Dettagli Architetturali & Tecnologici
-- **1. Livello di Storage Locale**:
-  - Persistenza della cache API tramite **TanStack Query Persist** (`@tanstack/react-query-persist-client`) con driver **IndexedDB** (`idb-keyval` o `dexie`).
-  - Dati residenti su disco protetti e persistenti anche tra riavvii completi dell'app.
+#### 🛠️ Dettagli Architetturali & Tecnologici Implementati
+- **1. Storage Locale Persistente**:
+  - Persistenza della cache API tramite **TanStack Query Persist** (`@tanstack/react-query-persist-client`) con driver **IndexedDB** (`idb-keyval`) in [`indexedDbPersister.ts`](file:///c:/Users/Fabrizio/Desktop/app/smart/v14/frontend/src/offline/indexedDbPersister.ts).
+  - Retention locale a 7 giorni (`gcTime: 7d`) per navigazione offline prolungata.
 - **2. Coda delle Mutazioni (Outbox Pattern)**:
-  - Creazione di un modulo `syncEngine` / `offlineQueueStore` (Zustand + IndexedDB).
-  - Ogni operazione di mutazione (`POST`, `PUT`, `PATCH`, `DELETE`) eseguita offline viene registrata con ID univoco, timestamp, endpoint, metodo e payload JSON.
-  - Applicazione immediata dell'aggiornamento grafico tramite *Optimistic UI Updates* in React.
-- **3. Risoluzione Conflitti & Retry**:
-  - Strategia *Last-Write-Wins* con timestamp ISO per prevenire sovrascritture di dati obsoleti.
-  - Retry automatico con backoff esponenziale in caso di errori di rete temporanei.
-- **4. UI & Indicatori di Stato Connettività**:
-  - Badge discreto nell'header mobile e desktop:
-    - 🟢 *Online & Connesso*
-    - 🟡 *Offline (N modifiche salvate in locale)*
-    - 🔄 *Sincronizzazione in corso...*
-  - Notifica toast/snack non invasivo al termine della sincronizzazione.
+  - Modulo [`outboxStore.ts`](file:///c:/Users/Fabrizio/Desktop/app/smart/v14/frontend/src/offline/outboxStore.ts) (Zustand + IndexedDB) per registrare operazioni mutative in assenza di rete.
+  - Intercettazione trasparente in [`api/client.ts`](file:///c:/Users/Fabrizio/Desktop/app/smart/v14/frontend/src/api/client.ts) con risposta ottimistica positiva.
+- **3. Sync Engine Sequenziale**:
+  - Modulo [`syncEngine.ts`](file:///c:/Users/Fabrizio/Desktop/app/smart/v14/frontend/src/offline/syncEngine.ts) con svuotamento FIFO e gestione retry/backoff.
+- **4. UI & Indicatori di Stato**:
+  - Modale di ispezione e forzatura sincronizzazione manuale [`OfflineQueueModal.tsx`](file:///c:/Users/Fabrizio/Desktop/app/smart/v14/frontend/src/components/shared/offline/OfflineQueueModal.tsx).
+
+---
+
+### [FEAT-009] Restyling & Rifinitura Grafica Schermate SuperUser (Admin Panel)
+
+#### 📝 Descrizione
+Rifinire, armonizzare e modernizzare visivamente tutte le schermate e sezioni accessibili dal pannello SuperUser / Amministratore (`/admin`), adattandole al design system pulito e moderno dell'applicazione:
+- Dashboard Amministrazione (Statistiche e KPI server).
+- Gestione Utenti, Ruoli e Permessi.
+- Gestione Database, Pulizia Cache e Diagnostica.
+- Sezione Feedback, Segnalazioni e Bug Report.
+
+---
+
+### [FEAT-010] Database & Sincronizzazione Centralizzata Citazioni Giornaliere (Quotes)
+
+#### 📝 Descrizione
+Centralizzare le citazioni giornaliere (Quotes) tramite tabella database dedicata nel backend, in modo che tutti gli utenti e tutti i dispositivi visualizzino la stessa identica citazione del giorno in modo sincronizzato e consistente.
+
+#### 🎯 Obiettivi
+1. Creazione modello/tabella `quotes` (id, quote_text, author, category, scheduled_date/active).
+2. Endpoint API REST per la restituzione della citazione odierna del server.
+3. Hook frontend sincronizzato con cache TanStack Query.
 
 ---
 
@@ -196,6 +215,7 @@ Intervento strutturale di refactoring trasversale su Backend e Frontend completa
 
 2. **Frontend (React 19 / TypeScript / Vite)**:
    - ✅ **Zero `any` in tutto il progetto**: tipizzazione strict su tutti i moduli, DTO e modali.
+   - ✅ **Snellimento e Scomposizione Modulare**: Scomposti e snelliti tutti i file di grandi dimensioni (`AdminFeedbackSection`, `FeedbackModal`, `MobileFeedbackModal`, `useMobileDayLogic`, `MobileDayView`, `useShoppingItemsColumn`, `useYearEntries`) in sotto-hook e componenti grafici dedicati (riduzione fino al 90% delle righe, rispetto assoluto del principio DRY).
    - ✅ **Code-Splitting APK & Lazy Loading**: isolamento completo dei file desktop dalla build mobile (`npm run build:mobile`), con riduzione dell'82% del bundle iniziale.
    - ✅ **Regola del "Mazzo di Carte" applicata**: logica di filtraggio, ricerca in RAM e calcolo sotto-task gestita interamente nel frontend con reattività a 0 ms.
    - ✅ **Correzione Rotazione Citazioni**: mazzo di 50 citazioni integrato in RAM offline, risolto il blocco su Seneca.
@@ -419,52 +439,32 @@ Studio e architettura di un sistema di connessione tra utenti (*Amicizie / Famil
 
 ---
 
-### [FEAT-008] Sistema di Segnalazione Errori, Feedback & Bug Report
+### [FEAT-008] Sistema di Segnalazione Errori, Feedback & Bug Report (✅ Completato)
 
 #### 📝 Descrizione
 Un sistema integrato end-to-end che consente agli utenti dell'applicazione (sia da Desktop sia da Smartphone Android) di inviare segnalazioni su bug riscontrati, problemi di layout, anomalie o proporre suggerimenti. Il sistema include la raccolta automatica del contesto tecnico (versione app, piattaforma, route corrente, stacktrace ed eventuali errori API recenti) per azzerare lo sforzo dell'utente e facilitare la risoluzione immediata da parte degli sviluppatori e amministratori.
 
-#### 📍 1. Punti di Accesso e Posizionamento UI / UX
-1. **Modalità / Pagina Changelog & Note di Versione (`ChangelogModal.tsx`)**:
-   - Inserimento di un footer dedicato in fondo allo storico delle versioni: *"Hai riscontrato un'anomalia o un bug in questa versione? [Segnala Errore / Feedback]"*.
-   - Posizionamento ideale per raccogliere riscontri immediati subito dopo il rilascio di una nuova release.
-2. **Impostazioni Utente (`UserSettingsPage.tsx` & `MobileSettingsView.tsx`)**:
-   - Voce dedicata *"Assistenza, Feedback & Segnalazione Errori"* (o *"Aiuto & Supporto"*), accessibile in qualsiasi momento dal menu impostazioni.
-3. **Schermate di Errore & Error Boundary (`PageErrorState.tsx` & Crash Fallback)**:
-   - In caso di eccezioni non gestite o errori HTTP 500/503, oltre al pulsante *"Ricarica"*, viene fornito il tasto rapido *"Invia segnalazione all'amministratore"*, che precompila in automatico la modale con stacktrace e dettagli della pagina.
-4. **Modale di Invio Segnalazione (Desktop & Mobile)**:
-   - **Tipologia**: `Bug / Malfunzionamento`, `Problema Grafico / Layout`, `Suggerimento / Miglioramento`, `Altro`.
-   - **Livello di Gravità**: `Bassa (Cosmetico)`, `Media (Fastidio minore)`, `Alta (Funzionalità bloccata)`, `Critica (Crash/Blocco totale)`.
-   - **Campi**: Titolo sintetico, descrizione dettagliata, passaggi per riprodurre (opzionale), screenshot o allegato visivo (sfruttando il modulo upload [`MEDIA-001`](file:///c:/Users/Fabrizio/Desktop/app/smart/v14/docs/BACKLOG.md)).
-   - **Contesto Automatico Trasparente**: Versione app (`package.json` / `changelogData`), Piattaforma (`Web Desktop`, `Web Mobile`, `Capacitor Android APK`), Risoluzione schermo, Percorso URL / Route attiva, Timestamp UTC, Ultimi log/errori API salvati in memoria RAM.
+#### 🛠️ Risultati Raggiunti
 
-#### 🛡️ 2. Architettura Backend & Dati
-- **Dominio Backend**: Modulo dedicato `backend/domains/feedback/` o integrato in `support` / `audit`.
-- **Modello DB (`feedback_reports`)**:
-  - `id`: UUID / Integer PK
-  - `user_id`: FK verso `users.id` (indicizzato)
-  - `report_type`: `bug`, `visual`, `feature_request`, `crash`, `other`
-  - `severity`: `low`, `medium`, `high`, `critical`
-  - `title`: `VARCHAR(200)`
-  - `description`: `TEXT`
-  - `steps_to_reproduce`: `TEXT` (opzionale)
-  - `app_version`: `VARCHAR(30)` (es. `14.2.0`)
-  - `platform`: `VARCHAR(50)` (es. `android_apk`, `web_desktop`)
-  - `current_route`: `VARCHAR(200)`
-  - `error_context`: `JSON` (stacktrace, ultimo endpoint API fallito, status code)
-  - `screenshot_url`: `VARCHAR(500)` (opzionale, file in `/uploads/...`)
-  - `status`: `new`, `in_progress`, `resolved`, `dismissed`
-  - `admin_notes`: `TEXT` (note interne amministratore)
-  - `created_at`, `updated_at`, `resolved_at`: Timestamp UTC
-- **Endpoint HTTP**:
-  - `POST /api/feedback/reports`: Invio segnalazione da parte dell'utente autenticato.
-  - `GET /api/feedback/reports`: Elenco di tutte le segnalazioni con filtri per stato/versione/gravità (riservato SuperUser).
-  - `PATCH /api/feedback/reports/{id}`: Modifica dello stato (es. da `new` a `resolved`) e note admin (riservato SuperUser).
-  - `GET /api/feedback/my-reports`: Elenco delle proprie segnalazioni per verificare lo stato di presa in carico.
+1. **Backend FastAPI (`backend/domains/feedback/`)**:
+   - ✅ Modello SQLAlchemy `FeedbackReport` con campi: `report_type` (`bug`, `visual`, `feature_request`, `other`), `severity` (`low`, `medium`, `high`, `critical`), `status` (`new`, `in_progress`, `resolved`, `dismissed`), `app_version`, `platform`, `current_route`, `error_context` (JSON), `screenshot_url` e `admin_notes`.
+   - ✅ DTO Pydantic v2 strict con validazioni e relazioni utente eager-loaded (`user_username`, `user_email`).
+   - ✅ Endpoint REST completi: `POST /feedback/reports` (creazione segnalazione), `GET /feedback/reports` (elenco completo con filtri riservato a SuperUser), `GET /feedback/reports/{id}`, `PATCH /feedback/reports/{id}` (modifica stato/note admin), `DELETE /feedback/reports/{id}` e `GET /feedback/my-reports`.
+   - ✅ Migrazione Alembic `m2n3o4p5q6r7_add_feedback_reports_table.py` e allineamento idempotente in `ensure_database_schema_compat()`.
 
-#### 🎛️ 3. Gestione nel Pannello Amministratore (`/admin`) & Notifiche
-- **Bacheca Feedback in `/admin`**: Nuova tab nel pannello SuperUser per consultare l'elenco dei report, ordinati per gravità e data, visualizzare screenshot e log allegati, e segnare le segnalazioni come risolte.
-- **Notifica In-App per Amministratori**: Creazione di una notifica interna per il SuperUser all'arrivo di segnalazioni ad alta priorità o crash.
+2. **Frontend Desktop & Mobile**:
+   - ✅ **Telemetria in RAM (`telemetry.ts`)**: buffer circolare per gli ultimi 15 errori API e crash applicativi, con helper `getDiagnosticContext()` che raccoglie versione app, piattaforma, route, risoluzione schermo e user agent.
+   - ✅ **Intercettore Axios**: registrazione automatica degli errori HTTP nel buffer di telemetria.
+   - ✅ **Modale Universale `FeedbackModal.tsx`**: modale responsive per inviare segnalazioni categorizzate, con selettore di gravità, upload screenshot (formato WebP ottimizzato via endpoint `/media/upload`), e toggle/ispettore per il contesto diagnostico.
+   - ✅ **Integrazione nei 4 Punti Chiave**:
+     - *Changelog Modal & Mobile Changelog*: pulsante footer per segnalare anomalie sulla versione installata.
+     - *Impostazioni Utente & Mobile Settings*: voce dedicata per invio rapido di feedback e segnalazioni.
+     - *Error Boundary (`AppErrorBoundary.tsx`)*: cattura dei crash React con registrazione automatica dello stacktrace e tasto rapido di segnalazione precompilata.
+     - *Schermate di Errore (`PageErrorState.tsx`)*: pulsante per inviare segnalazione direttamente dalla schermata di errore.
+
+3. **Pannello Amministratore (`/admin`)**:
+   - ✅ Nuova scheda **"Feedback & Bug Report"** in `AdminPage.tsx` con KPI (totale, nuove da gestire, in lavorazione, risolte), filtri per stato/gravità/tipologia e ricerca full-text.
+   - ✅ Modale di ispezione e gestione: visualizzatore screenshot ad alta risoluzione con zoom fullscreen, ispettore del contesto tecnico JSON, dropdown per cambio stato e textarea per salvare note interne di risoluzione.
 
 ---
 

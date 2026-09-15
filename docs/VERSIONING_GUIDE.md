@@ -67,7 +67,7 @@ Esegui:
 Lo script:
 1. Controlla `changelogData.ts`: se la versione era `published: false`, la imposta automaticamente a **`published: true`**.
 2. Compila il frontend Vite mobile.
-3. Compila l'APK e lo copia con il nome versionato: `smartagenda-vX.Y.Z.apk` e `output-apk/smartagenda-vX.Y.Z.apk`.
+3. Compila l'APK e lo salva nella cartella dedicata: [`apk/smartagenda-vX.Y.Z.apk`](file:///c:/Users/Fabrizio/Desktop/app/smart/v14/apk/) e [`apk/smartagenda.apk`](file:///c:/Users/Fabrizio/Desktop/app/smart/v14/apk/).
 
 ### B. Build & Deploy Docker per Server / NAS
 Esegui:

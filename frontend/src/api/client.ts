@@ -1,5 +1,9 @@
 // src/api/client.ts
 import axios, { type AxiosError, type InternalAxiosRequestConfig } from 'axios';
+import { recordTelemetryError } from '@/utils/telemetry';
+import { useOutboxStore } from '@/offline/outboxStore';
+import { useNetworkStore } from '@/offline/networkManager';
+import type { OutboxHttpMethod } from '@/offline/types';
 
 // 1. URL BASE API (Supporta sia Web che Mobile con Proxy Tailscale Locale)
 export const getApiBaseUrl = (): string => {
@@ -38,7 +42,6 @@ apiClient.interceptors.request.use(
 // Creiamo un'interfaccia dedicata per pulire la definizione della coda
 interface QueuedRequest {
   resolve: (token: string) => void;
-  // Sostituiamo "any" con "unknown", la best practice per le Promise rejection
   reject: (error?: unknown) => void; 
 }
 
@@ -61,9 +64,10 @@ const processQueue = (error: unknown | null, token: string | null = null) => {
 // =======================================================
 
 
-// Estendiamo la configurazione nativa di Axios per includere il nostro flag custom "_retry"
+// Estendiamo la configurazione nativa di Axios per includere i nostri flag custom
 interface CustomAxiosRequestConfig extends InternalAxiosRequestConfig {
   _retry?: boolean;
+  _skipOutbox?: boolean;
 }
 
 // Interfaccia per la risposta attesa dal refresh
@@ -72,14 +76,13 @@ interface RefreshResponse {
   refresh_token?: string;
 }
 
-// 4. IL VIGILE IN ENTRATA (Rinnova il token se scade)
+// 4. IL VIGILE IN ENTRATA (Rinnova il token se scade o salva in Outbox se offline)
 apiClient.interceptors.response.use(
   (response) => response,
   async (error: AxiosError) => {
-    // Tipizziamo esplicitamente la richiesta originale con la nostra interfaccia estesa
     const originalRequest = error.config as CustomAxiosRequestConfig | undefined;
 
-    // Aggiungiamo un check di sicurezza su originalRequest
+    // A. GESTIONE AUTENTICAZIONE 401 & TOKEN REFRESH
     if (error.response?.status === 401 && originalRequest && !originalRequest._retry) {
       originalRequest._retry = true;
       const refreshToken = localStorage.getItem('refreshToken');
@@ -89,9 +92,8 @@ apiClient.interceptors.response.use(
         return Promise.reject(error);
       }
 
-      // 🚦 SE IL SEMAFORO È ROSSO (qualcun altro sta già facendo il refresh)
+      // 🚦 SE IL SEMAFORO È ROSSO
       if (isRefreshing) {
-        // Tipizziamo esplicitamente la Promise come <string>
         return new Promise<string>((resolve, reject) => {
           failedQueue.push({ resolve, reject });
         }).then(token => {
@@ -104,27 +106,22 @@ apiClient.interceptors.response.use(
         });
       }
 
-      // 🟢 SE IL SEMAFORO È VERDE, lo facciamo diventare ROSSO
+      // 🟢 SE IL SEMAFORO È VERDE
       isRefreshing = true;
 
       try {
-        // Diamo un tipo anche al risultato di axios.post, così response.data non sarà 'any'
         const response = await axios.post<RefreshResponse>(apiUrl('/auth/refresh'), {
           refresh_token: refreshToken
         });
 
         const { access_token } = response.data;
-        
-        // Salviamo i nuovi token
         localStorage.setItem('token', access_token);
         if (response.data.refresh_token) {
           localStorage.setItem('refreshToken', response.data.refresh_token);
         }
 
-        // 🟢 Operazione finita! Sblocchiamo la sala d'attesa
         processQueue(null, access_token);
 
-        // 🪄 FIX: Riprova la chiamata originale usando apiClient!
         if (originalRequest.headers) {
           originalRequest.headers.Authorization = `Bearer ${access_token}`;
         }
@@ -138,7 +135,65 @@ apiClient.interceptors.response.use(
         isRefreshing = false;
       }
     }
+
+    // B. GESTIONE OFFLINE / MUTAZIONI OUTBOX QUEUE
+    const isNetworkError = !error.response || error.code === 'ERR_NETWORK' || error.code === 'ECONNABORTED';
+    const method = (originalRequest?.method?.toUpperCase() || '') as OutboxHttpMethod;
+    const isMutating = ['POST', 'PUT', 'PATCH', 'DELETE'].includes(method);
+    const isExcluded =
+      originalRequest?.url?.includes('/auth/') ||
+      originalRequest?.url?.includes('/feedback/reports');
+
+    if (isNetworkError && isMutating && !isExcluded && !originalRequest?._skipOutbox && originalRequest) {
+      useNetworkStore.getState().setServerReachable(false);
+
+      let parsedData: unknown = originalRequest.data;
+      if (typeof originalRequest.data === 'string') {
+        try {
+          parsedData = JSON.parse(originalRequest.data);
+        } catch {
+          parsedData = originalRequest.data;
+        }
+      }
+
+      await useOutboxStore.getState().enqueue({
+        url: originalRequest.url || '',
+        method,
+        data: parsedData,
+      });
+
+      const pendingCount = useOutboxStore.getState().items.length;
+      useNetworkStore.getState().setPendingCount(pendingCount);
+
+      // Risposta sintetica positiva per abilitare l'aggiornamento ottimistico senza blocchi
+      const fallbackId = typeof parsedData === 'object' && parsedData !== null && 'id' in parsedData
+        ? (parsedData as { id: unknown }).id
+        : Date.now();
+
+      return {
+        data: parsedData && typeof parsedData === 'object'
+          ? { ...(parsedData as object), id: fallbackId, _offlineQueued: true }
+          : { success: true, id: fallbackId, _offlineQueued: true },
+        status: 200,
+        statusText: 'OK (Offline Queued)',
+        headers: {},
+        config: originalRequest,
+      };
+    }
     
+    // C. REGISTRAZIONE DIAGNOSTICA TELEMETRIA
+    const errDetail =
+      (error.response?.data && typeof error.response.data === 'object' && 'detail' in error.response.data)
+        ? String((error.response.data as { detail: unknown }).detail)
+        : error.message;
+
+    recordTelemetryError({
+      type: 'api_error',
+      message: errDetail || 'Errore API sconosciuto',
+      endpoint: originalRequest?.url,
+      statusCode: error.response?.status,
+    });
+
     return Promise.reject(error);
   }
 );

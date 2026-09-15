@@ -9,19 +9,12 @@ import { LOADING_MESSAGES, ERROR_MESSAGES } from '@/data/loadingMessages';
 // Hook & Sub-componenti Modulari
 import { useMobileDayLogic } from '../hooks/useMobileDayLogic';
 import { MobileDateSwipeOverlay } from '../components/common/MobileDateSwipeOverlay';
-import {
-  MobileDayEventsCompact,
-  MobileDayEventsExpanded,
-} from '../components/day/MobileDayEventsSection';
-import {
-  MobileDayTasksCompact,
-  MobileDayTasksExpanded,
-} from '../components/day/MobileDayTasksSection';
-import {
-  MobileDayTrackerPage,
-  MobileDayRoutinesExpanded,
-} from '../components/day/MobileDayTrackerSection';
+import { MobileDayEventsCompact } from '../components/day/MobileDayEventsSection';
+import { MobileDayTasksCompact } from '../components/day/MobileDayTasksSection';
+import { MobileDayTrackerPage } from '../components/day/MobileDayTrackerSection';
 import { MobileDayModals } from '../components/day/MobileDayModals';
+import MobileDayPaginationDots from '../components/day/MobileDayPaginationDots';
+import MobileDayExpandedViews from '../components/day/MobileDayExpandedViews';
 
 export const MobileDayView: React.FC = () => {
   const {
@@ -123,9 +116,7 @@ export const MobileDayView: React.FC = () => {
 
   return (
     <div className="h-full w-full flex flex-col justify-between gap-1.5 overflow-hidden animate-fadeIn relative select-none">
-      {/* ========================================================================= */}
-      {/* 1. HEADER COMUNE STANDARDIZZATO (Data a sx, Icone Azione a dx)            */}
-      {/* ========================================================================= */}
+      {/* 1. Header Standardizzato */}
       <MobileAgendaPeriodHeader
         title={formattedDateStr}
         subtitle={isToday ? `OGGI • ${weekdayName}` : weekdayName}
@@ -138,9 +129,7 @@ export const MobileDayView: React.FC = () => {
         notesCount={mappedNotes.length}
       />
 
-      {/* ========================================================================= */}
-      {/* 2. CORPO PRINCIPALE IN SLIDING A 2 PAGINE                                 */}
-      {/* ========================================================================= */}
+      {/* 2. Corpo Principale in Sliding a 2 Pagine */}
       <div
         className={`flex-1 min-h-0 w-full overflow-hidden relative ${
           swipeDirection === 'down'
@@ -152,7 +141,7 @@ export const MobileDayView: React.FC = () => {
         onTouchStart={handleTouchStart}
         onTouchEnd={handleTouchEnd}
       >
-        {/* PAGINA 1: FOCUS & AZIONE (Obiettivo/Priorità + Eventi + Task) */}
+        {/* Pagina 1: Focus & Task */}
         <div
           className={`absolute inset-0 w-full h-full flex flex-col gap-2 overflow-hidden transition-transform duration-300 ease-out ${
             activePageIndex === 0
@@ -160,7 +149,6 @@ export const MobileDayView: React.FC = () => {
               : '-translate-x-full pointer-events-none'
           }`}
         >
-          {/* Obiettivo e Priorità a Chips */}
           <MobileGoalsAndPrioritiesChips
             goalText={dayData?.obiettivi?.[0]?.testo}
             priorities={dayData?.priorita}
@@ -170,7 +158,6 @@ export const MobileDayView: React.FC = () => {
             onSavePriority={(id, testo) => savePriorita({ id, text: testo })}
           />
 
-          {/* Card Compatta Eventi */}
           <MobileDayEventsCompact
             events={mappedEvents}
             visibleEvents={visibleCompactEvents}
@@ -180,7 +167,6 @@ export const MobileDayView: React.FC = () => {
             onOpenEventDetail={openEventDetail}
           />
 
-          {/* Card Compatta Task */}
           <MobileDayTasksCompact
             tasks={sortedTasks}
             visibleTasks={visibleCompactTasks}
@@ -199,7 +185,7 @@ export const MobileDayView: React.FC = () => {
           />
         </div>
 
-        {/* PAGINA 2: TRACKER & MINDSET (Countdowns + Habits + Routine) */}
+        {/* Pagina 2: Tracker & Routine */}
         <div
           className={`absolute inset-0 w-full h-full flex flex-col gap-2.5 overflow-hidden transition-transform duration-300 ease-out ${
             activePageIndex === 1
@@ -221,84 +207,40 @@ export const MobileDayView: React.FC = () => {
         </div>
       </div>
 
-      {/* ========================================================================= */}
-      {/* 3. INDICATORE DI PAGINAZIONE (DOTS [ ▬▬ ] [ ● ])                           */}
-      {/* ========================================================================= */}
-      <div className="shrink-0 flex items-center justify-center gap-2 py-1 select-none">
-        <button
-          type="button"
-          onClick={() => setActivePageIndex(0)}
-          className={`h-1.5 rounded-full transition-all duration-300 cursor-pointer ${
-            activePageIndex === 0
-              ? 'w-6 bg-blue-600 shadow-xs'
-              : 'w-1.5 bg-gray-300 hover:bg-gray-400'
-          }`}
-          title="Pagina 1: Focus & Task"
-          aria-label="Pagina 1"
-        />
-        <button
-          type="button"
-          onClick={() => setActivePageIndex(1)}
-          className={`h-1.5 rounded-full transition-all duration-300 cursor-pointer ${
-            activePageIndex === 1
-              ? 'w-6 bg-blue-600 shadow-xs'
-              : 'w-1.5 bg-gray-300 hover:bg-gray-400'
-          }`}
-          title="Pagina 2: Routine & Tracker"
-          aria-label="Pagina 2"
-        />
-      </div>
+      {/* 3. Indicatore di Paginazione Touch */}
+      <MobileDayPaginationDots
+        activePageIndex={activePageIndex}
+        onSelectPage={setActivePageIndex}
+      />
 
-      {/* ========================================================================= */}
-      {/* 4. MODALI A TUTTO SCHERMO PER VISTE ESPANSE                               */}
-      {/* ========================================================================= */}
-      {expandedView === 'events' && (
-        <MobileDayEventsExpanded
-          events={mappedEvents}
-          formattedDateStr={formattedDateStr}
-          isEventsSelection={isEventsSelection}
-          selectedIds={selectionState.selectedIds}
-          onToggleSelectEvent={handleToggleSelectEvent}
-          onOpenEventDetail={openEventDetail}
-          onCloseExpanded={() => handleSetExpandedView('none')}
-        />
-      )}
+      {/* 4. Viste Espanse a Schermo Intero */}
+      <MobileDayExpandedViews
+        expandedView={expandedView}
+        onCloseExpanded={() => handleSetExpandedView('none')}
+        formattedDateStr={formattedDateStr}
+        mappedEvents={mappedEvents}
+        isEventsSelection={isEventsSelection}
+        onToggleSelectEvent={handleToggleSelectEvent}
+        openEventDetail={openEventDetail}
+        sortedTasks={sortedTasks}
+        showWithDeadline={showWithDeadline}
+        setShowWithDeadline={setShowWithDeadline}
+        showNotificationDot={showNotificationDot}
+        sortMode={sortMode}
+        setSortMode={setSortMode}
+        isTasksSelection={isTasksSelection}
+        onToggleSelectTask={handleToggleSelectTask}
+        openTaskDetail={openTaskDetail}
+        handleToggleTask={handleToggleTask}
+        mappedRoutines={mappedRoutines}
+        isRoutinesSelection={isRoutinesSelection}
+        onToggleSelectRoutine={handleToggleSelectRoutine}
+        openRoutineDetail={openRoutineDetail}
+        handleUpdateRoutineCount={handleUpdateRoutineCount}
+        selectedIds={selectionState.selectedIds}
+      />
 
-      {expandedView === 'tasks' && (
-        <MobileDayTasksExpanded
-          tasks={sortedTasks}
-          showWithDeadline={showWithDeadline}
-          showNotificationDot={showNotificationDot}
-          sortMode={sortMode}
-          isTasksSelection={isTasksSelection}
-          selectedIds={selectionState.selectedIds}
-          onToggleDeadlineFilter={() => setShowWithDeadline((prev) => !prev)}
-          onToggleSortMode={() =>
-            setSortMode((prev) => (prev === 'chrono' ? 'priority' : 'chrono'))
-          }
-          onToggleSelectTask={handleToggleSelectTask}
-          onOpenTaskDetail={openTaskDetail}
-          onToggleTask={handleToggleTask}
-          onCloseExpanded={() => handleSetExpandedView('none')}
-        />
-      )}
-
-      {expandedView === 'routines' && (
-        <MobileDayRoutinesExpanded
-          routines={mappedRoutines}
-          formattedDateStr={formattedDateStr}
-          isRoutinesSelection={isRoutinesSelection}
-          selectedIds={selectionState.selectedIds}
-          onToggleSelectRoutine={handleToggleSelectRoutine}
-          onOpenRoutineDetail={openRoutineDetail}
-          onUpdateRoutineCount={handleUpdateRoutineCount}
-          onCloseExpanded={() => handleSetExpandedView('none')}
-        />
-      )}
-
-      {/* ========================================================================= */}
-      {/* 5. MODALI (COUNTDOWNS, ABITUDINI, NOTE SHEET)                             */}
-      {/* ========================================================================= */}
+      {/* 5. Modali Standard */}
       <MobileDayModals
         countdownHubModal={countdownHubModal}
         countdownDetailModal={countdownDetailModal}
@@ -318,9 +260,7 @@ export const MobileDayView: React.FC = () => {
         clearEditingNoteId={() => setEditingNoteId(null)}
       />
 
-      {/* ========================================================================= */}
-      {/* 6. OVERLAY ONDA LUMINOSA E FRECCE TEMPORANEE DI TEST DESKTOP              */}
-      {/* ========================================================================= */}
+      {/* 6. Overlay Animazione Swipe */}
       <MobileDateSwipeOverlay
         swipeDirection={swipeDirection}
         onSwipePrev={handlePrevDay}

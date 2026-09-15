@@ -97,7 +97,7 @@ const AppShellLayout: React.FC<AppShellLayoutProps> = ({ onLogout }) => {
             {/* Tasto Switch Sidebar */}
             <button 
               onClick={() => setIsSidebarOpen(!isSidebarOpen)} 
-              className="p-1.5 rounded-lg text-gray-400 hover:text-white hover:bg-gray-700 transition-all focus:outline-none"
+              className="p-1.5 rounded-lg text-gray-400 hover:text-white hover:bg-gray-700 transition-all focus:outline-none cursor-pointer"
               title={isSidebarOpen ? "Rimpicciolisci menu" : "Espandi menu"}
             >
               <SwitchSidebarIcon className={`h-5 w-5 transition-transform duration-300 ${isSidebarOpen ? 'rotate-0' : 'rotate-180'}`} />

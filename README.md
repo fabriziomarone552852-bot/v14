@@ -80,7 +80,7 @@ La compilazione dell'APK è completamente automatizzata tramite Docker e non ric
    - Compila il bundle web ottimizzato con Vite (`npm run build`).
    - Sincronizza gli asset nell'applicazione Android (`npx cap sync android`).
    - Compila e firma l'APK nativo con la chiave permanente `smartagenda.keystore`.
-   - Genera il file finale **`smartagenda.apk`** nella cartella principale del progetto.
+   - Genera i file finali **`smartagenda.apk`** e **`smartagenda-vX.Y.Z.apk`** nella cartella dedicata **[`apk/`](file:///c:/Users/Fabrizio/Desktop/app/smart/v14/apk/)**.
 
 ### 🔄 Aggiornamenti In-Place
 Tutte le compilazioni utilizzano lo stesso certificato crittografico (`smartagenda.keystore`). Quando installi una nuova versione dell'APK sullo smartphone, Android la riconoscerà automaticamente come un aggiornamento ufficiale, senza dover disinstallare l'app e senza perdere credenziali o dati memorizzati.

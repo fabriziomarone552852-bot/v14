@@ -17,6 +17,7 @@ def import_all_models() -> None:
     import backend.domains.config.models  # noqa: F401
     import backend.domains.countdowns.models  # noqa: F401
     import backend.domains.events.models  # noqa: F401
+    import backend.domains.feedback.models  # noqa: F401
     import backend.domains.google_calendar.models  # noqa: F401
     import backend.domains.habits.models  # noqa: F401
     import backend.domains.monthly_entries.models  # noqa: F401
@@ -61,6 +62,30 @@ def ensure_database_schema_compat() -> None:
             );
             """,
             "CREATE INDEX IF NOT EXISTS ix_user_google_auth_user_id ON user_google_auth(user_id);",
+            """
+            CREATE TABLE IF NOT EXISTS feedback_reports (
+                id SERIAL PRIMARY KEY,
+                user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+                report_type VARCHAR(50) NOT NULL DEFAULT 'bug',
+                severity VARCHAR(20) NOT NULL DEFAULT 'medium',
+                title VARCHAR(200) NOT NULL,
+                description TEXT NOT NULL,
+                steps_to_reproduce TEXT,
+                app_version VARCHAR(30) NOT NULL,
+                platform VARCHAR(50) NOT NULL,
+                current_route VARCHAR(255) NOT NULL,
+                error_context TEXT,
+                screenshot_url VARCHAR(500),
+                status VARCHAR(20) NOT NULL DEFAULT 'new',
+                admin_notes TEXT,
+                created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+                updated_at TIMESTAMP WITH TIME ZONE,
+                resolved_at TIMESTAMP WITH TIME ZONE
+            );
+            """,
+            "CREATE INDEX IF NOT EXISTS ix_feedback_reports_user_id ON feedback_reports(user_id);",
+            "CREATE INDEX IF NOT EXISTS ix_feedback_reports_status ON feedback_reports(status);",
+            "CREATE INDEX IF NOT EXISTS ix_feedback_reports_created_at ON feedback_reports(created_at DESC);",
         ]
 
         for stmt in statements:

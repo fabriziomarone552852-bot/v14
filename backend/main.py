@@ -24,6 +24,7 @@ from backend.domains.catalogs.router import router as catalogs_router
 from backend.domains.categories.router import router as categories_router
 from backend.domains.countdowns.router import router as countdowns_router
 from backend.domains.events.router import router as events_router
+from backend.domains.feedback.router import router as feedback_router
 from backend.domains.google_calendar.router import router as google_calendar_router
 from backend.domains.habits.router import router as habits_router
 from backend.domains.media.router import router as media_router
@@ -86,6 +87,7 @@ app.include_router(yearly_entries_router)
 app.include_router(bingo_router)
 app.include_router(notifications_router)
 app.include_router(media_router)
+app.include_router(feedback_router)
 
 # Serving file statici caricati su disco
 os.makedirs(get_settings().upload_dir, exist_ok=True)

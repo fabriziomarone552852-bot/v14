@@ -202,5 +202,5 @@ Per far sì che i nuovi timbri o asset siano incorporati dentro l'APK dello smar
 2. **Cosa fa lo script**:
    - Compila l'interfaccia mobile con Vite.
    - Esegue `npx cap sync android` copiando automaticamente i nuovi file da `public/stamps/` a `android/app/src/main/assets/public/stamps/`.
-   - Ricompila l'APK finale (`smartagenda.apk` o `smartagenda-vX.Y.Z.apk`).
+   - Ricompila l'APK finale e lo salva nella cartella [`apk/`](file:///c:/Users/Fabrizio/Desktop/app/smart/v14/apk/) (`apk/smartagenda.apk` e `apk/smartagenda-vX.Y.Z.apk`).
 3. Installa il nuovo APK sullo smartphone: i nuovi timbri saranno subito utilizzabili anche offline!

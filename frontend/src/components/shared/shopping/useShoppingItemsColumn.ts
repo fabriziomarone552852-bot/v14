@@ -1,9 +1,7 @@
-import { useState, useMemo, useEffect } from 'react';
+// src/components/shared/shopping/useShoppingItemsColumn.ts
+import { useState, useMemo } from 'react';
 import { useShoppingMutations } from '@/hooks/shopping/useShoppingMutations';
 import { useModal } from '@/hooks/useModals';
-import { getLocalTodayStr } from '@/utils/dateUtils';
-import { fetchItemBatches } from '@/api/shoppingApi';
-import type { PurchasedItemEditFormData } from '@/mobile/components/modals/shopping/MobilePurchasedItemEditModal';
 import type { FiltroStato } from './ShoppingActiveListHeader';
 import type {
   ConfigOption,
@@ -12,11 +10,11 @@ import type {
 } from '@/types/shopping';
 import {
   emptyItemForm,
-  emptyPurchaseForm,
   getEurCurrencyId,
   type ItemFormState,
-  type PurchaseFormState,
 } from './shoppingItems.utils';
+import { useShoppingItemsFilter } from './useShoppingItemsFilter';
+import { useShoppingItemsPurchase } from './useShoppingItemsPurchase';
 
 export interface UseShoppingItemsColumnProps {
   items: ShoppingListItem[];
@@ -37,37 +35,36 @@ export function useShoppingItemsColumn({
 }: UseShoppingItemsColumnProps) {
   const mutations = useShoppingMutations();
 
+  // 1. Modali Generiche & Create/Edit Form
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const editModal = useModal<ShoppingListItem>();
   const detailModal = useModal<ShoppingListItem>();
-  const purchasedDetailModal = useModal<ShoppingListItem>();
-  const purchasedEditModal = useModal<ShoppingListItem>();
-  const purchaseModal = useModal<ShoppingListItem>();
   const [historyModalItem, setHistoryModalItem] = useState<ShoppingListItem | null>(null);
-
-  const [filtroStato, setFiltroStato] = useState<FiltroStato>(initialFiltroStato);
-  const [filterQuery, setFilterQuery] = useState('');
-
-  useEffect(() => {
-    setFiltroStato(initialFiltroStato);
-  }, [activeListId, initialFiltroStato]);
 
   const [itemForm, setItemForm] = useState<ItemFormState>(emptyItemForm());
   const [editForm, setEditForm] = useState<ItemFormState>(emptyItemForm());
-  const [purchaseForm, setPurchaseForm] = useState<PurchaseFormState>(
-    emptyPurchaseForm()
-  );
-
-  const [quickName, setQuickName] = useState('');
-  const [quickQuantity, setQuickQuantity] = useState('');
-  const [quickUnitId, setQuickUnitId] = useState('');
-  const [quickAdding, setQuickAdding] = useState(false);
 
   const eurCurrencyId = useMemo(
     () => getEurCurrencyId(currencyOptions),
     [currencyOptions]
   );
 
+  // 2. Filtri, Ricerca e Quick Add
+  const filterLogic = useShoppingItemsFilter({
+    items,
+    activeListId,
+    searchQuery,
+    initialFiltroStato,
+  });
+
+  // 3. Acquisti e Gestione Lotti
+  const purchaseLogic = useShoppingItemsPurchase({
+    activeListId,
+    eurCurrencyId,
+    mutations,
+  });
+
+  // 4. Form Creazione / Modifica
   const buildCreateForm = (): ItemFormState => {
     const form = emptyItemForm();
     if (activeListId != null) {
@@ -79,28 +76,6 @@ export function useShoppingItemsColumn({
   const handleOpenCreate = () => {
     setItemForm(buildCreateForm());
     setIsCreateOpen(true);
-  };
-
-  const effectiveQuery = (searchQuery || filterQuery).toLowerCase().trim();
-
-  const filteredItems = useMemo(() => {
-    let result = items;
-    if (filtroStato === 'aperti') result = result.filter((item) => !item.isPurchased);
-    if (filtroStato === 'completati') result = result.filter((item) => item.isPurchased);
-    if (effectiveQuery) {
-      result = result.filter((item) => {
-        const pMatch = item.productName.toLowerCase().includes(effectiveQuery);
-        const bMatch = item.brandName ? item.brandName.toLowerCase().includes(effectiveQuery) : false;
-        return pMatch || bMatch;
-      });
-    }
-    return result;
-  }, [items, filtroStato, effectiveQuery]);
-
-  const resetQuickAdd = () => {
-    setQuickName('');
-    setQuickQuantity('');
-    setQuickUnitId('');
   };
 
   const handleCloseCreate = () => {
@@ -126,22 +101,26 @@ export function useShoppingItemsColumn({
 
   const handleQuickAdd = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!activeListId || !quickName.trim() || quickAdding) return;
-    setQuickAdding(true);
+    if (!activeListId || !filterLogic.quickName.trim() || filterLogic.quickAdding) return;
+    filterLogic.setQuickAdding(true);
     try {
       await mutations.createItem({
-        shoppingListId: activeListId, productName: quickName.trim(),
-        quantity: quickQuantity ? Number(quickQuantity) : undefined,
-        unitId: quickUnitId ? Number(quickUnitId) : undefined,
+        shoppingListId: activeListId,
+        productName: filterLogic.quickName.trim(),
+        quantity: filterLogic.quickQuantity ? Number(filterLogic.quickQuantity) : undefined,
+        unitId: filterLogic.quickUnitId ? Number(filterLogic.quickUnitId) : undefined,
       });
-      resetQuickAdd();
-    } finally { setQuickAdding(false); }
+      filterLogic.resetQuickAdd();
+    } finally {
+      filterLogic.setQuickAdding(false);
+    }
   };
 
   const handleOpenEdit = (item: ShoppingListItem) => {
     setEditForm({
       shoppingListId: item.shoppingListId != null ? String(item.shoppingListId) : '',
-      productName: item.productName ?? '', brandName: item.brandName ?? '',
+      productName: item.productName ?? '',
+      brandName: item.brandName ?? '',
       brandId: item.brandId != null ? String(item.brandId) : '',
       quantity: item.quantity != null ? String(item.quantity) : '',
       unitId: item.unitId != null ? String(item.unitId) : '',
@@ -150,13 +129,17 @@ export function useShoppingItemsColumn({
     editModal.open(item);
   };
 
-  const handleCloseEdit = () => { setEditForm(emptyItemForm()); editModal.close(); };
+  const handleCloseEdit = () => {
+    setEditForm(emptyItemForm());
+    editModal.close();
+  };
 
   const handleEdit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!editModal.data) return;
     await mutations.updateItem({
-      id: editModal.data.id, listId: editModal.data.shoppingListId,
+      id: editModal.data.id,
+      listId: editModal.data.shoppingListId,
       data: {
         shoppingListId: editForm.shoppingListId ? Number(editForm.shoppingListId) : undefined,
         productName: editForm.productName.trim() || undefined,
@@ -170,236 +153,51 @@ export function useShoppingItemsColumn({
     handleCloseEdit();
   };
 
-  const handleDelete = async (item: ShoppingListItem) => mutations.deleteItem({ id: item.id, listId: item.shoppingListId });
-
-  const handleOpenPurchase = (item: ShoppingListItem) => {
-    const firstBatch = item.inventoryBatches?.[0];
-    setPurchaseForm({
-      ...emptyPurchaseForm(
-        item.lastCurrencyId ? String(item.lastCurrencyId) : eurCurrencyId,
-        item.quantity != null ? String(item.quantity) : '1',
-        item.brandName ?? '',
-        item.brandId != null ? String(item.brandId) : ''
-      ),
-      price: item.lastPrice != null && item.lastPrice > 0 ? String(item.lastPrice) : '',
-      supplierId: item.lastSupplierId != null ? String(item.lastSupplierId) : '',
-      purchaseDate: item.lastPurchaseDate || firstBatch?.purchase_date || getLocalTodayStr(),
-      isOnSale: Boolean(firstBatch?.is_on_sale),
-    });
-    purchaseModal.open(item);
-  };
-
-  const handleTogglePurchased = async (item: ShoppingListItem) => {
-    if (item.isPurchased) {
-      await mutations.togglePurchased({
-        id: item.id,
-        listId: item.shoppingListId,
-        data: { isPurchased: false },
-      });
-    } else {
-      const boughtQuantity = item.quantity != null ? item.quantity : 1;
-      await mutations.addInventoryBatch({
-        itemId: item.id,
-        listId: item.shoppingListId,
-        data: {
-          productId: item.productId,
-          purchaseDate: getLocalTodayStr(),
-          purchasePrice: 0,
-          quantity: boughtQuantity,
-          brandId: item.brandId ?? undefined,
-          brandName: item.brandName ?? undefined,
-          supplierId: item.lastSupplierId ?? undefined,
-          currencyId: item.lastCurrencyId ? Number(item.lastCurrencyId) : (Number(eurCurrencyId) || undefined),
-          isOnSale: false,
-        },
-      });
-      await mutations.togglePurchased({
-        id: item.id,
-        listId: item.shoppingListId,
-        data: { isPurchased: true },
-      });
-    }
-  };
-
-  const handleClosePurchase = () => { setPurchaseForm(emptyPurchaseForm(eurCurrencyId)); purchaseModal.close(); };
-
-  const handlePurchase = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    if (!purchaseModal.data || activeListId == null) return;
-    const targetItem = purchaseModal.data;
-    const boughtQuantity = Number(purchaseForm.quantity) || 1;
-    const originalQuantity = targetItem.quantity != null ? targetItem.quantity : 1;
-    const parsedPrice = purchaseForm.price.trim() ? Number(purchaseForm.price.replace(',', '.')) : 0;
-    const purchasePrice = isNaN(parsedPrice) ? 0 : parsedPrice;
-
-    const batchData = {
-      productId: targetItem.productId,
-      supplierId: purchaseForm.supplierId ? Number(purchaseForm.supplierId) : undefined,
-      brandId: purchaseForm.brandId ? Number(purchaseForm.brandId) : undefined,
-      brandName: purchaseForm.brandName?.trim() || undefined,
-      purchaseDate: purchaseForm.purchaseDate || getLocalTodayStr(),
-      purchasePrice,
-      quantity: boughtQuantity,
-      currencyId: purchaseForm.currencyId ? Number(purchaseForm.currencyId) : undefined,
-      isOnSale: purchaseForm.isOnSale,
-      offerFlagId: purchaseForm.isOnSale ? (Number(purchaseForm.offerFlagId) || 1) : undefined,
-    };
-
-    if (!targetItem.isPurchased) {
-      await mutations.addInventoryBatch({
-        itemId: targetItem.id,
-        listId: activeListId,
-        data: batchData,
-      });
-
-      if (boughtQuantity < originalQuantity) {
-        await mutations.updateItem({
-          id: targetItem.id,
-          listId: activeListId,
-          data: { quantity: originalQuantity - boughtQuantity },
-        });
-        await mutations.togglePurchased({
-          id: targetItem.id,
-          listId: activeListId,
-          data: { isPurchased: false },
-        });
-      } else {
-        await mutations.togglePurchased({
-          id: targetItem.id,
-          listId: activeListId,
-          data: { isPurchased: true },
-        });
-      }
-    } else {
-      let existingBatchId: number | null = null;
-      if (targetItem.inventoryBatches && targetItem.inventoryBatches.length > 0) {
-        existingBatchId = targetItem.inventoryBatches[0].id;
-      } else {
-        try {
-          const batches = await fetchItemBatches(targetItem.id);
-          if (batches && batches.length > 0) {
-            existingBatchId = batches[0].id;
-          }
-        } catch {
-          // ignore
-        }
-      }
-
-      if (existingBatchId) {
-        await mutations.updateInventoryBatch({
-          batchId: existingBatchId,
-          listId: activeListId,
-          data: batchData,
-        });
-      } else {
-        await mutations.addInventoryBatch({
-          itemId: targetItem.id,
-          listId: activeListId,
-          data: batchData,
-        });
-      }
-
-      await mutations.updateItem({
-        id: targetItem.id,
-        listId: activeListId,
-        data: {
-          quantity: boughtQuantity,
-          brandName: purchaseForm.brandName?.trim() || undefined,
-          brandId: purchaseForm.brandId ? Number(purchaseForm.brandId) : undefined,
-        },
-      });
-    }
-
-    handleClosePurchase();
-  };
-
-  const handlePurchasedEdit = async (formData: PurchasedItemEditFormData) => {
-    if (!purchasedEditModal.data || activeListId == null) return;
-    const targetItem = purchasedEditModal.data;
-    const boughtQuantity = Number(formData.quantity) || 1;
-    const destListId = formData.shoppingListId ? Number(formData.shoppingListId) : activeListId;
-
-    // 1. Aggiorna i dati dell'articolo
-    await mutations.updateItem({
-      id: targetItem.id,
-      listId: activeListId,
-      data: {
-        productName: formData.productName.trim(),
-        brandName: formData.brandName.trim() || undefined,
-        brandId: formData.brandId ? Number(formData.brandId) : undefined,
-        shoppingListId: destListId !== activeListId ? destListId : undefined,
-        quantity: boughtQuantity,
-        unitId: formData.unitId ? Number(formData.unitId) : undefined,
-        notes: formData.notes.trim() || undefined,
-      },
-    });
-
-    // 2. Aggiorna il lotto/acquisto associato
-    const batchData = {
-      productId: targetItem.productId,
-      supplierId: formData.supplierId ? Number(formData.supplierId) : undefined,
-      brandId: formData.brandId ? Number(formData.brandId) : undefined,
-      brandName: formData.brandName.trim() || undefined,
-      purchaseDate: formData.purchaseDate,
-      purchasePrice: Number(formData.price.replace(',', '.')),
-      quantity: boughtQuantity,
-      unitId: formData.unitId ? Number(formData.unitId) : undefined,
-      currencyId: formData.currencyId ? Number(formData.currencyId) : undefined,
-      isOnSale: formData.isOnSale,
-      offerFlagId: formData.isOnSale ? 1 : undefined,
-    };
-
-    let existingBatchId: number | null = null;
-    if (targetItem.inventoryBatches && targetItem.inventoryBatches.length > 0) {
-      existingBatchId = targetItem.inventoryBatches[0].id;
-    } else {
-      try {
-        const batches = await fetchItemBatches(targetItem.id);
-        if (batches && batches.length > 0) {
-          existingBatchId = batches[0].id;
-        }
-      } catch {
-        // ignore
-      }
-    }
-
-    if (existingBatchId) {
-      await mutations.updateInventoryBatch({
-        batchId: existingBatchId,
-        listId: activeListId,
-        data: batchData,
-      });
-    } else {
-      await mutations.addInventoryBatch({
-        itemId: targetItem.id,
-        listId: activeListId,
-        data: batchData,
-      });
-    }
-
-    purchasedEditModal.close();
-    purchasedDetailModal.close();
+  const handleDelete = async (item: ShoppingListItem) => {
+    return mutations.deleteItem({ id: item.id, listId: item.shoppingListId });
   };
 
   return {
-    isCreateOpen, setIsCreateOpen,
-    editModal, detailModal, purchasedDetailModal, purchasedEditModal, purchaseModal,
-    historyModalItem, setHistoryModalItem,
-    filtroStato, setFiltroStato,
-    filterQuery, setFilterQuery,
-    itemForm, setItemForm,
-    editForm, setEditForm,
-    purchaseForm, setPurchaseForm,
-    quickName, setQuickName,
-    quickQuantity, setQuickQuantity,
-    quickUnitId, setQuickUnitId,
-    quickAdding, setQuickAdding,
-    filteredItems,
-    handleOpenCreate, handleCloseCreate, handleCreate,
+    isCreateOpen,
+    setIsCreateOpen,
+    editModal,
+    detailModal,
+    purchasedDetailModal: purchaseLogic.purchasedDetailModal,
+    purchasedEditModal: purchaseLogic.purchasedEditModal,
+    purchaseModal: purchaseLogic.purchaseModal,
+    historyModalItem,
+    setHistoryModalItem,
+    filtroStato: filterLogic.filtroStato,
+    setFiltroStato: filterLogic.setFiltroStato,
+    filterQuery: filterLogic.filterQuery,
+    setFilterQuery: filterLogic.setFilterQuery,
+    itemForm,
+    setItemForm,
+    editForm,
+    setEditForm,
+    purchaseForm: purchaseLogic.purchaseForm,
+    setPurchaseForm: purchaseLogic.setPurchaseForm,
+    quickName: filterLogic.quickName,
+    setQuickName: filterLogic.setQuickName,
+    quickQuantity: filterLogic.quickQuantity,
+    setQuickQuantity: filterLogic.setQuickQuantity,
+    quickUnitId: filterLogic.quickUnitId,
+    setQuickUnitId: filterLogic.setQuickUnitId,
+    quickAdding: filterLogic.quickAdding,
+    setQuickAdding: filterLogic.setQuickAdding,
+    filteredItems: filterLogic.filteredItems,
+    handleOpenCreate,
+    handleCloseCreate,
+    handleCreate,
     handleQuickAdd,
-    handleOpenEdit, handleCloseEdit, handleEdit,
+    handleOpenEdit,
+    handleCloseEdit,
+    handleEdit,
     handleDelete,
-    handleTogglePurchased, handleOpenPurchase, handleClosePurchase, handlePurchase,
-    handlePurchasedEdit,
+    handleTogglePurchased: purchaseLogic.handleTogglePurchased,
+    handleOpenPurchase: purchaseLogic.handleOpenPurchase,
+    handleClosePurchase: purchaseLogic.handleClosePurchase,
+    handlePurchase: purchaseLogic.handlePurchase,
+    handlePurchasedEdit: purchaseLogic.handlePurchasedEdit,
   };
 }

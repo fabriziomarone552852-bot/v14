@@ -1,15 +1,14 @@
-// frontend/src/hooks/uiYear/useYearEntries.ts
+// src/hooks/uiYear/useYearEntries.ts
 import { useMemo } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { yearlyEntriesApi } from '@/api/yearlyEntriesApi';
-import { useCategories } from '@/hooks/useCategories';
-import { useOptimisticTag } from '@/hooks/useOptimisticTag';
 import { logger } from '@/utils/logger';
 import type { SyncYearResponse } from '@/hooks/useAgendaYear';
 import type { DbYearlyEntry, YearlyType } from '@/types/yearlyentries';
-import { YEARLY_MOOD_COLORS, YEARLY_MOOD_LABELS, YEARLY_SPHERE_COLORS, YEARLY_SPHERE_LABELS } from '@/utils/yearlyEntriesUtils';
 import type { Category } from '@/types/categories';
 import type { TrackerItem } from '@/types/monthlyentries';
+import { useYearlyTrackers } from './useYearlyTrackers';
+import { useYearlyTags } from './useYearlyTags';
 
 export interface UseYearEntriesResult {
   entries: DbYearlyEntry[];
@@ -58,8 +57,9 @@ export const useYearEntries = (yearData: SyncYearResponse | undefined, year: num
     queryClient.invalidateQueries({ queryKey: ['tags_archive'] });
   };
 
+  // 1. OBIETTIVO E PRIORITÀ
   const obiettivo = useMemo(() => entries.find(e => e.yearly_type === 'OY') || null, [entries]);
-  
+
   const priorita = useMemo(() => {
     return [
       entries.find(e => e.yearly_type === 'P1') || null,
@@ -68,7 +68,7 @@ export const useYearEntries = (yearData: SyncYearResponse | undefined, year: num
     ];
   }, [entries]);
 
-  // PROPOSITI: Ordinati SEMPRE per id.asc() (il più recente rimane sempre IN BASSO)
+  // 2. PROPOSITI ED EVENTI
   const propositi = useMemo(
     () => entries.filter(e => e.yearly_type === 'PR').sort((a, b) => a.id - b.id),
     [entries]
@@ -77,41 +77,28 @@ export const useYearEntries = (yearData: SyncYearResponse | undefined, year: num
   const eventiPositivi = useMemo(() => entries.filter(e => e.yearly_type === 'EP'), [entries]);
   const eventiNegativi = useMemo(() => entries.filter(e => e.yearly_type === 'EN'), [entries]);
 
-  const moodsUI = useMemo((): TrackerItem[] => {
-    return (Object.keys(YEARLY_MOOD_LABELS) as (keyof typeof YEARLY_MOOD_LABELS)[]).map(code => {
-      const entry = entries.find(e => e.yearly_type === code);
-      return {
-        id: code,
-        name: YEARLY_MOOD_LABELS[code],
-        category: 'MOOD',
-        colorHex: YEARLY_MOOD_COLORS[code],
-        currentValue: entry && entry.yearly_field ? parseInt(entry.yearly_field, 10) || 0 : 0,
-        previousValue: 0,
-      };
-    });
-  }, [entries]);
+  // 3. TRACKER UMORE & SFERE (Scorporati)
+  const trackerLogic = useYearlyTrackers({
+    entries,
+    year,
+    updateEntriesState,
+  });
 
-  const spheresUI = useMemo((): TrackerItem[] => {
-    return (Object.keys(YEARLY_SPHERE_LABELS) as (keyof typeof YEARLY_SPHERE_LABELS)[]).map(code => {
-      const entry = entries.find(e => e.yearly_type === code);
-      return {
-        id: code,
-        name: YEARLY_SPHERE_LABELS[code],
-        category: 'SPHERE',
-        colorHex: YEARLY_SPHERE_COLORS[code],
-        currentValue: entry && entry.yearly_field ? parseInt(entry.yearly_field, 10) || 0 : 0,
-        previousValue: 0,
-      };
-    });
-  }, [entries]);
+  // 4. TAGS ANNUALI (Scorporati)
+  const tagLogic = useYearlyTags({
+    entries,
+    year,
+    queryKey,
+    updateEntriesState,
+  });
 
+  // 5. HANDLERS SALVATAGGIO
   const handleSaveObiettivo = async (text: string) => {
     const existing = obiettivo;
     const trimmed = text.trim();
 
     if (existing) {
       if (!trimmed) {
-        // Se svuotato -> cancellazione ottimistica immediata
         updateEntriesState(prev => prev.filter(e => e.id !== existing.id));
         try {
           await yearlyEntriesApi.delete(existing.id);
@@ -120,7 +107,6 @@ export const useYearEntries = (yearData: SyncYearResponse | undefined, year: num
           updateEntriesState(prev => [...prev, existing]);
         }
       } else {
-        // Aggiornamento ottimistico immediato
         const optimistic: DbYearlyEntry = { ...existing, yearly_field: trimmed };
         updateEntriesState(prev => prev.map(e => e.id === existing.id ? optimistic : e));
         try {
@@ -134,7 +120,6 @@ export const useYearEntries = (yearData: SyncYearResponse | undefined, year: num
         }
       }
     } else if (trimmed) {
-      // Creazione ottimistica immediata con tempId
       const tempId = -Date.now();
       const optimistic: DbYearlyEntry = {
         id: tempId,
@@ -164,7 +149,6 @@ export const useYearEntries = (yearData: SyncYearResponse | undefined, year: num
 
     if (existing) {
       if (!trimmed) {
-        // Eliminazione priorità ottimistica immediata
         updateEntriesState(prev => prev.filter(e => e.id !== existing.id));
         try {
           await yearlyEntriesApi.delete(existing.id);
@@ -173,7 +157,6 @@ export const useYearEntries = (yearData: SyncYearResponse | undefined, year: num
           updateEntriesState(prev => [...prev, existing]);
         }
       } else {
-        // Aggiornamento priorità ottimistico immediato
         const optimistic: DbYearlyEntry = { ...existing, yearly_field: trimmed };
         updateEntriesState(prev => prev.map(e => e.id === existing.id ? optimistic : e));
         try {
@@ -187,7 +170,6 @@ export const useYearEntries = (yearData: SyncYearResponse | undefined, year: num
         }
       }
     } else if (trimmed) {
-      // Creazione priorità ottimistica immediata
       const tempId = -(Date.now() + index);
       const optimistic: DbYearlyEntry = {
         id: tempId,
@@ -225,30 +207,6 @@ export const useYearEntries = (yearData: SyncYearResponse | undefined, year: num
     updateEntriesState(prev => prev.filter(e => e.id !== id));
   };
 
-  const handleUpdateMood = async (id: string, newValue: number) => {
-    const yearlyType = id as YearlyType;
-    const existing = entries.find(e => e.yearly_type === yearlyType);
-    if (existing) {
-      const updated = await yearlyEntriesApi.update(existing.id, { yearly_field: newValue.toString() });
-      if (updated) updateEntriesState(prev => prev.map(e => e.id === existing.id ? updated : e));
-    } else {
-      const created = await yearlyEntriesApi.create({ year, yearly_type: yearlyType, yearly_field: newValue.toString() });
-      if (created) updateEntriesState(prev => [...prev, created]);
-    }
-  };
-
-  const handleUpdateSphere = async (id: string, newValue: number) => {
-    const yearlyType = id as YearlyType;
-    const existing = entries.find(e => e.yearly_type === yearlyType);
-    if (existing) {
-      const updated = await yearlyEntriesApi.update(existing.id, { yearly_field: newValue.toString() });
-      if (updated) updateEntriesState(prev => prev.map(e => e.id === existing.id ? updated : e));
-    } else {
-      const created = await yearlyEntriesApi.create({ year, yearly_type: yearlyType, yearly_field: newValue.toString() });
-      if (created) updateEntriesState(prev => [...prev, created]);
-    }
-  };
-
   const handleSaveAnswer = async (code: YearlyType, text: string, existingId?: number) => {
     if (existingId) {
       const updated = await yearlyEntriesApi.update(existingId, { yearly_field: text });
@@ -274,124 +232,31 @@ export const useYearEntries = (yearData: SyncYearResponse | undefined, year: num
     updateEntriesState(prev => prev.filter(e => e.id !== id));
   };
 
-  const { data: dbCategories = [] } = useCategories();
-
-  const allTags = useMemo(() => dbCategories.filter(c => c.genre === 5), [dbCategories]);
-
-  const tagEntries = useMemo(
-    () => entries.filter(e => e.yearly_type === 'TG').sort((a, b) => Math.abs(a.id) - Math.abs(b.id)),
-    [entries]
-  );
-
-  const assignedTags = useMemo(() => {
-    return tagEntries
-      .map(te => {
-        const catId = parseInt(te.yearly_field ?? '', 10);
-        return dbCategories.find(t => t.id === catId);
-      })
-      .filter((t): t is Category => !!t);
-  }, [tagEntries, dbCategories]);
-
-  const tagEntryMap = useMemo(() => {
-    const map: Record<number, number> = {};
-    tagEntries.forEach(te => {
-      const catId = parseInt(te.yearly_field ?? '', 10);
-      if (!isNaN(catId)) map[catId] = te.id;
-    });
-    return map;
-  }, [tagEntries]);
-
-  const handleAddTag = async (categoryId: number) => {
-    const tempId = -Date.now();
-    const optimisticEntry: DbYearlyEntry = {
-      id: tempId,
-      user_id: 0,
-      year,
-      yearly_type: 'TG',
-      yearly_field: String(categoryId),
-    };
-    updateEntriesState(prev => [...prev, optimisticEntry]);
-
-    try {
-      const created = await yearlyEntriesApi.create({ year, yearly_type: 'TG', yearly_field: String(categoryId) });
-      if (created) {
-        updateEntriesState(prev => prev.map(e => e.id === tempId ? created : e));
-      }
-    } catch (err) {
-      logger.error('Errore aggiunta tag anno:', err);
-      updateEntriesState(prev => prev.filter(e => e.id !== tempId));
-    } finally {
-      queryClient.invalidateQueries({ queryKey });
-    }
-  };
-
-  // Handler crea nuovo tag — logica ottimistica delegata all'hook condiviso useOptimisticTag
-  const { handleCreateAndAddTag } = useOptimisticTag<DbYearlyEntry>(
-    allTags,
-    handleAddTag,
-    queryKey,
-    {
-      fieldName: 'yearly_field',
-      typeName: 'yearly_type',
-      entriesKey: 'entries',
-      createTempEntry: (tempId, tempCatId) => ({
-        id: tempId,
-        user_id: 0,
-        year,
-        yearly_type: 'TG' as YearlyType,
-        yearly_field: String(tempCatId),
-      }),
-      createRealEntry: (realCatId) =>
-        yearlyEntriesApi.create({
-          year,
-          yearly_type: 'TG',
-          yearly_field: String(realCatId),
-        }),
-    },
-  );
-
-  const handleRemoveTag = async (yearlyEntryId: number) => {
-    const backup = entries.find(e => e.id === yearlyEntryId);
-    updateEntriesState(prev => prev.filter(e => e.id !== yearlyEntryId));
-
-    try {
-      await yearlyEntriesApi.delete(yearlyEntryId);
-    } catch (err) {
-      logger.error('Errore rimozione tag:', err);
-      if (backup) {
-        updateEntriesState(prev => [...prev, backup]);
-      }
-    } finally {
-      queryClient.invalidateQueries({ queryKey });
-    }
-  };
-
-
   return {
     entries,
     obiettivo,
     priorita,
     propositi,
-    moodsUI,
-    spheresUI,
+    moodsUI: trackerLogic.moodsUI,
+    spheresUI: trackerLogic.spheresUI,
     eventiPositivi,
     eventiNegativi,
-    assignedTags,
-    allTags,
-    tagEntryMap,
+    assignedTags: tagLogic.assignedTags,
+    allTags: tagLogic.allTags,
+    tagEntryMap: tagLogic.tagEntryMap,
     handleSaveObiettivo,
     handleSavePriority,
     handleAddProposito,
     handleUpdateProposito,
     handleDeleteProposito,
-    handleUpdateMood,
-    handleUpdateSphere,
+    handleUpdateMood: trackerLogic.handleUpdateMood,
+    handleUpdateSphere: trackerLogic.handleUpdateSphere,
     handleSaveAnswer,
     handleAddEvento,
     handleUpdateEvento,
     handleDeleteEvento,
-    handleAddTag,
-    handleCreateAndAddTag,
-    handleRemoveTag,
+    handleAddTag: tagLogic.handleAddTag,
+    handleCreateAndAddTag: tagLogic.handleCreateAndAddTag,
+    handleRemoveTag: tagLogic.handleRemoveTag,
   };
 };

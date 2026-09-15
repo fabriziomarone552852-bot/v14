@@ -44,6 +44,8 @@ export const MobileAppShell: React.FC = () => {
     });
   }, [location.pathname, navigate]);
 
+  const isSettings = location.pathname.startsWith('/settings') || location.pathname === '/archivio';
+
   return (
     <MobileSelectionProvider>
       <div className="h-[100dvh] flex flex-col overflow-hidden bg-gray-50 text-gray-900 selection:bg-blue-600 selection:text-white font-sans relative">
@@ -60,7 +62,7 @@ export const MobileAppShell: React.FC = () => {
         />
 
         {/* 3. MAIN CONTENT AREA (Occupa tutto lo spazio residuo senza scrollbar esterne) */}
-        <main className="flex-1 min-h-0 w-full max-w-lg mx-auto px-2 py-1.5 overflow-y-auto custom-scrollbar flex flex-col">
+        <main className={`flex-1 min-h-0 w-full max-w-lg mx-auto px-2 py-1.5 overflow-y-auto flex flex-col ${isSettings ? 'no-scrollbar' : 'custom-scrollbar'}`}>
           <Outlet />
         </main>
 
