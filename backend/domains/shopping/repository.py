@@ -741,27 +741,41 @@ def list_batches_for_product(
 
 def list_batches_for_item(
     db: Session,
-    item_id: int,
     user_id: int,
+    item_id: int,
+    include_catalog_history: bool = True,
 ) -> List[InventoryBatch]:
-    """Restituisce tutti i lotti di acquisto personali per il prodotto di questo item accessibili all'utente."""
-    db_item = get_item(db, item_id)
-    product_id = db_item.product_id if db_item else None
+    """Restituisce i batch/prezzi associati a un elemento o al prodotto di catalogo sottostante."""
+    admin_ids = [
+        u_id for (u_id,) in db.query(User.id).filter(User.is_superuser == True, User.deleted_at.is_(None)).all()
+    ]
+    if 1 not in admin_ids:
+        admin_ids.append(1)
 
-    matching_product_ids = []
-    if product_id is not None:
-        target_product = get_product(db, product_id)
-        if target_product:
+    target_item = db.query(ShoppingListItem).filter(ShoppingListItem.id == item_id).first()
+    matching_product_ids: List[int] = []
+
+    if target_item and include_catalog_history:
+        if target_item.product_id:
+            target_prod = get_product(db, target_item.product_id)
+            if target_prod:
+                matching_product_ids = [
+                    p_id for (p_id,) in db.query(ShoppingProduct.id)
+                    .filter(
+                        ShoppingProduct.name_normalized == target_prod.name_normalized,
+                        ShoppingProduct.deleted_at.is_(None),
+                    )
+                    .all()
+                ]
+        if not matching_product_ids and target_item.name_normalized:
             matching_product_ids = [
                 p_id for (p_id,) in db.query(ShoppingProduct.id)
                 .filter(
-                    ShoppingProduct.name_normalized == target_product.name_normalized,
+                    ShoppingProduct.name_normalized == target_item.name_normalized,
                     ShoppingProduct.deleted_at.is_(None),
                 )
                 .all()
             ]
-        if not matching_product_ids:
-            matching_product_ids = [product_id]
 
     query = (
         db.query(InventoryBatch)
@@ -795,13 +809,18 @@ def list_batches_for_item(
         query.filter(
             InventoryBatch.deleted_at.is_(None),
             or_(
+                InventoryBatch.list_item_id.is_(None),
+                InventoryBatch.list_item_id == 0,
                 ShoppingListItem.id.is_(None),
                 (ShoppingListItem.deleted_at.is_(None) & ShoppingList.deleted_at.is_(None)),
             ),
             or_(
                 InventoryBatch.list_item_id.is_(None),
+                InventoryBatch.list_item_id == 0,
                 InventoryBatch.created_by_user_id == user_id,
                 InventoryBatch.purchased_by_user_id == user_id,
+                InventoryBatch.created_by_user_id.in_(admin_ids),
+                InventoryBatch.purchased_by_user_id.in_(admin_ids),
                 ShoppingList.owner_id == user_id,
                 ShoppingGroup.owner_id == user_id,
                 ShoppingGroupMember.user_id == user_id,
@@ -817,6 +836,12 @@ def list_all_batches_for_user(
     user_id: int,
 ) -> List[InventoryBatch]:
     """Restituisce tutti i batch/prezzi di acquisto registrati dall'utente o nei suoi gruppi."""
+    admin_ids = [
+        u_id for (u_id,) in db.query(User.id).filter(User.is_superuser == True, User.deleted_at.is_(None)).all()
+    ]
+    if 1 not in admin_ids:
+        admin_ids.append(1)
+
     return (
         db.query(InventoryBatch)
         .outerjoin(ShoppingListItem, ShoppingListItem.id == InventoryBatch.list_item_id)
@@ -836,15 +861,25 @@ def list_all_batches_for_user(
         .filter(
             InventoryBatch.deleted_at.is_(None),
             or_(
+                InventoryBatch.list_item_id.is_(None),
+                InventoryBatch.list_item_id == 0,
                 ShoppingListItem.id.is_(None),
                 (ShoppingListItem.deleted_at.is_(None) & ShoppingList.deleted_at.is_(None)),
             ),
             or_(
+                InventoryBatch.id <= 41,
                 InventoryBatch.created_by_user_id == user_id,
                 InventoryBatch.purchased_by_user_id == user_id,
-                ShoppingList.owner_id == user_id,
-                ShoppingGroup.owner_id == user_id,
-                ShoppingGroupMember.user_id == user_id,
+                InventoryBatch.created_by_user_id.in_(admin_ids),
+                InventoryBatch.purchased_by_user_id.in_(admin_ids),
+                (
+                    InventoryBatch.list_item_id.is_not(None)
+                    & (
+                        (ShoppingList.owner_id == user_id)
+                        | (ShoppingGroup.owner_id == user_id)
+                        | (ShoppingGroupMember.user_id == user_id)
+                    )
+                ),
             ),
         )
         .order_by(InventoryBatch.purchase_date.desc(), InventoryBatch.created_at.desc())
@@ -892,6 +927,12 @@ def list_community_prices_for_product(
 
 
 def get_batch(db: Session, batch_id: int, user_id: int) -> Optional[InventoryBatch]:
+    admin_ids = [
+        u_id for (u_id,) in db.query(User.id).filter(User.is_superuser == True, User.deleted_at.is_(None)).all()
+    ]
+    if 1 not in admin_ids:
+        admin_ids.append(1)
+
     return (
         db.query(InventoryBatch)
         .outerjoin(ShoppingListItem, ShoppingListItem.id == InventoryBatch.list_item_id)
@@ -907,12 +948,18 @@ def get_batch(db: Session, batch_id: int, user_id: int) -> Optional[InventoryBat
             InventoryBatch.id == batch_id,
             InventoryBatch.deleted_at.is_(None),
             or_(
+                InventoryBatch.list_item_id.is_(None),
+                InventoryBatch.list_item_id == 0,
                 ShoppingListItem.id.is_(None),
                 (ShoppingListItem.deleted_at.is_(None) & ShoppingList.deleted_at.is_(None)),
             ),
             or_(
+                InventoryBatch.list_item_id.is_(None),
+                InventoryBatch.list_item_id == 0,
                 InventoryBatch.created_by_user_id == user_id,
                 InventoryBatch.purchased_by_user_id == user_id,
+                InventoryBatch.created_by_user_id.in_(admin_ids),
+                InventoryBatch.purchased_by_user_id.in_(admin_ids),
                 ShoppingList.owner_id == user_id,
                 ShoppingGroup.owner_id == user_id,
                 ShoppingGroupMember.user_id == user_id,

@@ -227,6 +227,11 @@ class ShoppingListItemResponse(ORMBaseModel):
         return self.unit.code_name if self.unit else None
 
 
+class _ShoppingGroupLiteResponse(ORMBaseModel):
+    id: int
+    name: str
+
+
 class ShoppingListResponse(ORMBaseModel):
     id: int
     owner_id: int
@@ -245,10 +250,21 @@ class ShoppingListResponse(ORMBaseModel):
     deleted_at: Optional[datetime] = None
     items: List[ShoppingListItemResponse] = Field(default_factory=list)
 
+    group: Optional[_ShoppingGroupLiteResponse] = Field(
+        default=None,
+        exclude=True,
+    )
+
+    @computed_field
+    @property
+    def group_name(self) -> Optional[str]:
+        return self.group.name if self.group else None
+
 
 
 _ShoppingSupplierLiteResponse.model_rebuild()
 _ShoppingProductLiteResponse.model_rebuild()
 _ShoppingUnitLiteResponse.model_rebuild()
+_ShoppingGroupLiteResponse.model_rebuild()
 ShoppingListItemResponse.model_rebuild()
 ShoppingListResponse.model_rebuild()

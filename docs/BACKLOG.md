@@ -15,8 +15,11 @@ Questo documento serve a tracciare in modo strutturato:
 | ID | Attività / Funzionalità | Ambito | Stato Backend | Stato Frontend | Priorità |
 | :--- | :--- | :--- | :---: | :---: | :---: |
 | **CORE-001** | **Refactoring Globale & Pulizia Architetturale** | `core` / arch | 🟢 Completato | 🟢 Completato | 🟢 **Completato** |
+| **CORE-002** | **Refactoring Continuo, Modularità & Cleanup Codice** | `core` / arch | 🔴 Da Iniziare | 🔴 Da Iniziare | 🟠 **Alta** |
 | **MEDIA-001** | **Upload Foto Dispositivo, Caching URL, GIF As-Is & WebP** | `media` / storage | 🟢 Completato | 🟢 Completato | 🟢 **Completato** |
 | **CAL-001** | **Sincronizzazione Timezone Google Calendar & Data Mobile DayPage** | `calendar` / `mobile` | 🟢 Completato | 🟢 Completato | 🟢 **Completato** |
+| **FEAT-012** | **Pagina di Avvio Pinnata / Selezione Landing Page Predefinita** | `settings` / UI | 🔴 Da Iniziare | 🔴 Da Iniziare | 🟠 **Alta** |
+| **CAL-002** | **Filtro Categorie Eventi nel Calendario Homepage (Menu Ingranaggio ⚙️)** | `calendar` / UI | 🔴 Da Iniziare | 🔴 Da Iniziare | 🟠 **Alta** |
 | **FEAT-004** | **Sezione Media: Libri, Film e Serie TV** | `media` / ent | 🔴 Da Iniziare | 🔴 Da Iniziare | 🔴 **Massima (Passo Fondamentale)** |
 | **FEAT-005** | **Sezione Liste Tematiche & Personalizzate** | `custom_lists` | 🔴 Da Iniziare | 🔴 Da Iniziare | 🔴 **Massima (Passo Fondamentale)** |
 | **FEAT-006** | **Hub Spesa, Ricettario, Meal Prep & Wishlist Oggetti** | `shopping` / food | 🔴 Da Strutturare | 🔴 Da Implementare | 🔴 **Massima (Passo Fondamentale)** |
@@ -101,7 +104,13 @@ Modulo completo per l'inserimento rapido dei prezzi a catalogo, tracciamento sto
 - **DatePicker & Menu Negozi Standard**: Integrato il `DatePicker` dell'applicazione ed il componente `ShoppingSupplierSelect` (con auto-fetch dei negozi) nel modale di modifica del prezzo.
 - **Portal Overlay ed Eliminazione Scrollbar**: Renderizzato `ShoppingSupplierSelect` tramite React Portal su `document.body` (`usePortal=true`) con posizionamento sincrono per evitare che la lista estenda l'altezza dei modali causando la comparsa della scrollbar laterale.
 - **Centratura Overlay su Mobile**: Configurati `DatePicker` (`overlay={isMobile}`) e `ShoppingSupplierSelect` (`asModal={isMobile}`) per aprirsi come finestre modali modellate al centro dello schermo su dispositivi mobile.
-- **Inserimento Rapido Prezzi Desktop**: Modale espanso `max-w-5xl` senza scrollbar orizzontale, campo quantità fino a 3+ cifre e pulsante `+` nel titolo colonna Negozio.
+- **Inserimento Rapido Prezzi Desktop & Mobile**: Modale espanso `max-w-5xl` senza scrollbar orizzontale, campo quantità fino a 3+ cifre, pulsante `+` nel titolo colonna Negozio e menu a tendina "Associa a Lista Spesa (Opzionale)" in alto con visualizzazione del nome del gruppo (es. `👥 Famiglia`).
+- **Layout Modale a 2 Finestre Affiancate (`sidePanel`)**: Riprogettate le modali di modifica articolo acquistato e rilevazione prezzo in 2 finestre affiancate (stile albero delle task): pannello sinistro per *Dettagli Acquisto* (Prezzo Unitario, Prezzo Totale, Valuta, Negozio, Data Acquisto, Offerta) e pannello principale per *Proprietà Prodotto* (Nome, Marca, Lista, Quantità, Unità di Misura, Note).
+- **Simmetria Visiva Quantità & Unità**: Allineati simmetricamente i campi Quantità e Unità di Misura con etichette visive superiori uniformi.
+- **Modifica Completa nello Storico Prezzi Archivi**: Estesa la modale a 2 finestre alla modifica dello Storico Prezzi (`ShoppingEditBatchModal`), consentendo la modifica contestuale sia del prezzo che dei dettagli prodotto (Nome, Marca, Lista, Quantità, Unità, Note).
+- **Protezione Dati SEED & Permessi Batch**: I dati del primo inserimento (lotti SEED `id <= 41`) non mostrano i tasti di modifica/eliminazione agli utenti standard (visibili solo a SuperUser). I lotti non associati a liste (`list_item_id is None`) creati da un utente sono visibili unicamente dall'autore e dagli Admin, impedendo l'accesso e la modifica ad altri utenti fuori dal gruppo.
+- **Persistenza Salvataggio Prezzi & Batch Utente**: Risolto un disallineamento nell'invio del prezzo totale di acquisto al backend ed estesa la gestione di `update_inventory_batch` in `service.py` per collegare/creare l'elemento di lista e persistere note, unità e lista selezionata anche per i rilevamenti prezzo nati senza `list_item_id`.
+- **Pre-selezione Lista & Gestione Ruoli Gruppo nello Storico Prezzi**: Inclusi `shopping_list_id` e `unit_id` nella risposta API e pre-selezionata la lista nel modale di modifica. Applicata la verifica dei ruoli del gruppo (`owner`, `admin`, `editor`, `reader`): per gli utenti con ruolo Lettore (`reader`), i tasti di modifica/eliminazione vengono nascosti (sola visualizzazione) e bloccati con risposta HTTP 403 Forbidden dal server backend.
 - **Fix Z-Index Negozio Mobile**: Modale di selezione e creazione negozio portati a `z-[20000]` per sovrapporsi correttamente alla modale rapida mobile.
 - **Invarianza Case-Insensitive Gruppi**: Invito membri nei gruppi spesa reso totalmente case-insensitive lato backend.
 
@@ -226,6 +235,23 @@ Intervento strutturale di refactoring trasversale su Backend e Frontend completa
 
 ---
 
+### [CORE-002] Refactoring Continuo, Modularità & Cleanup Codice
+
+#### 📝 Descrizione
+Attività continuativa di ottimizzazione e refactoring architetturale per mantenere la codebase snella, modulare e facilmente manutenibile durante l'evoluzione delle nuove funzionalità.
+
+#### 🛠️ Ambito & Obiettivi
+1. **Scomposizione Componenti & Hook**:
+   - Individuazione e refactoring preventivo di componenti o sotto-pagine in crescita prima che superino la soglia di leggibilità.
+   - Estrazione di sotto-hook personalizzati per la separazione tra logica di stato e resa grafica.
+2. **Ottimizzazione Prestazioni & Re-Render**:
+   - Profilazione dei re-render e memoizzazione strategica (`useMemo`, `useCallback`, `React.memo`) nelle viste ad alta densità informativa (es. Calendario, Liste Spesa, Timeline).
+3. **Mantenimento Standard di Qualità**:
+   - Garanzia del livello **Zero `any`** in TypeScript con interfacce e DTO trasparenti.
+   - Pulizia periodica di codice legacy, asset o funzioni obsolete sia in Frontend che in Backend.
+
+---
+
 ### [MEDIA-001] Upload Foto Dispositivo, Caching URL, GIF As-Is & WebP (✅ Completato)
 
 #### 📝 Descrizione
@@ -257,6 +283,41 @@ Risolti due problemi critici di sincronizzazione e usabilità relativi al modulo
    - ✅ Parsing bidirezionale accurato (`_parse_google_datetime`) sia per timestamp ISO con offset esplicito (+02:00) sia per timestamp UTC (`Z`), convertendoli nel corretto orario locale prima del salvataggio nel database locale.
 2. **Frontend (`frontend/src/mobile/hooks/useMobileHeaderLogic.ts`)**:
    - ✅ `handleNewEvent` integrato con `DayContext` (`useDayOptional`), passando la data visualizzata corrente a `openEventForm(null, dateStr)` in rotta `/giorno`.
+
+---
+
+### [FEAT-012] Pagina di Avvio Pinnata / Selezione Landing Page Predefinita
+
+#### 📝 Descrizione
+Possibilità per l'utente di scegliere e fissare (pinnare) nelle impostazioni personali quale pagina/sezione dell'applicazione deve essere aperta per prima al login o al lancio dell'app (es. Homepage Agenda, Spesa / Shopping, Vista Giorno, Liste Tematiche, Sezione Media, ecc.).
+
+#### 🎯 Casi d'Uso & Funzionalità
+1. **Personalizzazione dell'Esperienza d'Uso**:
+   - Utenti che usano l'app principalmente per la spesa possono impostare l'Hub Spesa come prima schermata all'avvio.
+   - Utenti focalizzati sugli impegni giornalieri possono scegliere la vista Giorno (`/giorno`) o la Homepage Calendario (`/`).
+2. **Routing Intelligente**:
+   - Reindirizzamento automatico trasparente sia su Desktop Web che su Mobile App (Capacitor/Android) all'apertura del percorso root.
+
+#### 🛠️ Dettagli Tecnologici & UI
+- **Impostazioni Utente**: Nuova opzione *"Pagina di Avvio Predefinita"* nel profilo utente (sincronizzata a DB e salvata in `localStorage` per accesso istantaneo offline).
+- **Integrazione Navigazione**: Pulsante puntina opzionale nelle intestazioni delle varie viste per impostare rapidamente la pagina corrente come vista di avvio predefinita.
+
+---
+
+### [CAL-002] Filtro Categorie Eventi nel Calendario Homepage (Menu Ingranaggio ⚙️)
+
+#### 📝 Descrizione
+Integrazione di un menu di filtraggio rapido rappresentato da un'icona ad ingranaggio ⚙️ nella vista Calendario della Homepage (Desktop e Mobile), consentendo all'utente di scegliere dinamicamente quali tipologie di eventi e impegni mostrare nel calendario.
+
+#### 🎯 Filtri & Selettori Previsti
+1. **Eventi Agenda Standard**: Mostra/Nascondi impegni e task dell'agenda personale.
+2. **Eventi & Turni di Lavoro**: Toggle per includere o isolare gli eventi di lavoro / turni (collegato al modulo `FEAT-011`).
+3. **Sincronizzazione Google Calendar**: Mostra/Nascondi gli eventi importati da Google Calendar.
+4. **Altre Categorie / Tag**: Selettori multipli per filtrare per priorità o categoria.
+
+#### 🛠️ Dettagli Interfaccia & Persistenza
+- **UI Menu ⚙️**: Icona ingranaggio affiancata ai comandi di navigazione del Calendario Homepage con popover/dropdown responsive (modale al centro su Mobile).
+- **Persistenza Stato**: Preferenze di filtraggio salvate nello stato locale dell'utente in modo da mantenere attiva la configurazione selezionata tra le sessioni.
 
 ---
 

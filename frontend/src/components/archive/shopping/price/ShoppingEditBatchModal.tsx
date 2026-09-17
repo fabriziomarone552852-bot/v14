@@ -1,24 +1,56 @@
 import React, { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import BaseModal from '@/components/shared/dialog/BaseModal';
-import DatePicker from '@/components/shared/utils/DatePicker/DatePicker';
-import ShoppingSupplierSelect from '@/components/shared/shopping/ShoppingSupplierSelect';
-import { TagIcon } from '@/components/shared/utils/Icons';
-import type { ItemBatchRecord, ShoppingSupplierOption } from '@/types/shopping';
-import { fetchShoppingSuppliers, shoppingQueryKeys } from '@/api/shoppingApi';
+import { EditIcon } from '@/components/shared/utils/Icons';
+import type {
+  ConfigOption,
+  ItemBatchRecord,
+  ShoppingListSummary,
+  ShoppingProductOption,
+  ShoppingSupplierOption,
+} from '@/types/shopping';
+import type { PurchasedItemEditFormData } from '@/mobile/components/modals/shopping/MobilePurchasedItemEditModal';
+import {
+  fetchShoppingSuppliers,
+  fetchShoppingLists,
+  fetchShoppingProducts,
+  fetchShoppingConfig,
+  shoppingQueryKeys,
+} from '@/api/shoppingApi';
+import {
+  ShoppingPurchasedItemProductFields,
+  ShoppingPurchasedItemPurchaseFields,
+} from '@/components/shared/shopping/purchased';
+
 import { useIsMobile } from '@/mobile/hooks/useIsMobile';
+import MobileBaseModal from '@/mobile/components/modals/MobileBaseModal';
+import {
+  MobilePurchasedItemProductSection,
+  MobilePurchasedItemPurchaseSection,
+} from '@/mobile/components/modals/shopping/purchased';
 
 export interface ShoppingEditBatchModalProps {
   isOpen: boolean;
   batch: ItemBatchRecord | null;
   onClose: () => void;
   suppliers?: ShoppingSupplierOption[];
+  lists?: ShoppingListSummary[];
+  brands?: ShoppingSupplierOption[];
+  products?: ShoppingProductOption[];
+  unitOptions?: ConfigOption[];
+  currencyOptions?: ConfigOption[];
   onSave: (batchId: number, data: {
     purchasePrice: number;
     purchaseDate: string;
     quantityPurchased?: number;
     supplierId?: number | null;
     isOnSale: boolean;
+    productName?: string;
+    brandName?: string;
+    brandId?: number | null;
+    notes?: string;
+    unitId?: number | null;
+    shoppingListId?: number | null;
   }) => Promise<void>;
   onDelete?: (batchId: number) => Promise<void>;
 }
@@ -28,14 +60,32 @@ export const ShoppingEditBatchModal: React.FC<ShoppingEditBatchModalProps> = ({
   batch,
   onClose,
   suppliers = [],
+  lists = [],
+  brands = [],
+  products = [],
+  unitOptions = [],
+  currencyOptions = [],
   onSave,
 }) => {
   const isMobile = useIsMobile();
-  const [price, setPrice] = useState('');
-  const [date, setDate] = useState('');
-  const [quantity, setQuantity] = useState('1');
-  const [supplierId, setSupplierId] = useState<string>('');
-  const [isOnSale, setIsOnSale] = useState(false);
+  const [formData, setFormData] = useState<PurchasedItemEditFormData>({
+    productName: '',
+    brandName: '',
+    brandId: '',
+    shoppingListId: '',
+    quantity: '1',
+    unitId: '',
+    notes: '',
+    price: '',
+    unitPrice: '',
+    totalPrice: '',
+    lastPriceEdited: 'unit',
+    currencyId: '',
+    supplierId: '',
+    purchaseDate: '',
+    isOnSale: false,
+  });
+
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -44,23 +94,88 @@ export const ShoppingEditBatchModal: React.FC<ShoppingEditBatchModalProps> = ({
     queryKey: shoppingQueryKeys.suppliers(),
     queryFn: ({ signal }) => fetchShoppingSuppliers(signal),
     staleTime: 60_000,
-    enabled: isOpen,
+    enabled: isOpen && suppliers.length === 0,
+  });
+
+  const { data: fetchedLists = [] } = useQuery<ShoppingListSummary[]>({
+    queryKey: shoppingQueryKeys.lists(),
+    queryFn: ({ signal }) => fetchShoppingLists(signal),
+    staleTime: 60_000,
+    enabled: isOpen && lists.length === 0,
+  });
+
+  const { data: fetchedProducts = [] } = useQuery<ShoppingProductOption[]>({
+    queryKey: shoppingQueryKeys.products(),
+    queryFn: ({ signal }) => fetchShoppingProducts(signal),
+    staleTime: 60_000,
+    enabled: isOpen && products.length === 0,
+  });
+
+  const { data: config } = useQuery({
+    queryKey: shoppingQueryKeys.config(),
+    queryFn: ({ signal }) => fetchShoppingConfig(signal),
+    staleTime: 300_000,
+    enabled: isOpen && (unitOptions.length === 0 || currencyOptions.length === 0),
   });
 
   const effectiveSuppliers = suppliers.length > 0 ? suppliers : fetchedSuppliers;
+  const effectiveBrands = brands.length > 0 ? brands : effectiveSuppliers;
+  const effectiveLists = lists.length > 0 ? lists : fetchedLists;
+  const effectiveProducts = products.length > 0 ? products : fetchedProducts;
+  const effectiveUnits = unitOptions.length > 0 ? unitOptions : (config?.unitOptions ?? []);
+  const effectiveCurrencies = currencyOptions.length > 0 ? currencyOptions : (config?.currencyOptions ?? []);
 
   useEffect(() => {
     if (isOpen && batch) {
-      setPrice(batch.purchasePrice != null ? String(batch.purchasePrice) : '');
-      setDate(batch.purchaseDate || '');
-      setQuantity(batch.quantityPurchased != null ? String(batch.quantityPurchased) : '1');
-      setSupplierId(batch.supplierId != null ? String(batch.supplierId) : '');
-      setIsOnSale(Boolean(batch.isOnSale));
+      const uPrice = batch.unitPrice != null ? String(batch.unitPrice) : batch.purchasePrice != null ? String(batch.purchasePrice) : '';
+      const qtyStr = batch.quantityPurchased != null ? String(batch.quantityPurchased) : '1';
+      const qNum = Number(qtyStr) || 1;
+      const uNum = Number(uPrice.replace(',', '.'));
+      const tCalc = !Number.isNaN(uNum) && uPrice !== '' ? (uNum * qNum).toFixed(2) : batch.purchasePrice != null ? String(batch.purchasePrice) : '';
+
+      let listIdStr = batch.shoppingListId ? String(batch.shoppingListId) : '';
+      if (!listIdStr && batch.listName && effectiveLists.length > 0) {
+        const found = effectiveLists.find((l) => l.name.toLowerCase().trim() === batch.listName?.toLowerCase().trim());
+        if (found) {
+          listIdStr = String(found.id);
+        }
+      }
+
+      let unitIdStr = batch.unitId ? String(batch.unitId) : '';
+      if (!unitIdStr && batch.unitName && effectiveUnits.length > 0) {
+        const foundU = effectiveUnits.find(
+          (u) =>
+            (u.codeValue && u.codeValue.toLowerCase().trim() === batch.unitName?.toLowerCase().trim()) ||
+            (u.codeName && u.codeName.toLowerCase().trim() === batch.unitName?.toLowerCase().trim()) ||
+            (u.displayName && u.displayName.toLowerCase().trim() === batch.unitName?.toLowerCase().trim())
+        );
+        if (foundU) {
+          unitIdStr = String(foundU.id);
+        }
+      }
+
+      setFormData({
+        productName: batch.productName || '',
+        brandName: batch.brandName || '',
+        brandId: batch.brandId ? String(batch.brandId) : '',
+        shoppingListId: listIdStr,
+        quantity: qtyStr,
+        unitId: unitIdStr,
+        notes: batch.notes || '',
+        price: uPrice,
+        unitPrice: uPrice,
+        totalPrice: tCalc,
+        lastPriceEdited: 'unit',
+        currencyId: '',
+        supplierId: batch.supplierId ? String(batch.supplierId) : '',
+        purchaseDate: batch.purchaseDate || '',
+        isOnSale: Boolean(batch.isOnSale),
+      });
       setError(null);
       setIsSubmitting(false);
       setIsDatePickerOpen(false);
     }
-  }, [isOpen, batch]);
+  }, [isOpen, batch, effectiveLists, effectiveUnits]);
 
   if (!isOpen || !batch) return null;
 
@@ -68,31 +183,42 @@ export const ShoppingEditBatchModal: React.FC<ShoppingEditBatchModalProps> = ({
     e.preventDefault();
     setError(null);
 
-    const parsedPrice = Number(price.replace(',', '.'));
+    const priceVal = formData.unitPrice ?? formData.price ?? '';
+    const parsedPrice = Number(String(priceVal).replace(',', '.'));
     if (Number.isNaN(parsedPrice) || parsedPrice <= 0) {
-      setError('Inserisci un prezzo valido maggiore di zero.');
+      setError('Inserisci un prezzo unitario valido maggiore di zero.');
       return;
     }
 
-    const parsedQty = Number(quantity.replace(',', '.'));
+    const parsedQty = Number(String(formData.quantity).replace(',', '.'));
     if (Number.isNaN(parsedQty) || parsedQty <= 0) {
       setError('Inserisci una quantità valida.');
       return;
     }
 
-    if (!date) {
-      setError('Seleziona una data valida.');
+    if (!formData.purchaseDate) {
+      setError('Seleziona una data di acquisto valida.');
       return;
     }
 
     setIsSubmitting(true);
     try {
+      const totalPurchasePrice = (formData.lastPriceEdited === 'total' && formData.totalPrice && formData.totalPrice.trim() !== '')
+        ? Number(String(formData.totalPrice).replace(',', '.'))
+        : parsedPrice * parsedQty;
+
       await onSave(batch.id, {
-        purchasePrice: parsedPrice,
-        purchaseDate: date,
+        purchasePrice: totalPurchasePrice,
+        purchaseDate: formData.purchaseDate,
         quantityPurchased: parsedQty,
-        supplierId: supplierId ? Number(supplierId) : null,
-        isOnSale,
+        supplierId: formData.supplierId ? Number(formData.supplierId) : null,
+        isOnSale: formData.isOnSale,
+        productName: formData.productName.trim(),
+        brandName: formData.brandName.trim() || undefined,
+        brandId: formData.brandId ? Number(formData.brandId) : null,
+        notes: formData.notes.trim() || undefined,
+        unitId: formData.unitId ? Number(formData.unitId) : null,
+        shoppingListId: formData.shoppingListId ? Number(formData.shoppingListId) : null,
       });
       onClose();
     } catch (err: unknown) {
@@ -102,101 +228,148 @@ export const ShoppingEditBatchModal: React.FC<ShoppingEditBatchModalProps> = ({
     }
   };
 
+  if (isMobile) {
+    return (
+      <MobileBaseModal
+        isOpen={isOpen}
+        onClose={onClose}
+        zIndexClass="z-[10020]"
+        title={
+          <div className="flex items-center gap-2">
+            <EditIcon className="w-5 h-5 text-blue-600 shrink-0" />
+            <div className="truncate">
+              <span className="text-sm font-extrabold text-gray-900 block">
+                Modifica Rilevazione Prezzo
+              </span>
+              <span className="text-xs font-normal text-gray-500 truncate block">
+                {batch.productName}
+              </span>
+            </div>
+          </div>
+        }
+        formId="shopping-edit-batch-mobile-form"
+        confirmText={isSubmitting ? 'Salvataggio...' : 'Salva Modifiche'}
+        cancelText="Annulla"
+        isConfirmDisabled={isSubmitting || !formData.productName.trim()}
+      >
+        <form
+          id="shopping-edit-batch-mobile-form"
+          onSubmit={handleSubmit}
+          className="space-y-4 max-w-lg mx-auto pb-6"
+        >
+          {error && (
+            <div className="p-3 bg-red-50 border border-red-200 text-red-700 rounded-xl font-medium text-xs">
+              {error}
+            </div>
+          )}
+
+          <MobilePurchasedItemProductSection
+            formData={formData}
+            setFormData={setFormData}
+            lists={effectiveLists}
+            brands={effectiveBrands}
+            products={effectiveProducts}
+            unitOptions={effectiveUnits}
+          />
+
+          <MobilePurchasedItemPurchaseSection
+            formData={formData}
+            setFormData={setFormData}
+            suppliers={effectiveSuppliers}
+            currencyOptions={effectiveCurrencies}
+          />
+
+          <div className="bg-white rounded-2xl border border-gray-200 p-4 shadow-2xs space-y-2">
+            <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">
+              Note Prodotto (Opzionale)
+            </label>
+            <textarea
+              value={formData.notes}
+              onChange={(e) => setFormData((prev) => ({ ...prev, notes: e.target.value }))}
+              placeholder="Aggiungi una nota personale..."
+              rows={2}
+              className="w-full px-3 py-2 text-sm bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-blue-500 outline-hidden resize-none transition"
+            />
+          </div>
+        </form>
+      </MobileBaseModal>
+    );
+  }
+
+  const sidePanel = (
+    <ShoppingPurchasedItemPurchaseFields
+      formData={formData}
+      setFormData={setFormData}
+      suppliers={effectiveSuppliers}
+      currencyOptions={effectiveCurrencies}
+      isDatePickerOpen={isDatePickerOpen}
+      setIsDatePickerOpen={setIsDatePickerOpen}
+      asSidePanel={true}
+    />
+  );
+
   return (
     <BaseModal
       isOpen={isOpen}
       onClose={onClose}
       title={
-        <div className="flex items-center gap-2">
-          <TagIcon className="w-5 h-5 text-blue-600" />
-          <span className="text-base font-bold text-gray-800">Modifica Rilevazione Prezzo</span>
+        <div className="flex items-center gap-2 text-base font-bold text-gray-800">
+          <EditIcon className="w-5 h-5 text-blue-600" />
+          <span>Modifica Rilevazione Prezzo</span>
         </div>
       }
-      formId="edit-batch-form"
-      confirmText={isSubmitting ? 'Salvataggio...' : 'Salva Modifiche'}
-      cancelText="Annulla"
-      isConfirmDisabled={isSubmitting}
-      maxWidthClass="max-w-md"
+      sidePanel={sidePanel}
+      maxWidthClass="max-w-lg"
       zIndexClass="z-[10020]"
     >
-      <form id="edit-batch-form" onSubmit={handleSubmit} className="space-y-4 text-xs">
+      <form onSubmit={handleSubmit} className="space-y-4">
         {error && (
-          <div className="p-3 bg-red-50 border border-red-200 text-red-700 rounded-xl font-medium">
+          <div className="p-3 bg-red-50 border border-red-200 text-red-700 rounded-xl font-medium text-xs">
             {error}
           </div>
         )}
 
-        {/* Prezzo e Quantità */}
-        <div className="grid grid-cols-2 gap-3">
-          <div>
-            <label className="block font-bold text-gray-700 mb-1 uppercase tracking-wider text-[11px]">
-              Prezzo (€)
-            </label>
-            <input
-              type="text"
-              value={price}
-              onChange={(e) => setPrice(e.target.value.replace(/[^0-9.,]/g, '').replace(/,/g, '.'))}
-              placeholder="es. 2.49"
-              className="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm font-bold text-gray-900 focus:ring-2 focus:ring-blue-500 focus:outline-none"
-              required
-            />
-          </div>
+        {/* Sezione Proprietà Prodotto */}
+        <ShoppingPurchasedItemProductFields
+          formData={formData}
+          setFormData={setFormData}
+          lists={effectiveLists}
+          products={effectiveProducts}
+          brands={effectiveBrands}
+          unitOptions={effectiveUnits}
+        />
 
-          <div>
-            <label className="block font-bold text-gray-700 mb-1 uppercase tracking-wider text-[11px]">
-              Quantità
-            </label>
-            <input
-              type="text"
-              value={quantity}
-              onChange={(e) => setQuantity(e.target.value)}
-              placeholder="es. 1"
-              className="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm font-bold text-gray-900 focus:ring-2 focus:ring-blue-500 focus:outline-none"
-            />
-          </div>
-        </div>
-
-        {/* Data e Negozio */}
-        <div className="space-y-3">
-          <div>
-            <label className="block font-bold text-gray-700 mb-1 uppercase tracking-wider text-[11px]">
-              Data Rilevazione
-            </label>
-            <DatePicker
-              value={date}
-              onChange={(newDate: string) => {
-                setDate(newDate);
-                setIsDatePickerOpen(false);
-              }}
-              isOpen={isDatePickerOpen}
-              onClose={() => setIsDatePickerOpen(false)}
-              onToggle={() => setIsDatePickerOpen((prev) => !prev)}
-              usePortal={true}
-              overlay={isMobile}
-            />
-          </div>
-
-          <div>
-            <ShoppingSupplierSelect
-              value={supplierId}
-              onChange={(val) => setSupplierId(val)}
-              suppliers={effectiveSuppliers}
-              hideLabel={false}
-              asModal={isMobile}
-            />
-          </div>
-        </div>
-
-        {/* Offerta / In Promozione */}
-        <label className="flex items-center gap-2 pt-1 cursor-pointer select-none">
-          <input
-            type="checkbox"
-            checked={isOnSale}
-            onChange={(e) => setIsOnSale(e.target.checked)}
-            className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
+        {/* Note Aggiuntive */}
+        <div>
+          <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">
+            Note Prodotto (Opzionale)
+          </label>
+          <textarea
+            value={formData.notes}
+            onChange={(e) => setFormData((prev) => ({ ...prev, notes: e.target.value }))}
+            placeholder="Aggiungi una nota personale..."
+            rows={2}
+            className="w-full px-3 py-2 text-sm bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-blue-500 outline-hidden resize-none transition"
           />
-          <span className="font-semibold text-gray-700">Prezzo in Offerta / Promozione</span>
-        </label>
+        </div>
+
+        {/* Footer con Pulsanti di Salvataggio */}
+        <div className="flex items-center justify-end gap-3 pt-3 border-t border-gray-100">
+          <button
+            type="button"
+            onClick={onClose}
+            className="px-4 py-2 text-xs font-bold text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-xl transition cursor-pointer"
+          >
+            Annulla
+          </button>
+          <button
+            type="submit"
+            disabled={isSubmitting || !formData.productName.trim()}
+            className="px-5 py-2 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-xl shadow-xs transition disabled:opacity-50 cursor-pointer"
+          >
+            {isSubmitting ? 'Salvataggio...' : 'Salva Modifiche'}
+          </button>
+        </div>
       </form>
     </BaseModal>
   );

@@ -4,6 +4,9 @@ export interface QuickPriceRow {
   brandName: string;
   brandId: string;
   price: string;
+  priceUnit: string;
+  priceTotal: string;
+  lastPriceEdited?: 'unit' | 'total';
   quantity: string;
   unitId: string;
   purchaseDate: string;

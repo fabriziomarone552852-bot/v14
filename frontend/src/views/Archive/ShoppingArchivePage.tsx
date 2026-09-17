@@ -20,6 +20,11 @@ const PANEL_CLASS = 'rounded-2xl border border-slate-200/90 bg-white shadow-xs';
 export const ShoppingArchivePage: React.FC = () => {
   const logic = useShoppingArchivePageLogic();
 
+  const productsWithPricesCount = useMemo(
+    () => new Set(logic.allBatches.map((b) => b.productId ?? (b.productName || '').toLowerCase())).size,
+    [logic.allBatches]
+  );
+
   // Configurazione SegmentedTabs
   const tabsConfig: TabItem<ShoppingArchiveTab>[] = useMemo(
     () => [
@@ -41,11 +46,11 @@ export const ShoppingArchivePage: React.FC = () => {
         id: 'prezzi',
         label: 'Storico',
         icon: <TagIcon className="w-3.5 h-3.5" />,
-        count: logic.allBatches.length,
+        count: productsWithPricesCount,
         badgeBg: 'bg-emerald-50 text-emerald-700 border-emerald-200/60',
       },
     ],
-    [logic.groups.length, logic.lists.length, logic.allBatches.length]
+    [logic.groups.length, logic.lists.length, productsWithPricesCount]
   );
 
   return (
@@ -113,6 +118,7 @@ export const ShoppingArchivePage: React.FC = () => {
       ) : (
         <ShoppingArchivePricesTab
           batches={logic.allBatches}
+          products={logic.products}
           loading={logic.batchesLoading}
           isFilterModalOpen={logic.isPriceFilterModalOpen}
           onCloseFilterModal={() => logic.setIsPriceFilterModalOpen(false)}
@@ -130,6 +136,7 @@ export const ShoppingArchivePage: React.FC = () => {
         listCreateModal={logic.listCreateModal}
         quickPriceModal={logic.quickPriceModal}
         groups={logic.groups}
+        lists={logic.lists}
         products={logic.products}
         brands={logic.brands}
         suppliers={logic.suppliers}

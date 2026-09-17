@@ -43,10 +43,11 @@ export const QuickPriceTable: React.FC<QuickPriceTableProps> = ({
         <table className="w-full text-left text-xs border-collapse">
           <thead className="bg-slate-50 border-b border-slate-200 text-[11px] font-bold uppercase tracking-wider text-slate-500 sticky top-0 z-20">
             <tr>
-              <th className="py-2.5 px-2.5 min-w-[150px]">Prodotto</th>
-              <th className="py-2.5 px-2.5 min-w-[120px]">Brand / Marchio</th>
-              <th className="py-2.5 px-2 w-20">Prezzo</th>
-              <th className="py-2.5 px-2 w-20">Qtà</th>
+              <th className="py-2.5 px-2.5 min-w-[140px]">Prodotto</th>
+              <th className="py-2.5 px-2.5 min-w-[110px]">Brand / Marchio</th>
+              <th className="py-2.5 px-2 w-20">Prezzo Unit.</th>
+              <th className="py-2.5 px-2 w-20">Prezzo Tot.</th>
+              <th className="py-2.5 px-2 w-16">Qtà</th>
               <th className="py-2.5 px-2 w-24">Unità</th>
               <th className="py-2.5 px-2.5 min-w-[125px]">Data</th>
               <th className="py-2.5 px-2.5 min-w-[140px]">

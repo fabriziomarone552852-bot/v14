@@ -42,10 +42,15 @@ export interface TailscalePluginInterface {
 export const TailscaleNative = registerPlugin<TailscalePluginInterface>('TailscalePlugin');
 
 export async function openTailscaleAuthUrl(url: string): Promise<void> {
+  if (!url) return;
   try {
     await Browser.open({ url, windowName: '_self' });
   } catch (e) {
-    console.error('Failed to open browser for Tailscale auth:', e);
-    window.open(url, '_blank');
+    console.warn('Failed to open Capacitor browser, fallback to window.open:', e);
+    try {
+      window.open(url, '_blank');
+    } catch {
+      // Ignora errori di apertura popup
+    }
   }
 }

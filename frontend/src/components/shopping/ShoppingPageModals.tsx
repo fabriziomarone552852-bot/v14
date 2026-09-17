@@ -151,6 +151,7 @@ export const ShoppingPageModals: React.FC<ShoppingPageModalsProps> = ({
       <ShoppingQuickPriceModal
         isOpen={quickPriceModal.isOpen}
         onClose={quickPriceModal.close}
+        lists={lists}
         products={products}
         brands={brands}
         suppliers={suppliers}

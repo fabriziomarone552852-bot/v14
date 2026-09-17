@@ -250,10 +250,16 @@ export interface ItemBatchRecord {
   quantityPurchased: number;
   purchasePrice: number;
   unitPrice: number | null;
+  unitId?: number | null;
   supplierId: number | null;
   supplierName: string | null;
   unitName: string | null;
+  shoppingListId?: number | null;
   listName: string | null;
+  listItemId?: number | null;
+  createdByUserId?: number | null;
+  purchasedByUserId?: number | null;
+  isSeed?: boolean;
   notes?: string | null;
   isOnSale: boolean;
 }
@@ -529,11 +535,14 @@ export interface UseShoppingMutationsResult {
 
 export interface InventoryBatchCreatePayload {
   productId?: number;
+  productName?: string;
   supplierId?: number | null;
   brandId?: number | null;
   brandName?: string | null;
   quantity?: number | null;
   unitId?: number | null;
+  notes?: string | null;
+  shoppingListId?: number | null;
   purchasePrice: number;
   currencyId?: number | null;
   offerFlagId?: number | null;
@@ -574,5 +583,6 @@ export interface QuickPriceRecordPayload {
 }
 
 export interface QuickPriceBatchCreatePayload {
+  shoppingListId?: number | null;
   records: QuickPriceRecordPayload[];
 }

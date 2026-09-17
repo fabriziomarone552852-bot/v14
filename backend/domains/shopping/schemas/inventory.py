@@ -98,6 +98,7 @@ class QuickPriceRecordCreate(StrictBaseModel):
 
 
 class QuickPriceBatchCreate(StrictBaseModel):
+    shopping_list_id: Optional[int] = None
     records: list[QuickPriceRecordCreate] = Field(..., min_length=1)
 
 
@@ -107,6 +108,10 @@ class InventoryBatchUpdate(StrictBaseModel):
     supplier_id: Optional[int] = None
     brand_id: Optional[int] = None
     brand_name: Optional[str] = None
+    product_name: Optional[str] = None
+    notes: Optional[str] = None
+    unit_id: Optional[int] = None
+    shopping_list_id: Optional[int] = None
 
     purchase_date: Optional[date] = None
     expiration_date: Optional[date] = None

@@ -39,10 +39,45 @@ from backend.domains.tasks.router import router as tasks_router
 from backend.domains.users.router import router as users_router
 
 
+def ensure_shopping_seed_data() -> None:
+    """Verifica e popola in modo automatico ed idempotente i dati seed della spesa all'avvio."""
+    try:
+        from backend.core.database import SessionLocal
+        from backend.domains.users.models import User
+        from backend.domains.shopping.service import (
+            seed_default_shopping_suppliers_for_user,
+            seed_default_shopping_products_for_user,
+            seed_default_inventory_batches_for_user,
+        )
+        from backend.core.sequence_sync import sync_all_table_sequences
+
+        db = SessionLocal()
+        try:
+            admin_user = (
+                db.query(User)
+                .filter(User.is_superuser == True, User.deleted_at.is_(None))
+                .first()
+            )
+            if not admin_user:
+                admin_user = db.query(User).filter(User.deleted_at.is_(None)).first()
+
+            if admin_user:
+                seed_default_shopping_suppliers_for_user(db, admin_user.id)
+                seed_default_shopping_products_for_user(db, admin_user.id)
+                seed_default_inventory_batches_for_user(db, admin_user.id)
+                sync_all_table_sequences(db)
+                db.commit()
+        finally:
+            db.close()
+    except Exception as exc:
+        print(f"[STARTUP] Impossibile verificare auto-seed spesa: {exc}")
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     os.makedirs(get_settings().upload_dir, exist_ok=True)
     ensure_database_schema_compat()
+    ensure_shopping_seed_data()
     yield
 
 

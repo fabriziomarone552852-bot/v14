@@ -5,7 +5,10 @@ import ShoppingCurrencySelect from '@/components/shared/shopping/ShoppingCurrenc
 import ShoppingSupplierSelect from '@/components/shared/shopping/ShoppingSupplierSelect';
 import DatePicker from '@/components/shared/utils/DatePicker/DatePicker';
 import { TagIcon } from '@/components/shared/utils/Icons';
-import type { PurchasedItemEditFormData } from '../MobilePurchasedItemEditModal';
+import {
+  type PurchasedItemEditFormData,
+  syncPurchasedFormPrices,
+} from '../MobilePurchasedItemEditModal';
 
 export interface MobilePurchasedItemPurchaseSectionProps {
   formData: PurchasedItemEditFormData;
@@ -28,30 +31,53 @@ export const MobilePurchasedItemPurchaseSection: React.FC<MobilePurchasedItemPur
         Dettagli Acquisto
       </h3>
 
-      {/* Prezzo Totale */}
-      <div>
-        <label className="block text-xs font-bold text-gray-600 uppercase mb-1">
-          Prezzo Pagato
-        </label>
-        <div className="flex items-center gap-1.5">
+      {/* Prezzo Unitario e Prezzo Totale */}
+      <div className="grid grid-cols-2 gap-2.5">
+        <div>
+          <label className="block text-xs font-bold text-gray-600 uppercase mb-1">
+            Prezzo Unit. (€)
+          </label>
           <input
             type="text"
             inputMode="decimal"
-            required
             placeholder="0,00"
-            value={formData.price}
+            value={formData.unitPrice ?? formData.price}
             onChange={(e) => {
-              const val = e.target.value.replace(/[^0-9.,]/g, '');
-              setFormData((prev) => ({ ...prev, price: val }));
+              const val = e.target.value.replace(/[^0-9.,]/g, '').replace(/,/g, '.');
+              setFormData((prev) => syncPurchasedFormPrices(prev, 'unitPrice', val));
             }}
-            className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm font-bold text-gray-900 focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white"
-          />
-          <ShoppingCurrencySelect
-            value={formData.currencyId}
-            onChange={(val) => setFormData((p) => ({ ...p, currencyId: val }))}
-            currencyOptions={currencyOptions}
+            className="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm font-bold text-gray-900 focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white"
           />
         </div>
+
+        <div>
+          <label className="block text-xs font-bold text-emerald-800 uppercase mb-1">
+            Prezzo Tot. (€)
+          </label>
+          <input
+            type="text"
+            inputMode="decimal"
+            placeholder="0,00"
+            value={formData.totalPrice ?? ''}
+            onChange={(e) => {
+              const val = e.target.value.replace(/[^0-9.,]/g, '').replace(/,/g, '.');
+              setFormData((prev) => syncPurchasedFormPrices(prev, 'totalPrice', val));
+            }}
+            className="w-full px-3 py-2 border border-emerald-300 rounded-xl text-sm font-bold text-emerald-900 focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-emerald-50/50"
+          />
+        </div>
+      </div>
+
+      {/* Valuta */}
+      <div>
+        <label className="block text-xs font-bold text-gray-600 uppercase mb-1">
+          Valuta
+        </label>
+        <ShoppingCurrencySelect
+          value={formData.currencyId}
+          onChange={(val) => setFormData((p) => ({ ...p, currencyId: val }))}
+          currencyOptions={currencyOptions}
+        />
       </div>
 
       {/* Negozio / Supermercato */}

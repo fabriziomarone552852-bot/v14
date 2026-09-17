@@ -13,6 +13,8 @@ interface ShoppingListSelectProps {
   disabled?: boolean;
   className?: string;
   asModal?: boolean;
+  allowNone?: boolean;
+  noneLabel?: string;
 }
 
 export const ShoppingListSelect: React.FC<ShoppingListSelectProps> = ({
@@ -22,6 +24,8 @@ export const ShoppingListSelect: React.FC<ShoppingListSelectProps> = ({
   disabled = false,
   className = '',
   asModal = false,
+  allowNone = false,
+  noneLabel = 'Nessuna Lista (Solo Personale / Privato)',
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const ref = useOutsideClick<HTMLDivElement>(() => {
@@ -29,10 +33,16 @@ export const ShoppingListSelect: React.FC<ShoppingListSelectProps> = ({
   });
   const { openUpwards } = useDropdownPosition(ref, { isOpen, threshold: 220 });
 
-  const selectedList = lists.find((l) => String(l.id) === value) || lists[0];
+  const selectedList = lists.find((l) => String(l.id) === value) || (allowNone && value === '' ? null : lists[0]);
 
-  const getListBadge = (list?: ShoppingListSummary) => {
-    if (!list) return null;
+  const getListBadge = (list?: ShoppingListSummary | null) => {
+    if (!list) {
+      return (
+        <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-slate-100 text-slate-600 border border-slate-200">
+          🔒 Privato
+        </span>
+      );
+    }
     if (list.isDefault) {
       return (
         <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-amber-50 text-amber-700 border border-amber-200">
@@ -40,17 +50,18 @@ export const ShoppingListSelect: React.FC<ShoppingListSelectProps> = ({
         </span>
       );
     }
-    if (list.groupName) {
+    const gName = list.groupName || (list.groupId ? `Gruppo #${list.groupId}` : null);
+    if (gName) {
       return (
         <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-blue-50 text-blue-700 border border-blue-200 flex items-center gap-1">
           <UsersIcon className="w-2.5 h-2.5" />
-          <span className="truncate max-w-[90px]">{list.groupName}</span>
+          <span className="truncate max-w-[90px]">{gName}</span>
         </span>
       );
     }
     return (
       <span className="text-[10px] font-medium px-1.5 py-0.5 rounded bg-gray-100 text-gray-600">
-        Private
+        Privata
       </span>
     );
   };
@@ -60,6 +71,13 @@ export const ShoppingListSelect: React.FC<ShoppingListSelectProps> = ({
     setIsOpen(false);
   };
 
+  const displayName =
+    value === '' && allowNone
+      ? noneLabel
+      : selectedList
+      ? selectedList.name
+      : 'Seleziona una lista...';
+
   return (
     <>
       <div className={`relative w-full ${className}`} ref={ref}>
@@ -67,18 +85,18 @@ export const ShoppingListSelect: React.FC<ShoppingListSelectProps> = ({
           onClick={() => {
             if (!disabled) setIsOpen(!isOpen);
           }}
-          className={`w-full px-3 py-2.5 bg-white border border-gray-200 hover:border-blue-500 rounded-xl text-sm font-semibold transition-colors outline-none cursor-pointer flex justify-between items-center shadow-xs ${
+          className={`w-full px-3 py-2 bg-white border border-gray-200 hover:border-blue-500 rounded-xl text-xs font-semibold transition-colors outline-none cursor-pointer flex justify-between items-center shadow-xs ${
             disabled ? 'opacity-60 cursor-not-allowed' : ''
           }`}
         >
           <div className="flex items-center gap-2 truncate min-w-0">
-            <div className="w-6 h-6 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
-              <ShoppingIcon className="w-3.5 h-3.5" />
+            <div className="w-5 h-5 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
+              <ShoppingIcon className="w-3 h-3" />
             </div>
             <span className="text-gray-800 truncate font-semibold">
-              {selectedList ? selectedList.name : 'Seleziona una lista...'}
+              {displayName}
             </span>
-            {getListBadge(selectedList)}
+            {getListBadge(value === '' && allowNone ? null : selectedList)}
           </div>
           <DropdownIcon isDropdownOpen={isOpen} />
         </div>
@@ -86,10 +104,25 @@ export const ShoppingListSelect: React.FC<ShoppingListSelectProps> = ({
         {/* Modalità Dropdown Classica */}
         {!asModal && isOpen && !disabled && (
           <div
-            className={`absolute z-[100] w-full bg-white border border-gray-100 rounded-xl shadow-xl py-1 animate-fadeIn max-h-56 overflow-y-auto custom-scrollbar ${
+            className={`absolute z-[100] w-full min-w-[220px] bg-white border border-gray-100 rounded-xl shadow-xl py-1 animate-fadeIn max-h-56 overflow-y-auto custom-scrollbar ${
               openUpwards ? 'bottom-full mb-1' : 'top-full mt-1'
             }`}
           >
+            {allowNone && (
+              <div
+                onClick={() => handleSelect('')}
+                className={`px-3 py-2 text-xs font-semibold cursor-pointer transition-colors hover:bg-gray-50 flex items-center justify-between gap-2 border-b border-gray-100 ${
+                  value === '' ? 'text-blue-600 bg-blue-50/50 font-bold' : 'text-gray-700'
+                }`}
+              >
+                <div className="flex items-center gap-2 truncate min-w-0">
+                  <span className="truncate">{noneLabel}</span>
+                  {getListBadge(null)}
+                </div>
+                {value === '' && <span className="text-blue-600 font-bold">✓</span>}
+              </div>
+            )}
+
             {lists.map((list) => {
               const isSelected = String(list.id) === value;
 
@@ -127,7 +160,7 @@ export const ShoppingListSelect: React.FC<ShoppingListSelectProps> = ({
               {/* Header Finestra */}
               <div className="flex items-center justify-between pb-2 border-b border-gray-100 shrink-0">
                 <h3 className="text-sm font-extrabold text-gray-900 uppercase tracking-wide">
-                  Scegli Lista
+                  Scegli Lista Spesa
                 </h3>
                 <button
                   type="button"
@@ -141,6 +174,29 @@ export const ShoppingListSelect: React.FC<ShoppingListSelectProps> = ({
 
               {/* Elenco Liste */}
               <div className="flex-1 min-h-0 overflow-y-auto custom-scrollbar space-y-1.5 pr-0.5">
+                {allowNone && (
+                  <button
+                    type="button"
+                    onClick={() => handleSelect('')}
+                    className={`w-full p-3 rounded-2xl text-left transition-all flex items-center justify-between border cursor-pointer active:scale-[0.98] ${
+                      value === ''
+                        ? 'bg-blue-50/90 border-blue-400 ring-2 ring-blue-400/20 font-bold text-blue-900'
+                        : 'bg-gray-50/80 hover:bg-gray-100 border-gray-200/80 text-gray-800'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2 truncate min-w-0">
+                      <span className="text-xs font-bold truncate">{noneLabel}</span>
+                      {getListBadge(null)}
+                    </div>
+
+                    {value === '' && (
+                      <div className="w-5 h-5 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-xs shrink-0 shadow-xs ml-2">
+                        ✓
+                      </div>
+                    )}
+                  </button>
+                )}
+
                 {lists.map((list) => {
                   const isSelected = String(list.id) === value;
 

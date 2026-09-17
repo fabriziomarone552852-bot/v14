@@ -1,7 +1,7 @@
 // src/components/archive/shopping/ShoppingArchivePricesTab.tsx
 import React, { useState, useMemo } from 'react';
 import { TagIcon } from '@/components/shared/utils/Icons';
-import type { ItemBatchRecord } from '@/types/shopping';
+import type { ItemBatchRecord, ShoppingProductOption } from '@/types/shopping';
 import { useDynamicPageSize } from '@/hooks/useDynamicPageSize';
 import { ArchiveTableContainer } from '@/components/shared/layout/ArchiveTableContainer';
 import {
@@ -24,6 +24,7 @@ import {
 
 interface ShoppingArchivePricesTabProps {
   batches: ItemBatchRecord[];
+  products?: ShoppingProductOption[];
   loading?: boolean;
   isFilterModalOpen: boolean;
   onCloseFilterModal: () => void;
@@ -35,6 +36,7 @@ interface ShoppingArchivePricesTabProps {
 
 export const ShoppingArchivePricesTab: React.FC<ShoppingArchivePricesTabProps> = ({
   batches,
+  products = [],
   loading = false,
   isFilterModalOpen,
   onCloseFilterModal,
@@ -73,27 +75,59 @@ export const ShoppingArchivePricesTab: React.FC<ShoppingArchivePricesTabProps> =
       unitName?: string | null;
     }>();
 
-    for (const b of batches) {
-      const prodName = (b.productName || 'Prodotto').trim();
-      const key = `${b.productId ?? prodName}`;
+    // 1. Inserisci prima tutti i prodotti dal catalogo principale (seed + creati da utente)
+    for (const p of products || []) {
+      const prodName = (p.displayName || p.nameNormalized || '').trim();
+      if (!prodName) continue;
+      const key = `${p.id}`;
       if (!map.has(key)) {
         map.set(key, {
+          productId: p.id,
+          productName: prodName,
+          batches: [],
+          unitName: p.defaultUnitCodeName || null,
+        });
+      }
+    }
+
+    // 2. Associa ciascun lotto/prezzo d'acquisto al rispettivo prodotto (per ID o per nome)
+    for (const b of batches || []) {
+      const prodName = (b.productName || 'Prodotto').trim();
+      let target = b.productId ? map.get(`${b.productId}`) : undefined;
+
+      if (!target && prodName) {
+        for (const item of map.values()) {
+          if (item.productName.toLowerCase() === prodName.toLowerCase()) {
+            target = item;
+            break;
+          }
+        }
+      }
+
+      if (!target) {
+        const key = b.productId ? `${b.productId}` : `name-${prodName.toLowerCase()}`;
+        target = {
           productId: b.productId ?? 0,
           productName: prodName,
           batches: [],
           unitName: b.unitName,
-        });
+        };
+        map.set(key, target);
       }
-      map.get(key)!.batches.push(b);
+
+      target.batches.push(b);
+      if (!target.unitName && b.unitName) {
+        target.unitName = b.unitName;
+      }
     }
 
     const result: ProductPriceSummary[] = [];
 
     for (const item of map.values()) {
+      if (item.batches.length === 0) continue;
+
       const stats = computePriceStatistics(item.batches, cutoffDate);
       const effectiveStats = stats.count > 0 ? stats : computePriceStatistics(item.batches, null);
-
-      if (effectiveStats.count === 0) continue;
 
       result.push({
         productId: item.productId,
@@ -111,7 +145,7 @@ export const ShoppingArchivePricesTab: React.FC<ShoppingArchivePricesTabProps> =
     }
 
     return result;
-  }, [batches, cutoffDate]);
+  }, [products, batches, cutoffDate]);
 
   // Filtraggio dei prodotti per parola chiave nel nome
   const filteredProducts = useMemo(() => {
@@ -166,6 +200,18 @@ export const ShoppingArchivePricesTab: React.FC<ShoppingArchivePricesTabProps> =
     filterState.lookbackValue !== 1 ||
     filterState.lookbackUnit !== 'years';
 
+  // Prodotto selezionato aggiornato in tempo reale ad ogni modifica di batch/prezzi
+  const activeProductSummary = useMemo(() => {
+    if (!selectedProductForModal) return null;
+    return (
+      productSummaries.find(
+        (p) =>
+          (selectedProductForModal.productId > 0 && p.productId === selectedProductForModal.productId) ||
+          p.productName.toLowerCase().trim() === selectedProductForModal.productName.toLowerCase().trim()
+      ) || selectedProductForModal
+    );
+  }, [selectedProductForModal, productSummaries]);
+
   return (
     <>
       <ArchiveTableContainer
@@ -204,18 +250,18 @@ export const ShoppingArchivePricesTab: React.FC<ShoppingArchivePricesTabProps> =
       </ArchiveTableContainer>
 
       {/* Modale Storico Prezzi Prodotto */}
-      {selectedProductForModal && (
+      {activeProductSummary && (
         isMobile ? (
           <MobileShoppingProductPriceModal
             isOpen={true}
             onClose={() => setSelectedProductForModal(null)}
-            productSummary={selectedProductForModal}
+            productSummary={activeProductSummary}
           />
         ) : (
           <ShoppingProductPriceModal
             isOpen={true}
             onClose={() => setSelectedProductForModal(null)}
-            productSummary={selectedProductForModal}
+            productSummary={activeProductSummary}
           />
         )
       )}

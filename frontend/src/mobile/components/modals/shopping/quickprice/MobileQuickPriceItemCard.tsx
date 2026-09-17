@@ -80,28 +80,42 @@ export const MobileQuickPriceItemCard: React.FC<MobileQuickPriceItemCardProps> =
         />
       </div>
 
-      {/* Prezzo & Quantità */}
-      <div className="grid grid-cols-2 gap-3">
+      {/* Prezzo Unitario, Prezzo Totale & Quantità */}
+      <div className="grid grid-cols-3 gap-2">
         <div>
-          <label className="block text-xs font-bold text-gray-600 uppercase mb-1">
-            Prezzo (€)
+          <label className="block text-[11px] font-bold text-gray-600 uppercase mb-1">
+            Prezzo Unit. (€)
           </label>
           <input
             type="text"
             inputMode="decimal"
-            required
             placeholder="0,00"
-            value={item.price}
+            value={item.priceUnit}
             onChange={(e) => {
-              const val = e.target.value.replace(/[^0-9.,]/g, '').replace(/,/g, '.');
-              onUpdateItem(item.id, 'price', val);
+              onUpdateItem(item.id, 'priceUnit', e.target.value.replace(/[^0-9.,]/g, '').replace(/,/g, '.'));
             }}
-            className="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm font-bold focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+            className="w-full px-2.5 py-2 border border-gray-200 rounded-xl text-xs font-bold focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
           />
         </div>
 
         <div>
-          <label className="block text-xs font-bold text-gray-600 uppercase mb-1">
+          <label className="block text-[11px] font-bold text-blue-700 uppercase mb-1">
+            Prezzo Tot. (€)
+          </label>
+          <input
+            type="text"
+            inputMode="decimal"
+            placeholder="0,00"
+            value={item.priceTotal}
+            onChange={(e) => {
+              onUpdateItem(item.id, 'priceTotal', e.target.value.replace(/[^0-9.,]/g, '').replace(/,/g, '.'));
+            }}
+            className="w-full px-2.5 py-2 border border-blue-200/80 rounded-xl text-xs font-bold text-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-blue-50/30"
+          />
+        </div>
+
+        <div>
+          <label className="block text-[11px] font-bold text-gray-600 uppercase mb-1">
             Quantità
           </label>
           <ShoppingQuantityInput

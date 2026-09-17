@@ -4,6 +4,8 @@ import { formatUnitForQuantity } from '@/components/shared/shopping/ShoppingUnit
 import { formatToItalianShortDate } from '@/utils/dateUtils';
 import type { ItemBatchRecord, CommunityPriceRecord } from '@/types/shopping';
 import type { PriceSourceTab } from './useMobileProductPriceStats';
+import { useAuth } from '@/context/AuthContext';
+import { useShoppingData } from '@/hooks/shopping/useShoppingData';
 
 export interface MobileProductPriceBatchesListProps {
   view: PriceSourceTab;
@@ -24,6 +26,10 @@ export const MobileProductPriceBatchesList: React.FC<MobileProductPriceBatchesLi
   onEditBatch,
   onDeleteBatch,
 }) => {
+  const { user } = useAuth();
+  const { lists = [], groups = [] } = useShoppingData();
+  const isSuperuser = Boolean(user?.is_superuser);
+
   return (
     <div className="space-y-2">
       <div className="flex rounded-xl bg-gray-100 p-1">
@@ -62,6 +68,27 @@ export const MobileProductPriceBatchesList: React.FC<MobileProductPriceBatchesLi
             personalBatches.map((b) => {
               const uPrice = b.unitPrice != null ? b.unitPrice : b.purchasePrice;
               const bUnit = formatUnitForQuantity(b.unitName, 1) || b.unitName || 'unità';
+              const isSeedBatch = Boolean(b.isSeed ?? (b.id <= 41));
+              let canModify = false;
+
+              if (isSeedBatch) {
+                canModify = isSuperuser;
+              } else {
+                const list = b.shoppingListId
+                  ? lists.find((l) => l.id === b.shoppingListId)
+                  : b.listName
+                  ? lists.find((l) => l.name.toLowerCase().trim() === b.listName?.toLowerCase().trim())
+                  : null;
+                const group = list?.groupId ? groups.find((g) => g.id === list.groupId) : null;
+
+                if (group) {
+                  const role = group.userRole || 'reader';
+                  canModify = isSuperuser || role !== 'reader';
+                } else {
+                  canModify = isSuperuser || b.createdByUserId === user?.id || !b.createdByUserId;
+                }
+              }
+
               return (
                 <div
                   key={b.id}
@@ -76,7 +103,7 @@ export const MobileProductPriceBatchesList: React.FC<MobileProductPriceBatchesLi
                       <span className="text-[10px] text-gray-400 font-normal">
                         {formatToItalianShortDate(b.purchaseDate)}
                       </span>
-                      {onEditBatch && (
+                      {canModify && onEditBatch && (
                         <button
                           type="button"
                           onClick={() => onEditBatch(b)}
@@ -86,7 +113,7 @@ export const MobileProductPriceBatchesList: React.FC<MobileProductPriceBatchesLi
                           <EditIcon className="w-3.5 h-3.5" />
                         </button>
                       )}
-                      {onDeleteBatch && (
+                      {canModify && onDeleteBatch && (
                         <button
                           type="button"
                           onClick={() => {

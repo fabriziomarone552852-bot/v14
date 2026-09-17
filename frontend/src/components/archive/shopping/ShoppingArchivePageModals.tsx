@@ -2,6 +2,7 @@ import React from 'react';
 import type { UseModalResult } from '@/hooks/useModals';
 import type {
   ShoppingGroupSummary,
+  ShoppingListSummary,
   ShoppingProductOption,
   ShoppingSupplierOption,
   ShoppingConfigBundle,
@@ -21,6 +22,7 @@ interface ShoppingArchivePageModalsProps {
   listCreateModal: UseModalResult<null>;
   quickPriceModal: UseModalResult<null>;
   groups: ShoppingGroupSummary[];
+  lists?: ShoppingListSummary[];
   products: ShoppingProductOption[];
   brands: ShoppingSupplierOption[];
   suppliers: ShoppingSupplierOption[];
@@ -37,6 +39,7 @@ export const ShoppingArchivePageModals: React.FC<ShoppingArchivePageModalsProps>
   listCreateModal,
   quickPriceModal,
   groups,
+  lists,
   products,
   brands,
   suppliers,
@@ -102,6 +105,7 @@ export const ShoppingArchivePageModals: React.FC<ShoppingArchivePageModalsProps>
           <MobileShoppingQuickPriceModal
             isOpen={true}
             onClose={quickPriceModal.close}
+            lists={lists}
             products={products}
             brands={brands}
             suppliers={suppliers}
@@ -111,6 +115,7 @@ export const ShoppingArchivePageModals: React.FC<ShoppingArchivePageModalsProps>
           <ShoppingQuickPriceModal
             isOpen={true}
             onClose={quickPriceModal.close}
+            lists={lists}
             products={products}
             brands={brands}
             suppliers={suppliers}

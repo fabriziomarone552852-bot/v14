@@ -143,6 +143,7 @@ export const MobileShoppingModalsContainer: React.FC<MobileShoppingModalsContain
       <MobileShoppingQuickPriceModal
         isOpen={quickPriceModal.isOpen}
         onClose={quickPriceModal.close}
+        lists={lists}
         products={products}
         brands={brands}
         suppliers={suppliers}

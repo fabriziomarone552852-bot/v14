@@ -1,10 +1,10 @@
-// src/mobile/components/modals/shopping/MobileShoppingQuickPriceModal.tsx
 import React from 'react';
 import MobileBaseModal from '../MobileBaseModal';
-import { TagIcon } from '@/components/shared/utils/Icons';
+import { TagIcon, TaskListIcon } from '@/components/shared/utils/Icons';
 import { AddButton } from '@/components/shared/utils/AddButton';
 import type {
   ConfigOption,
+  ShoppingListSummary,
   ShoppingProductOption,
   ShoppingSupplierOption,
 } from '@/types/shopping';
@@ -14,11 +14,14 @@ import {
   type QuickPriceItem,
 } from './quickprice';
 
+import { ShoppingListSelect } from '@/components/shared/shopping/ShoppingListSelect';
+
 export type { QuickPriceItem };
 
 export interface MobileShoppingQuickPriceModalProps {
   isOpen: boolean;
   onClose: () => void;
+  lists?: ShoppingListSummary[];
   products?: ShoppingProductOption[];
   brands?: ShoppingSupplierOption[];
   suppliers?: ShoppingSupplierOption[];
@@ -30,6 +33,7 @@ export interface MobileShoppingQuickPriceModalProps {
 export const MobileShoppingQuickPriceModal: React.FC<MobileShoppingQuickPriceModalProps> = ({
   isOpen,
   onClose,
+  lists = [],
   products = [],
   brands = [],
   suppliers = [],
@@ -39,6 +43,8 @@ export const MobileShoppingQuickPriceModal: React.FC<MobileShoppingQuickPriceMod
 }) => {
   const {
     items,
+    selectedListId,
+    setSelectedListId,
     validItems,
     isSubmitting,
     errorMessage,
@@ -72,6 +78,22 @@ export const MobileShoppingQuickPriceModal: React.FC<MobileShoppingQuickPriceMod
       isConfirmDisabled={validItems.length === 0 || isSubmitting}
     >
       <form id="mobile-quick-price-form" onSubmit={handleSubmit} className="space-y-4 max-w-lg mx-auto pb-6">
+        {/* Selettore Lista Spesa di Destinazione */}
+        <div className="p-3 bg-blue-50/60 border border-blue-100 rounded-2xl space-y-1.5">
+          <label className="text-[11px] font-bold text-gray-700 flex items-center gap-1.5 uppercase tracking-wider">
+            <TaskListIcon className="w-3.5 h-3.5 text-blue-600" />
+            <span>Associa a Lista Spesa (Opzionale)</span>
+          </label>
+          <ShoppingListSelect
+            value={selectedListId}
+            onChange={(val) => setSelectedListId(val)}
+            lists={lists}
+            asModal={true}
+            allowNone={true}
+            noneLabel="Nessuna Lista (Solo Personale / Privato)"
+          />
+        </div>
+
         {errorMessage && (
           <div className="p-3 bg-red-50 border border-red-200 rounded-xl text-xs text-red-700">
             {errorMessage}

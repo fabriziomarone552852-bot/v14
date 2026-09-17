@@ -94,6 +94,9 @@ export const ShoppingPurchasedItemProductFields: React.FC<ShoppingPurchasedItemP
         </div>
 
         <div>
+          <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">
+            Unità di Misura
+          </label>
           <ShoppingUnitSelect
             value={formData.unitId}
             onChange={(val) => setFormData((prev) => ({ ...prev, unitId: val }))}

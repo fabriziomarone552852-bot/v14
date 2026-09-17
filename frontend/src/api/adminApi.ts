@@ -120,3 +120,8 @@ export async function toggleSystemUserActive(userId: number): Promise<SystemUser
   const res = await apiClient.post<SystemUserItem>(`/admin/users/${userId}/toggle-active`);
   return res.data;
 }
+
+export async function seedShoppingDataAdmin(): Promise<{ message: string }> {
+  const res = await apiClient.post<{ message: string }>('/admin/seed-shopping-data');
+  return res.data;
+}

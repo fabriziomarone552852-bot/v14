@@ -1,12 +1,16 @@
 // src/components/admin/AdminSystemHealthSection.tsx
 import React, { useEffect, useState } from 'react';
-import { pingAdmin } from '@/api/adminApi';
+import { pingAdmin, seedShoppingDataAdmin } from '@/api/adminApi';
 import { extractErrorMessage } from '@/utils/errorUtils';
 
 export const AdminSystemHealthSection: React.FC = () => {
   const [pingData, setPingData] = useState<{ message: string; timestamp: string } | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const [isSeeding, setIsSeeding] = useState(false);
+  const [seedResult, setSeedResult] = useState<string | null>(null);
+  const [seedError, setSeedError] = useState<string | null>(null);
 
   const checkHealth = async () => {
     setLoading(true);
@@ -18,6 +22,20 @@ export const AdminSystemHealthSection: React.FC = () => {
       setError(extractErrorMessage(err, "Impossibile contattare l'endpoint di amministrazione."));
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleSeedProducts = async () => {
+    setIsSeeding(true);
+    setSeedResult(null);
+    setSeedError(null);
+    try {
+      const res = await seedShoppingDataAdmin();
+      setSeedResult(res.message);
+    } catch (err: unknown) {
+      setSeedError(extractErrorMessage(err, "Errore durante il popolamento dei prodotti."));
+    } finally {
+      setIsSeeding(false);
     }
   };
 
@@ -78,7 +96,38 @@ export const AdminSystemHealthSection: React.FC = () => {
             </li>
           </ul>
         </div>
+
+        {/* Card Azione Popolamento Prodotti Spesa */}
+        <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm space-y-3 col-span-1 sm:col-span-2">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div>
+              <h4 className="text-xs font-bold uppercase tracking-wider text-slate-700">🛒 Catalogo Spesa & Prodotti Predefiniti</h4>
+              <p className="text-xs text-slate-500 mt-0.5">
+                Popola o ripristina nel database i prodotti predefiniti (da `shopping_products.csv`), i supermercati/marchi e lo storico prezzi dei lotti.
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={handleSeedProducts}
+              disabled={isSeeding}
+              className="inline-flex items-center justify-center gap-1.5 rounded-xl bg-blue-600 px-4 py-2 text-xs font-bold text-white shadow-sm hover:bg-blue-700 transition disabled:opacity-50 cursor-pointer shrink-0"
+            >
+              {isSeeding ? 'Popolamento in corso...' : '⚡ Popola Catalogo Prodotti'}
+            </button>
+          </div>
+          {seedResult && (
+            <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-xs font-semibold text-emerald-800">
+              ✅ {seedResult}
+            </div>
+          )}
+          {seedError && (
+            <div className="rounded-xl border border-rose-200 bg-rose-50 p-3 text-xs font-semibold text-rose-700">
+              ❌ {seedError}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
 };
+

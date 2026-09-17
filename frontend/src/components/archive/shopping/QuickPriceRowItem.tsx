@@ -67,15 +67,27 @@ export const QuickPriceRowItem: React.FC<QuickPriceRowItemProps> = ({
         />
       </td>
 
-      <td className="py-2 px-2.5">
+      <td className="py-2 px-2">
         <input
-          id={`price-${row.id}`}
+          id={`priceUnit-${row.id}`}
           type="text"
           inputMode="decimal"
-          value={row.price}
-          onChange={(e) => onUpdateRow(row.id, 'price', e.target.value.replace(/[^0-9.,]/g, '').replace(/,/g, '.'))}
+          value={row.priceUnit}
+          onChange={(e) => onUpdateRow(row.id, 'priceUnit', e.target.value.replace(/[^0-9.,]/g, '').replace(/,/g, '.'))}
           placeholder="0.00"
-          className="w-full px-2.5 py-2 border border-gray-200 rounded-xl text-xs font-bold text-slate-800 focus:outline-none focus:border-blue-500 bg-white"
+          className="w-full px-2 py-2 border border-gray-200 rounded-xl text-xs font-bold text-slate-800 focus:outline-none focus:border-blue-500 bg-white"
+        />
+      </td>
+
+      <td className="py-2 px-2">
+        <input
+          id={`priceTotal-${row.id}`}
+          type="text"
+          inputMode="decimal"
+          value={row.priceTotal}
+          onChange={(e) => onUpdateRow(row.id, 'priceTotal', e.target.value.replace(/[^0-9.,]/g, '').replace(/,/g, '.'))}
+          placeholder="0.00"
+          className="w-full px-2 py-2 border border-blue-200/60 rounded-xl text-xs font-bold text-blue-700 focus:outline-none focus:border-blue-500 bg-blue-50/20"
         />
       </td>
 

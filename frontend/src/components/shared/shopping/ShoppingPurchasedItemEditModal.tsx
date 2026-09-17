@@ -57,6 +57,18 @@ export const ShoppingPurchasedItemEditModal: React.FC<ShoppingPurchasedItemEditM
 
   if (!open || !item) return null;
 
+  const sidePanel = (
+    <ShoppingPurchasedItemPurchaseFields
+      formData={formData}
+      setFormData={setFormData}
+      suppliers={suppliers}
+      currencyOptions={currencyOptions}
+      isDatePickerOpen={isDatePickerOpen}
+      setIsDatePickerOpen={setIsDatePickerOpen}
+      asSidePanel={true}
+    />
+  );
+
   return (
     <BaseModal
       isOpen={open}
@@ -67,6 +79,7 @@ export const ShoppingPurchasedItemEditModal: React.FC<ShoppingPurchasedItemEditM
           <span>Modifica Articolo Acquistato</span>
         </span>
       }
+      sidePanel={sidePanel}
       maxWidthClass="max-w-lg"
     >
       <form onSubmit={handleSubmit} className="space-y-4">
@@ -93,16 +106,6 @@ export const ShoppingPurchasedItemEditModal: React.FC<ShoppingPurchasedItemEditM
             className="w-full px-3 py-2 text-sm bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-blue-500 outline-hidden resize-none transition"
           />
         </div>
-
-        {/* Sezione 2: Dettagli Acquisto */}
-        <ShoppingPurchasedItemPurchaseFields
-          formData={formData}
-          setFormData={setFormData}
-          suppliers={suppliers}
-          currencyOptions={currencyOptions}
-          isDatePickerOpen={isDatePickerOpen}
-          setIsDatePickerOpen={setIsDatePickerOpen}
-        />
 
         {/* Footer con Pulsanti di Salvataggio */}
         <div className="flex items-center justify-end gap-3 pt-3 border-t border-gray-100">

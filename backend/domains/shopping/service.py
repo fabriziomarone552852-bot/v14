@@ -23,9 +23,8 @@ from backend.domains.shopping.models.lists import ShoppingList, ShoppingListItem
 
 
 def seed_default_shopping_suppliers_for_user(db: Session, user_id: int) -> None:
-    """Popola tutti i negozi e marchi da shopping_suppliers.csv mantenendo gli ID e associandoli all'utente."""
+    """Popola tutti i negozi e marchi da shopping_suppliers.csv associandoli all'utente."""
     from backend.domains.config import repository as config_repo
-    from sqlalchemy import or_
 
     supplier_status_code = config_repo.get_config_code(db, "supplier_status", "active")
     default_status_id = supplier_status_code.id if supplier_status_code else 1
@@ -34,30 +33,29 @@ def seed_default_shopping_suppliers_for_user(db: Session, user_id: int) -> None:
     for item in suppliers_data:
         normalized = item["name_normalized"]
         existing = db.query(ShoppingSupplier).filter(
-            or_(
-                ShoppingSupplier.id == item["id"],
-                ShoppingSupplier.name_normalized == normalized,
-            )
+            ShoppingSupplier.name_normalized == normalized
         ).first()
         if existing is not None:
             continue
 
-        obj = ShoppingSupplier(
-            id=item["id"],
-            name_normalized=normalized,
-            type_code=item.get("type_code") or 1,
-            status_id=item.get("status_id") or default_status_id,
-            created_by_user_id=user_id,
-            created_at=item.get("created_at") or _now(),
-        )
+        id_occupied = db.query(ShoppingSupplier).filter(ShoppingSupplier.id == item["id"]).first()
+        supplier_kwargs = {
+            "name_normalized": normalized,
+            "type_code": item.get("type_code") or 1,
+            "status_id": default_status_id,
+            "created_by_user_id": user_id,
+            "created_at": item.get("created_at") or _now(),
+        }
+        if not id_occupied:
+            supplier_kwargs["id"] = item["id"]
+
+        obj = ShoppingSupplier(**supplier_kwargs)
         db.add(obj)
     db.flush()
 
 
 def seed_default_shopping_products_for_user(db: Session, user_id: int) -> None:
     """Popola i prodotti da shopping_products.csv collegandoli ai marchi corretti."""
-    from sqlalchemy import or_
-
     all_suppliers = db.query(ShoppingSupplier).all()
     suppliers_by_name = {s.name_normalized: s.id for s in all_suppliers}
 
@@ -65,10 +63,7 @@ def seed_default_shopping_products_for_user(db: Session, user_id: int) -> None:
     for item in products_data:
         normalized = item["name_normalized"]
         existing = db.query(ShoppingProduct).filter(
-            or_(
-                ShoppingProduct.id == item["id"],
-                ShoppingProduct.name_normalized == normalized,
-            )
+            ShoppingProduct.name_normalized == normalized
         ).first()
         if existing is not None:
             continue
@@ -77,44 +72,89 @@ def seed_default_shopping_products_for_user(db: Session, user_id: int) -> None:
         if not brand_id and item.get("brand_name_text"):
             brand_id = suppliers_by_name.get(item["brand_name_text"])
 
-        obj = ShoppingProduct(
-            id=item["id"],
-            name_normalized=normalized,
-            brand_id=brand_id,
-            created_by_user_id=user_id,
-            created_at=item.get("created_at") or _now(),
-        )
+        if brand_id and not db.query(ShoppingSupplier).filter(ShoppingSupplier.id == brand_id).first():
+            brand_id = None
+
+        id_occupied = db.query(ShoppingProduct).filter(ShoppingProduct.id == item["id"]).first()
+        product_kwargs = {
+            "name_normalized": normalized,
+            "brand_id": brand_id,
+            "created_by_user_id": user_id,
+            "created_at": item.get("created_at") or _now(),
+        }
+        if not id_occupied:
+            product_kwargs["id"] = item["id"]
+
+        obj = ShoppingProduct(**product_kwargs)
         db.add(obj)
     db.flush()
 
 
 def seed_default_inventory_batches_for_user(db: Session, user_id: int) -> None:
     """Popola i lotti di spesa e lo storico prezzi da inventory_batch.csv."""
+    all_products = db.query(ShoppingProduct).all()
+    products_by_name = {p.name_normalized: p.id for p in all_products}
+
+    all_suppliers = db.query(ShoppingSupplier).all()
+    suppliers_by_name = {s.name_normalized: s.id for s in all_suppliers}
+
+    seed_suppliers = load_seed_shopping_suppliers()
+    seed_supp_name_map = {ss["id"]: ss["name_normalized"] for ss in seed_suppliers}
+
+    seed_products = load_seed_shopping_products()
+    seed_prod_name_map = {sp["id"]: sp["name_normalized"] for sp in seed_products}
+
     batches_data = load_seed_inventory_batches()
     for item in batches_data:
-        existing = db.query(InventoryBatch).filter(InventoryBatch.id == item["id"]).first()
+        csv_prod_id = item["product_id"]
+        prod_name = seed_prod_name_map.get(csv_prod_id)
+        target_prod_id = products_by_name.get(prod_name) if prod_name else None
+
+        if not target_prod_id:
+            prod_obj = db.query(ShoppingProduct).filter(ShoppingProduct.id == csv_prod_id).first()
+            if prod_obj:
+                target_prod_id = prod_obj.id
+
+        if not target_prod_id:
+            continue
+
+        csv_supp_id = item.get("supplier_id")
+        supp_name = seed_supp_name_map.get(csv_supp_id) if csv_supp_id else None
+        target_supp_id = suppliers_by_name.get(supp_name) if supp_name else None
+
+        if not target_supp_id and csv_supp_id:
+            supp_obj = db.query(ShoppingSupplier).filter(ShoppingSupplier.id == csv_supp_id).first()
+            if supp_obj:
+                target_supp_id = supp_obj.id
+
+        existing = db.query(InventoryBatch).filter(
+            InventoryBatch.product_id == target_prod_id,
+            InventoryBatch.purchase_date == item["purchase_date"],
+            InventoryBatch.purchase_price == item["purchase_price"],
+            InventoryBatch.deleted_at.is_(None),
+        ).first()
         if existing is not None:
             continue
 
-        prod_exists = db.query(ShoppingProduct).filter(ShoppingProduct.id == item["product_id"]).first()
-        if not prod_exists:
-            continue
+        id_occupied = db.query(InventoryBatch).filter(InventoryBatch.id == item["id"]).first()
+        batch_kwargs = {
+            "product_id": target_prod_id,
+            "list_item_id": item.get("list_item_id"),
+            "purchase_date": item["purchase_date"],
+            "quantity_purchased": item["quantity_purchased"],
+            "purchase_price": item["purchase_price"],
+            "supplier_id": target_supp_id,
+            "is_on_sale": item.get("is_on_sale", False),
+            "expiration_date": item.get("expiration_date"),
+            "created_by_user_id": user_id,
+            "purchased_by_user_id": user_id,
+            "created_at": item.get("created_at") or item["purchase_date"],
+            "updated_at": item.get("updated_at") or item["purchase_date"],
+        }
+        if not id_occupied:
+            batch_kwargs["id"] = item["id"]
 
-        obj = InventoryBatch(
-            id=item["id"],
-            product_id=item["product_id"],
-            list_item_id=item.get("list_item_id"),
-            purchase_date=item["purchase_date"],
-            quantity_purchased=item["quantity_purchased"],
-            purchase_price=item["purchase_price"],
-            supplier_id=item.get("supplier_id"),
-            is_on_sale=item.get("is_on_sale", False),
-            expiration_date=item.get("expiration_date"),
-            created_by_user_id=user_id,
-            purchased_by_user_id=user_id,
-            created_at=item.get("created_at") or item["purchase_date"],
-            updated_at=item.get("updated_at") or item["purchase_date"],
-        )
+        obj = InventoryBatch(**batch_kwargs)
         db.add(obj)
     db.flush()
 from backend.domains.shopping.schemas.catalog import (
@@ -1102,9 +1142,44 @@ def create_quick_price_batch(
                 db.flush()
                 resolved_supplier_id = new_sup.id
 
+        list_item_id = None
+        if batch_in.shopping_list_id:
+            target_list = repo.get_list_accessible(db, batch_in.shopping_list_id, current_user.id)
+            if target_list:
+                existing_item = (
+                    db.query(ShoppingListItem)
+                    .filter(
+                        ShoppingListItem.shopping_list_id == batch_in.shopping_list_id,
+                        ShoppingListItem.product_id == db_product.id,
+                        ShoppingListItem.deleted_at.is_(None),
+                    )
+                    .first()
+                )
+                if existing_item:
+                    list_item_id = existing_item.id
+                    existing_item.is_purchased = True
+                    existing_item.updated_at = _now()
+                    existing_item.updated_by_user_id = current_user.id
+                else:
+                    new_item = ShoppingListItem(
+                        shopping_list_id=batch_in.shopping_list_id,
+                        product_id=db_product.id,
+                        name_normalized=db_product.name_normalized,
+                        quantity=rec.quantity_purchased,
+                        unit_id=rec.unit_id,
+                        is_purchased=True,
+                        created_by_user_id=current_user.id,
+                        updated_by_user_id=current_user.id,
+                        created_at=_now(),
+                        updated_at=_now(),
+                    )
+                    db.add(new_item)
+                    db.flush()
+                    list_item_id = new_item.id
+
         batch = InventoryBatch(
             product_id=db_product.id,
-            list_item_id=None,
+            list_item_id=list_item_id,
             supplier_id=resolved_supplier_id,
             purchase_date=rec.purchase_date,
             quantity_purchased=rec.quantity_purchased,
@@ -1136,6 +1211,42 @@ def update_inventory_batch(
     if not db_batch:
         raise HTTPException(status_code=404, detail="Lotto/Acquisto non trovato")
 
+    is_seed_batch = (db_batch.id <= 41)
+    if is_seed_batch and not current_user.is_superuser:
+        raise HTTPException(
+            status_code=403,
+            detail="Solo gli utenti SuperUser possono modificare i dati di primo inserimento.",
+        )
+
+    if not current_user.is_superuser:
+        is_allowed = (
+            db_batch.created_by_user_id == current_user.id
+            or db_batch.purchased_by_user_id == current_user.id
+        )
+        if db_batch.list_item_id:
+            db_item = repo.get_item(db, db_batch.list_item_id)
+            if db_item and db_item.shopping_list_id:
+                accessible_list = repo.get_list_accessible(db, db_item.shopping_list_id, current_user.id)
+                if accessible_list and accessible_list.group_id:
+                    role = repo.get_user_role_code_in_group(db, accessible_list.group_id, current_user.id)
+                    if role == "reader":
+                        raise HTTPException(
+                            status_code=403,
+                            detail="I lettori non hanno i permessi per modificare i rilevamenti di prezzo nel gruppo.",
+                        )
+                    elif role in ("owner", "admin", "editor"):
+                        is_allowed = True
+                elif accessible_list and accessible_list.owner_id == current_user.id:
+                    is_allowed = True
+        elif not is_allowed and db_batch.list_item_id is None:
+            is_allowed = True
+
+        if not is_allowed:
+            raise HTTPException(
+                status_code=403,
+                detail="Non hai i permessi per modificare questo rilevamento di prezzo.",
+            )
+
     update_data = batch_in.model_dump(exclude_unset=True)
 
     if "supplier_id" in update_data and update_data["supplier_id"] is not None:
@@ -1156,8 +1267,73 @@ def update_inventory_batch(
                 detail="Il list_item_id del lotto non può essere modificato.",
             )
 
+    # Resolve brand if brand_name or brand_id is updated
+    if "brand_name" in update_data or "brand_id" in update_data:
+        resolved_brand_id = _resolve_brand_id(
+            db,
+            current_user,
+            brand_name=update_data.get("brand_name"),
+            brand_id=update_data.get("brand_id"),
+        )
+        if db_batch.product:
+            db_batch.product.brand_id = resolved_brand_id
+
+    # If list_item_id is None but shopping_list_id is provided, try to find or create list item
+    if db_batch.list_item_id is None and update_data.get("shopping_list_id"):
+        target_list = repo.get_list_accessible(db, update_data["shopping_list_id"], current_user.id)
+        if target_list and db_batch.product:
+            existing_item = (
+                db.query(ShoppingListItem)
+                .filter(
+                    ShoppingListItem.shopping_list_id == update_data["shopping_list_id"],
+                    ShoppingListItem.product_id == db_batch.product_id,
+                    ShoppingListItem.deleted_at.is_(None),
+                )
+                .first()
+            )
+            if existing_item:
+                db_batch.list_item_id = existing_item.id
+            else:
+                new_item = ShoppingListItem(
+                    shopping_list_id=update_data["shopping_list_id"],
+                    product_id=db_batch.product_id,
+                    name_normalized=db_batch.product.name_normalized,
+                    quantity=update_data.get("quantity_purchased") or db_batch.quantity_purchased,
+                    unit_id=update_data.get("unit_id"),
+                    notes=update_data.get("notes"),
+                    is_purchased=True,
+                    created_by_user_id=current_user.id,
+                    updated_by_user_id=current_user.id,
+                    created_at=_now(),
+                    updated_at=_now(),
+                )
+                db.add(new_item)
+                db.flush()
+                db_batch.list_item_id = new_item.id
+
+    # Sync list item attributes if linked
+    if db_batch.list_item_id:
+        db_item = repo.get_item(db, db_batch.list_item_id)
+        if db_item:
+            if "product_name" in update_data and update_data["product_name"]:
+                db_item.name_normalized = _normalize_name(update_data["product_name"])
+            if "notes" in update_data:
+                db_item.notes = update_data["notes"]
+            if "unit_id" in update_data:
+                db_item.unit_id = update_data["unit_id"]
+            if "shopping_list_id" in update_data and update_data["shopping_list_id"]:
+                db_item.shopping_list_id = update_data["shopping_list_id"]
+            if "quantity_purchased" in update_data and update_data["quantity_purchased"] is not None:
+                db_item.quantity = update_data["quantity_purchased"]
+
+    # Sync product catalog item if linked
+    if db_batch.product:
+        if "product_name" in update_data and update_data["product_name"]:
+            db_batch.product.name_normalized = _normalize_name(update_data["product_name"])
+
     for field, value in update_data.items():
-        setattr(db_batch, field, value)
+        if hasattr(db_batch, field):
+            setattr(db_batch, field, value)
 
     db_batch.updated_at = _today()
     db_batch.updated_by_user_id = current_user.id
@@ -1171,6 +1347,42 @@ def delete_inventory_batch(db: Session, current_user: User, batch_id: int) -> No
     db_batch = repo.get_batch(db, batch_id, current_user.id)
     if not db_batch:
         raise HTTPException(status_code=404, detail="Lotto/Acquisto non trovato")
+
+    is_seed_batch = (db_batch.id <= 41)
+    if is_seed_batch and not current_user.is_superuser:
+        raise HTTPException(
+            status_code=403,
+            detail="Solo gli utenti SuperUser possono eliminare i dati di primo inserimento.",
+        )
+
+    if not current_user.is_superuser:
+        is_allowed = (
+            db_batch.created_by_user_id == current_user.id
+            or db_batch.purchased_by_user_id == current_user.id
+        )
+        if db_batch.list_item_id:
+            db_item = repo.get_item(db, db_batch.list_item_id)
+            if db_item and db_item.shopping_list_id:
+                accessible_list = repo.get_list_accessible(db, db_item.shopping_list_id, current_user.id)
+                if accessible_list and accessible_list.group_id:
+                    role = repo.get_user_role_code_in_group(db, accessible_list.group_id, current_user.id)
+                    if role == "reader":
+                        raise HTTPException(
+                            status_code=403,
+                            detail="I lettori non hanno i permessi per eliminare i rilevamenti di prezzo nel gruppo.",
+                        )
+                    elif role in ("owner", "admin", "editor"):
+                        is_allowed = True
+                elif accessible_list and accessible_list.owner_id == current_user.id:
+                    is_allowed = True
+        elif not is_allowed and db_batch.list_item_id is None:
+            is_allowed = True
+
+        if not is_allowed:
+            raise HTTPException(
+                status_code=403,
+                detail="Non hai i permessi per eliminare questo rilevamento di prezzo.",
+            )
 
     db_batch.deleted_at = _today()
     db_batch.deleted_by_user_id = current_user.id
@@ -1241,6 +1453,7 @@ def list_item_batches(
 def list_all_batches(db: Session, current_user: User) -> list:
     """Restituisce tutti i prezzi/batch registrati dall'utente o nei suoi gruppi."""
     from decimal import Decimal as D
+    admin_ids = [u.id for u in db.query(User).filter(User.is_superuser == True, User.deleted_at.is_(None)).all()]
     batches = repo.list_all_batches_for_user(db, current_user.id)
     result = []
     for b in batches:
@@ -1263,12 +1476,20 @@ def list_all_batches(db: Session, current_user: User) -> list:
                 brand_id = b.list_item.product.brand.id
                 brand_name = b.list_item.product.brand.name_normalized
 
+        shopping_list_id: Optional[int] = None
+        unit_id: Optional[int] = None
+
         if b.list_item:
             notes = b.list_item.notes
+            unit_id = b.list_item.unit_id
+            shopping_list_id = b.list_item.shopping_list_id
             if b.list_item.shopping_list:
                 list_name = b.list_item.shopping_list.name
             if b.list_item.unit:
                 unit_name = b.list_item.unit.code_value or b.list_item.unit.code_name
+        
+        is_seed = (b.id <= 41)
+
         result.append({
             "id": b.id,
             "product_id": b.product_id,
@@ -1281,8 +1502,13 @@ def list_all_batches(db: Session, current_user: User) -> list:
             "unit_price": unit_price,
             "supplier_id": b.supplier_id,
             "supplier_name": b.supplier.name_normalized if b.supplier else None,
+            "unit_id": unit_id,
             "unit_name": unit_name,
+            "shopping_list_id": shopping_list_id,
             "list_name": list_name,
+            "list_item_id": b.list_item_id,
+            "created_by_user_id": b.created_by_user_id,
+            "is_seed": is_seed,
             "notes": notes,
             "is_on_sale": b.is_on_sale,
         })

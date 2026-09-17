@@ -24,10 +24,74 @@ export interface PurchasedItemEditFormData {
   unitId: string;
   notes: string;
   price: string;
+  unitPrice?: string;
+  totalPrice?: string;
+  lastPriceEdited?: 'unit' | 'total';
   currencyId: string;
   supplierId: string;
   purchaseDate: string;
   isOnSale: boolean;
+}
+
+export function syncPurchasedFormPrices(
+  prev: PurchasedItemEditFormData,
+  field: 'unitPrice' | 'totalPrice' | 'quantity',
+  value: string
+): PurchasedItemEditFormData {
+  const cleanVal = value.replace(/[^0-9.,]/g, '').replace(',', '.');
+  const qty = Math.max(0.001, Number((field === 'quantity' ? value : prev.quantity).replace(',', '.')) || 1);
+
+  if (field === 'unitPrice') {
+    const uNum = Number(cleanVal);
+    const totCalc = !Number.isNaN(uNum) && cleanVal !== '' ? (uNum * qty).toFixed(2) : '';
+    return {
+      ...prev,
+      unitPrice: value,
+      totalPrice: totCalc,
+      price: cleanVal,
+      lastPriceEdited: 'unit',
+    };
+  }
+
+  if (field === 'totalPrice') {
+    const tNum = Number(cleanVal);
+    const unitCalc = !Number.isNaN(tNum) && cleanVal !== '' && qty > 0 ? (tNum / qty).toFixed(2) : '';
+    return {
+      ...prev,
+      totalPrice: value,
+      unitPrice: unitCalc,
+      price: unitCalc,
+      lastPriceEdited: 'total',
+    };
+  }
+
+  if (field === 'quantity') {
+    const newQty = Math.max(0.001, Number(cleanVal) || 1);
+    let newTot = prev.totalPrice || '';
+    let newUnit = prev.unitPrice || prev.price || '';
+
+    if (prev.lastPriceEdited === 'total' && prev.totalPrice && prev.totalPrice.trim() !== '') {
+      const tot = Number(prev.totalPrice.replace(',', '.'));
+      if (!Number.isNaN(tot)) {
+        newUnit = (tot / newQty).toFixed(2);
+      }
+    } else if (newUnit.trim() !== '') {
+      const u = Number(newUnit.replace(',', '.'));
+      if (!Number.isNaN(u)) {
+        newTot = (u * newQty).toFixed(2);
+      }
+    }
+
+    return {
+      ...prev,
+      quantity: value,
+      unitPrice: newUnit,
+      totalPrice: newTot,
+      price: newUnit,
+    };
+  }
+
+  return { ...prev, [field]: value };
 }
 
 export interface MobilePurchasedItemEditModalProps {
@@ -104,6 +168,10 @@ export const MobilePurchasedItemEditModal: React.FC<MobilePurchasedItemEditModal
         latestBatch?.is_on_sale ?? latestBatch?.isOnSale ?? false
       );
 
+      const qtyNum = item.quantity != null ? Number(item.quantity) : 1;
+      const unitNum = priceVal ? Number(priceVal.replace(',', '.')) : NaN;
+      const initialTotal = !Number.isNaN(unitNum) ? (unitNum * qtyNum).toFixed(2) : '';
+
       setFormData({
         productName: item.productName || '',
         brandName: item.brandName || '',
@@ -113,6 +181,9 @@ export const MobilePurchasedItemEditModal: React.FC<MobilePurchasedItemEditModal
         unitId: item.unitId ? String(item.unitId) : '',
         notes: item.notes || '',
         price: priceVal,
+        unitPrice: priceVal,
+        totalPrice: initialTotal,
+        lastPriceEdited: 'unit',
         currencyId: item.lastCurrencyId ? String(item.lastCurrencyId) : '1',
         supplierId: supplierVal,
         purchaseDate: dateVal,

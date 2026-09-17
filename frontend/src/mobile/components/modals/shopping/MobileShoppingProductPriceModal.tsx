@@ -139,6 +139,12 @@ export const MobileShoppingProductPriceModal: React.FC<MobileShoppingProductPric
                   quantity: data.quantityPurchased,
                   supplierId: data.supplierId,
                   isOnSale: data.isOnSale,
+                  productName: data.productName,
+                  brandName: data.brandName,
+                  brandId: data.brandId,
+                  notes: data.notes,
+                  unitId: data.unitId,
+                  shoppingListId: data.shoppingListId,
                 },
               });
             }}

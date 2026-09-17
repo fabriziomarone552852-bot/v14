@@ -29,7 +29,7 @@ from backend.domains.users.models import User
 VALID_ENVS = ("dev", "test", "prod")
 
 
-def _parse_args() -> str | None:
+def _parse_args() -> tuple[str | None, bool]:
     parser = argparse.ArgumentParser(
         description="Seed dei dati iniziali per l'ambiente selezionato.",
     )
@@ -39,20 +39,28 @@ def _parse_args() -> str | None:
         metavar="{dev|test|prod}",
         help="Ambiente target: dev, test oppure prod.",
     )
+    parser.add_argument(
+        "-y", "--yes",
+        action="store_true",
+        help="Salta la conferma manuale per prod.",
+    )
     args, _ = parser.parse_known_args()
-    return args.env
+    return args.env, args.yes
 
 
 def _pick_env_interactive() -> str:
-    print("\n╔══════════════════════════════════════════════════════════════╗")
-    print("║         SEEDDB — Selezione ambiente target                  ║")
-    print("╠══════════════════════════════════════════════════════════════╣")
-    print("║  [1] dev                                                   ║")
-    print("║  [2] test                                                  ║")
-    print("║  [3] prod                                                  ║")
-    print("╚══════════════════════════════════════════════════════════════╝")
+    print("\n--------------------------------------------------------------")
+    print("         SEEDDB — Selezione ambiente target                  ")
+    print("--------------------------------------------------------------")
+    print("  [1] dev                                                   ")
+    print("  [2] test                                                  ")
+    print("  [3] prod                                                  ")
+    print("--------------------------------------------------------------")
     while True:
-        raw = input("\n  Scegli (1/2/3) oppure digita 'dev'/'test'/'prod': ").strip().lower()
+        try:
+            raw = input("\n  Scegli (1/2/3) oppure digita 'dev'/'test'/'prod': ").strip().lower()
+        except EOFError:
+            return "dev"
         if raw in VALID_ENVS:
             return raw
         if raw in ("1", "2", "3"):
@@ -60,28 +68,39 @@ def _pick_env_interactive() -> str:
         print(f"  ✗ Valore non valido. Ammessi: {', '.join(VALID_ENVS)} oppure 1/2/3.")
 
 
-def _confirm_prod() -> bool:
+def _confirm_prod(auto_confirm: bool = False) -> bool:
+    if auto_confirm:
+        return True
     print("\n  ⚠️  Stai per eseguire il seed sul database di PRODUZIONE.")
-    answer = input("     Digita 'PROD' per confermare: ").strip()
-    return answer == "PROD"
+    try:
+        answer = input("     Digita 'PROD' per confermare: ").strip()
+        return answer == "PROD"
+    except EOFError:
+        return False
 
 
 def _load_env_values(target_env: str) -> dict[str, str]:
+    import os
     env_file = BACKEND_DIR / f".env.{target_env}"
 
-    if not env_file.is_file():
-        print(f"\n  ✗ File '{env_file}' non trovato.")
-        sys.exit(1)
+    env_values = {}
+    if env_file.is_file():
+        env_values = {
+            key: value
+            for key, value in dotenv_values(env_file).items()
+            if value is not None
+        }
 
-    env_values = {
-        key: value
-        for key, value in dotenv_values(env_file).items()
-        if value is not None
-    }
+    # Se l'esecuzione avviene dentro un container Docker sul NAS, usa l'host di rete interno PostGre-Server:5432
+    if os.path.exists("/.dockerenv"):
+        env_values["DATABASE_URL"] = os.environ.get(
+            "DATABASE_URL",
+            "postgresql+psycopg://PostGre:Password-Robusta@PostGre-Server:5432/family-smart"
+        )
 
     database_url = str(env_values.get("DATABASE_URL", "")).strip()
     if not database_url:
-        print(f"\n  ✗ DATABASE_URL non trovata in '{env_file.name}'.")
+        print(f"\n  ✗ DATABASE_URL non trovata in '{env_file.name}' né nelle variabili d'ambiente.")
         sys.exit(1)
 
     return env_values
@@ -472,12 +491,12 @@ def seed_database(
 
 
 if __name__ == "__main__":
-    chosen_env = _parse_args()
+    chosen_env, auto_confirm = _parse_args()
 
     if chosen_env is None:
         chosen_env = _pick_env_interactive()
 
-    if chosen_env == "prod" and not _confirm_prod():
+    if chosen_env == "prod" and not _confirm_prod(auto_confirm=auto_confirm):
         print("\n  Operazione annullata.\n")
         sys.exit(0)
 

@@ -9,6 +9,9 @@ export interface QuickPriceItem {
   brandName: string;
   brandId: string;
   price: string;
+  priceUnit: string;
+  priceTotal: string;
+  lastPriceEdited?: 'unit' | 'total';
   quantity: string;
   unitId: string;
   purchaseDate: string;
@@ -21,13 +24,77 @@ export const createEmptyQuickPriceItem = (defaultProductName = ''): QuickPriceIt
   productName: defaultProductName,
   brandName: '',
   brandId: '',
-  price: '0',
+  price: '',
+  priceUnit: '',
+  priceTotal: '',
+  lastPriceEdited: 'unit',
   quantity: '1',
   unitId: '',
   purchaseDate: getLocalTodayStr(),
   supplierId: '',
   isOnSale: false,
 });
+
+export function syncMobileItemPrices(
+  item: QuickPriceItem,
+  field: 'priceUnit' | 'priceTotal' | 'quantity',
+  value: string
+): QuickPriceItem {
+  const cleanVal = value.replace(/[^0-9.,]/g, '').replace(',', '.');
+  const qty = Math.max(0.001, Number(item.quantity.replace(',', '.')) || 1);
+
+  if (field === 'priceUnit') {
+    const unitNum = Number(cleanVal);
+    const totalCalc = !Number.isNaN(unitNum) && cleanVal !== '' ? (unitNum * qty).toFixed(2) : '';
+    return {
+      ...item,
+      priceUnit: value,
+      priceTotal: totalCalc,
+      price: cleanVal,
+      lastPriceEdited: 'unit',
+    };
+  }
+
+  if (field === 'priceTotal') {
+    const totalNum = Number(cleanVal);
+    const unitCalc = !Number.isNaN(totalNum) && cleanVal !== '' && qty > 0 ? (totalNum / qty).toFixed(2) : '';
+    return {
+      ...item,
+      priceTotal: value,
+      priceUnit: unitCalc,
+      price: unitCalc,
+      lastPriceEdited: 'total',
+    };
+  }
+
+  if (field === 'quantity') {
+    const newQty = Math.max(0.001, Number(cleanVal) || 1);
+    let newPriceTotal = item.priceTotal;
+    let newPriceUnit = item.priceUnit;
+
+    if (item.lastPriceEdited === 'total' && item.priceTotal.trim() !== '') {
+      const tot = Number(item.priceTotal.replace(',', '.'));
+      if (!Number.isNaN(tot)) {
+        newPriceUnit = (tot / newQty).toFixed(2);
+      }
+    } else if (item.priceUnit.trim() !== '') {
+      const unit = Number(item.priceUnit.replace(',', '.'));
+      if (!Number.isNaN(unit)) {
+        newPriceTotal = (unit * newQty).toFixed(2);
+      }
+    }
+
+    return {
+      ...item,
+      quantity: value,
+      priceUnit: newPriceUnit,
+      priceTotal: newPriceTotal,
+      price: newPriceUnit,
+    };
+  }
+
+  return { ...item, [field]: value };
+}
 
 export interface UseMobileQuickPriceLogicProps {
   isOpen: boolean;
@@ -41,6 +108,7 @@ export function useMobileQuickPriceLogic({
   onClose,
 }: UseMobileQuickPriceLogicProps) {
   const mutations = useShoppingMutations();
+  const [selectedListId, setSelectedListId] = useState<string>('');
   const [items, setItems] = useState<QuickPriceItem[]>([createEmptyQuickPriceItem()]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -49,6 +117,7 @@ export function useMobileQuickPriceLogic({
   useEffect(() => {
     if (isOpen) {
       setItems([createEmptyQuickPriceItem(initialProductName)]);
+      setSelectedListId('');
       setErrorMessage(null);
       setIsSubmitting(false);
     }
@@ -70,6 +139,9 @@ export function useMobileQuickPriceLogic({
       setItems((prev) =>
         prev.map((it) => {
           if (it.id !== id) return it;
+          if (field === 'priceUnit' || field === 'priceTotal' || field === 'quantity') {
+            return syncMobileItemPrices(it, field as 'priceUnit' | 'priceTotal' | 'quantity', String(value));
+          }
           return { ...it, [field]: value };
         })
       );
@@ -78,9 +150,10 @@ export function useMobileQuickPriceLogic({
   );
 
   const validItems = useMemo(() => {
-    return items.filter(
-      (it) => it.productName.trim() && it.price.trim() && Number(it.price.replace(',', '.')) > 0
-    );
+    return items.filter((it) => {
+      const pStr = it.priceUnit || it.price || it.priceTotal;
+      return it.productName.trim().length > 0 && pStr.trim().length > 0 && Number(pStr.replace(',', '.')) > 0;
+    });
   }, [items]);
 
   const handleSubmit = useCallback(
@@ -114,7 +187,10 @@ export function useMobileQuickPriceLogic({
           };
         });
 
-        await mutations.createQuickPriceBatch({ records });
+        await mutations.createQuickPriceBatch({
+          shoppingListId: selectedListId ? Number(selectedListId) : null,
+          records,
+        });
         onClose();
       } catch {
         setErrorMessage('Errore durante il salvataggio dei prezzi.');
@@ -122,11 +198,13 @@ export function useMobileQuickPriceLogic({
         setIsSubmitting(false);
       }
     },
-    [validItems, mutations, onClose]
+    [validItems, selectedListId, mutations, onClose]
   );
 
   return {
     items,
+    selectedListId,
+    setSelectedListId,
     validItems,
     isSubmitting,
     errorMessage,

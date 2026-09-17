@@ -116,3 +116,32 @@ def toggle_user_active_status(
     db.commit()
     db.refresh(db_user)
     return db_user
+
+
+@router.post("/seed-shopping-data")
+def reseed_shopping_data_by_admin(
+    db: Session = Depends(deps.get_db),
+    current_user: User = Depends(deps.require_superuser),
+):
+    from backend.domains.shopping.service import (
+        seed_default_shopping_suppliers_for_user,
+        seed_default_shopping_products_for_user,
+        seed_default_inventory_batches_for_user,
+    )
+    from backend.core.sequence_sync import sync_all_table_sequences
+
+    try:
+        seed_default_shopping_suppliers_for_user(db, current_user.id)
+        seed_default_shopping_products_for_user(db, current_user.id)
+        seed_default_inventory_batches_for_user(db, current_user.id)
+        sync_all_table_sequences(db)
+        db.commit()
+    except Exception as exc:
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Errore durante l'esecuzione del seed: {exc}",
+        )
+
+    return {"message": "Seed prodotti spesa, negozi e lotti completato con successo!"}
+

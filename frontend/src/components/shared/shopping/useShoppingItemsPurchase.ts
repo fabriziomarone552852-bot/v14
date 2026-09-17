@@ -196,13 +196,18 @@ export function useShoppingItemsPurchase({
     });
 
     // 2. Aggiorna il lotto/acquisto associato
+    const unitPriceNum = Number(formData.price.replace(',', '.'));
+    const totalPurchasePrice = (formData.lastPriceEdited === 'total' && formData.totalPrice && formData.totalPrice.trim() !== '')
+      ? Number(formData.totalPrice.replace(',', '.'))
+      : unitPriceNum * boughtQuantity;
+
     const batchData = {
       productId: targetItem.productId,
       supplierId: formData.supplierId ? Number(formData.supplierId) : undefined,
       brandId: formData.brandId ? Number(formData.brandId) : undefined,
       brandName: formData.brandName.trim() || undefined,
       purchaseDate: formData.purchaseDate,
-      purchasePrice: Number(formData.price.replace(',', '.')),
+      purchasePrice: totalPurchasePrice,
       quantity: boughtQuantity,
       unitId: formData.unitId ? Number(formData.unitId) : undefined,
       currencyId: formData.currencyId ? Number(formData.currencyId) : undefined,

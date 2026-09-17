@@ -10,16 +10,19 @@ import BaseModal from '@/components/shared/dialog/BaseModal';
 import { TagIcon } from '@/components/shared/utils/Icons';
 import type {
   ConfigOption,
+  ShoppingListSummary,
   ShoppingProductOption,
   ShoppingSupplierOption,
 } from '@/types/shopping';
 import { QuickPriceTable } from './QuickPriceTable';
 import { useQuickPriceModalLogic } from './quickprice';
 import { ShoppingSupplierCreateModal } from '@/components/shared/shopping/supplier/ShoppingSupplierCreateModal';
+import { ShoppingListSelect } from '@/components/shared/shopping/ShoppingListSelect';
 
 export interface ShoppingQuickPriceModalProps {
   isOpen: boolean;
   onClose: () => void;
+  lists?: ShoppingListSummary[];
   products?: ShoppingProductOption[];
   brands?: ShoppingSupplierOption[];
   suppliers?: ShoppingSupplierOption[];
@@ -29,6 +32,7 @@ export interface ShoppingQuickPriceModalProps {
 export const ShoppingQuickPriceModal: React.FC<ShoppingQuickPriceModalProps> = ({
   isOpen,
   onClose,
+  lists = [],
   products = [],
   brands = [],
   suppliers = [],
@@ -38,6 +42,8 @@ export const ShoppingQuickPriceModal: React.FC<ShoppingQuickPriceModalProps> = (
 
   const {
     rows,
+    selectedListId,
+    setSelectedListId,
     isSubmitting,
     openDatePickerRowId,
     setOpenDatePickerRowId,
@@ -69,6 +75,17 @@ export const ShoppingQuickPriceModal: React.FC<ShoppingQuickPriceModalProps> = (
             <span className="text-base font-bold text-gray-800">
               Inserimento Rapido Prezzi
             </span>
+          </div>
+        }
+        headerActions={
+          <div className="flex items-center gap-2 min-w-[200px] sm:min-w-[240px]">
+            <ShoppingListSelect
+              value={selectedListId}
+              onChange={(val) => setSelectedListId(val)}
+              lists={lists}
+              allowNone={true}
+              noneLabel="Nessuna Lista (Privato)"
+            />
           </div>
         }
         maxWidthClass="max-w-5xl"

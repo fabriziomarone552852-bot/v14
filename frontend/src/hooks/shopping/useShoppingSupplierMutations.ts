@@ -65,8 +65,8 @@ export const useShoppingSupplierMutations = () => {
       await Promise.all([
         invalidateLists(),
         invalidateItems(vars.listId),
-        queryClient.invalidateQueries({ queryKey: shoppingQueryKeys.products() }),
-        queryClient.invalidateQueries({ queryKey: shoppingQueryKeys.brands() }),
+        queryClient.invalidateQueries({ queryKey: shoppingQueryKeys.all }),
+        queryClient.invalidateQueries({ queryKey: ['community_prices'] }),
       ]);
     },
   });
@@ -77,9 +77,8 @@ export const useShoppingSupplierMutations = () => {
       await Promise.all([
         invalidateLists(),
         invalidateItems(vars.listId),
-        queryClient.invalidateQueries({ queryKey: shoppingQueryKeys.products() }),
-        queryClient.invalidateQueries({ queryKey: shoppingQueryKeys.brands() }),
-        queryClient.invalidateQueries({ queryKey: shoppingQueryKeys.allBatches() }),
+        queryClient.invalidateQueries({ queryKey: shoppingQueryKeys.all }),
+        queryClient.invalidateQueries({ queryKey: ['community_prices'] }),
       ]);
     },
   });
@@ -90,9 +89,8 @@ export const useShoppingSupplierMutations = () => {
       await Promise.all([
         invalidateLists(),
         invalidateItems(vars.listId),
-        queryClient.invalidateQueries({ queryKey: shoppingQueryKeys.products() }),
-        queryClient.invalidateQueries({ queryKey: shoppingQueryKeys.brands() }),
-        queryClient.invalidateQueries({ queryKey: shoppingQueryKeys.allBatches() }),
+        queryClient.invalidateQueries({ queryKey: shoppingQueryKeys.all }),
+        queryClient.invalidateQueries({ queryKey: ['community_prices'] }),
       ]);
     },
   });
@@ -101,10 +99,8 @@ export const useShoppingSupplierMutations = () => {
     mutationFn: (payload: QuickPriceBatchCreatePayload) => createQuickPriceBatch(payload),
     onSuccess: async () => {
       await Promise.all([
-        queryClient.invalidateQueries({ queryKey: shoppingQueryKeys.allBatches() }),
-        queryClient.invalidateQueries({ queryKey: shoppingQueryKeys.products() }),
-        queryClient.invalidateQueries({ queryKey: shoppingQueryKeys.brands() }),
-        queryClient.invalidateQueries({ queryKey: shoppingQueryKeys.suppliers() }),
+        queryClient.invalidateQueries({ queryKey: shoppingQueryKeys.all }),
+        queryClient.invalidateQueries({ queryKey: ['community_prices'] }),
       ]);
     },
   });

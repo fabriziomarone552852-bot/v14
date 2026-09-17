@@ -15,11 +15,155 @@ export interface ChangelogItem {
 
 export const CHANGELOG_HISTORY: ChangelogItem[] = [
   {
+    id: 'v14.2.10',
+    version: '14.2.10',
+    date: 'Settembre 2026',
+    title: 'Adattamento Mobile Modale Modifica Prezzo Archivi & Integrazione Roadmap',
+    isLatest: true,
+    published: true,
+    highlights: [
+      'Adattato il modale di modifica del prezzo nello storico archivi alla visualizzazione mobile nativa tramite MobileBaseModal (layout bottom-sheet con pulsanti sticky inferiori e sezioni touch-friendly).',
+      'Aggiornato il Backlog con i nuovi task di roadmap (Refactoring Continuo CORE-002, Landing Page Predefinita FEAT-012, Filtro Ingranaggio Categorie CAL-002).',
+    ],
+    features: [],
+    improvements: [
+      'Migliorata la resa visiva dei form di modifica prezzo su smartphone e tablet, evitando sovrapposizioni e barre di scorrimento desktop.',
+    ],
+    fixes: [],
+  },
+  {
+    id: 'v14.2.9',
+    version: '14.2.9',
+    date: 'Settembre 2026',
+    title: 'Pre-selezione Liste & Gestione Ruoli (Reader/Editor/Owner) nello Storico Prezzi',
+    isLatest: false,
+    published: true,
+    highlights: [
+      'Pre-selezione automatica della lista di appartenenza e dell\'unità di misura all\'apertura del modale di modifica del prezzo nello storico dell\'archivio.',
+      'Integrazione completa dei ruoli di gruppo (owner, admin, editor, reader) nel Frontend e Backend per la gestione dei permessi di modifica/eliminazione sui rilevamenti prezzo.',
+    ],
+    features: [],
+    improvements: [
+      'Nascosti i pulsanti di azione (matita/cestino) per gli utenti con ruolo Lettore (reader), mostrando i prezzi in sola visualizzazione come per i prodotti di primo inserimento SEED.',
+      'Inclusi gli ID di lista e di unità di misura nei payload di risposta delle API dello storico prezzi.',
+    ],
+    fixes: [
+      'Aggiunto il blocco di sicurezza backend (HTTP 403 Forbidden) per tentativi non autorizzati di modifica/eliminazione da parte dei lettori.',
+    ],
+  },
+  {
+    id: 'v14.2.8',
+    version: '14.2.8',
+    date: 'Settembre 2026',
+    title: 'Persistenza Salvataggio Prezzi & Collegamento Voci di Lista',
+    isLatest: false,
+    published: true,
+    highlights: [
+      'Risolto il problema di mancata o errata persistenza del prezzo unitario durante il salvataggio nelle modali di modifica rilevazione prezzo.',
+      'Sincronizzato il calcolo del prezzo totale di acquisto inviato all\'API rispetto al prezzo unitario inserito ed alla quantità acquistata.',
+      'Aggiunto il collegamento automatico degli elementi di lista anche per i rilevamenti nati tramite inserimento rapido prezzi.',
+    ],
+    features: [],
+    improvements: [
+      'Migliorata la gestione delle note, dell\'unità di misura e della lista di destinazione nelle rilevazioni di prezzo trasversali.',
+    ],
+    fixes: [
+      'Corretto un disallineamento nei payload delle modali di modifica prezzo che causava la ricalcolazione errata del prezzo unitario nel database backend.',
+    ],
+  },
+  {
+    id: 'v14.2.7',
+    version: '14.2.7',
+    date: 'Settembre 2026',
+    title: 'Abilitazione Modifica Prezzi Rilevati per Utenti Standard e Gruppi Condivisi',
+    isLatest: false,
+    published: true,
+    highlights: [
+      'Abilitata la modifica e il salvataggio dei prezzi e dei lotti registrati nello storico prodotti per tutti gli utenti membri del gruppo e utenti standard dell\'applicazione (non più limitato al solo utente creante).',
+      'Corretto il controllo dei permessi sul backend FastAPI per consentire la modifica dei rilevamenti prezzo anche per liste condivise nel medesimo gruppo.',
+    ],
+    features: [],
+    improvements: [
+      'Estesa la visibilità e il diritto di modifica dell\'icona matita nei dettagli del prezzo sia su Web Desktop che su Mobile per le rilevazioni non SEED.',
+    ],
+    fixes: [
+      'Risolto un blocco di permessi che impediva agli utenti standard di salvare le modifiche ai prezzi salvati nello storico in ambiente di produzione.',
+    ],
+  },
+  {
+    id: 'v14.2.6',
+    version: '14.2.6',
+    date: 'Settembre 2026',
+    title: 'Protezione Dati Seed/SuperUser e Filtro Prodotti Storico Prezzi',
+    isLatest: false,
+    published: true,
+    highlights: [
+      'I dati del primo inserimento (lotti/prezzi SEED da database iniziale) sono ora protetti da modifiche ed eliminazioni: i pulsanti di azione vengono mostrati solo agli utenti con privilegi SuperUser.',
+      'La scheda Storico Prezzi nell\'archivio spesa mostra ora esclusivamente i prodotti che possiedono rilevazioni di prezzo registrate.',
+      'Modale a 2 finestre affiancate (tipo albero delle task): pannello sinistro dedicato a "Dettagli Acquisto" e pannello principale per le proprietà ed etichette del prodotto.',
+      'Simmetria visiva perfetta tra il campo Quantità e il campo Unità di Misura.',
+      'Modifica completa di prodotti e rilevazioni prezzo nello Storico Prezzi dell\'Archivio (Nome, Marca, Lista, Quantità, Unità, Note, Prezzo, Negozio, Data, Offerta).',
+    ],
+    features: [
+      'Implementata la struttura a due finestre affiancate (`sidePanel`) per i modali di modifica articolo acquistato e rilevazione prezzo.',
+      'Aggiunta la possibilità di modificare nome prodotto, marca, lista di destinazione, unità di misura e note prodotto anche quando si modifica un prezzo nello Storico Prezzi dell\'Archivio.',
+      'Aggiunto menu a tendina "Associa a Lista" nell\'header del modale di aggiunta rapida prezzi con il componente standard ShoppingListSelect (con apertura della finestra al centro dello schermo su mobile).',
+      'Implementato il calcolo automatico bidirezionale tra Prezzo Unitario e Prezzo Totale in tutti i modali della spesa (Quantità × Unitario = Totale oppure Totale / Quantità = Unitario).',
+    ],
+    improvements: [
+      'Adattata l\'altezza del pannello sinistro "Dettagli Acquisto" alla sua dimensione naturale (`h-fit` e `items-start`), eliminando lo spazio vuoto in eccesso sotto la data di acquisto.',
+      'Rimosso il pulsante "Elimina" dal footer della modale di modifica del prezzo.',
+      'Allineati simmetricamente i campi Quantità e Unità di Misura con etichette visive uniformi.',
+      'Configurato l\'aggiornamento automatico e istantaneo in tempo reale dell\'intera applicazione (tabelle, grafici e modali aperte) ad ogni modifica o cancellazione di un prezzo nello storico.',
+      'Aggiornato il contatore del badge della scheda "Storico" per calcolare con precisione il numero di prodotti attivi con rilevazioni di prezzo.',
+      'Aggiunto il controllo di sicurezza sul backend FastAPI (errori 403 Forbidden) per bloccare tentativi di modifica/cancellazione dei dati SEED o dei lotti altrui da parte di utenti standard.',
+    ],
+    fixes: [
+      'Corretto l\'algoritmo di identificazione dei dati SEED per consentire la piena modifica ed eliminazione di tutti i prezzi e lotti inseriti dagli utenti.',
+      'Risolto il problema di condivisione indebita dei prezzi non associati a liste tra utenti non dello stesso gruppo.',
+      'Nascosti i tasti di modifica ed eliminazione sui prezzi inseriti da altri utenti se non si è l\'autore o SuperUser.',
+    ],
+  },
+  {
+    id: 'v14.2.5',
+    version: '14.2.5',
+    date: 'Settembre 2026',
+    title: 'Caricamento Automatico Prodotti & Lotti SEED Spesa all\'Avvio Backend',
+    isLatest: false,
+    published: true,
+    highlights: [
+      'Implementata la verifica ed il popolamento automatico ed idempotente dei prodotti, supermercati/marchi e lotti/prezzi SEED all\'avvio del server backend.',
+    ],
+    features: [],
+    improvements: [
+      'Garantita la disponibilità automatica dei prodotti e dello storico prezzi iniziale anche nel database di produzione e per tutti i nuovi utenti che si collegano online.',
+    ],
+    fixes: [
+      'Risolta l\'assenza dei prodotti seed per gli utenti non-admin nella versione online dovuta alla mancata esecuzione automatica del popolamento iniziale sul database PostgreSQL di produzione.',
+    ],
+  },
+  {
+    id: 'v14.2.4',
+    version: '14.2.4',
+    date: 'Settembre 2026',
+    title: 'Condivisione Storico Prezzi Admin & Seed per Tutti gli Utenti',
+    isLatest: false,
+    published: true,
+    highlights: [
+      'Abilitata la visibilità dei rilevamenti prezzo e lotti creati dall\'utente Admin/Seed (user_id = 1) nello storico prezzi di tutti gli utenti.',
+    ],
+    features: [
+      'Estesi i filtri repository per consentire l\'accesso globale in sola lettura ai prezzi di sistema/seed per qualsiasi utente.',
+    ],
+    improvements: [],
+    fixes: [],
+  },
+  {
     id: 'v14.2.3',
     version: '14.2.3',
     date: 'Settembre 2026',
     title: 'Miglioramenti Inserimento Rapido Prezzi (Mobile & Desktop), Prezzi SEED e Gestione Gruppi',
-    isLatest: true,
+    isLatest: false,
     published: true,
     highlights: [
       'Aggiunto il suggerimento autocomplete in tempo reale nella barra di aggiunta rapida della spesa su mobile.',
@@ -238,6 +382,15 @@ export const CHANGELOG_HISTORY: ChangelogItem[] = [
 export const APP_VERSION: string = CHANGELOG_HISTORY[0].version;
 export const APP_VERSION_NAME: string = `v${APP_VERSION}`;
 export const APP_LAST_UPDATE: string = CHANGELOG_HISTORY[0].date;
+
+
+
+
+
+
+
+
+
 
 
 

@@ -40,6 +40,10 @@ export function serializeInventoryBatchUpdatePayload(
     ...(payload.supplierId !== undefined ? { supplier_id: payload.supplierId } : {}),
     ...(payload.expirationDate !== undefined ? { expiration_date: payload.expirationDate } : {}),
     ...(payload.isOnSale !== undefined ? { is_on_sale: payload.isOnSale } : {}),
+    ...(payload.productName !== undefined ? { product_name: payload.productName } : {}),
+    ...(payload.notes !== undefined ? { notes: payload.notes } : {}),
+    ...(payload.unitId !== undefined ? { unit_id: payload.unitId } : {}),
+    ...(payload.shoppingListId !== undefined ? { shopping_list_id: payload.shoppingListId } : {}),
   };
 }
 
@@ -82,8 +86,11 @@ export async function fetchItemBatches(itemId: number): Promise<ItemBatchRecord[
     unit_price: number | null;
     supplier_id: number | null;
     supplier_name: string | null;
+    unit_id?: number | null;
     unit_name: string | null;
+    shopping_list_id?: number | null;
     list_name: string | null;
+    notes?: string | null;
     is_on_sale: boolean;
   }[]>(`/items/${itemId}/inventory-batches`, { method: 'GET' });
   return (data ?? []).map((b) => ({
@@ -98,8 +105,11 @@ export async function fetchItemBatches(itemId: number): Promise<ItemBatchRecord[
     unitPrice: b.unit_price != null ? Number(b.unit_price) : null,
     supplierId: b.supplier_id,
     supplierName: b.supplier_name,
+    unitId: b.unit_id ?? null,
     unitName: b.unit_name,
+    shoppingListId: b.shopping_list_id ?? null,
     listName: b.list_name,
+    notes: b.notes ?? null,
     isOnSale: b.is_on_sale,
   }));
 }
@@ -117,8 +127,15 @@ export async function fetchAllInventoryBatches(signal?: AbortSignal): Promise<It
     unit_price: number | null;
     supplier_id: number | null;
     supplier_name: string | null;
+    unit_id?: number | null;
     unit_name: string | null;
+    shopping_list_id?: number | null;
     list_name: string | null;
+    list_item_id?: number | null;
+    created_by_user_id?: number | null;
+    purchased_by_user_id?: number | null;
+    notes?: string | null;
+    is_seed?: boolean;
     is_on_sale: boolean;
   }[]>('/inventory-batches', { method: 'GET', signal });
   return (data ?? []).map((b) => ({
@@ -133,8 +150,15 @@ export async function fetchAllInventoryBatches(signal?: AbortSignal): Promise<It
     unitPrice: b.unit_price != null ? Number(b.unit_price) : null,
     supplierId: b.supplier_id,
     supplierName: b.supplier_name,
+    unitId: b.unit_id ?? null,
     unitName: b.unit_name,
+    shoppingListId: b.shopping_list_id ?? null,
     listName: b.list_name,
+    listItemId: b.list_item_id ?? null,
+    createdByUserId: b.created_by_user_id ?? null,
+    purchasedByUserId: b.purchased_by_user_id ?? null,
+    notes: b.notes ?? null,
+    isSeed: b.is_seed ?? (b.id <= 41),
     isOnSale: b.is_on_sale,
   }));
 }
@@ -184,6 +208,7 @@ export async function createQuickPriceBatch(
   }[]>('/inventory-batches/quick-add', {
     method: 'POST',
     body: {
+      shopping_list_id: payload.shoppingListId ?? undefined,
       records: payload.records.map((r) => ({
         product_name: r.productName,
         brand_name: r.brandName || undefined,
