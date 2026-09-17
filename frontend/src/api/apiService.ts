@@ -1,6 +1,6 @@
 // src/api/apiService.ts
 import { apiClient } from './client'; 
-import axios, { AxiosError, type AxiosRequestConfig } from 'axios';
+import axios, { AxiosError, type AxiosRequestConfig, type AxiosResponse } from 'axios';
 
 // Interfaccia per gli errori di FastAPI o risposte standard di errore
 export interface ApiErrorData {
@@ -42,67 +42,50 @@ const handleAxiosError = (error: unknown): never => {
   throw new Error(message);
 };
 
+/**
+ * Funzione privata generica che esegue una richiesta HTTP e gestisce
+ * uniformemente il try/catch e la risposta 204 No Content.
+ * Elimina la duplicazione del pattern try/catch in ogni metodo HTTP.
+ */
+const executeRequest = async <T>(fn: () => Promise<AxiosResponse<T>>): Promise<T | null> => {
+  try {
+    const response = await fn();
+    return response.status === 204 ? null : response.data;
+  } catch (error) {
+    return handleAxiosError(error);
+  }
+};
+
 // L'oggetto 'api' è un modulo utility TypeScript puro (Singleton)
 export const api = {
   /**
    * Esegue una richiesta GET.
    * Se il server restituisce 204 No Content, ritorna null.
    */
-  get: async <T = unknown>(endpoint: string, options?: AxiosRequestConfig): Promise<T | null> => {
-    try {
-      const response = await apiClient.get<T>(endpoint, options);
-      return response.status === 204 ? null : response.data;
-    } catch (error) { 
-      return handleAxiosError(error); 
-    }
-  },
+  get: <T = unknown>(endpoint: string, options?: AxiosRequestConfig): Promise<T | null> =>
+    executeRequest(() => apiClient.get<T>(endpoint, options)),
 
   /**
    * Esegue una richiesta POST.
    */
-  post: async <T = unknown, D = unknown>(endpoint: string, body?: D, options?: AxiosRequestConfig): Promise<T | null> => {
-    try {
-      const response = await apiClient.post<T>(endpoint, body, options);
-      return response.status === 204 ? null : response.data;
-    } catch (error) { 
-      return handleAxiosError(error); 
-    }
-  },
+  post: <T = unknown, D = unknown>(endpoint: string, body?: D, options?: AxiosRequestConfig): Promise<T | null> =>
+    executeRequest(() => apiClient.post<T>(endpoint, body, options)),
 
   /**
    * Esegue una richiesta PATCH.
    */
-  patch: async <T = unknown, D = unknown>(endpoint: string, body: D, options?: AxiosRequestConfig): Promise<T | null> => {
-    try {
-      const response = await apiClient.patch<T>(endpoint, body, options);
-      return response.status === 204 ? null : response.data;
-    } catch (error) { 
-      return handleAxiosError(error); 
-    }
-  },
+  patch: <T = unknown, D = unknown>(endpoint: string, body: D, options?: AxiosRequestConfig): Promise<T | null> =>
+    executeRequest(() => apiClient.patch<T>(endpoint, body, options)),
 
   /**
    * Esegue una richiesta PUT.
    */
-  put: async <T = unknown, D = unknown>(endpoint: string, body?: D, options?: AxiosRequestConfig): Promise<T | null> => {
-    try {
-      const response = await apiClient.put<T>(endpoint, body, options);
-      return response.status === 204 ? null : response.data;
-    } catch (error) { 
-      return handleAxiosError(error); 
-    }
-  },
+  put: <T = unknown, D = unknown>(endpoint: string, body?: D, options?: AxiosRequestConfig): Promise<T | null> =>
+    executeRequest(() => apiClient.put<T>(endpoint, body, options)),
 
   /**
    * Esegue una richiesta DELETE.
    */
-
-  delete: async <T = unknown>(endpoint: string, options?: AxiosRequestConfig): Promise<T | null> => {
-    try {
-      const response = await apiClient.delete<T>(endpoint, options);
-      return response.status === 204 ? null : response.data;
-    } catch (error) { 
-      return handleAxiosError(error); 
-    }
-  }
+  delete: <T = unknown>(endpoint: string, options?: AxiosRequestConfig): Promise<T | null> =>
+    executeRequest(() => apiClient.delete<T>(endpoint, options)),
 };

@@ -1,10 +1,9 @@
-// frontend/src/hooks/mutations/useNoteMutations.ts
 import axios from 'axios';
 import { useMutation, useQueryClient, type QueryKey } from '@tanstack/react-query';
 import { api } from '@/api/apiService';
+import { rollbackOnError } from '@/utils/queryCacheUtils';
 import type { LocalNoteEntry, NoteVariant, DailyEntry } from '@/types';
 import type { DbMonthlyEntry } from '@/types/monthlyentries';
-import { logger } from '@/utils/logger';
 
 // Il "contratto": la cache che usa questo hook DEVE avere un array 'note'
 export interface CacheWithNotes {
@@ -13,15 +12,12 @@ export interface CacheWithNotes {
   eventi_negativi?: DailyEntry[] | DbMonthlyEntry[];
 }
 
-// 1. IL CONTRATTO DEI DATI INVIATI (Perfettamente allineato al Backend)
+// 1. IL CONTRATTO DEI DATI INVIATI — allineato ai nomi del DB e del backend
 export interface SaveNotePayload {
   id?: number;
-  data_riferimento?: string; 
-  dateStr?: string;
-  testo?: string;            
-  text?: string;
-  tipo?: NoteVariant;        
-  variant?: NoteVariant;
+  data_riferimento?: string;
+  testo?: string;
+  tipo?: NoteVariant;
   isNew?: boolean;
 }
 
@@ -42,12 +38,12 @@ export function useNoteMutations<T extends CacheWithNotes>(queryKey: QueryKey) {
     NoteMutationContext<T>  // TContext
   >({
     mutationFn: async (note) => {
-      const textVal = (note.testo || note.text || '').trim();
+      const textVal = (note.testo || '').trim();
       if (!textVal) return Promise.resolve(null);
 
       const payload = { 
-        data_riferimento: note.data_riferimento || note.dateStr || '', 
-        tipo: note.tipo || note.variant || 'N1', 
+        data_riferimento: note.data_riferimento || '', 
+        tipo: note.tipo || 'N1', 
         testo: textVal 
       };
       
@@ -72,9 +68,9 @@ export function useNoteMutations<T extends CacheWithNotes>(queryKey: QueryKey) {
         
         const noteEntry: LocalNoteEntry = {
           id: tempId, 
-          data_riferimento: newNote.data_riferimento || newNote.dateStr || '',
-          tipo: newNote.tipo || newNote.variant || 'N1',
-          testo: newNote.testo || newNote.text || '',
+          data_riferimento: newNote.data_riferimento || '',
+          tipo: newNote.tipo || 'N1',
+          testo: newNote.testo || '',
           user_id: 0,
           isNew: newNote.isNew
         };
@@ -93,11 +89,7 @@ export function useNoteMutations<T extends CacheWithNotes>(queryKey: QueryKey) {
     },
 
     onError: (err, _newNote, context) => {
-      logger.error("Errore salvataggio nota:", err);
-      // context è ora fortemente tipizzato, l'editor sa che previousData esiste
-      if (context?.previousData) {
-        queryClient.setQueryData(queryKey, context.previousData);
-      }
+      rollbackOnError(err, context, queryClient, queryKey, 'Errore salvataggio nota:');
     },
 
     onSuccess: (savedNoteFromDB, newNote, context) => {
@@ -162,11 +154,8 @@ export function useNoteMutations<T extends CacheWithNotes>(queryKey: QueryKey) {
       return { previousData };
     },
     onError: (err, { id }, context) => {
-      logger.error("Errore cancellazione nota:", err);
-      if (id > 1000000000000) return;
-      if (context?.previousData) {
-        queryClient.setQueryData(queryKey, context.previousData);
-      }
+      if (id > 1000000000000) return; // nota locale mai sincronizzata — nessun rollback necessario
+      rollbackOnError(err, context, queryClient, queryKey, 'Errore cancellazione nota:');
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['notes'] });
@@ -175,7 +164,7 @@ export function useNoteMutations<T extends CacheWithNotes>(queryKey: QueryKey) {
 
   return {
     saveNote: (payload: SaveNotePayload) => {
-      const textVal = (payload.testo || payload.text || '').trim();
+      const textVal = (payload.testo || '').trim();
       if (!textVal && !payload.isNew) return;
       saveNoteMutation.mutate(payload);
     },

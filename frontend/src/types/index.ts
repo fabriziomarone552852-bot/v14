@@ -11,4 +11,4 @@ export type * from './auth';
 export type * from './yearlyentries';
 export type * from './shopping';
 export type * from './settings';
-export type * from './quotes';
+export type * from './quotes';export type * from './trackers';

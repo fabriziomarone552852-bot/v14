@@ -5,6 +5,8 @@ import { api } from '@/api/apiService';
 import type { UserServerSettings, UserSettingsUpdatePayload } from '@/types/settings';
 import { useGoogleCalendarIntegration } from '@/hooks/useGoogleCalendarIntegration';
 import { useBackHandler } from '@/utils/backButtonManager';
+import { logger } from '@/utils/logger';
+import { extractErrorMessage } from '@/utils/errorUtils';
 
 export interface SettingsNotification {
   type: 'success' | 'error';
@@ -58,8 +60,9 @@ export const useMobileSettingsLogic = () => {
           setMaxDepth(data.max_subtask_depth_user !== null ? data.max_subtask_depth_user : 3);
         }
       } catch (err: unknown) {
+        logger.error('Errore caricamento impostazioni:', err);
         if (isMounted) {
-          const msg = err instanceof Error ? err.message : 'Errore nel caricamento delle impostazioni.';
+          const msg = extractErrorMessage(err, 'Errore nel caricamento delle impostazioni.');
           setNotification({ type: 'error', message: msg });
         }
       } finally {
@@ -98,7 +101,8 @@ export const useMobileSettingsLogic = () => {
         setNotification({ type: 'success', message: 'Email aggiornata con successo!' });
       }
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : "Errore durante l'aggiornamento dell'email.";
+      logger.error("Errore salvataggio email:", err);
+      const msg = extractErrorMessage(err, "Errore durante l'aggiornamento dell'email.");
       setNotification({ type: 'error', message: msg });
     } finally {
       setSavingUser(false);
@@ -123,7 +127,8 @@ export const useMobileSettingsLogic = () => {
           setNotification({ type: 'success', message: 'Password aggiornata con successo!' });
         }
       } catch (err: unknown) {
-        const msg = err instanceof Error ? err.message : "Errore durante l'aggiornamento della password.";
+        logger.error("Errore cambio password:", err);
+        const msg = extractErrorMessage(err, "Errore durante l'aggiornamento della password.");
         setNotification({ type: 'error', message: msg });
       } finally {
         setPasswordLoading(false);
@@ -146,7 +151,8 @@ export const useMobileSettingsLogic = () => {
         setNotification({ type: 'success', message: `Profondità task impostata a ${newDepth} livelli.` });
       }
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'Errore nel salvataggio della preferenza.';
+      logger.error('Errore salvataggio maxDepth:', err);
+      const msg = extractErrorMessage(err, 'Errore nel salvataggio della preferenza.');
       setNotification({ type: 'error', message: msg });
     } finally {
       setSavingApp(false);

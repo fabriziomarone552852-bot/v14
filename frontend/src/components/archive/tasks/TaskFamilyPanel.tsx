@@ -1,7 +1,6 @@
 // src/components/archive/tasks/TaskFamilyPanel.tsx
 import React from "react";
 import type { Task } from "@/types/tasks";
-import type { UITask } from '@/types';
 
 type ToggleFattoFn = (task: Task) => Promise<void> | void;
 
@@ -29,13 +28,8 @@ const TaskFamilyPanel: React.FC<TaskFamilyPanelProps> = ({
   loading,
 }) => {
   const renderFamilyTree = (task: Task): React.ReactNode => {
-    const uiTask = task as unknown as UITask;
-    const hasChildren =
-      uiTask.subtasks && Array.isArray(uiTask.subtasks)
-        ? uiTask.subtasks.length > 0
-        : false;
-
-    const subtasks: Task[] = hasChildren ? (uiTask.subtasks as unknown as Task[]) : [];
+    const subtasks: Task[] = Array.isArray(task.subtasks) ? task.subtasks : [];
+    const hasChildren = subtasks.length > 0;
 
     return (
       <li key={task.id} style={{ marginBottom: 4 }}>
@@ -72,7 +66,7 @@ const TaskFamilyPanel: React.FC<TaskFamilyPanelProps> = ({
             + Sottotask
           </button>
         </div>
-        {subtasks.length > 0 && (
+        {hasChildren && (
           <ul style={{ marginLeft: 16 }}>
             {subtasks.map((st) => renderFamilyTree(st))}
           </ul>

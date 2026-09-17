@@ -134,12 +134,12 @@ export const formatTimeToServer = (oraStr?: string): string | null => {
 
 };
 
-export const getMonday = (d: Date): Date => {
-  const date = new Date(d);
-  const day = date.getDay();
-  const diff = date.getDate() - day + (day === 0 ? -6 : 1);
-  return new Date(date.setDate(diff));
-};
+/**
+ * @deprecated Usa `getMondayOfCurrentWeek` che si appoggia a date-fns e gestisce
+ * correttamente tutti i casi limite (cambio anno, DST, ecc.).
+ * Questa implementazione manuale è mantenuta solo per compatibilità.
+ */
+export const getMonday = (d: Date): Date => getMondayOfCurrentWeek(d);
 
 export const getSunday = (d: Date): Date => {
   const monday = getMonday(d);

@@ -35,7 +35,7 @@ if ($appVersion -match '^(\d+)') {
 }
 
 Write-Host "=====================================================" -ForegroundColor Cyan
-Write-Host "  COMPILAZIONE SMART AGENDA APK v$appVersion" -ForegroundColor Cyan
+Write-Host "  COMPILAZIONE VITA APK v$appVersion" -ForegroundColor Cyan
 Write-Host "  (CON TAILSCALE TSNET - versionCode: $versionCode)" -ForegroundColor Cyan
 Write-Host "=====================================================" -ForegroundColor Cyan
 
@@ -116,14 +116,14 @@ $finalApk = Join-Path $androidDir "app\build\outputs\apk\debug\app-debug.apk"
 
 if (Test-Path $finalApk) {
     # Copia nella cartella apk/
-    Copy-Item $finalApk (Join-Path $outputDir "smartagenda-v$appVersion.apk") -Force
-    Copy-Item $finalApk (Join-Path $outputDir "smartagenda.apk") -Force
+    Copy-Item $finalApk (Join-Path $outputDir "vita-v$appVersion.apk") -Force
+    Copy-Item $finalApk (Join-Path $outputDir "vita.apk") -Force
 
     Write-Host "`n=====================================================" -ForegroundColor Green
-    Write-Host "  APK COMPILATO CON SUCCESSO (v$appVersion)!" -ForegroundColor Green
+    Write-Host "  VITA APK COMPILATO CON SUCCESSO (v$appVersion)!" -ForegroundColor Green
     Write-Host "  File generati in $($outputDir):" -ForegroundColor Green
-    Write-Host "    - $outputDir\smartagenda-v$appVersion.apk" -ForegroundColor Green
-    Write-Host "    - $outputDir\smartagenda.apk" -ForegroundColor Green
+    Write-Host "    - $outputDir\vita-v$appVersion.apk" -ForegroundColor Green
+    Write-Host "    - $outputDir\vita.apk" -ForegroundColor Green
     Write-Host "=====================================================" -ForegroundColor Green
 } else {
     Write-Host "`nAPK non trovato nel percorso atteso. Controlla i log precedenti." -ForegroundColor Red

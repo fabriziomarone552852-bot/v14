@@ -8,6 +8,7 @@ export interface DailyEntry {
   id: number;
   user_id: number;
   data_riferimento: string; 
+  dateStr?: string;
   tipo: DailyEntryType;
   testo?: string | null;
   immagine_url?: string | null;

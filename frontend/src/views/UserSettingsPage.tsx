@@ -94,7 +94,7 @@ export const UserSettingsPage: React.FC = () => {
               type="button"
               onClick={() => setIsChangelogOpen(true)}
               className="group flex items-center gap-2 px-3.5 py-2.5 rounded-2xl bg-blue-50 hover:bg-blue-100/80 text-blue-600 border border-blue-100 shadow-xs hover:shadow transition-all active:scale-95 shrink-0 cursor-pointer"
-              title={`Smart Agenda ${APP_VERSION_NAME} • Note di rilascio & Changelog`}
+              title={`Vita ${APP_VERSION_NAME} • Note di rilascio & Changelog`}
               aria-label="Info Versione e Changelog"
             >
               <InfoIcon className="w-5 h-5 text-blue-600 group-hover:scale-110 transition-transform" />

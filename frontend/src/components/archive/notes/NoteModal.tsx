@@ -4,7 +4,7 @@ import BaseModal from '@/components/shared/dialog/BaseModal';
 import DatePicker from '@/components/shared/utils/DatePicker/DatePicker';
 import type { DailyEntry } from '@/types/dailyentries';
 import type { NoteVariant } from '@/types';
-import { getLocalDateString } from '@/utils/dateUtils';
+import { getLocalTodayStr } from '@/utils/dateUtils';
 import { isNoteVariant } from '@/utils/noteUtils';
 import { logger } from '@/utils/logger';
 
@@ -28,7 +28,7 @@ export const NoteModal: React.FC<NoteModalProps> = ({
   noteToEdit,
   onSave,
 }) => {
-  const [dataRiferimento, setDataRiferimento] = useState(getLocalDateString());
+  const [dataRiferimento, setDataRiferimento] = useState(getLocalTodayStr());
   const [tipo, setTipo] = useState<NoteVariant>('N1');
   const [testo, setTesto] = useState('');
   const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
@@ -38,11 +38,11 @@ export const NoteModal: React.FC<NoteModalProps> = ({
     if (isOpen) {
       if (noteToEdit) {
         // eslint-disable-next-line react-hooks/set-state-in-effect -- Form state reset when modal opens or edit target changes
-        setDataRiferimento(noteToEdit.data_riferimento?.substring(0, 10) || getLocalDateString());
+        setDataRiferimento(noteToEdit.data_riferimento?.substring(0, 10) || getLocalTodayStr());
         setTipo(isNoteVariant(noteToEdit.tipo) ? noteToEdit.tipo : 'N1');
         setTesto(noteToEdit.testo || '');
       } else {
-        setDataRiferimento(getLocalDateString());
+        setDataRiferimento(getLocalTodayStr());
         setTipo('N1');
         setTesto('');
       }

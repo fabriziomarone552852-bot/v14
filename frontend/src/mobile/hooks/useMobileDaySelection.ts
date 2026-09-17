@@ -8,7 +8,7 @@ export interface UseMobileDaySelectionProps {
   mappedEvents: CalendarEvent[];
   sortedTasks: UITask[];
   mappedRoutines: RoutineItem[];
-  deleteEvent: (id: string | number) => void | Promise<unknown>;
+  deleteEvent: (id: string | number) => void | Promise<void>;
   deleteTask: (id: number) => void;
   deleteHabit: (id: number) => void | Promise<unknown>;
 }
@@ -44,77 +44,51 @@ export function useMobileDaySelection({
     else if (isRoutinesSelection) updateAllIds(allRoutineIds);
   }, [allEventIds, allTaskIds, allRoutineIds, isEventsSelection, isTasksSelection, isRoutinesSelection, updateAllIds]);
 
-  const handleDeleteSelectedEvents = useCallback(
+  // Utility batch delete: confirm → loop → clearSelection
+  // Nota: non usa useCallback perché è una factory che crea funzioni (non un hook)
+  const batchDelete = (
+    label: string,
+    deleteFn: (id: number) => void | Promise<unknown>
+  ) =>
     async (ids?: (number | string)[]) => {
       const targetIds = ids && ids.length > 0 ? ids.map(Number) : (selectionState.selectedIds as number[]);
       if (targetIds.length === 0) return;
-      if (!window.confirm(`Vuoi eliminare i ${targetIds.length} eventi selezionati?`)) return;
+      if (!window.confirm(`Vuoi eliminare ${targetIds.length} ${label}?`)) return;
       for (const id of targetIds) {
-        await deleteEvent(id);
+        await deleteFn(id);
       }
       clearSelection();
-    },
-    [deleteEvent, selectionState.selectedIds, clearSelection]
-  );
+    };
+
+  const handleDeleteSelectedEvents = useCallback(batchDelete('eventi selezionati', deleteEvent), [deleteEvent, selectionState.selectedIds, clearSelection]);
+  const handleDeleteSelectedTasks = useCallback(batchDelete('task selezionate', deleteTask), [deleteTask, selectionState.selectedIds, clearSelection]);
+  const handleDeleteSelectedRoutines = useCallback(batchDelete('routine selezionate', deleteHabit), [deleteHabit, selectionState.selectedIds, clearSelection]);
+
 
   const handleToggleSelectEvent = useCallback(
     (id: number) => {
-      if (isEventsSelection) {
-        toggleItem(id);
-      } else {
-        startSelection('day-events', id, allEventIds, handleDeleteSelectedEvents);
-      }
+      if (isEventsSelection) toggleItem(id);
+      else startSelection('day-events', id, allEventIds, handleDeleteSelectedEvents);
     },
     [isEventsSelection, toggleItem, startSelection, allEventIds, handleDeleteSelectedEvents]
   );
 
-  const handleDeleteSelectedTasks = useCallback(
-    (ids?: (number | string)[]) => {
-      const targetIds = ids && ids.length > 0 ? ids.map(Number) : (selectionState.selectedIds as number[]);
-      if (targetIds.length === 0) return;
-      if (!window.confirm(`Vuoi eliminare le ${targetIds.length} task selezionate?`)) return;
-      for (const id of targetIds) {
-        deleteTask(id);
-      }
-      clearSelection();
-    },
-    [deleteTask, selectionState.selectedIds, clearSelection]
-  );
-
   const handleToggleSelectTask = useCallback(
     (id: number) => {
-      if (isTasksSelection) {
-        toggleItem(id);
-      } else {
-        startSelection('day-tasks', id, allTaskIds, handleDeleteSelectedTasks);
-      }
+      if (isTasksSelection) toggleItem(id);
+      else startSelection('day-tasks', id, allTaskIds, handleDeleteSelectedTasks);
     },
     [isTasksSelection, toggleItem, startSelection, allTaskIds, handleDeleteSelectedTasks]
   );
 
-  const handleDeleteSelectedRoutines = useCallback(
-    async (ids?: (number | string)[]) => {
-      const targetIds = ids && ids.length > 0 ? ids.map(Number) : (selectionState.selectedIds as number[]);
-      if (targetIds.length === 0) return;
-      if (!window.confirm(`Vuoi eliminare le ${targetIds.length} routine selezionate?`)) return;
-      for (const id of targetIds) {
-        await deleteHabit(id);
-      }
-      clearSelection();
-    },
-    [deleteHabit, selectionState.selectedIds, clearSelection]
-  );
-
   const handleToggleSelectRoutine = useCallback(
     (id: number) => {
-      if (isRoutinesSelection) {
-        toggleItem(id);
-      } else {
-        startSelection('day-routines', id, allRoutineIds, handleDeleteSelectedRoutines);
-      }
+      if (isRoutinesSelection) toggleItem(id);
+      else startSelection('day-routines', id, allRoutineIds, handleDeleteSelectedRoutines);
     },
     [isRoutinesSelection, toggleItem, startSelection, allRoutineIds, handleDeleteSelectedRoutines]
   );
+
 
   return {
     selectionState,

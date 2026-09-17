@@ -66,8 +66,7 @@ export const useYearReviewPixelsLogic = ({
   const moodCategories = useMemo(() => {
     return categoriesToUse.filter((c: Category) => {
       if (!c) return false;
-      const g = (c as unknown as { genre?: unknown }).genre;
-      return g === 4 || g === '4' || g === 'MOOD' || String(g).toUpperCase() === 'MOOD' || Number(g) === 4;
+      return Number(c.genre) === 4;
     });
   }, [categoriesToUse]);
 

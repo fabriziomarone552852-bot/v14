@@ -132,7 +132,7 @@ export const ArchivePage: React.FC = () => {
       <ArchiveHeader
         icon={<MenuBarsIcon className="w-5 h-5" />}
         title="Archivio Dati"
-        subtitle="Centro di gestione per organizzare e consultare tutti i dati della tua Smart Agenda."
+        subtitle="Centro di gestione per organizzare e consultare tutti i dati di Vita."
         badge={
           <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md bg-slate-100 text-slate-600 border border-slate-200">
             10 Moduli

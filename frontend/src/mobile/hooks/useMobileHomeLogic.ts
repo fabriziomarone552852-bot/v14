@@ -13,8 +13,10 @@ import { useMobileSelection } from '../context/MobileSelectionContext';
 
 // Utility & Tipi
 import { buildTaskTreeForHome, filterAndSortTree, filterTreeByDeadlineMode } from '@/utils/taskUtils';
-import { calculateYearProgress, formatDateString, getAgendaDateLabels } from '@/utils/dateUtils';
+import { calculateYearProgress, getAgendaDateLabels, getLocalTodayStr } from '@/utils/dateUtils';
 import { mapDbEventsToCalendarEvents } from '@/utils/eventUtils';
+import { logger } from '@/utils/logger';
+import { extractErrorMessage } from '@/utils/errorUtils';
 import type { CalendarEvent, UITask } from '@/types';
 
 export type ExpandedHomeViewMode = 'none' | 'events' | 'tasks';
@@ -22,9 +24,8 @@ export type ExpandedHomeViewMode = 'none' | 'events' | 'tasks';
 export function useMobileHomeLogic() {
   const queryClient = useQueryClient();
   const [currentMonth] = useState<Date>(() => new Date());
-  const today = useMemo(() => new Date(), []);
-  const todayStr = useMemo(() => formatDateString(today), [today]);
-  const { formattedDate } = getAgendaDateLabels(today);
+  const todayStr = useMemo(() => getLocalTodayStr(), []);
+  const { formattedDate } = useMemo(() => getAgendaDateLabels(new Date()), []);
 
   // Stato Filtro e Ordinamento Task
   const [sortMode, setSortMode] = useState<'chrono' | 'priority'>('chrono');
@@ -193,7 +194,8 @@ export function useMobileHomeLogic() {
       }
       await queryClient.invalidateQueries({ queryKey: ['events'] });
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'Errore durante la sincronizzazione';
+      logger.error('Errore sincronizzazione Google Calendar:', err);
+      const msg = extractErrorMessage(err, 'Errore durante la sincronizzazione');
       setSyncFeedback(msg);
       setTimeout(() => setSyncFeedback(null), 3500);
     } finally {

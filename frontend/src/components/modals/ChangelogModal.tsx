@@ -50,13 +50,13 @@ export const ChangelogModal: React.FC<ChangelogModalProps> = ({ isOpen, onClose 
           {/* Header Modale */}
           <div className="px-6 py-5 bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 text-white flex items-center justify-between shrink-0 shadow-md">
             <div className="flex items-center gap-3.5 min-w-0">
-              <div className="w-11 h-11 rounded-2xl bg-white/15 backdrop-blur-md flex items-center justify-center text-xl shadow-inner border border-white/20 shrink-0">
-                📅
+              <div className="w-11 h-11 rounded-2xl bg-white/15 backdrop-blur-md flex items-center justify-center p-2 shadow-inner border border-white/20 shrink-0">
+                <img src="/favicon.png" alt="Vita" className="w-7 h-7 object-contain" />
               </div>
               <div className="truncate">
                 <div className="flex items-center gap-2">
                   <h3 id="changelog-modal-title" className="text-lg font-black tracking-wide truncate">
-                    Smart Agenda
+                    Vita
                   </h3>
                   <span className="px-2 py-0.5 rounded-full bg-white/20 text-white font-extrabold text-xs shadow-2xs backdrop-blur-md">
                     {APP_VERSION_NAME}
@@ -204,7 +204,7 @@ export const ChangelogModal: React.FC<ChangelogModalProps> = ({ isOpen, onClose 
           {/* Footer Modale */}
           <div className="px-6 py-3.5 bg-slate-50 border-t border-slate-200/80 flex flex-col sm:flex-row items-center justify-between gap-2.5 shrink-0">
             <span className="text-xs text-slate-400 font-medium">
-              Smart Agenda • v{APP_VERSION_NAME}
+              Vita • v{APP_VERSION_NAME}
             </span>
 
             <button

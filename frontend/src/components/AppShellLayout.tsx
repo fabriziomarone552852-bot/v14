@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { Link, useLocation, Outlet } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
-import { SettingsIcon, SwitchSidebarIcon, ShoppingIcon, UniversityIcon, FreeTimeIcon, CountdownIcon, CalendarDayIcon, CalendarWeekIcon, CalendarMonthIcon, CalendarYearIcon, MenuBarsIcon } from './shared/utils/Icons';
+import { SettingsIcon, SwitchSidebarIcon, ShoppingIcon, UniversityIcon, FreeTimeIcon, CountdownIcon, CalendarDayIcon, CalendarWeekIcon, CalendarMonthIcon, CalendarYearIcon, MenuBarsIcon, FilmIcon, TvIcon, BookIcon } from './shared/utils/Icons';
 
 interface SidebarItemProps {
   to: string;
@@ -39,6 +39,7 @@ const AppShellLayout: React.FC<AppShellLayoutProps> = ({ onLogout }) => {
   // true = Sidebar estesa (w-64), false = Mini Sidebar con icone (w-20)
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isAgendaHovered, setIsAgendaHovered] = useState(false);
+  const [isTrackersHovered, setIsTrackersHovered] = useState(false);
 
   const displayUsername = user?.username ? user.username.toUpperCase() : 'OSPITE';
   const isActive = (path: string) => location.pathname === path;
@@ -70,10 +71,11 @@ const AppShellLayout: React.FC<AppShellLayoutProps> = ({ onLogout }) => {
     isActive('/fornitori');
 
   const mainNavItems = [
-    { to: '/free-time', label: 'Free Time', icon: <FreeTimeIcon className="w-6 h-6 shrink-0" /> },
     { to: '/universita', label: 'Università', icon: <UniversityIcon className="w-6 h-6 shrink-0" /> },
     { to: '/shopping', label: 'Shopping', icon: <ShoppingIcon className="w-6 h-6 shrink-0" /> }
   ];
+
+  const isTrackersActive = location.pathname.startsWith('/trackers');
 
   return (
     <div className="app-container flex h-screen overflow-hidden relative bg-gray-50">
@@ -88,9 +90,14 @@ const AppShellLayout: React.FC<AppShellLayoutProps> = ({ onLogout }) => {
           {/* HEADER DELLA SIDEBAR */}
           <div className={`flex items-center mb-8 min-h-[40px] ${isSidebarOpen ? 'justify-between px-6' : 'justify-center px-0'}`}>
             {isSidebarOpen && (
-              <div className="truncate pr-2">
-                <h2 className="text-[10px] font-bold uppercase tracking-wider text-gray-400">Benvenuto</h2>
-                <h1 className="text-xl font-extrabold text-white mt-0.5 truncate">{displayUsername}</h1>
+              <div className="flex items-center gap-3 truncate pr-2">
+                <img src="/favicon.png" alt="Vita Logo" className="w-8 h-8 shrink-0 object-contain" />
+                <div className="truncate">
+                  <h2 className="text-[10px] font-bold uppercase tracking-wider text-gray-400 block leading-none">
+                    Benvenuto
+                  </h2>
+                  <h1 className="text-base font-extrabold text-white truncate leading-tight mt-0.5">{displayUsername}</h1>
+                </div>
               </div>
             )}
             
@@ -160,6 +167,52 @@ const AppShellLayout: React.FC<AppShellLayoutProps> = ({ onLogout }) => {
                   >
                     <CalendarYearIcon className="w-4 h-4 shrink-0" />
                     {isSidebarOpen && <span className="text-sm">Anno</span>}
+                  </Link>
+
+                </div>
+              )}
+            </div>
+
+            {/* ITEM: TRACKERS CON SOTTOMENU */}
+            <div 
+              onMouseEnter={() => setIsTrackersHovered(true)} 
+              onMouseLeave={() => setIsTrackersHovered(false)}
+              className="flex flex-col mt-1"
+            >
+              <Link to="/trackers" className={getNavLinkClass(isTrackersActive)} title={!isSidebarOpen ? "Trackers" : undefined}>
+                <FreeTimeIcon className="w-6 h-6 shrink-0" />
+                {isSidebarOpen && <span className="font-semibold tracking-wide">Trackers</span>}
+              </Link>
+
+              {/* SOTTOMENU TRACKERS */}
+              {(isTrackersActive || isTrackersHovered) && (
+                <div className={`flex flex-col mt-1 mb-2 animate-fadeIn ${isSidebarOpen ? 'pl-6 pr-2 space-y-1' : 'items-center space-y-2 mt-2'}`}>
+                  
+                  <Link 
+                    to="/trackers/film" 
+                    title={!isSidebarOpen ? "Film" : undefined} 
+                    className={`flex items-center gap-3 rounded-lg transition-colors focus:outline-none ${isSidebarOpen ? 'py-1.5 px-3' : 'p-2 justify-center'} ${isActive('/trackers/film') ? 'bg-gray-700 text-white font-bold' : 'text-gray-400 hover:bg-gray-700 hover:text-white'}`}
+                  >
+                    <FilmIcon className="w-4 h-4 shrink-0" />
+                    {isSidebarOpen && <span className="text-sm">Film</span>}
+                  </Link>
+
+                  <Link 
+                    to="/trackers/serie-tv" 
+                    title={!isSidebarOpen ? "Serie TV" : undefined} 
+                    className={`flex items-center gap-3 rounded-lg transition-colors focus:outline-none ${isSidebarOpen ? 'py-1.5 px-3' : 'p-2 justify-center'} ${isActive('/trackers/serie-tv') ? 'bg-gray-700 text-white font-bold' : 'text-gray-400 hover:bg-gray-700 hover:text-white'}`}
+                  >
+                    <TvIcon className="w-4 h-4 shrink-0" />
+                    {isSidebarOpen && <span className="text-sm">Serie TV</span>}
+                  </Link>
+
+                  <Link 
+                    to="/trackers/libri" 
+                    title={!isSidebarOpen ? "Libri" : undefined} 
+                    className={`flex items-center gap-3 rounded-lg transition-colors focus:outline-none ${isSidebarOpen ? 'py-1.5 px-3' : 'p-2 justify-center'} ${isActive('/trackers/libri') ? 'bg-gray-700 text-white font-bold' : 'text-gray-400 hover:bg-gray-700 hover:text-white'}`}
+                  >
+                    <BookIcon className="w-4 h-4 shrink-0" />
+                    {isSidebarOpen && <span className="text-sm">Libri</span>}
                   </Link>
 
                 </div>

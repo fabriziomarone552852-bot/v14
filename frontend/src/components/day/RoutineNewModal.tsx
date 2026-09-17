@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import type { RoutineItem } from '@/components/day/RoutineColumn';
 import DatePicker from '@/components/shared/utils/DatePicker/DatePicker'; 
-import { getLocalDateString } from '@/utils/dateUtils'; 
+import { getLocalTodayStr } from '@/utils/dateUtils'; 
 import { parseRRule, buildRRule } from '@/utils/rruleUtils'; 
 import BaseModal from '@/components/shared/dialog/BaseModal';
 import { RecurrenceEditor } from '@/components/shared/utils/RecurrenceEditor';
@@ -32,7 +32,7 @@ interface RoutineNewModalProps {
 const RoutineNewModal: React.FC<RoutineNewModalProps> = ({ isOpen, onClose, routineToEdit, onSave }) => {
   const [form, setForm] = useState({
     titolo: '',
-    data_inizio: getLocalDateString(),
+    data_inizio: getLocalTodayStr(),
     immagine_url: '',
     immagine_posizione: '50% 50%',
     piu_volte: false,
@@ -90,7 +90,7 @@ const RoutineNewModal: React.FC<RoutineNewModalProps> = ({ isOpen, onClose, rout
         const { isRecurrent, freq, interval, until } = parseRRule(routineToEdit.rrule);
         setForm({
           titolo: routineToEdit.titolo || '',
-          data_inizio: routineToEdit.data_inizio || getLocalDateString(),
+          data_inizio: routineToEdit.data_inizio || getLocalTodayStr(),
           immagine_url: routineToEdit.imageUrl || '',
           immagine_posizione: routineToEdit.immaginePosizione || '50% 50%',
           piu_volte: routineToEdit.targetCompletions > 1,
@@ -103,7 +103,7 @@ const RoutineNewModal: React.FC<RoutineNewModalProps> = ({ isOpen, onClose, rout
       } else {
         setForm({
           titolo: '',
-          data_inizio: getLocalDateString(),
+          data_inizio: getLocalTodayStr(),
           immagine_url: '',
           immagine_posizione: '50% 50%',
           piu_volte: false,

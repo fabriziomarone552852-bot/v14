@@ -1,7 +1,14 @@
-// frontend/src/utils/taskUtils.ts
 import type { DbTask, Priorita, TaskSummary, UITask } from '@/types';
 import { getLocalTodayStr, formatDateString } from '@/utils/dateUtils';
 import { getPriorityWeight } from '@/utils/calendarLayoutUtils';
+
+// Converte una stringa ISO opzionale alla data locale YYYY-MM-DD.
+// Usa Date() per gestire correttamente DST; fallback su substring se la data non è valida.
+const getLocalDateStr = (isoString?: string | null): string => {
+  if (!isoString) return '';
+  const d = new Date(isoString);
+  return isNaN(d.getTime()) ? isoString.substring(0, 10) : formatDateString(d);
+};
 
 // 1. MAPPATURA DbTask -> UITask
 export const mapDbTaskToUITask = (t: DbTask): UITask => ({
@@ -275,13 +282,6 @@ export const buildTaskTreeForMonth = (
   return buildModeTaskTree(flatTasks, { mode: 'month', todayStr, firstDayStr, lastDayStr });
 };
 
-const getLocalDateStr = (isoString?: string | null): string => {
-  if (!isoString) return '';
-  const d = new Date(isoString);
-  // Se per caso la data non è valida, facciamo un fallback sicuro
-  if (isNaN(d.getTime())) return isoString.substring(0, 10); 
-  return formatDateString(d);
-};
 
 // 4.3. FILTRAGGIO PER MODALITÀ "CON DATA" VS "SENZA DATA"
 export const filterTreeByDeadlineMode = (

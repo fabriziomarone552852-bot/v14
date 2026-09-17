@@ -1,12 +1,12 @@
 // src/hooks/useAgendaDay.ts
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/api/apiService';
-import type { DbTask, Habit, HabitLog, SyncDayResponse, SaveHabitPayload, Countdown } from '@/types';
+import type { DbTask, SyncDayResponse, Countdown } from '@/types';
 import { useTaskMutations } from './mutations/useTaskMutations';
 import { useNoteMutations } from './mutations/useNoteMutations';
 import { useDailyEntryMutations } from './mutations/useDailyEntryMutations';
 import { useEventMutations } from './mutations/useEventMutations';
-import { logger } from '@/utils/logger';
+import { useHabitDayMutations } from './mutations/useHabitDayMutations';
 
 export interface SaveCountdownPayload {
   id?: number;
@@ -24,17 +24,18 @@ export const useAgendaDay = (dateStr: string) => {
   const { toggleTask } = useTaskMutations(['tasks']);
   const entryMutations = useDailyEntryMutations<SyncDayResponse>(queryKey);
   const eventMutations = useEventMutations<SyncDayResponse>(queryKey);
+  const habitMutations = useHabitDayMutations(queryKey, dateStr);
 
   const { data: dayData, isLoading, isError } = useQuery({
     queryKey,
     queryFn: async (): Promise<SyncDayResponse> => {
       const response = await api.get(`/sync/day?data_riferimento=${dateStr}`);
       
-      if (!response) throw new Error("Impossibile caricare i dati della giornata");
+      if (!response) throw new Error('Impossibile caricare i dati della giornata');
 
       const rawData = response as SyncDayResponse;
 
-      // 🪄 SOSTITUITI TUTTI GLI OPERATORI DEBOLI "||" CON "??", tipizzazione ferrea
+      // 🪄 Normalizzazione dati: garantisce che array annidati esistano sempre
       return {
         ...rawData,
         events: rawData?.events ?? [],
@@ -48,7 +49,7 @@ export const useAgendaDay = (dateStr: string) => {
           subtasks: t.subtasks ?? [] 
         })),
 
-        habits: (rawData?.habits ?? []).map((h: Habit) => ({
+        habits: (rawData?.habits ?? []).map((h) => ({
           ...h,
           periods: h.periods ?? [], 
           logs: h.logs ?? []        
@@ -65,7 +66,7 @@ export const useAgendaDay = (dateStr: string) => {
     mutationFn: async (countdown: SaveCountdownPayload) => {
       const isUpdate = countdown.id && countdown.id < 1000000000;
       const payload = {
-        title: countdown.title ?? "Nuovo Countdown",
+        title: countdown.title ?? 'Nuovo Countdown',
         target_date: countdown.targetDateStr ?? new Date().toISOString(),
         immagine_url: countdown.imageUrl ?? null,
         immagine_posizione: countdown.immaginePosizione ?? null
@@ -74,18 +75,18 @@ export const useAgendaDay = (dateStr: string) => {
         ? await api.patch<Countdown>(`/countdowns/${countdown.id}`, payload)
         : await api.post<Countdown>('/countdowns', payload);
 
-        if (!result) throw new Error("Errore nel salvataggio del countdown");
+      if (!result) throw new Error('Errore nel salvataggio del countdown');
       return result;
     },
     onSuccess: (savedCountdown) => {
       queryClient.setQueryData<SyncDayResponse>(queryKey, (old) => {
         if (!old) return old;
         const currentCountdowns = old.countdowns ?? [];
-        const exists = currentCountdowns.some(c => c.id === savedCountdown.id);
+        const exists = currentCountdowns.some((c) => c.id === savedCountdown.id);
         return {
           ...old,
           countdowns: exists 
-            ? currentCountdowns.map(c => c.id === savedCountdown.id ? savedCountdown : c) 
+            ? currentCountdowns.map((c) => (c.id === savedCountdown.id ? savedCountdown : c)) 
             : [...currentCountdowns, savedCountdown]
         };
       });
@@ -100,127 +101,8 @@ export const useAgendaDay = (dateStr: string) => {
     onSuccess: (_, deletedId) => {
       queryClient.setQueryData<SyncDayResponse>(queryKey, (old) => {
         if (!old) return old;
-        return { ...old, countdowns: (old.countdowns ?? []).filter(c => c.id !== deletedId) };
+        return { ...old, countdowns: (old.countdowns ?? []).filter((c) => c.id !== deletedId) };
       });
-    }
-  });
-
-  // --- HABIT E ROUTINE ---
-  const saveHabitMutation = useMutation({
-    mutationFn: async (payload: SaveHabitPayload) => {
-      const { data_inizio, target_completamenti, data_fine, periodId, periods, ...baseData } = payload.data;
-      const initialPeriods = periods && periods.length > 0 
-        ? periods 
-        : [{ data_inizio: data_inizio || dateStr, target: target_completamenti || 1 }];
-      const result = payload.existingId
-        ? await api.patch<Habit>(`/habits/${payload.existingId}`, baseData)
-        : await api.post<Habit>('/habits', {
-            ...baseData,
-            periods: initialPeriods
-          });
-          
-      if (!result) throw new Error("Errore nel salvataggio dell'abitudine");
-      return result;
-    },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey })
-  });
-
-  const deleteHabitMutation = useMutation({
-    mutationFn: async (id: number) => {
-      await api.delete(`/habits/${id}`);
-      return id;
-    },
-    onSuccess: (_, deletedId) => {
-      queryClient.setQueryData<SyncDayResponse>(queryKey, (old) => {
-        if (!old) return old;
-        return { ...old, habits: (old.habits ?? []).filter(h => h.id !== deletedId) };
-      });
-    }
-  });
-
-  const suspendHabitMutation = useMutation({
-    mutationFn: async ({ habitId, periodId, endDate }: { habitId: number; periodId: number; endDate: string }) => {
-      const result = await api.patch(`/habits/${habitId}/periods/${periodId}`, { data_fine: endDate });
-      if (!result) throw new Error("Errore durante la sospensione");
-      return result;
-    },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey })
-  });
-
-  const resumeHabitMutation = useMutation({
-    mutationFn: async ({ habitId, target, startDate }: { habitId: number; target: number; startDate: string }) => {
-      const result = await api.post(`/habits/${habitId}/periods`, { data_inizio: startDate, target });
-      if (!result) throw new Error("Errore durante la ripresa");
-      return result;
-    },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey })
-  });
-
-  const updateHabitPeriodMutation = useMutation({
-    mutationFn: async ({ habitId, periodId, target }: { habitId: number; periodId: number; target: number }) => {
-      const result = await api.patch(`/habits/${habitId}/periods/${periodId}`, { target });
-      if (!result) throw new Error("Errore aggiornamento periodo");
-      return result;
-    },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey })
-  });
-
-  // --- TRACKING GIORNALIERO ---
-  const updateHabitLogMutation = useMutation({
-    mutationFn: async ({ habitId, delta }: { habitId: number; delta: number }) => {
-      const endpoint = delta > 0 ? `/habit-log?habit_id=${habitId}` : `/habit-log/decrement?habit_id=${habitId}`;
-      await api.post(endpoint, { data_riferimento: dateStr });
-      return { habitId, delta };
-    },
-    onMutate: async ({ habitId, delta }) => {
-      await queryClient.cancelQueries({ queryKey });
-      const previousData = queryClient.getQueryData(queryKey);
-      
-      queryClient.setQueryData(queryKey, (old: SyncDayResponse | undefined) => {
-        if (!old) return old;
-        return {
-          ...old,
-          habits: (old.habits || []).map((h: Habit) => {
-            if (h.id === habitId) {
-              const currentLog = (h.logs || []).find((l: HabitLog) => l.data_riferimento === dateStr) ?? { count: 0 };
-              const newLogs = (h.logs || []).filter((l: HabitLog) => l.data_riferimento !== dateStr);
-              
-              const activePeriod = (h.periods || []).find((p) => {
-                if (p.data_fine) {
-                  return dateStr >= p.data_inizio && dateStr <= p.data_fine;
-                }
-                return dateStr >= p.data_inizio;
-              }) || h.periods?.[0];
-
-              const maxTarget = activePeriod?.target ?? 1;
-              const nextCount = Math.min(maxTarget, Math.max(0, (currentLog.count ?? 0) + delta));
-
-              if (nextCount > 0) {
-                newLogs.push({ 
-                  ...currentLog, 
-                  habit_id: habitId,
-                  data_riferimento: dateStr, 
-                  count: nextCount
-                } as HabitLog);
-              }
-              
-              return { ...h, logs: newLogs };
-            }
-            return h;
-          })
-        };
-      });
-      return { previousData };
-    },
-    onError: (err, _variables, context) => {
-      logger.error("Errore del server durante l'untoggle!", err); 
-      queryClient.setQueryData(queryKey, context?.previousData);
-    },
-    onSettled: (_data, _error, variables) => {
-      queryClient.invalidateQueries({ queryKey });
-      if (variables?.habitId) {
-        queryClient.invalidateQueries({ queryKey: ['habitLogs', variables.habitId] });
-      }
     }
   });
 
@@ -234,16 +116,17 @@ export const useAgendaDay = (dateStr: string) => {
     deleteNote: noteMutations.deleteNote,
     saveCountdown: saveCountdownMutation.mutateAsync,
     deleteCountdown: deleteCountdownMutation.mutateAsync,
-    saveHabit: saveHabitMutation.mutateAsync,
-    deleteHabit: deleteHabitMutation.mutateAsync,
-    suspendHabit: suspendHabitMutation.mutateAsync,
-    resumeHabit: resumeHabitMutation.mutateAsync,
-    updateHabitPeriod: updateHabitPeriodMutation.mutateAsync,
-    updateHabitLog: updateHabitLogMutation.mutateAsync,
-    updateHabitCount: updateHabitLogMutation.mutateAsync, 
-    saveObiettivo: (data: { id?: number; text: string }) => 
+    // Habit/Routine — ora gestite da useHabitDayMutations
+    saveHabit: habitMutations.saveHabit,
+    deleteHabit: habitMutations.deleteHabit,
+    suspendHabit: habitMutations.suspendHabit,
+    resumeHabit: habitMutations.resumeHabit,
+    updateHabitPeriod: habitMutations.updateHabitPeriod,
+    updateHabitLog: habitMutations.updateHabitLog,
+    updateHabitCount: habitMutations.updateHabitLog, // @deprecated — alias di updateHabitLog
+    saveObiettivo: (data: { id?: number; text: string }) =>
        entryMutations.saveDailyEntry({ id: data.id, tipo: 'OD', text: data.text, dateStr }),
-    savePriorita: (data: { id?: number; text: string }) => 
+    savePriorita: (data: { id?: number; text: string }) =>
        entryMutations.saveDailyEntry({ id: data.id, tipo: 'PD', text: data.text, dateStr }),
   };
 };

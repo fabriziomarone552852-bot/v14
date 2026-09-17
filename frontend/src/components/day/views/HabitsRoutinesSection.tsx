@@ -10,16 +10,6 @@ import { useRoutineManager } from '@/hooks/useRoutineManager';
 import type { SaveHabitPayload } from '@/types';
 import { getLocalTodayStr } from '@/utils/dateUtils';
 
-export interface SaveHabitData {
-  titolo?: string;
-  tipo?: 'H' | 'R';
-  immagine_url?: string | null;
-  rrule?: string | null;
-  data_inizio?: string;
-  target_completamenti?: number;
-  periodId?: number;
-}
-
 interface HabitsRoutinesSectionProps {
   habits: HabitItem[];
   routines: RoutineItem[];
@@ -40,7 +30,7 @@ export const HabitsRoutinesSection: React.FC<HabitsRoutinesSectionProps> = ({
   // 1. Gestori UI (Modali)
   const routineDetailModal = useModal<RoutineItem>();
   const routineFormModal = useModal<RoutineItem>();
-  const habitFormModal = useModal();
+  const habitFormModal = useModal<null>();
 
   // 2. Il nostro "Cervello" manager
   const manager = useRoutineManager({

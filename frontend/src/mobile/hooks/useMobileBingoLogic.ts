@@ -1,5 +1,5 @@
-// src/mobile/hooks/useMobileBingoLogic.ts
 import { useState, useRef } from 'react';
+import { logger } from '@/utils/logger';
 import type { DbBingoEntry } from '@/types/yearlyentries';
 
 export interface ExpandedCardState {
@@ -67,8 +67,9 @@ export const useMobileBingoLogic = ({
     }
 
     // Singolo clic: segna completata (o toglie il completamento)
+    // void esplicito: la promise è intenzionalmente non awaited (aggiornamento ottimistico)
     if (!isLongPressTriggeredRef.current) {
-      onToggleDone(cell.id, cell.done);
+      void onToggleDone(cell.id, cell.done);
     }
   };
 
@@ -76,23 +77,33 @@ export const useMobileBingoLogic = ({
     if (!expandedState) return;
     const trimmed = expandedState.text.trim();
 
-    if (expandedState.isNew) {
-      if (trimmed) {
-        await onCreateCell(trimmed, expandedState.pos);
+    try {
+      if (expandedState.isNew) {
+        if (trimmed) {
+          await onCreateCell(trimmed, expandedState.pos);
+        }
+      } else if (expandedState.id) {
+        const original = cells.find((c) => c.id === expandedState.id)?.testo || '';
+        if (trimmed !== original) {
+          await onUpdateText(expandedState.id, trimmed);
+        }
       }
-    } else if (expandedState.id) {
-      const original = cells.find((c) => c.id === expandedState.id)?.testo || '';
-      if (trimmed !== original) {
-        await onUpdateText(expandedState.id, trimmed);
-      }
+    } catch (error) {
+      logger.error('Errore durante il salvataggio della cella bingo:', error);
+    } finally {
+      // Il finally garantisce che la cella venga sempre chiusa,
+      // anche se il backend fallisce (evita cella bloccata)
+      setExpandedState(null);
     }
-
-    setExpandedState(null);
   };
 
   const handleDelete = async () => {
-    if (expandedState && expandedState.id) {
+    if (!expandedState?.id) return;
+    try {
       await onDeleteCell(expandedState.id);
+    } catch (error) {
+      logger.error('Errore durante la cancellazione della cella bingo:', error);
+    } finally {
       setExpandedState(null);
     }
   };

@@ -5,15 +5,26 @@ import { DEFAULT_COVER_IMAGE } from '@/utils/constants';
 import { resolveImageUrl } from '@/utils/imageUtils';
 
 /**
+ * Primitiva fondamentale: trova il periodo di un habit attivo in una data specifica.
+ * Unica fonte di verità per questa logica, usata da tutte le funzioni di questo file.
+ */
+export const findActivePeriod = (
+  periods: HabitPeriod[],
+  dateStr: string
+): HabitPeriod | undefined =>
+  periods.find(
+    (p) =>
+      p.data_inizio.substring(0, 10) <= dateStr &&
+      (!p.data_fine || p.data_fine.substring(0, 10) >= dateStr)
+  );
+
+/**
  * 1. Calcola se l'abitudine deve apparire oggi
  */
 export const isHabitScheduledForDay = (h: Habit, targetDate: string): boolean => {
   if (!h.rrule) return true; 
 
-  // 🪄 SOSTITUITO || CON ??
-  const activePeriod = (h.periods ?? []).find(p => 
-    p.data_inizio.substring(0, 10) <= targetDate && (!p.data_fine || p.data_fine.substring(0, 10) >= targetDate)
-  ) ?? h.periods?.[0];
+  const activePeriod = findActivePeriod(h.periods ?? [], targetDate) ?? h.periods?.[0];
 
   if (!activePeriod) return false;
 
@@ -64,10 +75,7 @@ export const isHabitScheduledForDay = (h: Habit, targetDate: string): boolean =>
  * 2. ESTRATTORE SICURO DEL PERIODO 
  */
 export const getActivePeriod = (periods: HabitPeriod[] | undefined, targetDateStr: string): HabitPeriod => {
-  // 🪄 SOSTITUITO || CON ??
-  const active = (periods ?? []).find(p => 
-    p.data_inizio.substring(0, 10) <= targetDateStr && (!p.data_fine || p.data_fine.substring(0, 10) >= targetDateStr)
-  );
+  const active = findActivePeriod(periods ?? [], targetDateStr);
   if (active) return active;
   
   if (periods && periods.length > 0) return periods[0];
@@ -179,10 +187,9 @@ export const getActivePeriodToSuspend = (
 
   if (routine.periods && routine.periods.length > 0) {
     if (targetDateStr) {
-      const activeForDate = routine.periods.find(
-        (p) =>
-          p.data_inizio.substring(0, 10) <= targetDateStr &&
-          (!p.data_fine || p.data_fine.substring(0, 10) >= targetDateStr)
+      const activeForDate = findActivePeriod(
+        routine.periods as HabitPeriod[],
+        targetDateStr
       );
       if (activeForDate) return { id: activeForDate.id, data_inizio: activeForDate.data_inizio };
     }

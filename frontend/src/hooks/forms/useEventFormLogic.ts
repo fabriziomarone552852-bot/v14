@@ -1,7 +1,7 @@
 // src/hooks/forms/useEventFormLogic.ts
 import { useState, useEffect, useMemo } from 'react';
 import type { CalendarEvent, Category, DbEvent } from '@/types';
-import { getLocalDateString, formatTimeToServer, combineDateAndTime } from '@/utils/dateUtils';
+import { getLocalTodayStr, formatTimeToServer, combineDateAndTime } from '@/utils/dateUtils';
 import { parseRRule, buildRRule } from '@/utils/rruleUtils';
 import { useCategories } from '@/hooks/useCategories';
 import { useEventMutations } from '@/hooks/mutations/useEventMutations';
@@ -59,7 +59,7 @@ export const useEventFormLogic = ({
   const [newEventForm, setNewEventForm] = useState<EventFormState>({
     titolo: '',
     descrizione: '',
-    data_inizio: getLocalDateString(),
+    data_inizio: getLocalTodayStr(),
     data_fine: '',
     ora_inizio: '',
     ora_fine: '',
@@ -85,7 +85,7 @@ export const useEventFormLogic = ({
         setNewEventForm({
           titolo: eventToEdit.title || '',
           descrizione: eventToEdit.description || '',
-          data_inizio: eventToEdit.dateStr || getLocalDateString(),
+          data_inizio: eventToEdit.dateStr || getLocalTodayStr(),
           data_fine: eventToEdit.endDateStr || '',
           ora_inizio: eventToEdit.time || '',
           ora_fine: eventToEdit.endTime || '',
@@ -109,7 +109,7 @@ export const useEventFormLogic = ({
         setNewEventForm({
           titolo: '',
           descrizione: '',
-          data_inizio: initialDate || getLocalDateString(),
+          data_inizio: initialDate || getLocalTodayStr(),
           data_fine: '',
           ora_inizio: '',
           ora_fine: '',

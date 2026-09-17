@@ -54,6 +54,10 @@ interface GoogleNamespace {
 declare global {
   interface Window {
     google?: GoogleNamespace;
+    Capacitor?: {
+      isNativePlatform?: () => boolean;
+      getPlatform?: () => string;
+    };
     __googleMapsCallback?: () => void;
     // Index signature per i callback dinamici usati da googleMapsLoader.ts
     // (es. __googleMapsCallback_abc1234)

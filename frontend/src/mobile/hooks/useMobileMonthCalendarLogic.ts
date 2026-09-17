@@ -47,7 +47,7 @@ export const useMobileMonthCalendarLogic = ({
     if (dailyEntries && Array.isArray(dailyEntries)) {
       dailyEntries.forEach((entry) => {
         if (entry.tipo === 'PX') {
-          const d = entry.data_riferimento || (entry as unknown as { dateStr?: string }).dateStr;
+          const d = entry.data_riferimento || entry.dateStr;
           if (d && entry.category_id) {
             const cat = allCategories.find((c) => c.id === entry.category_id);
             if (cat) map[d] = cat;

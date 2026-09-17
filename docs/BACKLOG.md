@@ -15,9 +15,14 @@ Questo documento serve a tracciare in modo strutturato:
 | ID | Attività / Funzionalità | Ambito | Stato Backend | Stato Frontend | Priorità |
 | :--- | :--- | :--- | :---: | :---: | :---: |
 | **CORE-001** | **Refactoring Globale & Pulizia Architetturale** | `core` / arch | 🟢 Completato | 🟢 Completato | 🟢 **Completato** |
-| **CORE-002** | **Refactoring Continuo, Modularità & Cleanup Codice** | `core` / arch | 🔴 Da Iniziare | 🔴 Da Iniziare | 🟠 **Alta** |
+| **CORE-002** | **Refactoring Continuo, Modularità & Cleanup Codice** | `core` / arch | 🟢 Completato | 🟢 Completato | 🟢 **Completato** |
 | **MEDIA-001** | **Upload Foto Dispositivo, Caching URL, GIF As-Is & WebP** | `media` / storage | 🟢 Completato | 🟢 Completato | 🟢 **Completato** |
 | **CAL-001** | **Sincronizzazione Timezone Google Calendar & Data Mobile DayPage** | `calendar` / `mobile` | 🟢 Completato | 🟢 Completato | 🟢 **Completato** |
+| **REBRAND-001** | **Rebranding App con Nome "Vita" e Nuova Icona Applicazione** | `brand` / `UI` | 🟢 Completato | 🟢 Completato | 🟢 **Completato** |
+| **HOME-001** | **Widget Homepage Rotante (Citazione del Giorno, Oroscopo & Meteo)** | `home` / `UI` | 🔴 Da Iniziare | 🔴 Da Iniziare | 🟠 **Alta** |
+| **SHOPPING-004** | **Ricerca & Visualizzazione Prezzi nel Modale Dettaglio Prodotto (per Brand)** | `shopping` / `UI` | 🔴 Da Iniziare | 🔴 Da Iniziare | 🟠 **Alta** |
+| **SEED-001** | **Pulizia Dati Seed Prodotti (Rimozione Marca e Quantità dal Nome)** | `shopping` / `seed` | 🔴 Da Iniziare | 🔴 Da Iniziare | 🟠 **Alta** |
+| **SEED-002** | **Risoluzione Visualizzazione Prodotti Seed Mancanti nelle Liste** | `shopping` / `seed` | 🔴 Da Iniziare | 🔴 Da Iniziare | 🟠 **Alta** |
 | **FEAT-012** | **Pagina di Avvio Pinnata / Selezione Landing Page Predefinita** | `settings` / UI | 🔴 Da Iniziare | 🔴 Da Iniziare | 🟠 **Alta** |
 | **CAL-002** | **Filtro Categorie Eventi nel Calendario Homepage (Menu Ingranaggio ⚙️)** | `calendar` / UI | 🔴 Da Iniziare | 🔴 Da Iniziare | 🟠 **Alta** |
 | **FEAT-004** | **Sezione Media: Libri, Film e Serie TV** | `media` / ent | 🔴 Da Iniziare | 🔴 Da Iniziare | 🔴 **Massima (Passo Fondamentale)** |
@@ -611,10 +616,27 @@ Studio di fattibilità, analisi delle architetture e prototipazione per integrar
 - [ ] **Condivisione Liste in Tempo Reale**: Aggiornamento real-time tra dispositivi diversi appartenenti allo stesso gruppo spesa (es. WebSocket / SSE).
 - [ ] **Stima Totale Spesa Intelligente**: Calcolo del costo stimato del carrello prima della spesa basato sullo storico prezzi dei fornitori abituali.
 
-### 🌐 6.4 Integrazioni & Arricchimento Dati Automatico
-- [ ] **Integrazione API Esterne per Media**: Ricerca automatica di copertine, trame, autori e metadati per libri (Google Books API, Open Library, Hardcover) e film/serie TV (TMDB).
-- [ ] **Sincronizzazione Feed RSS Goodreads**: Import automatico monodirezionale periodico dei libri (`to-read`, `currently-reading`, `read`) dal Feed RSS pubblico utente.
-- [ ] **Anteprime Link Web (OpenGraph)**: Generazione automatica di titolo, immagine di anteprima e descrizione per i siti salvati nella sezione "Liste".
+### 🎨 6.5 Rebranding & Nuove Funzionalità Spesa (Roadmap Immediata)
+
+#### [REBRAND-001] Rebranding App con Nome "Vita" e Cambio Icona (✅ Completato)
+- **Descrizione**: Rebranding dell'applicazione con la nuova denominazione "Vita" e sostituzione dell'icona applicativa (sia per la versione Web/Favicon che per l'APK Android nativo con Capacitor).
+- **Stato**: 🟢 Completato.
+
+#### [HOME-001] Widget Homepage Rotante (Citazione del Giorno, Oroscopo & Previsioni Meteo)
+- **Descrizione**: Integrazione in Homepage di un widget rotante/ciclico che alterna la Citazione del giorno, l'Oroscopo quotidiano e le Previsioni Meteo. Cliccando sul box della citazione o del widget, viene aperta una modale / vista espansa che mostra contemporaneamente tutte e tre le informazioni (Citazione, Oroscopo e Meteo).
+- **Stato**: 🔴 Da Iniziare (Interfaccia Desktop & Mobile).
+
+#### [SHOPPING-004] Ricerca & Visualizzazione Prezzi nel Modale Dettaglio Prodotto (per Brand)
+- **Descrizione**: Aggiunta della barra di ricerca e della griglia/lista di consultazione prezzi all'interno del modale di dettaglio di ciascun prodotto nell'archivio spesa, includendo il raggruppamento dei prodotti prezzati suddivisi per Brand/Marca.
+- **Stato**: 🔴 Da Iniziare (Interfaccia Desktop & Mobile).
+
+#### [SEED-001] Pulizia Dati Seed Prodotti (Rimozione Marca e Quantità dal Nome)
+- **Descrizione**: Bonifica dei dati del DB iniziale (prodotti SEED): pulire i nomi dei prodotti rimuovendo l'indicazione della marca e della quantità dal titolo del prodotto (es. da "Biscotti Mulino Bianco 500g" a "Biscotti"), spostando marca e quantità nei rispettivi campi dedicati.
+- **Stato**: 🔴 Da Iniziare (Script di migrazione/seed backend).
+
+#### [SEED-002] Verifica e Risoluzione Prodotti Seed Mancanti nelle Liste
+- **Descrizione**: Indagine e fix del problema di visualizzazione per cui alcuni prodotti seed (prodotti di sistema iniziale) non vengono mostrati o risultano nascosti nelle liste e nello storico dell'applicazione.
+- **Stato**: 🔴 Da Iniziare (Analisi query repository e filtri frontend).
 
 ---
 

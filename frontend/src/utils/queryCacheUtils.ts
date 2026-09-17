@@ -4,7 +4,8 @@
 // Unifica i vecchi file cacheUtils.ts e queryUtils.ts, che definivano
 // lo stesso array SYNC_*_KEYS con nomi diversi.
 
-import type { QueryClient } from '@tanstack/react-query';
+import type { QueryClient, QueryKey } from '@tanstack/react-query';
+import { logger } from '@/utils/logger';
 
 /** Query key prefixes per tutte le viste sync (giorno, settimana, mese, anno) */
 const SYNC_VIEW_KEYS = ['daySync', 'weekSync', 'monthSync', 'yearSync'] as const;
@@ -56,4 +57,31 @@ export const invalidateAllViewsAndEvents = (queryClient: QueryClient): void => {
     predicate: (query) =>
       [...SYNC_VIEW_KEYS, 'events'].includes(query.queryKey[0] as string),
   });
+};
+
+// ---------------------------------------------------------------------------
+// Rollback ottimistico
+// ---------------------------------------------------------------------------
+
+/**
+ * Helper per il rollback ottimistico in caso di errore di una mutation.
+ * Centralizza il pattern ripetuto in ogni `onError` dei mutation hook:
+ * 1. Logga l'errore
+ * 2. Ripristina lo snapshot della cache precedente
+ *
+ * @example
+ * onError: (err, _vars, context) =>
+ *   rollbackOnError(err, context, queryClient, queryKey, 'Errore salvataggio nota:'),
+ */
+export const rollbackOnError = <TContext extends { previousData?: unknown }>(
+  err: unknown,
+  context: TContext | undefined,
+  queryClient: QueryClient,
+  queryKey: QueryKey,
+  logMessage: string
+): void => {
+  logger.error(logMessage, err);
+  if (context?.previousData !== undefined) {
+    queryClient.setQueryData(queryKey, context.previousData);
+  }
 };

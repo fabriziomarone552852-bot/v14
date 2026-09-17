@@ -70,7 +70,7 @@ export const IntegrationsSection: React.FC = () => {
                 )}
               </div>
               <p className="mt-1 text-xs text-slate-500 leading-relaxed max-w-xl">
-                Sincronizza in tempo reale tutti gli eventi e appuntamenti creati nella tua Smart Agenda direttamente sul tuo calendario personale di Google.
+                Sincronizza in tempo reale tutti gli eventi e appuntamenti creati in Vita direttamente sul tuo calendario personale di Google.
               </p>
               {status?.is_connected && status.google_email && (
                 <div className="mt-2 text-xs font-semibold text-slate-700">

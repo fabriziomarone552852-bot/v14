@@ -102,3 +102,20 @@ export const buildRRule = (freq: string, interval: string, untilDateStr: string)
   
   return str;
 };
+
+/**
+ * Imposta o sovrascrive la clausola UNTIL di una stringa RRULE.
+ * Estratto da useEventMutations per separare la logica di business RFC 5545
+ * dalla gestione della cache React Query.
+ *
+ * @param rrule - La stringa RRULE corrente (es. "FREQ=WEEKLY;INTERVAL=1")
+ * @param dateStr - La data YYYY-MM-DD da usare come UNTIL (es. "2026-10-15")
+ * @returns La stringa RRULE aggiornata con UNTIL nel formato compatto (es. "...;UNTIL=20261015")
+ */
+export const setRruleUntil = (rrule: string, dateStr: string): string => {
+  const untilDate = dateStr.replace(/-/g, '');
+  if (rrule.includes('UNTIL=')) {
+    return rrule.replace(/UNTIL=[^;]+/, `UNTIL=${untilDate}`);
+  }
+  return `${rrule};UNTIL=${untilDate}`;
+};

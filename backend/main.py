@@ -36,6 +36,7 @@ from backend.domains.planning.router import router as daily_entries_router
 from backend.domains.shopping.router import router as shopping_router
 from backend.domains.sync.router import router as sync_router
 from backend.domains.tasks.router import router as tasks_router
+from backend.domains.trackers.router import router as trackers_router
 from backend.domains.users.router import router as users_router
 
 
@@ -81,7 +82,7 @@ async def lifespan(app: FastAPI):
     yield
 
 
-app = FastAPI(title="Smart Agenda API", version="4.0", lifespan=lifespan)
+app = FastAPI(title="Vita API", version="4.0", lifespan=lifespan)
 
 app.middleware("http")(system_boot_guard)
 
@@ -123,6 +124,7 @@ app.include_router(bingo_router)
 app.include_router(notifications_router)
 app.include_router(media_router)
 app.include_router(feedback_router)
+app.include_router(trackers_router)
 
 # Serving file statici caricati su disco
 os.makedirs(get_settings().upload_dir, exist_ok=True)

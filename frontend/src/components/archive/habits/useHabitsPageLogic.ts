@@ -19,7 +19,7 @@ import type { HabitTabType } from '@/components/archive/habits/ArchiveTabs';
 import { useDynamicPageSize } from '@/hooks/useDynamicPageSize';
 import { useModal } from '@/hooks/useModals';
 import { useArchiveHeader } from '@/context/ArchiveHeaderContext';
-import { getLocalDateString } from '@/utils/dateUtils';
+import { getLocalTodayStr } from '@/utils/dateUtils';
 import { calculateSafeSuspendDate, getActivePeriodToSuspend } from '@/utils/habitUtils';
 import type { RoutineSavePayload } from '@/components/day/RoutineNewModal';
 import type { HabitSavePayload } from '@/components/day/HabitNewModal';
@@ -127,7 +127,7 @@ export const useHabitsPageLogic = () => {
     const periodToSuspend = getActivePeriodToSuspend(routine);
     if (!routine || !periodToSuspend) return;
 
-    const todayStr = getLocalDateString();
+    const todayStr = getLocalTodayStr();
     const endDate = calculateSafeSuspendDate(periodToSuspend.data_inizio, todayStr);
 
     await suspendHabitMutation.mutateAsync({
@@ -144,7 +144,7 @@ export const useHabitsPageLogic = () => {
     await resumeHabitMutation.mutateAsync({
       habitId: routine.id,
       target: routine.targetCompletions || 1,
-      startDate: getLocalDateString(),
+      startDate: getLocalTodayStr(),
     });
     routineDetailModal.close();
   };
@@ -190,7 +190,7 @@ export const useHabitsPageLogic = () => {
     const periodToSuspend = getActivePeriodToSuspend(habit);
     if (!habit || !periodToSuspend) return;
 
-    const todayStr = getLocalDateString();
+    const todayStr = getLocalTodayStr();
     const endDate = calculateSafeSuspendDate(periodToSuspend.data_inizio, todayStr);
 
     await suspendHabitMutation.mutateAsync({
@@ -207,7 +207,7 @@ export const useHabitsPageLogic = () => {
     await resumeHabitMutation.mutateAsync({
       habitId: habit.id,
       target: 1,
-      startDate: getLocalDateString(),
+      startDate: getLocalTodayStr(),
     });
     habitDetailModal.close();
   };

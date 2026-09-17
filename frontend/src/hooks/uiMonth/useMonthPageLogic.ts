@@ -127,7 +127,7 @@ export const useMonthPageLogic = (): UseMonthPageLogicResult => {
   }, [agenda]);
 
   const handleMoodChange = useCallback((dateStr: string, categoryId: number | null) => {
-    const existingPX = agenda.monthData?.daily_entries?.find(e => e.tipo === 'PX' && (e.data_riferimento === dateStr || (e as unknown as { dateStr?: string }).dateStr === dateStr));
+    const existingPX = agenda.monthData?.daily_entries?.find(e => e.tipo === 'PX' && (e.data_riferimento === dateStr || e.dateStr === dateStr));
     agenda.saveDailyEntry({
       id: existingPX?.id,
       tipo: 'PX',

@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient, type QueryKey } from '@tanstack/react-query';
 import { api } from '@/api/apiService';
-import { updateAllSyncCaches, invalidateAllViewsAndEvents } from '@/utils/queryCacheUtils';
+import { updateAllSyncCaches, invalidateAllViewsAndEvents, rollbackOnError } from '@/utils/queryCacheUtils';
+import { setRruleUntil } from '@/utils/rruleUtils';
 import type { DbEvent } from '@/types';
 import type { EventDeletePayload } from '@/components/shared/events/EventDetailModal';
 import { logger } from '@/utils/logger';
@@ -128,8 +129,7 @@ export function useEventMutations<T extends CacheWithEvents>(queryKey: QueryKey)
       return { previousData };
     },
     onError: (err, _deletedId, context) => {
-      logger.error("Errore eliminazione evento:", err);
-      if (context?.previousData) queryClient.setQueryData(queryKey, context.previousData);
+      rollbackOnError(err, context, queryClient, queryKey, 'Errore eliminazione evento:');
     },
     onSettled: () => {
       invalidateAllViewsAndEvents(queryClient);
@@ -148,13 +148,7 @@ export function useEventMutations<T extends CacheWithEvents>(queryKey: QueryKey)
           return await api.patch(`/events/${id}`, { esclusioni: newEsclusioni });
         }
         case 'future': {
-          const untilDate = dateStr.replace(/-/g, '');
-          let newRrule = currentRrule || '';
-          if (newRrule.includes('UNTIL=')) {
-            newRrule = newRrule.replace(/UNTIL=[^;]+/, `UNTIL=${untilDate}`);
-          } else {
-            newRrule = `${newRrule};UNTIL=${untilDate}`;
-          }
+          const newRrule = setRruleUntil(currentRrule || '', dateStr);
           return await api.patch(`/events/${id}`, { rrule: newRrule });
         }
         default:

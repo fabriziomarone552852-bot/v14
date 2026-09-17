@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import type { RoutineItem } from '@/components/day/RoutineColumn';
 import type { RoutineSavePayload } from '@/components/day/RoutineNewModal';
-import { getLocalDateString } from '@/utils/dateUtils';
+import { getLocalTodayStr } from '@/utils/dateUtils';
 import { parseRRule, buildRRule } from '@/utils/rruleUtils';
 import { logger } from '@/utils/logger';
 
@@ -34,7 +34,7 @@ export const useMobileRoutineFormLogic = ({
 }: UseMobileRoutineFormLogicProps) => {
   const [form, setForm] = useState<RoutineFormState>({
     titolo: '',
-    data_inizio: getLocalDateString(),
+    data_inizio: getLocalTodayStr(),
     immagine_url: '',
     immagine_posizione: '50% 50%',
     piu_volte: false,
@@ -55,7 +55,7 @@ export const useMobileRoutineFormLogic = ({
         const { isRecurrent, freq, interval, until } = parseRRule(routineToEdit.rrule);
         setForm({
           titolo: routineToEdit.titolo || routineToEdit.title || '',
-          data_inizio: routineToEdit.data_inizio || getLocalDateString(),
+          data_inizio: routineToEdit.data_inizio || getLocalTodayStr(),
           immagine_url: routineToEdit.imageUrl || '',
           immagine_posizione: routineToEdit.immaginePosizione || '50% 50%',
           piu_volte: routineToEdit.targetCompletions > 1,
@@ -68,7 +68,7 @@ export const useMobileRoutineFormLogic = ({
       } else {
         setForm({
           titolo: '',
-          data_inizio: getLocalDateString(),
+          data_inizio: getLocalTodayStr(),
           immagine_url: '',
           immagine_posizione: '50% 50%',
           piu_volte: false,

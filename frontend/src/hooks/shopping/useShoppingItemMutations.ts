@@ -152,7 +152,7 @@ export const useShoppingItemMutations = () => {
       }
     },
     onSettled: async (_updated, _err, vars) => {
-      const promises: Promise<unknown>[] = [
+      const promises: Promise<void>[] = [
         invalidateLists(),
         invalidateItems(vars.listId),
         queryClient.invalidateQueries({ queryKey: shoppingQueryKeys.products() }),

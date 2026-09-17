@@ -2,6 +2,7 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { Capacitor, type PluginListenerHandle } from '@capacitor/core';
 import { TailscaleNative, openTailscaleAuthUrl, type TailscaleAuthUrlEvent, type TailscaleReadyEvent, type TailscaleErrorEvent, type TailscaleStatusEvent } from '@/utils/tailscale';
 import { extractErrorMessage } from '@/utils/errorUtils';
+import { logger } from '@/utils/logger';
 import { Shield, ExternalLink, RefreshCw, AlertCircle, Copy, Check } from 'lucide-react';
 
 interface TailscaleGateProps {
@@ -27,7 +28,7 @@ export const TailscaleGate: React.FC<TailscaleGateProps> = ({ children }) => {
     try {
       setIsChecking(true);
       const res = await TailscaleNative.getStatus();
-      console.log('[TailscaleGate] Status update:', res);
+      logger.log('[TailscaleGate] Status update:', res);
       
       if (res.ready) {
         setIsReady(true);
@@ -43,7 +44,7 @@ export const TailscaleGate: React.FC<TailscaleGateProps> = ({ children }) => {
         }
       }
     } catch (err: unknown) {
-      console.error('[TailscaleGate] getStatus error:', err);
+      logger.error('[TailscaleGate] getStatus error:', err);
       setErrorMsg(extractErrorMessage(err) || 'Impossibile comunicare con il modulo nativo Tailscale');
     } finally {
       setIsChecking(false);
@@ -72,7 +73,7 @@ export const TailscaleGate: React.FC<TailscaleGateProps> = ({ children }) => {
 
     // 2. Event listeners
     const handleAuthUrl = (data: TailscaleAuthUrlEvent) => {
-      console.log('[TailscaleGate] onAuthURL:', data.authUrl);
+      logger.log('[TailscaleGate] onAuthURL:', data.authUrl);
       setAuthUrl(data.authUrl);
       setIsReady(false);
       // Try to open automatically via Capacitor Browser
@@ -82,19 +83,19 @@ export const TailscaleGate: React.FC<TailscaleGateProps> = ({ children }) => {
     };
 
     const handleReady = (data: TailscaleReadyEvent) => {
-      console.log('[TailscaleGate] onReady:', data);
+      logger.log('[TailscaleGate] onReady:', data);
       setIsReady(true);
       setAuthUrl('');
       setErrorMsg('');
     };
 
     const handleError = (data: TailscaleErrorEvent) => {
-      console.log('[TailscaleGate] onError:', data.error);
+      logger.error('[TailscaleGate] onError:', data.error);
       setErrorMsg(data.error);
     };
 
     const handleStatus = (data: TailscaleStatusEvent) => {
-      console.log('[TailscaleGate] onStatus:', data.status);
+      logger.log('[TailscaleGate] onStatus:', data.status);
       setStatusText(data.status);
     };
 
@@ -142,7 +143,7 @@ export const TailscaleGate: React.FC<TailscaleGateProps> = ({ children }) => {
         </div>
 
         <h1 className="text-xl font-bold tracking-tight text-white mb-2">
-          Smart Agenda Security
+          Vita Security
         </h1>
 
         {authUrl ? (
@@ -227,7 +228,7 @@ export const TailscaleGate: React.FC<TailscaleGateProps> = ({ children }) => {
       </div>
 
       <p className="text-[11px] text-slate-500 mt-6">
-        Smart Agenda &bull; Crittografia End-to-End WireGuard
+        Vita &bull; Crittografia End-to-End WireGuard
       </p>
     </div>
   );

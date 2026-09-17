@@ -1,7 +1,7 @@
 // src/mobile/components/modals/MobileHabitNewModal.tsx
 import React, { useState, useEffect } from 'react';
 import MobileBaseModal from './MobileBaseModal';
-import { getLocalDateString } from '@/utils/dateUtils';
+import { getLocalTodayStr } from '@/utils/dateUtils';
 import { InfoIcon } from '@/components/shared/utils/Icons';
 import { buildRRule } from '@/utils/rruleUtils';
 import type { HabitItem } from '@/components/day/HabitDetailModal';
@@ -50,7 +50,7 @@ export const MobileHabitNewModal: React.FC<MobileHabitNewModalProps> = ({
       const payload: HabitSavePayload = {
         titolo: form.titolo.trim(),
         tipo: 'H',
-        data_inizio: getLocalDateString(),
+        data_inizio: getLocalTodayStr(),
         immagine_url: form.icona || '✨',
         rrule: buildRRule('DAILY', '1', ''),
         attiva: true,

@@ -1,8 +1,7 @@
-// frontend/src/hooks/mutations/useMonthlyEntryMutations.ts
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQueryClient, type QueryKey } from '@tanstack/react-query';
 import { api } from '@/api/apiService';
+import { rollbackOnError } from '@/utils/queryCacheUtils';
 import type { DbMonthlyEntry, MonthlyType } from '@/types/monthlyentries';
-import { logger } from '@/utils/logger';
 
 export interface SaveMonthlyEntryPayload {
   monthly_type: MonthlyType;
@@ -17,7 +16,7 @@ interface MonthCacheData {
   [key: string]: unknown;
 }
 
-export const useMonthlyEntryMutations = (queryKey: string[]) => {
+export const useMonthlyEntryMutations = (queryKey: QueryKey) => {
   const queryClient = useQueryClient();
 
   const saveEntryMutation = useMutation({
@@ -111,8 +110,7 @@ export const useMonthlyEntryMutations = (queryKey: string[]) => {
     },
 
     onError: (err, _newEntry, context) => {
-      logger.error('Errore salvataggio monthly entry:', err);
-      if (context?.previousData) queryClient.setQueryData(queryKey, context.previousData);
+      rollbackOnError(err, context, queryClient, queryKey, 'Errore salvataggio monthly entry:');
     },
 
     onSettled: () => {
@@ -144,8 +142,7 @@ export const useMonthlyEntryMutations = (queryKey: string[]) => {
     },
 
     onError: (err, _id, context) => {
-      logger.error('Errore eliminazione monthly entry:', err);
-      if (context?.previousData) queryClient.setQueryData(queryKey, context.previousData);
+      rollbackOnError(err, context, queryClient, queryKey, 'Errore eliminazione monthly entry:');
     },
 
     onSettled: () => {

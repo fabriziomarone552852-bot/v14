@@ -80,7 +80,7 @@ export const MobileSyncSettingsSection: React.FC<MobileSyncSettingsSectionProps>
         </div>
 
         <p className="text-xs text-gray-500 leading-relaxed">
-          Sincronizza in tempo reale tutti gli eventi e appuntamenti della tua Smart Agenda sul tuo calendario Google personale.
+          Sincronizza in tempo reale tutti gli eventi e appuntamenti di Vita sul tuo calendario Google personale.
         </p>
 
         {googleSync.status?.is_connected && googleSync.status.google_email && (

@@ -15,11 +15,60 @@ export interface ChangelogItem {
 
 export const CHANGELOG_HISTORY: ChangelogItem[] = [
   {
+    id: 'v14.2.11',
+    version: '14.2.11',
+    date: 'Settembre 2026',
+    title: 'Rebranding in "Vita", Nuovo Logo V-Leaf & Refactoring Strict TypeScript',
+    isLatest: true,
+    published: true,
+    highlights: [
+      'Rebranding Ufficiale: l\'applicazione si chiama ora "Vita" con il nuovo logo e identità visiva V-Leaf.',
+      'Eliminati tutti i cast doppi espliciti (as unknown as ...) sostituendoli con interfacce TypeScript rigorose e tipi nativi estesi.',
+      'Semplificata la gestione delle mutazioni delle voci del diario tramite helper tipizzato riutilizzabile (DRY).',
+      'Verificato il rispetto totale dei principi architetturali: gestione mazzo di carte in RAM, allegati esclusivamente via URL/link.',
+    ],
+    features: [
+      'Nuovo Rebranding & Logo "Vita": aggiornati il titolo dell\'app, la favicon SVG, i manifesti Web/PWA, le configurazioni Capacitor Android e tutti i testi dell\'interfaccia.',
+    ],
+    improvements: [
+      'Estesa l\'interfaccia Window in global.d.ts per integrare il tipo nativo Capacitor.',
+      'Harmonizzate le interfacce temporali DailyEntry e DbMonthlyEntry con la proprietà opzionale dateStr per la massima compatibilità.',
+      'apiService.ts: eliminato il pattern try/catch ripetuto 5 volte estraendo executeRequest<T> (DRY).',
+      'habitUtils.ts: esportata findActivePeriod come primitiva unica — elimina 4 copie inline della stessa logica.',
+      'queryCacheUtils.ts: aggiunta rollbackOnError utility per centralizzare il pattern di rollback ottimistico usato in 8+ mutation hook.',
+      'useMonthlyEntryMutations.ts: allineato il tipo queryKey da string[] a QueryKey (coerenza con tutti gli altri hook).',
+      'useTaskMutations.ts: rimosso il parametro _queryKey inutilizzato che creava confusione.',
+      'dateUtils.ts: deprecata getMonday() con @deprecated, ora delega a getMondayOfCurrentWeek() che usa date-fns.',
+      'UseModalResult<unknown> → UseModalResult<null> in CountdownsPageModals, HabitsPageModals, SuppliersPageModals.',
+      'HabitsRoutinesSection.tsx: rimossa interfaccia SaveHabitData inutilizzata; corretti Promise<unknown> → Promise<void>.',
+      'useRoutineManager.ts: corretti Promise<unknown> → Promise<void> in tutte e 4 le callback.',
+      'useShoppingItemMutations.ts: corretta tipizzazione Promise<unknown>[] → Promise<void>[].',
+    ],
+    fixes: [
+      'Rimossi cast ridondanti nel pannello della gerarchia task (TaskFamilyPanel) e nell\'archivio recensioni annuali.',
+      'TailscaleGate.tsx: sostituiti 5 console.log/console.error diretti con il logger centralizzato (silenziato in produzione).',
+      'HabitsPageModals.tsx: eliminata funzione wrapper handleSaveHabitDefault() inutile (restituiva la stessa funzione ricevuta).',
+      'useNoteMutations.ts: rimossi 3 coppie di campi alias (text/testo, dateStr/data_riferimento, variant/tipo) da SaveNotePayload — interfaccia ora chiara e non ambigua.',
+      'rruleUtils.ts: estratta setRruleUntil() da useEventMutations — la logica RFC 5545 sta ora in una utility testabile.',
+      'useHabitDayMutations.ts: nuovo hook estratto da useAgendaDay (249→120 righe), gestisce tutte le 6 mutation habit/routine. Usa findActivePeriod() dalla utility condivisa.',
+      'rollbackOnError() ora adottata concretamente in useNoteMutations, useDailyEntryMutations, useEventMutations, useMonthlyEntryMutations — eliminati 7 blocchi logger+setQueryData ripetuti.',
+      'taskUtils.ts: rimossa la funzione privata getLocalDateStr duplicata (→ wrapper inline di formatDateString). File pulito.',
+      'Migrazione completa da getLocalDateString (deprecated) a getLocalTodayStr in 8 file consumer: useHabitsPageLogic, NoteModal, HabitNewModal, RoutineNewModal, useEventFormLogic, MobileHabitNewModal, MobileNoteModal, useMobileRoutineFormLogic.',
+      '[Mobile] useMobileBingoLogic.ts: fix bug critico — handleCollapse e handleDelete ora in try/catch con finally, cella non rimane più bloccata se il backend fallisce. void esplicito su onToggleDone.',
+      '[Mobile] useMobileMoodEventColumnLogic.ts + useMobileDaySelection.ts: Promise<unknown> sostituisce Promise<void> dove i caller restituiscono tipi concreti (number, unknown).',
+      '[Mobile] useMobileGoalsAndPrioritiesLogic.ts: listener outside click manuale (14 righe) sostituito con useOutsideClick hook già disponibile.',
+      '[Mobile] useMobileSettingsLogic.ts: aggiunti logger.error + extractErrorMessage in tutti e 4 i blocchi catch — debug ora possibile in produzione.',
+      '[Mobile] useMobileHomeLogic.ts: logger.error + extractErrorMessage nel catch Google Sync; today/todayStr consolidati in getLocalTodayStr().',
+      '[Mobile] useMobileHeaderLogic.ts: formatDateString(new Date()) → getLocalTodayStr().',
+      '[Mobile] useMobileDaySelection.ts: pattern batch-delete ripetuto 3 volte estratto in utility batchDelete() — da 3 × 12 righe a 3 × 1 riga + funzione condivisa.',
+    ],
+  },
+  {
     id: 'v14.2.10',
     version: '14.2.10',
     date: 'Settembre 2026',
     title: 'Adattamento Mobile Modale Modifica Prezzo Archivi & Integrazione Roadmap',
-    isLatest: true,
+    isLatest: false,
     published: true,
     highlights: [
       'Adattato il modale di modifica del prezzo nello storico archivi alla visualizzazione mobile nativa tramite MobileBaseModal (layout bottom-sheet con pulsanti sticky inferiori e sezioni touch-friendly).',
@@ -382,6 +431,7 @@ export const CHANGELOG_HISTORY: ChangelogItem[] = [
 export const APP_VERSION: string = CHANGELOG_HISTORY[0].version;
 export const APP_VERSION_NAME: string = `v${APP_VERSION}`;
 export const APP_LAST_UPDATE: string = CHANGELOG_HISTORY[0].date;
+
 
 
 

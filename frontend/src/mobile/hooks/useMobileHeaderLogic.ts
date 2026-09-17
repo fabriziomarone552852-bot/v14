@@ -7,7 +7,7 @@ import { useRoutineModals } from '@/context/RoutineModalContext';
 import { useShoppingModals } from '@/context/ShoppingModalContext';
 import { useArchiveHeader } from '@/context/ArchiveHeaderContext';
 import { useDayOptional } from '@/context/DayContext';
-import { formatDateString } from '@/utils/dateUtils';
+import { formatDateString, getLocalTodayStr } from '@/utils/dateUtils';
 import { useBackHandler } from '@/utils/backButtonManager';
 import { useMobileSelection } from '../context/MobileSelectionContext';
 
@@ -112,7 +112,7 @@ export const useMobileHeaderLogic = () => {
   // Handlers Agenda
   const handleNewEvent = () => {
     setIsAddMenuOpen(false);
-    let eventDateStr = formatDateString(new Date());
+    let eventDateStr = getLocalTodayStr();
     if (isDay && dayContext?.dataRiferimento) {
       eventDateStr = formatDateString(dayContext.dataRiferimento);
     }

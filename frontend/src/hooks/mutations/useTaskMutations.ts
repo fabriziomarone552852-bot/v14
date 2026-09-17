@@ -1,4 +1,4 @@
-import { useMutation, useQueryClient, type QueryKey } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/api/apiService';
 import { updateAllSyncCaches, invalidateAllViews } from '@/utils/queryCacheUtils';
 import type { DbTask } from '@/types';
@@ -35,7 +35,9 @@ const updateCacheSafely = <T extends TaskCacheData>(
   return oldData;
 };
 
-export function useTaskMutations(_queryKey: QueryKey = ['tasks']) {
+/** Il parametro queryKey è accettato per compatibilità ma non influisce sul comportamento:
+ *  tutti gli aggiornamenti usano updateAllSyncCaches() con chiavi fisse. */
+export function useTaskMutations(_queryKey?: unknown) {
   const queryClient = useQueryClient();
 
   // --- 1. TOGGLE TASK ---

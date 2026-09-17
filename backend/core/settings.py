@@ -65,6 +65,9 @@ class Settings(BaseSettings):
     google_client_secret: SecretStr | None = None
     google_redirect_uri: str = "http://localhost:8000/api/v1/google-calendar/callback"
 
+    tmdb_api_key: str | None = None
+    tmdb_read_access_token: SecretStr | None = None
+
     @field_validator("database_url")
     @classmethod
     def validate_database_url(cls, value: str) -> str:

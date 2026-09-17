@@ -1,4 +1,4 @@
-# Smart Agenda - Regole per Agenti AI e Sviluppatori
+# Vita (ex Smart Agenda) - Regole per Agenti AI e Sviluppatori
 
 Questo file definisce le istruzioni e le convenzioni operative obbligatorie per qualsiasi assistente AI o sviluppatore che lavora su questa codebase.
 

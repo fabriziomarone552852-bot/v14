@@ -1,4 +1,4 @@
-# Smart Agenda - Regole e Istruzioni per Assistenti AI
+# Vita (ex Smart Agenda) - Regole e Istruzioni per Assistenti AI
 
 Fare sempre riferimento a:
 1. `AGENTS.md` per le regole operative complete e la gestione multi-chat.

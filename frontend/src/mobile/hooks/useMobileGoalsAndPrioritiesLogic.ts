@@ -1,5 +1,5 @@
-// src/mobile/hooks/useMobileGoalsAndPrioritiesLogic.ts
 import { useState, useEffect, useRef } from 'react';
+import { useOutsideClick } from '@/hooks/useOutsideClick';
 
 export interface PriorityLikeEntry {
   id?: number;
@@ -33,7 +33,10 @@ export const useMobileGoalsAndPrioritiesLogic = ({
   onSaveGoal,
   onSavePriority,
 }: UseMobileGoalsAndPrioritiesLogicProps) => {
-  const containerRef = useRef<HTMLDivElement>(null);
+  // containerRef ora gestito da useOutsideClick
+  const containerRef = useOutsideClick<HTMLDivElement>(() => {
+    setExpandedPriorityIndex(null);
+  });
 
   // 1. STATO LOCALE OBIETTIVO (Inline editing diretto, centralizzato, senza prefisso)
   const [localGoal, setLocalGoal] = useState<string>(goalText ?? '');
@@ -73,22 +76,8 @@ export const useMobileGoalsAndPrioritiesLogic = ({
   // Stato priorità allargata / espansa inline per visualizzazione completa
   const [expandedPriorityIndex, setExpandedPriorityIndex] = useState<number | null>(null);
 
-  // Reset espansione se si clicca fuori dal container
-  useEffect(() => {
-    const handleOutsideClick = (e: MouseEvent | TouchEvent) => {
-      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
-        setExpandedPriorityIndex(null);
-      }
-    };
-    document.addEventListener('mousedown', handleOutsideClick);
-    document.addEventListener('touchstart', handleOutsideClick);
-    return () => {
-      document.removeEventListener('mousedown', handleOutsideClick);
-      document.removeEventListener('touchstart', handleOutsideClick);
-    };
-  }, []);
-
-  // Timer per rilevare Long Press (Pressione prolungata ~450ms)
+  // Long press via timer manuale (useLongPress non può essere usato in questo contesto
+  // perché richiede chiamata diretta nell'hook, non dentro una factory function)
   const longPressTimerRef = useRef<number | null>(null);
   const isLongPressTriggeredRef = useRef<boolean>(false);
 
@@ -116,15 +105,11 @@ export const useMobileGoalsAndPrioritiesLogic = ({
       clearTimeout(longPressTimerRef.current);
       longPressTimerRef.current = null;
     }
-
-    // Se non è stato attivato il long press
     if (!isLongPressTriggeredRef.current && editingPriority?.index !== item.index) {
       if (expandedPriorityIndex === item.index) {
-        // SECONDO CLIC su priorità già allargata -> Entra in modalità modifica!
         setExpandedPriorityIndex(null);
         setEditingPriority({ index: item.index, text: item.text, id: item.id });
       } else {
-        // PRIMO CLIC -> Allarga la priorità inline per mostrarla per intero!
         setExpandedPriorityIndex(item.index);
       }
     }

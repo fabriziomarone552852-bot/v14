@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="none">
+  <!-- Vita Full Logo (Icon + Text) -->
+  <g transform="translate(0, -20)">
+    <!-- Left Stem of V -->
+    <path d="M 112 75 C 142 98 190 195 244 340 C 248 352 264 352 268 340 C 282 295 296 242 302 180 C 275 207 258 248 248 288 C 238 216 198 116 112 75 Z" fill="#127A45"/>
+    
+    <!-- Right Leaf Stem of V -->
+    <path d="M 252 348 C 263 276 300 178 400 18 C 304 18 246 114 252 348 Z" fill="#127A45"/>
+    
+    <!-- Leaf Vein Cutout -->
+    <path d="M 282 182 Q 330 92 384 45" stroke="#FFFFFF" stroke-width="12" stroke-linecap="round" fill="none"/>
+  </g>
+  
+  <!-- "vita" Text -->
+  <text x="256" y="445" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', Roboto, sans-serif" font-weight="600" font-size="110" fill="#3D4045" letter-spacing="-2">vita</text>
+</svg>

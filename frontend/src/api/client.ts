@@ -7,7 +7,7 @@ import type { OutboxHttpMethod } from '@/offline/types';
 
 // 1. URL BASE API (Supporta sia Web che Mobile con Proxy Tailscale Locale)
 export const getApiBaseUrl = (): string => {
-  if (typeof window !== 'undefined' && (window as unknown as { Capacitor?: { isNativePlatform?: () => boolean } }).Capacitor?.isNativePlatform?.()) {
+  if (typeof window !== 'undefined' && window.Capacitor?.isNativePlatform?.()) {
     return import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:8088';
   }
   return import.meta.env.VITE_API_BASE_URL || '';

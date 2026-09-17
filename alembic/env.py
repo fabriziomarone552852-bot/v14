@@ -30,6 +30,7 @@ import backend.domains.planning.models
 import backend.domains.shopping.models
 import backend.domains.system_boot.models
 import backend.domains.tasks.models
+import backend.domains.trackers.models
 import backend.domains.users.models
 import backend.domains.yearly_entries.models
 

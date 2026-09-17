@@ -1,0 +1,36 @@
+import os
+
+# Ultra-clean Favicon with high visibility green V-Leaf icon
+favicon_svg = '''<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="none">
+  <!-- Soft background squircle for perfect contrast on any browser theme -->
+  <rect width="512" height="512" rx="128" fill="#0D1117" />
+  
+  <g transform="translate(16, 16)">
+    <!-- Left Stem of V -->
+    <path d="M 102 85 C 135 110 188 220 244 382 C 248 395 264 395 268 382 C 285 330 300 270 306 200 C 275 230 258 275 248 320 C 238 240 195 130 102 85 Z" fill="#10B981"/>
+    
+    <!-- Right Leaf Stem of V -->
+    <path d="M 252 390 C 265 310 305 200 416 22 C 310 22 245 130 252 390 Z" fill="#059669"/>
+    
+    <!-- Leaf Vein Cutout -->
+    <path d="M 285 205 Q 338 105 398 52" stroke="#FFFFFF" stroke-width="16" stroke-linecap="round" fill="none"/>
+  </g>
+</svg>'''
+
+# Transparent background version of favicon for inline UI use
+favicon_transparent_svg = '''<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="none">
+  <g transform="translate(0, 10)">
+    <path d="M 102 85 C 135 110 188 220 244 382 C 248 395 264 395 268 382 C 285 330 300 270 306 200 C 275 230 258 275 248 320 C 238 240 195 130 102 85 Z" fill="#10B981"/>
+    <path d="M 252 390 C 265 310 305 200 416 22 C 310 22 245 130 252 390 Z" fill="#059669"/>
+    <path d="M 285 205 Q 338 105 398 52" stroke="#FFFFFF" stroke-width="16" stroke-linecap="round" fill="none"/>
+  </g>
+</svg>'''
+
+public_dir = 'c:/Users/Fabrizio/Desktop/app/smart/v14/frontend/public'
+with open(os.path.join(public_dir, 'favicon.svg'), 'w', encoding='utf-8') as f:
+    f.write(favicon_svg)
+
+with open(os.path.join(public_dir, 'favicon-transparent.svg'), 'w', encoding='utf-8') as f:
+    f.write(favicon_transparent_svg)
+
+print('Updated favicon.svg successfully!')

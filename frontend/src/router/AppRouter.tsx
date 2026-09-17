@@ -22,6 +22,7 @@ const UserSettingsPage = !IS_MOBILE_BUILD ? React.lazy(() => import('@/views/Use
 const ShoppingPage = !IS_MOBILE_BUILD ? React.lazy(() => import('@/views/ShoppingPage')) : () => null;
 const AdminPage = !IS_MOBILE_BUILD ? React.lazy(() => import('@/views/AdminPage')) : () => null;
 const NotFoundPage = !IS_MOBILE_BUILD ? React.lazy(() => import('@/views/NotFoundPage')) : () => null;
+const TVSeriesPage = !IS_MOBILE_BUILD ? React.lazy(() => import('@/views/Trackers/TVSeriesPage')) : () => null;
 
 // Pagine Archivio Desktop
 const ArchivePage = !IS_MOBILE_BUILD ? React.lazy(() => import('@/views/Archive/ArchivePage')) : () => null;
@@ -119,6 +120,8 @@ const AppRouter: React.FC = () => {
           <Route path="/fornitori" element={<SuppliersPage />} />
           <Route path="/shopping-archive" element={<ShoppingArchivePage />} />
           <Route path="/shopping" element={<ShoppingPage />} />
+          
+          <Route path="/trackers/serie-tv" element={<TVSeriesPage />} />
 
           <Route path="/admin" element={<AdminPage />} />
           <Route path="/settings" element={<UserSettingsPage />} />

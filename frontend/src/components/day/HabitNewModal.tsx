@@ -1,6 +1,6 @@
 // src/components/day/HabitNewModal.tsx
 import React, { useState, useEffect } from 'react';
-import { getLocalDateString } from '@/utils/dateUtils'; 
+import { getLocalTodayStr } from '@/utils/dateUtils'; 
 import BaseModal from '@/components/shared/dialog/BaseModal';
 import { InfoIcon } from '@/components/shared/utils/Icons';
 import { buildRRule } from '@/utils/rruleUtils';
@@ -52,7 +52,7 @@ const HabitNewModal: React.FC<HabitNewModalProps> = ({ isOpen, onClose, habitToE
       const payload: HabitSavePayload = {
         titolo: form.titolo.trim(),
         tipo: 'H', 
-        data_inizio: getLocalDateString(), 
+        data_inizio: getLocalTodayStr(), 
         immagine_url: form.icona || '✨', 
         rrule: buildRRule('DAILY', '1', ''),
         attiva: true

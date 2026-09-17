@@ -19,6 +19,7 @@ import { MobileHabitNewModal } from '@/mobile/components/modals/MobileHabitNewMo
 interface HabitsPageModalsProps {
   isMobile: boolean;
   activeTab: HabitTabType;
+  /** Il modale filtri non usa .data — unknown è il default di useModal<T> */
   filterModal: UseModalResult<unknown>;
   filters: HabitFilterState;
   onFilterChange: (filters: HabitFilterState) => void;
@@ -164,7 +165,7 @@ export const HabitsPageModals: React.FC<HabitsPageModalsProps> = ({
             isOpen={habitFormModal.isOpen}
             onClose={habitFormModal.close}
             habitToEdit={habitFormModal.data}
-            onSave={handleSaveHabitDefault(onSaveHabit)}
+            onSave={onSaveHabit}
           />
         </>
       )}
@@ -172,6 +173,3 @@ export const HabitsPageModals: React.FC<HabitsPageModalsProps> = ({
   );
 };
 
-function handleSaveHabitDefault(onSave: (payload: HabitSavePayload) => void) {
-  return onSave;
-}
