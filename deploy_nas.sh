@@ -34,6 +34,7 @@ docker run -d \
   --restart always \
   --privileged \
   -p 8000:8000 \
+  -v /share/CACHEDEV1_DATA/Container/uploads:/app/uploads \
   -e DATABASE_URL="postgresql+psycopg://PostGre:Password-Robusta@PostGre-Server:5432/family-smart" \
   -e APP_ENV=prod \
   -e SECRET_KEY="DB_POOL_RECYCLE=1800DB_POOL_TIMEOUT=30DEFAULT_MAX_SUBTASK_DEPTH=3" \

@@ -1,4 +1,4 @@
-﻿// src/data/changelogData.ts
+// src/data/changelogData.ts
 
 export interface ChangelogItem {
   id: string;
@@ -15,11 +15,52 @@ export interface ChangelogItem {
 
 export const CHANGELOG_HISTORY: ChangelogItem[] = [
   {
+    id: 'v15.0.0',
+    version: '15.0.0',
+    date: 'Settembre 2026',
+    title: 'Redesign UI Libreria Serie TV & Fix TMDB API',
+    isLatest: true,
+    published: false,
+    highlights: [
+      'Ridisegnata completamente la dashboard delle Serie TV con una nuova top bar a 3 schede e layout a scomparsa morbida.',
+      'Risolto il crash del backend nella ricerca su TMDB dovuto a campi extra non permessi dalla validazione Pydantic.',
+    ],
+    features: [
+      'Nuovo layout "Prossime Uscite" a carousel orizzontale a fondo sidebar.',
+      'Sostituita la card delle citazioni con un widget estetico a nuvoletta.',
+      'Immagine di default (no-poster.png) locale come fallback automatico delle locandine.',
+    ],
+    improvements: [
+      'Sostituita la scrollbar primaria con uno scorrimento smussato a gradiente tramite CSS mask-image.',
+      'Adottata la modal-scrollbar tenue per integrarsi perfettamente con il tema chiaro.',
+      'Rimossi pulsanti ridondanti per preparare lo spazio alla futura integrazione di ricerca inline.',
+    ],
+    fixes: [
+      'Corretto l\'errore 500 durante la chiamata `/search` API abbassando la restrizione StrictBaseModel (`extra="ignore"`) in `backend/domains/trackers/schemas.py`.',
+    ],
+  },
+  {
+    id: 'v14.2.12',
+    version: '14.2.12',
+    date: 'Settembre 2026',
+    title: 'Persistenza Immagini su NAS & Fix Volumi Docker',
+    isLatest: false,
+    published: true,
+    highlights: [
+      'Risolto il problema di perdita delle immagini al riavvio/aggiornamento del server NAS aggiungendo la mappatura permanente dei volumi Docker per la cartella uploads.',
+    ],
+    features: [],
+    improvements: [],
+    fixes: [
+      'Aggiunto il flag -v in deploy_nas.sh e configurato il volume in docker-compose.yml per preservare i file multimediali.',
+    ],
+  },
+  {
     id: 'v14.2.11',
     version: '14.2.11',
     date: 'Settembre 2026',
     title: 'Rebranding in "Vita", Nuovo Logo V-Leaf & Refactoring Strict TypeScript',
-    isLatest: true,
+    isLatest: false,
     published: true,
     highlights: [
       'Rebranding Ufficiale: l\'applicazione si chiama ora "Vita" con il nuovo logo e identità visiva V-Leaf.',
@@ -431,6 +472,7 @@ export const CHANGELOG_HISTORY: ChangelogItem[] = [
 export const APP_VERSION: string = CHANGELOG_HISTORY[0].version;
 export const APP_VERSION_NAME: string = `v${APP_VERSION}`;
 export const APP_LAST_UPDATE: string = CHANGELOG_HISTORY[0].date;
+
 
 
 

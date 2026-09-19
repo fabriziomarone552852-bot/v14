@@ -142,7 +142,8 @@ apiClient.interceptors.response.use(
     const isMutating = ['POST', 'PUT', 'PATCH', 'DELETE'].includes(method);
     const isExcluded =
       originalRequest?.url?.includes('/auth/') ||
-      originalRequest?.url?.includes('/feedback/reports');
+      originalRequest?.url?.includes('/feedback/reports') ||
+      originalRequest?.url?.includes('/media/');
 
     if (isNetworkError && isMutating && !isExcluded && !originalRequest?._skipOutbox && originalRequest) {
       useNetworkStore.getState().setServerReachable(false);

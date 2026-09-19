@@ -50,6 +50,13 @@ class User(Base):
         server_default=text("3"),
     )
 
+    tv_episodes_yearly_goal: Mapped[Optional[int]] = mapped_column(
+        Integer,
+        nullable=True,
+        default=300,
+        server_default=text("300"),
+    )
+
     is_superuser: Mapped[bool] = mapped_column(
         Boolean,
         nullable=False,

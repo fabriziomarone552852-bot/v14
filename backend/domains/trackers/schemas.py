@@ -4,7 +4,7 @@ Schemas for Trackers domain (TV Series, Movies, Books).
 
 from datetime import date, datetime, timezone
 from typing import List, Optional
-from pydantic import Field, field_validator, model_validator
+from pydantic import Field, field_validator, model_validator, BaseModel
 
 from backend.core.schemas import ORMBaseModel, StrictBaseModel
 
@@ -89,8 +89,9 @@ class TVSeriesResponse(ORMBaseModel):
 
 # --- TMDB External API Schemas ---
 
-class TMDBSeriesSearchResult(StrictBaseModel):
+class TMDBSeriesSearchResult(BaseModel):
     """Schema for TMDB search results."""
+    model_config = {"extra": "ignore"}
 
     id: int
     name: str
@@ -102,8 +103,9 @@ class TMDBSeriesSearchResult(StrictBaseModel):
     vote_average: Optional[float] = None
 
 
-class TMDBPaginatedSearch(StrictBaseModel):
+class TMDBPaginatedSearch(BaseModel):
     """Schema for TMDB paginated search response."""
+    model_config = {"extra": "ignore"}
 
     page: int
     results: List[TMDBSeriesSearchResult]

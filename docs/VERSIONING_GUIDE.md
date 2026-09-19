@@ -23,7 +23,10 @@ Quando si lavora contemporaneamente su più chat o sessioni diverse prima di un 
 ### Regola per l'Assistente AI:
 1. **Controllare `CHANGELOG_HISTORY[0].published`**:
    - **Se `published: false`**: Significa che c'è già una versione in fase di sviluppo aperta. **NON** aumentare la versione in `package.json` e **NON** creare una nuova voce. L'assistente deve semplicemente **aggiungere o unire** i propri punti (`features`, `improvements`, `fixes`, `highlights`) all'interno dell'oggetto in cima.
-   - **Se `published: true`**: Significa che l'ultima versione è stata già rilasciata. L'assistente deve calcolare il nuovo numero SemVer (`PATCH`, `MINOR`, `MAJOR`), aggiornare `"version"` in `frontend/package.json` e creare una nuova voce in cima con **`published: false`**.
+   - **Se `published: true`**: Significa che l'ultima versione è stata già rilasciata. L'assistente deve calcolare il nuovo numero SemVer (`MAJOR.MINOR.PATCH`), aggiornare `"version"` in `frontend/package.json` e creare una nuova voce in cima con **`published: false`**.
+     - **PATCH (`X.Y.Z+1`)**: Correzioni di bug, fix di layout (UI/UX), piccoli aggiustamenti e refactoring minori invisibili all'utente.
+     - **MINOR (`X.Y+1.0`)**: Nuove funzionalità aggiunte a *sezioni già esistenti*, nuovi componenti, nuove viste secondarie o aggiunte importanti ma retrocompatibili all'interno di moduli attuali.
+     - **MAJOR (`X+1.0.0`)**: **Intere nuove MACRO-SEZIONI o moduli portanti** (es. l'aggiunta del modulo Shopping, della sezione Media/Serie TV, ecc. definiti come "Passo Fondamentale" nel Backlog), grandi riscritture architetturali o breaking changes. Se si introduce un intero nuovo dominio nell'app, è SEMPRE Major.
 
 ---
 

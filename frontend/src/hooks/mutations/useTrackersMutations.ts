@@ -40,4 +40,6 @@ export const useTrackersMutations = () => {
     updateSeries: updateSeriesMutation.mutate,
     isUpdatingSeries: updateSeriesMutation.isPending,
     deleteSeries: deleteSeriesMutation.mutate,
-    isDeletingSeries: deleteSeriesMutation.isPending
+    isDeletingSeries: deleteSeriesMutation.isPending,
+  };
+};

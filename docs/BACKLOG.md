@@ -23,9 +23,10 @@ Questo documento serve a tracciare in modo strutturato:
 | **SHOPPING-004** | **Ricerca & Visualizzazione Prezzi nel Modale Dettaglio Prodotto (per Brand)** | `shopping` / `UI` | 🔴 Da Iniziare | 🔴 Da Iniziare | 🟠 **Alta** |
 | **SEED-001** | **Pulizia Dati Seed Prodotti (Rimozione Marca e Quantità dal Nome)** | `shopping` / `seed` | 🔴 Da Iniziare | 🔴 Da Iniziare | 🟠 **Alta** |
 | **SEED-002** | **Risoluzione Visualizzazione Prodotti Seed Mancanti nelle Liste** | `shopping` / `seed` | 🔴 Da Iniziare | 🔴 Da Iniziare | 🟠 **Alta** |
+| **SHOPPING-005** | **Note e Recensioni Prodotti/Brand nel Catalogo** | `shopping` | 🔴 Da Iniziare | 🔴 Da Iniziare | 🟠 **Alta** |
 | **FEAT-012** | **Pagina di Avvio Pinnata / Selezione Landing Page Predefinita** | `settings` / UI | 🔴 Da Iniziare | 🔴 Da Iniziare | 🟠 **Alta** |
 | **CAL-002** | **Filtro Categorie Eventi nel Calendario Homepage (Menu Ingranaggio ⚙️)** | `calendar` / UI | 🔴 Da Iniziare | 🔴 Da Iniziare | 🟠 **Alta** |
-| **FEAT-004** | **Sezione Media: Libri, Film e Serie TV** | `media` / ent | 🔴 Da Iniziare | 🔴 Da Iniziare | 🔴 **Massima (Passo Fondamentale)** |
+| **FEAT-004** | **Sezione Media: Libri, Film e Serie TV** | `media` / ent | 🟡 Parziale | 🟡 Parziale | 🔴 **Massima (Passo Fondamentale)** |
 | **FEAT-005** | **Sezione Liste Tematiche & Personalizzate** | `custom_lists` | 🔴 Da Iniziare | 🔴 Da Iniziare | 🔴 **Massima (Passo Fondamentale)** |
 | **FEAT-006** | **Hub Spesa, Ricettario, Meal Prep & Wishlist Oggetti** | `shopping` / food | 🔴 Da Strutturare | 🔴 Da Implementare | 🔴 **Massima (Passo Fondamentale)** |
 | **FEAT-007** | **Sistema Amicizie & Condivisione Recensioni (Social/Sharing)** | `social` / media | 🔴 Da Strutturare | 🔴 Da Implementare | 🟠 **Alta (Passo Fondamentale)** |
@@ -41,6 +42,7 @@ Questo documento serve a tracciare in modo strutturato:
 | **UI-001** | **Selezione Multipla nella Versione Mobile** | `mobile` / UI | 🟢 Completato | 🟢 Completato | 🟢 **Completato** |
 | **TECH-001** | **Verifica & Ottimizzazione Bundle APK Android (Code-Splitting)** | `build` / APK | N/A | 🟢 Completato | Media |
 | **TECH-002** | Spostamento Tasto Switch in Impostazioni / Danger Zone | `routing` / UI | N/A | 🟢 Completato | Bassa |
+| **TECH-003** | **Persistenza Volume Uploads su Docker NAS** | `build` / docker | 🟢 Completato | 🟢 Completato | 🟢 **Completato** |
 
 *Legenda:*
 - 🟢 **Completato**: Pronto, testato o supportato a livello di sistema/API.
@@ -217,6 +219,13 @@ I pulsanti di commutazione manuale tra modalità Desktop e Mobile sono stati rim
 
 ---
 
+### [TECH-003] Persistenza Volume Uploads su Docker NAS (✅ Completato)
+
+#### 📝 Descrizione
+Aggiunta del flag per i volumi Docker in `deploy_nas.sh` e `docker-compose.yml` per mappare la cartella `/app/uploads` del backend su una cartella fisica del NAS (`/share/CACHEDEV1_DATA/Container/uploads`). Questo previene la perdita permanente delle immagini caricate dagli utenti (e altre risorse multimediali) ogni volta che il container viene aggiornato o riavviato tramite il processo di build automatizzato.
+
+---
+
 ## 🎯 4. Prossimi Passi Fondamentali (Priorità Immediata)
 
 ### [CORE-001] Refactoring Globale & Pulizia Architetturale (✅ Completato)
@@ -342,11 +351,15 @@ Nuovo modulo completo per gestire, catalogare e monitorare l'intrattenimento per
 - **Stato Visione**: `Watchlist / Da vedere`, `Visto`.
 - **Dettagli & Valutazione**: Data di visione, voto personale, recensione/commento rapido, link al trailer o scheda informativa.
 
-#### 📺 3. Sotto-sezione Serie TV
+#### 📺 3. Sotto-sezione Serie TV (🟡 UI Base Completata)
+- **Stato Attuale (Frontend)**: Realizzato layout a griglia *bento* su desktop con top bar a 3 indicatori ("Ultima Aggiunta", "Ultimo Episodio", "Ultima Completata"), barra di completamento annuale, citazioni casuali stile "fumetto" e widget a scorrimento (Carousel) per le "Prossime Uscite" a fondo sidebar. Supporto fallback `no-poster.png` e scroller armonizzati (`mask-image`).
 - **Dati Tracciati**: Titolo, ideatore/regista, genere, piattaforma di streaming, locandina, numero totale di stagioni ed episodi.
 - **Tracking Avanzamento**: Gestione dettagliata del progresso (es. "Stagione 2 - Episodio 7"), pulsante rapido touch/click per avanzare di un episodio visto (+1 episodio).
 - **Stato Serie**: `Da iniziare`, `In corso`, `In attesa di nuova stagione`, `Completata`, `Mollata`.
-- **Dettagli & Valutazione**: Voto complessivo, note per stagione, promemoria data di uscita della prossima stagione/episodio.
+- **Prossimi Step Sviluppo (Da Iniziare)**:
+  - 🔍 Integrazione **barra di ricerca TMDB inline** direttamente nella grid principale, rimuovendo il modale popup. Digitando si deve aprire un elenco a comparsa per l'aggiunta rapida.
+  - 📡 Sostituzione dei Dati Mock (obiettivo annuale, citazioni, serie recenti e carousel prossime uscite) con fetch reali dal Database e logica TMDB.
+  - 🎨 Gestione dello stato "Empty" per l'assenza di serie e design della schermata di dettaglio per la singola serie.
 
 #### 🔄 4. Analisi Integrazioni Esterne & Sincronizzazione (Goodreads, Fable, TV Time)
 - **Fattibilità Sincronizzazione Piattaforme Esterne**:
@@ -637,6 +650,13 @@ Studio di fattibilità, analisi delle architetture e prototipazione per integrar
 #### [SEED-002] Verifica e Risoluzione Prodotti Seed Mancanti nelle Liste
 - **Descrizione**: Indagine e fix del problema di visualizzazione per cui alcuni prodotti seed (prodotti di sistema iniziale) non vengono mostrati o risultano nascosti nelle liste e nello storico dell'applicazione.
 - **Stato**: 🔴 Da Iniziare (Analisi query repository e filtri frontend).
+
+#### [SHOPPING-005] Note e Recensioni Prodotti/Brand nel Catalogo
+- **Descrizione**: Aggiunta della possibilità di inserire note testuali o valutazioni (es. "Non mi piace, è troppo amaro") specifiche per i prodotti a catalogo e i brand associati, rendendole visibili durante l'inserimento nella lista della spesa.
+- **Possibili Approcci Architetturali**:
+  - **Via 1 (Soluzione Preferita - Tabella Dedicata)**: Creare una nuova tabella `ShoppingProductFeedback` (`user_id`, `product_id`, `rating`, `notes`) per permettere valutazioni personali separate per ogni utente del gruppo familiare e massima scalabilità.
+  - **Via 2 (Soluzione Alternativa - Campo Singolo)**: Aggiungere un semplice campo `rating_notes` direttamente nel modello `ShoppingProduct`, nel caso si preferisca una singola "nota globale" visibile e modificabile da tutta la famiglia.
+- **Stato**: 🔴 Da Iniziare (Nuovo modello o colonna DB, Alembic e UI Frontend).
 
 ---
 

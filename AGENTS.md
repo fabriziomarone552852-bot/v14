@@ -18,9 +18,9 @@ L'assistente deve controllare la prima voce in cima a `CHANGELOG_HISTORY` in `fr
 
 2. **Se `published: true` (L'ultima versione è già stata rilasciata/pubblicata)**:
    - Determina l'incremento di versione (`MAJOR.MINOR.PATCH`):
-     - **PATCH** (`14.0.X`): Correzioni di bug, fix di layout, refactoring minori o piccole modifiche.
-     - **MINOR** (`14.X.0`): Nuove sezioni, nuove viste, nuovi moduli o aggiunte funzionali importanti retrocompatibili.
-     - **MAJOR** (`X.0.0`): Grandi riscritture architetturali o breaking changes.
+     - **PATCH** (`14.0.X`): Correzioni di bug, fix di layout (UI/UX), piccoli aggiustamenti e refactoring minori invisibili all'utente.
+     - **MINOR** (`14.X.0`): Nuove funzionalità aggiunte a *sezioni già esistenti*, nuovi componenti, nuove viste secondarie o aggiunte importanti ma retrocompatibili all'interno di moduli attuali.
+     - **MAJOR** (`X.0.0`): **Intere nuove MACRO-SEZIONI o moduli portanti** (es. l'aggiunta del modulo Shopping, della sezione Media/Serie TV, ecc. definiti come "Passo Fondamentale" nel Backlog), grandi riscritture architetturali o breaking changes. Se si introduce un intero nuovo dominio nell'app, è SEMPRE Major.
    - Aggiorna `"version": "X.Y.Z"` in `frontend/package.json`.
    - Inserisci in cima a `CHANGELOG_HISTORY` in `frontend/src/data/changelogData.ts` la nuova voce con `published: false`, data e dettagli:
    ```typescript

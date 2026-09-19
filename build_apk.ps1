@@ -116,8 +116,8 @@ $finalApk = Join-Path $androidDir "app\build\outputs\apk\debug\app-debug.apk"
 
 if (Test-Path $finalApk) {
     # Copia nella cartella apk/
-    Copy-Item $finalApk (Join-Path $outputDir "vita-v$appVersion.apk") -Force
-    Copy-Item $finalApk (Join-Path $outputDir "vita.apk") -Force
+    try { Copy-Item $finalApk (Join-Path $outputDir "vita-v$appVersion.apk") -Force } catch {}
+    try { Copy-Item $finalApk (Join-Path $outputDir "vita.apk") -Force } catch {}
 
     Write-Host "`n=====================================================" -ForegroundColor Green
     Write-Host "  VITA APK COMPILATO CON SUCCESSO (v$appVersion)!" -ForegroundColor Green

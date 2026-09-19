@@ -57,6 +57,8 @@ class TVSeries(Base):
     
     # User rating (0 to 5, or 0 to 10)
     rating: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
+
+    acquired_date: Mapped[Optional[date]] = mapped_column(Date, nullable=True)
     
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),

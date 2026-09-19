@@ -54,6 +54,8 @@ export default defineConfig({
       '/notifications': apiProxyConfig,
       '/google-calendar': apiProxyConfig,
       '/system': apiProxyConfig,
+      '/media': apiProxyConfig,
+      '/uploads': apiProxyConfig,
       '/api': apiProxyConfig,
     },
   },

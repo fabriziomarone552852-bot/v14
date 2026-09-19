@@ -2,7 +2,7 @@ import os
 from PIL import Image, ImageOps
 
 # Source original user logo
-src_img_path = r'C:\Users\Fabrizio\.gemini\antigravity\brain\5b7f9a72-515f-4efc-909f-3365b41757c5\.user_uploaded\media__1789639170033.png'
+src_img_path = r'c:\Users\Fabrizio\Desktop\app\smart\v14\frontend\public\logo-vita.png'
 android_res = r'c:\Users\Fabrizio\Desktop\app\smart\v14\frontend\android\app\src\main\res'
 
 img = Image.open(src_img_path).convert('RGBA')
@@ -19,7 +19,7 @@ transparent_icon.putdata(new_data)
 bbox = transparent_icon.getbbox()
 cropped_icon = transparent_icon.crop(bbox) if bbox else transparent_icon
 
-def make_sq_icon(icon_img, target_size, padding_ratio=0.15, bg_color=(255, 255, 255, 255)):
+def make_sq_icon(icon_img, target_size, padding_ratio=0.30, bg_color=(255, 255, 255, 255)):
     # Create square icon with specified background color (default white)
     base = Image.new('RGBA', (target_size, target_size), bg_color)
     max_icon_size = int(target_size * (1 - 2 * padding_ratio))
@@ -36,9 +36,9 @@ def make_sq_icon(icon_img, target_size, padding_ratio=0.15, bg_color=(255, 255, 
     return base
 
 def make_foreground_icon(icon_img, target_size):
-    # Android Adaptive Foreground requires 66% safe zone centered transparent canvas
+    # Android Adaptive Foreground - safe zone 42% to fit perfectly within round/squircle masks
     base = Image.new('RGBA', (target_size, target_size), (0, 0, 0, 0))
-    safe_zone_size = int(target_size * 0.66)
+    safe_zone_size = int(target_size * 0.42)
     
     cw, ch = icon_img.size
     ratio = min(safe_zone_size / cw, safe_zone_size / ch)
