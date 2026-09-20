@@ -38,6 +38,7 @@ export const CHANGELOG_HISTORY: ChangelogItem[] = [
       'Rifiniti spazi e margini interni della citazione espansa per una lettura più chiara.',
     ],
     fixes: [
+      'Corretto problema in .gitignore che bloccava il caricamento del dominio media su GitHub.',
       'Corretto l\'errore 500 durante la chiamata `/search` API abbassando la restrizione StrictBaseModel (`extra="ignore"`) in `backend/domains/trackers/schemas.py`.',
       'Forzata la rimozione completa dei bottoni (frecce) nativi di Chrome sulle scrollbar personalizzate.',
     ],
