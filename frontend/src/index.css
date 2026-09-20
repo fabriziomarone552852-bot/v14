@@ -16,6 +16,11 @@
   .custom-scrollbar:hover::-webkit-scrollbar-thumb {
     background-color: #4b5563; /* gray-600 al passaggio del mouse */
   }
+  .custom-scrollbar::-webkit-scrollbar-button {
+    display: none !important;
+    width: 0px !important;
+    height: 0px !important;
+  }
 
   /* Scrollbar nascosta per menu a scorrimento orizzontale */
   .no-scrollbar::-webkit-scrollbar {
@@ -189,4 +194,10 @@
 
 .modal-scrollbar::-webkit-scrollbar-thumb:hover {
   background-color: #94a3b8; /* Un po' più scura (slate-400) al passaggio del mouse */
+}
+
+.modal-scrollbar::-webkit-scrollbar-button {
+  display: none !important;
+  width: 0px !important;
+  height: 0px !important;
 }

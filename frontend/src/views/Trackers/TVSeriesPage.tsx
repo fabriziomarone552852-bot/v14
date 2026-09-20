@@ -7,6 +7,7 @@ import { EmptyState } from '@/components/shared/utils/EmptyState';
 import { useQueryClient, useQuery, useMutation } from '@tanstack/react-query';
 import { api } from '@/api/apiService';
 import { GlassCardWidget } from './components/GlassCardWidget';
+import RandomSeriesModal from './components/RandomSeriesModal';
 import { generateWeeksGrid, nomiMesiLungo, getFirstDayIndex, getDaysInMonth } from '@/utils/dateUtils';
 
 const UpcomingCalendarWidget = () => {
@@ -24,13 +25,13 @@ const UpcomingCalendarWidget = () => {
 
   // Mock data for upcoming episodes
   const upcomingMap: Record<number, any[]> = {
-    [today.getDate()]: [{ seriesName: 'Scissione', episode: '01 S02' }],
-    [today.getDate() + 1]: [{ seriesName: 'The Last of Us', episode: '01 S02' }],
-    [today.getDate() + 4]: [{ seriesName: 'Silo', episode: '05 S02' }]
+    [today.getDate()]: [{ seriesName: 'Scissione', episode: 'S02E01' }],
+    [today.getDate() + 1]: [{ seriesName: 'The Last of Us', episode: 'S02E01' }],
+    [today.getDate() + 4]: [{ seriesName: 'Silo', episode: 'S02E05' }]
   };
 
   return (
-    <div className="bg-white border border-gray-200 rounded-2xl p-4 shadow-sm relative flex flex-col h-[320px]">
+    <div className="bg-white border border-gray-200 rounded-2xl p-4 shadow-sm relative flex flex-col h-full">
        {/* Header */}
        <div className="flex justify-center items-center mb-3 border-b border-gray-100 pb-3 gap-4">
          <button onClick={handlePrev} className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-600 transition-colors border border-gray-200 shadow-sm bg-white active:scale-95">
@@ -68,33 +69,61 @@ const UpcomingCalendarWidget = () => {
                const isToday = year === today.getFullYear() && month === today.getMonth() && day === today.getDate();
                const upcomingForDay = month === today.getMonth() ? upcomingMap[day] : null;
 
+               let dayClasses = "w-8 h-8 flex items-center justify-center rounded-full text-xs font-bold transition-colors";
+               
+               if (isToday) {
+                 if (upcomingForDay) {
+                   dayClasses += " bg-blue-500 text-white shadow-md ring-4 ring-amber-200 hover:bg-blue-600";
+                 } else {
+                   dayClasses += " bg-amber-500 text-white shadow-md ring-4 ring-amber-100 hover:bg-amber-600";
+                 }
+               } else {
+                 if (upcomingForDay) {
+                   dayClasses += " bg-blue-500 text-white shadow-md hover:bg-blue-600";
+                 } else {
+                   dayClasses += " text-gray-700 hover:bg-gray-100";
+                 }
+               }
+
+               let tooltipPosClass = "bottom-full mb-2";
+               if (wIdx === 0 || wIdx === 1) tooltipPosClass = "top-full mt-2"; // Nelle prime righe lo mostriamo sotto
+
+               let tooltipAlignClass = "left-1/2 -translate-x-1/2";
+               if (dIdx === 0 || dIdx === 1) tooltipAlignClass = "left-0"; // A sinistra lo allineiamo a sinistra
+               if (dIdx === 5 || dIdx === 6) tooltipAlignClass = "right-0"; // A destra lo allineiamo a destra
+
                return (
                  <div 
                    key={dIdx}
                    onClick={() => {/* TODO: Apri modale */}}
-                   className={`relative p-1.5 border rounded-lg cursor-pointer min-h-0 flex flex-col justify-between group transition-colors duration-300 ${
-                     isToday ? 'border-amber-200 bg-amber-50 hover:bg-amber-100 hover:border-amber-400' : 'border-gray-200 bg-gray-50 hover:bg-blue-100/50 hover:border-blue-400'
-                   }`}
+                   className="relative p-1 flex items-center justify-center cursor-pointer group min-h-0"
                  >
-                   <div className="flex justify-between items-start w-full">
-                     <span className={`text-xs w-6 h-6 flex items-center justify-center rounded-full ${
-                       isToday ? 'bg-amber-500 text-white shadow-md ring-4 ring-amber-100 font-extrabold' : 'text-gray-600 font-bold group-hover:text-blue-700'
-                     }`}>
-                       {day}
-                     </span>
-                   </div>
+                   <span className={dayClasses}>
+                     {day}
+                   </span>
                    
-                   {/* Spazio per pallini stile MonthDayCell */}
-                   <div className="flex flex-col gap-1 justify-center items-center mt-auto h-4 mb-0.5 pointer-events-none">
-                     {upcomingForDay && (
-                       <div className="flex gap-1 justify-center items-center w-full">
-                         {upcomingForDay.slice(0, 4).map((evt, idx) => (
-                           <div key={idx} className="h-1.5 w-1.5 rounded-full shrink-0 bg-blue-500" title={evt.seriesName}></div>
-                         ))}
-                         {upcomingForDay.length > 4 && <span className="text-[8px] leading-none text-gray-400 font-bold">+</span>}
+                   {upcomingForDay && (
+                     <div className={`absolute ${tooltipPosClass} ${tooltipAlignClass} bg-slate-900 text-white rounded-xl shadow-xl p-3 border border-slate-800 text-xs z-[100] w-48 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none`}>
+                       <div className="font-extrabold text-[11px] text-blue-300 uppercase tracking-wider border-b border-slate-700 pb-1 mb-2 text-left">
+                         {`${day} ${nomiMesiLungo[month]}`}
                        </div>
-                     )}
-                   </div>
+                       <div className="flex flex-col gap-1 max-h-36 overflow-y-auto pr-0.5 custom-scrollbar">
+                         {upcomingForDay.map((item: any, idx: number) => (
+                           <div
+                             key={idx}
+                             className="bg-slate-800/80 rounded px-2 py-1.5 text-[11px] font-medium text-slate-200 truncate flex items-center gap-2 border-l-2 border-blue-500 text-left"
+                           >
+                             <span className="text-[9px] font-bold text-slate-400 shrink-0 inline-flex items-center">
+                               {item.episode}
+                             </span>
+                             <span className="truncate flex-1" title={item.seriesName}>
+                               {item.seriesName}
+                             </span>
+                           </div>
+                         ))}
+                       </div>
+                     </div>
+                   )}
                  </div>
                )
              })}
@@ -102,8 +131,41 @@ const UpcomingCalendarWidget = () => {
          ))}
        </div>
     </div>
-  )
-}
+  );
+};
+
+const UpcomingEpisodesWidget = () => {
+  const upcoming = [
+    { id: 1, seriesName: 'Scissione', episode: 'S02E01', date: 'Oggi', poster: null },
+    { id: 2, seriesName: 'The Last of Us', episode: 'S02E01', date: 'Domani', poster: null },
+    { id: 3, seriesName: 'Silo', episode: 'S02E05', date: '23/09', poster: null }
+  ];
+
+  return (
+    <div className="flex flex-col h-full overflow-visible justify-center w-full">
+      <div className="flex gap-5 overflow-x-auto pt-4 pb-4 px-4 snap-x items-center [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+        {upcoming.map(ep => (
+          <div key={ep.id} className="w-[110px] flex flex-col shrink-0 snap-start cursor-pointer hover:scale-110 hover:z-20 transition-all duration-300">
+            <div className="aspect-[2/3] bg-gray-100 rounded-xl overflow-hidden shadow-sm relative border-2 border-transparent hover:border-blue-400 transition-colors group">
+              <img src="/no-poster.png" alt="" className="w-full h-full object-cover opacity-50" />
+              
+              {/* TOP: Date */}
+              <div className="absolute top-0 inset-x-0 bg-gradient-to-b from-black/80 to-transparent pt-2 pb-5 px-1">
+                <p className="text-[10px] text-blue-400 font-extrabold uppercase text-center drop-shadow-md">{ep.date}</p>
+              </div>
+
+              {/* BOTTOM: Episode and Name */}
+              <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/90 via-black/60 to-transparent pt-8 pb-2 px-1 flex flex-col justify-end items-center">
+                <p className="text-[10px] text-white/90 font-bold text-center drop-shadow-md">{ep.episode}</p>
+                <p className="text-[11px] text-white font-extrabold text-center drop-shadow-md truncate w-full px-1" title={ep.seriesName}>{ep.seriesName}</p>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
 
 const TVSeriesPage: React.FC = () => {
   const queryClient = useQueryClient();
@@ -113,6 +175,8 @@ const TVSeriesPage: React.FC = () => {
   const [goalViewType, setGoalViewType] = useState<'percent' | 'fraction'>('fraction');
   const [searchQuery, setSearchQuery] = useState('');
   const [debouncedQuery, setDebouncedQuery] = useState('');
+  const [isQuoteExpanded, setIsQuoteExpanded] = useState(false);
+  const [isRandomModalOpen, setRandomModalOpen] = useState(false);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -173,15 +237,22 @@ const TVSeriesPage: React.FC = () => {
   return (
     <div className="flex flex-col gap-5 max-w-[1600px] mx-auto min-h-full xl:h-full xl:overflow-hidden relative p-2 xl:p-0">
       
-      {/* HEADER PRINCIPALE & PROGRESS BAR */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 items-center px-2 py-1 gap-4 shrink-0">
-        <h1 className="text-3xl xl:text-4xl font-extrabold text-gray-900 uppercase tracking-tight select-none xl:col-span-1">Serie TV</h1>
+      {/* HEADER PRINCIPALE & PROGRESS BAR (Flex 20 Colonne) */}
+      <div className="flex flex-col md:flex-row items-center px-2 py-1 shrink-0 w-full gap-4 md:gap-0">
         
-        {/* Goal Widget */}
-        <div className="xl:col-span-3 flex justify-center w-full">
+        {/* 1. Titolo (1 parte) */}
+        <div className="flex items-center w-full md:w-auto" style={{ flex: 1 }}>
+          <h1 className="text-3xl xl:text-4xl font-extrabold text-gray-900 uppercase tracking-tight select-none whitespace-nowrap">Serie TV</h1>
+        </div>
+        
+        {/* 2. Spazio vuoto (3 parti) */}
+        <div className="hidden md:block" style={{ flex: 3 }}></div>
+
+        {/* 3. Goal Widget (11 parti centrali) */}
+        <div className="flex justify-center w-full" style={{ flex: 11 }}>
           <div 
             onClick={() => setGoalViewType(prev => prev === 'percent' ? 'fraction' : 'percent')}
-            className="flex flex-col w-full max-w-lg bg-white rounded-xl shadow-sm border border-gray-200 p-4 cursor-pointer hover:shadow-md transition-shadow select-none relative group"
+            className="flex flex-col w-full bg-white rounded-xl shadow-sm border border-gray-200 p-4 cursor-pointer hover:shadow-md transition-shadow select-none relative group"
           >
              <div className="absolute right-3 top-3 opacity-0 group-hover:opacity-100 transition-opacity">
                 <button 
@@ -203,6 +274,28 @@ const TVSeriesPage: React.FC = () => {
              </div>
           </div>
         </div>
+
+        {/* 4. Spazio vuoto (3 parti) */}
+        <div className="hidden md:block" style={{ flex: 3 }}></div>
+
+        {/* 5. Pulsante Random (Cerchio col Punto Interrogativo espandibile, 1 parte) */}
+        <div className="flex justify-center items-center w-full md:w-auto relative h-12" style={{ flex: 1 }}>
+           <button 
+             onClick={() => setRandomModalOpen(true)}
+             title="Non sai cosa guardare? Scegliamo noi per te!"
+             className="absolute right-0 group h-12 px-3 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center text-white shadow-sm hover:shadow-md hover:scale-105 active:scale-95 transition-all z-30"
+           >
+              <span className="max-w-0 opacity-0 group-hover:max-w-[200px] group-hover:opacity-100 group-hover:mr-2 transition-all duration-500 ease-in-out font-bold text-xs overflow-hidden whitespace-nowrap text-left leading-tight">
+                Non sai cosa guardare?<br/>Scegliamo noi per te!
+              </span>
+              <svg className="w-6 h-6 text-white shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+           </button>
+        </div>
+
+        {/* 6. Spazio vuoto finale (1 parte) */}
+        <div className="hidden md:block" style={{ flex: 1 }}></div>
       </div>
 
       {/* TOP ROW: 3 GLASS CARDS */}
@@ -216,7 +309,7 @@ const TVSeriesPage: React.FC = () => {
          <GlassCardWidget 
            label="Continua a guardare" 
            title={lastWatched?.title || "Nessuno"} 
-           subtitle={lastWatched ? "04 S02" : ""}
+           subtitle={lastWatched ? "S02E04" : ""}
            posterPath={lastWatched?.poster_path || null} 
          />
          <GlassCardWidget 
@@ -236,9 +329,13 @@ const TVSeriesPage: React.FC = () => {
            <div className="absolute top-5 left-5 right-8 z-20 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pointer-events-none">
              {/* Search Bar */}
              <div className="relative w-full sm:flex-1 sm:max-w-sm pointer-events-auto">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                   <svg className="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
-                </div>
+                <button 
+                  onClick={() => { /* TODO: Implementare apertura modale Ricerca Approfondita */ }}
+                  className="absolute inset-y-0 left-0 pl-3 pr-2 flex items-center cursor-pointer text-gray-400 hover:text-blue-500 transition-colors z-10 outline-none"
+                  title="Ricerca approfondita"
+                >
+                   <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+                </button>
                 <input 
                   type="text" 
                   placeholder="Cerca serie TV..." 
@@ -249,29 +346,29 @@ const TVSeriesPage: React.FC = () => {
              </div>
 
              <div className="flex items-center gap-3 pointer-events-auto">
-                 {/* Filter Toggle */}
-                 <div className="flex items-center bg-white/95 backdrop-blur-md p-1 rounded-full border border-gray-200 shrink-0 shadow-sm">
-                    <button 
-                      onClick={() => setActiveTab('watching')}
-                      title="Visti"
-                      className={`p-2 rounded-full transition-colors ${activeTab === 'watching' ? 'bg-blue-50 shadow-sm text-blue-600' : 'text-gray-500 hover:text-gray-700'}`}
-                    >
-                      <EyeIcon className="w-4 h-4" />
-                    </button>
-                    <button 
-                      onClick={() => setActiveTab('all')}
-                      title="Tutti"
-                      className={`p-2 rounded-full transition-colors ${activeTab === 'all' ? 'bg-blue-50 shadow-sm text-blue-600' : 'text-gray-500 hover:text-gray-700'}`}
-                    >
-                      <EyeHalfOpenIcon className="w-4 h-4" />
-                    </button>
-                    <button 
-                      onClick={() => setActiveTab('to_watch')}
-                      title="Non Visti"
-                      className={`p-2 rounded-full transition-colors ${activeTab === 'to_watch' ? 'bg-blue-50 shadow-sm text-blue-600' : 'text-gray-500 hover:text-gray-700'}`}
-                    >
-                      <EyeClosedIcon className="w-4 h-4" />
-                    </button>
+                 {/* Filter Toggle Espandibile */}
+                 <div className="flex items-center bg-white/95 backdrop-blur-md p-1 rounded-full border border-gray-200 shrink-0 shadow-sm group transition-all duration-300 hover:gap-1">
+                    {['watching', 'all', 'to_watch'].map((tab) => {
+                      const isActive = activeTab === tab;
+                      let icon = null;
+                      let label = '';
+                      if (tab === 'watching') { icon = <EyeIcon className="w-4 h-4" />; label = 'Visti'; }
+                      else if (tab === 'all') { icon = <EyeHalfOpenIcon className="w-4 h-4" />; label = 'Tutti'; }
+                      else { icon = <EyeClosedIcon className="w-4 h-4" />; label = 'Non Visti'; }
+                      
+                      return (
+                        <button 
+                          key={tab}
+                          onClick={() => setActiveTab(tab as any)}
+                          title={label}
+                          className={`rounded-full flex items-center justify-center transition-all duration-300 ease-in-out overflow-hidden
+                            ${isActive ? 'w-8 h-8 opacity-100 bg-blue-50 shadow-sm text-blue-600' : 'w-0 h-8 opacity-0 group-hover:w-8 group-hover:opacity-100 text-gray-500 hover:bg-gray-100 hover:text-gray-700'}
+                          `}
+                        >
+                          {icon}
+                        </button>
+                      );
+                    })}
                  </div>
              </div>
            </div>
@@ -386,38 +483,76 @@ const TVSeriesPage: React.FC = () => {
         <div className="xl:col-span-4 flex flex-col gap-6 h-[600px] xl:h-full min-h-0 overflow-y-auto no-scrollbar pr-2">
            
 
-           {/* RANDOM BUTTON */}
-           <div className="relative z-10 mt-1 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-xl shadow-sm p-5 text-white flex items-center justify-between cursor-pointer hover:shadow-md transition-all hover:-translate-y-0.5 active:translate-y-0">
-             <div>
-                <h3 className="font-extrabold text-lg uppercase tracking-wider mb-1">Non so cosa guardare!</h3>
-                <p className="text-sm font-medium text-blue-100">Scegliamo una serie a caso per te</p>
+           {/* CITAZIONI (Espandibile al clic) */}
+           <div className={`relative mt-2 mb-4 mx-2 drop-shadow-sm transition-all duration-500 z-50 cursor-pointer ${isQuoteExpanded ? 'h-[250px]' : 'h-[130px]'}`}>
+             
+             {/* SVG Quote Icon spostato in absolute sul parent e NON nella card con overflow-hidden */}
+             <svg className="absolute -top-3 right-4 w-8 h-8 text-gray-200 pointer-events-none z-20" fill="currentColor" viewBox="0 0 24 24"><path d="M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10h-9.983zm-14.017 0v-7.391c0-5.704 3.748-9.57 9-10.609l.996 2.151c-2.433.917-3.996 3.638-3.996 5.849h3.983v10h-9.983z" /></svg>
+
+             <div 
+               onClick={() => setIsQuoteExpanded(!isQuoteExpanded)}
+               className={`bg-gray-50 border border-gray-200 rounded-2xl p-4 absolute top-0 left-0 right-0 h-full flex flex-col shadow-sm hover:shadow-xl transition-all duration-500 z-10 overflow-hidden`}
+             >
+                <style>
+                  {`
+                    /* Rimuoviamo scrollbar-width standard per forzare Webkit su Chrome */
+                    .custom-quote-scrollbar::-webkit-scrollbar {
+                      width: 6px;
+                    }
+                    .custom-quote-scrollbar::-webkit-scrollbar-track {
+                      background: transparent;
+                    }
+                    .custom-quote-scrollbar::-webkit-scrollbar-thumb {
+                      background-color: #cbd5e1;
+                      border-radius: 10px;
+                    }
+                    .custom-quote-scrollbar::-webkit-scrollbar-button {
+                      display: none !important;
+                      width: 0px !important;
+                      height: 0px !important;
+                    }
+                  `}
+                </style>
+                <div className={`relative flex-1 min-h-0 custom-quote-scrollbar transition-all duration-500 ${isQuoteExpanded ? 'overflow-y-auto pr-2 pb-2 mt-6 mb-4' : 'overflow-hidden'}`}>
+                  <p className="text-gray-700 italic text-xs leading-relaxed">
+                    {!isQuoteExpanded 
+                      ? "\"Credo che la coscienza umana sia un tragico passo falso dell'evoluzione. Siamo diventati troppo consapevoli di noi stessi, la natura ha creato un aspetto della natura separato da se stessa...\""
+                      : "\"Credo che la coscienza umana sia un tragico passo falso dell'evoluzione. Siamo diventati troppo consapevoli di noi stessi, la natura ha creato un aspetto della natura separato da se stessa, siamo creature che non dovrebbero esistere per le leggi della natura. E penso che l'unica cosa onorevole che la nostra specie possa fare sia negare la nostra programmazione, smetterla di riprodurci, procedere mano nella mano verso l'estinzione, un'ultima notte, fratelli e sorelle, che si tirano fuori da un patto iniquo.\""
+                    }
+                  </p>
+                </div>
+
+                <p className="text-[10px] font-bold text-gray-400 text-right shrink-0 mt-2 relative z-10">S01E01 True Detective</p>
+                
+                {/* Coda del fumetto */}
+                <div className={`absolute -bottom-2 left-6 w-4 h-4 bg-gray-50 border-b border-l border-gray-200 transform -rotate-45 z-0 transition-opacity duration-300 ${isQuoteExpanded ? 'opacity-0' : 'opacity-100'}`}></div>
              </div>
-             <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm">
-                <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-             </div>
-           </div>
-           
-           {/* CITAZIONI (Nuvoletta) */}
-           <div className="relative mt-2 mb-4 mx-2 drop-shadow-sm">
-             <div className="bg-gray-50 border border-gray-200 rounded-2xl p-4 relative">
-                <svg className="absolute -top-3 right-4 w-8 h-8 text-gray-200" fill="currentColor" viewBox="0 0 24 24"><path d="M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10h-9.983zm-14.017 0v-7.391c0-5.704 3.748-9.57 9-10.609l.996 2.151c-2.433.917-3.996 3.638-3.996 5.849h3.983v10h-9.983z" /></svg>
-                <p className="text-gray-700 italic text-sm font-medium leading-relaxed">
-                  "I am the one who knocks."
-                </p>
-                <p className="text-xs font-bold text-gray-400 mt-2 text-right">stagione 04 episodio 06, Breaking Bad</p>
-             </div>
-             {/* Coda del fumetto */}
-             <div className="absolute -bottom-2 left-6 w-4 h-4 bg-gray-50 border-b border-l border-gray-200 transform -rotate-45"></div>
            </div>
 
-           {/* CALENDARIO USCITE (sostituisce prossime uscite) */}
-           <div className="mx-2 mb-4">
-             <UpcomingCalendarWidget />
+           {/* CALENDARIO / LOCANDINE */}
+           <div className="mx-2 mb-4 overflow-visible flex-1 flex flex-col min-h-0 relative">
+             <div className={`absolute inset-0 transition-all duration-500 ease-in-out origin-top flex flex-col min-h-0 ${isQuoteExpanded ? 'opacity-0 pointer-events-none translate-y-4' : 'opacity-100 translate-y-0 delay-100'}`}>
+               <UpcomingCalendarWidget />
+             </div>
+             <div className={`absolute top-0 left-0 right-0 transition-all duration-500 ease-in-out origin-top flex flex-col min-h-0 ${isQuoteExpanded ? 'opacity-100 translate-y-0 delay-100' : 'opacity-0 pointer-events-none -translate-y-4'}`}>
+               <UpcomingEpisodesWidget />
+             </div>
            </div>
 
         </div>
 
       </div>
+
+      <RandomSeriesModal 
+        isOpen={isRandomModalOpen} 
+        onClose={() => setRandomModalOpen(false)} 
+        series={series || []} 
+        onSeriesClick={(series) => {
+          // TODO: implementare modale serie
+          console.log('Apri modale serie per:', series);
+        }}
+      />
+
     </div>
   );
 };

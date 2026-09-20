@@ -351,8 +351,8 @@ Nuovo modulo completo per gestire, catalogare e monitorare l'intrattenimento per
 - **Stato Visione**: `Watchlist / Da vedere`, `Visto`.
 - **Dettagli & Valutazione**: Data di visione, voto personale, recensione/commento rapido, link al trailer o scheda informativa.
 
-#### 📺 3. Sotto-sezione Serie TV (🟡 UI Base Completata)
-- **Stato Attuale (Frontend)**: Realizzato layout a griglia *bento* su desktop con top bar a 3 indicatori ("Ultima Aggiunta", "Ultimo Episodio", "Ultima Completata"), barra di completamento annuale, citazioni casuali stile "fumetto" e widget a scorrimento (Carousel) per le "Prossime Uscite" a fondo sidebar. Supporto fallback `no-poster.png` e scroller armonizzati (`mask-image`).
+#### 📺 3. Sotto-sezione Serie TV (✅ UI Base Completata)
+- **Stato Attuale (Frontend)**: Realizzato layout a griglia *bento* su desktop con top bar a 3 indicatori ("Ultima Aggiunta", "Ultimo Episodio", "Ultima Completata"). Migliorata interfaccia citazioni: scrollbar nativa Webkit con frecce rimosse forzatamente e padding adattivo all'espansione. Implementato un **meccanismo di swap dinamico** nella sidebar: in stato ridotto mostra il Calendario, in stato espanso mostra le locandine "Prossime Uscite" a carousel per ottimizzare lo spazio. Supporto fallback `no-poster.png` e scroller armonizzati (`mask-image`).
 - **Dati Tracciati**: Titolo, ideatore/regista, genere, piattaforma di streaming, locandina, numero totale di stagioni ed episodi.
 - **Tracking Avanzamento**: Gestione dettagliata del progresso (es. "Stagione 2 - Episodio 7"), pulsante rapido touch/click per avanzare di un episodio visto (+1 episodio).
 - **Stato Serie**: `Da iniziare`, `In corso`, `In attesa di nuova stagione`, `Completata`, `Mollata`.

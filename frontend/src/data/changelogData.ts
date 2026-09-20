@@ -29,14 +29,17 @@ export const CHANGELOG_HISTORY: ChangelogItem[] = [
       'Nuovo layout "Prossime Uscite" a carousel orizzontale a fondo sidebar.',
       'Sostituita la card delle citazioni con un widget estetico a nuvoletta.',
       'Immagine di default (no-poster.png) locale come fallback automatico delle locandine.',
+      'Implementato swap dinamico tra Calendario mensile e Carousel Locandine in base all\'espansione della citazione.',
     ],
     improvements: [
       'Sostituita la scrollbar primaria con uno scorrimento smussato a gradiente tramite CSS mask-image.',
       'Adottata la modal-scrollbar tenue per integrarsi perfettamente con il tema chiaro.',
       'Rimossi pulsanti ridondanti per preparare lo spazio alla futura integrazione di ricerca inline.',
+      'Rifiniti spazi e margini interni della citazione espansa per una lettura più chiara.',
     ],
     fixes: [
       'Corretto l\'errore 500 durante la chiamata `/search` API abbassando la restrizione StrictBaseModel (`extra="ignore"`) in `backend/domains/trackers/schemas.py`.',
+      'Forzata la rimozione completa dei bottoni (frecce) nativi di Chrome sulle scrollbar personalizzate.',
     ],
   },
   {
