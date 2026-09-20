@@ -43,6 +43,7 @@ Questo documento serve a tracciare in modo strutturato:
 | **TECH-001** | **Verifica & Ottimizzazione Bundle APK Android (Code-Splitting)** | `build` / APK | N/A | 🟢 Completato | Media |
 | **TECH-002** | Spostamento Tasto Switch in Impostazioni / Danger Zone | `routing` / UI | N/A | 🟢 Completato | Bassa |
 | **TECH-003** | **Persistenza Volume Uploads su Docker NAS** | `build` / docker | 🟢 Completato | 🟢 Completato | 🟢 **Completato** |
+| **SHOPPING-006** | **Ordinamento Intuitivo Unità di Misura Spesa (Canoniche + Alfabetico Comune con Divisore)** | `shopping` / UI | 🟢 Completato | 🟢 Completato | 🟢 **Completato** |
 
 *Legenda:*
 - 🟢 **Completato**: Pronto, testato o supportato a livello di sistema/API.
@@ -120,6 +121,7 @@ Modulo completo per l'inserimento rapido dei prezzi a catalogo, tracciamento sto
 - **Pre-selezione Lista & Gestione Ruoli Gruppo nello Storico Prezzi**: Inclusi `shopping_list_id` e `unit_id` nella risposta API e pre-selezionata la lista nel modale di modifica. Applicata la verifica dei ruoli del gruppo (`owner`, `admin`, `editor`, `reader`): per gli utenti con ruolo Lettore (`reader`), i tasti di modifica/eliminazione vengono nascosti (sola visualizzazione) e bloccati con risposta HTTP 403 Forbidden dal server backend.
 - **Fix Z-Index Negozio Mobile**: Modale di selezione e creazione negozio portati a `z-[20000]` per sovrapporsi correttamente alla modale rapida mobile.
 - **Invarianza Case-Insensitive Gruppi**: Invito membri nei gruppi spesa reso totalmente case-insensitive lato backend.
+- **[SHOPPING-006] Ordinamento Intuitivo Unità di Misura Spesa (✅ Completato)**: Riorganizzato l'elenco delle unità di misura (`ShoppingUnitSelect`) nei form di inserimento/modifica articolo e archivio prezzi. Mantenuti invariati in testa i primi 3 gruppi canonici (Pesi/Masse, Liquidi/Volumi, Lunghezze) seguiti da una linea di confine divisoria e da tutte le altre unità (imballaggi, contenitori, porzioni) raggruppate in stretto ordine alfabetico con ordinamento dinamico per eventuali nuove unità inserite a sistema.
 
 ---
 
