@@ -59,6 +59,7 @@ export const MobileRoutes: React.FC = () => {
         <Route path="/settings/archive" element={<MobileSettingsView subview="archive" />} />
         <Route path="/settings/changelog" element={<MobileSettingsView subview="changelog" />} />
         <Route path="/settings/info" element={<MobileSettingsView subview="changelog" />} />
+        <Route path="/settings/social" element={<MobileSettingsView subview="social" />} />
 
         {/* Sezioni di approfondimento accessibili dall'Hub Impostazioni */}
         <Route path="/admin" element={<AdminPage />} />

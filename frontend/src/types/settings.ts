@@ -1,6 +1,6 @@
 // src/types/settings.ts
 
-export type SettingsTabId = 'profile' | 'tasks' | 'integrations' | 'memory' | 'danger';
+export type SettingsTabId = 'profile' | 'preferences' | 'tasks' | 'integrations' | 'memory' | 'danger';
 
 export interface GoogleCalendarStatus {
   is_connected: boolean;
@@ -17,11 +17,16 @@ export interface UserServerSettings {
   max_subtask_depth_user: number | null;
   is_superuser: boolean;
   must_change_password: boolean;
+  profile_picture_url: string | null;
+  default_startup_page: string | null;
+  module_preferences: Record<string, boolean> | null;
 }
 
 export interface UserSettingsFormState {
   email: string;
   maxDepth: number | '';
+  defaultStartupPage: string;
+  modulePreferences: Record<string, boolean>;
 }
 
 export interface UserSettingsUpdatePayload {
@@ -30,6 +35,9 @@ export interface UserSettingsUpdatePayload {
   current_password?: string;
   new_password?: string;
   confirm_new_password?: string;
+  profile_picture_url?: string | null;
+  default_startup_page?: string | null;
+  module_preferences?: Record<string, boolean> | null;
 }
 
 export interface MemoryDiagnostics {

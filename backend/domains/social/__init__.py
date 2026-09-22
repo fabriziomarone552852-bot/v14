@@ -1,0 +1,3 @@
+"""
+Social domain module.
+"""

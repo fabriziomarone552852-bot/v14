@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { Link, useLocation, Outlet } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { SettingsIcon, SwitchSidebarIcon, ShoppingIcon, UniversityIcon, FreeTimeIcon, CountdownIcon, CalendarDayIcon, CalendarWeekIcon, CalendarMonthIcon, CalendarYearIcon, MenuBarsIcon, FilmIcon, TvIcon, BookIcon } from './shared/utils/Icons';
+import { useSocial } from '@/hooks/useSocial';
 
 interface SidebarItemProps {
   to: string;
@@ -35,6 +36,7 @@ interface AppShellLayoutProps {
 const AppShellLayout: React.FC<AppShellLayoutProps> = ({ onLogout }) => {
   const location = useLocation();
   const { user } = useAuth();
+  const { pendingRequests } = useSocial();
   
   // true = Sidebar estesa (w-64), false = Mini Sidebar con icone (w-20)
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
@@ -70,9 +72,14 @@ const AppShellLayout: React.FC<AppShellLayoutProps> = ({ onLogout }) => {
     isActive('/tags') ||
     isActive('/fornitori');
 
+  const prefs = user?.module_preferences || {};
+  const showAgenda = prefs.agenda !== false;
+  const showShopping = prefs.shopping !== false;
+  const showTrackers = prefs.trackers !== false;
+
   const mainNavItems = [
     { to: '/universita', label: 'Università', icon: <UniversityIcon className="w-6 h-6 shrink-0" /> },
-    { to: '/shopping', label: 'Shopping', icon: <ShoppingIcon className="w-6 h-6 shrink-0" /> }
+    ...(showShopping ? [{ to: '/shopping', label: 'Shopping', icon: <ShoppingIcon className="w-6 h-6 shrink-0" /> }] : []),
   ];
 
   const isTrackersActive = location.pathname.startsWith('/trackers');
@@ -115,6 +122,7 @@ const AppShellLayout: React.FC<AppShellLayoutProps> = ({ onLogout }) => {
           <nav className="flex-1 overflow-y-auto custom-scrollbar flex flex-col gap-1">
             
             {/* ITEM: AGENDA CON SOTTOMENU */}
+            {showAgenda && (
             <div 
               onMouseEnter={() => setIsAgendaHovered(true)} 
               onMouseLeave={() => setIsAgendaHovered(false)}
@@ -172,8 +180,10 @@ const AppShellLayout: React.FC<AppShellLayoutProps> = ({ onLogout }) => {
                 </div>
               )}
             </div>
+            )}
 
             {/* ITEM: TRACKERS CON SOTTOMENU */}
+            {showTrackers && (
             <div 
               onMouseEnter={() => setIsTrackersHovered(true)} 
               onMouseLeave={() => setIsTrackersHovered(false)}
@@ -218,6 +228,7 @@ const AppShellLayout: React.FC<AppShellLayoutProps> = ({ onLogout }) => {
                 </div>
               )}
             </div>
+            )}
 
             {/* ========================================= */}
             {/* VOCI PRINCIPALI MAPPATE IN AUTOMATICO */}
@@ -269,10 +280,13 @@ const AppShellLayout: React.FC<AppShellLayoutProps> = ({ onLogout }) => {
             <div className={`flex ${isSidebarOpen ? 'flex-row items-center justify-between px-6' : 'flex-col gap-4 items-center px-0'}`}>
               <Link
                 to="/settings"
-                className="p-2 rounded-xl text-gray-400 hover:bg-gray-700 hover:text-white transition-colors focus:outline-none"
+                className="p-2 rounded-xl text-gray-400 hover:bg-gray-700 hover:text-white transition-colors focus:outline-none relative"
                 title="Impostazioni"
               >
                 <SettingsIcon className="w-6 h-6" />
+                {pendingRequests.length > 0 && (
+                  <span className="absolute top-1.5 right-1.5 w-2.5 h-2.5 bg-red-500 border-2 border-slate-900 rounded-full animate-pulse"></span>
+                )}
               </Link>
               <button 
                 onClick={onLogout} 

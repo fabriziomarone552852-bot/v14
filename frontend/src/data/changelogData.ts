@@ -24,8 +24,14 @@ export const CHANGELOG_HISTORY: ChangelogItem[] = [
     highlights: [
       'Ridisegnata completamente la dashboard delle Serie TV con una nuova top bar a 3 schede e layout a scomparsa morbida.',
       'Risolto il crash del backend nella ricerca su TMDB dovuto a campi extra non permessi dalla validazione Pydantic.',
+      'Risolto un bug che causava il crash dell\'applicazione (Errore 500 senza CORS) quando una Serie TV salvata nel tracking dell\'utente non aveva più i metadati corrispondenti nel catalogo (orfana).',
+      'Corretto un bug nel motore di sincronizzazione offline che riprovava all\'infinito le richieste fallite con errori 4xx (es. "Hai già aggiunto questa serie"), intasando la console ad ogni avvio.',
+      'Aggiunto un gestore globale degli errori 500 nel backend per scrivere i dettagli dei crash in un file diagnostico `error_500.log` ed evitare blocchi da parte dei browser dovuti alla mancanza di header CORS.',
     ],
     features: [
+      'Backend Serie TV Completo: Nuova architettura DB a 5 tabelle con sincronizzazione Lazy Asincrona parallela tramite TMDB per velocità estrema.',
+      'Pattern "Diario" (Rewatch): Il tracking degli episodi permette visioni multiple, memorizzando lo storico completo (date e note private).',
+      'Privacy (Impostazioni Social): La visibilità delle recensioni delle Serie TV può essere limitata agli amici (friends_only).',
       'Nuovo layout "Prossime Uscite" a carousel orizzontale a fondo sidebar.',
       'Sostituita la card delle citazioni con un widget estetico a nuvoletta.',
       'Immagine di default (no-poster.png) locale come fallback automatico delle locandine.',

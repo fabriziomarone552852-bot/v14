@@ -2,10 +2,12 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Calendar, ShoppingBag, Settings } from 'lucide-react';
+import { useSocial } from '@/hooks/useSocial';
 
 export const MobileBottomNav: React.FC = () => {
   const location = useLocation();
   const path = location.pathname;
+  const { pendingRequests } = useSocial();
 
   // Active state detection
   const isAgendaActive =
@@ -86,6 +88,9 @@ export const MobileBottomNav: React.FC = () => {
             <Settings className={`w-5 h-5 transition-transform ${isSettingsActive ? 'scale-110 stroke-[2.5]' : 'stroke-2'}`} />
             {isSettingsActive && (
               <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1.5 h-1.5 bg-purple-600 rounded-full" />
+            )}
+            {pendingRequests.length > 0 && (
+              <span className="absolute -top-1 -right-1.5 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white ring-1 ring-red-200 shadow-sm" />
             )}
           </div>
           <span className="text-[11px] tracking-tight mt-1">Impostazioni</span>

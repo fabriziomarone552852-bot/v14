@@ -292,3 +292,32 @@ Gestione degli stati di avvio dell'applicazione, verifica integrità delle tabel
 - `LEGACY_SCHEMA_DETECTED`: Tabelle presenti ma metadati assenti, richiede `POST /api/system-boot/metadata/init`.
 - `SUPERUSER_REQUIRED`: Schema pronto, richiede `POST /api/system-boot/superuser`.
 - `READY`: Sistema completamente operativo, accesso autorizzato all'applicazione.
+
+---
+
+## 20. Dominio `media` (Gestione Immagini & Upload)
+
+### Responsabilità
+Gestione centralizzata dell'upload, ottimizzazione (WebP) e archiviazione delle immagini per l'intera applicazione.
+Fornisce strumenti lato client per la risoluzione dinamica degli URL sia in ambiente Web che in app Mobile (Capacitor/Tailscale).
+
+### Regole Operative e Standard (Frontend)
+
+Per garantire uniformità in tutte le sezioni dell'app che richiedono il caricamento di immagini (foto profilo, copertine routine, countdown, ecc.), seguire rigorosamente questo pattern:
+
+1. **Service API Standard (mediaService)**:
+   - Utilizzare **esclusivamente** `mediaService.uploadImage(file, folder)` importato da `@/api/mediaService`.
+   - Il parametro `folder` serve a categorizzare il salvataggio sul server (es. `'profiles'`, `'routines'`, `'countdowns'`).
+   - Il metodo si occupa dell'invio come `FormData` all'endpoint `/media/upload`.
+   - Il server risponde con l'oggetto contenente l'URL pubblico (es. `{ url: '/uploads/profiles/...webp' }`).
+
+2. **Risoluzione URL Immagini (esolveImageUrl)**:
+   - Utilizzare **sempre** l'helper `resolveImageUrl(url, fallback)` da `@/utils/imageUtils` prima di passare l'URL a un tag `<img>`.
+   - Questo assicura che i percorsi relativi restituiti dal server (`/uploads/...`) vengano correttamente concatenati all'API URL base (fondamentale per far funzionare le immagini su mobile).
+   - In caso l'URL sia `null` o assente, passa un fallback (es. `'/default_avatar.png'` che si aspetta di trovarsi in `frontend/public/`).
+
+3. **Pattern UI (Hidden File Input)**:
+   - Non usare i classici `<input type="file">` visibili. 
+   - L'elemento visibile (es. un `<div>` circolare o la cover) deve reagire all'`onClick` invocando il metodo `.click()` su una `ref` nascosta.
+   - Mostrare un'icona di overlay `onHover` (es. icona della macchina fotografica) per far capire all'utente che l'elemento è cliccabile.
+   - Prevedere uno stato `isUploadingImage` locale che mostri un `LoadingIcon` mentre la Promise di caricamento è in corso (bloccando ulteriori click).

@@ -1,5 +1,5 @@
 // frontend/src/components/dashboard/calendar/MonthDayParts/MonthDayTasksPopover.tsx
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import type { DbTask } from '@/types';
 import { getHexColor } from '@/utils/uiUtils';
 import { useOutsideClick } from '@/hooks/useOutsideClick';
@@ -14,6 +14,7 @@ interface MonthDayTasksPopoverProps {
   onToggleTask?: (task: DbTask, newStatus: boolean) => void;
   onAddTaskClick?: (dateStr?: string) => void;
   onAddEventClick?: (dateStr: string) => void;
+  onToggle?: (isOpen: boolean) => void;
 }
 
 export const MonthDayTasksPopover: React.FC<MonthDayTasksPopoverProps> = ({
@@ -24,8 +25,15 @@ export const MonthDayTasksPopover: React.FC<MonthDayTasksPopoverProps> = ({
   onToggleTask,
   onAddTaskClick,
   onAddEventClick,
+  onToggle,
 }) => {
   const [isTaskPopoverOpen, setIsTaskPopoverOpen] = useState<boolean>(false);
+
+  useEffect(() => {
+    if (onToggle) {
+      onToggle(isTaskPopoverOpen);
+    }
+  }, [isTaskPopoverOpen, onToggle]);
 
   const taskPopoverRef = useOutsideClick<HTMLDivElement>(() => {
     if (isTaskPopoverOpen) setIsTaskPopoverOpen(false);

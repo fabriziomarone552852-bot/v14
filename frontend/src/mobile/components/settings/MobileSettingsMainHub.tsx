@@ -1,7 +1,8 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import type { UserServerSettings } from '@/types/settings';
-import type { useAuth } from '@/context/AuthContext';
+import { useAuth } from '@/context/AuthContext';
+import { useSocial } from '@/hooks/useSocial';
 import type { useGoogleCalendarIntegration } from '@/hooks/useGoogleCalendarIntegration';
 import { MobileSettingsProfileHeader } from './MobileSettingsProfileHeader';
 import { MobileSettingsAdminBanner } from './MobileSettingsAdminBanner';
@@ -30,15 +31,21 @@ export const MobileSettingsMainHub: React.FC<MobileSettingsMainHubProps> = ({
   setShowLogoutConfirm,
 }) => {
   const navigate = useNavigate();
+  const { updateUser } = useAuth();
+  const { pendingRequests } = useSocial();
 
   return (
     <div className="w-full space-y-4 animate-fadeIn pb-12">
       {/* 1. SCHEDA PROFILO UTENTE / HEADER COMPATTO */}
       <MobileSettingsProfileHeader
+        user={user}
+        updateUser={updateUser}
         displayUsername={displayUsername}
         roleName={roleName}
         isSuperuser={user?.is_superuser}
         email={settings?.email}
+        onSocialClick={() => navigate('/settings/social')}
+        pendingRequestsCount={pendingRequests.length}
       />
 
       {/* 2. SEZIONE SUPERUSER (Se Admin) */}

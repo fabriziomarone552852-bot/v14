@@ -38,6 +38,7 @@ from backend.domains.sync.router import router as sync_router
 from backend.domains.tasks.router import router as tasks_router
 from backend.domains.trackers.router import router as trackers_router
 from backend.domains.users.router import router as users_router
+from backend.domains.social.router import router as social_router
 
 
 def ensure_shopping_seed_data() -> None:
@@ -125,6 +126,28 @@ app.include_router(notifications_router)
 app.include_router(media_router)
 app.include_router(feedback_router)
 app.include_router(trackers_router)
+app.include_router(social_router)
+
+from fastapi import Request
+from fastapi.responses import JSONResponse
+from fastapi.exceptions import ResponseValidationError
+import traceback
+
+@app.exception_handler(Exception)
+async def global_exception_handler(request: Request, exc: Exception):
+    with open("error_500.log", "a") as f:
+        f.write(f"500 ERROR at {request.url}\n")
+        f.write(traceback.format_exc())
+        f.write("\n\n")
+    return JSONResponse(status_code=500, content={"detail": "Internal Server Error from handler"})
+
+@app.exception_handler(ResponseValidationError)
+async def validation_exception_handler(request: Request, exc: ResponseValidationError):
+    with open("error_500.log", "a") as f:
+        f.write(f"VALIDATION ERROR at {request.url}\n")
+        f.write(str(exc.errors()))
+        f.write("\n\n")
+    return JSONResponse(status_code=500, content={"detail": "Response Validation Error"})
 
 # Serving file statici caricati su disco
 os.makedirs(get_settings().upload_dir, exist_ok=True)

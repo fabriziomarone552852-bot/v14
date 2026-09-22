@@ -12,4 +12,7 @@ export interface UserResponse {
   email: string;
   is_superuser?: boolean;
   max_subtask_depth_user?: number | null;
+  profile_picture_url?: string | null;
+  default_startup_page?: string | null;
+  module_preferences?: Record<string, boolean> | null;
 }

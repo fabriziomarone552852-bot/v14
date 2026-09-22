@@ -22,12 +22,14 @@ import backend.domains.categories.models
 import backend.domains.config.models
 import backend.domains.countdowns.models
 import backend.domains.events.models
+import backend.domains.feedback.models
 import backend.domains.google_calendar.models
 import backend.domains.habits.models
 import backend.domains.monthly_entries.models
 import backend.domains.notifications.models
 import backend.domains.planning.models
 import backend.domains.shopping.models
+import backend.domains.social.models
 import backend.domains.system_boot.models
 import backend.domains.tasks.models
 import backend.domains.trackers.models

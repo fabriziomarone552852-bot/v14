@@ -29,16 +29,16 @@ def seed_default_shopping_suppliers_for_user(db: Session, user_id: int) -> None:
     supplier_status_code = config_repo.get_config_code(db, "supplier_status", "active")
     default_status_id = supplier_status_code.id if supplier_status_code else 1
 
+    existing_suppliers = db.query(ShoppingSupplier.id, ShoppingSupplier.name_normalized).all()
+    existing_ids = {s.id for s in existing_suppliers}
+    existing_names = {s.name_normalized for s in existing_suppliers}
+
     suppliers_data = load_seed_shopping_suppliers()
     for item in suppliers_data:
         normalized = item["name_normalized"]
-        existing = db.query(ShoppingSupplier).filter(
-            ShoppingSupplier.name_normalized == normalized
-        ).first()
-        if existing is not None:
+        if normalized in existing_names:
             continue
 
-        id_occupied = db.query(ShoppingSupplier).filter(ShoppingSupplier.id == item["id"]).first()
         supplier_kwargs = {
             "name_normalized": normalized,
             "type_code": item.get("type_code") or 1,
@@ -46,11 +46,13 @@ def seed_default_shopping_suppliers_for_user(db: Session, user_id: int) -> None:
             "created_by_user_id": user_id,
             "created_at": item.get("created_at") or _now(),
         }
-        if not id_occupied:
+        if item["id"] not in existing_ids:
             supplier_kwargs["id"] = item["id"]
+            existing_ids.add(item["id"])
 
         obj = ShoppingSupplier(**supplier_kwargs)
         db.add(obj)
+        existing_names.add(normalized)
     db.flush()
 
 
@@ -58,51 +60,66 @@ def seed_default_shopping_products_for_user(db: Session, user_id: int) -> None:
     """Popola i prodotti da shopping_products.csv collegandoli ai marchi corretti."""
     all_suppliers = db.query(ShoppingSupplier).all()
     suppliers_by_name = {s.name_normalized: s.id for s in all_suppliers}
+    suppliers_by_id = {s.id for s in all_suppliers}
+
+    existing_products = db.query(ShoppingProduct.id, ShoppingProduct.name_normalized).all()
+    existing_ids = {p.id for p in existing_products}
+    existing_names = {p.name_normalized for p in existing_products}
 
     products_data = load_seed_shopping_products()
     for item in products_data:
         normalized = item["name_normalized"]
-        existing = db.query(ShoppingProduct).filter(
-            ShoppingProduct.name_normalized == normalized
-        ).first()
-        if existing is not None:
+        if normalized in existing_names:
             continue
 
         brand_id = item.get("brand_id")
         if not brand_id and item.get("brand_name_text"):
             brand_id = suppliers_by_name.get(item["brand_name_text"])
 
-        if brand_id and not db.query(ShoppingSupplier).filter(ShoppingSupplier.id == brand_id).first():
+        if brand_id and brand_id not in suppliers_by_id:
             brand_id = None
 
-        id_occupied = db.query(ShoppingProduct).filter(ShoppingProduct.id == item["id"]).first()
         product_kwargs = {
             "name_normalized": normalized,
             "brand_id": brand_id,
             "created_by_user_id": user_id,
             "created_at": item.get("created_at") or _now(),
         }
-        if not id_occupied:
+        if item["id"] not in existing_ids:
             product_kwargs["id"] = item["id"]
+            existing_ids.add(item["id"])
 
         obj = ShoppingProduct(**product_kwargs)
         db.add(obj)
+        existing_names.add(normalized)
     db.flush()
 
 
 def seed_default_inventory_batches_for_user(db: Session, user_id: int) -> None:
     """Popola i lotti di spesa e lo storico prezzi da inventory_batch.csv."""
-    all_products = db.query(ShoppingProduct).all()
+    all_products = db.query(ShoppingProduct.id, ShoppingProduct.name_normalized).all()
     products_by_name = {p.name_normalized: p.id for p in all_products}
+    products_by_id = {p.id for p in all_products}
 
-    all_suppliers = db.query(ShoppingSupplier).all()
+    all_suppliers = db.query(ShoppingSupplier.id, ShoppingSupplier.name_normalized).all()
     suppliers_by_name = {s.name_normalized: s.id for s in all_suppliers}
+    suppliers_by_id = {s.id for s in all_suppliers}
 
     seed_suppliers = load_seed_shopping_suppliers()
     seed_supp_name_map = {ss["id"]: ss["name_normalized"] for ss in seed_suppliers}
 
     seed_products = load_seed_shopping_products()
     seed_prod_name_map = {sp["id"]: sp["name_normalized"] for sp in seed_products}
+    
+    existing_batches = db.query(
+        InventoryBatch.id,
+        InventoryBatch.product_id,
+        InventoryBatch.purchase_date,
+        InventoryBatch.purchase_price
+    ).filter(InventoryBatch.deleted_at.is_(None)).all()
+    
+    existing_ids = {b.id for b in existing_batches}
+    existing_keys = {(b.product_id, b.purchase_date, b.purchase_price) for b in existing_batches}
 
     batches_data = load_seed_inventory_batches()
     for item in batches_data:
@@ -110,10 +127,8 @@ def seed_default_inventory_batches_for_user(db: Session, user_id: int) -> None:
         prod_name = seed_prod_name_map.get(csv_prod_id)
         target_prod_id = products_by_name.get(prod_name) if prod_name else None
 
-        if not target_prod_id:
-            prod_obj = db.query(ShoppingProduct).filter(ShoppingProduct.id == csv_prod_id).first()
-            if prod_obj:
-                target_prod_id = prod_obj.id
+        if not target_prod_id and csv_prod_id in products_by_id:
+            target_prod_id = csv_prod_id
 
         if not target_prod_id:
             continue
@@ -122,21 +137,13 @@ def seed_default_inventory_batches_for_user(db: Session, user_id: int) -> None:
         supp_name = seed_supp_name_map.get(csv_supp_id) if csv_supp_id else None
         target_supp_id = suppliers_by_name.get(supp_name) if supp_name else None
 
-        if not target_supp_id and csv_supp_id:
-            supp_obj = db.query(ShoppingSupplier).filter(ShoppingSupplier.id == csv_supp_id).first()
-            if supp_obj:
-                target_supp_id = supp_obj.id
+        if not target_supp_id and csv_supp_id in suppliers_by_id:
+            target_supp_id = csv_supp_id
 
-        existing = db.query(InventoryBatch).filter(
-            InventoryBatch.product_id == target_prod_id,
-            InventoryBatch.purchase_date == item["purchase_date"],
-            InventoryBatch.purchase_price == item["purchase_price"],
-            InventoryBatch.deleted_at.is_(None),
-        ).first()
-        if existing is not None:
+        key = (target_prod_id, item["purchase_date"], item["purchase_price"])
+        if key in existing_keys:
             continue
 
-        id_occupied = db.query(InventoryBatch).filter(InventoryBatch.id == item["id"]).first()
         batch_kwargs = {
             "product_id": target_prod_id,
             "list_item_id": item.get("list_item_id"),
@@ -151,11 +158,13 @@ def seed_default_inventory_batches_for_user(db: Session, user_id: int) -> None:
             "created_at": item.get("created_at") or item["purchase_date"],
             "updated_at": item.get("updated_at") or item["purchase_date"],
         }
-        if not id_occupied:
+        if item["id"] not in existing_ids:
             batch_kwargs["id"] = item["id"]
+            existing_ids.add(item["id"])
 
         obj = InventoryBatch(**batch_kwargs)
         db.add(obj)
+        existing_keys.add(key)
     db.flush()
 from backend.domains.shopping.schemas.catalog import (
     ShoppingProductCreate,

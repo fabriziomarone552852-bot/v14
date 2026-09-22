@@ -200,9 +200,40 @@ const TVSeriesPage: React.FC = () => {
       const data = await api.post<any, any>('/trackers/series', payload);
       return data;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['trackers', 'series'] });
+    onMutate: async (payload) => {
+      await queryClient.cancelQueries({ queryKey: ['trackers', 'series'] });
+      const previousSeries = queryClient.getQueryData(['trackers', 'series']);
+      
+      const seriesDetails = searchResults?.results?.find((s: any) => s.id === payload.tmdb_id);
+
+      if (seriesDetails) {
+        queryClient.setQueryData(['trackers', 'series'], (old: any) => {
+          const newSeries = {
+            id: -Math.floor(Math.random() * 100000), // Fake ID
+            tmdb_id: seriesDetails.id,
+            title: seriesDetails.name,
+            original_title: seriesDetails.original_name || '',
+            overview: seriesDetails.overview || '',
+            poster_path: seriesDetails.poster_path || '',
+            backdrop_path: seriesDetails.backdrop_path || '',
+            status: payload.status,
+            added_at: new Date().toISOString(),
+            episodes: [],
+          };
+          return [newSeries, ...(old || [])];
+        });
+      }
+      return { previousSeries };
     },
+    onError: (err: any, _variables, context: any) => {
+      if (context?.previousSeries) {
+        queryClient.setQueryData(['trackers', 'series'], context.previousSeries);
+      }
+      console.error("Error adding series:", err);
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ['trackers', 'series'] });
+    }
   });
 
   const handleAdd = (tmdbId: number, e: React.MouseEvent) => {

@@ -351,7 +351,9 @@ Nuovo modulo completo per gestire, catalogare e monitorare l'intrattenimento per
 - **Stato Visione**: `Watchlist / Da vedere`, `Visto`.
 - **Dettagli & Valutazione**: Data di visione, voto personale, recensione/commento rapido, link al trailer o scheda informativa.
 
-#### 📺 3. Sotto-sezione Serie TV (✅ UI Base Completata)
+#### 📺 3. Sotto-sezione Serie TV (✅ UI Base e Backend Completati)
+- **Stato Attuale (Backend 🟢 Completato)**: Architettura a 5 tabelle definita (`TMDBSeries`, `TMDBEpisode`, `UserSeriesTracking`, `UserEpisodeLog`, `TVQuote`). Implementato Lazy Update asincrono parallelo da TMDB. Endpoint API pronti per rotte CRUD, statistiche dashboard (obiettivi annuali, ultimi visti), action per avanzamento rapido (+1 episodio) e gestione note/visibilità.
+  - 🔄 **Feature Avanzata (Rewatch / Diary Pattern)**: Implementato il tracciamento degli episodi in formato "Logbook" (multi-visione). Il sistema registra le visioni multiple contando il `watch_count`, restituendo l'intero storico all'utente e rimuovendo gradualmente solo le visioni più recenti in caso di revoca della spunta.
 - **Stato Attuale (Frontend)**: Realizzato layout a griglia *bento* su desktop con top bar a 3 indicatori ("Ultima Aggiunta", "Ultimo Episodio", "Ultima Completata"). Migliorata interfaccia citazioni: scrollbar nativa Webkit con frecce rimosse forzatamente e padding adattivo all'espansione. Implementato un **meccanismo di swap dinamico** nella sidebar: in stato ridotto mostra il Calendario, in stato espanso mostra le locandine "Prossime Uscite" a carousel per ottimizzare lo spazio. Supporto fallback `no-poster.png` e scroller armonizzati (`mask-image`).
 - **Dati Tracciati**: Titolo, ideatore/regista, genere, piattaforma di streaming, locandina, numero totale di stagioni ed episodi.
 - **Tracking Avanzamento**: Gestione dettagliata del progresso (es. "Stagione 2 - Episodio 7"), pulsante rapido touch/click per avanzare di un episodio visto (+1 episodio).
@@ -693,3 +695,5 @@ Breve spiegazione di cosa fa la funzionalità dal punto di vista utente.
 ```
 ```
 
+-   [ x ]   * * A g g i o r n a m e n t o   O t t i m i s t i c o   &   B u g   F i x e s   ( S e t t e m b r e   2 0 2 6 ) * * :   R i s o l t o   c r a s h   ( E r r o r e   5 0 0 )   p e r   l e   s e r i e   o r f a n e ,   c o r r e t t o   l o o p   d e l   s y n c   e n g i n e   s u   e r r o r i   4 0 0   e   a g g i u n t a   l ' i n t e r f a c c i a   o t t i m i s t i c a   ( O p t i m i s t i c   U I )   p e r   l e   S e r i e   T V .  
+ 

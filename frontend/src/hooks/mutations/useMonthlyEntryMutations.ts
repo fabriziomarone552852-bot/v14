@@ -115,6 +115,8 @@ export const useMonthlyEntryMutations = (queryKey: QueryKey) => {
 
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey });
+      queryClient.invalidateQueries({ queryKey: ['monthSync'] });
+      queryClient.invalidateQueries({ queryKey: ['monthReview'] });
       queryClient.invalidateQueries({ queryKey: ['monthly_entries'] });
       queryClient.invalidateQueries({ queryKey: ['tags_archive'] });
     },
@@ -147,6 +149,8 @@ export const useMonthlyEntryMutations = (queryKey: QueryKey) => {
 
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey });
+      queryClient.invalidateQueries({ queryKey: ['monthSync'] });
+      queryClient.invalidateQueries({ queryKey: ['monthReview'] });
       queryClient.invalidateQueries({ queryKey: ['monthly_entries'] });
       queryClient.invalidateQueries({ queryKey: ['tags_archive'] });
     },

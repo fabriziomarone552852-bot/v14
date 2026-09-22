@@ -112,17 +112,25 @@ export async function processOutboxQueue(customQueryClient?: QueryClient): Promi
         networkStore.setSyncState('offline');
         break;
       } else {
-        // Errore applicativo (es. 400, 404, 422): segna come fallito per non bloccare gli altri elementi
+        // Errore applicativo
         failed++;
         const errMsg = isAxiosError && err.response?.data && typeof err.response.data === 'object' && 'detail' in err.response.data
           ? String((err.response.data as { detail: unknown }).detail)
           : 'Errore durante la richiesta';
 
-        await outboxStore.updateItem(item.id, {
-          status: 'failed',
-          retryCount: item.retryCount + 1,
-          errorMessage: errMsg,
-        });
+        // Se l'errore è di tipo 4xx (Client Error come 400, 404, 422), la richiesta non avrà mai successo.
+        // Rimuoviamola dalla coda per evitare un loop infinito di retry inutili.
+        const status = isAxiosError && err.response ? err.response.status : 0;
+        if (status >= 400 && status < 500) {
+           console.warn(`[SyncEngine] Richiesta fallita con ${status} (${errMsg}). Rimuovo dalla coda per evitare loop.`);
+           await outboxStore.dequeue(item.id);
+        } else {
+           await outboxStore.updateItem(item.id, {
+             status: 'failed',
+             retryCount: item.retryCount + 1,
+             errorMessage: errMsg,
+           });
+        }
       }
     }
   }

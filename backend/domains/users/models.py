@@ -7,7 +7,7 @@ from __future__ import annotations
 from datetime import datetime
 from typing import TYPE_CHECKING, List, Optional
 
-from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, String, text
+from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, String, text, JSON
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from backend.core.database import Base
@@ -56,6 +56,10 @@ class User(Base):
         default=300,
         server_default=text("300"),
     )
+
+    profile_picture_url: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
+    default_startup_page: Mapped[Optional[str]] = mapped_column(String(50), nullable=True)
+    module_preferences: Mapped[Optional[dict]] = mapped_column(JSON, nullable=True)
 
     is_superuser: Mapped[bool] = mapped_column(
         Boolean,

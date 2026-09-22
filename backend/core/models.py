@@ -28,6 +28,7 @@ def import_all_models() -> None:
     import backend.domains.tasks.models  # noqa: F401
     import backend.domains.users.models  # noqa: F401
     import backend.domains.yearly_entries.models  # noqa: F401
+    import backend.domains.social.models  # noqa: F401
 
     ensure_database_schema_compat()
 

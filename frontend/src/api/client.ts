@@ -29,7 +29,8 @@ apiClient.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
     const token = localStorage.getItem('token');
     if (token && config.headers) {
-      config.headers.Authorization = `Bearer ${token}`;
+      // Prevent malformed headers if token somehow contains newlines/spaces
+      config.headers.Authorization = `Bearer ${token.trim().replace(/[\r\n]/g, '')}`;
     }
     return config;
   }, 

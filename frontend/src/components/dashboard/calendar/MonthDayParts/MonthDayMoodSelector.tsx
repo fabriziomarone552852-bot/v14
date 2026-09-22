@@ -1,5 +1,5 @@
 // frontend/src/components/dashboard/calendar/MonthDayParts/MonthDayMoodSelector.tsx
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import type { Category } from '@/types';
 import { CategoryGenre } from '@/types';
 import { useOutsideClick } from '@/hooks/useOutsideClick';
@@ -14,6 +14,7 @@ interface MonthDayMoodSelectorProps {
   allCategories?: Category[];
   popoverAlignClass: string;
   onMoodChange?: (dateStr: string, categoryId: number | null) => void;
+  onToggle?: (isOpen: boolean) => void;
 }
 
 export const MonthDayMoodSelector: React.FC<MonthDayMoodSelectorProps> = ({
@@ -22,9 +23,16 @@ export const MonthDayMoodSelector: React.FC<MonthDayMoodSelectorProps> = ({
   allCategories = [],
   popoverAlignClass,
   onMoodChange,
+  onToggle,
 }) => {
   const [isMoodMenuOpen, setIsMoodMenuOpen] = useState<boolean>(false);
   const [isCreateMoodModalOpen, setIsCreateMoodModalOpen] = useState<boolean>(false);
+
+  useEffect(() => {
+    if (onToggle) {
+      onToggle(isMoodMenuOpen);
+    }
+  }, [isMoodMenuOpen, onToggle]);
 
   const moodMenuRef = useOutsideClick<HTMLDivElement>(() => {
     if (isMoodMenuOpen) setIsMoodMenuOpen(false);

@@ -17,9 +17,10 @@ const LoginPage: React.FC = () => {
 
   useEffect(() => {
     if (isAuthenticated) {
-      navigate('/', { replace: true });
+      const startupPage = auth.user?.default_startup_page || '/';
+      navigate(startupPage, { replace: true });
     }
-  }, [isAuthenticated, navigate]);
+  }, [isAuthenticated, navigate, auth.user]);
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -39,7 +40,7 @@ const LoginPage: React.FC = () => {
       } else {
         await register(username, email, password);
       }
-      navigate('/', { replace: true });
+      // Il redirect avverrà tramite l'useEffect sopra non appena auth.user sarà popolato e isAuthenticated=true
     } catch {
       // error già gestito nel context
     }

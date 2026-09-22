@@ -7,6 +7,7 @@ import { ChangelogModal } from '@/components/modals/ChangelogModal';
 import { APP_VERSION_NAME } from '@/data/changelogData';
 
 import ProfileSection from '@/components/settings/ProfileSection';
+import PreferencesSection from '@/components/settings/PreferencesSection';
 import TaskHierarchySection from '@/components/settings/TaskHierarchySection';
 import IntegrationsSection from '@/components/settings/IntegrationsSection';
 import MemorySection from '@/components/settings/MemorySection';
@@ -120,6 +121,21 @@ export const UserSettingsPage: React.FC = () => {
                 email={logic.form.email}
                 onEmailChange={(val) => logic.setForm((prev) => ({ ...prev, email: val }))}
                 onChangePasswordSubmit={logic.handleChangePasswordSubmit}
+                disabled={logic.saving}
+              />
+            )}
+
+            {logic.activeTab === 'preferences' && (
+              <PreferencesSection
+                defaultStartupPage={logic.form.defaultStartupPage}
+                onDefaultStartupPageChange={(val) => logic.setForm((prev) => ({ ...prev, defaultStartupPage: val }))}
+                modulePreferences={logic.form.modulePreferences}
+                onModulePreferenceChange={(mod, checked) => 
+                  logic.setForm((prev) => ({ 
+                    ...prev, 
+                    modulePreferences: { ...prev.modulePreferences, [mod]: checked } 
+                  }))
+                }
                 disabled={logic.saving}
               />
             )}

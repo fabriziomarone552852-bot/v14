@@ -41,6 +41,9 @@ class UserResponse(ORMBaseModel):
     max_subtask_depth_user: int | None = 3
     is_superuser: bool = False
     must_change_password: bool = False
+    profile_picture_url: str | None = None
+    default_startup_page: str | None = None
+    module_preferences: dict | None = None
     deleted_at: datetime | None = None
 
 
@@ -48,6 +51,7 @@ class UserPublicResponse(ORMBaseModel):
     """Public response model with limited user info."""
     id: int
     username: str
+    profile_picture_url: str | None = None
 
 
 class UserSettingsResponse(ORMBaseModel):
@@ -58,6 +62,9 @@ class UserSettingsResponse(ORMBaseModel):
     max_subtask_depth_user: int | None = 3
     is_superuser: bool = False
     must_change_password: bool = False
+    profile_picture_url: str | None = None
+    default_startup_page: str | None = None
+    module_preferences: dict | None = None
 
 
 class UserAdminResponse(ORMBaseModel):
@@ -91,6 +98,9 @@ class UserSettingsUpdate(StrictBaseModel):
         max_length=PASSWORD_MAX_LENGTH,
     )
     max_subtask_depth_user: int | None = Field(None, ge=1, le=10)
+    profile_picture_url: str | None = None
+    default_startup_page: str | None = None
+    module_preferences: dict | None = None
 
     @model_validator(mode="after")
     def validate_password_change(self) -> "UserSettingsUpdate":

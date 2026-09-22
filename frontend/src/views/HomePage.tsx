@@ -17,6 +17,7 @@ import { YearProgressWidget } from '@/components/dashboard/YearProgressWidget';
 import { DailyQuoteWidget } from '@/components/dashboard/DailyQuoteWidget';
 import { LoadingIcon } from '@/components/shared/utils/Icons';
 
+
 // Utilities
 import { buildTaskTreeForHome, filterAndSortTree } from '@/utils/taskUtils';
 import { calculateYearProgress, formatDateString } from '@/utils/dateUtils';

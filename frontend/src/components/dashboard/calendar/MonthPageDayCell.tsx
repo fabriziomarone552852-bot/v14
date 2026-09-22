@@ -52,6 +52,7 @@ export const MonthPageDayCell: React.FC<MonthPageDayCellProps> = ({
   showMoodSelector = false,
 }) => {
   const [isHovered, setIsHovered] = useState<boolean>(false);
+  const [isMenuOpen, setIsMenuOpen] = useState<boolean>(false);
   const clickTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const { data: dbCategories = [] } = useCategories();
@@ -92,7 +93,7 @@ export const MonthPageDayCell: React.FC<MonthPageDayCellProps> = ({
       style={{ ...cellBgStyle, ...cellBorderStyle }}
       className={`relative p-1 border rounded-lg cursor-pointer min-h-0 flex flex-col gap-1 group transition-colors duration-300 ${
         activeMood ? 'border-2' : 'border-gray-200 bg-gray-50 hover:bg-blue-100/50 hover:border-blue-400'
-      } ${isHovered ? 'z-[1000]' : 'z-10'}`}
+      } ${isHovered || isMenuOpen ? 'z-[1000]' : 'z-10'}`}
     >
       <div className="flex justify-between items-start w-full">
         <span
@@ -115,6 +116,7 @@ export const MonthPageDayCell: React.FC<MonthPageDayCellProps> = ({
             onToggleTask={onToggleTask}
             onAddTaskClick={onAddTaskClick}
             onAddEventClick={onAddEventClick}
+            onToggle={setIsMenuOpen}
           />
 
           {/* IL SELETTORE DINAMICO UMORE */}
@@ -125,6 +127,7 @@ export const MonthPageDayCell: React.FC<MonthPageDayCellProps> = ({
               allCategories={allCategories}
               popoverAlignClass={popoverAlignClass}
               onMoodChange={onMoodChange}
+              onToggle={setIsMenuOpen}
             />
           )}
         </div>

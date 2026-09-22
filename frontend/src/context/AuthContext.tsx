@@ -25,6 +25,7 @@ interface AuthContextValue {
    * In caso di successo aggiorna i token con quelli "normali" restituiti dal server.
    */
   changePassword: (currentPassword: string, newPassword: string) => Promise<void>;
+  updateUser: (user: UserResponse) => void;
 }
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
@@ -225,6 +226,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     logout,
     clearError,
     changePassword,
+    updateUser: persistUser,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

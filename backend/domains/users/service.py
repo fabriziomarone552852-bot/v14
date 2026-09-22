@@ -38,6 +38,15 @@ def update_settings(
     if "max_subtask_depth_user" in data:
         current_user.max_subtask_depth_user = data["max_subtask_depth_user"]
 
+    if "default_startup_page" in data:
+        current_user.default_startup_page = data["default_startup_page"]
+
+    if "module_preferences" in data:
+        current_user.module_preferences = data["module_preferences"]
+
+    if "profile_picture_url" in data:
+        current_user.profile_picture_url = data["profile_picture_url"]
+
     return repo.save(db, current_user)
 
 

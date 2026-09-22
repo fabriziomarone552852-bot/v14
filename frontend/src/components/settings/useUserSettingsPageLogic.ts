@@ -10,7 +10,7 @@ import type {
 } from '@/types/settings';
 
 export const useUserSettingsPageLogic = () => {
-  const { logout } = useAuth();
+  const { logout, updateUser } = useAuth();
 
   const [settings, setSettings] = useState<UserServerSettings | null>(null);
   const [activeTab, setActiveTab] = useState<SettingsTabId>('profile');
@@ -25,6 +25,8 @@ export const useUserSettingsPageLogic = () => {
   const [form, setForm] = useState<UserSettingsFormState>({
     email: '',
     maxDepth: 3,
+    defaultStartupPage: '',
+    modulePreferences: {},
   });
 
   // Auto-dismiss del toast di successo
@@ -49,6 +51,8 @@ export const useUserSettingsPageLogic = () => {
           setForm({
             email: data.email ?? '',
             maxDepth: data.max_subtask_depth_user !== null ? data.max_subtask_depth_user : 3,
+            defaultStartupPage: data.default_startup_page ?? '',
+            modulePreferences: data.module_preferences ?? {},
           });
         }
       } catch (err: unknown) {
@@ -75,8 +79,10 @@ export const useUserSettingsPageLogic = () => {
     const emailChanged = form.email.trim() !== (settings.email ?? '').trim();
     const depthChanged =
       form.maxDepth !== '' && form.maxDepth !== (settings.max_subtask_depth_user ?? 3);
+    const startupPageChanged = form.defaultStartupPage !== (settings.default_startup_page ?? '');
+    const modulePrefChanged = JSON.stringify(form.modulePreferences) !== JSON.stringify(settings.module_preferences ?? {});
 
-    return emailChanged || depthChanged;
+    return emailChanged || depthChanged || startupPageChanged || modulePrefChanged;
   }, [settings, form]);
 
   const handleResetForm = () => {
@@ -84,6 +90,8 @@ export const useUserSettingsPageLogic = () => {
     setForm({
       email: settings.email ?? '',
       maxDepth: settings.max_subtask_depth_user !== null ? settings.max_subtask_depth_user : 3,
+      defaultStartupPage: settings.default_startup_page ?? '',
+      modulePreferences: settings.module_preferences ?? {},
     });
     setError(null);
   };
@@ -109,6 +117,14 @@ export const useUserSettingsPageLogic = () => {
       payload.max_subtask_depth_user = form.maxDepth;
     }
 
+    if (form.defaultStartupPage !== (settings.default_startup_page ?? '')) {
+      payload.default_startup_page = form.defaultStartupPage;
+    }
+
+    if (JSON.stringify(form.modulePreferences) !== JSON.stringify(settings.module_preferences ?? {})) {
+      payload.module_preferences = form.modulePreferences;
+    }
+
     if (Object.keys(payload).length === 0) {
       setSuccess('Nessuna modifica da salvare.');
       return;
@@ -123,7 +139,12 @@ export const useUserSettingsPageLogic = () => {
         setForm({
           email: updated.email ?? '',
           maxDepth: updated.max_subtask_depth_user !== null ? updated.max_subtask_depth_user : 3,
+          defaultStartupPage: updated.default_startup_page ?? '',
+          modulePreferences: updated.module_preferences ?? {},
         });
+        // Refetch user data and update global AuthContext
+        const meRes = await api.get<any>('/users/me');
+        if (meRes) updateUser(meRes);
         setSuccess('Impostazioni salvate con successo.');
       }
     } catch (err: unknown) {
