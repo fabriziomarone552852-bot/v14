@@ -8,9 +8,8 @@ import type {
   ShoppingSupplierOption,
 } from '@/types/shopping';
 import {
-  ORDERED_UNIT_KEYS,
-  UNIT_DICTIONARY,
   getUnitDisplayName,
+  sortShoppingUnitOptions,
 } from '@/components/shared/shopping/ShoppingUnitSelect';
 import type { QuickPriceRow, DropdownOption } from '../QuickPriceTypes';
 
@@ -124,21 +123,11 @@ export const useQuickPriceModalLogic = ({
   }, [suppliers]);
 
   const unitDropdownOptions: DropdownOption[] = useMemo(() => {
-    const sorted = [...unitOptions].sort((a, b) => {
-      const valA = (a.codeValue || a.codeName || '').toLowerCase().replace(/^unit\./i, '').trim();
-      const valB = (b.codeValue || b.codeName || '').toLowerCase().replace(/^unit\./i, '').trim();
-      const keyA = UNIT_DICTIONARY[valA]?.singular || valA;
-      const keyB = UNIT_DICTIONARY[valB]?.singular || valB;
-      const idxA = ORDERED_UNIT_KEYS.indexOf(keyA);
-      const idxB = ORDERED_UNIT_KEYS.indexOf(keyB);
-      const posA = idxA === -1 ? 999 : idxA;
-      const posB = idxB === -1 ? 999 : idxB;
-      return posA - posB;
-    });
+    const { sortedOptions } = sortShoppingUnitOptions(unitOptions);
 
     return [
       { value: '', label: 'Nessuna unità' },
-      ...sorted.map((u) => {
+      ...sortedOptions.map((u) => {
         const name = getUnitDisplayName(u);
         const capitalized = name.charAt(0).toUpperCase() + name.slice(1);
         return {

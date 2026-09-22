@@ -123,37 +123,87 @@ export const UNIT_DICTIONARY: Record<string, UnitDefinition> = {
   kit: { singular: 'kit', plural: 'kit' },
 };
 
-export const ORDERED_UNIT_KEYS: string[] = [
+export const CANONICAL_UNIT_KEYS: string[] = [
+  // 1. Pesi e Masse
   'grammo',
   'etto',
   'chilo',
+  // 2. Liquidi e Volumi
   'litro',
   'centilitro',
   'millilitro',
+  // 3. Misure di Lunghezza
   'metro',
   'centimetro',
   'millimetro',
-  'confezione',
-  'pacco',
-  'bottiglia',
+];
+
+export const ORDERED_UNIT_KEYS: string[] = [
+  ...CANONICAL_UNIT_KEYS,
   'barattolo',
-  'pezzo',
-  'rotolo',
-  'scatola',
-  'tubetto',
-  'busta',
-  'flacone',
-  'vasetto',
+  'bottiglia',
   'brick',
-  'mazzo',
+  'busta',
+  'confezione',
   'fetta',
+  'flacone',
+  'grappolo',
+  'kit',
   'lattina',
+  'mazzo',
+  'pacco',
+  'pezzo',
   'retina',
   'ricarica',
-  'grappolo',
+  'rotolo',
+  'scatola',
   'spicchio',
-  'kit',
+  'tubetto',
+  'vasetto',
 ];
+
+export function isCanonicalUnit(option: ConfigOption): boolean {
+  const val = (option.codeValue || option.codeName || '').toLowerCase().replace(/^unit\./i, '').trim();
+  const key = UNIT_DICTIONARY[val]?.singular || val;
+  return CANONICAL_UNIT_KEYS.includes(key);
+}
+
+export function sortShoppingUnitOptions(unitOptions: ConfigOption[]): {
+  canonicalOptions: ConfigOption[];
+  commonOptions: ConfigOption[];
+  sortedOptions: ConfigOption[];
+} {
+  const canonical: ConfigOption[] = [];
+  const common: ConfigOption[] = [];
+
+  unitOptions.forEach((opt) => {
+    if (isCanonicalUnit(opt)) {
+      canonical.push(opt);
+    } else {
+      common.push(opt);
+    }
+  });
+
+  canonical.sort((a, b) => {
+    const valA = (a.codeValue || a.codeName || '').toLowerCase().replace(/^unit\./i, '').trim();
+    const valB = (b.codeValue || b.codeName || '').toLowerCase().replace(/^unit\./i, '').trim();
+    const keyA = UNIT_DICTIONARY[valA]?.singular || valA;
+    const keyB = UNIT_DICTIONARY[valB]?.singular || valB;
+    return CANONICAL_UNIT_KEYS.indexOf(keyA) - CANONICAL_UNIT_KEYS.indexOf(keyB);
+  });
+
+  common.sort((a, b) => {
+    const labelA = getUnitDisplayName(a);
+    const labelB = getUnitDisplayName(b);
+    return labelA.localeCompare(labelB, 'it', { sensitivity: 'base' });
+  });
+
+  return {
+    canonicalOptions: canonical,
+    commonOptions: common,
+    sortedOptions: [...canonical, ...common],
+  };
+}
 
 export const getUnitDisplayName = (
   option?: ConfigOption | null,

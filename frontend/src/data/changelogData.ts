@@ -38,6 +38,7 @@ export const CHANGELOG_HISTORY: ChangelogItem[] = [
       'Implementato swap dinamico tra Calendario mensile e Carousel Locandine in base all\'espansione della citazione.',
     ],
     improvements: [
+      'Riorganizzato l\'elenco delle unità di misura nella spesa: mantenuti i primi 3 gruppi canonici (pesi, volumi, lunghezze) e raggruppate tutte le altre unità in ordine alfabetico, con separatore visivo divisorio.',
       'Sostituita la scrollbar primaria con uno scorrimento smussato a gradiente tramite CSS mask-image.',
       'Adottata la modal-scrollbar tenue per integrarsi perfettamente con il tema chiaro.',
       'Rimossi pulsanti ridondanti per preparare lo spazio alla futura integrazione di ricerca inline.',

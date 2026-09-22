@@ -5,9 +5,19 @@ import { useOutsideClick } from '@/hooks/useOutsideClick';
 import { DropdownIcon, CloseIcon } from '@/components/shared/utils/Icons';
 import type { ConfigOption } from '@/types/shopping';
 
-import { UNIT_DICTIONARY, ORDERED_UNIT_KEYS, getUnitDisplayName } from '@/utils/shoppingUnitUtils';
+import {
+  getUnitDisplayName,
+  sortShoppingUnitOptions,
+} from '@/utils/shoppingUnitUtils';
 export type { UnitDefinition } from '@/utils/shoppingUnitUtils';
-export { UNIT_DICTIONARY, ORDERED_UNIT_KEYS, getUnitDisplayName, formatUnitForQuantity } from '@/utils/shoppingUnitUtils';
+export {
+  UNIT_DICTIONARY,
+  CANONICAL_UNIT_KEYS,
+  ORDERED_UNIT_KEYS,
+  getUnitDisplayName,
+  formatUnitForQuantity,
+  sortShoppingUnitOptions,
+} from '@/utils/shoppingUnitUtils';
 
 interface ShoppingUnitSelectProps {
   value: string; // unitId come stringa, oppure ""
@@ -37,18 +47,8 @@ export const ShoppingUnitSelect: React.FC<ShoppingUnitSelectProps> = ({
   });
   const { openUpwards } = useDropdownPosition(ref, { isOpen, threshold: 220 });
 
-  const sortedOptions = useMemo(() => {
-    return [...unitOptions].sort((a, b) => {
-      const valA = (a.codeValue || a.codeName || '').toLowerCase().replace(/^unit\./i, '').trim();
-      const valB = (b.codeValue || b.codeName || '').toLowerCase().replace(/^unit\./i, '').trim();
-      const keyA = UNIT_DICTIONARY[valA]?.singular || valA;
-      const keyB = UNIT_DICTIONARY[valB]?.singular || valB;
-      const idxA = ORDERED_UNIT_KEYS.indexOf(keyA);
-      const idxB = ORDERED_UNIT_KEYS.indexOf(keyB);
-      const posA = idxA === -1 ? 999 : idxA;
-      const posB = idxB === -1 ? 999 : idxB;
-      return posA - posB;
-    });
+  const { canonicalOptions, commonOptions } = useMemo(() => {
+    return sortShoppingUnitOptions(unitOptions);
   }, [unitOptions]);
 
   const selectedOption = unitOptions.find((opt) => String(opt.id) === value);
@@ -93,7 +93,32 @@ export const ShoppingUnitSelect: React.FC<ShoppingUnitSelectProps> = ({
               {!value && <span className="text-blue-600 font-bold">✓</span>}
             </div>
 
-            {sortedOptions.map((opt) => {
+            {/* Gruppo 1: Unità Canoniche (Pesi/Masse, Liquidi/Volumi, Lunghezze) */}
+            {canonicalOptions.map((opt) => {
+              const isSelected = String(opt.id) === value;
+              const displayName = getUnitDisplayName(opt);
+
+              return (
+                <div
+                  key={opt.id}
+                  onClick={() => handleSelect(String(opt.id))}
+                  className={`px-3 py-2 text-xs font-medium cursor-pointer transition-colors hover:bg-gray-50 flex items-center justify-between ${
+                    isSelected ? 'text-blue-600 bg-blue-50/50 font-bold' : 'text-gray-700'
+                  }`}
+                >
+                  <span className="capitalize">{displayName}</span>
+                  {isSelected && <span className="text-blue-600 font-bold">✓</span>}
+                </div>
+              );
+            })}
+
+            {/* Linea di confine tra gruppi canonici e gruppo comune */}
+            {canonicalOptions.length > 0 && commonOptions.length > 0 && (
+              <div className="my-1 border-t border-gray-200/80" />
+            )}
+
+            {/* Gruppo 2: Unità Comuni in ordine alfabetico */}
+            {commonOptions.map((opt) => {
               const isSelected = String(opt.id) === value;
               const displayName = getUnitDisplayName(opt);
 
@@ -160,7 +185,39 @@ export const ShoppingUnitSelect: React.FC<ShoppingUnitSelectProps> = ({
                   )}
                 </button>
 
-                {sortedOptions.map((opt) => {
+                {/* Gruppo 1: Unità Canoniche */}
+                {canonicalOptions.map((opt) => {
+                  const isSelected = String(opt.id) === value;
+                  const displayName = getUnitDisplayName(opt);
+
+                  return (
+                    <button
+                      key={opt.id}
+                      type="button"
+                      onClick={() => handleSelect(String(opt.id))}
+                      className={`w-full p-3 rounded-2xl text-left transition-all flex items-center justify-between border cursor-pointer active:scale-[0.98] ${
+                        isSelected
+                          ? 'bg-blue-50/90 border-blue-400 ring-2 ring-blue-400/20 font-bold text-blue-900'
+                          : 'bg-gray-50/80 hover:bg-gray-100 border-gray-200/80 text-gray-800 font-medium'
+                      }`}
+                    >
+                      <span className="text-xs capitalize">{displayName}</span>
+                      {isSelected && (
+                        <div className="w-5 h-5 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-xs shrink-0 shadow-xs">
+                          ✓
+                        </div>
+                      )}
+                    </button>
+                  );
+                })}
+
+                {/* Linea di confine tra gruppi canonici e gruppo comune */}
+                {canonicalOptions.length > 0 && commonOptions.length > 0 && (
+                  <div className="my-2 border-t border-gray-200" />
+                )}
+
+                {/* Gruppo 2: Unità Comuni in ordine alfabetico */}
+                {commonOptions.map((opt) => {
                   const isSelected = String(opt.id) === value;
                   const displayName = getUnitDisplayName(opt);
 
