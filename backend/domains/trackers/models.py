@@ -171,7 +171,7 @@ class UserEpisodeLog(Base):
     __tablename__ = "tv_user_episode_logs"
     
     id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
-    user_id: Mapped[int] = mapped_column(Integer, nullable=False, index=True)
+    user_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
     episode_id: Mapped[int] = mapped_column(Integer, ForeignKey("tmdb_episodes.id", ondelete="CASCADE"), nullable=False)
     
     notes: Mapped[Optional[str]] = mapped_column(Text, nullable=True)

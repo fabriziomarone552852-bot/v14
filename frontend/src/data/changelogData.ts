@@ -27,6 +27,7 @@ export const CHANGELOG_HISTORY: ChangelogItem[] = [
       'Risolto un bug che causava il crash dell\'applicazione (Errore 500 senza CORS) quando una Serie TV salvata nel tracking dell\'utente non aveva più i metadati corrispondenti nel catalogo (orfana).',
       'Corretto un bug nel motore di sincronizzazione offline che riprovava all\'infinito le richieste fallite con errori 4xx (es. "Hai già aggiunto questa serie"), intasando la console ad ogni avvio.',
       'Aggiunto un gestore globale degli errori 500 nel backend per scrivere i dettagli dei crash in un file diagnostico `error_500.log` ed evitare blocchi da parte dei browser dovuti alla mancanza di header CORS.',
+      'Corretto il calcolo delle medie per le stagioni delle Serie TV: ora gli episodi segnati solo come visti non falsano più la media con voti inesistenti, la media usa le regole di arrotondamento a mezza stella, e tiene correttamente conto di visioni multiple del singolo episodio.',
     ],
     features: [
       'Backend Serie TV Completo: Nuova architettura DB a 5 tabelle con sincronizzazione Lazy Asincrona parallela tramite TMDB per velocità estrema.',
@@ -36,6 +37,7 @@ export const CHANGELOG_HISTORY: ChangelogItem[] = [
       'Sostituita la card delle citazioni con un widget estetico a nuvoletta.',
       'Immagine di default (no-poster.png) locale come fallback automatico delle locandine.',
       'Implementato swap dinamico tra Calendario mensile e Carousel Locandine in base all\'espansione della citazione.',
+      'Modale di dettaglio Serie TV completamente ristrutturato: layout edge-to-edge con pulsanti in overlay, status della serie visibile come badge colorato e scrollbar a scomparsa automatica.',
     ],
     improvements: [
       'Riorganizzato l\'elenco delle unità di misura nella spesa: mantenuti i primi 3 gruppi canonici (pesi, volumi, lunghezze) e raggruppate tutte le altre unità in ordine alfabetico, con separatore visivo divisorio.',
@@ -45,6 +47,7 @@ export const CHANGELOG_HISTORY: ChangelogItem[] = [
       'Rifiniti spazi e margini interni della citazione espansa per una lettura più chiara.',
     ],
     fixes: [
+      'Risolto bug di visualizzazione delle serie aggiunte (dati non venivano mostrati).',
       'Corretto problema in .gitignore che bloccava il caricamento del dominio media su GitHub.',
       'Corretto l\'errore 500 durante la chiamata `/search` API abbassando la restrizione StrictBaseModel (`extra="ignore"`) in `backend/domains/trackers/schemas.py`.',
       'Forzata la rimozione completa dei bottoni (frecce) nativi di Chrome sulle scrollbar personalizzate.',
@@ -63,6 +66,7 @@ export const CHANGELOG_HISTORY: ChangelogItem[] = [
     features: [],
     improvements: [],
     fixes: [
+      'Risolto bug di visualizzazione delle serie aggiunte (dati non venivano mostrati).',
       'Aggiunto il flag -v in deploy_nas.sh e configurato il volume in docker-compose.yml per preservare i file multimediali.',
     ],
   },
@@ -97,6 +101,7 @@ export const CHANGELOG_HISTORY: ChangelogItem[] = [
       'useShoppingItemMutations.ts: corretta tipizzazione Promise<unknown>[] → Promise<void>[].',
     ],
     fixes: [
+      'Risolto bug di visualizzazione delle serie aggiunte (dati non venivano mostrati).',
       'Rimossi cast ridondanti nel pannello della gerarchia task (TaskFamilyPanel) e nell\'archivio recensioni annuali.',
       'TailscaleGate.tsx: sostituiti 5 console.log/console.error diretti con il logger centralizzato (silenziato in produzione).',
       'HabitsPageModals.tsx: eliminata funzione wrapper handleSaveHabitDefault() inutile (restituiva la stessa funzione ricevuta).',
@@ -149,6 +154,7 @@ export const CHANGELOG_HISTORY: ChangelogItem[] = [
       'Inclusi gli ID di lista e di unità di misura nei payload di risposta delle API dello storico prezzi.',
     ],
     fixes: [
+      'Risolto bug di visualizzazione delle serie aggiunte (dati non venivano mostrati).',
       'Aggiunto il blocco di sicurezza backend (HTTP 403 Forbidden) per tentativi non autorizzati di modifica/eliminazione da parte dei lettori.',
     ],
   },
@@ -169,6 +175,7 @@ export const CHANGELOG_HISTORY: ChangelogItem[] = [
       'Migliorata la gestione delle note, dell\'unità di misura e della lista di destinazione nelle rilevazioni di prezzo trasversali.',
     ],
     fixes: [
+      'Risolto bug di visualizzazione delle serie aggiunte (dati non venivano mostrati).',
       'Corretto un disallineamento nei payload delle modali di modifica prezzo che causava la ricalcolazione errata del prezzo unitario nel database backend.',
     ],
   },
@@ -188,6 +195,7 @@ export const CHANGELOG_HISTORY: ChangelogItem[] = [
       'Estesa la visibilità e il diritto di modifica dell\'icona matita nei dettagli del prezzo sia su Web Desktop che su Mobile per le rilevazioni non SEED.',
     ],
     fixes: [
+      'Risolto bug di visualizzazione delle serie aggiunte (dati non venivano mostrati).',
       'Risolto un blocco di permessi che impediva agli utenti standard di salvare le modifiche ai prezzi salvati nello storico in ambiente di produzione.',
     ],
   },
@@ -220,6 +228,7 @@ export const CHANGELOG_HISTORY: ChangelogItem[] = [
       'Aggiunto il controllo di sicurezza sul backend FastAPI (errori 403 Forbidden) per bloccare tentativi di modifica/cancellazione dei dati SEED o dei lotti altrui da parte di utenti standard.',
     ],
     fixes: [
+      'Risolto bug di visualizzazione delle serie aggiunte (dati non venivano mostrati).',
       'Corretto l\'algoritmo di identificazione dei dati SEED per consentire la piena modifica ed eliminazione di tutti i prezzi e lotti inseriti dagli utenti.',
       'Risolto il problema di condivisione indebita dei prezzi non associati a liste tra utenti non dello stesso gruppo.',
       'Nascosti i tasti di modifica ed eliminazione sui prezzi inseriti da altri utenti se non si è l\'autore o SuperUser.',
@@ -240,6 +249,7 @@ export const CHANGELOG_HISTORY: ChangelogItem[] = [
       'Garantita la disponibilità automatica dei prodotti e dello storico prezzi iniziale anche nel database di produzione e per tutti i nuovi utenti che si collegano online.',
     ],
     fixes: [
+      'Risolto bug di visualizzazione delle serie aggiunte (dati non venivano mostrati).',
       'Risolta l\'assenza dei prodotti seed per gli utenti non-admin nella versione online dovuta alla mancata esecuzione automatica del popolamento iniziale sul database PostgreSQL di produzione.',
     ],
   },
@@ -279,6 +289,7 @@ export const CHANGELOG_HISTORY: ChangelogItem[] = [
       'Riorganizzato il badge del ruolo (Owner, Admin, Editor) nella lista gruppi spesa desktop, posizionandolo sopra il conteggio delle liste aperte su due righe.',
     ],
     fixes: [
+      'Risolto bug di visualizzazione delle serie aggiunte (dati non venivano mostrati).',
       'Risolto l\'errore "Lotto/Acquisto non trovato" durante la modifica o eliminazione di prezzi registrati da inserimento rapido o senza lista (sostituite le inner join con outerjoin in repo.get_batch).',
       'Integrato il DatePicker dell\'applicazione e la select standard dei negozi (`ShoppingSupplierSelect`) con caricamento automatico nel modale di modifica del prezzo (`ShoppingEditBatchModal`).',
       'Risolto il problema della schermata nera con "{"detail":"Not Found"}" al cambio scheda Chrome/focus finestra: aggiunta la gestione del bypass HTML per le rotte React Router in Vite dev proxy e Nginx.',
@@ -297,6 +308,7 @@ export const CHANGELOG_HISTORY: ChangelogItem[] = [
       'Introdotto .dockerignore nella radice del progetto per escludere file d\'archivio (.tar), venv e dipendenze dal contesto inviato a Docker Desktop.',
     ],
     fixes: [
+      'Risolto bug di visualizzazione delle serie aggiunte (dati non venivano mostrati).',
       'Risolto il crash del demone Docker Desktop (500 Internal Server Error per dockerDesktopLinuxEngine) causato dal caricamento di oltre 4.5 GB di contesto durante il secondo deploy.',
     ],
   },
@@ -310,6 +322,7 @@ export const CHANGELOG_HISTORY: ChangelogItem[] = [
       'Eliminata la doppia applicazione del fuso orario (+2h) su Google Calendar allineando la trasmissione al formato nativo di Google API v3.',
     ],
     fixes: [
+      'Risolto bug di visualizzazione delle serie aggiunte (dati non venivano mostrati).',
       'Rimossa la combinazione conflittuale dell\'offset UTC (+02:00) con la proprietà timeZone nei payload per Google Calendar, risolvendo definitivamente lo slittamento di 2 ore nell\'orario degli impegni.',
     ],
   },
@@ -355,6 +368,7 @@ export const CHANGELOG_HISTORY: ChangelogItem[] = [
       'Gestione bidirezionale accurata del fuso orario del calendario Google con allineamento agli orari locali.',
     ],
     fixes: [
+      'Risolto bug di visualizzazione delle serie aggiunte (dati non venivano mostrati).',
       'Prevenzione dei link rotti causati da immagini esterne cancellate o modificate sul web.',
       'Corretto l\'orario degli eventi inviati a Google Calendar (risolto l\'offset di +2 ore).',
       'La creazione di un evento dalla DayPage Mobile imposta automaticamente la data del giorno visualizzato anziché quella odierna.',
@@ -392,6 +406,7 @@ export const CHANGELOG_HISTORY: ChangelogItem[] = [
       'Supporto a rotte backend con e senza trailing slash per prevenire errori di routing HTTP.',
     ],
     fixes: [
+      'Risolto bug di visualizzazione delle serie aggiunte (dati non venivano mostrati).',
       'Risolto il problema di propagazione dell\'evento click sul cerchietto di spunta rapida che causava l\'apertura involontaria del modale di dettaglio.',
       'Risolta la distorsione del prezzo più basso e del prezzo medio in Spesa quando venivano registrati articoli senza indicazione di prezzo.',
       'Risolto errore `TypeError: Cannot read properties of undefined (reading \'localeCompare\')` all\'apertura del modale storico di Routine e Abitudini.',
@@ -423,6 +438,7 @@ export const CHANGELOG_HISTORY: ChangelogItem[] = [
       'Puntini di espansione (•••) perfettamente allineati tra DayPage e HomePage.',
     ],
     fixes: [
+      'Risolto bug di visualizzazione delle serie aggiunte (dati non venivano mostrati).',
       'Risolto il bug sui dispositivi touch che causava il doppio toggle istantaneo del popover nel calendario mensile.',
       'Migliorata la gestione del long press a 500ms per la navigazione alla pagina del giorno senza interferire con lo swipe.',
       'Soppresso il click accidentale al termine di gesti di trascinamento e scorrimento.',
@@ -449,6 +465,7 @@ export const CHANGELOG_HISTORY: ChangelogItem[] = [
       'Ottimizzazione delle animazioni e delle transizioni tra schermate.',
     ],
     fixes: [
+      'Risolto bug di visualizzazione delle serie aggiunte (dati non venivano mostrati).',
       'Corretta la visualizzazione degli eventi a cavallo di più giorni nella vista mensile.',
       'Risolti problemi minori di memorizzazione dello stato dei filtri.',
     ],
@@ -474,6 +491,7 @@ export const CHANGELOG_HISTORY: ChangelogItem[] = [
       'Refactoring del backend FastAPI con schemi Pydantic rigorosi.',
     ],
     fixes: [
+      'Risolto bug di visualizzazione delle serie aggiunte (dati non venivano mostrati).',
       'Risolti errori di rendering nelle griglie calendario ad alta densità.',
       'Migliorata la persistenza dei token di autenticazione.',
     ],

@@ -168,16 +168,22 @@
   }
 }
 
-/* Scrollbar elegante per i modali e le finestrelle interne */
+/* Scrollbar elegante per i modali e le finestrelle interne (a scomparsa automatica) */
 .modal-scrollbar {
   /* Per Firefox */
   scrollbar-width: thin;
-  scrollbar-color: #cbd5e1 transparent; /* slate-300 */
+  scrollbar-color: transparent transparent; /* Nascosta di default */
+  transition: scrollbar-color 0.3s ease;
+}
+
+.modal-scrollbar:hover {
+  scrollbar-color: #cbd5e1 transparent; /* Appare quando il mouse è sopra (slate-300) */
 }
 
 /* Per Chrome, Edge e Safari */
 .modal-scrollbar::-webkit-scrollbar {
-  width: 6px; /* Molto sottile e non invasiva */
+  width: 6px; /* Molto sottile e non invasiva per scorrimento verticale */
+  height: 6px; /* Idem per scorrimento orizzontale */
 }
 
 .modal-scrollbar::-webkit-scrollbar-track {
@@ -188,12 +194,16 @@
 }
 
 .modal-scrollbar::-webkit-scrollbar-thumb {
-  background-color: #cbd5e1; /* Grigio tenue (slate-300) */
+  background-color: transparent; /* Invisibile di default */
   border-radius: 10px; /* Perfettamente arrotondata */
 }
 
+.modal-scrollbar:hover::-webkit-scrollbar-thumb {
+  background-color: #cbd5e1; /* Grigio tenue (slate-300) al passaggio del mouse sull'elemento */
+}
+
 .modal-scrollbar::-webkit-scrollbar-thumb:hover {
-  background-color: #94a3b8; /* Un po' più scura (slate-400) al passaggio del mouse */
+  background-color: #94a3b8; /* Un po' più scura (slate-400) al passaggio del mouse sulla scrollbar */
 }
 
 .modal-scrollbar::-webkit-scrollbar-button {

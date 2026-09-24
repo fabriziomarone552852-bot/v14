@@ -1,7 +1,7 @@
 // src/hooks/queries/useTrackersQueries.ts
 import { useQuery } from '@tanstack/react-query';
 import { api } from '@/api/apiService';
-import type { TVSeries, TMDBPaginatedSearch } from '@/types';
+import type { TVSeries, TMDBPaginatedSearch } from '@/types/trackers';
 
 export const useMySeries = () => {
   return useQuery<TVSeries[]>({

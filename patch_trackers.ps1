@@ -1,3 +1,4 @@
+$content = @"
 export interface TMDBEpisode {
   id: number;
   series_tmdb_id: number;
@@ -7,7 +8,6 @@ export interface TMDBEpisode {
   overview?: string | null;
   air_date?: string | null;
   still_path?: string | null;
-  vote_average?: number | null;
 }
 
 export interface UserEpisodeLog {
@@ -18,9 +18,6 @@ export interface UserEpisodeLog {
   season_number: number;
   episode_number: number;
   watched_at: string;
-  notes?: string;
-  review_visibility?: string;
-  rating?: number;
 }
 
 export interface SeriesCastMember {
@@ -32,9 +29,7 @@ export interface SeriesCastMember {
 
 export interface SeriesRecommendation {
   id: number;
-  name?: string;
-  title?: string;
-  tmdb_id?: number;
+  name: string;
   backdrop_path?: string | null;
   poster_path?: string | null;
 }
@@ -54,7 +49,7 @@ export interface TMDBSeries {
   total_episodes?: number | null;
   first_air_date?: string | null;
   last_air_date?: string | null;
-  last_sync_at?: string;
+  last_sync_at: string;
   episodes?: TMDBEpisode[];
   cast?: SeriesCastMember[];
   recommendations?: SeriesRecommendation[];
@@ -69,37 +64,6 @@ export interface UserSeriesTracking {
   updated_at?: string | null;
   tmdb_series?: TMDBSeries;
   logs?: UserEpisodeLog[];
-  notes?: string;
-  review_visibility?: string;
 }
-
-export interface TVEpisode {
-  id: number;
-  tmdb_id?: number | null;
-  season_number: number;
-  episode_number: number;
-  title?: string | null;
-  air_date?: string | null;
-  watched: boolean;
-  watched_at?: string | null;
-}
-
-export type TVSeries = TMDBSeries & UserSeriesTracking;
-
-export interface TMDBSeriesSearchResult {
-  id: number;
-  name: string;
-  original_name?: string | null;
-  overview?: string | null;
-  poster_path?: string | null;
-  backdrop_path?: string | null;
-  first_air_date?: string | null;
-  vote_average?: number | null;
-}
-
-export interface TMDBPaginatedSearch {
-  page: number;
-  results: TMDBSeriesSearchResult[];
-  total_pages: number;
-  total_results: number;
-}
+"@
+Add-Content c:\Users\Fabrizio\Desktop\app\smart\v14\frontend\src\types\trackers.ts -Value $content -Encoding UTF8

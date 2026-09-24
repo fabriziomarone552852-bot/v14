@@ -8,6 +8,8 @@ import { useQueryClient, useQuery, useMutation } from '@tanstack/react-query';
 import { api } from '@/api/apiService';
 import { GlassCardWidget } from './components/GlassCardWidget';
 import RandomSeriesModal from './components/RandomSeriesModal';
+import { SeriesDetailModal, type TabType } from './components/SeriesDetailModal';
+import type { TMDBEpisode } from '../../types/trackers';
 import { generateWeeksGrid, nomiMesiLungo, getFirstDayIndex, getDaysInMonth } from '@/utils/dateUtils';
 
 const UpcomingCalendarWidget = () => {
@@ -168,6 +170,17 @@ const UpcomingEpisodesWidget = () => {
 };
 
 const TVSeriesPage: React.FC = () => {
+  const [detailModalOpen, setDetailModalOpen] = useState(false);
+  const [detailModalSeries, setDetailModalSeries] = useState<any>(null);
+  const [detailModalTab, setDetailModalTab] = useState<TabType>('overview');
+  const [detailModalEpisode, setDetailModalEpisode] = useState<TMDBEpisode | undefined>(undefined);
+
+  const openSeriesDetail = (series: any, tab: TabType = 'overview', episode?: TMDBEpisode) => {
+    setDetailModalSeries(series);
+    setDetailModalTab(tab);
+    setDetailModalEpisode(episode);
+    setDetailModalOpen(true);
+  };
   const queryClient = useQueryClient();
   const { data: series, isLoading, isError } = useMySeries();
 
@@ -335,19 +348,19 @@ const TVSeriesPage: React.FC = () => {
            label="Ultima aggiunta" 
            title={lastAdded?.title || "Nessuno"} 
            subtitle={""}
-           posterPath={lastAdded?.poster_path || null} 
+           posterPath={lastAdded?.poster_path || null} onClick={() => lastAdded && openSeriesDetail(lastAdded)} 
          />
          <GlassCardWidget 
            label="Continua a guardare" 
            title={lastWatched?.title || "Nessuno"} 
            subtitle={lastWatched ? "S02E04" : ""}
-           posterPath={lastWatched?.poster_path || null} 
+           posterPath={lastWatched?.poster_path || null} onClick={() => lastWatched && openSeriesDetail(lastWatched)} 
          />
          <GlassCardWidget 
            label="Completata!" 
            title={lastCompleted?.title || "Nessuno"} 
            subtitle={""}
-           posterPath={lastCompleted?.poster_path || null} 
+           posterPath={lastCompleted?.poster_path || null} onClick={() => lastCompleted && openSeriesDetail(lastCompleted)} 
          />
       </div>
 
@@ -490,7 +503,7 @@ const TVSeriesPage: React.FC = () => {
                     const borderColor = getBorderColor(s.status, s.tmdb_status);
 
                     return (
-                      <div key={s.id} className="flex flex-col group cursor-pointer w-full relative" onClick={() => {/* TODO: apri modal serie */}}>
+                      <div key={s.id} className="flex flex-col group cursor-pointer w-full relative" onClick={() => openSeriesDetail(s)}>
                          <div className={`relative aspect-[2/3] w-full rounded-lg overflow-hidden bg-gray-100 shadow-sm border-[3px] transition-all duration-300 group-hover:scale-105 ${borderColor}`}>
                             {s.poster_path ? (
                               <img src={`https://image.tmdb.org/t/p/w500${s.poster_path}`} alt={s.title} className="w-full h-full object-cover" />
@@ -579,11 +592,25 @@ const TVSeriesPage: React.FC = () => {
         onClose={() => setRandomModalOpen(false)} 
         series={series || []} 
         onSeriesClick={(series) => {
-          // TODO: implementare modale serie
-          console.log('Apri modale serie per:', series);
+          setRandomModalOpen(false);
+          openSeriesDetail(series);
         }}
       />
 
+      {detailModalSeries && (
+        <SeriesDetailModal 
+          isOpen={detailModalOpen}
+          onClose={() => setDetailModalOpen(false)}
+          series={detailModalSeries}
+          initialTab={detailModalTab}
+          initialEpisode={detailModalEpisode}
+          onToggleTrack={(tmdbId: number, isTracked: boolean) => {
+            if (!isTracked) {
+              addSeriesMutation.mutate({ tmdb_id: tmdbId, status: 'to_watch' } as any);
+            }
+          }}
+        />
+      )}
     </div>
   );
 };

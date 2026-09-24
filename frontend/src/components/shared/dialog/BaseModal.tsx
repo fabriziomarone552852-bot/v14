@@ -13,6 +13,7 @@ interface BaseModalProps {
   sidePanel?: ReactNode;
   headerActions?: ReactNode; 
   hideDefaultClose?: boolean; 
+  hideHeader?: boolean;
   overflowVisible?: boolean;
   
   // --- NUOVE PROPS MAGICHE PER IL FOOTER AUTOMATICO ---
@@ -29,7 +30,7 @@ interface BaseModalProps {
 
 const BaseModal: React.FC<BaseModalProps> = ({ 
   isOpen, onClose, title, children, footer, maxWidthClass = 'max-w-md', 
-  sidePanel, headerActions, hideDefaultClose = false,
+  sidePanel, headerActions, hideDefaultClose = false, hideHeader = false,
   onConfirm, onCancel, confirmText = 'Salva', cancelText = 'Annulla', 
   isConfirmDisabled = false, formId,
   isLoading = false, overflowVisible = false,
@@ -89,21 +90,23 @@ const BaseModal: React.FC<BaseModalProps> = ({
 
         <div className={`bg-white rounded-2xl shadow-2xl w-full ${maxWidthClass} transform transition-all animate-fadeIn relative flex flex-col max-h-[90vh] pointer-events-auto shrink-0`} onClick={(e) => e.stopPropagation()}>
           
-          <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50 rounded-t-2xl shrink-0">
-            <h3 className="text-lg font-extrabold text-gray-800 uppercase tracking-wider">
-              {title}
-            </h3>
-            
-            <div className="flex items-center gap-1">
-              {headerActions}
-              {headerActions && <div className="w-px h-5 bg-gray-300 mx-1"></div>}
-              {!hideDefaultClose && (
-                <button type="button" disabled={isLoading} onClick={onClose} className={`p-1.5 rounded-lg transition-colors ${isLoading ? 'text-gray-300 cursor-not-allowed' : 'text-gray-400 hover:bg-gray-200 hover:text-red-500'}`}>
-                  <CloseIcon className="h-5 w-5" />
-                </button>
-              )}
+          {!hideHeader && (
+            <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50 rounded-t-2xl shrink-0">
+              <h3 className="text-lg font-extrabold text-gray-800 uppercase tracking-wider">
+                {title}
+              </h3>
+              
+              <div className="flex items-center gap-1">
+                {headerActions}
+                {headerActions && <div className="w-px h-5 bg-gray-300 mx-1"></div>}
+                {!hideDefaultClose && (
+                  <button type="button" disabled={isLoading} onClick={onClose} className={`p-1.5 rounded-lg transition-colors ${isLoading ? 'text-gray-300 cursor-not-allowed' : 'text-gray-400 hover:bg-gray-200 hover:text-red-500'}`}>
+                    <CloseIcon className="h-5 w-5" />
+                  </button>
+                )}
+              </div>
             </div>
-          </div>
+          )}
 
           <div className={`p-6 custom-scrollbar ${overflowVisible ? 'overflow-visible' : 'overflow-y-auto'}`}>{children}</div>
 

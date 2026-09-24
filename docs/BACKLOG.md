@@ -362,8 +362,17 @@ Nuovo modulo completo per gestire, catalogare e monitorare l'intrattenimento per
 - **Stato Serie**: `Da iniziare`, `In corso`, `In attesa di nuova stagione`, `Completata`, `Mollata`.
 - **Prossimi Step Sviluppo (Da Iniziare)**:
   - 🔍 Integrazione **barra di ricerca TMDB inline** direttamente nella grid principale, rimuovendo il modale popup. Digitando si deve aprire un elenco a comparsa per l'aggiunta rapida.
+  - 🏷️ **Ricerca per Genere da Badge**: Cliccando sul badge di un genere (nella card o nel dettaglio serie) l'app filtrerà/cercherà automaticamente altre serie in lista appartenenti allo stesso genere.
+  - 🤝 **Incrocio Liste Amici & Stato Visione**: Aggiunta di un tasto e relativa funzione nella barra principale della sezione per permettere di incrociare/comparare le liste delle serie TV salvate da più amici. Inoltre, agli amici verrà mostrato se una serie la sta guardando un altro amico (tramite la sua foto profilo con un bordo colorato associato allo stato: se l'ha finita, droppata, in corso, ecc.).
+  - 📚 **Liste Multimediali Personalizzate**: Creazione di sottoliste (es. "Serie MCU", "Film di Natale") in cui inserire film, serie o libri. Graficamente, le etichette di appartenenza a queste liste andranno posizionate sopra l'immagine blurrata di copertina, in basso (allineate verticalmente con il margine inferiore) e orizzontalmente allineate con l'inizio del testo della trama della colonna di destra.
+  - 👀 **Check Finale Recensioni**: Al termine dello sviluppo della sezione, effettuare un controllo generale di come vengono visualizzate le recensioni e le liste delle recensioni (layout, text-wrapping, visualizzazione modale).
+  - 🌟 **Voto Community**: Sostituire il voto TMDB con il voto medio della community dell'app. Al clic sul voto, si aprirà una struttura simile a quella delle recensioni degli amici per leggerle.
+  - 💬 **Commenti alle Recensioni**: Aggiungere la possibilità di commentare le singole recensioni (tue, degli amici o pubbliche). Cliccando su una recensione, si espanderà mostrando sotto il thread dei commenti (richiede implementazione backend dedicata).
+  - 🌐 **Disponibilità Piattaforme Streaming**: Integrare (ad es. tramite dati JustWatch via API TMDB) la visualizzazione accurata delle piattaforme in cui l'episodio/serie è attualmente visibile (Netflix, Prime Video, ecc.).
+  - 💡 **Suggerimenti Homepage (Raccomandazioni)**: Aggiungere in homepage una sezione con serie TV suggerite e raccomandate dinamicamente in base alle ultime serie guardate.
   - 📡 Sostituzione dei Dati Mock (obiettivo annuale, citazioni, serie recenti e carousel prossime uscite) con fetch reali dal Database e logica TMDB.
-  - 🎨 Gestione dello stato "Empty" per l'assenza di serie e design della schermata di dettaglio per la singola serie.
+  - 🎨 **UI Schermata di Dettaglio Completata**: Il design del modale di dettaglio della singola serie è stato completato e rifinito (gestione cast, layout colonne, header integrato, status badge in overlay).
+  - 🎨 Gestione dello stato "Empty" per l'assenza di serie.
 
 #### 🔄 4. Analisi Integrazioni Esterne & Sincronizzazione (Goodreads, Fable, TV Time)
 - **Fattibilità Sincronizzazione Piattaforme Esterne**:
@@ -699,3 +708,8 @@ Breve spiegazione di cosa fa la funzionalità dal punto di vista utente.
 
 -   [ x ]   * * A g g i o r n a m e n t o   O t t i m i s t i c o   &   B u g   F i x e s   ( S e t t e m b r e   2 0 2 6 ) * * :   R i s o l t o   c r a s h   ( E r r o r e   5 0 0 )   p e r   l e   s e r i e   o r f a n e ,   c o r r e t t o   l o o p   d e l   s y n c   e n g i n e   s u   e r r o r i   4 0 0   e   a g g i u n t a   l ' i n t e r f a c c i a   o t t i m i s t i c a   ( O p t i m i s t i c   U I )   p e r   l e   S e r i e   T V .  
  
+
+#### [TRACKERS-003] Fix Visualizzazione Serie & Restyling Modale (Settembre 2026)
+- **Descrizione**: Risolto il bug di visualizzazione causato dall'errata lettura delle properties piatte (invece che nested) e implementati accorgimenti al modale SeriesDetailModal.
+- **Da completare (Feedback Utente)**: Rimuovere riga verticale colonna sinistra, unire tutto, ridurre testo trama/titolo, spostare serie consigliate a destra e farle card piccole, limitare scorrimento orizzontale cast, aggiunta liste personalizzate e tasto incrocio amici.
+- **Stato**: ?? Completato fix dati, UI da affinare.
