@@ -2,8 +2,9 @@
 import React, { useState } from 'react';
 import { Link, useLocation, Outlet } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
-import { SettingsIcon, SwitchSidebarIcon, ShoppingIcon, UniversityIcon, FreeTimeIcon, CountdownIcon, CalendarDayIcon, CalendarWeekIcon, CalendarMonthIcon, CalendarYearIcon, MenuBarsIcon, FilmIcon, TvIcon, BookIcon } from './shared/utils/Icons';
+import { SettingsIcon, SwitchSidebarIcon, ShoppingIcon, UniversityIcon, FreeTimeIcon, CountdownIcon, CalendarDayIcon, CalendarWeekIcon, CalendarMonthIcon, CalendarYearIcon, MenuBarsIcon, FilmIcon, TvIcon, BookIcon, BellIcon } from './shared/utils/Icons';
 import { useSocial } from '@/hooks/useSocial';
+import { useNotifications } from '@/hooks/useNotifications';
 
 interface SidebarItemProps {
   to: string;
@@ -37,6 +38,7 @@ const AppShellLayout: React.FC<AppShellLayoutProps> = ({ onLogout }) => {
   const location = useLocation();
   const { user } = useAuth();
   const { pendingRequests } = useSocial();
+  const { unreadNotifications } = useNotifications();
   
   // true = Sidebar estesa (w-64), false = Mini Sidebar con icone (w-20)
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
@@ -278,16 +280,28 @@ const AppShellLayout: React.FC<AppShellLayoutProps> = ({ onLogout }) => {
           <div className="pt-4 mt-2 border-t border-gray-800 flex flex-col gap-2 shrink-0">
 
             <div className={`flex ${isSidebarOpen ? 'flex-row items-center justify-between px-6' : 'flex-col gap-4 items-center px-0'}`}>
-              <Link
-                to="/settings"
-                className="p-2 rounded-xl text-gray-400 hover:bg-gray-700 hover:text-white transition-colors focus:outline-none relative"
-                title="Impostazioni"
-              >
-                <SettingsIcon className="w-6 h-6" />
-                {pendingRequests.length > 0 && (
-                  <span className="absolute top-1.5 right-1.5 w-2.5 h-2.5 bg-red-500 border-2 border-slate-900 rounded-full animate-pulse"></span>
-                )}
-              </Link>
+              <div className="flex items-center gap-2">
+                <Link
+                  to="/settings"
+                  className="p-2 rounded-xl text-gray-400 hover:bg-gray-700 hover:text-white transition-colors focus:outline-none relative"
+                  title="Impostazioni"
+                >
+                  <SettingsIcon className="w-6 h-6" />
+                  {pendingRequests.length > 0 && (
+                    <span className="absolute top-1.5 right-1.5 w-2.5 h-2.5 bg-red-500 border-2 border-slate-900 rounded-full animate-pulse"></span>
+                  )}
+                </Link>
+                <button
+                  className="p-2 rounded-xl text-gray-400 hover:bg-gray-700 hover:text-white transition-colors focus:outline-none relative"
+                  title="Notifiche"
+                  onClick={() => {/* To be implemented: open notifications panel */}}
+                >
+                  <BellIcon className="w-6 h-6" />
+                  {unreadNotifications.length > 0 && (
+                    <span className="absolute top-1.5 right-1.5 w-2.5 h-2.5 bg-blue-500 border-2 border-slate-900 rounded-full animate-pulse"></span>
+                  )}
+                </button>
+              </div>
               <button 
                 onClick={onLogout} 
                 className={`font-bold rounded-xl text-red-400 transition-colors focus:outline-none ${isSidebarOpen ? 'text-sm w-full py-1 hover:text-white hover:bg-red-600' : 'text-[14px] pb-2 hover:text-red-200'}`}

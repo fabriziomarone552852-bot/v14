@@ -258,7 +258,7 @@ export const SeriesDetailModal: React.FC<SeriesDetailModalProps> = ({
                   </svg>
                 }
               >
-                La tua Recensione
+                Recensioni
               </NavButton>
             </div>
           </div>

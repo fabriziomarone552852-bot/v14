@@ -65,14 +65,15 @@ Per la guida completa e dettagliata, fare riferimento a [`docs/VERSIONING_GUIDE.
 
 Quando l'utente scrive **"fine"** (o frasi equivalenti come *"abbiamo finito"*, *"concludi sessione"*, *"chiudi"*), l'assistente AI deve eseguire **automaticamente e senza eccezioni** le seguenti azioni preimpostate:
 
-1. **📋 Sincronizzazione & Aggiornamento Backlog ([`docs/BACKLOG.md`](file:///c:/Users/Fabrizio/Desktop/app/smart/v14/docs/BACKLOG.md))**:
+1. **📋 Sincronizzazione & Aggiornamento Backlog ([`docs/BACKLOG.md`](file:///c:/Users/Fabrizio/Desktop/app/smart/v14/docs/BACKLOG.md) e [`docs/BACKLOG_ARCHIVE.md`](file:///c:/Users/Fabrizio/Desktop/app/smart/v14/docs/BACKLOG_ARCHIVE.md))**:
    - Controllare le modifiche e le decisioni prese durante la sessione.
-   - Segnare come 🟢 **Completato** tutte le voci e gli ID completati (aggiornando sia la tabella riassuntiva sia i paragrafi di dettaglio).
-   - Inserire o aggiornare eventuali nuove funzionalità, idee o note emerse nella discussione.
+   - Segnare come 🟢 **Completato** tutte le voci e gli ID completati nella tabella riassuntiva.
+   - **IMPORTANTE**: Spostare le descrizioni estese di tutti i task completati in `docs/BACKLOG_ARCHIVE.md`, mantenendo nel `BACKLOG.md` principale solo i progetti in corso o futuri per preservarne la leggibilità.
+   - Inserire o aggiornare eventuali nuove funzionalità, idee o note emerse nella discussione nel `BACKLOG.md`.
 
 2. **📝 Aggiornamento Changelog & Versioning ([`frontend/src/data/changelogData.ts`](file:///c:/Users/Fabrizio/Desktop/app/smart/v14/frontend/src/data/changelogData.ts))**:
    - Se ci sono state modifiche al codice o alle funzionalità, applicare la regola di versioning (Sezione 1):
-     - Se `published: false`: integrare `highlights`, `features`, `improvements`, `fixes` nella voce bozza in cima.
+     - Se `published: false`: integrare `highlights`, `features`, `improvements`, `fixes` nella voce bozza in cima. Effettuare un check del changelog per accorpare e riassumere i punti principali se la lista sta diventando troppo lunga o dispersiva.
      - Se `published: true`: incrementare la versione in `package.json` e creare la nuova voce con `published: false`.
 
 3. **🧪 Verifica Compilazione & Type-Check**:

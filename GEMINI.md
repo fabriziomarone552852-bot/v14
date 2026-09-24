@@ -14,4 +14,7 @@ Fare sempre riferimento a:
      Aggiungi poi la nuova voce con `published: false` in cima a `CHANGELOG_HISTORY`.
 2. Esegui sempre `npm run build` per verificare che non ci siano errori.
 3. Gli script `build_apk.ps1` e `deploy_build_pc.ps1` finalizzano e pubblicano automaticamente la versione (`published: true`).
-4. **Trigger "fine"**: Quando l'utente scrive "fine", eseguire automaticamente il protocollo di chiusura (aggiornamento `docs/BACKLOG.md`, aggiornamento Changelog se applicabile, `npm run build` e report finale).
+4. **Trigger "fine"**: Quando l'utente scrive "fine", eseguire automaticamente il protocollo di chiusura:
+   - Spostare i task completati in `docs/BACKLOG_ARCHIVE.md` e mantenere i futuri in `docs/BACKLOG.md`.
+   - Aggiornare il Changelog, riassumendo i punti principali se l'ultima versione (`published: false`) risulta troppo lunga.
+   - Eseguire `npm run build` e fornire il report finale.
