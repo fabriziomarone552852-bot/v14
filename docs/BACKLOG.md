@@ -551,3 +551,15 @@ Breve spiegazione di cosa fa la funzionalitÃ  dal punto di vista utente.
 ### FEAT-015: Gestione Saghe di Film
 - **Obiettivo**: Raggruppare film appartenenti alla stessa saga o collection (es. MCU, Star Wars, Harry Potter).
 - **UI/UX**: Viste raggruppate per "Saga" nel catalogo Media, possibilit� di tracciare l'intera collection.
+
+### [TRACKERS-001] Check comment functionality & Fix TMDB Ratings for trackers
+- **Descrizione**: Controllare il funzionamento dei commenti all'interno delle recensioni e sistemare la visualizzazione/calcolo dei voti TMDB.
+- **Stato**: 🟡 Da Iniziare (Frontend & Backend).
+
+### [TRACKERS-002] Fix friends status display in Series/Episode header
+- **Descrizione**: Risolvere il problema per cui l'icona dell'amico e il suo stato (In visione, Completata, ecc.) non compaiono nell'header smerigliato del dettaglio Serie/Episodio nonostante i fix sul backend.
+- **Stato**: 🟡 Da Investigare (Frontend - React Query cache / rendering logic).
+
+### [GENERAL-001] Sistemare orario e categorie
+- **Sistemare orario**: Correggere l'input dei minuti che attualmente non si riescono a scrivere bene.
+- **Controllo Categorie**: Sistemare il controllo delle categorie per distinguere e gestire se una categoria è dedicata solo a tasks, eventi o se è comune (entrambi).

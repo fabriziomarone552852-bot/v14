@@ -137,21 +137,24 @@ export const SeriesDetailModal: React.FC<SeriesDetailModalProps> = ({
     statusText = statusLabel;
   }
 
-  const { data: friendsReviews } = useFriendsSeriesReviews(tmdbIdToFetch, isOpen);
-  const SERIES_FRIENDS = friendsReviews?.map(f => {
-    let finalStatus = f.status || 'watching';
-    if (finalStatus === 'to_watch') finalStatus = 'planned';
-    if (finalStatus === 'watched') {
-      const isEnded = (tmdbSeries as any).tmdb_status === 'Ended' || (tmdbSeries as any).tmdb_status === 'Canceled';
-      finalStatus = isEnded ? 'completed' : 'waiting';
+  const { data: friendsReviews, isLoading: isFriendsLoading } = useFriendsSeriesReviews(tmdbIdToFetch, isOpen);
+  const SERIES_FRIENDS = (friendsReviews || []).reduce((acc: any[], f) => {
+    if (!acc.find(x => x.id === f.friend_id)) {
+      let finalStatus = f.status || 'watching';
+      if (finalStatus === 'to_watch') finalStatus = 'planned';
+      if (finalStatus === 'watched') {
+        const isEnded = (tmdbSeries as any).tmdb_status === 'Ended' || (tmdbSeries as any).tmdb_status === 'Canceled';
+        finalStatus = isEnded ? 'completed' : 'waiting';
+      }
+      acc.push({
+        id: f.friend_id,
+        name: f.friend_name,
+        avatar: f.friend_avatar ? resolveImageUrl(f.friend_avatar) : '/default_avatar.png',
+        status: finalStatus
+      });
     }
-    return {
-      id: f.friend_id,
-      name: f.friend_name,
-      avatar: f.friend_avatar ? resolveImageUrl(f.friend_avatar) : '/default_avatar.png',
-      status: finalStatus
-    };
-  }) || [];
+    return acc;
+  }, []);
 
   const getStatusBorderColor = (status: string) => {
     switch (status) {
@@ -204,9 +207,11 @@ export const SeriesDetailModal: React.FC<SeriesDetailModalProps> = ({
           <div className="absolute bottom-4 right-6 flex flex-col items-end gap-2 z-20 max-w-[calc(100%-340px)] justify-start">
              
              {/* AMICI (Rigo sopra) */}
-             {SERIES_FRIENDS.length > 0 && (
+             {(isFriendsLoading || SERIES_FRIENDS.length > 0) && (
                <div className="flex items-center flex-row-reverse gap-1.5">
-                 {SERIES_FRIENDS.length > 4 ? (
+                 {isFriendsLoading ? (
+                   <div className="w-8 h-8 rounded-full bg-white/30 backdrop-blur-md animate-pulse border-2 border-white/50 shadow-md" title="Caricamento amici..."></div>
+                 ) : SERIES_FRIENDS.length > 4 ? (
                     <div 
                       onClick={() => setShowFriendsPanel(true)}
                       className="relative cursor-pointer hover:z-30 transition-transform hover:scale-110 w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center border-2 border-blue-500 shadow-md text-blue-600"

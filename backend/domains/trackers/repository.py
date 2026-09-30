@@ -329,52 +329,61 @@ def get_friends_series_logs(db: Session, current_user_id: int, tmdb_id: int) -> 
         return []
     
     stmt = (
-        select(UserSeriesLog, User, UserSeriesTracking.status)
-        .join(User, User.id == UserSeriesLog.user_id)
-        .join(UserSeriesTracking, (UserSeriesTracking.user_id == UserSeriesLog.user_id) & (UserSeriesTracking.series_tmdb_id == UserSeriesLog.series_tmdb_id))
+        select(UserSeriesTracking, User, UserSeriesLog)
+        .join(User, User.id == UserSeriesTracking.user_id)
+        .outerjoin(UserSeriesLog, (UserSeriesLog.user_id == UserSeriesTracking.user_id) & (UserSeriesLog.series_tmdb_id == UserSeriesTracking.series_tmdb_id))
         .where(
-            UserSeriesLog.series_tmdb_id == tmdb_id,
-            UserSeriesLog.review_visibility != "private",
-            UserSeriesLog.user_id.in_(friend_ids)
+            UserSeriesTracking.series_tmdb_id == tmdb_id,
+            UserSeriesTracking.user_id.in_(friend_ids)
         )
     )
     results = db.execute(stmt).all()
     
     logs_data = []
-    for log, user, status in results:
-        comments_stmt = (
-            select(Interaction, User)
-            .join(User, User.id == Interaction.author_id)
-            .where(
-                Interaction.interaction_type == "SERIES_REVIEW_COMMENT",
-                Interaction.reference_id == log.id
+    for tracking, user, log in results:
+        comments_list = []
+        if log:
+            comments_stmt = (
+                select(Interaction, User)
+                .join(User, User.id == Interaction.author_id)
+                .where(
+                    Interaction.interaction_type == "SERIES_REVIEW_COMMENT",
+                    Interaction.reference_id == log.id
+                )
+                .order_by(Interaction.created_at.asc())
             )
-            .order_by(Interaction.created_at.asc())
-        )
-        comments_res = db.execute(comments_stmt).all()
-        comments_list = [
-            {
-                "id": str(c_int.id),
-                "author_id": str(c_user.id),
-                "author_name": c_user.username,
-                "author_avatar": c_user.avatar_path,
-                "text": c_int.content,
-                "created_at": c_int.created_at.isoformat()
-            }
-            for c_int, c_user in comments_res
-        ]
+            comments_res = db.execute(comments_stmt).all()
+            comments_list = [
+                {
+                    "id": str(c_int.id),
+                    "author_id": str(c_user.id),
+                    "author_name": c_user.username,
+                    "author_avatar": c_user.profile_picture_url,
+                    "text": c_int.content,
+                    "created_at": c_int.created_at.isoformat()
+                }
+                for c_int, c_user in comments_res
+            ]
         
+        updated_date_str = ""
+        if log and log.updated_at:
+            updated_date_str = log.updated_at.isoformat()
+        elif tracking.updated_at:
+            updated_date_str = tracking.updated_at.isoformat()
+        elif tracking.added_at:
+            updated_date_str = tracking.added_at.isoformat()
+
         logs_data.append({
-            "id": log.id,
+            "id": log.id if log else -tracking.id,
             "friend_id": user.id,
             "friend_name": user.username,
-            "friend_avatar": user.avatar_path,
-            "status": status,
-            "rating": log.rating,
-            "notes": log.notes,
-            "review_visibility": log.review_visibility,
-            "updated_at": log.updated_at.isoformat() if log.updated_at else "",
-            "comments": comments_list
+            "friend_avatar": user.profile_picture_url,
+            "status": tracking.status,
+            "rating": log.rating if log else None,
+            "notes": log.notes if log and log.review_visibility != "private" else None,
+            "review_visibility": log.review_visibility if log else "friends_only",
+            "updated_at": updated_date_str,
+            "comments": comments_list if log and log.review_visibility != "private" else []
         })
         
     return logs_data
@@ -392,7 +401,6 @@ def get_friends_episode_logs(db: Session, current_user_id: int, episode_id: int)
         .join(User, User.id == UserEpisodeLog.user_id)
         .where(
             UserEpisodeLog.episode_id == episode_id,
-            UserEpisodeLog.review_visibility != "private",
             UserEpisodeLog.user_id.in_(friend_ids_q1.union(friend_ids_q2))
         )
     )
@@ -417,7 +425,7 @@ def get_friends_episode_logs(db: Session, current_user_id: int, episode_id: int)
                 "id": interaction.id,
                 "author_id": author.id,
                 "author_name": author.username,
-                "author_avatar": author.avatar_url,
+                "author_avatar": author.profile_picture_url,
                 "text": interaction.content,
                 "created_at": interaction.created_at,
             })
@@ -427,10 +435,11 @@ def get_friends_episode_logs(db: Session, current_user_id: int, episode_id: int)
             "friend_id": user.id,
             "friend_name": user.username,
             "friend_avatar": user.profile_picture_url,
-            "notes": tracking.notes,
+            "rating": tracking.rating,
+            "notes": tracking.notes if tracking.review_visibility != "private" else None,
             "review_visibility": tracking.review_visibility,
             "watched_at": tracking.watched_at,
-            "comments": comments_list,
+            "comments": comments_list if tracking.review_visibility != "private" else [],
         })
         
     return logs_data

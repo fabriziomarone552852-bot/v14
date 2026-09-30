@@ -41,6 +41,7 @@ export const CHANGELOG_HISTORY: ChangelogItem[] = [
       'Integrazione Inviti Gruppi Spesa: Ricevi notifiche nell\'Inbox con navigazione diretta e apertura automatica del modale del gruppo.'
     ],
     improvements: [
+      'UI/UX: Migliorata l\'indicazione della privacy per le recensioni utilizzando icone visive.',
       'Aggiunto calcolo automatico e sincronizzazione dello stato (In lista / In visione / Completata) per le Serie TV in base agli episodi visti.',
       'Ottimizzato il layout degli avatar degli amici nel modale della serie, ora posizionati in una riga dedicata sopra le liste.',
       'Notifiche Permanenti e Ordine Cronologico: Tutte le notifiche di sistema (inviti, alert) restano nello storico ordinate dalla più recente.',
@@ -51,9 +52,15 @@ export const CHANGELOG_HISTORY: ChangelogItem[] = [
       'UI Commenti: Indicatori minimalisti inline nelle card per non sprecare spazio verticale.',
       'Migliorato il sistema di recensioni: conversione accurata in stelle 1-5, e inserite azioni rapide di Modifica/Elimina direttamente in testa alla finestra di lettura.',
       'Segnalatore visivo (pallino rosso) costante sul bottone delle citazioni per le puntate che ne contengono gi.',
-      'Tasto Notifiche Inbox: Ora l\'intero pulsante pulsa in rosso quando ci sono messaggi non letti.'
+      'Tasto Notifiche Inbox: Ora l\'intero pulsante pulsa in rosso quando ci sono messaggi non letti.',
+      'Aggiunto indicatore visivo di caricamento (Skeleton) per gli avatar degli amici nel modale Serie TV.'
     ],
     fixes: [
+      'Corretto un bug nel calcolo della media voti degli amici (Serie ed Episodi): il valore non si aggiornava correttamente al termine del caricamento a causa di un problema di cache di React (useMemo).',
+      'Rimossa l\'ora (2:00) dalla data delle recensioni (Serie ed Episodi) per una visualizzazione più pulita e coerente.',
+      'Risolto il bug degli avatar mancanti: ora gli amici che hanno aggiunto una serie al catalogo (anche senza aver lasciato una recensione) appaiono correttamente nell\'header della serie con il bordo relativo allo stato.',
+      'Backend: Corretto un bug nella query degli amici (Outer Join) che causava errori di caricamento per gli amici che avevano in lista una serie senza recensioni.',
+      'Database: Create le migrazioni mancanti per costanti e constraints delle tabelle log e trackers.',
       'Aggiunto avatar di default (default_avatar.png) per gli amici senza immagine profilo.',
       'Risolto definitivamente il problema di visualizzazione degli episodi anche per le serie in anteprima, rimosso blocco in SeasonsTab e migliorato il fetch con fallback in SeriesDetailModal.',
       'Risolta la sparizione delle citazioni e dei rating durante il ricaricamento degli episodi, integrandole nella query DB globale.',
