@@ -12,6 +12,7 @@ from sqlalchemy import (
     DateTime,
     ForeignKey,
     Integer,
+    Float,
     String,
     Text,
 )
@@ -51,6 +52,7 @@ class TMDBSeries(Base):
     first_air_date: Mapped[Optional[date]] = mapped_column(Date, nullable=True)
     still_path: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
     last_air_date: Mapped[Optional[date]] = mapped_column(Date, nullable=True)
+    vote_average: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
     
     last_sync_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
@@ -94,6 +96,7 @@ class TMDBEpisode(Base):
     overview: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     air_date: Mapped[Optional[date]] = mapped_column(Date, nullable=True)
     still_path: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
+    vote_average: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
     
     series: Mapped["TMDBSeries"] = relationship("TMDBSeries", back_populates="episodes")
     user_trackings: Mapped[List["UserEpisodeLog"]] = relationship(

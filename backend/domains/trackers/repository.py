@@ -73,6 +73,7 @@ def upsert_tmdb_episodes(db: Session, episodes: List[TMDBEpisode]) -> None:
             existing.overview = ep.overview
             existing.air_date = ep.air_date
             existing.still_path = ep.still_path
+            existing.vote_average = ep.vote_average
         else:
             db.add(ep)
     db.commit()

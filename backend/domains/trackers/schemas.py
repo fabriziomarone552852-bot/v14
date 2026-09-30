@@ -140,6 +140,7 @@ class TVSeriesResponse(ORMBaseModel):
     total_episodes: Optional[int] = None
     first_air_date: Optional[date] = None
     last_air_date: Optional[date] = None
+    vote_average: Optional[float] = None
     last_sync_at: datetime
 
     # User Tracking fields

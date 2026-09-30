@@ -18,3 +18,7 @@ Fare sempre riferimento a:
    - Spostare i task completati in `docs/BACKLOG_ARCHIVE.md` e mantenere i futuri in `docs/BACKLOG.md`.
    - Aggiornare il Changelog, riassumendo i punti principali se l'ultima versione (`published: false`) risulta troppo lunga.
    - Eseguire `npm run build` e fornire il report finale.
+
+### Regole di Sviluppo (Sintesi)
+- **NO Mock Data**: Evita dati mock (hardcoded nel frontend). Usa stati vuoti o procedi subito con l'integrazione backend.
+- **DB e Alembic**: Usa `test.bat` / `alembic-test.bat` per gestire correttamente le migrazioni nel DB di test ed evitare errori di ambiente.

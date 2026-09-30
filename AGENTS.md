@@ -92,3 +92,8 @@ Quando l'utente scrive **"fine"** (o frasi equivalenti come *"abbiamo finito"*, 
 - Fanno eccezione solo i "Messaggi Effimeri" veri e propri, che hanno una logica di autodistruzione immediata (`TTL=0`) predefinita.
 - Le notifiche nella sidebar (Notifiche regolari) devono essere sempre mostrate in **ordine cronologico decrescente** (dalla più recente in alto alla più remota in basso).
 
+---
+
+## 🛠️ 5. Regole di Sviluppo: Mock Data & Migrazioni Database
+1. **Nessun Dato Mock**: Evitare categoricamente l'utilizzo di dati mock (dati finti codificati nel frontend), in quanto complicano l'integrazione e il mantenimento. Utilizzare piuttosto dati/stati vuoti (es. liste vuote, stati di caricamento temporanei) o procedere il prima possibile con il collegamento reale alle API del backend.
+2. **Migrazioni Alembic & Ambiente Test**: Quando si creano o modificano modelli e serve effettuare una migrazione del database (Alembic), tenere sempre in considerazione l'ambiente di test. Utilizzare script predisposti come `test.bat` (e in particolare `alembic-test.bat`) per assicurarsi di generare ed effettuare le migrazioni puntando al database di test corretto, anziché eseguire comandi diretti che potrebbero fallire o puntare altrove.

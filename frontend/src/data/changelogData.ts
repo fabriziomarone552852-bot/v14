@@ -56,6 +56,7 @@ export const CHANGELOG_HISTORY: ChangelogItem[] = [
       'Aggiunto indicatore visivo di caricamento (Skeleton) per gli avatar degli amici nel modale Serie TV.'
     ],
     fixes: [
+      'Backend: Aggiunta la colonna `vote_average` al database per TMDBSeries e TMDBEpisode. Ora i voti di TMDB (convertiti in quinti) sono di nuovo visibili sia nella panoramica Serie che nel dettaglio Episodio.',
       'Corretto un bug nel calcolo della media voti degli amici (Serie ed Episodi): il valore non si aggiornava correttamente al termine del caricamento a causa di un problema di cache di React (useMemo).',
       'Rimossa l\'ora (2:00) dalla data delle recensioni (Serie ed Episodi) per una visualizzazione più pulita e coerente.',
       'Risolto il bug degli avatar mancanti: ora gli amici che hanno aggiunto una serie al catalogo (anche senza aver lasciato una recensione) appaiono correttamente nell\'header della serie con il bordo relativo allo stato.',

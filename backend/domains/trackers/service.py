@@ -216,6 +216,7 @@ async def sync_tmdb_series_metadata_only(db: Session, tmdb_id: int):
         total_episodes=tmdb_data.get("number_of_episodes"),
         first_air_date=safe_date(tmdb_data.get("first_air_date")),
         last_air_date=safe_date(tmdb_data.get("last_air_date")),
+        vote_average=tmdb_data.get("vote_average"),
         last_sync_at=datetime.now(timezone.utc)
     )
     series = repository.upsert_tmdb_series(db, series)
@@ -259,7 +260,8 @@ async def sync_tmdb_episodes_for_seasons(db: Session, tmdb_id: int, seasons: lis
                         title=ep_data.get("name"),
                         overview=ep_data.get("overview"),
                         air_date=safe_date(ep_data.get("air_date")),
-                        still_path=ep_data.get("still_path")
+                        still_path=ep_data.get("still_path"),
+                        vote_average=ep_data.get("vote_average")
                     )
                 )
         
@@ -373,6 +375,7 @@ def _build_series_response(tracking: UserSeriesTracking, db=None, current_user=N
         total_episodes=s.total_episodes,
         first_air_date=s.first_air_date,
         last_air_date=s.last_air_date,
+        vote_average=s.vote_average,
         last_sync_at=s.last_sync_at,
         status=tracking.status,
         custom_poster_path=tracking.custom_poster_path,
@@ -415,7 +418,7 @@ def _build_episode_response(tmdb_ep: TMDBEpisode, user_logs: List["UserEpisodeLo
         overview=tmdb_ep.overview,
         air_date=tmdb_ep.air_date,
         still_path=tmdb_ep.still_path,
-        vote_average=None,
+        vote_average=tmdb_ep.vote_average,
         is_watched=len(user_logs) > 0,
         watch_count=len(user_logs),
         logs=logs_resp,

@@ -215,3 +215,9 @@ eference_id = log_id)
   - Fix per il rendering a 5 stelle della media voti nelle stagioni e nelle recensioni degli amici, che non convertiva il nuovo rating 1-10 del database.
   - Implementato un indicatore visivo persistente (pallino rosso) sul bottone per le citazioni dell'episodio se ce ne sono di salvate.
   - Inseriti comandi rapidi di "Modifica" ed "Elimina" recensione direttamente nell'intestazione del popup di lettura dei commenti della propria recensione, uniformati con le icone dell'app.
+
+### [TRACKERS-001] Fix TMDB Ratings for trackers
+- **Stato**: Completato (Aggiunta colonna vote_average al backend e integrata nel frontend)
+
+### [TRACKERS-002] Fix friends status display in Series/Episode header
+- **Stato**: Completato (Risolto con Outer Join su backend e aggiunta skeleton)
