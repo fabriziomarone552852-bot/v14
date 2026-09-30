@@ -354,11 +354,50 @@ def _build_series_response(tracking: UserSeriesTracking, db=None, current_user=N
     if db and current_user:
         import sqlalchemy
         from backend.domains.trackers.models import UserSeriesLog
+        from backend.domains.notifications.models import Interaction
+        from backend.domains.users.models import User
+        
         stmt = sqlalchemy.select(UserSeriesLog).where(
             UserSeriesLog.user_id == current_user.id,
             UserSeriesLog.series_tmdb_id == tracking.series_tmdb_id
         ).order_by(UserSeriesLog.updated_at.desc())
-        logs_data = list(db.execute(stmt).scalars().all())
+        raw_logs = list(db.execute(stmt).scalars().all())
+        
+        for raw_log in raw_logs:
+            comments_stmt = (
+                sqlalchemy.select(Interaction, User)
+                .join(User, User.id == Interaction.author_id)
+                .where(
+                    Interaction.interaction_type == "SERIES_REVIEW_COMMENT",
+                    Interaction.reference_id == raw_log.id
+                )
+                .order_by(Interaction.created_at.asc())
+            )
+            comments_res = db.execute(comments_stmt).all()
+            comments_list = [
+                {
+                    "id": c_int.id,
+                    "author_id": c_user.id,
+                    "author_name": c_user.username,
+                    "author_avatar": c_user.profile_picture_url,
+                    "text": c_int.content,
+                    "created_at": c_int.created_at
+                }
+                for c_int, c_user in comments_res
+            ]
+            
+            log_dict = {
+                "id": raw_log.id,
+                "user_id": raw_log.user_id,
+                "series_tmdb_id": raw_log.series_tmdb_id,
+                "rating": raw_log.rating,
+                "notes": raw_log.notes,
+                "review_visibility": raw_log.review_visibility,
+                "watched_at": raw_log.watched_at,
+                "updated_at": raw_log.updated_at,
+                "comments": comments_list
+            }
+            logs_data.append(log_dict)
     return TVSeriesResponse(
         id=tracking.id,
         tmdb_id=s.tmdb_id,
@@ -386,17 +425,46 @@ def _build_series_response(tracking: UserSeriesTracking, db=None, current_user=N
         episodes=[]
     )
 
-def _build_episode_response(tmdb_ep: TMDBEpisode, user_logs: List["UserEpisodeLog"], quotes: List["TVQuote"] = None) -> TVEpisodeResponse:
+def _build_episode_response(tmdb_ep: TMDBEpisode, user_logs: List["UserEpisodeLog"], quotes: List["TVQuote"] = None, db=None) -> TVEpisodeResponse:
     from backend.domains.trackers.schemas import EpisodeLogResponse, TVQuoteResponse
-    logs_resp = [
-        EpisodeLogResponse(
+    from backend.domains.notifications.models import Interaction
+    from backend.domains.users.models import User
+    import sqlalchemy
+    
+    logs_resp = []
+    for log in user_logs:
+        comments_list = []
+        if db:
+            comments_stmt = (
+                sqlalchemy.select(Interaction, User)
+                .join(User, User.id == Interaction.author_id)
+                .where(
+                    Interaction.interaction_type == "EPISODE_REVIEW_COMMENT",
+                    Interaction.reference_id == log.id
+                )
+                .order_by(Interaction.created_at.asc())
+            )
+            comments_res = db.execute(comments_stmt).all()
+            comments_list = [
+                {
+                    "id": c_int.id,
+                    "author_id": c_user.id,
+                    "author_name": c_user.username,
+                    "author_avatar": c_user.profile_picture_url,
+                    "text": c_int.content,
+                    "created_at": c_int.created_at
+                }
+                for c_int, c_user in comments_res
+            ]
+            
+        logs_resp.append(EpisodeLogResponse(
             id=log.id,
             rating=log.rating,
             notes=log.notes,
             review_visibility=log.review_visibility,
-            watched_at=log.watched_at
-        ) for log in user_logs
-    ]
+            watched_at=log.watched_at,
+            comments=comments_list
+        ))
     
     quotes_resp = []
     if quotes:
@@ -452,12 +520,12 @@ def _build_series_response_with_next(db, current_user, tracking, episodes_data) 
     
     # Reload episodes_data in case we modified it
     episodes_data = repository.get_series_episodes_with_user_tracking(db, tracking.series_tmdb_id, current_user.id)
-    response.episodes = [_build_episode_response(tmdb_ep, user_logs, quotes) for tmdb_ep, user_logs, quotes in episodes_data]
+    response.episodes = [_build_episode_response(tmdb_ep, user_logs, quotes, db=db) for tmdb_ep, user_logs, quotes in episodes_data]
     
     # Trova il next_episode_to_watch
     for tmdb_ep, user_logs, quotes in episodes_data:
         if len(user_logs) == 0:
-            response.next_episode_to_watch = _build_episode_response(tmdb_ep, user_logs, quotes)
+            response.next_episode_to_watch = _build_episode_response(tmdb_ep, user_logs, quotes, db=db)
             break
             
     return response
@@ -492,7 +560,7 @@ def toggle_episode_watched(db: Session, current_user: User, episode_id: int, wat
     quotes_stmt = sqlalchemy.select(TVQuote).where(TVQuote.user_id == current_user.id, TVQuote.episode_id == episode_id).order_by(TVQuote.created_at.desc())
     user_quotes = list(db.execute(quotes_stmt).scalars().all())
         
-    return _build_episode_response(tmdb_ep, user_logs, user_quotes)
+    return _build_episode_response(tmdb_ep, user_logs, user_quotes, db=db)
 
 def mark_all_episodes_watched(db: Session, current_user: User, tmdb_series_id: int):
     tracking = repository.get_user_series_tracking(db, tmdb_series_id, current_user.id)
@@ -545,7 +613,7 @@ def update_episode_notes(db: Session, current_user: User, episode_id: int, notes
     quotes_stmt = sqlalchemy.select(TVQuote).where(TVQuote.user_id == current_user.id, TVQuote.episode_id == episode_id).order_by(TVQuote.created_at.desc())
     user_quotes = list(db.execute(quotes_stmt).scalars().all())
     
-    return _build_episode_response(tmdb_ep, user_logs, user_quotes)
+    return _build_episode_response(tmdb_ep, user_logs, user_quotes, db=db)
 
 
 def add_episode_log(db: Session, current_user: User, episode_id: int, notes: str | None, review_visibility: str | None = None, rating: int | None = None, watched_at_date: date | None = None) -> TVEpisodeResponse:
@@ -579,7 +647,7 @@ def add_episode_log(db: Session, current_user: User, episode_id: int, notes: str
     user_logs = list(db.execute(logs_stmt).scalars().all())
     quotes_stmt = sqlalchemy.select(TVQuote).where(TVQuote.user_id == current_user.id, TVQuote.episode_id == episode_id).order_by(TVQuote.created_at.desc())
     user_quotes = list(db.execute(quotes_stmt).scalars().all())
-    return _build_episode_response(tmdb_ep, user_logs, user_quotes)
+    return _build_episode_response(tmdb_ep, user_logs, user_quotes, db=db)
 
 def update_episode_log(db: Session, current_user: User, log_id: int, notes: str | None, review_visibility: str | None = None, rating: int | None = None, watched_at_date: date | None = None) -> TVEpisodeResponse:
     import sqlalchemy
@@ -609,7 +677,7 @@ def update_episode_log(db: Session, current_user: User, log_id: int, notes: str 
     user_logs = list(db.execute(logs_stmt).scalars().all())
     quotes_stmt = sqlalchemy.select(TVQuote).where(TVQuote.user_id == current_user.id, TVQuote.episode_id == log.episode_id).order_by(TVQuote.created_at.desc())
     user_quotes = list(db.execute(quotes_stmt).scalars().all())
-    return _build_episode_response(tmdb_ep, user_logs, user_quotes)
+    return _build_episode_response(tmdb_ep, user_logs, user_quotes, db=db)
 
 def delete_episode_log(db: Session, current_user: User, log_id: int) -> TVEpisodeResponse:
     import sqlalchemy
@@ -632,7 +700,7 @@ def delete_episode_log(db: Session, current_user: User, log_id: int) -> TVEpisod
     user_logs = list(db.execute(logs_stmt).scalars().all())
     quotes_stmt = sqlalchemy.select(TVQuote).where(TVQuote.user_id == current_user.id, TVQuote.episode_id == episode_id).order_by(TVQuote.created_at.desc())
     user_quotes = list(db.execute(quotes_stmt).scalars().all())
-    return _build_episode_response(tmdb_ep, user_logs, user_quotes)
+    return _build_episode_response(tmdb_ep, user_logs, user_quotes, db=db)
 
 def add_quote(db: Session, current_user: User, episode_id: int, quote_text: str) -> TVQuoteResponse:
     from backend.domains.trackers.models import TVQuote

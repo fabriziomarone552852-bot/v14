@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { useMySeries } from '@/hooks/queries/useTrackersQueries';
+import { useSearchParams } from 'react-router-dom';
+import { useMySeries, useSeriesStats } from '@/hooks/queries/useTrackersQueries';
 import PageLoadingState from '@/components/shared/feedback/PageLoadingState';
 import PageErrorState from '@/components/shared/feedback/PageErrorState';
 import { TvIcon, EyeIcon, EyeHalfOpenIcon, EyeClosedIcon, LoadingIcon } from '@/components/shared/utils/Icons';
@@ -167,19 +168,51 @@ const UpcomingEpisodesWidget = () => {
 };
 
 const TVSeriesPage: React.FC = () => {
+  const [searchParams, setSearchParams] = useSearchParams();
   const [detailModalOpen, setDetailModalOpen] = useState(false);
   const [detailModalSeries, setDetailModalSeries] = useState<any>(null);
   const [detailModalTab, setDetailModalTab] = useState<TabType>('overview');
   const [detailModalEpisode, setDetailModalEpisode] = useState<TMDBEpisode | undefined>(undefined);
+  const [detailModalReviewLogId, setDetailModalReviewLogId] = useState<number | undefined>(undefined);
 
-  const openSeriesDetail = (series: any, tab: TabType = 'overview', episode?: TMDBEpisode) => {
+  const openSeriesDetail = (series: any, tab: TabType = 'overview', episode?: TMDBEpisode, reviewLogId?: number) => {
     setDetailModalSeries(series);
     setDetailModalTab(tab);
     setDetailModalEpisode(episode);
+    setDetailModalReviewLogId(reviewLogId);
     setDetailModalOpen(true);
   };
   const queryClient = useQueryClient();
   const { data: series, isLoading, isError } = useMySeries();
+  const { data: statsData } = useSeriesStats();
+
+  // Check URL params on load
+  useEffect(() => {
+    if (series && series.length > 0 && !detailModalOpen) {
+      const tmdbIdParam = searchParams.get('tmdb_id');
+      const openReview = searchParams.get('open_review') === 'true';
+      const openEpisode = searchParams.get('open_episode');
+      const openReviewLogId = searchParams.get('open_review_log_id');
+      
+      if (tmdbIdParam) {
+        const targetSeries = series.find(s => String(s.tmdb_id) === tmdbIdParam);
+        if (targetSeries) {
+          if (openEpisode) {
+            // Seleziona episodio
+            const epId = Number(openEpisode);
+            const foundEp = targetSeries.episodes?.find(e => e.id === epId);
+            openSeriesDetail(targetSeries, 'seasons', foundEp, openReviewLogId ? Number(openReviewLogId) : undefined);
+          } else if (openReview) {
+            openSeriesDetail(targetSeries, 'review', undefined, openReviewLogId ? Number(openReviewLogId) : undefined);
+          } else {
+            openSeriesDetail(targetSeries);
+          }
+          // Clean up URL params after opening
+          setSearchParams({});
+        }
+      }
+    }
+  }, [series, searchParams, detailModalOpen]);
 
   useEffect(() => {
     if (detailModalOpen && detailModalSeries && series) {
@@ -303,12 +336,12 @@ const TVSeriesPage: React.FC = () => {
     .filter(s => s.title.toLowerCase().includes(searchQuery.toLowerCase()));
 
   // Mocks for top cards
-  const lastAdded = series && series.length > 0 ? series[series.length - 1] : null;
+  const lastAdded = series && series.length > 0 ? [...series].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())[0] : null;
   const lastWatched = watchingSeries.length > 0 ? watchingSeries[0] : null;
   const lastCompleted = watchedSeries.length > 0 ? watchedSeries[0] : null;
 
   const goal = 300;
-  const currentEpisodes = 0; // In futuro calcolare gli episodi reali
+  const currentEpisodes = statsData?.episodes_watched_this_year || 0;
   const goalPercent = Math.min(100, Math.round((currentEpisodes / goal) * 100));
 
   return (
@@ -646,6 +679,7 @@ const TVSeriesPage: React.FC = () => {
           series={detailModalSeries}
           initialTab={detailModalTab}
           initialEpisode={detailModalEpisode}
+          initialReviewLogId={detailModalReviewLogId}
           onSelectRecommendation={(rec) => openSeriesDetail(rec as any)}
           onToggleTrack={(tmdbId: number, isTracked: boolean) => {
             if (!isTracked) {

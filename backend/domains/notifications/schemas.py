@@ -32,3 +32,10 @@ class InteractionResponse(ORMBaseModel):
     content: str
     created_at: datetime
     read_at: Optional[datetime] = None
+    
+    # Extra fields populated dynamically
+    author_name: Optional[str] = None
+    author_avatar: Optional[str] = None
+    context_title: Optional[str] = None
+    series_tmdb_id: Optional[int] = None
+    episode_id: Optional[int] = None

@@ -77,6 +77,7 @@ class EpisodeLogResponse(ORMBaseModel):
     notes: Optional[str] = None
     review_visibility: str
     watched_at: datetime
+    comments: List[dict] = Field(default_factory=list)
 
 
 class TVEpisodeResponse(ORMBaseModel):

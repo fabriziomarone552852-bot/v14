@@ -18,13 +18,45 @@ _NOT_FOUND = "Elemento non trovato."
 EPHEMERAL_TTL_HOURS = 0
 
 
+def _hydrate_interaction(db: Session, int_obj: Interaction) -> schemas.InteractionResponse:
+    int_dict = schemas.InteractionResponse.model_validate(int_obj).model_dump()
+    if int_obj.author_id:
+        author = db.query(User).filter(User.id == int_obj.author_id).first()
+        if author:
+            int_dict["author_name"] = author.username
+            int_dict["author_avatar"] = author.profile_picture_url
+            
+    if int_obj.interaction_type in ["SERIES_REVIEW_COMMENT", "SERIES_REVIEW_COMMENT_THREAD"]:
+        from backend.domains.trackers.models import UserSeriesLog, TMDBSeries
+        log = db.query(UserSeriesLog).filter(UserSeriesLog.id == int_obj.reference_id).first()
+        if log:
+            series = db.query(TMDBSeries).filter(TMDBSeries.tmdb_id == log.series_tmdb_id).first()
+            if series:
+                int_dict["context_title"] = series.title
+                int_dict["series_tmdb_id"] = series.tmdb_id
+                
+    elif int_obj.interaction_type in ["EPISODE_REVIEW_COMMENT", "EPISODE_REVIEW_COMMENT_THREAD"]:
+        from backend.domains.trackers.models import UserEpisodeLog, TMDBEpisode, TMDBSeries
+        log = db.query(UserEpisodeLog).filter(UserEpisodeLog.id == int_obj.reference_id).first()
+        if log:
+            ep = db.query(TMDBEpisode).filter(TMDBEpisode.id == log.episode_id).first()
+            if ep:
+                series = db.query(TMDBSeries).filter(TMDBSeries.tmdb_id == ep.series_tmdb_id).first()
+                if series:
+                    int_dict["context_title"] = f"S{ep.season_number}E{ep.episode_number} di {series.title}"
+                    int_dict["series_tmdb_id"] = series.tmdb_id
+                    int_dict["episode_id"] = log.episode_id
+                    
+    return schemas.InteractionResponse(**int_dict)
+
 def list_interactions(
     db: Session,
     current_user: User,
     unread_only: bool = False,
     limit: int = 50,
-) -> List[Interaction]:
-    return repo.list_for_user(db, current_user.id, unread_only=unread_only, limit=limit)
+) -> List[schemas.InteractionResponse]:
+    interactions = repo.list_for_user(db, current_user.id, unread_only=unread_only, limit=limit)
+    return [_hydrate_interaction(db, int_obj) for int_obj in interactions]
 
 
 def create_interaction(
@@ -42,7 +74,32 @@ def create_interaction(
         created_at=now_utc,
         read_at=None,
     )
-    return repo.add(db, interaction)
+    result = repo.add(db, interaction)
+
+    if payload.interaction_type in ["SERIES_REVIEW_COMMENT", "EPISODE_REVIEW_COMMENT"]:
+        other_authors = db.query(Interaction.author_id).filter(
+            Interaction.interaction_type == payload.interaction_type,
+            Interaction.reference_id == payload.reference_id,
+            Interaction.author_id != current_user.id,
+            Interaction.author_id != payload.recipient_id
+        ).distinct().all()
+        
+        thread_type = payload.interaction_type + "_THREAD"
+        for (other_author_id,) in other_authors:
+            if other_author_id:
+                thread_int = Interaction(
+                    interaction_type=thread_type,
+                    author_id=current_user.id,
+                    recipient_id=other_author_id,
+                    reference_id=payload.reference_id,
+                    content="Nuovo commento nel thread",
+                    created_at=now_utc,
+                    read_at=None,
+                )
+                db.add(thread_int)
+        db.commit()
+        
+    return result
 
 
 def read_interaction(
@@ -87,7 +144,7 @@ def read_interaction(
             # Commenti o altro: salva solo il read_at
             interaction = repo.save(db, interaction)
 
-    return interaction
+    return _hydrate_interaction(db, interaction)
 
 
 def delete_interaction(

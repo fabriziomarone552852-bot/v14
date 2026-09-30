@@ -21,6 +21,7 @@ interface SeriesDetailModalProps {
   series: TMDBSeries | UserSeriesTracking; // Can be global search result or user tracked
   initialTab?: TabType;
   initialEpisode?: TMDBEpisode | null;
+  initialReviewLogId?: number;
   onToggleTrack?: (tmdbId: number, isTracked: boolean) => void;
   onSelectRecommendation?: (tmdbId: number) => void;
 }
@@ -33,11 +34,13 @@ export const SeriesDetailModal: React.FC<SeriesDetailModalProps> = ({
   series,
   initialTab = 'overview',
   initialEpisode = null,
+  initialReviewLogId,
   onToggleTrack,
   onSelectRecommendation
 }) => {
   const [activeTab, setActiveTab] = useState<TabType>(initialTab);
   const [internalEpisode, setInternalEpisode] = useState<TMDBEpisode | null>(initialEpisode);
+  const [internalReviewLogId, setInternalReviewLogId] = useState<number | undefined>(initialReviewLogId);
   const [showFriendsPanel, setShowFriendsPanel] = useState(false);
   const [showListsPanel, setShowListsPanel] = useState(false);
   const [isListManagerOpen, setIsListManagerOpen] = useState(false);
@@ -56,8 +59,9 @@ export const SeriesDetailModal: React.FC<SeriesDetailModalProps> = ({
     if (isOpen) {
       setActiveTab(initialTab);
       setInternalEpisode(initialEpisode);
+      setInternalReviewLogId(initialReviewLogId);
     }
-  }, [isOpen, initialTab, initialEpisode, 'tmdb_id' in series ? series.tmdb_id : series.series_tmdb_id]);
+  }, [isOpen, initialTab, initialEpisode, initialReviewLogId, 'tmdb_id' in series ? series.tmdb_id : series.series_tmdb_id]);
 
   // Fetch sempre i dettagli aggiornati per avere la lista episodi completa (lazy sync dal backend)
   const tmdbIdToFetch = 'tmdb_id' in series ? series.tmdb_id : ('series_tmdb_id' in series ? series.series_tmdb_id : (series as any).tmdb_series?.tmdb_id);
@@ -385,12 +389,13 @@ export const SeriesDetailModal: React.FC<SeriesDetailModalProps> = ({
               <OverviewTab tmdbSeries={tmdbSeries} onSelectRecommendation={onSelectRecommendation} isLoading={false} />
             )}
             {activeTab === 'seasons' && (
-              <SeasonsTab tmdbSeries={tmdbSeries} userTracking={userTracking} initialEpisode={internalEpisode} isLoading={!detailData || (!detailData.episodes || detailData.episodes.length === 0) && detailData?.total_episodes > 0} />
+              <SeasonsTab tmdbSeries={tmdbSeries} userTracking={userTracking} initialEpisode={internalEpisode} initialReviewLogId={internalReviewLogId} isLoading={!detailData || (!detailData.episodes || detailData.episodes.length === 0) && detailData?.total_episodes > 0} />
             )}
             {activeTab === 'review' && (
               <SeriesReviewTab 
                 tmdbSeries={tmdbSeries} 
                 userTracking={userTracking} 
+                initialReviewLogId={internalReviewLogId}
                 onOpenEpisode={(ep) => {
                   setInternalEpisode(ep);
                   setActiveTab('seasons');

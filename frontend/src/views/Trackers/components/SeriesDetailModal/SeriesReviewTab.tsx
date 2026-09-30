@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import type { TMDBSeries, UserSeriesTracking, TMDBEpisode } from '@/types/trackers';
 import { StarRating } from './StarRating';
 import { EmptyState } from '@/components/shared/utils/EmptyState';
@@ -6,6 +7,7 @@ import { DatePicker } from '@/components/shared/utils/DatePicker/DatePicker';
 import { useTrackersMutations } from '@/hooks/mutations/useTrackersMutations';
 import { useFriendsSeriesReviews } from '@/hooks/queries/useTrackersQueries';
 import { useNotifications } from '@/hooks/useNotifications';
+import { useAuth } from '@/context/AuthContext';
 import { EditIcon, TrashIcon } from '@/components/shared/utils/Icons';
 import ConfirmDialog from '@/components/shared/dialog/ConfirmDialog';
 
@@ -17,6 +19,7 @@ export interface UserSeriesLog {
   notes: string;
   review_visibility: 'private' | 'friends_only' | 'public';
   updated_at: string;
+  comments?: any[];
 }
 
 export interface UnifiedReviewData {
@@ -37,6 +40,7 @@ interface SeriesReviewTabProps {
   tmdbSeries: TMDBSeries;
   userTracking: UserSeriesTracking | null;
   onOpenEpisode?: (episode: TMDBEpisode) => void;
+  initialReviewLogId?: number;
 }
 
 type ViewState = 'main' | 'form' | 'friends_reviews' | 'friend_detail' | 'my_reviews' | 'review_detail';
@@ -48,7 +52,9 @@ const VisibilityIcon = ({ visibility, className = "w-3 h-3" }: { visibility: str
   return <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" /></svg>;
 }
 
-export const SeriesReviewTab: React.FC<SeriesReviewTabProps> = ({ tmdbSeries, userTracking, onOpenEpisode }) => {
+export const SeriesReviewTab: React.FC<SeriesReviewTabProps> = ({ tmdbSeries, userTracking, onOpenEpisode, initialReviewLogId }) => {
+  const queryClient = useQueryClient();
+  const { user } = useAuth();
   const [view, setView] = useState<ViewState>('main');
   const [selectedFriendId, setSelectedFriendId] = useState<string | null>(null);
   const [selectedReview, setSelectedReview] = useState<UnifiedReviewData | null>(null);
@@ -81,11 +87,67 @@ export const SeriesReviewTab: React.FC<SeriesReviewTabProps> = ({ tmdbSeries, us
         rating: (log.rating || 0) / 2,
         notes: log.notes || '',
         review_visibility: (log.review_visibility as 'private' | 'friends_only' | 'public') || 'friends_only',
-        updated_at: log.updated_at || new Date().toISOString()
+        updated_at: log.updated_at || new Date().toISOString(),
+        comments: (log as any).comments || []
       }));
     }
     return [];
   }, [userTracking]);
+
+  React.useEffect(() => {
+    if (initialReviewLogId && (logs.length > 0 || friendsLogsData.length > 0) && view !== 'review_detail') {
+      const myLog = logs.find(l => l.id === initialReviewLogId);
+      if (myLog) {
+        setSelectedReview({
+          id: myLog.id as any,
+          author_id: String(user?.id),
+          author_name: 'Tu',
+          rating: (myLog.rating || 0),
+          notes: myLog.notes || '',
+          updated_at: myLog.updated_at,
+          comments: (myLog as any).comments || [],
+          is_mine: true,
+          review_visibility: myLog.review_visibility,
+          original_log: myLog
+        });
+        setView('review_detail');
+        return;
+      }
+      
+      const friendLog = friendsLogsData.find(l => l.id === initialReviewLogId);
+      if (friendLog) {
+        setSelectedReview({
+          id: friendLog.id,
+          author_id: friendLog.friend_id,
+          author_name: friendLog.friend_name,
+          author_avatar: friendLog.friend_avatar,
+          rating: (friendLog.rating || 0) / 2,
+          notes: friendLog.notes || '',
+          updated_at: friendLog.updated_at,
+          comments: (friendLog as any).comments || [],
+          is_mine: false,
+          original_log: friendLog
+        });
+        setView('review_detail');
+      }
+    }
+  }, [initialReviewLogId, logs, friendsLogsData]);
+
+  React.useEffect(() => {
+    if (selectedReview && view === 'review_detail') {
+      if (selectedReview.is_mine) {
+        const updatedLog = logs.find(l => l.id === selectedReview.id);
+        if (updatedLog) {
+          setSelectedReview(prev => prev ? { ...prev, comments: updatedLog.comments || [] } : null);
+        }
+      } else {
+        const updatedLog = friendsLogsData.find(l => l.id === selectedReview.id);
+        if (updatedLog) {
+          setSelectedReview(prev => prev ? { ...prev, comments: (updatedLog as any).comments || [] } : null);
+        }
+      }
+    }
+  }, [friendsLogsData, logs]);
 
   const [editingLogId, setEditingLogId] = useState<number | null>(null);
   const [rating, setRating] = useState(0); 
@@ -343,7 +405,7 @@ export const SeriesReviewTab: React.FC<SeriesReviewTabProps> = ({ tmdbSeries, us
                 onSelectReview={() => {
                   setSelectedReview({
                     id: log.id as any,
-                    author_id: 'me',
+                    author_id: String(user?.id),
                     author_name: 'Tu',
                     rating: (log.rating || 0) / 2,
                     notes: log.notes || '',
@@ -508,6 +570,14 @@ export const SeriesReviewTab: React.FC<SeriesReviewTabProps> = ({ tmdbSeries, us
                   <div className="text-sm text-gray-700">{log.notes}</div>
                 ) : null}
               </div>
+
+              {(log as any).comments && (log as any).comments.length > 0 && (
+                <div className="pt-2 border-t border-gray-100 mt-1 cursor-pointer">
+                  <span className="text-xs font-semibold text-gray-500 hover:text-blue-600 transition-colors">
+                    {(log as any).comments.length} {(log as any).comments.length === 1 ? 'commento' : 'commenti'}
+                  </span>
+                </div>
+              )}
             </div>
           ))}
         </div>
@@ -638,6 +708,8 @@ export const SeriesReviewTab: React.FC<SeriesReviewTabProps> = ({ tmdbSeries, us
                   content: commentText.trim()
                 });
                 setCommentText('');
+                // Invalidate trackers query to refetch comments
+                queryClient.invalidateQueries({ queryKey: ['trackers'] });
               }}
               className="bg-blue-600 hover:bg-blue-700 text-white rounded-xl px-4 flex items-center justify-center transition-colors shadow-sm shrink-0">
 
@@ -792,6 +864,14 @@ const ReviewItem: React.FC<{ log: UserSeriesLog, onEdit: () => void, onDelete: (
           >
             {log.notes}
           </div>
+        </div>
+      )}
+
+      {(log as any).comments && (log as any).comments.length > 0 && (
+        <div className="pt-2 border-t border-gray-100 mt-1 cursor-pointer" onClick={() => { if (onSelectReview) onSelectReview(); }}>
+          <span className="text-xs font-semibold text-gray-500 hover:text-blue-600 transition-colors">
+            {(log as any).comments.length} {(log as any).comments.length === 1 ? 'commento' : 'commenti'}
+          </span>
         </div>
       )}
     </div>

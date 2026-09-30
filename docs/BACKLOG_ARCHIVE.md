@@ -221,3 +221,18 @@ eference_id = log_id)
 
 ### [TRACKERS-002] Fix friends status display in Series/Episode header
 - **Stato**: Completato (Risolto con Outer Join su backend e aggiunta skeleton)
+
+### [FEAT-007-EXT] Miglioramenti Sistema Social & Notifiche (Thread, Deep-Linking, UI)
+
+#### ?? Descrizione
+Perfezionamento del sistema di notifiche e interazioni sociali introdotto in FEAT-007, con un focus specifico sulle recensioni di Serie TV ed Episodi.
+
+#### ?? Dettagli Implementazione
+- **Sistema 1 (Iscrizione al Thread)**: Quando un utente partecipa a una discussione (commentando una recensione propria o altrui), riceve una notifica automatica ad ogni nuovo commento aggiunto al thread da altri utenti.
+- **Deep-Linking Avanzato**: Cliccando su una notifica di un commento o di un thread, l'app ora supporta il routing profondo. Viene aperta la modale della serie corretta, selezionata la tab giusta e caricato direttamente il dettaglio della recensione commentata pronto per rispondere.
+- **Prevenzione Notifiche Superflue**: L'autore di una recensione non riceve notifiche quando è lui stesso ad aggiungere un commento alla propria recensione.
+- **Ripristino UI Commenti**: Sistemata l'etichetta visiva ("X commenti") nelle liste delle recensioni (sia proprie che degli amici) che era sparita durante il precedente refactoring.
+
+#### ? Esito
+**Stato**: ?? Completato (Settembre 2026)
+

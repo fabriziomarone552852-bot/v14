@@ -8,10 +8,11 @@ interface SeasonsTabProps {
   tmdbSeries: TMDBSeries;
   userTracking: UserSeriesTracking | null;
   initialEpisode?: TMDBEpisode | null;
+  initialReviewLogId?: number;
   isLoading?: boolean;
 }
 
-export const SeasonsTab: React.FC<SeasonsTabProps> = ({ tmdbSeries, initialEpisode, isLoading, userTracking }) => {
+export const SeasonsTab: React.FC<SeasonsTabProps> = ({ tmdbSeries, initialEpisode, initialReviewLogId, isLoading, userTracking }) => {
   const [selectedEpisode, setSelectedEpisode] = useState<TMDBEpisode | null>(initialEpisode || null);
   const [expandedSeason, setExpandedSeason] = useState<number | null>(initialEpisode ? initialEpisode.season_number : null);
 
@@ -100,6 +101,8 @@ export const SeasonsTab: React.FC<SeasonsTabProps> = ({ tmdbSeries, initialEpiso
         tmdbSeries={tmdbSeries}
         logs={logs} 
         onBack={() => setSelectedEpisode(null)} 
+        initialView={initialEpisode && initialEpisode.id === selectedEpisode.id ? 'reviews' : 'main'}
+        initialReviewLogId={initialReviewLogId}
       />
     );
   }

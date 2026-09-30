@@ -10,6 +10,13 @@ export interface NotificationResponse {
   content: string;
   created_at: string;
   read_at: string | null;
+  
+  // Extra dynamic fields
+  author_name?: string | null;
+  author_avatar?: string | null;
+  context_title?: string | null;
+  series_tmdb_id?: number | null;
+  episode_id?: number | null;
 }
 
 export interface NotificationCreate {

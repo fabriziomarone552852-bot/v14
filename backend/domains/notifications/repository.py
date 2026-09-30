@@ -18,6 +18,10 @@ def list_for_user(
         or_(
             Interaction.recipient_id == user_id,
             # Se ci sono altri criteri di visibilità, es. messaggi pubblici
+        ),
+        or_(
+            Interaction.author_id != user_id,
+            Interaction.author_id.is_(None)
         )
     )
     if unread_only:

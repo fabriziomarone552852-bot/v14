@@ -10,6 +10,8 @@ import { useFriendsEpisodeReviews } from '@/hooks/queries/useTrackersQueries';
 import { useNotifications } from '@/hooks/useNotifications';
 import { useTrackersMutations } from '@/hooks/mutations/useTrackersMutations';
 import { useConfirm } from '@/context/ConfirmContext';
+import { useAuth } from '@/context/AuthContext';
+import { useQueryClient } from '@tanstack/react-query';
 
 export interface FriendLog {
   id: string;
@@ -30,6 +32,8 @@ interface EpisodeDetailViewProps {
   tmdbSeries?: any;
   logs: UserEpisodeLog[];
   onBack: () => void;
+  initialView?: ViewState;
+  initialReviewLogId?: number;
 }
 
 type ViewState = 'main' | 'reviews' | 'form' | 'friends_reviews' | 'friend_detail' | 'quotes' | 'quote_form' | 'review_detail';
@@ -55,8 +59,8 @@ const VisibilityIcon = ({ visibility, className = "w-3 h-3" }: { visibility: str
   return <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" /></svg>;
 }
 
-export const EpisodeDetailView: React.FC<EpisodeDetailViewProps> = ({ episode, tmdbSeries, logs, onBack }) => {
-  const [view, setView] = useState<ViewState>('main');
+export const EpisodeDetailView: React.FC<EpisodeDetailViewProps> = ({ episode, tmdbSeries, logs, onBack, initialView = 'main', initialReviewLogId }) => {
+  const [view, setView] = useState<ViewState>(initialView);
   const [selectedFriendId, setSelectedFriendId] = useState<string | null>(null);
   const [selectedReview, setSelectedReview] = useState<UnifiedReviewData | null>(null);
   const [commentText, setCommentText] = useState('');
@@ -64,6 +68,63 @@ export const EpisodeDetailView: React.FC<EpisodeDetailViewProps> = ({ episode, t
   const { createInteraction } = useNotifications();
   const { confirm } = useConfirm();
   const { toggleEpisodeWatched, updateEpisodeNotes, addEpisodeLog, updateEpisodeLog, deleteEpisodeLog, addQuote, updateQuote, deleteQuote } = useTrackersMutations();
+  const queryClient = useQueryClient();
+  const { user } = useAuth();
+
+  React.useEffect(() => {
+    if (initialReviewLogId && (logs.length > 0 || friendsLogsData.length > 0) && view !== 'review_detail') {
+      const myLog = logs.find(l => l.id === initialReviewLogId);
+      if (myLog) {
+        setSelectedReview({
+          id: myLog.id as any,
+          author_id: String(user?.id),
+          author_name: 'Tu',
+          rating: (myLog.rating || 0) / 2,
+          notes: myLog.notes || '',
+          updated_at: myLog.updated_at || myLog.watched_at,
+          comments: (myLog as any).comments || [],
+          is_mine: true,
+          review_visibility: myLog.review_visibility,
+          original_log: myLog
+        });
+        setView('review_detail');
+        return;
+      }
+      
+      const friendLog = friendsLogsData.find(l => l.id === initialReviewLogId);
+      if (friendLog) {
+        setSelectedReview({
+          id: friendLog.id,
+          author_id: friendLog.friend_id,
+          author_name: friendLog.friend_name,
+          author_avatar: friendLog.friend_avatar,
+          rating: (friendLog.rating || 0) / 2,
+          notes: friendLog.notes || '',
+          updated_at: friendLog.watched_at,
+          comments: (friendLog as any).comments || [],
+          is_mine: false,
+          original_log: friendLog
+        });
+        setView('review_detail');
+      }
+    }
+  }, [initialReviewLogId, logs, friendsLogsData]);
+
+  React.useEffect(() => {
+    if (selectedReview && view === 'review_detail') {
+      if (selectedReview.is_mine) {
+        const updatedLog = logs.find(l => l.id === selectedReview.id);
+        if (updatedLog) {
+          setSelectedReview(prev => prev ? { ...prev, comments: updatedLog.comments || [] } : null);
+        }
+      } else {
+        const updatedLog = friendsLogsData.find(l => l.id === selectedReview.id);
+        if (updatedLog) {
+          setSelectedReview(prev => prev ? { ...prev, comments: (updatedLog as any).comments || [] } : null);
+        }
+      }
+    }
+  }, [friendsLogsData, logs]);
   
   // States per form
   const [editingLogId, setEditingLogId] = useState<number | null>(null);
@@ -344,7 +405,7 @@ export const EpisodeDetailView: React.FC<EpisodeDetailViewProps> = ({ episode, t
                 onSelectReview={() => {
                   setSelectedReview({
                     id: log.id as any,
-                    author_id: 'me',
+                    author_id: String(user?.id),
                     author_name: 'Tu',
                     rating: (log.rating || 0) / 2,
                     notes: log.notes || '',
@@ -626,6 +687,8 @@ export const EpisodeDetailView: React.FC<EpisodeDetailViewProps> = ({ episode, t
         <div className="pt-4 mt-2 border-t border-gray-100 shrink-0">
           <div className="flex gap-2">
             <textarea
+              value={commentText}
+              onChange={(e) => setCommentText(e.target.value)}
               className="flex-1 bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm focus:ring-0 focus:border-blue-500 outline-none resize-none h-12 custom-scrollbar transition-colors"
               placeholder="Scrivi un commento..."
               rows={1}
@@ -641,6 +704,7 @@ export const EpisodeDetailView: React.FC<EpisodeDetailViewProps> = ({ episode, t
                   content: commentText.trim()
                 });
                 setCommentText('');
+                queryClient.invalidateQueries({ queryKey: ['trackers'] });
               }}
               className="bg-blue-600 hover:bg-blue-700 text-white rounded-xl px-4 flex items-center justify-center transition-colors shadow-sm shrink-0">
 

@@ -79,8 +79,11 @@ export const NotificationsSidebar: React.FC = () => {
     if (interaction.interaction_type === 'SHOPPING_GROUP_INVITE') {
       navigate(`/shopping?openGroup=${interaction.reference_id}`);
       handleClose();
-    } else if (interaction.interaction_type === 'SERIES_REVIEW_COMMENT' || interaction.interaction_type === 'EPISODE_REVIEW_COMMENT') {
-      navigate(`/trackers/series?tracking_id=${interaction.reference_id}&open_review=true`);
+    } else if (interaction.interaction_type === 'SERIES_REVIEW_COMMENT' || interaction.interaction_type === 'SERIES_REVIEW_COMMENT_THREAD') {
+      navigate(`/trackers/serie-tv?tmdb_id=${interaction.series_tmdb_id}&open_review=true&open_review_log_id=${interaction.reference_id}`);
+      handleClose();
+    } else if (interaction.interaction_type === 'EPISODE_REVIEW_COMMENT' || interaction.interaction_type === 'EPISODE_REVIEW_COMMENT_THREAD') {
+      navigate(`/trackers/serie-tv?tmdb_id=${interaction.series_tmdb_id}&open_episode=${interaction.episode_id}&open_review_log_id=${interaction.reference_id}`);
       handleClose();
     }
   };
@@ -235,7 +238,11 @@ export const NotificationsSidebar: React.FC = () => {
                         </div>
                         <div className="flex-1 min-w-0">
                           <p className={`text-sm text-gray-800 ${!notif.read_at ? 'font-bold' : 'font-medium'}`}>
-                            {notif.content}
+                            {notif.interaction_type === 'SERIES_REVIEW_COMMENT' ? `${notif.author_name || 'Qualcuno'} ha commentato la tua recensione di ${notif.context_title || 'una serie'}` : 
+                             notif.interaction_type === 'SERIES_REVIEW_COMMENT_THREAD' ? `${notif.author_name || 'Qualcuno'} ha partecipato alla discussione sulla recensione di ${notif.context_title || 'una serie'}` : 
+                             notif.interaction_type === 'EPISODE_REVIEW_COMMENT' ? `${notif.author_name || 'Qualcuno'} ha commentato la tua recensione dell'episodio ${notif.context_title || ''}` : 
+                             notif.interaction_type === 'EPISODE_REVIEW_COMMENT_THREAD' ? `${notif.author_name || 'Qualcuno'} ha partecipato alla discussione sulla recensione dell'episodio ${notif.context_title || ''}` : 
+                             notif.content}
                           </p>
                           <div className="flex justify-between items-center mt-2">
                             <span className="text-[10px] uppercase font-bold text-gray-400">

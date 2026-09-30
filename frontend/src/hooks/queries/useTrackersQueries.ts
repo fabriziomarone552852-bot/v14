@@ -70,3 +70,12 @@ export const useMediaLists = () => {
     },
   });
 };
+export const useSeriesStats = () => {
+  return useQuery<any>({
+    queryKey: ['trackers', 'series', 'stats'],
+    queryFn: async () => {
+      const data = await api.get<any>('/trackers/series/stats');
+      return data;
+    },
+  });
+};

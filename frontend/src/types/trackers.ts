@@ -156,3 +156,11 @@ export interface FriendEpisodeLog {
   comments: ReviewComment[];
 }
 
+export interface TVDashboardStats {
+  episodes_watched_this_year: number;
+  series_completed_this_year: number;
+  total_series_tracked: number;
+  last_added_series?: string;
+  last_watched_episode?: string;
+  last_completed_series?: string;
+}

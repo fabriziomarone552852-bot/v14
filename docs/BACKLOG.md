@@ -211,6 +211,7 @@ Nuovo modulo completo per gestire, catalogare e monitorare l'intrattenimento per
 - **Dati Tracciati**: Titolo, regista, anno di uscita, genere, durata (minuti), locandina, piattaforma di fruizione (es. Netflix, Prime Video, Cinema, Apple TV, Disney+).
 - **Stato Visione**: `Watchlist / Da vedere`, `Visto`.
 - **Dettagli & Valutazione**: Data di visione, voto personale, recensione/commento rapido, link al trailer o scheda informativa.
+- **Integrazione Saghe/Collections**: Sfruttare il campo elongs_to_collection di TMDB per raggruppare e riconoscere automaticamente i film appartenenti alla stessa saga (es. MCU, Harry Potter), collegandoli tra loro.
 
 #### Ã°Å¸âÂº 3. Sotto-sezione Serie TV (Ã¢Åâ¦ UI Base e Backend Completati)
 - **Stato Attuale (Backend Ã°Å¸Å¸Â¢ Completato)**: Architettura a 5 tabelle definita (`TMDBSeries`, `TMDBEpisode`, `UserSeriesTracking`, `UserEpisodeLog`, `TVQuote`). Implementato Lazy Update asincrono parallelo da TMDB. Endpoint API pronti per rotte CRUD, statistiche dashboard (obiettivi annuali, ultimi visti), action per avanzamento rapido (+1 episodio) e gestione note/visibilitÃÂ .
@@ -223,17 +224,17 @@ Nuovo modulo completo per gestire, catalogare e monitorare l'intrattenimento per
   - Ã°Å¸âÂ Integrazione **barra di ricerca TMDB inline** direttamente nella grid principale, rimuovendo il modale popup. Digitando si deve aprire un elenco a comparsa per l'aggiunta rapida.
   - Ã°Å¸ÂÂ·Ã¯Â¸Â **Ricerca per Genere da Badge**: Cliccando sul badge di un genere (nella card o nel dettaglio serie) l'app filtrerÃÂ /cercherÃÂ  automaticamente altre serie in lista appartenenti allo stesso genere.
   - Ã°Å¸Â¤Â **Incrocio Liste Amici & Stato Visione**: Aggiunta di un tasto e relativa funzione nella barra principale della sezione per permettere di incrociare/comparare le liste delle serie TV salvate da piÃÂ¹ amici. Inoltre, agli amici verrÃÂ  mostrato se una serie la sta guardando un altro amico (tramite la sua foto profilo con un bordo colorato associato allo stato: se l'ha finita, droppata, in corso, ecc.).
-  - ð **Liste Multimediali Personalizzate**: Creazione di sottoliste miste (es. "MCU", "Da vedere con la ragazza") in cui inserire film, serie o libri. (*UI di gestione liste completata*).
+  - ð **✅ Liste Multimediali Personalizzate (Completato)**: Creazione di sottoliste miste (es. "MCU", "Da vedere con la ragazza") in cui inserire film, serie o libri. (*UI di gestione liste completata*).
     - **Comportamento Homepage vs Sezioni**: Nella Homepage verranno mostrate le liste complete con tutto il loro contenuto eterogeneo. Nelle sezioni dedicate (es. Serie TV), la lista mostrerÃ  *esclusivamente* gli elementi pertinenti.
-  - ð **Ricerca per Lista**: Aggiungere la possibilitÃ  di filtrare o cercare elementi in base all'appartenenza a specifiche liste direttamente all'interno della ricerca dettagliata/globale.
+  - ð **✅ Ricerca per Lista (Completato)**: Aggiungere la possibilitÃ  di filtrare o cercare elementi in base all'appartenenza a specifiche liste direttamente all'interno della ricerca dettagliata/globale.
   - Ã°Å¸ââ¬ **Check Finale Recensioni**: Al termine dello sviluppo della sezione, effettuare un controllo generale di come vengono visualizzate le recensioni e le liste delle recensioni (layout, text-wrapping, visualizzazione modale).
   - Ã°Å¸ÅÅ¸ **Voto Community**: Sostituire il voto TMDB con il voto medio della community dell'app. Al clic sul voto, si aprirÃÂ  una struttura simile a quella delle recensioni degli amici per leggerle.
-  - Ã°Å¸âÂ¬ **Commenti alle Recensioni**: Aggiungere la possibilitÃÂ  di commentare le singole recensioni (tue, degli amici o pubbliche). Cliccando su una recensione, si espanderÃÂ  mostrando sotto il thread dei commenti (richiede implementazione backend dedicata).
-  - Ã°Å¸ââ **Sistema di Notifiche (Commenti/Interazioni)**: Prevedere un sistema di notifiche (in-app/push) per avvisare l'utente quando riceve un commento a una sua recensione o ci sono interazioni rilevanti.
-  - Ã°Å¸âÂ¬ **Messaggistica Istantanea ed Effimera**: Valutare l'integrazione di una chat o messaggistica diretta tra amici, possibilmente con messaggi effimeri, legata alle interazioni sulle serie o commenti.
+  - Ã°Å¸âÂ¬ **✅ Commenti alle Recensioni (Completato)**: Aggiungere la possibilitÃÂ  di commentare le singole recensioni (tue, degli amici o pubbliche). Cliccando su una recensione, si espanderÃÂ  mostrando sotto il thread dei commenti (richiede implementazione backend dedicata).
+  - Ã°Å¸ââ **✅ Sistema di Notifiche (Completato) (Commenti/Interazioni)**: Prevedere un sistema di notifiche (in-app/push) per avvisare l'utente quando riceve un commento a una sua recensione o ci sono interazioni rilevanti.
+  - Ã°Å¸âÂ¬ **✅ Messaggistica Istantanea ed Effimera (Completato)**: Valutare l'integrazione di una chat o messaggistica diretta tra amici, possibilmente con messaggi effimeri, legata alle interazioni sulle serie o commenti.
   - Ã°Å¸ÅÂ **DisponibilitÃÂ  Piattaforme Streaming**: Integrare (ad es. tramite dati JustWatch via API TMDB) la visualizzazione accurata delle piattaforme in cui l'episodio/serie ÃÂ¨ attualmente visibile (Netflix, Prime Video, ecc.).
   - Ã°Å¸âÂ¡ **Suggerimenti Homepage (Raccomandazioni)**: Aggiungere in homepage una sezione con serie TV suggerite e raccomandate dinamicamente in base alle ultime serie guardate.
-  - ð¡ **Rimozione Dati Mock & Integrazione API**: Sostituzione dei Dati Mock (obiettivo annuale, citazioni, serie recenti, carousel prossime uscite, e **Integrazione completa Liste Multimediali e MediaListManagerModal**) con fetch reali dal Database e logica TMDB / React Query.
+  - ð¡ **✅ Rimozione Dati Mock & Integrazione API (Completato)**: Sostituzione dei Dati Mock (obiettivo annuale, citazioni, serie recenti, carousel prossime uscite, e **Integrazione completa Liste Multimediali e MediaListManagerModal**) con fetch reali dal Database e logica TMDB / React Query.
   - ð¨ **UI Schermata di Dettaglio Completata**: Il design del modale di dettaglio della singola serie Ã¨ stato completato e rifinito (gestione cast, layout colonne, header integrato, status badge in overlay, e pannello liste).
   - Ã°Å¸Å½Â¨ Gestione dello stato "Empty" per l'assenza di serie.
 

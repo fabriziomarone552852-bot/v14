@@ -41,6 +41,11 @@ export const CHANGELOG_HISTORY: ChangelogItem[] = [
       'Integrazione Inviti Gruppi Spesa: Ricevi notifiche nell\'Inbox con navigazione diretta e apertura automatica del modale del gruppo.'
     ],
     improvements: [
+      'Sistema Notifiche Thread: Implementato il "Sistema 1" per le recensioni. Quando partecipi commentando una recensione (tua o di un amico), riceverai automaticamente una notifica ogni volta che qualcun altro aggiungerà un commento alla stessa discussione ("X ha partecipato alla discussione...").',
+      'UI/UX Recensioni: Ripristinata correttamente l\'etichetta "X commenti" nelle liste riepilogative delle recensioni di serie ed episodi (sia proprie che degli amici) prima di espanderle.',
+      'UI/UX Notifiche: L\'autore di un commento su una propria recensione non riceverà più una notifica superflua per la sua stessa azione.',
+      'Deep-Linking Avanzato Notifiche: Cliccando sulla notifica di un commento, l\'app non solo apre la serie e la tab corretta, ma espande direttamente il thread della singola recensione per leggere subito le risposte.',
+      'UI/UX: Testo delle notifiche personalizzato ("Qualcuno ha commentato la tua recensione di ...") per una lettura istantanea senza rivelare spoiler del commento.',
       'UI/UX: Migliorata l\'indicazione della privacy per le recensioni utilizzando icone visive.',
       'Aggiunto calcolo automatico e sincronizzazione dello stato (In lista / In visione / Completata) per le Serie TV in base agli episodi visti.',
       'Ottimizzato il layout degli avatar degli amici nel modale della serie, ora posizionati in una riga dedicata sopra le liste.',
@@ -77,6 +82,7 @@ export const CHANGELOG_HISTORY: ChangelogItem[] = [
       'Fix crash critico al login silenzioso causato da rotte proxy Vite mancanti (API social & interactions).',
       'Corretto il loop di sincronizzazione offline in caso di errori 4xx.',
       'Risolto problema di caricamento del dominio media su GitHub.',
+      'Risolto il funzionamento della sezione commenti nelle recensioni di Serie TV e Episodi: i commenti ora vengono salvati con l\'ID utente corretto anche per le proprie recensioni, aggiornano immediatamente l\'interfaccia tramite invalidazione della query e vengono inclusi anche nelle query del backend per i log personali.',
     ],
   },
   {
