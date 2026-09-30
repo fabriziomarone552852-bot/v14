@@ -1,5 +1,6 @@
 // src/components/shared/dialog/ConfirmDialog.tsx
-import React from 'react';
+import React, { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { TrashIcon, WarningIcon } from '@/components/shared/utils/Icons';
 
 interface ConfirmDialogProps {
@@ -16,9 +17,15 @@ interface ConfirmDialogProps {
 const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
   isOpen, title, message, confirmText = 'Conferma', cancelText = 'Annulla', onConfirm, onCancel, isDestructive = true
 }) => {
-  if (!isOpen) return null;
+  const [mounted, setMounted] = useState(false);
 
-  return (
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!isOpen || !mounted) return null;
+
+  return createPortal(
     <div 
       className="fixed inset-0 bg-gray-900/60 backdrop-blur-md flex items-center justify-center z-[10010] p-4 pointer-events-auto"
       onClick={(e) => { e.stopPropagation(); onCancel(); }}
@@ -45,7 +52,8 @@ const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };
 

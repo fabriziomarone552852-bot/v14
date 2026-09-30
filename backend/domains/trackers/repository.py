@@ -7,7 +7,7 @@ from sqlalchemy import select, delete, and_, update
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.orm import Session, selectinload
 
-from backend.domains.trackers.models import TMDBSeries, TMDBEpisode, UserSeriesTracking, UserEpisodeLog, TVQuote
+from backend.domains.trackers.models import TMDBSeries, TMDBEpisode, UserSeriesTracking, UserEpisodeLog, TVQuote, UserSeriesLog
 
 
 def get_user_series_tracking(db: Session, tmdb_id: int, user_id: int) -> Optional[UserSeriesTracking]:
@@ -52,9 +52,10 @@ def get_tmdb_series(db: Session, tmdb_id: int) -> Optional[TMDBSeries]:
 
 
 def upsert_tmdb_series(db: Session, series: TMDBSeries) -> TMDBSeries:
-    db.merge(series)
+    merged = db.merge(series)
     db.commit()
-    return series
+    db.refresh(merged)
+    return merged
 
 
 def upsert_tmdb_episodes(db: Session, episodes: List[TMDBEpisode]) -> None:
@@ -71,12 +72,14 @@ def upsert_tmdb_episodes(db: Session, episodes: List[TMDBEpisode]) -> None:
             existing.title = ep.title
             existing.overview = ep.overview
             existing.air_date = ep.air_date
+            existing.still_path = ep.still_path
         else:
             db.add(ep)
     db.commit()
 
 
-def get_series_episodes_with_user_tracking(db: Session, tmdb_id: int, user_id: int) -> List[Tuple[TMDBEpisode, List[UserEpisodeLog]]]:
+def get_series_episodes_with_user_tracking(db: Session, tmdb_id: int, user_id: int) -> List[Tuple[TMDBEpisode, List[UserEpisodeLog], List["TVQuote"]]]:
+    from backend.domains.trackers.models import TVQuote
     # Restituisce gli episodi globali.
     stmt_episodes = (
         select(TMDBEpisode)
@@ -94,13 +97,26 @@ def get_series_episodes_with_user_tracking(db: Session, tmdb_id: int, user_id: i
     )
     logs = db.execute(stmt_logs).scalars().all()
     
+    # Restituisce tutti i quote utente per gli episodi di questa serie.
+    stmt_quotes = (
+        select(TVQuote)
+        .join(TMDBEpisode, TMDBEpisode.id == TVQuote.episode_id)
+        .where(TMDBEpisode.series_tmdb_id == tmdb_id, TVQuote.user_id == user_id)
+        .order_by(TVQuote.created_at.desc())
+    )
+    quotes = db.execute(stmt_quotes).scalars().all()
+    
     # Raggruppa i log in memoria
     from collections import defaultdict
     logs_by_episode = defaultdict(list)
     for log in logs:
         logs_by_episode[log.episode_id].append(log)
         
-    return [(ep, logs_by_episode.get(ep.id, [])) for ep in episodes]
+    quotes_by_episode = defaultdict(list)
+    for quote in quotes:
+        quotes_by_episode[quote.episode_id].append(quote)
+        
+    return [(ep, logs_by_episode.get(ep.id, []), quotes_by_episode.get(ep.id, [])) for ep in episodes]
 
 
 def mark_episode_watched(db: Session, user_id: int, episode_id: int) -> UserEpisodeLog:
@@ -110,6 +126,25 @@ def mark_episode_watched(db: Session, user_id: int, episode_id: int) -> UserEpis
     db.commit()
     db.refresh(tracking)
     return tracking
+
+def mark_all_episodes_watched(db: Session, user_id: int, tmdb_series_id: int) -> None:
+    # Get all episodes for the series
+    stmt = select(TMDBEpisode).where(TMDBEpisode.series_tmdb_id == tmdb_series_id)
+    episodes = db.execute(stmt).scalars().all()
+    
+    # Get existing logs
+    logs_stmt = select(UserEpisodeLog.episode_id).where(UserEpisodeLog.user_id == user_id)
+    existing_episode_ids = set(db.execute(logs_stmt).scalars().all())
+    
+    # Create logs only for unwatched episodes
+    new_logs = []
+    for ep in episodes:
+        if ep.id not in existing_episode_ids:
+            new_logs.append(UserEpisodeLog(user_id=user_id, episode_id=ep.id))
+            
+    if new_logs:
+        db.add_all(new_logs)
+        db.commit()
 
 
 def mark_episode_unwatched(db: Session, user_id: int, episode_id: int) -> None:
@@ -222,3 +257,184 @@ def get_dashboard_stats(db: Session, user_id: int) -> dict:
         "last_ep": last_ep_str,
         "last_completed": last_completed
     }
+
+from backend.domains.trackers.models import MediaList, MediaListItem
+
+def get_media_lists(db: Session, user_id: int) -> Sequence[MediaList]:
+    stmt = (
+        select(MediaList)
+        .where(MediaList.user_id == user_id)
+        .options(selectinload(MediaList.items).selectinload(MediaListItem.series))
+        .order_by(MediaList.created_at.desc())
+    )
+    return db.execute(stmt).scalars().all()
+
+def get_media_list(db: Session, list_id: int, user_id: int) -> Optional[MediaList]:
+    stmt = (
+        select(MediaList)
+        .where(MediaList.id == list_id, MediaList.user_id == user_id)
+        .options(selectinload(MediaList.items).selectinload(MediaListItem.series))
+    )
+    return db.execute(stmt).scalar_one_or_none()
+
+def create_media_list(db: Session, media_list: MediaList) -> MediaList:
+    db.add(media_list)
+    db.commit()
+    db.refresh(media_list)
+    return media_list
+
+def update_media_list(db: Session, media_list: MediaList) -> MediaList:
+    db.commit()
+    db.refresh(media_list)
+    return media_list
+
+def delete_media_list(db: Session, media_list: MediaList) -> None:
+    db.delete(media_list)
+    db.commit()
+
+def add_item_to_media_list(db: Session, item: MediaListItem) -> MediaListItem:
+    db.add(item)
+    db.commit()
+    db.refresh(item)
+    return item
+
+def delete_item_from_media_list(db: Session, item: MediaListItem) -> None:
+    db.delete(item)
+    db.commit()
+
+def get_media_list_item(db: Session, item_id: int) -> Optional[MediaListItem]:
+    stmt = select(MediaListItem).where(MediaListItem.id == item_id)
+    return db.execute(stmt).scalar_one_or_none()
+
+from backend.domains.social.models import Friendship
+from backend.domains.notifications.models import Interaction
+from backend.domains.users.models import User
+
+def get_friends_series_logs(db: Session, current_user_id: int, tmdb_id: int) -> List[dict]:
+    from sqlalchemy import or_
+    friendships = db.query(Friendship).filter(
+        or_(
+            Friendship.requester_id == current_user_id,
+            Friendship.addressee_id == current_user_id
+        ),
+        Friendship.status == 'accepted'
+    ).all()
+    
+    friend_ids = [
+        f.addressee_id if f.requester_id == current_user_id else f.requester_id
+        for f in friendships
+    ]
+    
+    if not friend_ids:
+        return []
+    
+    stmt = (
+        select(UserSeriesLog, User, UserSeriesTracking.status)
+        .join(User, User.id == UserSeriesLog.user_id)
+        .join(UserSeriesTracking, (UserSeriesTracking.user_id == UserSeriesLog.user_id) & (UserSeriesTracking.series_tmdb_id == UserSeriesLog.series_tmdb_id))
+        .where(
+            UserSeriesLog.series_tmdb_id == tmdb_id,
+            UserSeriesLog.review_visibility != "private",
+            UserSeriesLog.user_id.in_(friend_ids)
+        )
+    )
+    results = db.execute(stmt).all()
+    
+    logs_data = []
+    for log, user, status in results:
+        comments_stmt = (
+            select(Interaction, User)
+            .join(User, User.id == Interaction.author_id)
+            .where(
+                Interaction.interaction_type == "SERIES_REVIEW_COMMENT",
+                Interaction.reference_id == log.id
+            )
+            .order_by(Interaction.created_at.asc())
+        )
+        comments_res = db.execute(comments_stmt).all()
+        comments_list = [
+            {
+                "id": str(c_int.id),
+                "author_id": str(c_user.id),
+                "author_name": c_user.username,
+                "author_avatar": c_user.avatar_path,
+                "text": c_int.content,
+                "created_at": c_int.created_at.isoformat()
+            }
+            for c_int, c_user in comments_res
+        ]
+        
+        logs_data.append({
+            "id": log.id,
+            "friend_id": user.id,
+            "friend_name": user.username,
+            "friend_avatar": user.avatar_path,
+            "status": status,
+            "rating": log.rating,
+            "notes": log.notes,
+            "review_visibility": log.review_visibility,
+            "updated_at": log.updated_at.isoformat() if log.updated_at else "",
+            "comments": comments_list
+        })
+        
+    return logs_data
+
+def get_friends_episode_logs(db: Session, current_user_id: int, episode_id: int) -> List[dict]:
+    friend_ids_q1 = select(Friendship.addressee_id).where(
+        Friendship.requester_id == current_user_id, Friendship.status == 'accepted'
+    )
+    friend_ids_q2 = select(Friendship.requester_id).where(
+        Friendship.addressee_id == current_user_id, Friendship.status == 'accepted'
+    )
+    
+    stmt = (
+        select(UserEpisodeLog, User)
+        .join(User, User.id == UserEpisodeLog.user_id)
+        .where(
+            UserEpisodeLog.episode_id == episode_id,
+            UserEpisodeLog.review_visibility != "private",
+            UserEpisodeLog.user_id.in_(friend_ids_q1.union(friend_ids_q2))
+        )
+    )
+    results = db.execute(stmt).all()
+    
+    logs_data = []
+    for tracking, user in results:
+        comments_stmt = (
+            select(Interaction, User)
+            .join(User, User.id == Interaction.author_id)
+            .where(
+                Interaction.interaction_type == "EPISODE_REVIEW_COMMENT",
+                Interaction.reference_id == tracking.id
+            )
+            .order_by(Interaction.created_at.asc())
+        )
+        comments_result = db.execute(comments_stmt).all()
+        
+        comments_list = []
+        for interaction, author in comments_result:
+            comments_list.append({
+                "id": interaction.id,
+                "author_id": author.id,
+                "author_name": author.username,
+                "author_avatar": author.avatar_url,
+                "text": interaction.content,
+                "created_at": interaction.created_at,
+            })
+            
+        logs_data.append({
+            "id": tracking.id,
+            "friend_id": user.id,
+            "friend_name": user.username,
+            "friend_avatar": user.profile_picture_url,
+            "notes": tracking.notes,
+            "review_visibility": tracking.review_visibility,
+            "watched_at": tracking.watched_at,
+            "comments": comments_list,
+        })
+        
+    return logs_data
+
+
+
+

@@ -1,66 +1,68 @@
-# 📌 Backlog Funzionalità & Roadmap Progetto
+# ðŸ“Œ Backlog FunzionalitÃ  & Roadmap Progetto
 
 Questo documento serve a tracciare in modo strutturato:
-1. **Funzionalità implementate nel Backend ma non ancora integrate nel Frontend** (Desktop e/o Mobile).
-2. **Attività di Sviluppo Frontend & Ottimizzazione Mobile** (UI/UX, selezione multipla, navigazione).
+1. **FunzionalitÃ  implementate nel Backend ma non ancora integrate nel Frontend** (Desktop e/o Mobile).
+2. **AttivitÃ  di Sviluppo Frontend & Ottimizzazione Mobile** (UI/UX, selezione multipla, navigazione).
 3. **Build, Packaging & Ottimizzazioni Tecniche** (APK Android, bundle splitting, clean-up).
-4. **Prossimi Passi Fondamentali & Nuove Macro-Funzionalità** (Refactoring, Sezione Libri/Film/Serie, Sezione Liste Tematiche).
+4. **Prossimi Passi Fondamentali & Nuove Macro-FunzionalitÃ ** (Refactoring, Sezione Libri/Film/Serie, Sezione Liste Tematiche).
 5. **Ricerca & Integrazione Intelligenza Artificiale (AI)** (Voice-to-Task, Assistente, Task Breakdown, Privacy).
 6. **Progetti Futuri e Idee di Roadmap** per l'evoluzione a lungo termine dell'applicazione.
 
 ---
 
-## 📊 Matrice di Stato Rapida
+## ðŸ“Š Matrice di Stato Rapida
 
-| ID | Attività / Funzionalità | Ambito | Stato Backend | Stato Frontend | Priorità |
+| ID | AttivitÃ  / FunzionalitÃ  | Ambito | Stato Backend | Stato Frontend | PrioritÃ  |
 | :--- | :--- | :--- | :---: | :---: | :---: |
-| **CORE-001** | **Refactoring Globale & Pulizia Architetturale** | `core` / arch | 🟢 Completato | 🟢 Completato | 🟢 **Completato** |
-| **CORE-002** | **Refactoring Continuo, Modularità & Cleanup Codice** | `core` / arch | 🟢 Completato | 🟢 Completato | 🟢 **Completato** |
-| **MEDIA-001** | **Upload Foto Dispositivo, Caching URL, GIF As-Is & WebP** | `media` / storage | 🟢 Completato | 🟢 Completato | 🟢 **Completato** |
-| **CAL-001** | **Sincronizzazione Timezone Google Calendar & Data Mobile DayPage** | `calendar` / `mobile` | 🟢 Completato | 🟢 Completato | 🟢 **Completato** |
-| **REBRAND-001** | **Rebranding App con Nome "Vita" e Nuova Icona Applicazione** | `brand` / `UI` | 🟢 Completato | 🟢 Completato | 🟢 **Completato** |
-| **HOME-001** | **Widget Homepage Rotante (Citazione del Giorno, Oroscopo & Meteo)** | `home` / `UI` | 🔴 Da Iniziare | 🔴 Da Iniziare | 🟠 **Alta** |
-| **SHOPPING-004** | **Ricerca & Visualizzazione Prezzi nel Modale Dettaglio Prodotto (per Brand)** | `shopping` / `UI` | 🔴 Da Iniziare | 🔴 Da Iniziare | 🟠 **Alta** |
-| **SEED-001** | **Pulizia Dati Seed Prodotti (Rimozione Marca e Quantità dal Nome)** | `shopping` / `seed` | 🔴 Da Iniziare | 🔴 Da Iniziare | 🟠 **Alta** |
-| **SEED-002** | **Risoluzione Visualizzazione Prodotti Seed Mancanti nelle Liste** | `shopping` / `seed` | 🔴 Da Iniziare | 🔴 Da Iniziare | 🟠 **Alta** |
-| **SHOPPING-005** | **Note e Recensioni Prodotti/Brand nel Catalogo** | `shopping` | 🔴 Da Iniziare | 🔴 Da Iniziare | 🟠 **Alta** |
-| **FEAT-012** | **Pagina di Avvio Pinnata / Selezione Landing Page Predefinita** | `settings` / UI | 🟢 Completato | 🟢 Completato | 🟢 **Completato** |
-| **CAL-002** | **Filtro Categorie Eventi nel Calendario Homepage (Menu Ingranaggio ⚙️)** | `calendar` / UI | 🔴 Da Iniziare | 🔴 Da Iniziare | 🟠 **Alta** |
-| **FEAT-004** | **Sezione Media: Libri, Film e Serie TV** | `media` / ent | 🟡 Parziale | 🟡 Parziale | 🔴 **Massima (Passo Fondamentale)** |
-| **FEAT-005** | **Sezione Liste Tematiche & Personalizzate** | `custom_lists` | 🔴 Da Iniziare | 🔴 Da Iniziare | 🔴 **Massima (Passo Fondamentale)** |
-| **FEAT-006** | **Hub Spesa, Ricettario, Meal Prep & Wishlist Oggetti** | `shopping` / food | 🔴 Da Strutturare | 🔴 Da Implementare | 🔴 **Massima (Passo Fondamentale)** |
-| **FEAT-007** | **Sistema Amicizie & Condivisione Recensioni (Social/Sharing)** | `social` / media | 🟢 Completato | 🟢 Completato | 🟢 **Completato** |
-| **FEAT-008** | **Sistema Segnalazione Errori, Feedback & Bug Report** | `support` / feedback | 🟢 Completato | 🟢 Completato | 🟢 **Completato** |
-| **OFFLINE-001** | **Modalità Offline-First & Sincronizzazione Differita (Outbox Sync)** | `sync` / mobile | 🟢 Completato | 🟢 Completato | 🟢 **Completato** |
-| **FEAT-009** | **Restyling & Rifinitura Grafica Schermate SuperUser (Admin Panel)** | `admin` / UI | 🟢 Supportato | 🔴 Da Implementare | 🟠 **Alta** |
-| **FEAT-010** | **Database & Sincronizzazione Centralizzata Citazioni Giornaliere (Quotes)** | `core` / quotes | 🔴 Da Implementare | 🔴 Da Implementare | Media |
-| **AI-001** | **Studio & Integrazione Intelligenza Artificiale (AI)** | `ai` / assistant | 🔴 Da Analizzare | 🔴 Da Analizzare | 🟠 **Alta (Ricerca & Prototipo)** |
-| **FEAT-011** | **Sezione Lavoro & Gestione Turni di Lavoro** | `work` / `shifts` | 🔴 Da Definire | 🔴 Da Definire | 🟠 **Alta (Punto da definire con Daniela)** |
-| **FEAT-001** | Liste Spesa: Preferite & Pinnate (`pin_status`) | `shopping` | 🟢 Completato | 🔴 Da Implementare | Media-Alta |
-| **FEAT-002** | Gestione Inventario Spesa, Inserimento Prezzi & Lotti (`inventory_batches`) | `shopping` | 🟢 Completato | 🟢 Completato | 🟢 **Completato** |
-| **FEAT-003** | **Dashboard Analytics & Storico Prezzi** | `analytics` | 🟢 Completato | 🔴 Da Implementare | Bassa |
-| **UI-001** | **Selezione Multipla nella Versione Mobile** | `mobile` / UI | 🟢 Completato | 🟢 Completato | 🟢 **Completato** |
-| **TECH-001** | **Verifica & Ottimizzazione Bundle APK Android (Code-Splitting)** | `build` / APK | N/A | 🟢 Completato | Media |
-| **TECH-002** | Spostamento Tasto Switch in Impostazioni / Danger Zone | `routing` / UI | N/A | 🟢 Completato | Bassa |
-| **TECH-003** | **Persistenza Volume Uploads su Docker NAS** | `build` / docker | 🟢 Completato | 🟢 Completato | 🟢 **Completato** |
-| **SHOPPING-006** | **Ordinamento Intuitivo Unità di Misura Spesa (Canoniche + Alfabetico Comune con Divisore)** | `shopping` / UI | 🟢 Completato | 🟢 Completato | 🟢 **Completato** |
+| **CORE-001** | **Refactoring Globale & Pulizia Architetturale** | `core` / arch | ðŸŸ¢ Completato | ðŸŸ¢ Completato | ðŸŸ¢ **Completato** |
+| **CORE-002** | **Refactoring Continuo, ModularitÃ  & Cleanup Codice** | `core` / arch | ðŸŸ¢ Completato | ðŸŸ¢ Completato | ðŸŸ¢ **Completato** |
+| **MEDIA-001** | **Upload Foto Dispositivo, Caching URL, GIF As-Is & WebP** | `media` / storage | ðŸŸ¢ Completato | ðŸŸ¢ Completato | ðŸŸ¢ **Completato** |
+| **CAL-001** | **Sincronizzazione Timezone Google Calendar & Data Mobile DayPage** | `calendar` / `mobile` | ðŸŸ¢ Completato | ðŸŸ¢ Completato | ðŸŸ¢ **Completato** |
+| **REBRAND-001** | **Rebranding App con Nome "Vita" e Nuova Icona Applicazione** | `brand` / `UI` | ðŸŸ¢ Completato | ðŸŸ¢ Completato | ðŸŸ¢ **Completato** |
+| **HOME-001** | **Widget Homepage Rotante (Citazione del Giorno, Oroscopo & Meteo)** | `home` / `UI` | ðŸ”´ Da Iniziare | ðŸ”´ Da Iniziare | ðŸŸ  **Alta** |
+| **SHOPPING-004** | **Ricerca & Visualizzazione Prezzi nel Modale Dettaglio Prodotto (per Brand)** | `shopping` / `UI` | ðŸ”´ Da Iniziare | ðŸ”´ Da Iniziare | ðŸŸ  **Alta** |
+| **SEED-001** | **Pulizia Dati Seed Prodotti (Rimozione Marca e QuantitÃ  dal Nome)** | `shopping` / `seed` | ðŸ”´ Da Iniziare | ðŸ”´ Da Iniziare | ðŸŸ  **Alta** |
+| **SEED-002** | **Risoluzione Visualizzazione Prodotti Seed Mancanti nelle Liste** | `shopping` / `seed` | ðŸ”´ Da Iniziare | ðŸ”´ Da Iniziare | ðŸŸ  **Alta** |
+| **SHOPPING-005** | **Note e Recensioni Prodotti/Brand nel Catalogo** | `shopping` | ðŸ”´ Da Iniziare | ðŸ”´ Da Iniziare | ðŸŸ  **Alta** |
+| **FEAT-012** | **Pagina di Avvio Pinnata / Selezione Landing Page Predefinita** | `settings` / UI | ðŸŸ¢ Completato | ðŸŸ¢ Completato | ðŸŸ¢ **Completato** |
+| **CAL-002** | **Filtro Categorie Eventi nel Calendario Homepage (Menu Ingranaggio âš™ï¸)** | `calendar` / UI | ðŸ”´ Da Iniziare | ðŸ”´ Da Iniziare | ðŸŸ  **Alta** |
+| **FEAT-004** | **Sezione Media: Libri, Film e Serie TV** | `media` / ent | ðŸŸ¡ Parziale | ðŸŸ¡ Parziale | ðŸ”´ **Massima (Passo Fondamentale)** |
+| **FEAT-005** | **Sezione Liste Tematiche & Personalizzate** | `custom_lists` | 🟡 Parziale | 🟡 Parziale | 🔴 **Massima (Passo Fondamentale)** |
+| **FEAT-006** | **Hub Spesa, Ricettario, Meal Prep & Wishlist Oggetti** | `shopping` / food | ðŸ”´ Da Strutturare | ðŸ”´ Da Implementare | ðŸ”´ **Massima (Passo Fondamentale)** |
+| **FEAT-007** | **Sistema Amicizie & Condivisione Recensioni (Social/Sharing)** | `social` / media | ðŸŸ¢ Completato | ðŸŸ¢ Completato | ðŸŸ¢ **Completato** |
+| **FEAT-008** | **Sistema Segnalazione Errori, Feedback & Bug Report** | `support` / feedback | ðŸŸ¢ Completato | ðŸŸ¢ Completato | ðŸŸ¢ **Completato** |
+| **OFFLINE-001** | **ModalitÃ  Offline-First & Sincronizzazione Differita (Outbox Sync)** | `sync` / mobile | ðŸŸ¢ Completato | ðŸŸ¢ Completato | ðŸŸ¢ **Completato** |
+| **FEAT-009** | **Restyling & Rifinitura Grafica Schermate SuperUser (Admin Panel)** | `admin` / UI | ðŸŸ¢ Supportato | ðŸ”´ Da Implementare | ðŸŸ  **Alta** |
+| **FEAT-010** | **Database & Sincronizzazione Centralizzata Citazioni Giornaliere (Quotes)** | `core` / quotes | ðŸ”´ Da Implementare | ðŸ”´ Da Implementare | Media |
+| **AI-001** | **Studio & Integrazione Intelligenza Artificiale (AI)** | `ai` / assistant | ðŸ”´ Da Analizzare | ðŸ”´ Da Analizzare | ðŸŸ  **Alta (Ricerca & Prototipo)** |
+| **FEAT-011** | **Sezione Lavoro & Gestione Turni di Lavoro** | `work` / `shifts` | ðŸ”´ Da Definire | ðŸ”´ Da Definire | ðŸŸ  **Alta (Punto da definire con Daniela)** |
+| **FEAT-001** | Liste Spesa: Preferite & Pinnate (`pin_status`) | `shopping` | ðŸŸ¢ Completato | ðŸ”´ Da Implementare | Media-Alta |
+| **FEAT-002** | Gestione Inventario Spesa, Inserimento Prezzi & Lotti (`inventory_batches`) | `shopping` | ðŸŸ¢ Completato | ðŸŸ¢ Completato | ðŸŸ¢ **Completato** |
+| **FEAT-003** | **Dashboard Analytics & Storico Prezzi** | `analytics` | ðŸŸ¢ Completato | ðŸ”´ Da Implementare | Bassa |
+| **UI-001** | **Selezione Multipla nella Versione Mobile** | `mobile` / UI | ðŸŸ¢ Completato | ðŸŸ¢ Completato | ðŸŸ¢ **Completato** |
+| **TECH-001** | **Verifica & Ottimizzazione Bundle APK Android (Code-Splitting)** | `build` / APK | N/A | ðŸŸ¢ Completato | Media |
+| **TECH-002** | Spostamento Tasto Switch in Impostazioni / Danger Zone | `routing` / UI | N/A | ðŸŸ¢ Completato | Bassa |
+| **TECH-003** | **Persistenza Volume Uploads su Docker NAS** | `build` / docker | ðŸŸ¢ Completato | ðŸŸ¢ Completato | ðŸŸ¢ **Completato** |
+| **SHOPPING-006** | **Ordinamento Intuitivo UnitÃ  di Misura Spesa (Canoniche + Alfabetico Comune con Divisore)** | `shopping` / UI | ðŸŸ¢ Completato | ðŸŸ¢ Completato | ðŸŸ¢ **Completato** |
+
+| **FEAT-013** | **Archivio Notifiche / Sezione Storico Notifiche** | `notifications` / UI | ðŸŸ¢ Completato | ðŸŸ¡ Da Implementare | ðŸŸ¡ Media |
 
 *Legenda:*
-- 🟢 **Completato**: Pronto, testato o supportato a livello di sistema/API.
-- 🟡 **Parziale / Da Verificare**: Componenti parzialmente presenti o da analizzare/rifinire.
-- 🔴 **Da Implementare / Da Iniziare**: Funzionalità o interfaccia da sviluppare ex novo.
-- ⏳ **In Attesa**: Da eseguire al termine di un'altra fase (es. finalizzazione versione mobile).
+- ðŸŸ¢ **Completato**: Pronto, testato o supportato a livello di sistema/API.
+- ðŸŸ¡ **Parziale / Da Verificare**: Componenti parzialmente presenti o da analizzare/rifinire.
+- ðŸ”´ **Da Implementare / Da Iniziare**: FunzionalitÃ  o interfaccia da sviluppare ex novo.
+- â³ **In Attesa**: Da eseguire al termine di un'altra fase (es. finalizzazione versione mobile).
 
 ---
 
-## 🚀 1. Backend Implementato ➔ Frontend da Completare
+## ðŸš€ 1. Backend Implementato âž” Frontend da Completare
 
 ### [FEAT-001] Liste Spesa: Preferite & Pinnate (`pin_status`)
 
-#### 📝 Descrizione
-Possibilità per l'utente di contrassegnare le liste della spesa come **Preferite** (stella/cuore), **Pinnate / Fissate in alto** (puntina) o entrambe.
+#### ðŸ“ Descrizione
+PossibilitÃ  per l'utente di contrassegnare le liste della spesa come **Preferite** (stella/cuore), **Pinnate / Fissate in alto** (puntina) o entrambe.
 
-#### ⚙️ Dettagli Implementazione Backend
+#### âš™ï¸ Dettagli Implementazione Backend
 - **Migrazione DB**: `alembic/versions/k0l1m2n3o4p5_add_pin_status_and_is_default_to_shopping_lists.py`
 - **Tabella & Colonna**: `shopping_lists.pin_status` (`VARCHAR(2)`, `NULLABLE`)
 - **Modello SQLAlchemy**: `ShoppingList.pin_status` in [`backend/domains/shopping/models/lists.py`](file:///c:/Users/Fabrizio/Desktop/app/smart/v14/backend/domains/shopping/models/lists.py)
@@ -72,11 +74,11 @@ Possibilità per l'utente di contrassegnare le liste della spesa come **Preferit
   - `"PF"`: Lista sia **Pinnata che Favorita**
 - **Validazione**: Gestita tramite `@field_validator("pin_status")` con normalizzazione uppercase.
 
-#### 💻 Stato Frontend Esistente
+#### ðŸ’» Stato Frontend Esistente
 - **Tipi definiti**: `PinStatus = 'PN' | 'FV' | 'PF' | null` in [`frontend/src/types/shopping.ts`](file:///c:/Users/Fabrizio/Desktop/app/smart/v14/frontend/src/types/shopping.ts).
 - **API Client**: `normalizeShoppingListSummary` e `serializeShoppingListPayload` in [`frontend/src/api/shopping/shoppingListsApi.ts`](file:///c:/Users/Fabrizio/Desktop/app/smart/v14/frontend/src/api/shopping/shoppingListsApi.ts) leggono e serializzano correttamente `pinStatus` / `pin_status`.
 
-#### 🎨 Cosa Manca da Implementare nel Frontend
+#### ðŸŽ¨ Cosa Manca da Implementare nel Frontend
 1. **Desktop Web**:
    - Icone interattive (stella per Preferita, puntina per Pinnata) nelle card o righe delle liste spesa.
    - Azione rapida o pulsante contestuale per fare toggle di Preferita / Pinnata con chiamata `updateShoppingList(listId, { pinStatus: ... })`.
@@ -84,10 +86,10 @@ Possibilità per l'utente di contrassegnare le liste della spesa come **Preferit
    - Filtro / Tab opzionale per mostrare solo le "Liste Preferite".
 2. **Mobile App**:
    - Icona/badge visivo nella lista a discesa / drawer delle liste della spesa.
-   - Modalità di modifica lista o swipe action / pulsante rapido per aggiungere/rimuovere dai preferiti.
+   - ModalitÃ  di modifica lista o swipe action / pulsante rapido per aggiungere/rimuovere dai preferiti.
    - Riorganizzazione dell'ordine di visualizzazione in base a `pinStatus`.
 
-#### 📡 Esempio Chiamata API (Payload)
+#### ðŸ“¡ Esempio Chiamata API (Payload)
 ```http
 PATCH /api/v1/shopping/lists/{list_id}
 Content-Type: application/json
@@ -99,11 +101,11 @@ Content-Type: application/json
 
 ---
 
-## 📱 2. Funzionalità & UX Versione Mobile
+## ðŸ“± 2. FunzionalitÃ  & UX Versione Mobile
 
 ### [FEAT-009] Restyling & Rifinitura Grafica Schermate SuperUser (Admin Panel)
 
-#### 📝 Descrizione
+#### ðŸ“ Descrizione
 Rifinire, armonizzare e modernizzare visivamente tutte le schermate e sezioni accessibili dal pannello SuperUser / Amministratore (`/admin`), adattandole al design system pulito e moderno dell'applicazione:
 - Dashboard Amministrazione (Statistiche e KPI server).
 - Gestione Utenti, Ruoli e Permessi.
@@ -114,46 +116,46 @@ Rifinire, armonizzare e modernizzare visivamente tutte le schermate e sezioni ac
 
 ### [FEAT-010] Database & Sincronizzazione Centralizzata Citazioni Giornaliere (Quotes)
 
-#### 📝 Descrizione
+#### ðŸ“ Descrizione
 Centralizzare le citazioni giornaliere (Quotes) tramite tabella database dedicata nel backend, in modo che tutti gli utenti e tutti i dispositivi visualizzino la stessa identica citazione del giorno in modo sincronizzato e consistente.
 
-#### 🎯 Obiettivi
+#### ðŸŽ¯ Obiettivi
 1. Creazione modello/tabella `quotes` (id, quote_text, author, category, scheduled_date/active).
 2. Endpoint API REST per la restituzione della citazione odierna del server.
 3. Hook frontend sincronizzato con cache TanStack Query.
 
 ---
 
-## ⚙️ 3. Build, Packaging APK & Ottimizzazioni Tecniche
+## âš™ï¸ 3. Build, Packaging APK & Ottimizzazioni Tecniche
 
 ### [TECH-001] Controllo & Ottimizzazione Bundle APK Android (Code-Splitting)
 
-#### 📝 Descrizione
+#### ðŸ“ Descrizione
 Verificare e ottimizzare il processo di compilazione dell'APK eseguito da [`build_apk.ps1`](file:///c:/Users/Fabrizio/Desktop/app/smart/v14/build_apk.ps1), controllando come Vite impacchetta i file web e mobile.
 
-#### 🔍 Aspetti da Verificare
+#### ðŸ” Aspetti da Verificare
 - **Analisi del Bundle Vite**: I file della cartella `frontend/src/mobile/` importano moduli condivisi (`src/api`, `src/types`, `src/context`, `src/utils`) che vengono usati anche dalle pagine Desktop (`src/views/`, `src/components/`).
 - **Obiettivo**: Verificare se le pagine e i componenti specifici per Desktop (es. `HomePage`, `WeekPage`, `MonthPage`, `YearPage`, `AppShellLayout`) finiscono nel bundle caricato su Android o se possono essere isolati tramite **React.lazy / Dynamic Imports** e chunking in Vite.
 - **Benefici**:
   - Riduzione delle dimensioni finali dell'APK (`smartagenda.apk`).
-  - Riduzione dell'impronta di memoria RAM e avvio più veloce dell'app mobile su smartphone Android.
+  - Riduzione dell'impronta di memoria RAM e avvio piÃ¹ veloce dell'app mobile su smartphone Android.
 
 ---
 
-## 🎯 4. Prossimi Passi Fondamentali (Priorità Immediata)
+## ðŸŽ¯ 4. Prossimi Passi Fondamentali (PrioritÃ  Immediata)
 
-### [CORE-002] Refactoring Continuo, Modularità & Cleanup Codice
+### [CORE-002] Refactoring Continuo, ModularitÃ  & Cleanup Codice
 
-#### 📝 Descrizione
-Attività continuativa di ottimizzazione e refactoring architetturale per mantenere la codebase snella, modulare e facilmente manutenibile durante l'evoluzione delle nuove funzionalità.
+#### ðŸ“ Descrizione
+AttivitÃ  continuativa di ottimizzazione e refactoring architetturale per mantenere la codebase snella, modulare e facilmente manutenibile durante l'evoluzione delle nuove funzionalitÃ .
 
-#### 🛠️ Ambito & Obiettivi
+#### ðŸ› ï¸ Ambito & Obiettivi
 1. **Scomposizione Componenti & Hook**:
-   - Individuazione e refactoring preventivo di componenti o sotto-pagine in crescita prima che superino la soglia di leggibilità.
+   - Individuazione e refactoring preventivo di componenti o sotto-pagine in crescita prima che superino la soglia di leggibilitÃ .
    - Estrazione di sotto-hook personalizzati per la separazione tra logica di stato e resa grafica.
 2. **Ottimizzazione Prestazioni & Re-Render**:
-   - Profilazione dei re-render e memoizzazione strategica (`useMemo`, `useCallback`, `React.memo`) nelle viste ad alta densità informativa (es. Calendario, Liste Spesa, Timeline).
-3. **Mantenimento Standard di Qualità**:
+   - Profilazione dei re-render e memoizzazione strategica (`useMemo`, `useCallback`, `React.memo`) nelle viste ad alta densitÃ  informativa (es. Calendario, Liste Spesa, Timeline).
+3. **Mantenimento Standard di QualitÃ **:
    - Garanzia del livello **Zero `any`** in TypeScript con interfacce e DTO trasparenti.
    - Pulizia periodica di codice legacy, asset o funzioni obsolete sia in Frontend che in Backend.
 
@@ -161,89 +163,91 @@ Attività continuativa di ottimizzazione e refactoring architetturale per manten
 
 ### [FEAT-012] Pagina di Avvio Pinnata / Selezione Landing Page Predefinita
 
-#### 📝 Descrizione
-Possibilità per l'utente di scegliere e fissare (pinnare) nelle impostazioni personali quale pagina/sezione dell'applicazione deve essere aperta per prima al login o al lancio dell'app (es. Homepage Agenda, Spesa / Shopping, Vista Giorno, Liste Tematiche, Sezione Media, ecc.).
+#### ðŸ“ Descrizione
+PossibilitÃ  per l'utente di scegliere e fissare (pinnare) nelle impostazioni personali quale pagina/sezione dell'applicazione deve essere aperta per prima al login o al lancio dell'app (es. Homepage Agenda, Spesa / Shopping, Vista Giorno, Liste Tematiche, Sezione Media, ecc.).
 
-#### 🎯 Casi d'Uso & Funzionalità
+#### ðŸŽ¯ Casi d'Uso & FunzionalitÃ 
 1. **Personalizzazione dell'Esperienza d'Uso**:
    - Utenti che usano l'app principalmente per la spesa possono impostare l'Hub Spesa come prima schermata all'avvio.
    - Utenti focalizzati sugli impegni giornalieri possono scegliere la vista Giorno (`/giorno`) o la Homepage Calendario (`/`).
 2. **Routing Intelligente**:
    - Reindirizzamento automatico trasparente sia su Desktop Web che su Mobile App (Capacitor/Android) all'apertura del percorso root.
 
-#### 🛠️ Dettagli Tecnologici & UI
+#### ðŸ› ï¸ Dettagli Tecnologici & UI
 - **Impostazioni Utente**: Nuova opzione *"Pagina di Avvio Predefinita"* nel profilo utente (sincronizzata a DB e salvata in `localStorage` per accesso istantaneo offline).
 - **Integrazione Navigazione**: Pulsante puntina opzionale nelle intestazioni delle varie viste per impostare rapidamente la pagina corrente come vista di avvio predefinita.
 
 ---
 
-### [CAL-002] Filtro Categorie Eventi nel Calendario Homepage (Menu Ingranaggio ⚙️)
+### [CAL-002] Filtro Categorie Eventi nel Calendario Homepage (Menu Ingranaggio âš™ï¸)
 
-#### 📝 Descrizione
-Integrazione di un menu di filtraggio rapido rappresentato da un'icona ad ingranaggio ⚙️ nella vista Calendario della Homepage (Desktop e Mobile), consentendo all'utente di scegliere dinamicamente quali tipologie di eventi e impegni mostrare nel calendario.
+#### ðŸ“ Descrizione
+Integrazione di un menu di filtraggio rapido rappresentato da un'icona ad ingranaggio âš™ï¸ nella vista Calendario della Homepage (Desktop e Mobile), consentendo all'utente di scegliere dinamicamente quali tipologie di eventi e impegni mostrare nel calendario.
 
-#### 🎯 Filtri & Selettori Previsti
+#### ðŸŽ¯ Filtri & Selettori Previsti
 1. **Eventi Agenda Standard**: Mostra/Nascondi impegni e task dell'agenda personale.
 2. **Eventi & Turni di Lavoro**: Toggle per includere o isolare gli eventi di lavoro / turni (collegato al modulo `FEAT-011`).
 3. **Sincronizzazione Google Calendar**: Mostra/Nascondi gli eventi importati da Google Calendar.
-4. **Altre Categorie / Tag**: Selettori multipli per filtrare per priorità o categoria.
+4. **Altre Categorie / Tag**: Selettori multipli per filtrare per prioritÃ  o categoria.
 
-#### 🛠️ Dettagli Interfaccia & Persistenza
-- **UI Menu ⚙️**: Icona ingranaggio affiancata ai comandi di navigazione del Calendario Homepage con popover/dropdown responsive (modale al centro su Mobile).
+#### ðŸ› ï¸ Dettagli Interfaccia & Persistenza
+- **UI Menu âš™ï¸**: Icona ingranaggio affiancata ai comandi di navigazione del Calendario Homepage con popover/dropdown responsive (modale al centro su Mobile).
 - **Persistenza Stato**: Preferenze di filtraggio salvate nello stato locale dell'utente in modo da mantenere attiva la configurazione selezionata tra le sessioni.
 
 ---
 
 ### [FEAT-004] Creazione Sezione Media & Intrattenimento: Libri, Film e Serie TV
 
-#### 📝 Descrizione
-Nuovo modulo completo per gestire, catalogare e monitorare l'intrattenimento personale: libri in lettura o da leggere, film da guardare o già visti, e serie TV con tracking dettagliato di stagioni ed episodi.
+#### ðŸ“ Descrizione
+Nuovo modulo completo per gestire, catalogare e monitorare l'intrattenimento personale: libri in lettura o da leggere, film da guardare o giÃ  visti, e serie TV con tracking dettagliato di stagioni ed episodi.
 
-#### 📚 1. Sotto-sezione Libri
+#### ðŸ“š 1. Sotto-sezione Libri
 - **Dati Tracciati**: Titolo, autore, ISBN/codice, genere, numero totale di pagine, pagine attualmente lette, data di inizio e completamento lettura, copertina/immagine.
 - **Stato Lettura**: `Da leggere`, `In lettura`, `Completato`, `Abbandonato`, `In pausa`.
 - **Dettagli & Valutazione**: Valutazione in stelle (1-5), recensione personale, citazioni/passi preferiti, tag personalizzati (es. "Saggio", "Fantasy", "Crescita personale").
-- **Funzionalità**: Barra di avanzamento percentuale di lettura, contatore libri completati nell'anno.
+- **FunzionalitÃ **: Barra di avanzamento percentuale di lettura, contatore libri completati nell'anno.
 
-#### 🎬 2. Sotto-sezione Film
+#### ðŸŽ¬ 2. Sotto-sezione Film
 - **Dati Tracciati**: Titolo, regista, anno di uscita, genere, durata (minuti), locandina, piattaforma di fruizione (es. Netflix, Prime Video, Cinema, Apple TV, Disney+).
 - **Stato Visione**: `Watchlist / Da vedere`, `Visto`.
 - **Dettagli & Valutazione**: Data di visione, voto personale, recensione/commento rapido, link al trailer o scheda informativa.
 
-#### 📺 3. Sotto-sezione Serie TV (✅ UI Base e Backend Completati)
-- **Stato Attuale (Backend 🟢 Completato)**: Architettura a 5 tabelle definita (`TMDBSeries`, `TMDBEpisode`, `UserSeriesTracking`, `UserEpisodeLog`, `TVQuote`). Implementato Lazy Update asincrono parallelo da TMDB. Endpoint API pronti per rotte CRUD, statistiche dashboard (obiettivi annuali, ultimi visti), action per avanzamento rapido (+1 episodio) e gestione note/visibilità.
-  - 🔄 **Feature Avanzata (Rewatch / Diary Pattern)**: Implementato il tracciamento degli episodi in formato "Logbook" (multi-visione). Il sistema registra le visioni multiple contando il `watch_count`, restituendo l'intero storico all'utente e rimuovendo gradualmente solo le visioni più recenti in caso di revoca della spunta.
+#### ðŸ“º 3. Sotto-sezione Serie TV (âœ… UI Base e Backend Completati)
+- **Stato Attuale (Backend ðŸŸ¢ Completato)**: Architettura a 5 tabelle definita (`TMDBSeries`, `TMDBEpisode`, `UserSeriesTracking`, `UserEpisodeLog`, `TVQuote`). Implementato Lazy Update asincrono parallelo da TMDB. Endpoint API pronti per rotte CRUD, statistiche dashboard (obiettivi annuali, ultimi visti), action per avanzamento rapido (+1 episodio) e gestione note/visibilitÃ .
+  - ðŸ”„ **Feature Avanzata (Rewatch / Diary Pattern)**: Implementato il tracciamento degli episodi in formato "Logbook" (multi-visione). Il sistema registra le visioni multiple contando il `watch_count`, restituendo l'intero storico all'utente e rimuovendo gradualmente solo le visioni piÃ¹ recenti in caso di revoca della spunta.
 - **Stato Attuale (Frontend)**: Realizzato layout a griglia *bento* su desktop con top bar a 3 indicatori ("Ultima Aggiunta", "Ultimo Episodio", "Ultima Completata"). Migliorata interfaccia citazioni: scrollbar nativa Webkit con frecce rimosse forzatamente e padding adattivo all'espansione. Implementato un **meccanismo di swap dinamico** nella sidebar: in stato ridotto mostra il Calendario, in stato espanso mostra le locandine "Prossime Uscite" a carousel per ottimizzare lo spazio. Supporto fallback `no-poster.png` e scroller armonizzati (`mask-image`).
 - **Dati Tracciati**: Titolo, ideatore/regista, genere, piattaforma di streaming, locandina, numero totale di stagioni ed episodi.
 - **Tracking Avanzamento**: Gestione dettagliata del progresso (es. "Stagione 2 - Episodio 7"), pulsante rapido touch/click per avanzare di un episodio visto (+1 episodio).
 - **Stato Serie**: `Da iniziare`, `In corso`, `In attesa di nuova stagione`, `Completata`, `Mollata`.
 - **Prossimi Step Sviluppo (Da Iniziare)**:
-  - 🔍 Integrazione **barra di ricerca TMDB inline** direttamente nella grid principale, rimuovendo il modale popup. Digitando si deve aprire un elenco a comparsa per l'aggiunta rapida.
-  - 🏷️ **Ricerca per Genere da Badge**: Cliccando sul badge di un genere (nella card o nel dettaglio serie) l'app filtrerà/cercherà automaticamente altre serie in lista appartenenti allo stesso genere.
-  - 🤝 **Incrocio Liste Amici & Stato Visione**: Aggiunta di un tasto e relativa funzione nella barra principale della sezione per permettere di incrociare/comparare le liste delle serie TV salvate da più amici. Inoltre, agli amici verrà mostrato se una serie la sta guardando un altro amico (tramite la sua foto profilo con un bordo colorato associato allo stato: se l'ha finita, droppata, in corso, ecc.).
-  - 📚 **Liste Multimediali Personalizzate**: Creazione di sottoliste (es. "Serie MCU", "Film di Natale") in cui inserire film, serie o libri. Graficamente, le etichette di appartenenza a queste liste andranno posizionate sopra l'immagine blurrata di copertina, in basso (allineate verticalmente con il margine inferiore) e orizzontalmente allineate con l'inizio del testo della trama della colonna di destra.
-  - 👀 **Check Finale Recensioni**: Al termine dello sviluppo della sezione, effettuare un controllo generale di come vengono visualizzate le recensioni e le liste delle recensioni (layout, text-wrapping, visualizzazione modale).
-  - 🌟 **Voto Community**: Sostituire il voto TMDB con il voto medio della community dell'app. Al clic sul voto, si aprirà una struttura simile a quella delle recensioni degli amici per leggerle.
-  - 💬 **Commenti alle Recensioni**: Aggiungere la possibilità di commentare le singole recensioni (tue, degli amici o pubbliche). Cliccando su una recensione, si espanderà mostrando sotto il thread dei commenti (richiede implementazione backend dedicata).
-  - 🔔 **Sistema di Notifiche (Commenti/Interazioni)**: Prevedere un sistema di notifiche (in-app/push) per avvisare l'utente quando riceve un commento a una sua recensione o ci sono interazioni rilevanti.
-  - 💬 **Messaggistica Istantanea ed Effimera**: Valutare l'integrazione di una chat o messaggistica diretta tra amici, possibilmente con messaggi effimeri, legata alle interazioni sulle serie o commenti.
-  - 🌐 **Disponibilità Piattaforme Streaming**: Integrare (ad es. tramite dati JustWatch via API TMDB) la visualizzazione accurata delle piattaforme in cui l'episodio/serie è attualmente visibile (Netflix, Prime Video, ecc.).
-  - 💡 **Suggerimenti Homepage (Raccomandazioni)**: Aggiungere in homepage una sezione con serie TV suggerite e raccomandate dinamicamente in base alle ultime serie guardate.
-  - 📡 Sostituzione dei Dati Mock (obiettivo annuale, citazioni, serie recenti e carousel prossime uscite) con fetch reali dal Database e logica TMDB.
-  - 🎨 **UI Schermata di Dettaglio Completata**: Il design del modale di dettaglio della singola serie è stato completato e rifinito (gestione cast, layout colonne, header integrato, status badge in overlay).
-  - 🎨 Gestione dello stato "Empty" per l'assenza di serie.
+  - ðŸ” Integrazione **barra di ricerca TMDB inline** direttamente nella grid principale, rimuovendo il modale popup. Digitando si deve aprire un elenco a comparsa per l'aggiunta rapida.
+  - ðŸ·ï¸ **Ricerca per Genere da Badge**: Cliccando sul badge di un genere (nella card o nel dettaglio serie) l'app filtrerÃ /cercherÃ  automaticamente altre serie in lista appartenenti allo stesso genere.
+  - ðŸ¤ **Incrocio Liste Amici & Stato Visione**: Aggiunta di un tasto e relativa funzione nella barra principale della sezione per permettere di incrociare/comparare le liste delle serie TV salvate da piÃ¹ amici. Inoltre, agli amici verrÃ  mostrato se una serie la sta guardando un altro amico (tramite la sua foto profilo con un bordo colorato associato allo stato: se l'ha finita, droppata, in corso, ecc.).
+  - 📚 **Liste Multimediali Personalizzate**: Creazione di sottoliste miste (es. "MCU", "Da vedere con la ragazza") in cui inserire film, serie o libri. (*UI di gestione liste completata*).
+    - **Comportamento Homepage vs Sezioni**: Nella Homepage verranno mostrate le liste complete con tutto il loro contenuto eterogeneo. Nelle sezioni dedicate (es. Serie TV), la lista mostrerà *esclusivamente* gli elementi pertinenti.
+  - 🔎 **Ricerca per Lista**: Aggiungere la possibilità di filtrare o cercare elementi in base all'appartenenza a specifiche liste direttamente all'interno della ricerca dettagliata/globale.
+  - ðŸ‘€ **Check Finale Recensioni**: Al termine dello sviluppo della sezione, effettuare un controllo generale di come vengono visualizzate le recensioni e le liste delle recensioni (layout, text-wrapping, visualizzazione modale).
+  - ðŸŒŸ **Voto Community**: Sostituire il voto TMDB con il voto medio della community dell'app. Al clic sul voto, si aprirÃ  una struttura simile a quella delle recensioni degli amici per leggerle.
+  - ðŸ’¬ **Commenti alle Recensioni**: Aggiungere la possibilitÃ  di commentare le singole recensioni (tue, degli amici o pubbliche). Cliccando su una recensione, si espanderÃ  mostrando sotto il thread dei commenti (richiede implementazione backend dedicata).
+  - ðŸ”” **Sistema di Notifiche (Commenti/Interazioni)**: Prevedere un sistema di notifiche (in-app/push) per avvisare l'utente quando riceve un commento a una sua recensione o ci sono interazioni rilevanti.
+  - ðŸ’¬ **Messaggistica Istantanea ed Effimera**: Valutare l'integrazione di una chat o messaggistica diretta tra amici, possibilmente con messaggi effimeri, legata alle interazioni sulle serie o commenti.
+  - ðŸŒ **DisponibilitÃ  Piattaforme Streaming**: Integrare (ad es. tramite dati JustWatch via API TMDB) la visualizzazione accurata delle piattaforme in cui l'episodio/serie Ã¨ attualmente visibile (Netflix, Prime Video, ecc.).
+  - ðŸ’¡ **Suggerimenti Homepage (Raccomandazioni)**: Aggiungere in homepage una sezione con serie TV suggerite e raccomandate dinamicamente in base alle ultime serie guardate.
+  - 📡 **Rimozione Dati Mock & Integrazione API**: Sostituzione dei Dati Mock (obiettivo annuale, citazioni, serie recenti, carousel prossime uscite, e **Integrazione completa Liste Multimediali e MediaListManagerModal**) con fetch reali dal Database e logica TMDB / React Query.
+  - 🎨 **UI Schermata di Dettaglio Completata**: Il design del modale di dettaglio della singola serie è stato completato e rifinito (gestione cast, layout colonne, header integrato, status badge in overlay, e pannello liste).
+  - ðŸŽ¨ Gestione dello stato "Empty" per l'assenza di serie.
 
-#### 🔄 4. Analisi Integrazioni Esterne & Sincronizzazione (Goodreads, Fable, TV Time)
-- **Fattibilità Sincronizzazione Piattaforme Esterne**:
-  - **Goodreads, Fable & TV Time**: Piattaforme chiuse / senza API pubbliche attive con permessi di scrittura (Goodreads ha chiuso il programma sviluppatori nel 2020; Fable e TV Time sono sistemi proprietari chiusi). La **sincronizzazione bidirezionale automatica** (lettura e scrittura diretta nei due sensi) **non è realizzabile**.
-  - **Goodreads Feed RSS (Sincronizzazione Monodirezionale in Sola Lettura)**: Goodreads mette a disposizione per ciascun utente un **Feed RSS pubblico**. Inserendo l'URL del proprio Feed RSS nelle impostazioni di Smart Agenda, l'app può leggere periodicamente i libri aggiunti/modificati su Goodreads (`to-read`, `currently-reading`, `read`) e popolare la libreria in automatico (Goodreads ➔ Smart Agenda).
+#### ðŸ”„ 4. Analisi Integrazioni Esterne & Sincronizzazione (Goodreads, Fable, TV Time)
+- **FattibilitÃ  Sincronizzazione Piattaforme Esterne**:
+  - **Goodreads, Fable & TV Time**: Piattaforme chiuse / senza API pubbliche attive con permessi di scrittura (Goodreads ha chiuso il programma sviluppatori nel 2020; Fable e TV Time sono sistemi proprietari chiusi). La **sincronizzazione bidirezionale automatica** (lettura e scrittura diretta nei due sensi) **non Ã¨ realizzabile**.
+  - **Goodreads Feed RSS (Sincronizzazione Monodirezionale in Sola Lettura)**: Goodreads mette a disposizione per ciascun utente un **Feed RSS pubblico**. Inserendo l'URL del proprio Feed RSS nelle impostazioni di Smart Agenda, l'app puÃ² leggere periodicamente i libri aggiunti/modificati su Goodreads (`to-read`, `currently-reading`, `read`) e popolare la libreria in automatico (Goodreads âž” Smart Agenda).
 - **Servizi Aperti e Gratuiti per Ricerca Libri, Copertine & Metadati**:
   - **Google Books API**: Gratuita e immediata. Permette la ricerca per titolo, autore o ISBN recuperando in automatico copertina, descrizione/trama, autore, numero pagine e data di pubblicazione.
   - **Open Library API**: Database gratuito e open-source gestito da Internet Archive.
   - **Hardcover API**: Piattaforma moderna per lettori con API pubblica per metadati e catalogazione.
   - **TMDB API (The Movie Database)**: Ricerca automatica di locandine, trame, cast e tracking stagioni/episodi per Film e Serie TV.
 
-#### 📐 5. Struttura Dati & Tipizzazione TypeScript (Strict - Zero `any`)
+#### ðŸ“ 5. Struttura Dati & Tipizzazione TypeScript (Strict - Zero `any`)
 Standardizzazione rigorosa delle interfacce per la ricerca libri e la sincronizzazione RSS:
 ```typescript
 // --- Google Books API ---
@@ -302,7 +306,7 @@ export interface GoodreadsSyncState {
 }
 ```
 
-#### 🏗️ Requisiti Architetturali & Integrazione
+#### ðŸ—ï¸ Requisiti Architetturali & Integrazione
 - **Backend**: Nuovo dominio modulare `backend/domains/media/` o suddiviso con modelli SQLAlchemy dedicati (`MediaItem`, `BookProgress`, `SeriesSeasonProgress`, `MediaReview`, `MediaExternalSync`).
 - **Frontend Desktop**: Nuova voce di navigazione laterale con vista a schede (Tab: *Tutti*, *Libri*, *Film*, *Serie TV*) e visualizzazione a griglia di locandine o elenco tabellare con filtri, ricerca Google Books e import RSS.
 - **Frontend Mobile**: Schermata dedicata nell'hub mobile con schede swipeabili, interfaccia card compatta, azioni rapide con un tap (es. segna come visto, avanza episodio, aggiorna pagina libro).
@@ -311,29 +315,29 @@ export interface GoodreadsSyncState {
 
 ### [FEAT-005] Creazione Sezione "Liste" (Liste Tematiche & Personalizzate)
 
-#### 📝 Descrizione
+#### ðŸ“ Descrizione
 Modulo polivalente per creare, organizzare e gestire molteplici tipologie di liste personalizzate e tematiche per raccogliere idee, interessi, luoghi e desideri, completamente indipendenti dalla spesa alimentare quotidiana e dai task con scadenze rigide.
 
-#### 📋 Ambiti e Tipologie di Liste Supportate
-1. 📍 **Posti da Visitare / Luoghi & Viaggi**:
-   - Città, monumenti, musei, ristoranti, bar o mete di vacanza.
-   - Campi associabili: Nome posto, indirizzo/città, link Google Maps / coordinate, note/consigli (es. "piatto tipico da provare"), checklist di attrazioni interne, stato (`Da visitare`, `Visitato`).
-2. 🌐 **Siti da Vedere / Link Utili & Risorse Web**:
+#### ðŸ“‹ Ambiti e Tipologie di Liste Supportate
+1. ðŸ“ **Posti da Visitare / Luoghi & Viaggi**:
+   - CittÃ , monumenti, musei, ristoranti, bar o mete di vacanza.
+   - Campi associabili: Nome posto, indirizzo/cittÃ , link Google Maps / coordinate, note/consigli (es. "piatto tipico da provare"), checklist di attrazioni interne, stato (`Da visitare`, `Visitato`).
+2. ðŸŒ **Siti da Vedere / Link Utili & Risorse Web**:
    - Raccolta articoli da leggere (*Read it later*), strumenti online, blog, documentazioni, canali o video da guardare.
    - Campi associabili: URL, titolo della risorsa, descrizione, tag tematici (es. "Programmazione", "Design", "Finanza"), anteprima/favicon automatica, stato (`Da consultare`, `Archiviato`).
-3. 🛍️ **Oggetti da Comprare / Wishlist Personale**:
-   - Desideri e acquisti non alimentari (elettronica, abbigliamento, attrezzi per la casa, gadget, idee regalo per sé o altri).
-   - Campi associabili: Nome oggetto, prezzo stimato/reale, link allo store online, livello di priorità/desiderio (Bassa, Media, Alta), note su taglia/colore/modello, stato (`In lista desideri`, `In attesa offerta`, `Ordinato`, `Comprato`).
-4. 🎮 **Giochi & Videogiochi**:
+3. ðŸ›ï¸ **Oggetti da Comprare / Wishlist Personale**:
+   - Desideri e acquisti non alimentari (elettronica, abbigliamento, attrezzi per la casa, gadget, idee regalo per sÃ© o altri).
+   - Campi associabili: Nome oggetto, prezzo stimato/reale, link allo store online, livello di prioritÃ /desiderio (Bassa, Media, Alta), note su taglia/colore/modello, stato (`In lista desideri`, `In attesa offerta`, `Ordinato`, `Comprato`).
+4. ðŸŽ® **Giochi & Videogiochi**:
    - Videogiochi per PC/Console, giochi da tavolo o giochi di ruolo da provare o completare.
    - Campi associabili: Titolo, piattaforma (es. PC, PS5, Switch, Xbox, Boardgame), genere, stato (`Da giocare / Backlog`, `In corso`, `Completato`, `Platinato / 100%`, `Abbandonato`), voto personale e ore di gioco.
-5. 💡 **Liste Generiche & Personalizzate Flessibili**:
-   - Possibilità per l'utente di creare qualsiasi nuova lista tematica libera (es. *Idee regalo Natale*, *Obiettivi di vita*, *Routine allenamento*, *Frasi celebri*, *Contatti speciali*).
+5. ðŸ’¡ **Liste Generiche & Personalizzate Flessibili**:
+   - PossibilitÃ  per l'utente di creare qualsiasi nuova lista tematica libera (es. *Idee regalo Natale*, *Obiettivi di vita*, *Routine allenamento*, *Frasi celebri*, *Contatti speciali*).
    - Personalizzazione con nome, icona/emoji a scelta, colore identificativo e tipo di elementi (checklist spuntabile, elenco con note o lista con link e allegati).
 
-#### 🛠️ Funzionalità Chiave dell'Interfaccia (Desktop & Mobile)
+#### ðŸ› ï¸ FunzionalitÃ  Chiave dell'Interfaccia (Desktop & Mobile)
 - **Organizzazione Visiva**: Visualizzazione a griglia di card, lista compatta o bacheca per categorie.
-- **Pin & Preferiti**: Possibilità di fissare in alto le liste più consultate.
+- **Pin & Preferiti**: PossibilitÃ  di fissare in alto le liste piÃ¹ consultate.
 - **Ricerca & Filtri**: Ricerca full-text istantanea all'interno di tutte le liste e filtro rapido per tag.
 - **Ordinamento Flessibile**: Drag-and-drop o riordinamento manuale/alfabetico/per data di aggiunta.
 - **Archiviazione**: Archiviazione delle liste o degli elementi completati senza cancellare lo storico.
@@ -343,25 +347,25 @@ Modulo polivalente per creare, organizzare e gestire molteplici tipologie di lis
 
 ### [FEAT-006] Riorganizzazione Hub Spesa, Ricettario, Meal Prep & Wishlist Oggetti
 
-#### 📝 Descrizione
+#### ðŸ“ Descrizione
 Evoluzione della sezione Spesa in un ecosistema integrato e modulare per la gestione completa dell'alimentazione, della pianificazione pasti, della spesa e dei desideri di acquisto non alimentari.
 
-#### 🍳 1. Ricettario Personale (Cookbook)
+#### ðŸ³ 1. Ricettario Personale (Cookbook)
 - **Gestione Ricette**: Titolo, foto/copertina del piatto, tempo di preparazione/cottura, porzioni/dosi, categoria (Primi, Secondi, Contorni, Dolci, Salse), passaggi di preparazione e note personali.
-- **Ingredienti Strutturati**: Ogni ricetta include una lista di ingredienti con quantità e unità di misura (es. 300g pasta, 2 spicchi aglio, 50ml olio).
-- **Azione Rapida "Aggiungi alla Lista Spesa"**: Pulsante touch/click con modale interattiva che permette di selezionare gli ingredienti desiderati (deselezionando quelli già presenti in dispensa) e aggiungerli direttamente nella lista della spesa prescelta.
+- **Ingredienti Strutturati**: Ogni ricetta include una lista di ingredienti con quantitÃ  e unitÃ  di misura (es. 300g pasta, 2 spicchi aglio, 50ml olio).
+- **Azione Rapida "Aggiungi alla Lista Spesa"**: Pulsante touch/click con modale interattiva che permette di selezionare gli ingredienti desiderati (deselezionando quelli giÃ  presenti in dispensa) e aggiungerli direttamente nella lista della spesa prescelta.
 
-#### 🥗 2. Meal Prep & Pianificazione Pasti
+#### ðŸ¥— 2. Meal Prep & Pianificazione Pasti
 - **Planner Settimanale / Calendario Pasti**: Griglia settimanale e giornaliera suddivisa in fasce orarie (*Colazione, Pranzo, Cena, Snack/Spuntini*).
-- **Assegnazione Ricette o Piatti Liberi**: Possibilità di trascinare o selezionare ricette dal ricettario oppure scrivere piatti al volo.
+- **Assegnazione Ricette o Piatti Liberi**: PossibilitÃ  di trascinare o selezionare ricette dal ricettario oppure scrivere piatti al volo.
 - **Generatore Automatico Lista Spesa**: Funzione intelligente che esamina i pasti pianificati per i giorni selezionati (es. "Prossimi 7 giorni"), raggruppa e somma tutti gli ingredienti necessari (es. 200g farina + 300g farina = 500g farina) e genera automaticamente una lista della spesa pronta per gli acquisti.
 
-#### 🛍️ 3. Wishlist Oggetti & Desideri (Acquisti Non Alimentari)
+#### ðŸ›ï¸ 3. Wishlist Oggetti & Desideri (Acquisti Non Alimentari)
 - **Separazione Netta dalla Spesa Alimentare**: Spazio dedicato per salvare e ricordare oggetti, elettronica, libri, vestiti, attrezzi o idee regalo che si intende acquistare in futuro.
-- **Dati Tracciati**: Nome oggetto, prezzo stimato o attuale, link allo store online / e-commerce, livello di priorità/desiderio (*Bassa, Media, Alta*), immagini e note descrittive (es. taglia, colore, codice modello).
+- **Dati Tracciati**: Nome oggetto, prezzo stimato o attuale, link allo store online / e-commerce, livello di prioritÃ /desiderio (*Bassa, Media, Alta*), immagini e note descrittive (es. taglia, colore, codice modello).
 - **Stato Oggetto**: `In lista desideri`, `In attesa offerta/sconto`, `Ordinato`, `Acquistato`.
 
-#### 🏠 4. Dashboard / Homepage Riassuntiva Shopping (Valutazione UX)
+#### ðŸ  4. Dashboard / Homepage Riassuntiva Shopping (Valutazione UX)
 - **Hub Panoramico**: Valutazione se creare una vista principale di riepilogo con:
   - Widget liste spesa attive con barra di avanzamento articoli spuntati.
   - Box "Cosa si mangia oggi" (pasti del giorno estratti dal Meal Prep).
@@ -372,49 +376,49 @@ Evoluzione della sezione Spesa in un ecosistema integrato e modulare per la gest
 
 ### [FEAT-007] Sistema di Amicizie & Condivisione Recensioni (Social & Sharing Network)
 
-#### 📝 Descrizione
-Studio e architettura di un sistema di connessione tra utenti (*Amicizie / Family & Friends Network*) per consentire la condivisione sociale di contenuti personali, con priorità iniziale per le recensioni e valutazioni della sezione Media (Libri, Film, Serie TV), ed estendibile a ricette e liste.
+#### ðŸ“ Descrizione
+Studio e architettura di un sistema di connessione tra utenti (*Amicizie / Family & Friends Network*) per consentire la condivisione sociale di contenuti personali, con prioritÃ  iniziale per le recensioni e valutazioni della sezione Media (Libri, Film, Serie TV), ed estendibile a ricette e liste.
 
-#### 👥 1. Architettura delle Relazioni & Amicizie
+#### ðŸ‘¥ 1. Architettura delle Relazioni & Amicizie
 - **Ricerca & Connessione Utenti**: Ricerca per username o email, invio richiesta di amicizia, gestione stati (`pending`, `accepted`, `rejected`, `blocked`), lista amici attiva.
-- **Livelli di Privacy & Visibilità**: Configurazione granulare dei permessi per ogni contenuto creato:
+- **Livelli di Privacy & VisibilitÃ **: Configurazione granulare dei permessi per ogni contenuto creato:
   - `Privato` (visibile solo all'autore).
   - `Solo Amici` (visibile agli utenti confermati nella propria lista amici).
   - `Gruppo/Famiglia` (visibile ai membri di un gruppo condiviso).
 
-#### 🍿 2. Condivisione Recensioni & Valutazioni Media (Film, Serie TV, Libri)
-- **Feed Attività Amici**: Timeline/Bacheca per visualizzare in tempo reale cosa stanno leggendo, guardando o valutando i propri amici (es. *"Marco ha votato 5 stelle e recensito 'Dune - Parte Due'"*).
+#### ðŸ¿ 2. Condivisione Recensioni & Valutazioni Media (Film, Serie TV, Libri)
+- **Feed AttivitÃ  Amici**: Timeline/Bacheca per visualizzare in tempo reale cosa stanno leggendo, guardando o valutando i propri amici (es. *"Marco ha votato 5 stelle e recensito 'Dune - Parte Due'"*).
 - **Schede Titolo Arricchite con Recensioni Amici**: Quando si visualizza la pagina di dettaglio di un film, serie o libro, mostrare in evidenza i commenti, i voti e le note lasciate dai propri amici.
 - **Consigli Diretti**: Pulsante rapido per raccomandare un titolo specifico a un amico con una nota personalizzata.
 
-#### 🌐 3. Estensioni Future del Sistema Social
+#### ðŸŒ 3. Estensioni Future del Sistema Social
 - Condivisione ricette preferite dal proprio Ricettario verso il ricettario di un amico.
-- Condivisione wishlist desideri per facilitare regali di compleanno, festività o occasioni speciali.
+- Condivisione wishlist desideri per facilitare regali di compleanno, festivitÃ  o occasioni speciali.
 - Condivisione collaborativa di liste tematiche (es. "Ristoranti consigliati", "Posti da visitare").
 
 ---
 
 ### [FEAT-011] Sezione Lavoro & Gestione Turni di Lavoro
 
-#### 📝 Descrizione
-Nuovo modulo dedicato alla gestione delle attività lavorative, tracciamento degli orari e organizzazione dei turni di lavoro.
+#### ðŸ“ Descrizione
+Nuovo modulo dedicato alla gestione delle attivitÃ  lavorative, tracciamento degli orari e organizzazione dei turni di lavoro.
 
-#### ❓ Punti da Definire & Note Operative
-- ⚠️ **Da chiedere a Daniela**: Pianificare un confronto con Daniela per stabilire i requisiti e l'impostazione ideale della sezione:
-  - Tipologia e modello dei turni (turni rotanti, riposi, orari spezzati, reperibilità, straordinari).
-  - Modalità di visualizzazione grafica (vista calendario turni dedicata, badge nei giorni dell'agenda o prospetto mensile).
+#### â“ Punti da Definire & Note Operative
+- âš ï¸ **Da chiedere a Daniela**: Pianificare un confronto con Daniela per stabilire i requisiti e l'impostazione ideale della sezione:
+  - Tipologia e modello dei turni (turni rotanti, riposi, orari spezzati, reperibilitÃ , straordinari).
+  - ModalitÃ  di visualizzazione grafica (vista calendario turni dedicata, badge nei giorni dell'agenda o prospetto mensile).
   - Tracciamento delle ore lavorate, note sui singoli turni e calcoli/statistiche periodiche.
 
 ---
 
-## 🧠 5. Ricerca, Studio di Fattibilità & Integrazione AI (Intelligenza Artificiale)
+## ðŸ§  5. Ricerca, Studio di FattibilitÃ  & Integrazione AI (Intelligenza Artificiale)
 
 ### [AI-001] Assistente Intelligente, Voice-to-Action & Automazioni LLM
 
-#### 📝 Descrizione & Visione
-Studio di fattibilità, analisi delle architetture e prototipazione per integrare modelli di intelligenza artificiale (LLM, Speech-to-Text e Structured Parsing) all'interno di Smart Agenda. L'obiettivo è trasformare l'applicazione da un registro passivo a un assistente personale attivo, intelligente e contestuale, mantenendo il pieno controllo sulla privacy dei dati.
+#### ðŸ“ Descrizione & Visione
+Studio di fattibilitÃ , analisi delle architetture e prototipazione per integrare modelli di intelligenza artificiale (LLM, Speech-to-Text e Structured Parsing) all'interno di Smart Agenda. L'obiettivo Ã¨ trasformare l'applicazione da un registro passivo a un assistente personale attivo, intelligente e contestuale, mantenendo il pieno controllo sulla privacy dei dati.
 
-#### 🔬 1. Studio Architetturale & Strategia Modelli
+#### ðŸ”¬ 1. Studio Architetturale & Strategia Modelli
 - **Opzione Self-Hosted / On-Premise (Massima Privacy)**:
   - Valutazione dell'esecuzione di un motore di inferenza locale (es. **Ollama**, **vLLM** o **LocalAI**) direttamente in container Docker sul NAS QNAP o su server casalingo.
   - Modelli target leggeri e veloci: **Llama 3.2 (1B/3B)**, **Qwen 2.5 (3B/7B)**, **Mistral 7B** o **Gemma 2**.
@@ -422,32 +426,32 @@ Studio di fattibilità, analisi delle architetture e prototipazione per integrar
   - *Vantaggi*: Zero costi di abbonamento, funzionamento 100% offline/privato, nessun dato personale inviato a terzi.
 - **Opzione Cloud API (Alte Prestazioni & Zero Carico Hardware)**:
   - Supporto opzionale per chiavi API utente (es. **Google Gemini 2.0 Flash**, **OpenAI GPT-4o-mini**, **Anthropic Claude**).
-  - *Vantaggi*: Risposte istantanee, capacità di ragionamento complesse, nessun impatto sulle risorse hardware del NAS.
+  - *Vantaggi*: Risposte istantanee, capacitÃ  di ragionamento complesse, nessun impatto sulle risorse hardware del NAS.
 - **Architettura Modulare & Provider Switcher**:
   - Creazione di un dominio backend dedicato `backend/domains/ai/` basato su pattern Provider (`AIProvider` astratto con implementazioni `OllamaProvider`, `GeminiProvider`, `OpenAIProvider`).
-  - Possibilità per l'utente di scegliere il provider attivo dalle Impostazioni.
+  - PossibilitÃ  per l'utente di scegliere il provider attivo dalle Impostazioni.
 
-#### 🎯 2. Casi d'Uso Chiave & Funzionalità Progettate
+#### ðŸŽ¯ 2. Casi d'Uso Chiave & FunzionalitÃ  Progettate
 
-1. 🎙️ **Voice-to-Action (Inserimento Vocale Intelligente)**:
+1. ðŸŽ™ï¸ **Voice-to-Action (Inserimento Vocale Intelligente)**:
    - Registrazione rapida di un messaggio vocale da smartphone o PC.
    - Trascrizione Speech-to-Text + parsing dell'LLM con output JSON strutturato (*Structured Outputs*).
-   - *Esempio di input*: *"Ricordami di pagare la bolletta della luce venerdì mattina alle 9 e aggiungi pane e caffè alla lista spesa"*.
+   - *Esempio di input*: *"Ricordami di pagare la bolletta della luce venerdÃ¬ mattina alle 9 e aggiungi pane e caffÃ¨ alla lista spesa"*.
    - *Azione automatica*: Creazione istantanea del task con scadenza/promemoria e aggiunta dei due articoli alla lista spesa corretta con un solo tap di conferma.
 
-2. 🤖 **Assistente Personale & Daily Briefing**:
+2. ðŸ¤– **Assistente Personale & Daily Briefing**:
    - **Riepilogo del Giorno**: Sintesi rapida all'apertura dell'app ("Oggi hai 3 impegni, il primo alle 10:30, e 2 abitudini in sospeso").
-   - **Chatbot Contestuale**: Possibilità di fare domande in linguaggio naturale sulla propria agenda (*"Quando scade l'assicurazione auto?"*, *"Quante volte ho fatto palestra questo mese?"*, *"Cosa devo comprare da Leroy Merlin?"*).
+   - **Chatbot Contestuale**: PossibilitÃ  di fare domande in linguaggio naturale sulla propria agenda (*"Quando scade l'assicurazione auto?"*, *"Quante volte ho fatto palestra questo mese?"*, *"Cosa devo comprare da Leroy Merlin?"*).
 
-3. 🧠 **Scomposizione Automatica Task Complessi (AI Task Breakdown)**:
-   - Dato un obiettivo o macro-task (es. *"Organizzare viaggio a Barcellona"*, *"Dichiarazione dei redditi"*), l'IA propone un piano d'azione dettagliato suddiviso in sotto-task sequenziali con priorità e scadenze suggerite.
+3. ðŸ§  **Scomposizione Automatica Task Complessi (AI Task Breakdown)**:
+   - Dato un obiettivo o macro-task (es. *"Organizzare viaggio a Barcellona"*, *"Dichiarazione dei redditi"*), l'IA propone un piano d'azione dettagliato suddiviso in sotto-task sequenziali con prioritÃ  e scadenze suggerite.
 
-4. 💡 **Suggerimenti Intelligenti & Arricchimento Schede**:
+4. ðŸ’¡ **Suggerimenti Intelligenti & Arricchimento Schede**:
    - **Auto-Categorizzazione**: Riconoscimento automatico della categoria per task, eventi e note.
    - **Consigli Intrattenimento**: Raccomandazioni personalizzate su libri o film simili a quelli apprezzati nella sezione Media.
    - **Correlazioni Benessere (Mood & Habits)**: Analisi periodica che incrocia il bilancio dell'umore (*Mood Entries*) con le abitudini completate per evidenziare pattern positivi o fattori di stress.
 
-#### 📋 Fasi della Roadmap AI
+#### ðŸ“‹ Fasi della Roadmap AI
 - [ ] **Fase 1 - Ricerca & Benchmark**: Test prestazionali di modelli compatti su NAS QNAP (RAM/CPU/GPU) vs API Cloud.
 - [ ] **Fase 2 - Backend AI Domain**: Implementazione del modulo `backend/domains/ai/` con endpoint di parsing strutturato e gestione prompt.
 - [ ] **Fase 3 - Inserimento Vocale Rapido (UI Mobile & Desktop)**: Tasto microfono rapido con modale di conferma/preview dell'azione riconosciuta.
@@ -455,76 +459,76 @@ Studio di fattibilità, analisi delle architetture e prototipazione per integrar
 
 ---
 
-## 🔮 6. Progetti Futuri & Idee di Roadmap
+## ðŸ”® 6. Progetti Futuri & Idee di Roadmap
 
-### 📱 6.1 Mobile & Esperienza Utente
+### ðŸ“± 6.1 Mobile & Esperienza Utente
 - [ ] **Notifiche Push Native Android (FCM / Local Notifications)**: Avvisi automatici per scadenze di task, eventi di calendario, promemoria libri/serie e reminder quotidiani.
 - [ ] **Scansione Codici a Barre (Barcode Scanner)**: Utilizzo della fotocamera dello smartphone (Capacitor Camera/Barcode plugin) per aggiungere al volo prodotti alla lista spesa o libri tramite ISBN.
 - [ ] **Widget Android**: Widget per la schermata home dello smartphone per spuntare i task rapidi del giorno, la lista spesa e visualizzare il libro o film in corso.
-- [ ] **Modalità Offline / Sincronizzazione Differita**: Possibilità di consultare e modificare liste, task e note anche in assenza di rete, con sincronizzazione automatica al riaggancio del tunnel WireGuard/Tailscale.
+- [ ] **ModalitÃ  Offline / Sincronizzazione Differita**: PossibilitÃ  di consultare e modificare liste, task e note anche in assenza di rete, con sincronizzazione automatica al riaggancio del tunnel WireGuard/Tailscale.
 
-### 📅 6.2 Agenda, Task & Abitudini
+### ðŸ“… 6.2 Agenda, Task & Abitudini
 - [ ] **Visualizzazione Vista Gantt / Timeline** per progetti complessi con sotto-task gerarchici.
-- [ ] **Integrazione Meteo** nella vista Giorno (`DayPage`) basata su coordinate o città configurata.
+- [ ] **Integrazione Meteo** nella vista Giorno (`DayPage`) basata su coordinate o cittÃ  configurata.
 - [ ] **Report Settimanale / Mensile PDF**: Esportazione automatica di un riassunto con impegni completati, abitudini rispettate, statistiche media consumati e bilancio dell'umore (*Mood Entries*).
 
-### 🛒 6.3 Spesa & Dispensa
+### ðŸ›’ 6.3 Spesa & Dispensa
 - [ ] **Condivisione Liste in Tempo Reale**: Aggiornamento real-time tra dispositivi diversi appartenenti allo stesso gruppo spesa (es. WebSocket / SSE).
 - [ ] **Stima Totale Spesa Intelligente**: Calcolo del costo stimato del carrello prima della spesa basato sullo storico prezzi dei fornitori abituali.
 
-### 🎨 6.5 Rebranding & Nuove Funzionalità Spesa (Roadmap Immediata)
+### ðŸŽ¨ 6.5 Rebranding & Nuove FunzionalitÃ  Spesa (Roadmap Immediata)
 
 #### [HOME-001] Widget Homepage Rotante (Citazione del Giorno, Oroscopo & Previsioni Meteo)
 - **Descrizione**: Integrazione in Homepage di un widget rotante/ciclico che alterna la Citazione del giorno, l'Oroscopo quotidiano e le Previsioni Meteo. Cliccando sul box della citazione o del widget, viene aperta una modale / vista espansa che mostra contemporaneamente tutte e tre le informazioni (Citazione, Oroscopo e Meteo).
-- **Stato**: 🔴 Da Iniziare (Interfaccia Desktop & Mobile).
+- **Stato**: ðŸ”´ Da Iniziare (Interfaccia Desktop & Mobile).
 
 #### [SHOPPING-004] Ricerca & Visualizzazione Prezzi nel Modale Dettaglio Prodotto (per Brand)
 - **Descrizione**: Aggiunta della barra di ricerca e della griglia/lista di consultazione prezzi all'interno del modale di dettaglio di ciascun prodotto nell'archivio spesa, includendo il raggruppamento dei prodotti prezzati suddivisi per Brand/Marca.
-- **Stato**: 🔴 Da Iniziare (Interfaccia Desktop & Mobile).
+- **Stato**: ðŸ”´ Da Iniziare (Interfaccia Desktop & Mobile).
 
-#### [SEED-001] Pulizia Dati Seed Prodotti (Rimozione Marca e Quantità dal Nome)
-- **Descrizione**: Bonifica dei dati del DB iniziale (prodotti SEED): pulire i nomi dei prodotti rimuovendo l'indicazione della marca e della quantità dal titolo del prodotto (es. da "Biscotti Mulino Bianco 500g" a "Biscotti"), spostando marca e quantità nei rispettivi campi dedicati.
-- **Stato**: 🔴 Da Iniziare (Script di migrazione/seed backend).
+#### [SEED-001] Pulizia Dati Seed Prodotti (Rimozione Marca e QuantitÃ  dal Nome)
+- **Descrizione**: Bonifica dei dati del DB iniziale (prodotti SEED): pulire i nomi dei prodotti rimuovendo l'indicazione della marca e della quantitÃ  dal titolo del prodotto (es. da "Biscotti Mulino Bianco 500g" a "Biscotti"), spostando marca e quantitÃ  nei rispettivi campi dedicati.
+- **Stato**: ðŸ”´ Da Iniziare (Script di migrazione/seed backend).
 
 #### [SEED-002] Verifica e Risoluzione Prodotti Seed Mancanti nelle Liste
 - **Descrizione**: Indagine e fix del problema di visualizzazione per cui alcuni prodotti seed (prodotti di sistema iniziale) non vengono mostrati o risultano nascosti nelle liste e nello storico dell'applicazione.
-- **Stato**: 🔴 Da Iniziare (Analisi query repository e filtri frontend).
+- **Stato**: ðŸ”´ Da Iniziare (Analisi query repository e filtri frontend).
 
 #### [SHOPPING-005] Note e Recensioni Prodotti/Brand nel Catalogo
-- **Descrizione**: Aggiunta della possibilità di inserire note testuali o valutazioni (es. "Non mi piace, è troppo amaro") specifiche per i prodotti a catalogo e i brand associati, rendendole visibili durante l'inserimento nella lista della spesa.
+- **Descrizione**: Aggiunta della possibilitÃ  di inserire note testuali o valutazioni (es. "Non mi piace, Ã¨ troppo amaro") specifiche per i prodotti a catalogo e i brand associati, rendendole visibili durante l'inserimento nella lista della spesa.
 - **Possibili Approcci Architetturali**:
-  - **Via 1 (Soluzione Preferita - Tabella Dedicata)**: Creare una nuova tabella `ShoppingProductFeedback` (`user_id`, `product_id`, `rating`, `notes`) per permettere valutazioni personali separate per ogni utente del gruppo familiare e massima scalabilità.
+  - **Via 1 (Soluzione Preferita - Tabella Dedicata)**: Creare una nuova tabella `ShoppingProductFeedback` (`user_id`, `product_id`, `rating`, `notes`) per permettere valutazioni personali separate per ogni utente del gruppo familiare e massima scalabilitÃ .
   - **Via 2 (Soluzione Alternativa - Campo Singolo)**: Aggiungere un semplice campo `rating_notes` direttamente nel modello `ShoppingProduct`, nel caso si preferisca una singola "nota globale" visibile e modificabile da tutta la famiglia.
-- **Stato**: 🔴 Da Iniziare (Nuovo modello o colonna DB, Alembic e UI Frontend).
+- **Stato**: ðŸ”´ Da Iniziare (Nuovo modello o colonna DB, Alembic e UI Frontend).
 
 ---
 
-## 📝 7. Guida & Template per Nuovi Inserimenti
+## ðŸ“ 7. Guida & Template per Nuovi Inserimenti
 
-Quando viene completata una nuova funzionalità nel backend o sorge una nuova idea futura, copia e compila il template sottostante:
+Quando viene completata una nuova funzionalitÃ  nel backend o sorge una nuova idea futura, copia e compila il template sottostante:
 
 ```markdown
-### [FEAT-XXX] Nome Funzionalità
+### [FEAT-XXX] Nome FunzionalitÃ 
 
-#### 📝 Descrizione
-Breve spiegazione di cosa fa la funzionalità dal punto di vista utente.
+#### ðŸ“ Descrizione
+Breve spiegazione di cosa fa la funzionalitÃ  dal punto di vista utente.
 
-#### ⚙️ Dettagli Implementazione Backend
+#### âš™ï¸ Dettagli Implementazione Backend
 - **Dominio**: `backend/domains/...`
 - **Tabelle / Migrazioni**: `...`
 - **Modelli & Schemas**: `...`
 - **Endpoint HTTP**: `POST/GET/PATCH ...`
 - **Regole di Business**: Descrizione di permessi, vincoli o validazioni speciali.
 
-#### 💻 Stato Frontend Esistente
-- Tipi o API client già predisposti.
+#### ðŸ’» Stato Frontend Esistente
+- Tipi o API client giÃ  predisposti.
 
-#### 🎨 Cosa Manca da Implementare nel Frontend
+#### ðŸŽ¨ Cosa Manca da Implementare nel Frontend
 - [ ] Vista Desktop (`frontend/src/views/...` o `components/...`)
 - [ ] Vista Mobile (`frontend/src/mobile/...`)
 - [ ] Stato / Hook / Chiamate API
 
-#### 📡 Esempio Chiamata API
+#### ðŸ“¡ Esempio Chiamata API
 ```json
 {
   "campo": "valore"
@@ -535,3 +539,15 @@ Breve spiegazione di cosa fa la funzionalità dal punto di vista utente.
 -   [ x ]   * * A g g i o r n a m e n t o   O t t i m i s t i c o   &   B u g   F i x e s   ( S e t t e m b r e   2 0 2 6 ) * * :   R i s o l t o   c r a s h   ( E r r o r e   5 0 0 )   p e r   l e   s e r i e   o r f a n e ,   c o r r e t t o   l o o p   d e l   s y n c   e n g i n e   s u   e r r o r i   4 0 0   e   a g g i u n t a   l ' i n t e r f a c c i a   o t t i m i s t i c a   ( O p t i m i s t i c   U I )   p e r   l e   S e r i e   T V . 
  
  
+
+### FEAT-013: Archivio Notifiche / Sezione Storico Notifiche
+- **Obiettivo**: Creare una sezione dedicata (es. in Archivio o in una pagina apposita) per visualizzare lo storico completo di tutte le notifiche di sistema, inviti e alert, dato che ora le notifiche sono permanenti di default.
+- **UI/UX**: Lista paginata o a scorrimento infinito, filtri per tipologia di notifica (Social, Spesa, Sistema), e raggruppamento per data (Oggi, Ieri, Questa Settimana).
+
+### FEAT-014: Notifiche per Nuove Liste nei Gruppi
+- **Obiettivo**: Ricevere una notifica quando un membro di un gruppo di cui si fa parte crea una nuova lista (es. Media List).
+- **UI/UX**: Alert standard nella barra notifiche con testo "L'utente X ha creato la lista Y nel gruppo Z".
+
+### FEAT-015: Gestione Saghe di Film
+- **Obiettivo**: Raggruppare film appartenenti alla stessa saga o collection (es. MCU, Star Wars, Harry Potter).
+- **UI/UX**: Viste raggruppate per "Saga" nel catalogo Media, possibilit� di tracciare l'intera collection.

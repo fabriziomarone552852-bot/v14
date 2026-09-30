@@ -25,19 +25,48 @@ export const CHANGELOG_HISTORY: ChangelogItem[] = [
       'Nuova Sezione Serie TV: Gestione completa con sincronizzazione TMDB e nuovo layout a comparsa morbida.',
       'Pattern "Diario" per il tracking degli episodi: supporta visioni multiple (rewatch) e storico completo.',
       'Nuova UI Recensioni e Citazioni: riepilogo voti integrato e gestione citazioni per ogni episodio.',
+      'Nuova Inbox Notifiche integrata per messaggi effimeri, richieste amicizia e interazioni sociali.'
     ],
     features: [
+
+        'Integrazione Completa Backend per Recensioni e Commenti: Salvataggio e recupero dati reali per valutazioni serie ed episodi.',
+        'Deep-Linking Notifiche: Le notifiche dei commenti ora aprono direttamente il modale corretto della serie in background.','Architettura Liste Multimediali: Creato il database e il backend per raggruppare film, serie e libri in liste personalizzate trasversali.',
+      'Modale Gestione Liste: Nuova interfaccia Master-Detail integrata nelle serie tv per creare, modificare e gestire liste (Privacy e contenuti).',
       'Modale di dettaglio Serie TV edge-to-edge con pulsanti overlay e status badge colorato.',
+      'Badge Liste Intelligenti: Modale Serie TV con layout dinamico in base allo spazio, per mostrare i badge delle liste o raggrupparli se lo spazio è poco.',
       'Privacy granulare per le recensioni (visibili solo agli amici o pubbliche).',
       'Nuovo layout "Prossime Uscite" dinamico nella sidebar, con fallback per le locandine mancanti.',
+      'Commenti alle Recensioni (UI): Layout in stile thread/chat per rispondere alle recensioni degli amici.',
+      'Messaggi Effimeri (UI): Invia messaggi a scomparsa direttamente dalla lista amici nella nuova Inbox.',
+      'Integrazione Inviti Gruppi Spesa: Ricevi notifiche nell\'Inbox con navigazione diretta e apertura automatica del modale del gruppo.'
     ],
     improvements: [
+      'Aggiunto calcolo automatico e sincronizzazione dello stato (In lista / In visione / Completata) per le Serie TV in base agli episodi visti.',
+      'Ottimizzato il layout degli avatar degli amici nel modale della serie, ora posizionati in una riga dedicata sopra le liste.',
+      'Notifiche Permanenti e Ordine Cronologico: Tutte le notifiche di sistema (inviti, alert) restano nello storico ordinate dalla più recente.',
+      'Interfaccia Gestione Liste allineata al design system dell\'app (stessi shadow, font e formati del pannello Task).',
       'Migliorato il calcolo delle medie voti per le stagioni e livellato il comportamento del tasto "+1".',
       'Nuovo pannello laterale per vedere gli amici che stanno guardando la stessa serie.',
       'Miglioramenti estetici: scrollbar a gradiente morbido, valutazioni a stelle e UI ottimizzata per le unità di misura.',
+      'UI Commenti: Indicatori minimalisti inline nelle card per non sprecare spazio verticale.',
+      'Migliorato il sistema di recensioni: conversione accurata in stelle 1-5, e inserite azioni rapide di Modifica/Elimina direttamente in testa alla finestra di lettura.',
+      'Segnalatore visivo (pallino rosso) costante sul bottone delle citazioni per le puntate che ne contengono gi.',
+      'Tasto Notifiche Inbox: Ora l\'intero pulsante pulsa in rosso quando ci sono messaggi non letti.'
     ],
     fixes: [
+      'Aggiunto avatar di default (default_avatar.png) per gli amici senza immagine profilo.',
+      'Risolto definitivamente il problema di visualizzazione degli episodi anche per le serie in anteprima, rimosso blocco in SeasonsTab e migliorato il fetch con fallback in SeriesDetailModal.',
+      'Risolta la sparizione delle citazioni e dei rating durante il ricaricamento degli episodi, integrandole nella query DB globale.',
+      'Fixato il calcolo del rating medio delle stagioni (ora scalato correttamente a 5 stelle).',
+      'Aggiunta data di pubblicazione dell\'episodio in alto nella vista dettaglio.',
+      'Aggiunto fallback per le immagini degli episodi mancanti: ora usa il backdrop o il poster della serie principale anziché un placeholder grigio.',
+      'Fix UI Trama Serie: Inserita scrollbar per la trama principale così da evitare che testi troppo lunghi spingano la sezione Cast fuori dallo schermo.',
+      'Implementata la chiamata API per recuperare e mostrare cast e serie consigliate dal database TMDB nel dettaglio della serie',
+
+        'Rimozione Dati Mock: Eliminati i dati temporanei da TVSeriesPage, SerieDetailModal, EpisodeDetailView per riflettere le informazioni del database.',
+        'Ottimizzazione Empty States: Aggiornata l\'interfaccia di TVSeriesPage e SeriesReviewTab per gestire gracefully le liste vuote e le citazioni mancanti.','Risolto errore di backend 500 durante l\'invio di inviti a Gruppi Spesa a causa di un repository non trovato.',
       'Risolti vari crash backend legati alla ricerca TMDB e al caricamento serie orfane.',
+      'Fix crash critico al login silenzioso causato da rotte proxy Vite mancanti (API social & interactions).',
       'Corretto il loop di sincronizzazione offline in caso di errori 4xx.',
       'Risolto problema di caricamento del dominio media su GitHub.',
     ],
@@ -490,6 +519,7 @@ export const CHANGELOG_HISTORY: ChangelogItem[] = [
 export const APP_VERSION: string = CHANGELOG_HISTORY[0].version;
 export const APP_VERSION_NAME: string = `v${APP_VERSION}`;
 export const APP_LAST_UPDATE: string = CHANGELOG_HISTORY[0].date;
+
 
 
 

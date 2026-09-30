@@ -1,77 +1,101 @@
-"""Service del dominio Notifications — logica di business e marcatura notifiche."""
+"""Service del dominio Interactions — logica di business e messaggistica."""
 from __future__ import annotations
 
 from datetime import datetime, timezone
-from typing import List, Optional
+from typing import List
 
 from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
 
 from backend.domains.notifications import repository as repo
 from backend.domains.notifications import schemas
-from backend.domains.notifications.models import Notification
+from backend.domains.notifications.models import Interaction
 from backend.domains.users.models import User
 
-_NOT_FOUND = "Notifica non trovata."
+_NOT_FOUND = "Elemento non trovato."
+
+# Configurabile da superuser, per ora cablato. Se 0, cancella istantaneamente alla lettura.
+EPHEMERAL_TTL_HOURS = 0
 
 
-def list_notifications(
+def list_interactions(
     db: Session,
     current_user: User,
     unread_only: bool = False,
     limit: int = 50,
-) -> List[Notification]:
+) -> List[Interaction]:
     return repo.list_for_user(db, current_user.id, unread_only=unread_only, limit=limit)
 
 
-def create_notification(
+def create_interaction(
     db: Session,
     current_user: User,
-    payload: schemas.NotificationCreate,
-) -> Notification:
+    payload: schemas.InteractionCreate,
+) -> Interaction:
     now_utc = datetime.now(timezone.utc)
-    notification = Notification(
-        user_id=current_user.id,
-        notification_type_id=payload.notification_type_id,
-        title=payload.title,
-        message=payload.message,
+    interaction = Interaction(
+        interaction_type=payload.interaction_type,
+        author_id=current_user.id,
+        recipient_id=payload.recipient_id,
+        reference_id=payload.reference_id,
+        content=payload.content,
         created_at=now_utc,
-        updated_at=now_utc,
         read_at=None,
-        deleted_at=None,
     )
-    return repo.add(db, notification)
+    return repo.add(db, interaction)
 
 
-def mark_as_read(
+def read_interaction(
     db: Session,
     current_user: User,
-    notification_id: int,
-) -> Notification:
-    notification = repo.get_owned(db, notification_id, current_user.id)
-    if not notification:
+    interaction_id: int,
+) -> Interaction:
+    """Legge un'interazione, impostando read_at e applicando la logica di autodistruzione."""
+    interaction = repo.get_owned(db, interaction_id, current_user.id)
+    if not interaction:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=_NOT_FOUND)
 
-    if notification.read_at is None:
-        notification.read_at = datetime.now(timezone.utc)
-        notification = repo.save(db, notification)
+    # Se non era mai stato letto, marca ora
+    if interaction.read_at is None:
+        interaction.read_at = datetime.now(timezone.utc)
+        
+        # Logica "Burn After Reading"
+        if interaction.interaction_type == "EPHEMERAL_MSG":
+            if EPHEMERAL_TTL_HOURS == 0:
+                # Facciamo una copia in memoria per restituirla al frontend
+                content = interaction.content
+                interaction_type = interaction.interaction_type
+                created_at = interaction.created_at
+                
+                # Distruzione immediata nel DB
+                repo.delete(db, interaction)
+                
+                # Restituiamo un oggetto fake o ricostruito per l'ultima visione
+                return Interaction(
+                    id=interaction_id,
+                    interaction_type=interaction_type,
+                    author_id=interaction.author_id,
+                    recipient_id=current_user.id,
+                    content=content,
+                    created_at=created_at,
+                    read_at=interaction.read_at
+                )
+            else:
+                # Se c'è un TTL > 0, si salva e ci penserà un job cron a cancellarlo
+                interaction = repo.save(db, interaction)
+        else:
+            # Commenti o altro: salva solo il read_at
+            interaction = repo.save(db, interaction)
 
-    return notification
+    return interaction
 
 
-def mark_all_as_read(
+def delete_interaction(
     db: Session,
     current_user: User,
-) -> int:
-    return repo.mark_all_as_read(db, current_user.id)
-
-
-def delete_notification(
-    db: Session,
-    current_user: User,
-    notification_id: int,
+    interaction_id: int,
 ) -> None:
-    notification = repo.get_owned(db, notification_id, current_user.id)
-    if not notification:
+    interaction = repo.get_owned(db, interaction_id, current_user.id)
+    if not interaction:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=_NOT_FOUND)
-    repo.delete(db, notification)
+    repo.delete(db, interaction)

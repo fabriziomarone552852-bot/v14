@@ -1,10 +1,20 @@
+// src/types/notifications.ts
+// Unified Interaction types (Messages, Comments, Notifications)
+
 export interface NotificationResponse {
   id: number;
-  user_id: number;
-  type: string;
-  title: string;
-  message: string;
-  is_read: boolean;
-  action_url?: string;
+  interaction_type: string; // e.g., 'EPHEMERAL_MSG', 'COMMENT', 'FRIEND_REQUEST', 'SYSTEM_ALERT'
+  author_id: number | null;
+  recipient_id: number | null;
+  reference_id: number | null;
+  content: string;
   created_at: string;
+  read_at: string | null;
+}
+
+export interface NotificationCreate {
+  interaction_type: string;
+  recipient_id?: number | null;
+  reference_id?: number | null;
+  content: string;
 }

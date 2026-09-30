@@ -1,16 +1,21 @@
 import React, { useState } from 'react';
-import type { TMDBSeries, UserSeriesTracking, TMDBEpisode, UserEpisodeLog } from '@/types/trackers';
+import type { TMDBSeries, UserSeriesTracking, TMDBEpisode } from '@/types/trackers';
 import { EpisodeDetailView } from './EpisodeDetailView';
+import { StarRating } from './StarRating';
+import { useTrackersMutations } from '@/hooks/mutations/useTrackersMutations';
 
 interface SeasonsTabProps {
   tmdbSeries: TMDBSeries;
   userTracking: UserSeriesTracking | null;
   initialEpisode?: TMDBEpisode | null;
+  isLoading?: boolean;
 }
 
-export const SeasonsTab: React.FC<SeasonsTabProps> = ({ tmdbSeries, initialEpisode }) => {
+export const SeasonsTab: React.FC<SeasonsTabProps> = ({ tmdbSeries, initialEpisode, isLoading, userTracking }) => {
   const [selectedEpisode, setSelectedEpisode] = useState<TMDBEpisode | null>(initialEpisode || null);
   const [expandedSeason, setExpandedSeason] = useState<number | null>(initialEpisode ? initialEpisode.season_number : null);
+
+  const { toggleEpisodeWatched } = useTrackersMutations();
 
   React.useEffect(() => {
     if (initialEpisode) {
@@ -19,91 +24,63 @@ export const SeasonsTab: React.FC<SeasonsTabProps> = ({ tmdbSeries, initialEpiso
     }
   }, [initialEpisode]);
 
-  // MOCK LOGIC - Nella realtà userTracking.user_episode_logs conterrà i dati
-  // Creiamo una mappa mock episode_id -> log count
-  const [mockWatchCounts, setMockWatchCounts] = useState<Record<number, number>>({});
+  const requireTracking = (e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    if (!userTracking) {
+      alert("Aggiungi prima la serie alla tua libreria.");
+      return false;
+    }
+    return true;
+  };
 
   const handleWatchCountChange = (e: React.MouseEvent, episodeId: number, delta: number) => {
-    e.stopPropagation();
-    setMockWatchCounts(prev => {
-      const current = prev[episodeId] || 0;
-      const next = Math.max(0, current + delta);
-      return { ...prev, [episodeId]: next };
-    });
+    if (!requireTracking(e)) return;
+    if (delta > 0) {
+      toggleEpisodeWatched({ episode_id: episodeId, watched: true });
+    } else if (delta < 0) {
+      toggleEpisodeWatched({ episode_id: episodeId, watched: false });
+    }
   };
 
-  const handleToggleEpisode = (e: React.MouseEvent, episodeId: number) => {
-    e.stopPropagation();
-    setMockWatchCounts(prev => {
-      const current = prev[episodeId] || 0;
-      return { ...prev, [episodeId]: current > 0 ? 0 : 1 }; // Toggle between 0 and 1
-    });
+  const handleToggleEpisode = (e: React.MouseEvent, episodeId: number, currentWatchCount: number) => {
+    if (!requireTracking(e)) return;
+    if (currentWatchCount > 0) {
+      toggleEpisodeWatched({ episode_id: episodeId, watched: false });
+    } else {
+      toggleEpisodeWatched({ episode_id: episodeId, watched: true });
+    }
   };
 
-  const handleSeasonToggle = (e: React.MouseEvent, _seasonNumber: number, episodes: TMDBEpisode[]) => {
-    e.stopPropagation();
-    let minCount = Infinity;
-    episodes.forEach(ep => {
-      const count = mockWatchCounts[ep.id] || 0;
-      if (count < minCount) minCount = count;
-    });
-    if (episodes.length === 0) minCount = 0;
-
-    const isChecked = minCount > 0;
+  const handleSeasonToggle = (e: React.MouseEvent, _seasonNumber: number, episodes: TMDBEpisode[], seasonMinWatchCount: number) => {
+    if (!requireTracking(e)) return;
+    const isChecked = seasonMinWatchCount > 0;
     
-    setMockWatchCounts(prev => {
-      const next = { ...prev };
-      episodes.forEach(ep => {
-        if (isChecked) {
-          next[ep.id] = 0; // Uncheck all if the season was fully watched
-        } else {
-          // If the season was not fully watched, bring all episodes to at least 1 (or minCount + 1)
-          const current = next[ep.id] || 0;
-          if (current <= minCount) {
-             next[ep.id] = minCount + 1;
-          }
-        }
-      });
-      return next;
-    });
+    for (const ep of episodes) {
+      const current = ep.watch_count || 0;
+      if (isChecked) {
+         toggleEpisodeWatched({ episode_id: ep.id, watched: false });
+      } else {
+         if (current <= seasonMinWatchCount) {
+             toggleEpisodeWatched({ episode_id: ep.id, watched: true });
+         }
+      }
+    }
   };
 
-  const changeAllEpisodes = (episodes: TMDBEpisode[], delta: number) => {
-    let targetCount = Infinity;
-    episodes.forEach(ep => {
-      const c = mockWatchCounts[ep.id] || 0;
-      if (c < targetCount) targetCount = c;
-    });
-    if (episodes.length === 0) targetCount = 0;
-
-    // Se delta < 0, potremmo voler diminuire quelli che sono a targetCount, o targetCount stesso.
-    // In realtà se min è 2, e togliamo, vogliamo che i 2 diventino 1.
-    // Se delta > 0, vogliamo che i min (es. 2) diventino 3.
-    setMockWatchCounts(prev => {
-      const next = { ...prev };
-      episodes.forEach(ep => {
-        const current = next[ep.id] || 0;
-        if (current === targetCount) {
-          next[ep.id] = Math.max(0, current + delta);
+  const changeAllEpisodes = (episodes: TMDBEpisode[], delta: number, targetCount: number) => {
+    if (!requireTracking()) return;
+    for (const ep of episodes) {
+      const current = ep.watch_count || 0;
+      if (current === targetCount) {
+        if (delta > 0) {
+          toggleEpisodeWatched({ episode_id: ep.id, watched: true });
+        } else if (delta < 0) {
+          toggleEpisodeWatched({ episode_id: ep.id, watched: false });
         }
-      });
-      return next;
-    });
+      }
+    }
   };
 
-  // Mappa mock per i voti delle recensioni (epId -> array di voti). 
-  // Inseriamo alcuni dati di test solo per la prima stagione (S1E1=101, S1E2=102...) per testare la media
-  const [mockEpisodeRatings] = useState<Record<number, number[]>>({
-    101: [4.18],       // S1E1: 4.18
-    102: [3.66],       // S1E2: 3.66
-    103: [3.5, 4.5],   // S1E3: vista 2 volte, voti 3.5 e 4.5 (media = 4)
-    104: [2.43]        // S1E4: 2.43
-  });
-
-  // Funzione di arrotondamento specifica:
-  // < 0.25 -> .0
-  // tra 0.25 e 0.75 -> .5
-  // > 0.75 -> +1.0
   const roundRating = (val: number): number => {
     const intPart = Math.floor(val);
     const frac = val - intPart;
@@ -113,26 +90,15 @@ export const SeasonsTab: React.FC<SeasonsTabProps> = ({ tmdbSeries, initialEpiso
   };
 
   if (selectedEpisode) {
-    // Render Episode Detail View
-    const count = mockWatchCounts[selectedEpisode.id] || 0;
-    const epRatings = mockEpisodeRatings[selectedEpisode.id] || [];
-    const mockLogs: UserEpisodeLog[] = Array.from({ length: count }).map((_, i) => ({
-      id: i,
-      user_id: 1,
-      episode_id: selectedEpisode.id,
-      tmdb_id: selectedEpisode.id,
-      season_number: selectedEpisode.season_number,
-      episode_number: selectedEpisode.episode_number,
-      review_visibility: 'friends_only',
-      rating: epRatings[i] || undefined,
-      notes: epRatings[i] ? `Recensione mock per test con voto ${epRatings[i]}` : undefined,
-      watched_at: new Date().toISOString()
-    }));
+    // Find latest episode data from tmdbSeries.episodes
+    const latestEpisodeData = tmdbSeries.episodes?.find(ep => ep.id === selectedEpisode.id) || selectedEpisode;
+    const logs = latestEpisodeData.logs || [];
 
     return (
       <EpisodeDetailView 
-        episode={selectedEpisode} 
-        logs={mockLogs} 
+        episode={latestEpisodeData} 
+        tmdbSeries={tmdbSeries}
+        logs={logs} 
         onBack={() => setSelectedEpisode(null)} 
       />
     );
@@ -142,21 +108,34 @@ export const SeasonsTab: React.FC<SeasonsTabProps> = ({ tmdbSeries, initialEpiso
   const seasonsMap: Record<number, TMDBEpisode[]> = {};
   const episodes = tmdbSeries.episodes || [];
   
-  // MOCK fallback per UI testing
-  if (episodes.length === 0) {
-    for(let s=1; s<=3; s++) {
-      seasonsMap[s] = [];
-      for(let e=1; e<=8; e++) {
-        seasonsMap[s].push({
-          id: s*100+e,
-          series_tmdb_id: tmdbSeries.tmdb_id,
-          season_number: s,
-          episode_number: e,
-          title: `Episodio ${e}`,
-        });
+  
+    if (episodes.length === 0) {
+      if (isLoading) {
+        return (
+          <div className="flex flex-col items-center justify-center h-full text-center p-8 animate-pulse">
+            <div className="w-12 h-12 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin mb-4"></div>
+            <h3 className="text-lg font-bold text-gray-800 mb-2">Caricamento episodi...</h3>
+            <p className="text-gray-500 text-sm max-w-sm">
+              Sincronizzazione con il database in corso, attendere.
+            </p>
+          </div>
+        );
       }
-    }
-  } else {
+      return (
+        <div className="flex flex-col items-center justify-center h-full text-center p-8">
+          <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4 text-gray-400">
+            <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+            </svg>
+          </div>
+          <h3 className="text-lg font-bold text-gray-800 mb-2">Nessun episodio disponibile</h3>
+          <p className="text-gray-500 text-sm max-w-sm">
+            Gli episodi di questa serie non sono ancora stati rilasciati o non sono presenti nel database.
+          </p>
+        </div>
+      );
+    } else {
+
     episodes.forEach(ep => {
       if (!seasonsMap[ep.season_number]) seasonsMap[ep.season_number] = [];
       seasonsMap[ep.season_number].push(ep);
@@ -226,12 +205,12 @@ export const SeasonsTab: React.FC<SeasonsTabProps> = ({ tmdbSeries, initialEpiso
         
         // Stats for season
         const total = seasonEpisodes.length;
-        const watched = seasonEpisodes.filter(ep => (mockWatchCounts[ep.id] || 0) > 0).length;
+        const watched = seasonEpisodes.filter(ep => (ep.watch_count || 0) > 0).length;
         
         let seasonMinWatchCount = Infinity;
         if (total > 0) {
           seasonEpisodes.forEach(ep => {
-            const count = mockWatchCounts[ep.id] || 0;
+            const count = ep.watch_count || 0;
             if (count < seasonMinWatchCount) seasonMinWatchCount = count;
           });
         } else {
@@ -243,10 +222,9 @@ export const SeasonsTab: React.FC<SeasonsTabProps> = ({ tmdbSeries, initialEpiso
         let ratedEpisodesCount = 0;
 
         seasonEpisodes.forEach(ep => {
-          const epRatings = mockEpisodeRatings[ep.id];
-          if (epRatings && epRatings.length > 0) {
-            // Media dei voti del singolo episodio (in caso di rewatch e più recensioni)
-            const epAverage = epRatings.reduce((sum, r) => sum + r, 0) / epRatings.length;
+          const ratedLogs = (ep.logs || []).filter((l: any) => l.rating !== null && l.rating !== undefined);
+          if (ratedLogs.length > 0) {
+            const epAverage = ratedLogs.reduce((sum: number, r: any) => sum + r.rating, 0) / ratedLogs.length;
             totalSeasonRating += epAverage;
             ratedEpisodesCount++;
           }
@@ -254,7 +232,7 @@ export const SeasonsTab: React.FC<SeasonsTabProps> = ({ tmdbSeries, initialEpiso
 
         let averageRating: string | null = null;
         if (ratedEpisodesCount > 0) {
-          const rawAverage = totalSeasonRating / ratedEpisodesCount;
+          const rawAverage = (totalSeasonRating / ratedEpisodesCount) / 2;
           averageRating = roundRating(rawAverage).toString();
         }
 
@@ -269,9 +247,9 @@ export const SeasonsTab: React.FC<SeasonsTabProps> = ({ tmdbSeries, initialEpiso
               <div className="flex items-center gap-2">
                 <RewatchControls 
                   count={seasonMinWatchCount} 
-                  onToggle={(e) => handleSeasonToggle(e, seasonNumber, seasonEpisodes)}
-                  onAdd={(e) => { e.stopPropagation(); changeAllEpisodes(seasonEpisodes, 1); }}
-                  onSub={(e) => { e.stopPropagation(); changeAllEpisodes(seasonEpisodes, -1); }}
+                  onToggle={(e) => handleSeasonToggle(e, seasonNumber, seasonEpisodes, seasonMinWatchCount)}
+                  onAdd={(e) => { e.stopPropagation(); changeAllEpisodes(seasonEpisodes, 1, seasonMinWatchCount); }}
+                  onSub={(e) => { e.stopPropagation(); changeAllEpisodes(seasonEpisodes, -1, seasonMinWatchCount); }}
                 />
                 
                 <h3 className="font-bold text-gray-900 text-lg">Stagione {seasonNumber}</h3>
@@ -282,9 +260,8 @@ export const SeasonsTab: React.FC<SeasonsTabProps> = ({ tmdbSeries, initialEpiso
               
               <div className="flex items-center gap-4">
                 {averageRating && (
-                  <div className="flex items-center gap-1 text-yellow-500" title={`Media basata su ${ratedEpisodesCount} episodi valutati`}>
-                    <span className="font-bold text-sm">{averageRating}</span>
-                    <svg className="w-4 h-4 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" /></svg>
+                  <div title={`Media basata su ${ratedEpisodesCount} episodi valutati`}>
+                    <StarRating value={parseFloat(averageRating)} hideNumber={true} readonly iconClassName="w-4 h-4" />
                   </div>
                 )}
                 <svg className={`w-5 h-5 text-gray-400 transition-transform ${isExpanded ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -297,7 +274,7 @@ export const SeasonsTab: React.FC<SeasonsTabProps> = ({ tmdbSeries, initialEpiso
             {isExpanded && (
               <div className="border-t border-gray-100 bg-gray-50/50">
                 {seasonEpisodes.map(ep => {
-                  const watchCount = mockWatchCounts[ep.id] || 0;
+                  const watchCount = ep.watch_count || 0;
 
                   return (
                     <div 
@@ -309,7 +286,7 @@ export const SeasonsTab: React.FC<SeasonsTabProps> = ({ tmdbSeries, initialEpiso
                         
                         <RewatchControls 
                           count={watchCount} 
-                          onToggle={(e) => handleToggleEpisode(e, ep.id)}
+                          onToggle={(e) => handleToggleEpisode(e, ep.id, watchCount)}
                           onAdd={(e) => handleWatchCountChange(e, ep.id, 1)}
                           onSub={(e) => handleWatchCountChange(e, ep.id, -1)}
                         />

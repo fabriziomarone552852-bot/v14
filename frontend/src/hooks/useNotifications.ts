@@ -6,37 +6,42 @@ export const useNotifications = () => {
   const queryClient = useQueryClient();
 
   const { data: unreadNotifications = [] as NotificationResponse[], isLoading: isLoadingUnread } = useQuery<NotificationResponse[]>({
-    queryKey: ['notifications', 'unread'],
-    queryFn: async () => (await api.get<NotificationResponse[]>('/notifications?unread_only=true')) || [],
+    queryKey: ['interactions', 'unread'],
+    queryFn: async () => (await api.get<NotificationResponse[]>('/interactions?unread_only=true')) || [],
   });
 
   const { data: allNotifications = [] as NotificationResponse[], isLoading: isLoadingAll } = useQuery<NotificationResponse[]>({
-    queryKey: ['notifications', 'all'],
-    queryFn: async () => (await api.get<NotificationResponse[]>('/notifications')) || [],
+    queryKey: ['interactions', 'all'],
+    queryFn: async () => (await api.get<NotificationResponse[]>('/interactions')) || [],
   });
 
-  const markAsRead = useMutation<NotificationResponse, Error, number>({
-    mutationFn: async (notificationId: number) => { 
-      const res = await api.patch<NotificationResponse>(`/notifications/${notificationId}/read`, {});
+  // Read a single interaction (will trigger burn-after-reading for ephemeral messages)
+  const readInteraction = useMutation<NotificationResponse, Error, number>({
+    mutationFn: async (interactionId: number) => { 
+      const res = await api.get<NotificationResponse>(`/interactions/${interactionId}`);
       if (!res) throw new Error('No response');
       return res;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['notifications'] });
-    },
-  });
-
-  const markAllAsRead = useMutation<void, Error, void>({
-    mutationFn: async () => { await api.post('/notifications/read-all'); },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['notifications'] });
+      queryClient.invalidateQueries({ queryKey: ['interactions'] });
     },
   });
 
   const deleteNotification = useMutation<void, Error, number>({
-    mutationFn: async (notificationId: number) => { await api.delete(`/notifications/${notificationId}`); },
+    mutationFn: async (interactionId: number) => { await api.delete(`/interactions/${interactionId}`); },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['notifications'] });
+      queryClient.invalidateQueries({ queryKey: ['interactions'] });
+    },
+  });
+
+  const createInteraction = useMutation<NotificationResponse, Error, { interaction_type: string; recipient_id?: number; content: string; reference_id?: number }>({
+    mutationFn: async (payload) => {
+      const res = await api.post<NotificationResponse>('/interactions', payload);
+      if (!res) throw new Error('No response');
+      return res;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['interactions'] });
     },
   });
 
@@ -45,8 +50,8 @@ export const useNotifications = () => {
     isLoadingUnread,
     allNotifications,
     isLoadingAll,
-    markAsRead,
-    markAllAsRead,
+    readInteraction,
     deleteNotification,
+    createInteraction,
   };
 };

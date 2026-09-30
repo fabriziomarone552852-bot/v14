@@ -10,7 +10,53 @@ from sqlalchemy.orm import Session
 
 from backend.core.settings import get_settings
 from backend.domains.trackers import repository
+
+def _sync_series_status(db: Session, user_id: int, tmdb_series_id: int):
+    from backend.domains.trackers.models import TMDBEpisode, UserEpisodeLog, UserSeriesTracking, TMDBSeries
+    import sqlalchemy
+    
+    tracking = db.execute(
+        sqlalchemy.select(UserSeriesTracking)
+        .where(UserSeriesTracking.user_id == user_id, UserSeriesTracking.series_tmdb_id == tmdb_series_id)
+    ).scalar_one_or_none()
+    
+    if not tracking:
+        return
+        
+    if tracking.status == "dropped":
+        return
+
+    total_eps_stmt = sqlalchemy.select(sqlalchemy.func.count(TMDBEpisode.id)).where(TMDBEpisode.series_tmdb_id == tmdb_series_id)
+    total_eps = db.execute(total_eps_stmt).scalar() or 0
+
+    watched_eps_stmt = sqlalchemy.select(sqlalchemy.func.count(sqlalchemy.func.distinct(UserEpisodeLog.episode_id)))        .join(TMDBEpisode, TMDBEpisode.id == UserEpisodeLog.episode_id)        .where(UserEpisodeLog.user_id == user_id, TMDBEpisode.series_tmdb_id == tmdb_series_id)
+    watched_eps = db.execute(watched_eps_stmt).scalar() or 0
+
+    if watched_eps == 0:
+        tracking.status = "to_watch"
+    elif watched_eps < total_eps:
+        tracking.status = "watching"
+    elif total_eps > 0 and watched_eps >= total_eps:
+        tracking.status = "watched"
+        
+    db.commit()
+
 from backend.domains.trackers.models import TMDBSeries, TMDBEpisode, UserSeriesTracking
+
+def is_missing_overview(overview: str | None) -> bool:
+    if not overview:
+        return True
+    lower_ov = overview.lower()
+    missing_phrases = [
+        "nessuna trama",
+        "nessuna traduzione",
+        "non abbiamo",
+        "we don't have",
+        "non ci sono",
+        "nessun riassunto"
+    ]
+    return any(phrase in lower_ov for phrase in missing_phrases)
+
 from backend.domains.trackers.schemas import (
     TMDBPaginatedSearch,
     TMDBSeriesSearchResult,
@@ -36,6 +82,53 @@ def get_tmdb_headers() -> dict:
     }
 
 
+
+async def get_tmdb_series_extras(tmdb_id: int) -> dict:
+    url = f"{TMDB_BASE_URL}/tv/{tmdb_id}"
+    params = {
+        "language": "it-IT",
+        "append_to_response": "credits,recommendations"
+    }
+
+    async with httpx.AsyncClient(timeout=15.0) as client:
+        response = await client.get(url, headers=get_tmdb_headers(), params=params)
+
+    if response.status_code == 404:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Serie non trovata su TMDB")
+    elif response.status_code != 200:
+        raise HTTPException(status_code=status.HTTP_502_BAD_GATEWAY, detail="Errore TMDB")
+
+    data = response.json()
+    
+    # Estrai il cast principale (primi 10 attori)
+    cast_data = data.get("credits", {}).get("cast", [])
+    cast = [
+        {
+            "id": c.get("id"),
+            "name": c.get("name"),
+            "character": c.get("character"),
+            "profile_path": c.get("profile_path")
+        } for c in cast_data[:10]
+    ]
+    
+    # Estrai le raccomandazioni (prime 10)
+    recs_data = data.get("recommendations", {}).get("results", [])
+    recommendations = [
+        {
+            "id": r.get("id"),
+            "name": r.get("name"),
+            "title": r.get("name"),
+            "tmdb_id": r.get("id"),
+            "backdrop_path": r.get("backdrop_path"),
+            "poster_path": r.get("poster_path")
+        } for r in recs_data[:10]
+    ]
+
+    return {
+        "cast": cast,
+        "recommendations": recommendations
+    }
+
 async def search_tmdb_series(query: str, page: int = 1) -> TMDBPaginatedSearch:
     if not query.strip():
         return TMDBPaginatedSearch(page=1, results=[], total_pages=0, total_results=0)
@@ -48,7 +141,7 @@ async def search_tmdb_series(query: str, page: int = 1) -> TMDBPaginatedSearch:
         "page": str(page),
     }
 
-    async with httpx.AsyncClient() as client:
+    async with httpx.AsyncClient(timeout=15.0) as client:
         response = await client.get(url, headers=get_tmdb_headers(), params=params)
 
     if response.status_code != 200:
@@ -64,7 +157,7 @@ async def fetch_tmdb_series_details(tmdb_id: int) -> dict:
     url = f"{TMDB_BASE_URL}/tv/{tmdb_id}"
     params = {"language": "it-IT"}
 
-    async with httpx.AsyncClient() as client:
+    async with httpx.AsyncClient(timeout=15.0) as client:
         response = await client.get(url, headers=get_tmdb_headers(), params=params)
 
     if response.status_code == 404:
@@ -72,7 +165,17 @@ async def fetch_tmdb_series_details(tmdb_id: int) -> dict:
     elif response.status_code != 200:
         raise HTTPException(status_code=status.HTTP_502_BAD_GATEWAY, detail="Errore TMDB")
 
-    return response.json()
+    data = response.json()
+    if is_missing_overview(data.get("overview")):
+        params_en = {"language": "en-US"}
+        async with httpx.AsyncClient(timeout=15.0) as client:
+            resp_en = await client.get(url, headers=get_tmdb_headers(), params=params_en)
+            if resp_en.status_code == 200:
+                data_en = resp_en.json()
+                if not is_missing_overview(data_en.get("overview")):
+                    data["overview"] = data_en["overview"]
+
+    return data
 
 
 def safe_date(date_str: str | None):
@@ -86,9 +189,14 @@ def safe_date(date_str: str | None):
 
 async def sync_tmdb_series_lazy(db: Session, tmdb_id: int) -> TMDBSeries:
     """Lazy update: fetches from TMDB and updates TMDBSeries and TMDBEpisodes."""
+    series, seasons = await sync_tmdb_series_metadata_only(db, tmdb_id)
+    if seasons:
+        await sync_tmdb_episodes_for_seasons(db, tmdb_id, seasons)
+    return series
+
+async def sync_tmdb_series_metadata_only(db: Session, tmdb_id: int):
     tmdb_data = await fetch_tmdb_series_details(tmdb_id)
     
-    # Estrazione stringhe dai metadati TMDB
     genres_str = ", ".join([g["name"] for g in tmdb_data.get("genres", [])])
     networks_str = ", ".join([n["name"] for n in tmdb_data.get("networks", [])])
     creators_str = ", ".join([c["name"] for c in tmdb_data.get("created_by", [])])
@@ -111,10 +219,10 @@ async def sync_tmdb_series_lazy(db: Session, tmdb_id: int) -> TMDBSeries:
         last_sync_at=datetime.now(timezone.utc)
     )
     series = repository.upsert_tmdb_series(db, series)
-    
-    # 2. Fetch and upsert all episodes concurrently
     seasons = tmdb_data.get("seasons", [])
-    season_numbers = [s["season_number"] for s in seasons if s["season_number"] > 0] # Ignore specials (season 0) if desired, or keep them. Let's keep them if they exist, but usually season 0 is specials. We'll fetch all.
+    return series, seasons
+
+async def sync_tmdb_episodes_for_seasons(db: Session, tmdb_id: int, seasons: list):
     season_numbers = [s["season_number"] for s in seasons]
     
     if season_numbers:
@@ -122,10 +230,20 @@ async def sync_tmdb_series_lazy(db: Session, tmdb_id: int) -> TMDBSeries:
         async def fetch_season(sn: int):
             url = f"{TMDB_BASE_URL}/tv/{tmdb_id}/season/{sn}"
             params = {"language": "it-IT"}
-            async with httpx.AsyncClient() as client:
+            async with httpx.AsyncClient(timeout=15.0) as client:
                 resp = await client.get(url, headers=get_tmdb_headers(), params=params)
                 if resp.status_code == 200:
-                    return resp.json().get("episodes", [])
+                    data = resp.json().get("episodes", [])
+                    needs_en = any(is_missing_overview(ep.get("overview")) for ep in data)
+                    if needs_en:
+                        resp_en = await client.get(url, headers=get_tmdb_headers(), params={"language": "en-US"})
+                        if resp_en.status_code == 200:
+                            data_en = resp_en.json().get("episodes", [])
+                            en_dict = {ep.get("episode_number"): ep.get("overview") for ep in data_en if not is_missing_overview(ep.get("overview"))}
+                            for ep in data:
+                                if is_missing_overview(ep.get("overview")) and ep.get("episode_number") in en_dict:
+                                    ep["overview"] = en_dict[ep.get("episode_number")]
+                    return data
                 return []
                 
         seasons_data = await asyncio.gather(*[fetch_season(sn) for sn in season_numbers])
@@ -140,14 +258,34 @@ async def sync_tmdb_series_lazy(db: Session, tmdb_id: int) -> TMDBSeries:
                         episode_number=ep_data.get("episode_number"),
                         title=ep_data.get("name"),
                         overview=ep_data.get("overview"),
-                        air_date=safe_date(ep_data.get("air_date"))
+                        air_date=safe_date(ep_data.get("air_date")),
+                        still_path=ep_data.get("still_path")
                     )
                 )
         
         if episodes_to_upsert:
             repository.upsert_tmdb_episodes(db, episodes_to_upsert)
-            
-    return series
+
+async def background_sync_tmdb_episodes(tmdb_id: int, seasons: list):
+    from backend.core.database import SessionLocal
+    db = SessionLocal()
+    try:
+        await sync_tmdb_episodes_for_seasons(db, tmdb_id, seasons)
+    finally:
+        db.close()
+
+async def background_full_sync_series(tmdb_id: int):
+    from backend.core.database import SessionLocal
+    import logging
+    db = SessionLocal()
+    try:
+        series, seasons = await sync_tmdb_series_metadata_only(db, tmdb_id)
+        if seasons:
+            await sync_tmdb_episodes_for_seasons(db, tmdb_id, seasons)
+    except Exception as e:
+        logging.error(f"Error in background full sync for {tmdb_id}: {e}")
+    finally:
+        db.close()
 
 
 async def add_series(db: Session, current_user: User, payload: TVSeriesCreate) -> TVSeriesResponse:
@@ -167,7 +305,8 @@ async def add_series(db: Session, current_user: User, payload: TVSeriesCreate) -
     )
     tracking = repository.add_user_series_tracking(db, tracking)
     
-    return _build_series_response(tracking)
+    episodes_data = repository.get_series_episodes_with_user_tracking(db, tracking.series_tmdb_id, current_user.id)
+    return _build_series_response_with_next(db, current_user, tracking, episodes_data)
 
 
 def list_user_series(db: Session, current_user: User) -> List[TVSeriesResponse]:
@@ -186,21 +325,17 @@ def update_series(db: Session, current_user: User, tmdb_id: int, payload: TVSeri
     if not tracking:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Serie non trovata.")
 
-    if payload.status is not None:
-        tracking.status = payload.status
-    if payload.rating is not None:
-        tracking.rating = payload.rating
-    if payload.notes is not None:
-        tracking.notes = payload.notes
-    if payload.custom_poster_path is not None:
-        tracking.custom_poster_path = payload.custom_poster_path
-    if payload.custom_backdrop_path is not None:
-        tracking.custom_backdrop_path = payload.custom_backdrop_path
-    if payload.review_visibility is not None:
-        tracking.review_visibility = payload.review_visibility
+    update_data = payload.model_dump(exclude_unset=True)
+    if "status" in update_data:
+        tracking.status = update_data["status"]
+
+    if "custom_poster_path" in update_data:
+        tracking.custom_poster_path = update_data["custom_poster_path"]
+    if "custom_backdrop_path" in update_data:
+        tracking.custom_backdrop_path = update_data["custom_backdrop_path"]
 
     tracking = repository.update_user_series_tracking(db, tracking)
-    return _build_series_response(tracking)
+    return _build_series_response(tracking, db, current_user)
 
 
 def delete_series(db: Session, current_user: User, tmdb_id: int) -> None:
@@ -210,8 +345,18 @@ def delete_series(db: Session, current_user: User, tmdb_id: int) -> None:
     repository.delete_user_series_tracking(db, tracking)
 
 
-def _build_series_response(tracking: UserSeriesTracking) -> TVSeriesResponse:
+def _build_series_response(tracking: UserSeriesTracking, db=None, current_user=None) -> TVSeriesResponse:
     s = tracking.tmdb_series
+    
+    logs_data = []
+    if db and current_user:
+        import sqlalchemy
+        from backend.domains.trackers.models import UserSeriesLog
+        stmt = sqlalchemy.select(UserSeriesLog).where(
+            UserSeriesLog.user_id == current_user.id,
+            UserSeriesLog.series_tmdb_id == tracking.series_tmdb_id
+        ).order_by(UserSeriesLog.updated_at.desc())
+        logs_data = list(db.execute(stmt).scalars().all())
     return TVSeriesResponse(
         id=tracking.id,
         tmdb_id=s.tmdb_id,
@@ -230,26 +375,36 @@ def _build_series_response(tracking: UserSeriesTracking) -> TVSeriesResponse:
         last_air_date=s.last_air_date,
         last_sync_at=s.last_sync_at,
         status=tracking.status,
-        rating=tracking.rating,
-        notes=tracking.notes,
         custom_poster_path=tracking.custom_poster_path,
         custom_backdrop_path=tracking.custom_backdrop_path,
-        review_visibility=tracking.review_visibility,
         added_at=tracking.added_at,
+        logs=logs_data,
         updated_at=tracking.updated_at,
         episodes=[]
     )
 
-def _build_episode_response(tmdb_ep: TMDBEpisode, user_logs: List["UserEpisodeLog"]) -> TVEpisodeResponse:
-    from backend.domains.trackers.schemas import EpisodeLogResponse
+def _build_episode_response(tmdb_ep: TMDBEpisode, user_logs: List["UserEpisodeLog"], quotes: List["TVQuote"] = None) -> TVEpisodeResponse:
+    from backend.domains.trackers.schemas import EpisodeLogResponse, TVQuoteResponse
     logs_resp = [
         EpisodeLogResponse(
             id=log.id,
+            rating=log.rating,
             notes=log.notes,
             review_visibility=log.review_visibility,
             watched_at=log.watched_at
         ) for log in user_logs
     ]
+    
+    quotes_resp = []
+    if quotes:
+        quotes_resp = [
+            TVQuoteResponse(
+                id=q.id,
+                episode_id=q.episode_id,
+                quote_text=q.quote_text,
+                created_at=q.created_at
+            ) for q in quotes
+        ]
     
     return TVEpisodeResponse(
         id=tmdb_ep.id,
@@ -259,9 +414,12 @@ def _build_episode_response(tmdb_ep: TMDBEpisode, user_logs: List["UserEpisodeLo
         title=tmdb_ep.title,
         overview=tmdb_ep.overview,
         air_date=tmdb_ep.air_date,
+        still_path=tmdb_ep.still_path,
+        vote_average=None,
         is_watched=len(user_logs) > 0,
         watch_count=len(user_logs),
-        logs=logs_resp
+        logs=logs_resp,
+        quotes=quotes_resp
     )
 
 def watch_next_episode(db: Session, current_user: User, tmdb_id: int) -> TVSeriesResponse:
@@ -272,7 +430,7 @@ def watch_next_episode(db: Session, current_user: User, tmdb_id: int) -> TVSerie
     episodes_data = repository.get_series_episodes_with_user_tracking(db, tmdb_id, current_user.id)
     
     next_ep = None
-    for tmdb_ep, user_logs in episodes_data:
+    for tmdb_ep, user_logs, quotes in episodes_data:
         if len(user_logs) == 0:
             # First unwatched episode found
             next_ep = tmdb_ep
@@ -282,20 +440,21 @@ def watch_next_episode(db: Session, current_user: User, tmdb_id: int) -> TVSerie
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Nessun episodio da guardare. Serie completata?")
         
     repository.mark_episode_watched(db, current_user.id, next_ep.id)
+    _sync_series_status(db, current_user.id, next_ep.series_tmdb_id)
     
     return _build_series_response_with_next(db, current_user, tracking, episodes_data)
 
 def _build_series_response_with_next(db, current_user, tracking, episodes_data) -> TVSeriesResponse:
-    response = _build_series_response(tracking)
+    response = _build_series_response(tracking, db, current_user)
     
     # Reload episodes_data in case we modified it
     episodes_data = repository.get_series_episodes_with_user_tracking(db, tracking.series_tmdb_id, current_user.id)
-    response.episodes = [_build_episode_response(tmdb_ep, user_logs) for tmdb_ep, user_logs in episodes_data]
+    response.episodes = [_build_episode_response(tmdb_ep, user_logs, quotes) for tmdb_ep, user_logs, quotes in episodes_data]
     
     # Trova il next_episode_to_watch
-    for tmdb_ep, user_logs in episodes_data:
+    for tmdb_ep, user_logs, quotes in episodes_data:
         if len(user_logs) == 0:
-            response.next_episode_to_watch = _build_episode_response(tmdb_ep, user_logs)
+            response.next_episode_to_watch = _build_episode_response(tmdb_ep, user_logs, quotes)
             break
             
     return response
@@ -320,16 +479,31 @@ def toggle_episode_watched(db: Session, current_user: User, episode_id: int, wat
     else:
         repository.mark_episode_unwatched(db, current_user.id, episode_id)
         
-    # Fetch logs to return
-    from backend.domains.trackers.models import UserEpisodeLog
+    _sync_series_status(db, current_user.id, tmdb_ep.series_tmdb_id)
+        
+    # Fetch logs and quotes to return
+    from backend.domains.trackers.models import UserEpisodeLog, TVQuote
     logs_stmt = sqlalchemy.select(UserEpisodeLog).where(UserEpisodeLog.user_id == current_user.id, UserEpisodeLog.episode_id == episode_id).order_by(UserEpisodeLog.watched_at.desc())
     user_logs = list(db.execute(logs_stmt).scalars().all())
+    
+    quotes_stmt = sqlalchemy.select(TVQuote).where(TVQuote.user_id == current_user.id, TVQuote.episode_id == episode_id).order_by(TVQuote.created_at.desc())
+    user_quotes = list(db.execute(quotes_stmt).scalars().all())
         
-    return _build_episode_response(tmdb_ep, user_logs)
+    return _build_episode_response(tmdb_ep, user_logs, user_quotes)
 
-def update_episode_notes(db: Session, current_user: User, episode_id: int, notes: str | None, review_visibility: str | None = None) -> TVEpisodeResponse:
+def mark_all_episodes_watched(db: Session, current_user: User, tmdb_series_id: int):
+    tracking = repository.get_user_series_tracking(db, tmdb_series_id, current_user.id)
+    if not tracking:
+        tracking = repository.create_user_series_tracking(db, tmdb_series_id, current_user.id, status="watching")
+        
+    repository.mark_all_episodes_watched(db, current_user.id, tmdb_series_id)
+    _sync_series_status(db, current_user.id, tmdb_series_id)
+    return {"status": "success"}
+
+def update_episode_notes(db: Session, current_user: User, episode_id: int, notes: str | None, review_visibility: str | None = None, rating: int | None = None, watched_at_str: str | None = None) -> TVEpisodeResponse:
     import sqlalchemy
-    from backend.domains.trackers.models import UserEpisodeLog
+    from datetime import datetime, timezone
+    from backend.domains.trackers.models import UserEpisodeLog, TVQuote
     stmt = sqlalchemy.select(TMDBEpisode).where(TMDBEpisode.id == episode_id)
     tmdb_ep = db.execute(stmt).scalar_one_or_none()
     if not tmdb_ep:
@@ -344,22 +518,138 @@ def update_episode_notes(db: Session, current_user: User, episode_id: int, notes
         
     if notes is not None:
         latest_log.notes = notes
+    if rating is not None:
+        latest_log.rating = rating
+    if watched_at_str is not None:
+        try:
+            parsed_date = datetime.strptime(watched_at_str, "%Y-%m-%d").replace(tzinfo=timezone.utc)
+            latest_log.watched_at = parsed_date
+        except Exception:
+            pass
+
+    tmdb_ep = db.execute(sqlalchemy.select(TMDBEpisode).where(TMDBEpisode.id == episode_id)).scalar_one_or_none()
+    if tmdb_ep:
+        _sync_series_status(db, current_user.id, tmdb_ep.series_tmdb_id)
     if review_visibility is not None:
         latest_log.review_visibility = review_visibility
     db.commit()
     db.refresh(latest_log)
     
-    # Ricarica tutti i log per la response
+    # Ricarica tutti i log e quotes per la response
     logs_stmt = sqlalchemy.select(UserEpisodeLog).where(UserEpisodeLog.user_id == current_user.id, UserEpisodeLog.episode_id == episode_id).order_by(UserEpisodeLog.watched_at.desc())
     user_logs = list(db.execute(logs_stmt).scalars().all())
     
-    return _build_episode_response(tmdb_ep, user_logs)
+    quotes_stmt = sqlalchemy.select(TVQuote).where(TVQuote.user_id == current_user.id, TVQuote.episode_id == episode_id).order_by(TVQuote.created_at.desc())
+    user_quotes = list(db.execute(quotes_stmt).scalars().all())
+    
+    return _build_episode_response(tmdb_ep, user_logs, user_quotes)
+
+
+def add_episode_log(db: Session, current_user: User, episode_id: int, notes: str | None, review_visibility: str | None = None, rating: int | None = None, watched_at_date: date | None = None) -> TVEpisodeResponse:
+    import sqlalchemy
+    from datetime import datetime, timezone
+    from backend.domains.trackers.models import UserEpisodeLog, TMDBEpisode, TVQuote
+    from fastapi import HTTPException, status
+    
+    stmt = sqlalchemy.select(TMDBEpisode).where(TMDBEpisode.id == episode_id)
+    tmdb_ep = db.execute(stmt).scalar_one_or_none()
+    if not tmdb_ep:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Episodio non trovato.")
+        
+    watched_dt = datetime.now(timezone.utc)
+    if watched_at_date:
+        watched_dt = datetime.combine(watched_at_date, datetime.min.time()).replace(tzinfo=timezone.utc)
+        
+    new_log = UserEpisodeLog(
+        user_id=current_user.id,
+        episode_id=episode_id,
+        rating=rating,
+        notes=notes,
+        review_visibility=review_visibility or "friends_only",
+        watched_at=watched_dt
+    )
+    db.add(new_log)
+    db.commit()
+    
+    # Ricarica e restituisci l'episodio
+    logs_stmt = sqlalchemy.select(UserEpisodeLog).where(UserEpisodeLog.user_id == current_user.id, UserEpisodeLog.episode_id == episode_id).order_by(UserEpisodeLog.watched_at.desc())
+    user_logs = list(db.execute(logs_stmt).scalars().all())
+    quotes_stmt = sqlalchemy.select(TVQuote).where(TVQuote.user_id == current_user.id, TVQuote.episode_id == episode_id).order_by(TVQuote.created_at.desc())
+    user_quotes = list(db.execute(quotes_stmt).scalars().all())
+    return _build_episode_response(tmdb_ep, user_logs, user_quotes)
+
+def update_episode_log(db: Session, current_user: User, log_id: int, notes: str | None, review_visibility: str | None = None, rating: int | None = None, watched_at_date: date | None = None) -> TVEpisodeResponse:
+    import sqlalchemy
+    from datetime import datetime, timezone
+    from backend.domains.trackers.models import UserEpisodeLog, TMDBEpisode, TVQuote
+    from fastapi import HTTPException, status
+    
+    stmt = sqlalchemy.select(UserEpisodeLog).where(UserEpisodeLog.id == log_id, UserEpisodeLog.user_id == current_user.id)
+    log = db.execute(stmt).scalar_one_or_none()
+    if not log:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Recensione non trovata.")
+        
+    log.notes = notes
+    log.rating = rating
+    if review_visibility:
+        log.review_visibility = review_visibility
+    if watched_at_date:
+        log.watched_at = datetime.combine(watched_at_date, datetime.min.time()).replace(tzinfo=timezone.utc)
+        
+    db.commit()
+    
+    # Ricarica e restituisci
+    ep_stmt = sqlalchemy.select(TMDBEpisode).where(TMDBEpisode.id == log.episode_id)
+    tmdb_ep = db.execute(ep_stmt).scalar_one_or_none()
+    
+    logs_stmt = sqlalchemy.select(UserEpisodeLog).where(UserEpisodeLog.user_id == current_user.id, UserEpisodeLog.episode_id == log.episode_id).order_by(UserEpisodeLog.watched_at.desc())
+    user_logs = list(db.execute(logs_stmt).scalars().all())
+    quotes_stmt = sqlalchemy.select(TVQuote).where(TVQuote.user_id == current_user.id, TVQuote.episode_id == log.episode_id).order_by(TVQuote.created_at.desc())
+    user_quotes = list(db.execute(quotes_stmt).scalars().all())
+    return _build_episode_response(tmdb_ep, user_logs, user_quotes)
+
+def delete_episode_log(db: Session, current_user: User, log_id: int) -> TVEpisodeResponse:
+    import sqlalchemy
+    from backend.domains.trackers.models import UserEpisodeLog, TMDBEpisode, TVQuote
+    from fastapi import HTTPException, status
+    
+    stmt = sqlalchemy.select(UserEpisodeLog).where(UserEpisodeLog.id == log_id, UserEpisodeLog.user_id == current_user.id)
+    log = db.execute(stmt).scalar_one_or_none()
+    if not log:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Recensione non trovata.")
+        
+    episode_id = log.episode_id
+    db.delete(log)
+    db.commit()
+    
+    ep_stmt = sqlalchemy.select(TMDBEpisode).where(TMDBEpisode.id == episode_id)
+    tmdb_ep = db.execute(ep_stmt).scalar_one_or_none()
+    
+    logs_stmt = sqlalchemy.select(UserEpisodeLog).where(UserEpisodeLog.user_id == current_user.id, UserEpisodeLog.episode_id == episode_id).order_by(UserEpisodeLog.watched_at.desc())
+    user_logs = list(db.execute(logs_stmt).scalars().all())
+    quotes_stmt = sqlalchemy.select(TVQuote).where(TVQuote.user_id == current_user.id, TVQuote.episode_id == episode_id).order_by(TVQuote.created_at.desc())
+    user_quotes = list(db.execute(quotes_stmt).scalars().all())
+    return _build_episode_response(tmdb_ep, user_logs, user_quotes)
 
 def add_quote(db: Session, current_user: User, episode_id: int, quote_text: str) -> TVQuoteResponse:
     from backend.domains.trackers.models import TVQuote
     from backend.domains.trackers.schemas import TVQuoteResponse
     quote = TVQuote(user_id=current_user.id, episode_id=episode_id, quote_text=quote_text)
     db.add(quote)
+    db.commit()
+    db.refresh(quote)
+    return TVQuoteResponse.model_validate(quote)
+
+def update_quote(db: Session, current_user: User, quote_id: int, quote_text: str):
+    import sqlalchemy
+    from backend.domains.trackers.models import TVQuote
+    from backend.domains.trackers.schemas import TVQuoteResponse
+    from fastapi import HTTPException, status
+    stmt = sqlalchemy.select(TVQuote).where(TVQuote.id == quote_id, TVQuote.user_id == current_user.id)
+    quote = db.execute(stmt).scalar_one_or_none()
+    if not quote:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Citazione non trovata.")
+    quote.quote_text = quote_text
     db.commit()
     db.refresh(quote)
     return TVQuoteResponse.model_validate(quote)
@@ -420,3 +710,189 @@ def get_dashboard_stats(db: Session, current_user: User) -> TVDashboardStats:
         last_watched_episode=stats["last_ep"],
         last_completed_series=stats["last_completed"]
     )
+
+from backend.domains.trackers.schemas import MediaListCreate, MediaListUpdate, MediaListResponse, MediaListItemCreate, MediaListItemResponse, MediaListItemUpdate, TMDBSeriesSimpleResponse
+from backend.domains.trackers.models import MediaList, MediaListItem
+
+def get_user_media_lists(db: Session, current_user: User) -> List[MediaListResponse]:
+    lists = repository.get_media_lists(db, current_user.id)
+    return [_build_media_list_response(l) for l in lists]
+
+def get_media_list(db: Session, current_user: User, list_id: int) -> MediaListResponse:
+    lst = repository.get_media_list(db, list_id, current_user.id)
+    if not lst:
+        raise HTTPException(status_code=404, detail="Lista non trovata")
+    return _build_media_list_response(lst)
+
+def create_media_list(db: Session, current_user: User, payload: MediaListCreate) -> MediaListResponse:
+    lst = MediaList(
+        user_id=current_user.id,
+        name=payload.name,
+        description=payload.description,
+        visibility=payload.visibility
+    )
+    lst = repository.create_media_list(db, lst)
+    return _build_media_list_response(lst)
+
+def update_media_list(db: Session, current_user: User, list_id: int, payload: MediaListUpdate) -> MediaListResponse:
+    lst = repository.get_media_list(db, list_id, current_user.id)
+    if not lst:
+        raise HTTPException(status_code=404, detail="Lista non trovata")
+    if payload.name is not None:
+        lst.name = payload.name
+    if payload.description is not None:
+        lst.description = payload.description
+    if payload.visibility is not None:
+        lst.visibility = payload.visibility
+    lst = repository.update_media_list(db, lst)
+    return _build_media_list_response(lst)
+
+def delete_media_list(db: Session, current_user: User, list_id: int) -> None:
+    lst = repository.get_media_list(db, list_id, current_user.id)
+    if not lst:
+        raise HTTPException(status_code=404, detail="Lista non trovata")
+    repository.delete_media_list(db, lst)
+
+async def add_item_to_media_list(db: Session, current_user: User, list_id: int, payload: MediaListItemCreate) -> MediaListItemResponse:
+    lst = repository.get_media_list(db, list_id, current_user.id)
+    if not lst:
+        raise HTTPException(status_code=404, detail="Lista non trovata")
+
+    # If adding a TMDB series, ensure it exists in our local catalog
+    if payload.series_tmdb_id:
+        series = repository.get_tmdb_series(db, payload.series_tmdb_id)
+        if not series:
+            await sync_tmdb_series_lazy(db, payload.series_tmdb_id)
+
+    item = MediaListItem(
+        list_id=list_id,
+        series_tmdb_id=payload.series_tmdb_id,
+        sort_order=payload.sort_order
+    )
+    item = repository.add_item_to_media_list(db, item)
+    lst = repository.get_media_list(db, list_id, current_user.id)
+    added = next((x for x in lst.items if x.id == item.id), item)
+    return _build_media_list_item_response(added)
+
+def remove_item_from_media_list(db: Session, current_user: User, list_id: int, item_id: int) -> None:
+    lst = repository.get_media_list(db, list_id, current_user.id)
+    if not lst:
+        raise HTTPException(status_code=404, detail="Lista non trovata")
+    item = repository.get_media_list_item(db, item_id)
+    if not item or item.list_id != lst.id:
+        raise HTTPException(status_code=404, detail="Elemento non trovato")
+    repository.delete_item_from_media_list(db, item)
+
+def _build_media_list_item_response(item: MediaListItem) -> MediaListItemResponse:
+    series_resp = None
+    if item.series:
+        series_resp = TMDBSeriesSimpleResponse(
+            tmdb_id=item.series.tmdb_id,
+            title=item.series.title,
+            poster_path=item.series.poster_path,
+            backdrop_path=item.series.backdrop_path,
+            genres=item.series.genres
+        )
+    return MediaListItemResponse(
+        id=item.id,
+        list_id=item.list_id,
+        series_tmdb_id=item.series_tmdb_id,
+        sort_order=item.sort_order,
+        added_at=item.added_at,
+        series=series_resp
+    )
+
+def _build_media_list_response(lst: MediaList) -> MediaListResponse:
+    items = sorted([_build_media_list_item_response(i) for i in lst.items], key=lambda x: x.sort_order)
+    return MediaListResponse(
+        id=lst.id,
+        user_id=lst.user_id,
+        name=lst.name,
+        description=lst.description,
+        visibility=lst.visibility,
+        created_at=lst.created_at,
+        updated_at=lst.updated_at,
+        items=items
+    )
+
+def get_friends_series_logs(db: Session, current_user: User, tmdb_id: int):
+    return repository.get_friends_series_logs(db, current_user.id, tmdb_id)
+
+def get_friends_episode_logs(db: Session, current_user: User, episode_id: int):
+    return repository.get_friends_episode_logs(db, current_user.id, episode_id)
+
+
+
+
+
+
+
+
+
+
+
+
+def add_series_log(db, current_user, tmdb_id, payload):
+    import sqlalchemy
+    from backend.domains.trackers.models import UserSeriesLog
+    from datetime import datetime, timezone
+    
+    # Ensure tracking exists
+    tracking = repository.get_user_series_tracking(db, tmdb_id, current_user.id)
+    if not tracking:
+        from backend.domains.trackers.router import TVSeriesCreate
+        tracking = create_series(db, current_user, TVSeriesCreate(tmdb_id=tmdb_id))
+        
+    log = UserSeriesLog(
+        user_id=current_user.id,
+        series_tmdb_id=tmdb_id,
+        rating=payload.rating,
+        notes=payload.notes,
+        review_visibility=payload.review_visibility or "friends_only",
+        updated_at=payload.watched_at or datetime.now(timezone.utc)
+    )
+    db.add(log)
+    db.commit()
+    
+    # Reload tracking
+    tracking = repository.get_user_series_tracking(db, tmdb_id, current_user.id)
+    return _build_series_response(tracking, db, current_user)
+
+def update_series_log(db, current_user, log_id, payload):
+    import sqlalchemy
+    from backend.domains.trackers.models import UserSeriesLog
+    
+    log = db.execute(sqlalchemy.select(UserSeriesLog).where(UserSeriesLog.id == log_id, UserSeriesLog.user_id == current_user.id)).scalar_one_or_none()
+    if not log:
+        from fastapi import HTTPException, status
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Log non trovato")
+        
+    if getattr(payload, "rating", None) is not None:
+        log.rating = payload.rating
+    if getattr(payload, "notes", None) is not None:
+        log.notes = payload.notes
+    if getattr(payload, "review_visibility", None) is not None:
+        log.review_visibility = payload.review_visibility
+    if getattr(payload, "watched_at", None) is not None:
+        log.updated_at = payload.watched_at
+        
+    db.commit()
+    tracking = repository.get_user_series_tracking(db, log.series_tmdb_id, current_user.id)
+    return _build_series_response(tracking, db, current_user)
+
+def delete_series_log(db, current_user, log_id):
+    import sqlalchemy
+    from backend.domains.trackers.models import UserSeriesLog
+    from fastapi import HTTPException, status
+    
+    log = db.execute(sqlalchemy.select(UserSeriesLog).where(UserSeriesLog.id == log_id, UserSeriesLog.user_id == current_user.id)).scalar_one_or_none()
+    if not log:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Log non trovato")
+        
+    tmdb_id = log.series_tmdb_id
+    db.delete(log)
+    db.commit()
+    
+    tracking = repository.get_user_series_tracking(db, tmdb_id, current_user.id)
+    return _build_series_response(tracking, db, current_user)
+

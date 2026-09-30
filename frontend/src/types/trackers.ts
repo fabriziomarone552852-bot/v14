@@ -8,6 +8,19 @@ export interface TMDBEpisode {
   air_date?: string | null;
   still_path?: string | null;
   vote_average?: number | null;
+  is_watched?: boolean;
+  watch_count?: number;
+  logs?: any[];
+  quotes?: any[];
+}
+
+export interface ReviewComment {
+  id: string;
+  author_id: string;
+  author_name: string;
+  author_avatar?: string;
+  text: string;
+  created_at: string;
 }
 
 export interface UserEpisodeLog {
@@ -21,6 +34,7 @@ export interface UserEpisodeLog {
   notes?: string;
   review_visibility?: string;
   rating?: number;
+  comments?: ReviewComment[];
 }
 
 export interface SeriesCastMember {
@@ -60,6 +74,18 @@ export interface TMDBSeries {
   recommendations?: SeriesRecommendation[];
 }
 
+export interface UserSeriesLog {
+  id: number;
+  user_id: number;
+  series_tmdb_id: number;
+  rating?: number | null;
+  notes?: string | null;
+  review_visibility: string;
+  watched_at: string;
+  updated_at?: string | null;
+  comments: ReviewComment[];
+}
+
 export interface UserSeriesTracking {
   id: number;
   series_tmdb_id: number;
@@ -68,9 +94,10 @@ export interface UserSeriesTracking {
   created_at: string;
   updated_at?: string | null;
   tmdb_series?: TMDBSeries;
-  logs?: UserEpisodeLog[];
+  logs?: UserSeriesLog[];
   notes?: string;
   review_visibility?: string;
+  custom_poster_path?: string | null;
 }
 
 export interface TVEpisode {
@@ -103,3 +130,29 @@ export interface TMDBPaginatedSearch {
   total_pages: number;
   total_results: number;
 }
+
+export interface FriendSeriesLog {
+  id: number;
+  friend_id: number;
+  friend_name: string;
+  friend_avatar?: string | null;
+  status: string;
+  rating?: number | null;
+  notes?: string | null;
+  review_visibility: string;
+  updated_at: string;
+  comments: ReviewComment[];
+}
+
+export interface FriendEpisodeLog {
+  rating?: number | null;
+  id: number;
+  friend_id: number;
+  friend_name: string;
+  friend_avatar?: string | null;
+  notes?: string | null;
+  review_visibility: string;
+  watched_at: string;
+  comments: ReviewComment[];
+}
+

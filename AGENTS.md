@@ -84,3 +84,11 @@ Quando l'utente scrive **"fine"** (o frasi equivalenti come *"abbiamo finito"*, 
      - Le modifiche registrate nel Backlog.
      - Le voci aggiunte al Changelog.
      - L'esito del controllo di compilazione.
+
+---
+
+## 🔔 4. Regola Generale sulle Notifiche
+- **Tutte le notifiche generate dal sistema** (es. inviti ai gruppi spesa, alert di sistema, richieste di amicizia) devono essere **sempre considerate permanenti e storicizzate** di default. Non devono autodistruggersi (logica "Burn After Reading" / `EPHEMERAL_MSG`) una volta aperte o lette, a meno che l'utente non lo richieda esplicitamente per uno specifico tipo.
+- Fanno eccezione solo i "Messaggi Effimeri" veri e propri, che hanno una logica di autodistruzione immediata (`TTL=0`) predefinita.
+- Le notifiche nella sidebar (Notifiche regolari) devono essere sempre mostrate in **ordine cronologico decrescente** (dalla più recente in alto alla più remota in basso).
+

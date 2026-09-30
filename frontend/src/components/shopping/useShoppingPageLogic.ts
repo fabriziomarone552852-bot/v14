@@ -38,8 +38,9 @@ export const useShoppingPageLogic = () => {
     refreshGroups,
   } = useShoppingData();
 
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const paramListId = searchParams.get('listId');
+  const paramOpenGroup = searchParams.get('openGroup');
 
   useEffect(() => {
     if (paramListId) {
@@ -188,6 +189,22 @@ export const useShoppingPageLogic = () => {
       await handleSaveEditList(e);
     }
   };
+
+  useEffect(() => {
+    if (paramOpenGroup && groups.length > 0 && !detailGroup) {
+      const parsed = parseInt(paramOpenGroup, 10);
+      if (!isNaN(parsed) && parsed > 0) {
+        const group = groups.find((g) => g.id === parsed);
+        if (group) {
+          setDetailGroup(group);
+          // Rimuove il parametro dall'URL in modo che il modale possa essere chiuso
+          const newParams = new URLSearchParams(searchParams);
+          newParams.delete('openGroup');
+          setSearchParams(newParams, { replace: true });
+        }
+      }
+    }
+  }, [paramOpenGroup, groups, detailGroup, setDetailGroup, searchParams, setSearchParams]);
 
   return {
     queryClient,

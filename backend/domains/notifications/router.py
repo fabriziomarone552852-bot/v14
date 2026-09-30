@@ -1,60 +1,64 @@
-"""Router HTTP del dominio Notifications (prefix /notifications)."""
-from __future__ import annotations
-
+"""Router del dominio Interactions (sostituisce Notifications)."""
 from typing import List
 
-from fastapi import APIRouter, Depends, Query, Response, status
+from fastapi import APIRouter, Depends, Query, status
 from sqlalchemy.orm import Session
 
-from backend.core import deps
+from backend.core.deps import get_db
+from backend.core.deps import get_current_user
 from backend.domains.notifications import schemas, service
 from backend.domains.users.models import User
 
-router = APIRouter(prefix="/notifications", tags=["notifications"])
+# Manteniamo per ora /notifications nel path per retrocompatibilità o lo cambiamo?
+# Cambiamolo a /interactions per coerenza con il nuovo sistema.
+router = APIRouter(prefix="/interactions", tags=["Interactions"])
 
 
-@router.get("", response_model=List[schemas.NotificationResponse])
-def list_notifications(
-    unread_only: bool = Query(default=False, description="Filtra solo notifiche non lette"),
-    limit: int = Query(default=50, ge=1, le=100),
-    db: Session = Depends(deps.get_db),
-    current_user: User = Depends(deps.get_current_app_user),
+@router.get("", response_model=List[schemas.InteractionResponse])
+def get_interactions(
+    unread_only: bool = Query(False, description="Filtra solo gli elementi non letti"),
+    limit: int = Query(50, ge=1, le=100),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
-    return service.list_notifications(db, current_user, unread_only=unread_only, limit=limit)
+    """Restituisce le interazioni (messaggi, commenti, notifiche) per l'utente."""
+    return service.list_interactions(
+        db=db,
+        current_user=current_user,
+        unread_only=unread_only,
+        limit=limit,
+    )
 
 
-@router.post("", response_model=schemas.NotificationResponse, status_code=status.HTTP_201_CREATED)
-def create_notification(
-    payload: schemas.NotificationCreate,
-    db: Session = Depends(deps.get_db),
-    current_user: User = Depends(deps.get_current_app_user),
+@router.post("", response_model=schemas.InteractionResponse, status_code=status.HTTP_201_CREATED)
+def create_interaction(
+    payload: schemas.InteractionCreate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
-    return service.create_notification(db, current_user, payload)
+    """Crea una nuova interazione (es. Invia un messaggio effimero)."""
+    return service.create_interaction(db, current_user, payload)
 
 
-@router.patch("/{notification_id}/read", response_model=schemas.NotificationResponse)
-def mark_notification_as_read(
-    notification_id: int,
-    db: Session = Depends(deps.get_db),
-    current_user: User = Depends(deps.get_current_app_user),
+@router.get("/{interaction_id}", response_model=schemas.InteractionResponse)
+def read_interaction(
+    interaction_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
-    return service.mark_as_read(db, current_user, notification_id)
+    """
+    Legge una specifica interazione. 
+    Se è un messaggio effimero (TTL=0), questo endpoint causerà l'autodistruzione istantanea
+    del messaggio dal database dopo averlo restituito per la lettura!
+    """
+    return service.read_interaction(db, current_user, interaction_id)
 
 
-@router.post("/read-all", status_code=status.HTTP_200_OK)
-def mark_all_notifications_as_read(
-    db: Session = Depends(deps.get_db),
-    current_user: User = Depends(deps.get_current_app_user),
+@router.delete("/{interaction_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_interaction(
+    interaction_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
-    updated_count = service.mark_all_as_read(db, current_user)
-    return {"updated": updated_count}
-
-
-@router.delete("/{notification_id}", status_code=status.HTTP_204_NO_CONTENT, response_class=Response)
-def delete_notification(
-    notification_id: int,
-    db: Session = Depends(deps.get_db),
-    current_user: User = Depends(deps.get_current_app_user),
-):
-    service.delete_notification(db, current_user, notification_id)
-    return Response(status_code=status.HTTP_204_NO_CONTENT)
+    """Elimina manualmente una interazione."""
+    service.delete_interaction(db, current_user, interaction_id)

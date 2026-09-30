@@ -2,9 +2,8 @@
 import React, { useState } from 'react';
 import { Link, useLocation, Outlet } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
-import { SettingsIcon, SwitchSidebarIcon, ShoppingIcon, UniversityIcon, FreeTimeIcon, CountdownIcon, CalendarDayIcon, CalendarWeekIcon, CalendarMonthIcon, CalendarYearIcon, MenuBarsIcon, FilmIcon, TvIcon, BookIcon, BellIcon } from './shared/utils/Icons';
-import { useSocial } from '@/hooks/useSocial';
-import { useNotifications } from '@/hooks/useNotifications';
+import { SettingsIcon, SwitchSidebarIcon, ShoppingIcon, UniversityIcon, FreeTimeIcon, CountdownIcon, CalendarDayIcon, CalendarWeekIcon, CalendarMonthIcon, CalendarYearIcon, MenuBarsIcon, FilmIcon, TvIcon, BookIcon } from './shared/utils/Icons';
+import { NotificationsSidebar } from '@/components/shared/notifications/NotificationsSidebar';
 
 interface SidebarItemProps {
   to: string;
@@ -37,8 +36,6 @@ interface AppShellLayoutProps {
 const AppShellLayout: React.FC<AppShellLayoutProps> = ({ onLogout }) => {
   const location = useLocation();
   const { user } = useAuth();
-  const { pendingRequests } = useSocial();
-  const { unreadNotifications } = useNotifications();
   
   // true = Sidebar estesa (w-64), false = Mini Sidebar con icone (w-20)
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
@@ -287,20 +284,9 @@ const AppShellLayout: React.FC<AppShellLayoutProps> = ({ onLogout }) => {
                   title="Impostazioni"
                 >
                   <SettingsIcon className="w-6 h-6" />
-                  {pendingRequests.length > 0 && (
-                    <span className="absolute top-1.5 right-1.5 w-2.5 h-2.5 bg-red-500 border-2 border-slate-900 rounded-full animate-pulse"></span>
-                  )}
+
                 </Link>
-                <button
-                  className="p-2 rounded-xl text-gray-400 hover:bg-gray-700 hover:text-white transition-colors focus:outline-none relative"
-                  title="Notifiche"
-                  onClick={() => {/* To be implemented: open notifications panel */}}
-                >
-                  <BellIcon className="w-6 h-6" />
-                  {unreadNotifications.length > 0 && (
-                    <span className="absolute top-1.5 right-1.5 w-2.5 h-2.5 bg-blue-500 border-2 border-slate-900 rounded-full animate-pulse"></span>
-                  )}
-                </button>
+                {/* Il tasto notifiche è stato spostato in HomePage */}
               </div>
               <button 
                 onClick={onLogout} 
@@ -321,7 +307,7 @@ const AppShellLayout: React.FC<AppShellLayoutProps> = ({ onLogout }) => {
           <Outlet />
         </main>
       </div>
-
+      <NotificationsSidebar />
     </div>
   );
 };

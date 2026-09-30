@@ -84,7 +84,7 @@ const HomePage: React.FC = () => {
 
   return (
     <div className="flex flex-col gap-4 max-w-[1600px] mx-auto min-h-full xl:h-full xl:overflow-hidden relative">
-      {/* Barra Progresso Anno (Dimensione fissa shrink-0) */}
+      {/* Barra Progresso Anno (Dimensione fissa shrink-0, ora include la campanella) */}
       <YearProgressWidget progress={yearProgress} />
 
       {/* Griglia Centrale a 3 Colonne (Occupa tutto lo spazio verticale residuo) */}

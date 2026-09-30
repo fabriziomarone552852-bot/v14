@@ -1,52 +1,15 @@
 import React, { useState, useMemo } from 'react';
-import type { TMDBSeries, UserSeriesTracking } from '@/types/trackers';
+import type { TMDBSeries, UserSeriesTracking, TMDBEpisode } from '@/types/trackers';
 import { StarRating } from './StarRating';
 import { EmptyState } from '@/components/shared/utils/EmptyState';
 import { DatePicker } from '@/components/shared/utils/DatePicker/DatePicker';
+import { useTrackersMutations } from '@/hooks/mutations/useTrackersMutations';
+import { useFriendsSeriesReviews } from '@/hooks/queries/useTrackersQueries';
+import { useNotifications } from '@/hooks/useNotifications';
+import { EditIcon, TrashIcon } from '@/components/shared/utils/Icons';
+import ConfirmDialog from '@/components/shared/dialog/ConfirmDialog';
 
-interface FriendSeriesLog {
-  id: string;
-  friend_id: string;
-  friend_name: string;
-  friend_avatar: string;
-  rating: number;
-  notes: string;
-  review_visibility: 'private' | 'friends_only' | 'public';
-  updated_at: string;
-}
 
-const MOCK_FRIENDS_SERIES_LOGS: FriendSeriesLog[] = [
-  {
-    id: 'fslog1',
-    friend_id: '1',
-    friend_name: 'Marco Rossi',
-    friend_avatar: 'https://i.pravatar.cc/150?u=marco',
-    rating: 4.5,
-    notes: 'Una delle mie serie preferite di sempre.',
-    review_visibility: 'friends_only',
-    updated_at: '2026-09-20T21:00:00Z',
-  },
-  {
-    id: 'fslog2',
-    friend_id: '1',
-    friend_name: 'Marco Rossi',
-    friend_avatar: 'https://i.pravatar.cc/150?u=marco',
-    rating: 4.0,
-    notes: 'Riguardata per intero, regge ancora benissimo.',
-    review_visibility: 'friends_only',
-    updated_at: '2026-09-21T10:00:00Z',
-  },
-  {
-    id: 'fslog3',
-    friend_id: '2',
-    friend_name: 'Giulia Bianchi',
-    friend_avatar: 'https://i.pravatar.cc/150?u=giulia',
-    rating: 3.5,
-    notes: 'Bella, ma le ultime stagioni calano.',
-    review_visibility: 'public',
-    updated_at: '2026-09-18T15:30:00Z',
-  }
-];
 
 export interface UserSeriesLog {
   id: number;
@@ -56,43 +19,70 @@ export interface UserSeriesLog {
   updated_at: string;
 }
 
-interface MockQuote {
-  id: string;
-  episode: string;
-  text: string;
+export interface UnifiedReviewData {
+  id: string | number;
+  author_id: string | number;
+  author_name: string;
+  author_avatar?: string | null;
+  rating: number;
+  notes: string;
+  updated_at: string;
+  comments: any[];
+  is_mine: boolean;
+  original_log: any;
 }
-
-const MOCK_SERIES_QUOTES: MockQuote[] = [
-  { id: 'q1', episode: 'S01E03', text: 'Questa è una citazione memorabile che ho segnato durante la visione del terzo episodio.' },
-  { id: 'q2', episode: 'S02E08', text: 'Un monologo fantastico che riassume il senso di tutta l\'opera.' }
-];
 
 interface SeriesReviewTabProps {
   tmdbSeries: TMDBSeries;
   userTracking: UserSeriesTracking | null;
+  onOpenEpisode?: (episode: TMDBEpisode) => void;
 }
 
-type ViewState = 'main' | 'form' | 'friends_reviews' | 'friend_detail' | 'my_reviews';
+type ViewState = 'main' | 'form' | 'friends_reviews' | 'friend_detail' | 'my_reviews' | 'review_detail';
 
-export const SeriesReviewTab: React.FC<SeriesReviewTabProps> = ({ tmdbSeries, userTracking }) => {
+export const SeriesReviewTab: React.FC<SeriesReviewTabProps> = ({ tmdbSeries, userTracking, onOpenEpisode }) => {
   const [view, setView] = useState<ViewState>('main');
   const [selectedFriendId, setSelectedFriendId] = useState<string | null>(null);
+  const [selectedReview, setSelectedReview] = useState<UnifiedReviewData | null>(null);
+  const [commentText, setCommentText] = useState('');
+  const { createInteraction } = useNotifications();
+  const { addSeriesLog, updateSeriesLog, deleteSeriesLog } = useTrackersMutations();
+  const { data: friendsLogsData = [] } = useFriendsSeriesReviews(tmdbSeries.tmdb_id);
 
-  // Mock my logs
-  const [logs, setLogs] = useState<UserSeriesLog[]>([
-    {
-      id: 1,
-      rating: userTracking?.rating || 4,
-      notes: userTracking?.notes || 'Stupenda serie.',
-      review_visibility: userTracking?.review_visibility || 'friends_only',
-      updated_at: new Date().toISOString()
+  const SERIES_QUOTES = useMemo(() => {
+    if (!tmdbSeries.episodes) return [];
+    
+    return tmdbSeries.episodes.reduce((acc, ep) => {
+       if (ep.quotes && ep.quotes.length > 0) {
+           const epQuotes = ep.quotes.map((q: any) => ({
+               id: q.id,
+               text: q.quote_text,
+               episodeStr: `S${ep.season_number}E${ep.episode_number}`,
+               episodeData: ep
+           }));
+           return [...acc, ...epQuotes];
+       }
+       return acc;
+    }, [] as {id: string, text: string, episodeStr: string, episodeData: TMDBEpisode}[]);
+  }, [tmdbSeries.episodes]);
+
+  const logs: UserSeriesLog[] = useMemo(() => {
+    if (userTracking && userTracking.logs && userTracking.logs.length > 0) {
+      return userTracking.logs.map(log => ({
+        id: log.id,
+        rating: (log.rating || 0) / 2,
+        notes: log.notes || '',
+        review_visibility: (log.review_visibility as 'private' | 'friends_only' | 'public') || 'friends_only',
+        updated_at: log.updated_at || new Date().toISOString()
+      }));
     }
-  ]);
+    return [];
+  }, [userTracking]);
 
   const [editingLogId, setEditingLogId] = useState<number | null>(null);
   const [rating, setRating] = useState(0); 
   const [review, setReview] = useState('');
-  const [visibility, setVisibility] = useState<UserSeriesLog['review_visibility']>(userTracking?.review_visibility || 'friends_only');
+  const [visibility, setVisibility] = useState<UserSeriesLog['review_visibility']>((userTracking?.review_visibility as 'private' | 'friends_only' | 'public') || 'friends_only');
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   
   const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
@@ -115,10 +105,10 @@ export const SeriesReviewTab: React.FC<SeriesReviewTabProps> = ({ tmdbSeries, us
 
   const friendsAverage = useMemo(() => {
     const userMap: Record<string, number[]> = {};
-    MOCK_FRIENDS_SERIES_LOGS.forEach(log => {
+    friendsLogsData.forEach(log => {
       if (typeof log.rating === 'number') {
         if (!userMap[log.friend_id]) userMap[log.friend_id] = [];
-        userMap[log.friend_id].push(log.rating);
+        userMap[log.friend_id].push(log.rating / 2);
       }
     });
     const userAverages = Object.values(userMap).map(ratings => ratings.reduce((a, b) => a + b, 0) / ratings.length);
@@ -152,17 +142,44 @@ export const SeriesReviewTab: React.FC<SeriesReviewTabProps> = ({ tmdbSeries, us
     setView('form');
   };
 
-  const handleDeleteLog = (id: number) => {
-    if (confirm("Vuoi davvero eliminare questa recensione?")) {
-      setLogs(logs.filter(l => l.id !== id));
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [logToDeleteId, setLogToDeleteId] = useState<number | null>(null);
+  
+  const confirmDeleteLog = (id: number) => {
+    setLogToDeleteId(id);
+    setIsDeleteDialogOpen(true);
+  };
+
+  const executeDeleteLog = () => {
+    if (logToDeleteId) {
+      deleteSeriesLog(logToDeleteId);
     }
+    setIsDeleteDialogOpen(false);
+    setLogToDeleteId(null);
+    setView('main');
   };
 
   const handleSave = () => {
     if (editingLogId) {
-      setLogs(logs.map(l => l.id === editingLogId ? { ...l, rating, notes: review, review_visibility: visibility as any, updated_at: new Date(reviewDate).toISOString() } : l));
+      updateSeriesLog({
+        log_id: editingLogId,
+        payload: {
+          rating: rating > 0 ? Math.round(rating * 2) : null,
+          notes: review,
+          review_visibility: visibility,
+          watched_at: reviewDate
+        }
+      });
     } else {
-      setLogs([{ id: Date.now(), rating, notes: review, review_visibility: visibility as any, updated_at: new Date(reviewDate).toISOString() }, ...logs]);
+      addSeriesLog({
+        tmdb_id: tmdbSeries.tmdb_id,
+        payload: {
+          rating: rating > 0 ? Math.round(rating * 2) : null,
+          notes: review,
+          review_visibility: visibility,
+          watched_at: reviewDate
+        }
+      });
     }
     setView('my_reviews');
   };
@@ -310,22 +327,51 @@ export const SeriesReviewTab: React.FC<SeriesReviewTabProps> = ({ tmdbSeries, us
             </div>
           ) : (
             sortedLogs.map((log) => (
-              <ReviewItem key={log.id} log={log} onEdit={() => openEditReview(log)} onDelete={() => handleDeleteLog(log.id)} />
+              <ReviewItem 
+                key={log.id} 
+                log={log} 
+                onEdit={() => openEditReview(log)} 
+                onDelete={() => confirmDeleteLog(log.id)}
+                onSelectReview={() => {
+                  setSelectedReview({
+                    id: log.id as any,
+                    author_id: 'me',
+                    author_name: 'Tu',
+                    rating: (log.rating || 0) / 2,
+                    notes: log.notes || '',
+                    updated_at: log.updated_at,
+                    comments: (log as any).comments || [],
+                    is_mine: true,
+                    original_log: log
+                  });
+                  setView('review_detail');
+                }}
+              />
             ))
           )}
         </div>
+
+        <ConfirmDialog
+          isOpen={isDeleteDialogOpen}
+          title="Elimina recensione"
+          message="Vuoi davvero eliminare questa recensione? L'operazione non può essere annullata."
+          confirmText="Elimina"
+          onConfirm={executeDeleteLog}
+          onCancel={() => setIsDeleteDialogOpen(false)}
+          isDestructive={true}
+        />
       </div>
     );
   }
 
   if (view === 'friends_reviews') {
-    const userMap: Record<string, { id: string, name: string, avatar: string, ratings: number[] }> = {};
-    MOCK_FRIENDS_SERIES_LOGS.forEach(log => {
+    const userMap: Record<string, { id: string | number, name: string, avatar?: string | null, ratings: number[] }> = {};
+    friendsLogsData.forEach(log => {
       if (!userMap[log.friend_id]) {
         userMap[log.friend_id] = { id: log.friend_id, name: log.friend_name, avatar: log.friend_avatar, ratings: [] };
       }
       if (typeof log.rating === 'number') {
-        userMap[log.friend_id].ratings.push(log.rating);
+        userMap[log.friend_id].ratings.push(log.rating / 2);
       }
     });
 
@@ -371,11 +417,11 @@ export const SeriesReviewTab: React.FC<SeriesReviewTabProps> = ({ tmdbSeries, us
             friendsList.map(friend => (
               <div 
                 key={friend.id} 
-                onClick={() => { setSelectedFriendId(friend.id); setView('friend_detail'); }}
+                onClick={() => { setSelectedFriendId(String(friend.id)); setView('friend_detail'); }}
                 className="bg-white border border-gray-200 rounded-2xl p-4 flex items-center justify-between cursor-pointer transition-shadow hover:shadow-md hover:border-blue-300 group"
               >
                 <div className="flex items-center gap-4">
-                  <img src={friend.avatar} alt={friend.name} className="w-10 h-10 rounded-full border border-gray-200" />
+                  <img src={friend.avatar || undefined} alt={friend.name} className="w-10 h-10 rounded-full border border-gray-200" />
                   <span className="font-bold text-gray-900 text-base">{friend.name}</span>
                 </div>
                 <div className="flex items-center">
@@ -394,7 +440,7 @@ export const SeriesReviewTab: React.FC<SeriesReviewTabProps> = ({ tmdbSeries, us
   }
 
   if (view === 'friend_detail' && selectedFriendId) {
-    const friendLogs = MOCK_FRIENDS_SERIES_LOGS.filter(l => l.friend_id === selectedFriendId).sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime());
+    const friendLogs = friendsLogsData.filter(l => String(l.friend_id) === selectedFriendId).sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime());
     const friendName = friendLogs[0]?.friend_name || '';
 
     return (
@@ -415,11 +461,26 @@ export const SeriesReviewTab: React.FC<SeriesReviewTabProps> = ({ tmdbSeries, us
 
         <div className="flex-1 overflow-y-auto custom-scrollbar flex flex-col gap-4 pt-4 pr-2">
           {friendLogs.map((log) => (
-            <div key={log.id} className="bg-white border border-gray-200 rounded-2xl p-4 flex flex-col gap-3 transition-shadow hover:shadow-sm">
+            <div key={log.id} className="bg-white border border-gray-200 rounded-2xl p-4 flex flex-col gap-3 transition-shadow hover:shadow-sm cursor-pointer"
+              onClick={() => {
+                setSelectedReview({
+                  id: log.id as any,
+                  author_id: String(log.friend_id),
+                  author_name: log.friend_name,
+                  author_avatar: log.friend_avatar || "",
+                  rating: (log.rating || 0) / 2,
+                  notes: log.notes || "",
+                  updated_at: log.updated_at,
+                  comments: (log as any).comments || [],
+                  is_mine: false,
+                  original_log: log
+                });
+                setView('review_detail');
+              }}>
               <div className="flex justify-between items-start">
                 <div className="flex items-center gap-4">
                   <div className="flex items-center">
-                    <StarRating value={log.rating || 0} hideNumber readonly iconClassName="w-5 h-5" />
+                    <StarRating value={(log.rating || 0) / 2} hideNumber readonly iconClassName="w-5 h-5" />
                   </div>
                   <div className="text-xs text-gray-500 font-medium">
                     {new Date(log.updated_at).toLocaleDateString('it-IT', { day: 'numeric', month: 'short', year: 'numeric' })}
@@ -441,7 +502,138 @@ export const SeriesReviewTab: React.FC<SeriesReviewTabProps> = ({ tmdbSeries, us
     );
   }
 
+
+  if (view === 'review_detail' && selectedReview) {
+    return (
+      <div className="flex flex-col h-full animate-fadeIn">
+        <div className="flex items-center justify-between pb-4 border-b border-gray-100 shrink-0">
+          <div className="flex items-center gap-3">
+            <button 
+              onClick={() => setView(selectedReview.is_mine ? 'my_reviews' : 'friend_detail')}
+              className="p-2 bg-gray-50 hover:bg-gray-100 text-gray-700 rounded-full transition-colors"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
+            </button>
+            <h2 className="text-xl font-bold text-gray-900">
+              {selectedReview.is_mine ? 'La tua recensione' : `Recensione di ${selectedReview.author_name}`}
+            </h2>
+          </div>
+          {selectedReview.is_mine && (
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => {
+                  openEditReview(selectedReview.original_log);
+                }}
+                className="p-2 text-gray-400 hover:text-blue-500 hover:bg-blue-50 rounded-full transition-colors"
+                title="Modifica"
+              >
+                <EditIcon className="w-5 h-5" />
+              </button>
+              <button
+                onClick={() => {
+                  confirmDeleteLog(Number(selectedReview.id));
+                }}
+                className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-full transition-colors"
+                title="Elimina"
+              >
+                <TrashIcon className="w-5 h-5" />
+              </button>
+            </div>
+          )}
+        </div>
+
+        <div className="flex-1 overflow-y-auto custom-scrollbar flex flex-col gap-6 pt-4 pr-2">
+          {/* Main Review */}
+          <div className="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-3">
+                {selectedReview.author_avatar ? (
+                  <img src={selectedReview.author_avatar} alt={selectedReview.author_name} className="w-10 h-10 rounded-full border border-gray-100" />
+                ) : (
+                  <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
+                    <span className="text-blue-700 font-bold text-base">{selectedReview.author_name.charAt(0)}</span>
+                  </div>
+                )}
+                <div>
+                  <div className="font-bold text-gray-900">{selectedReview.author_name}</div>
+                  <div className="text-xs text-gray-500">{new Date(selectedReview.updated_at).toLocaleDateString('it-IT', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</div>
+                </div>
+              </div>
+              <StarRating value={selectedReview.rating || 0} hideNumber readonly iconClassName="w-6 h-6" />
+            </div>
+            
+            <div className="text-gray-800 text-base leading-relaxed whitespace-pre-wrap">
+              {selectedReview.notes}
+            </div>
+          </div>
+
+          {/* Comments Section */}
+          <div className="flex flex-col gap-4">
+            {selectedReview.comments.length === 0 ? (
+              <div className="text-center py-6 text-gray-500 text-sm bg-gray-50 rounded-xl border border-dashed border-gray-200">
+                Non ci sono ancora commenti. Sii il primo a commentare!
+              </div>
+            ) : (
+              <div className="flex flex-col gap-3">
+                {selectedReview.comments.map(comment => (
+                  <div key={comment.id} className="flex gap-3 items-start bg-gray-50 p-3 rounded-xl">
+                    {comment.author_avatar ? (
+                      <img src={comment.author_avatar} alt={comment.author_name} className="w-8 h-8 rounded-full border border-gray-200 shrink-0" />
+                    ) : (
+                      <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center shrink-0">
+                        <span className="text-blue-700 font-bold text-xs">{comment.author_name.charAt(0)}</span>
+                      </div>
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center justify-between gap-2 mb-1">
+                        <span className="font-bold text-sm text-gray-900 truncate">{comment.author_name}</span>
+                        <span className="text-xs text-gray-400 shrink-0">
+                          {new Date(comment.created_at).toLocaleDateString('it-IT', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
+                        </span>
+                      </div>
+                      <p className="text-sm text-gray-700 whitespace-pre-wrap leading-relaxed">{comment.text}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* New Comment Input */}
+        <div className="pt-4 mt-2 border-t border-gray-100 shrink-0">
+          <div className="flex gap-2">
+            <textarea
+              value={commentText}
+              onChange={(e) => setCommentText(e.target.value)}
+              className="flex-1 bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm focus:ring-0 focus:border-blue-500 outline-none resize-none h-12 custom-scrollbar transition-colors"
+              placeholder="Scrivi un commento..."
+              rows={1}
+            />
+            
+            <button 
+              onClick={async () => {
+                if (!commentText.trim()) return;
+                await createInteraction.mutateAsync({
+                  interaction_type: 'SERIES_REVIEW_COMMENT',
+                  recipient_id: Number(selectedReview.author_id),
+                  reference_id: Number(selectedReview.id),
+                  content: commentText.trim()
+                });
+                setCommentText('');
+              }}
+              className="bg-blue-600 hover:bg-blue-700 text-white rounded-xl px-4 flex items-center justify-center transition-colors shadow-sm shrink-0">
+
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" /></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   // main view
+
   return (
     <div className="flex flex-col gap-6 animate-fadeIn h-full">
       
@@ -496,30 +688,32 @@ export const SeriesReviewTab: React.FC<SeriesReviewTabProps> = ({ tmdbSeries, us
         <div className="flex items-center justify-between pb-4 border-b border-gray-100 shrink-0">
           <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
             Citazioni
-            {MOCK_SERIES_QUOTES.length > 0 && (
+            {SERIES_QUOTES.length > 0 && (
               <span className="bg-blue-100 text-blue-700 text-xs font-bold px-2 py-0.5 rounded-full">
-                {MOCK_SERIES_QUOTES.length}
+                {SERIES_QUOTES.length}
               </span>
             )}
           </h2>
         </div>
 
-        <div className="flex-1 overflow-y-auto custom-scrollbar flex flex-col gap-3 pt-4 pr-2">
-          {MOCK_SERIES_QUOTES.length === 0 ? (
+        <div className="flex-1 overflow-y-auto custom-scrollbar flex flex-col gap-4 pt-5 pr-2">
+          {SERIES_QUOTES.length === 0 ? (
             <div className="flex-1 flex flex-col items-center justify-center h-full">
               <EmptyState message="Nessuna citazione salvata per questa serie." />
             </div>
           ) : (
-            MOCK_SERIES_QUOTES.map(q => (
-              <div key={q.id} className="bg-white border border-gray-200 rounded-2xl p-4 flex flex-col gap-2">
+            SERIES_QUOTES.map(q => (
+              <div key={q.id} className="relative bg-white border border-gray-200 rounded-2xl p-4 pt-5 flex flex-col gap-2">
+                <span 
+                  onClick={() => onOpenEpisode && onOpenEpisode(q.episodeData)}
+                  className="absolute -top-3 left-4 px-3 py-1 bg-white border border-gray-200 rounded-lg text-xs font-bold text-blue-600 shadow-sm tracking-wider cursor-pointer hover:bg-blue-50 hover:text-blue-700 transition-colors"
+                  title="Apri Dettaglio Episodio"
+                >
+                  {q.episodeStr}
+                </span>
                 <p className="text-gray-800 italic font-medium leading-relaxed">
                   "{q.text}"
                 </p>
-                <div className="flex justify-end">
-                  <span className="text-xs font-bold text-gray-400 bg-gray-100 px-2 py-1 rounded-md">
-                    {q.episode}
-                  </span>
-                </div>
               </div>
             ))
           )}
@@ -530,12 +724,12 @@ export const SeriesReviewTab: React.FC<SeriesReviewTabProps> = ({ tmdbSeries, us
   );
 };
 
-const ReviewItem: React.FC<{ log: UserSeriesLog, onEdit: () => void, onDelete: () => void }> = ({ log, onEdit, onDelete }) => {
+const ReviewItem: React.FC<{ log: UserSeriesLog, onEdit: () => void, onDelete: () => void, onSelectReview?: () => void }> = ({ log, onEdit, onDelete, onSelectReview }) => {
   const [expanded, setExpanded] = useState(false);
 
   return (
     <div className="group bg-white border border-gray-200 rounded-2xl p-4 flex flex-col gap-3 transition-shadow hover:shadow-sm">
-      <div className="flex justify-between items-start cursor-pointer" onClick={() => setExpanded(!expanded)}>
+      <div className="flex justify-between items-start cursor-pointer" onClick={() => { if (onSelectReview) onSelectReview(); else setExpanded(!expanded); }}>
         <div className="flex items-center gap-4">
           <div className="flex items-center">
             {log.rating ? (
@@ -571,7 +765,7 @@ const ReviewItem: React.FC<{ log: UserSeriesLog, onEdit: () => void, onDelete: (
       {log.notes && (
         <div className="relative">
           <div 
-            onClick={() => setExpanded(!expanded)}
+            onClick={() => { if (onSelectReview) onSelectReview(); else setExpanded(!expanded); }}
             className={`text-sm text-gray-700 cursor-pointer ${
               expanded ? 'max-h-32 overflow-y-auto custom-scrollbar pr-2' : 'line-clamp-1'
             }`}

@@ -19,7 +19,7 @@ if TYPE_CHECKING:
     from backend.domains.events.models import Event
     from backend.domains.feedback.models import FeedbackReport
     from backend.domains.habits.models import Habit
-    from backend.domains.notifications.models import Notification
+    from backend.domains.notifications.models import Interaction
     from backend.domains.planning.models import DailyEntry
     from backend.domains.shopping.models import (
         InventoryBatch,
@@ -192,9 +192,16 @@ class User(Base):
         "SharedActivityLog",
         back_populates="performed_by_user",
     )
-    notifications: Mapped[List["Notification"]] = relationship(
-        "Notification",
-        back_populates="user",
+    authored_interactions: Mapped[List["Interaction"]] = relationship(
+        "Interaction",
+        foreign_keys="[Interaction.author_id]",
+        back_populates="author",
+        cascade="all, delete-orphan",
+    )
+    received_interactions: Mapped[List["Interaction"]] = relationship(
+        "Interaction",
+        foreign_keys="[Interaction.recipient_id]",
+        back_populates="recipient",
         cascade="all, delete-orphan",
     )
     daily_entries: Mapped[List["DailyEntry"]] = relationship(

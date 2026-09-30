@@ -5,7 +5,7 @@ export function useResizeObserver(
   ref: RefObject<HTMLElement | null>, 
   delayMs: number = 150 // Ritardo di default (150ms è il punto di equilibrio ideale)
 ) {
-  const [dimensions, setDimensions] = useState({ clientHeight: 0, scrollHeight: 0 });
+  const [dimensions, setDimensions] = useState({ clientHeight: 0, scrollHeight: 0, clientWidth: 0, scrollWidth: 0 });
 
   useEffect(() => {
     if (!ref.current) return;
@@ -23,7 +23,9 @@ export function useResizeObserver(
         for (const entry of entries) {
           setDimensions({
             clientHeight: entry.target.clientHeight || entry.contentRect.height,
-            scrollHeight: entry.target.scrollHeight
+            scrollHeight: entry.target.scrollHeight,
+            clientWidth: entry.target.clientWidth || entry.contentRect.width,
+            scrollWidth: entry.target.scrollWidth
           });
         }
       }, delayMs);

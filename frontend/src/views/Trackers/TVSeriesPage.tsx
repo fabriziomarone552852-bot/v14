@@ -11,6 +11,7 @@ import RandomSeriesModal from './components/RandomSeriesModal';
 import { SeriesDetailModal, type TabType } from './components/SeriesDetailModal';
 import type { TMDBEpisode } from '../../types/trackers';
 import { generateWeeksGrid, nomiMesiLungo, getFirstDayIndex, getDaysInMonth } from '@/utils/dateUtils';
+import { resolveImageUrl } from '@/utils/imageUtils';
 
 const UpcomingCalendarWidget = () => {
   const today = new Date();
@@ -26,11 +27,7 @@ const UpcomingCalendarWidget = () => {
   const weeks = generateWeeksGrid(firstDayIdx, daysInMo);
 
   // Mock data for upcoming episodes
-  const upcomingMap: Record<number, any[]> = {
-    [today.getDate()]: [{ seriesName: 'Scissione', episode: 'S02E01' }],
-    [today.getDate() + 1]: [{ seriesName: 'The Last of Us', episode: 'S02E01' }],
-    [today.getDate() + 4]: [{ seriesName: 'Silo', episode: 'S02E05' }]
-  };
+  const upcomingMap: Record<number, any[]> = {};
 
   return (
     <div className="bg-white border border-gray-200 rounded-2xl p-4 shadow-sm relative flex flex-col h-full">
@@ -137,16 +134,12 @@ const UpcomingCalendarWidget = () => {
 };
 
 const UpcomingEpisodesWidget = () => {
-  const upcoming = [
-    { id: 1, seriesName: 'Scissione', episode: 'S02E01', date: 'Oggi', poster: null },
-    { id: 2, seriesName: 'The Last of Us', episode: 'S02E01', date: 'Domani', poster: null },
-    { id: 3, seriesName: 'Silo', episode: 'S02E05', date: '23/09', poster: null }
-  ];
+  const upcoming: any[] = [];
 
   return (
     <div className="flex flex-col h-full overflow-visible justify-center w-full">
       <div className="flex gap-5 overflow-x-auto pt-4 pb-4 px-4 snap-x items-center [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
-        {upcoming.map(ep => (
+        {upcoming.length > 0 ? upcoming.map(ep => (
           <div key={ep.id} className="w-[110px] flex flex-col shrink-0 snap-start cursor-pointer hover:scale-110 hover:z-20 transition-all duration-300">
             <div className="aspect-[2/3] bg-gray-100 rounded-xl overflow-hidden shadow-sm relative border-2 border-transparent hover:border-blue-400 transition-colors group">
               <img src="/no-poster.png" alt="" className="w-full h-full object-cover opacity-50" />
@@ -156,14 +149,18 @@ const UpcomingEpisodesWidget = () => {
                 <p className="text-[10px] text-blue-400 font-extrabold uppercase text-center drop-shadow-md">{ep.date}</p>
               </div>
 
-              {/* BOTTOM: Episode and Name */}
-              <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/90 via-black/60 to-transparent pt-8 pb-2 px-1 flex flex-col justify-end items-center">
-                <p className="text-[10px] text-white/90 font-bold text-center drop-shadow-md">{ep.episode}</p>
-                <p className="text-[11px] text-white font-extrabold text-center drop-shadow-md truncate w-full px-1" title={ep.seriesName}>{ep.seriesName}</p>
+              {/* BOTTOM: Text overlay */}
+              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent opacity-100 flex flex-col justify-end p-2 transition-opacity">
+                <p className="text-white font-extrabold text-[11px] leading-tight line-clamp-2 drop-shadow-md">{ep.seriesName}</p>
+                <p className="text-blue-300 font-bold text-[9px] mt-0.5 tracking-wider">{ep.episode}</p>
               </div>
             </div>
           </div>
-        ))}
+        )) : (
+          <div className="w-full flex justify-center items-center h-[165px]">
+            <EmptyState message="Nessuna uscita programmata." />
+          </div>
+        )}
       </div>
     </div>
   );
@@ -183,6 +180,19 @@ const TVSeriesPage: React.FC = () => {
   };
   const queryClient = useQueryClient();
   const { data: series, isLoading, isError } = useMySeries();
+
+  useEffect(() => {
+    if (detailModalOpen && detailModalSeries && series) {
+      const currentTmdbId = 'tmdb_id' in detailModalSeries ? detailModalSeries.tmdb_id : detailModalSeries.tmdb_series?.tmdb_id;
+      const updatedSeries = series.find(s => s.tmdb_id === currentTmdbId);
+      if (updatedSeries) {
+        // Only update if it actually changed to avoid infinite renders
+        if (JSON.stringify(updatedSeries) !== JSON.stringify(detailModalSeries)) {
+          setDetailModalSeries(updatedSeries);
+        }
+      }
+    }
+  }, [series, detailModalOpen]); // intentionally missing detailModalSeries to avoid loop
 
   const [activeTab, setActiveTab] = useState<'all' | 'watching' | 'to_watch'>('all');
   const [goalViewType, setGoalViewType] = useState<'percent' | 'fraction'>('fraction');
@@ -206,6 +216,16 @@ const TVSeriesPage: React.FC = () => {
       return data;
     },
     enabled: !!debouncedQuery.trim(),
+  });
+
+
+  const removeSeriesMutation = useMutation({
+    mutationFn: async (tmdbId: number) => {
+      await api.delete(`/trackers/series/${tmdbId}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['trackers', 'series'] });
+    }
   });
 
   const addSeriesMutation = useMutation({
@@ -244,6 +264,19 @@ const TVSeriesPage: React.FC = () => {
       }
       console.error("Error adding series:", err);
     },
+    onSuccess: (response) => {
+      queryClient.invalidateQueries({ queryKey: ['trackers', 'series'] });
+      
+      // Update detail modal if it's currently showing this series
+      if (detailModalSeries && response) {
+        const currentTmdbId = 'tmdb_id' in detailModalSeries ? detailModalSeries.tmdb_id : detailModalSeries.tmdb_series?.tmdb_id;
+        // response is the data because apiService unwraps it
+        const respTmdbId = response.tmdb_series?.tmdb_id || response.data?.tmdb_series?.tmdb_id || response.tmdb_id || response.data?.tmdb_id;
+        if (currentTmdbId === respTmdbId) {
+          setDetailModalSeries(response.data || response);
+        }
+      }
+    },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ['trackers', 'series'] });
     }
@@ -275,7 +308,7 @@ const TVSeriesPage: React.FC = () => {
   const lastCompleted = watchedSeries.length > 0 ? watchedSeries[0] : null;
 
   const goal = 300;
-  const currentEpisodes = 120; // Mock
+  const currentEpisodes = 0; // In futuro calcolare gli episodi reali
   const goalPercent = Math.min(100, Math.round((currentEpisodes / goal) * 100));
 
   return (
@@ -348,19 +381,19 @@ const TVSeriesPage: React.FC = () => {
            label="Ultima aggiunta" 
            title={lastAdded?.title || "Nessuno"} 
            subtitle={""}
-           posterPath={lastAdded?.poster_path || null} onClick={() => lastAdded && openSeriesDetail(lastAdded)} 
+           posterPath={lastAdded?.custom_poster_path ? resolveImageUrl(lastAdded.custom_poster_path) : lastAdded?.poster_path || null} onClick={() => lastAdded && openSeriesDetail(lastAdded)} 
          />
          <GlassCardWidget 
            label="Continua a guardare" 
            title={lastWatched?.title || "Nessuno"} 
            subtitle={lastWatched ? "S02E04" : ""}
-           posterPath={lastWatched?.poster_path || null} onClick={() => lastWatched && openSeriesDetail(lastWatched)} 
+           posterPath={lastWatched?.custom_poster_path ? resolveImageUrl(lastWatched.custom_poster_path) : lastWatched?.poster_path || null} onClick={() => lastWatched && openSeriesDetail(lastWatched)} 
          />
          <GlassCardWidget 
            label="Completata!" 
            title={lastCompleted?.title || "Nessuno"} 
            subtitle={""}
-           posterPath={lastCompleted?.poster_path || null} onClick={() => lastCompleted && openSeriesDetail(lastCompleted)} 
+           posterPath={lastCompleted?.custom_poster_path ? resolveImageUrl(lastCompleted.custom_poster_path) : lastCompleted?.poster_path || null} onClick={() => lastCompleted && openSeriesDetail(lastCompleted)} 
          />
       </div>
 
@@ -445,7 +478,22 @@ const TVSeriesPage: React.FC = () => {
                     searchResults?.results?.map((res: any) => {
                       const existingSeries = series?.find(s => s.tmdb_id === res.id);
                       return (
-                         <div key={res.id} className="flex flex-col group cursor-pointer w-full relative" onClick={() => !existingSeries && handleAdd(res.id, { stopPropagation: () => {} } as any)}>
+                         <div key={res.id} className="flex flex-col group cursor-pointer w-full relative" onClick={() => {
+                              const mockSeries = {
+                                  tmdb_series: {
+                                      tmdb_id: res.id,
+                                      title: res.name,
+                                      original_title: res.original_name,
+                                      overview: res.overview,
+                                      poster_path: res.poster_path,
+                                      backdrop_path: res.backdrop_path,
+                                      first_air_date: res.first_air_date
+                                  }
+                              };
+                              setDetailModalSeries(existingSeries || mockSeries as any);
+                              setDetailModalTab('overview');
+                              setDetailModalOpen(true);
+                          }}>
                             <div className={`relative aspect-[2/3] w-full rounded-lg overflow-hidden bg-gray-100 shadow-sm border-[3px] transition-all duration-300 group-hover:scale-105 ${
                               existingSeries 
                                 ? (existingSeries.status === 'watching' ? 'border-yellow-400' : (existingSeries.status === 'completed' || existingSeries.status === 'watched') ? (existingSeries.tmdb_status === 'Returning Series' ? 'border-purple-500' : 'border-green-500') : 'border-transparent') 
@@ -501,12 +549,13 @@ const TVSeriesPage: React.FC = () => {
                       return 'border-transparent';
                     };
                     const borderColor = getBorderColor(s.status, s.tmdb_status);
+                    const finalPoster = s.custom_poster_path ? resolveImageUrl(s.custom_poster_path) : s.poster_path ? `https://image.tmdb.org/t/p/w500${s.poster_path}` : null;
 
                     return (
                       <div key={s.id} className="flex flex-col group cursor-pointer w-full relative" onClick={() => openSeriesDetail(s)}>
                          <div className={`relative aspect-[2/3] w-full rounded-lg overflow-hidden bg-gray-100 shadow-sm border-[3px] transition-all duration-300 group-hover:scale-105 ${borderColor}`}>
-                            {s.poster_path ? (
-                              <img src={`https://image.tmdb.org/t/p/w500${s.poster_path}`} alt={s.title} className="w-full h-full object-cover" />
+                            {finalPoster ? (
+                              <img src={finalPoster} alt={s.title} className="w-full h-full object-cover" />
                             ) : (
                               <img src="/no-poster.png" alt="No Image" className="w-full h-full object-cover opacity-50" />
                             )}
@@ -557,16 +606,9 @@ const TVSeriesPage: React.FC = () => {
                     }
                   `}
                 </style>
-                <div className={`relative flex-1 min-h-0 custom-quote-scrollbar transition-all duration-500 ${isQuoteExpanded ? 'overflow-y-auto pr-2 pb-2 mt-6 mb-4' : 'overflow-hidden'}`}>
-                  <p className="text-gray-700 italic text-xs leading-relaxed">
-                    {!isQuoteExpanded 
-                      ? "\"Credo che la coscienza umana sia un tragico passo falso dell'evoluzione. Siamo diventati troppo consapevoli di noi stessi, la natura ha creato un aspetto della natura separato da se stessa...\""
-                      : "\"Credo che la coscienza umana sia un tragico passo falso dell'evoluzione. Siamo diventati troppo consapevoli di noi stessi, la natura ha creato un aspetto della natura separato da se stessa, siamo creature che non dovrebbero esistere per le leggi della natura. E penso che l'unica cosa onorevole che la nostra specie possa fare sia negare la nostra programmazione, smetterla di riprodurci, procedere mano nella mano verso l'estinzione, un'ultima notte, fratelli e sorelle, che si tirano fuori da un patto iniquo.\""
-                    }
-                  </p>
+                <div className="relative flex-1 min-h-0 custom-quote-scrollbar transition-all duration-500 overflow-hidden flex items-center justify-center">
+                  <EmptyState message="Ancora nessuna citazione salvata" />
                 </div>
-
-                <p className="text-[10px] font-bold text-gray-400 text-right shrink-0 mt-2 relative z-10">S01E01 True Detective</p>
                 
                 {/* Coda del fumetto */}
                 <div className={`absolute -bottom-2 left-6 w-4 h-4 bg-gray-50 border-b border-l border-gray-200 transform -rotate-45 z-0 transition-opacity duration-300 ${isQuoteExpanded ? 'opacity-0' : 'opacity-100'}`}></div>
@@ -604,9 +646,15 @@ const TVSeriesPage: React.FC = () => {
           series={detailModalSeries}
           initialTab={detailModalTab}
           initialEpisode={detailModalEpisode}
+          onSelectRecommendation={(rec) => openSeriesDetail(rec as any)}
           onToggleTrack={(tmdbId: number, isTracked: boolean) => {
             if (!isTracked) {
               addSeriesMutation.mutate({ tmdb_id: tmdbId, status: 'to_watch' } as any);
+            } else {
+              if (window.confirm('Sei sicuro di voler rimuovere questa serie dalla tua libreria?')) {
+                removeSeriesMutation.mutate(tmdbId);
+                setDetailModalOpen(false);
+              }
             }
           }}
         />

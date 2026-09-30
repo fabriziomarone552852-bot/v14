@@ -49,6 +49,7 @@ class TMDBSeries(Base):
     total_episodes: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
     
     first_air_date: Mapped[Optional[date]] = mapped_column(Date, nullable=True)
+    still_path: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
     last_air_date: Mapped[Optional[date]] = mapped_column(Date, nullable=True)
     
     last_sync_at: Mapped[datetime] = mapped_column(
@@ -92,6 +93,7 @@ class TMDBEpisode(Base):
     title: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
     overview: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     air_date: Mapped[Optional[date]] = mapped_column(Date, nullable=True)
+    still_path: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
     
     series: Mapped["TMDBSeries"] = relationship("TMDBSeries", back_populates="episodes")
     user_trackings: Mapped[List["UserEpisodeLog"]] = relationship(
@@ -132,36 +134,70 @@ class UserSeriesTracking(Base):
     # User's personal status: 'to_watch', 'watching', 'watched', 'dropped'
     status: Mapped[str] = mapped_column(String(50), nullable=False, default="to_watch", index=True)
     
-    # User rating (0 to 5, or 0 to 10)
-    rating: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
-    
-    # User personal notes/review
-    notes: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
-    
     # Custom images
     custom_poster_path: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
     custom_backdrop_path: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
-
-    # Privacy & Social Sharing (FEAT-007)
-    review_visibility: Mapped[str] = mapped_column(String(50), nullable=False, default="friends_only")
-
+    
     added_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         nullable=False,
-        default=lambda: datetime.now(timezone.utc),
+        default=lambda: datetime.now(timezone.utc)
     )
     updated_at: Mapped[Optional[datetime]] = mapped_column(
         DateTime(timezone=True),
         nullable=True,
-        onupdate=lambda: datetime.now(timezone.utc),
+        onupdate=lambda: datetime.now(timezone.utc)
     )
 
+    # Relationships
     user: Mapped["User"] = relationship("User")
     tmdb_series: Mapped["TMDBSeries"] = relationship("TMDBSeries", back_populates="user_trackings")
 
     def __repr__(self) -> str:
         return f"<UserSeriesTracking id={self.id} user={self.user_id} series={self.series_tmdb_id} status={self.status}>"
 
+
+
+class UserSeriesLog(Base):
+    """
+    User progress/reviews for specific series (Diary pattern).
+    Each row represents a specific viewing of the series (rewatch) or a separate review.
+    """
+    __tablename__ = "tv_user_series_logs"
+    
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    user_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+    series_tmdb_id: Mapped[int] = mapped_column(Integer, ForeignKey("tmdb_series.tmdb_id", ondelete="CASCADE"), nullable=False, index=True)
+    
+    rating: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
+    notes: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    
+    review_visibility: Mapped[str] = mapped_column(String(50), nullable=False, default="friends_only")
+    
+    watched_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        nullable=False,
+        default=lambda: datetime.now(timezone.utc)
+    )
+    
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        nullable=False,
+        default=lambda: datetime.now(timezone.utc)
+    )
+    
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        nullable=False,
+        default=lambda: datetime.now(timezone.utc),
+        onupdate=lambda: datetime.now(timezone.utc)
+    )
+    
+    user: Mapped["User"] = relationship("User")
+    tmdb_series: Mapped["TMDBSeries"] = relationship("TMDBSeries")
+
+    def __repr__(self) -> str:
+        return f"<UserSeriesLog id={self.id} user={self.user_id} series={self.series_tmdb_id}>"
 
 class UserEpisodeLog(Base):
     """
@@ -174,6 +210,7 @@ class UserEpisodeLog(Base):
     user_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
     episode_id: Mapped[int] = mapped_column(Integer, ForeignKey("tmdb_episodes.id", ondelete="CASCADE"), nullable=False)
     
+    rating: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
     notes: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     
     # Privacy & Social Sharing (FEAT-007)
@@ -232,3 +269,73 @@ class TVQuote(Base):
 
     def __repr__(self) -> str:
         return f"<TVQuote id={self.id} episode_id={self.episode_id}>"
+
+class MediaList(Base):
+    __tablename__ = "media_lists"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    user_id: Mapped[int] = mapped_column(
+        Integer,
+        ForeignKey("users.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    name: Mapped[str] = mapped_column(String(100), nullable=False)
+    description: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    
+    visibility: Mapped[str] = mapped_column(String(50), default="private")
+
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        nullable=False,
+        default=lambda: datetime.now(timezone.utc),
+    )
+    updated_at: Mapped[Optional[datetime]] = mapped_column(
+        DateTime(timezone=True),
+        nullable=True,
+        onupdate=lambda: datetime.now(timezone.utc),
+    )
+
+    user: Mapped["User"] = relationship("User")
+    items: Mapped[List["MediaListItem"]] = relationship(
+        "MediaListItem",
+        back_populates="media_list",
+        cascade="all, delete-orphan",
+    )
+
+    def __repr__(self) -> str:
+        return f"<MediaList id={self.id} name={self.name!r}>"
+
+
+class MediaListItem(Base):
+    __tablename__ = "media_list_items"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    list_id: Mapped[int] = mapped_column(
+        Integer,
+        ForeignKey("media_lists.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+
+    series_tmdb_id: Mapped[Optional[int]] = mapped_column(
+        Integer,
+        ForeignKey("tmdb_series.tmdb_id", ondelete="CASCADE"),
+        nullable=True,
+        index=True,
+    )
+
+    sort_order: Mapped[int] = mapped_column(Integer, default=0)
+
+    added_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        nullable=False,
+        default=lambda: datetime.now(timezone.utc),
+    )
+
+    media_list: Mapped["MediaList"] = relationship("MediaList", back_populates="items")
+    series: Mapped[Optional["TMDBSeries"]] = relationship("TMDBSeries")
+
+    def __repr__(self) -> str:
+        return f"<MediaListItem id={self.id} list_id={self.list_id} series_id={self.series_tmdb_id}>"
+

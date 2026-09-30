@@ -184,3 +184,34 @@ Un sistema integrato end-to-end che consente agli utenti dell'applicazione (sia 
 - **Descrizione**: Risolto il bug di visualizzazione causato dall'errata lettura delle properties piatte (invece che nested) e implementati accorgimenti al modale SeriesDetailModal.
 - **Da completare (Feedback Utente)**: Rimuovere riga verticale colonna sinistra, unire tutto, ridurre testo trama/titolo, spostare serie consigliate a destra e farle card piccole, limitare scorrimento orizzontale cast, aggiunta liste personalizzate e tasto incrocio amici.
 - **Stato**: 🟢 Completato.
+
+
+### [TRACKERS-001] Integrazione Backend per Recensioni, Commenti e Notifiche
+
+#### ðŸ“ Descrizione
+Implementare il salvataggio reale dei commenti e delle recensioni degli amici, rimuovendo i mock data, e collegare la creazione di un commento alle notifiche dell'inbox con deep-linking diretto. Cliccando la notifica, l'app dovrÃ  aprire automaticamente la serie e visualizzare il commento specifico.
+
+#### âš™ï¸ Dettagli Implementazione Backend
+- **Tabelle / Migrazioni**: La tabella per i commenti esiste giÃ  (Interactions).
+- **Endpoint HTTP**:
+  - GET /trackers/series/{tmdb_id}/friends-reviews (Restituisce i log degli amici con i commenti associati)
+  - GET /trackers/episodes/{episode_id}/friends-reviews (Idem per singoli episodi)
+  - POST /interactions (Usato per creare il commento: interaction_type = "SERIES_REVIEW_COMMENT", 
+eference_id = log_id)
+
+#### ðŸ’» Cosa Manca da Implementare nel Frontend
+- [ ] **Data Fetching**: Sostituire MOCK_FRIENDS_SERIES_LOGS e MOCK_FRIENDS_LOGS in SeriesReviewTab.tsx e EpisodeDetailView.tsx con query React Query verso i nuovi endpoint.
+- [ ] **Creazione Commento**: Legare la textarea dei commenti alla mutazione per chiamare POST /interactions.
+- [ ] **Routing Notifiche (Deep-linking)**:
+  - Aggiornare handleNotificationClick in NotificationsSidebar.tsx per supportare il tipo SERIES_REVIEW_COMMENT.
+  - Fare in modo che navighi a /trackers/series?open_review={reference_id}&tmdb_id={serie_id}.
+  - Modificare TVSeriesPage e le modali (SeriesDetailModal, EpisodeDetailView) per leggere questi parametri dall'URL e aprire automaticamente i tab corretti al caricamento.
+
+- **Stato**: 🟢 Completato (Settembre 2026)
+### FIX: Ottimizzazione UI e Bugfix Dettaglio Serie (Settembre 2026)
+- **Stato**: ?? Completato
+- **Dettagli**: 
+  - Risolto bug per cui le citazioni degli episodi svanivano al ricaricamento a causa di un mancato collegamento nella query globale del backend.
+  - Fix per il rendering a 5 stelle della media voti nelle stagioni e nelle recensioni degli amici, che non convertiva il nuovo rating 1-10 del database.
+  - Implementato un indicatore visivo persistente (pallino rosso) sul bottone per le citazioni dell'episodio se ce ne sono di salvate.
+  - Inseriti comandi rapidi di "Modifica" ed "Elimina" recensione direttamente nell'intestazione del popup di lettura dei commenti della propria recensione, uniformati con le icone dell'app.

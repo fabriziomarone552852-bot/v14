@@ -20,6 +20,7 @@ from backend.core.csv_seed_loader import (
 from backend.domains.shopping.models.groups import ShoppingGroup, ShoppingGroupMember
 from backend.domains.shopping.models.inventory import InventoryBatch
 from backend.domains.shopping.models.lists import ShoppingList, ShoppingListItem
+from backend.domains.notifications.models import Interaction
 
 
 def seed_default_shopping_suppliers_for_user(db: Session, user_id: int) -> None:
@@ -415,17 +416,32 @@ def invite_member(
         existing_any.added_by_user_id = current_user.id
         existing_any.removed_at = None
         existing_any.updated_at = now
-        return repo.update_member(db, existing_any)
-
-    db_member = ShoppingGroupMember(
-        group_id=group_id,
-        user_id=target_user.id,
-        role_id=role_id,
-        added_by_user_id=current_user.id,
-        created_at=now,
-        updated_at=now,
-    )
-    return repo.add_member(db, db_member)
+        member_result = repo.update_member(db, existing_any)
+    else:
+        db_member = ShoppingGroupMember(
+            group_id=group_id,
+            user_id=target_user.id,
+            role_id=role_id,
+            added_by_user_id=current_user.id,
+            created_at=now,
+            updated_at=now,
+        )
+        member_result = repo.add_member(db, db_member)
+        
+    # Crea notifica
+    group = repo.get_group_accessible(db, group_id, current_user.id)
+    if group:
+        notification = Interaction(
+            interaction_type="SHOPPING_GROUP_INVITE",
+            author_id=current_user.id,
+            recipient_id=target_user.id,
+            reference_id=group_id,
+            content=f"{current_user.username} ti ha aggiunto al gruppo spesa '{group.name}'."
+        )
+        db.add(notification)
+        db.commit()
+        
+    return member_result
 
 
 

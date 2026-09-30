@@ -73,6 +73,7 @@ class TVQuoteResponse(ORMBaseModel):
 class EpisodeLogResponse(ORMBaseModel):
     """A single view (rewatch) of an episode."""
     id: int
+    rating: Optional[int] = None
     notes: Optional[str] = None
     review_visibility: str
     watched_at: datetime
@@ -87,12 +88,40 @@ class TVEpisodeResponse(ORMBaseModel):
     title: Optional[str] = None
     overview: Optional[str] = None
     air_date: Optional[date] = None
+    still_path: Optional[str] = None
+    vote_average: Optional[float] = None
     
     # User specific fields
     is_watched: bool
     watch_count: int
     logs: List[EpisodeLogResponse] = Field(default_factory=list)
+    quotes: List[TVQuoteResponse] = Field(default_factory=list)
 
+
+
+
+class UserSeriesLogCreate(BaseModel):
+    rating: Optional[int] = None
+    notes: Optional[str] = None
+    review_visibility: Optional[str] = "friends_only"
+    watched_at: Optional[datetime] = None
+
+class UserSeriesLogUpdate(BaseModel):
+    rating: Optional[int] = None
+    notes: Optional[str] = None
+    review_visibility: Optional[str] = None
+    watched_at: Optional[datetime] = None
+
+class UserSeriesLogResponse(ORMBaseModel):
+    id: int
+    user_id: int
+    series_tmdb_id: int
+    rating: Optional[int] = None
+    notes: Optional[str] = None
+    review_visibility: str
+    watched_at: datetime
+    updated_at: Optional[datetime] = None
+    comments: List[dict] = Field(default_factory=list)
 
 class TVSeriesResponse(ORMBaseModel):
     """Response model for a tracked TV Series, combining global data and user tracking."""
@@ -116,12 +145,10 @@ class TVSeriesResponse(ORMBaseModel):
     # User Tracking fields
     id: int  # The tracking record ID
     status: str
-    rating: Optional[int] = None
-    notes: Optional[str] = None
     custom_poster_path: Optional[str] = None
     custom_backdrop_path: Optional[str] = None
-    review_visibility: str
     added_at: datetime
+    logs: List[UserSeriesLogResponse] = Field(default_factory=list)
     updated_at: Optional[datetime] = None
     
     # Used for the quick "+1 episode" button and tracking display in the grid
@@ -186,3 +213,74 @@ class TMDBPaginatedSearch(BaseModel):
     results: List[TMDBSeriesSearchResult]
     total_pages: int
     total_results: int
+
+# --- Media Lists ---
+
+class MediaListCreate(BaseModel):
+    name: str
+    description: Optional[str] = None
+    visibility: Optional[str] = "private"
+
+class MediaListUpdate(BaseModel):
+    name: Optional[str] = None
+    description: Optional[str] = None
+    visibility: Optional[str] = None
+
+class TMDBSeriesSimpleResponse(ORMBaseModel):
+    tmdb_id: int
+    title: str
+    poster_path: Optional[str] = None
+    first_air_date: Optional[date] = None
+    genres: Optional[str] = None
+
+class MediaListItemCreate(BaseModel):
+    series_tmdb_id: Optional[int] = None
+    sort_order: Optional[int] = 0
+
+class MediaListItemUpdate(BaseModel):
+    sort_order: Optional[int] = None
+
+class MediaListItemResponse(ORMBaseModel):
+    id: int
+    list_id: int
+    series_tmdb_id: Optional[int] = None
+    sort_order: int
+    added_at: datetime
+    series: Optional[TMDBSeriesSimpleResponse] = None
+
+class MediaListResponse(ORMBaseModel):
+    id: int
+    user_id: int
+    name: str
+    description: Optional[str] = None
+    visibility: str
+    created_at: datetime
+    updated_at: Optional[datetime] = None
+    items: List[MediaListItemResponse] = Field(default_factory=list)
+
+
+# --- Friends Reviews ---
+
+class FriendSeriesLogResponse(ORMBaseModel):
+    id: int
+    friend_id: int
+    friend_name: str
+    friend_avatar: Optional[str] = None
+    status: str
+    rating: Optional[int] = None
+    notes: Optional[str] = None
+    review_visibility: str
+    updated_at: datetime
+    comments: Optional[List[dict]] = Field(default_factory=list)
+
+class FriendEpisodeLogResponse(ORMBaseModel):
+    id: int
+    friend_id: int
+    friend_name: str
+    friend_avatar: Optional[str] = None
+    rating: Optional[int] = None
+    notes: Optional[str] = None
+    review_visibility: str
+    watched_at: datetime
+    comments: Optional[List[dict]] = Field(default_factory=list)
+

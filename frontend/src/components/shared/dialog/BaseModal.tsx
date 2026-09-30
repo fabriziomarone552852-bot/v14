@@ -25,6 +25,7 @@ interface BaseModalProps {
   formId?: string; // Se il modal contiene un form e il bottone deve fare il submit
 
   isLoading?: boolean;
+  loadingText?: string;
   zIndexClass?: string;
 }
 
@@ -33,7 +34,7 @@ const BaseModal: React.FC<BaseModalProps> = ({
   sidePanel, headerActions, hideDefaultClose = false, hideHeader = false,
   onConfirm, onCancel, confirmText = 'Salva', cancelText = 'Annulla', 
   isConfirmDisabled = false, formId,
-  isLoading = false, overflowVisible = false,
+  isLoading = false, loadingText = 'Salvataggio...', overflowVisible = false,
   zIndexClass = 'z-[9999]'
 }) => {
   // Registra la chiusura automatica con il tasto Back hardware/sistema
@@ -118,7 +119,7 @@ const BaseModal: React.FC<BaseModalProps> = ({
                 <LoadingIcon className="w-8 h-8 text-blue-600 animate-spin" />
               </div>
               <span className="text-sm font-extrabold text-blue-900 tracking-widest uppercase drop-shadow-sm">
-                Salvataggio...
+                {loadingText}
               </span>
             </div>
           )}
