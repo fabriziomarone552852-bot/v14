@@ -79,3 +79,13 @@ export const useSeriesStats = () => {
     },
   });
 };
+
+export const useMyQuotes = () => {
+  return useQuery<any[]>({
+    queryKey: ['trackers', 'quotes'],
+    queryFn: async () => {
+      const data = await api.get<any[]>('/trackers/quotes');
+      return data || [];
+    },
+  });
+};

@@ -802,7 +802,7 @@ export const EpisodeDetailView: React.FC<EpisodeDetailViewProps> = ({ episode, t
           ) : (
             quotes.map(q => (
               <div key={q.id} className="bg-white border border-gray-200 rounded-2xl p-5 flex flex-col gap-2 relative group">
-                <p className="text-gray-800 italic font-medium leading-relaxed">
+                <p className="text-gray-800 italic font-medium leading-relaxed break-all line-clamp-4">
                   "{q.quote_text}"
                 </p>
                 <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
