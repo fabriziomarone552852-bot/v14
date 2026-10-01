@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { useMySeries, useSeriesStats, useMyQuotes } from '@/hooks/queries/useTrackersQueries';
+import { useMySeries, useSeriesStats } from '@/hooks/queries/useTrackersQueries';
 import PageLoadingState from '@/components/shared/feedback/PageLoadingState';
 import PageErrorState from '@/components/shared/feedback/PageErrorState';
 import { TvIcon, EyeIcon, EyeHalfOpenIcon, EyeClosedIcon, LoadingIcon } from '@/components/shared/utils/Icons';
@@ -185,11 +185,6 @@ const TVSeriesPage: React.FC = () => {
   const queryClient = useQueryClient();
   const { data: series, isLoading, isError } = useMySeries();
   const { data: statsData } = useSeriesStats();
-  const { data: myQuotes } = useMyQuotes();
-
-  const todayDateStr = new Date().toISOString().split('T')[0];
-  const dateHash = todayDateStr.split('-').reduce((acc, val) => acc + parseInt(val), 0);
-  const dailyQuote = myQuotes && myQuotes.length > 0 ? myQuotes[dateHash % myQuotes.length] : null;
 
   // Check URL params on load
   useEffect(() => {
@@ -644,24 +639,8 @@ const TVSeriesPage: React.FC = () => {
                     }
                   `}
                 </style>
-                <div className="relative flex-1 min-h-0 custom-quote-scrollbar transition-all duration-500 overflow-hidden flex items-center justify-center p-2">
-                  {dailyQuote ? (
-                        <div className="flex flex-col items-start text-left w-full h-full">
-                          <p className={`text-gray-600 italic text-sm font-medium relative w-full custom-quote-scrollbar pr-2 break-words ${isQuoteExpanded ? 'flex-1 overflow-y-auto' : 'line-clamp-2 overflow-hidden'}`}>
-                              "{dailyQuote.quote_text}"
-                            </p>
-                          <div className="mt-auto shrink-0 w-full text-right transform translate-y-1">
-                            <span className="text-xs text-gray-500">
-                              - {dailyQuote.series_title}
-                              {dailyQuote.season_number && dailyQuote.episode_number && (
-                                ` (S${String(dailyQuote.season_number).padStart(2, '0')}E${String(dailyQuote.episode_number).padStart(2, '0')})`
-                              )}
-                            </span>
-                          </div>
-                        </div>
-                      ) : (
-                    <EmptyState message="Ancora nessuna citazione salvata" />
-                  )}
+                <div className="relative flex-1 min-h-0 custom-quote-scrollbar transition-all duration-500 overflow-hidden flex items-center justify-center">
+                  <EmptyState message="Ancora nessuna citazione salvata" />
                 </div>
                 
                 {/* Coda del fumetto */}
