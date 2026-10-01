@@ -1,7 +1,8 @@
 """
 API router for the Trackers domain (TV Series).
 """
-from typing import List
+from typing import List, Optional
+from datetime import date
 
 from fastapi import APIRouter, Depends, Query, status, BackgroundTasks
 from sqlalchemy.orm import Session
@@ -65,10 +66,12 @@ async def add_series(
 
 @router.get("/series/upcoming", response_model=List[UpcomingEpisodeResponse])
 def get_upcoming(
+    start_date: Optional[date] = None,
+    end_date: Optional[date] = None,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_app_user),
 ):
-    return service.get_upcoming_episodes(db, current_user)
+    return service.get_upcoming_episodes(db, current_user, start_date, end_date)
 
 
 @router.get("/series/stats", response_model=TVDashboardStats)

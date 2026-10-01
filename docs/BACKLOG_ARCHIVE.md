@@ -236,3 +236,12 @@ Perfezionamento del sistema di notifiche e interazioni sociali introdotto in FEA
 #### ? Esito
 **Stato**: ?? Completato (Settembre 2026)
 
+### [FEAT-004] Sotto-task Sezione Media Completati (🟢 Completato)
+
+- 📚 **Liste Multimediali Personalizzate**: Creazione di sottoliste miste (es. "MCU", "Da vedere con la ragazza") in cui inserire film, serie o libri. (*UI di gestione liste completata*). Comportamento Homepage vs Sezioni gestito.
+- 🔎 **Ricerca per Lista**: Aggiunta la possibilità di filtrare o cercare elementi in base all'appartenenza a specifiche liste.
+- 💬 **Commenti alle Recensioni & Menzioni**: Sistema per commentare le singole recensioni (tue, amici o pubbliche) con thread visuali a comparsa (chat bubble) e autocompletamento @menzioni.
+- 🔔 **Sistema di Notifiche Avanzato**: Sistema per avvisare l'utente alla ricezione di inviti, commenti o menzioni dirette (@X) nei thread, con deep-linking diretto al commento in questione.
+- 💬 **Messaggistica Istantanea ed Effimera**: Integrazione di messaggi effimeri diretta tra amici.
+- 📡 **Rimozione Dati Mock & Integrazione API**: Sostituzione dei Dati Mock con fetch reali dal Database e logica TMDB / React Query per tutte le sezioni.
+- 🎨 **UI Schermata di Dettaglio Completata**: Design del modale di dettaglio della singola serie completato e rifinito (gestione cast, layout colonne, header integrato, status badge, e pannello liste).

@@ -89,3 +89,17 @@ export const useMyQuotes = () => {
     },
   });
 };
+
+export const useUpcomingEpisodes = (startDate?: string, endDate?: string) => {
+  return useQuery<any[]>({
+    queryKey: ['trackers', 'upcoming', startDate, endDate],
+    queryFn: async () => {
+      const params: any = {};
+      if (startDate) params.start_date = startDate;
+      if (endDate) params.end_date = endDate;
+      const data = await api.get<any[]>('/trackers/series/upcoming', { params });
+      return data || [];
+    },
+  });
+};
+

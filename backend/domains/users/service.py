@@ -87,3 +87,32 @@ def restore_user(
                 "Verificare username ed email."
             ),
         )
+
+
+def get_yearly_goal(db: Session, user_id: int, tracker_type: str, year: int) -> schemas.UserYearlyGoalResponse | None:
+    # Use the fallback logic: get the most recent goal up to the given year
+    goal = repo.get_yearly_goal(db, user_id, tracker_type, year)
+    if not goal:
+        return None
+    return goal
+
+
+def set_yearly_goal(db: Session, user_id: int, tracker_type: str, year: int, goal_value: int) -> schemas.UserYearlyGoalResponse:
+    # Check if there is already an EXACT record for this year
+    existing_exact_goal = repo.get_exact_yearly_goal(db, user_id, tracker_type, year)
+    
+    from backend.domains.users.models import UserYearlyGoal
+    
+    if existing_exact_goal:
+        # Update the existing record for this specific year
+        existing_exact_goal.goal_value = goal_value
+        return repo.save_yearly_goal(db, existing_exact_goal)
+    else:
+        # Create a new record for this year
+        new_goal = UserYearlyGoal(
+            user_id=user_id,
+            tracker_type=tracker_type,
+            year=year,
+            goal_value=goal_value
+        )
+        return repo.save_yearly_goal(db, new_goal)

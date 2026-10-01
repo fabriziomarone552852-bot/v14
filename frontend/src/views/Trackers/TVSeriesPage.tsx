@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { useMySeries, useSeriesStats } from '@/hooks/queries/useTrackersQueries';
+import { useMySeries, useSeriesStats, useUpcomingEpisodes, useMyQuotes } from '@/hooks/queries/useTrackersQueries';
 import PageLoadingState from '@/components/shared/feedback/PageLoadingState';
 import PageErrorState from '@/components/shared/feedback/PageErrorState';
 import { TvIcon, EyeIcon, EyeHalfOpenIcon, EyeClosedIcon, LoadingIcon } from '@/components/shared/utils/Icons';
 import { EmptyState } from '@/components/shared/utils/EmptyState';
 import { useQueryClient, useQuery, useMutation } from '@tanstack/react-query';
 import { api } from '@/api/apiService';
+import { userGoalsApi } from '@/api/userGoalsApi';
 import { GlassCardWidget } from './components/GlassCardWidget';
 import RandomSeriesModal from './components/RandomSeriesModal';
 import { SeriesDetailModal, type TabType } from './components/SeriesDetailModal';
@@ -14,9 +15,14 @@ import type { TMDBEpisode } from '../../types/trackers';
 import { generateWeeksGrid, nomiMesiLungo, getFirstDayIndex, getDaysInMonth } from '@/utils/dateUtils';
 import { resolveImageUrl } from '@/utils/imageUtils';
 
-const UpcomingCalendarWidget = () => {
+
+interface UpcomingProps {
+  openSeriesDetail: (series: any) => void;
+}
+
+const UpcomingCalendarWidget = ({ openSeriesDetail }: UpcomingProps) => {
   const today = new Date();
-  const [currentDate, setCurrentDate] = useState(new Date(today.getFullYear(), today.getMonth(), 1));
+  const [currentDate, setCurrentDate] = React.useState(new Date(today.getFullYear(), today.getMonth(), 1));
   const year = currentDate.getFullYear();
   const month = currentDate.getMonth();
 
@@ -27,8 +33,22 @@ const UpcomingCalendarWidget = () => {
   const daysInMo = getDaysInMonth(year, month);
   const weeks = generateWeeksGrid(firstDayIdx, daysInMo);
 
-  // Mock data for upcoming episodes
+  // Fetch -2 to +2 months dynamically relative to the currently viewed month
+  const startDateStr = new Date(year, month - 2, 1).toISOString().split('T')[0];
+  const endDateStr = new Date(year, month + 3, 0).toISOString().split('T')[0];
+  const { data: upcomingData } = useUpcomingEpisodes(startDateStr, endDateStr);
+
   const upcomingMap: Record<number, any[]> = {};
+  if (upcomingData) {
+      upcomingData.forEach((ep: any) => {
+          const epDate = new Date(ep.air_date);
+          if (epDate.getFullYear() === year && epDate.getMonth() === month) {
+              const d = epDate.getDate();
+              if (!upcomingMap[d]) upcomingMap[d] = [];
+              upcomingMap[d].push(ep);
+          }
+      });
+  }
 
   return (
     <div className="bg-white border border-gray-200 rounded-2xl p-4 shadow-sm relative flex flex-col h-full">
@@ -67,7 +87,7 @@ const UpcomingCalendarWidget = () => {
                if (day === null) return <div key={`empty-${wIdx}-${dIdx}`} className="p-2 border-transparent min-h-0"></div>;
                
                const isToday = year === today.getFullYear() && month === today.getMonth() && day === today.getDate();
-               const upcomingForDay = month === today.getMonth() ? upcomingMap[day] : null;
+               const upcomingForDay = upcomingMap[day] || null;
 
                let dayClasses = "w-8 h-8 flex items-center justify-center rounded-full text-xs font-bold transition-colors";
                
@@ -95,7 +115,6 @@ const UpcomingCalendarWidget = () => {
                return (
                  <div 
                    key={dIdx}
-                   onClick={() => {/* TODO: Apri modale */}}
                    className="relative p-1 flex items-center justify-center cursor-pointer group min-h-0"
                  >
                    <span className={dayClasses}>
@@ -103,21 +122,29 @@ const UpcomingCalendarWidget = () => {
                    </span>
                    
                    {upcomingForDay && (
-                     <div className={`absolute ${tooltipPosClass} ${tooltipAlignClass} bg-slate-900 text-white rounded-xl shadow-xl p-3 border border-slate-800 text-xs z-[100] w-48 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none`}>
+                     <div className={`absolute ${tooltipPosClass} ${tooltipAlignClass} bg-slate-900 text-white rounded-xl shadow-xl p-3 border border-slate-800 text-xs z-[100] w-48 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 pointer-events-none group-hover:pointer-events-auto`}>
                        <div className="font-extrabold text-[11px] text-blue-300 uppercase tracking-wider border-b border-slate-700 pb-1 mb-2 text-left">
                          {`${day} ${nomiMesiLungo[month]}`}
                        </div>
                        <div className="flex flex-col gap-1 max-h-36 overflow-y-auto pr-0.5 custom-scrollbar">
-                         {upcomingForDay.map((item: any, idx: number) => (
+                         {upcomingForDay.map((ep: any, idx: number) => (
                            <div
                              key={idx}
-                             className="bg-slate-800/80 rounded px-2 py-1.5 text-[11px] font-medium text-slate-200 truncate flex items-center gap-2 border-l-2 border-blue-500 text-left"
+                             onClick={(e) => {
+                               e.stopPropagation();
+                               openSeriesDetail({ 
+                                 tmdb_id: ep.series_tmdb_id, 
+                                 title: ep.series_title, 
+                                 poster_path: ep.series_poster_path 
+                               });
+                             }}
+                             className="bg-slate-800/80 rounded px-2 py-1.5 text-[11px] font-medium text-slate-200 truncate flex items-center gap-2 border-l-2 border-blue-500 text-left hover:bg-slate-700 cursor-pointer transition-colors"
                            >
                              <span className="text-[9px] font-bold text-slate-400 shrink-0 inline-flex items-center">
-                               {item.episode}
+                               {`S${String(ep.season_number).padStart(2, '0')}E${String(ep.episode_number).padStart(2, '0')}`}
                              </span>
-                             <span className="truncate flex-1" title={item.seriesName}>
-                               {item.seriesName}
+                             <span className="truncate flex-1" title={ep.series_title}>
+                               {ep.series_title}
                              </span>
                            </div>
                          ))}
@@ -125,7 +152,7 @@ const UpcomingCalendarWidget = () => {
                      </div>
                    )}
                  </div>
-               )
+               );
              })}
            </React.Fragment>
          ))}
@@ -134,26 +161,39 @@ const UpcomingCalendarWidget = () => {
   );
 };
 
-const UpcomingEpisodesWidget = () => {
-  const upcoming: any[] = [];
+const UpcomingEpisodesWidget = ({ openSeriesDetail }: UpcomingProps) => {
+  const today = new Date();
+  const startDateStr = new Date(today.getFullYear(), today.getMonth() - 2, 1).toISOString().split('T')[0];
+  const endDateStr = new Date(today.getFullYear(), today.getMonth() + 3, 0).toISOString().split('T')[0];
+  const { data: upcomingData } = useUpcomingEpisodes(startDateStr, endDateStr);
+  
+  const todayStr = today.toISOString().split('T')[0];
+  const upcoming = upcomingData ? upcomingData.filter((ep: any) => ep.air_date >= todayStr).sort((a: any, b: any) => {
+    const dateCmp = a.air_date.localeCompare(b.air_date);
+    if (dateCmp !== 0) return dateCmp;
+    const titleCmp = (a.series_title || '').localeCompare(b.series_title || '');
+    if (titleCmp !== 0) return titleCmp;
+    if (a.season_number !== b.season_number) return a.season_number - b.season_number;
+    return a.episode_number - b.episode_number;
+  }) : [];
 
   return (
     <div className="flex flex-col h-full overflow-visible justify-center w-full">
       <div className="flex gap-5 overflow-x-auto pt-4 pb-4 px-4 snap-x items-center [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
-        {upcoming.length > 0 ? upcoming.map(ep => (
-          <div key={ep.id} className="w-[110px] flex flex-col shrink-0 snap-start cursor-pointer hover:scale-110 hover:z-20 transition-all duration-300">
+        {upcoming.length > 0 ? upcoming.map((ep: any) => (
+          <div key={ep.episode_id} onClick={() => openSeriesDetail({ tmdb_id: ep.series_tmdb_id, title: ep.series_title, poster_path: ep.series_poster_path })} className="w-[110px] flex flex-col shrink-0 snap-start cursor-pointer hover:scale-110 hover:z-20 transition-all duration-300">
             <div className="aspect-[2/3] bg-gray-100 rounded-xl overflow-hidden shadow-sm relative border-2 border-transparent hover:border-blue-400 transition-colors group">
-              <img src="/no-poster.png" alt="" className="w-full h-full object-cover opacity-50" />
+              <img src={ep.series_poster_path ? `https://image.tmdb.org/t/p/w500${ep.series_poster_path}` : "/no-poster.png"} alt="" className="w-full h-full object-cover opacity-50" />
               
               {/* TOP: Date */}
               <div className="absolute top-0 inset-x-0 bg-gradient-to-b from-black/80 to-transparent pt-2 pb-5 px-1">
-                <p className="text-[10px] text-blue-400 font-extrabold uppercase text-center drop-shadow-md">{ep.date}</p>
+                <p className="text-[10px] text-blue-400 font-extrabold uppercase text-center drop-shadow-md">{new Date(ep.air_date).toLocaleDateString('it-IT', { day: '2-digit', month: 'short' })}</p>
               </div>
 
               {/* BOTTOM: Text overlay */}
               <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent opacity-100 flex flex-col justify-end p-2 transition-opacity">
-                <p className="text-white font-extrabold text-[11px] leading-tight line-clamp-2 drop-shadow-md">{ep.seriesName}</p>
-                <p className="text-blue-300 font-bold text-[9px] mt-0.5 tracking-wider">{ep.episode}</p>
+                <p className="text-white font-extrabold text-[11px] leading-tight line-clamp-2 drop-shadow-md">{ep.series_title}</p>
+                <p className="text-blue-300 font-bold text-[9px] mt-0.5 tracking-wider">{`S${String(ep.season_number).padStart(2, '0')}E${String(ep.episode_number).padStart(2, '0')}`}</p>
               </div>
             </div>
           </div>
@@ -166,7 +206,6 @@ const UpcomingEpisodesWidget = () => {
     </div>
   );
 };
-
 const TVSeriesPage: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const [detailModalOpen, setDetailModalOpen] = useState(false);
@@ -185,6 +224,11 @@ const TVSeriesPage: React.FC = () => {
   const queryClient = useQueryClient();
   const { data: series, isLoading, isError } = useMySeries();
   const { data: statsData } = useSeriesStats();
+  const { data: myQuotes } = useMyQuotes();
+
+  const todayDateStr = new Date().toISOString().split('T')[0];
+  const dateHash = todayDateStr.split('-').reduce((acc, val) => acc + parseInt(val), 0);
+  const dailyQuote = myQuotes && myQuotes.length > 0 ? myQuotes[dateHash % myQuotes.length] : null;
 
   // Check URL params on load
   useEffect(() => {
@@ -340,9 +384,31 @@ const TVSeriesPage: React.FC = () => {
   const lastWatched = watchingSeries.length > 0 ? watchingSeries[0] : null;
   const lastCompleted = watchedSeries.length > 0 ? watchedSeries[0] : null;
 
-  const goal = 300;
+  const currentYear = new Date().getFullYear();
+  const { data: goalData, refetch: refetchGoal } = useQuery({
+    queryKey: ['yearlyGoal', 'series', currentYear],
+    queryFn: () => userGoalsApi.getYearlyGoal('series', currentYear),
+  });
+
+  const setGoalMutation = useMutation({
+    mutationFn: (newGoal: number) => userGoalsApi.setYearlyGoal('series', currentYear, newGoal),
+    onSuccess: () => refetchGoal()
+  });
+
+  const goal = goalData?.goal_value || 300;
   const currentEpisodes = statsData?.episodes_watched_this_year || 0;
   const goalPercent = Math.min(100, Math.round((currentEpisodes / goal) * 100));
+
+  const handleEditGoal = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    const newGoalStr = window.prompt("Imposta il tuo nuovo obiettivo annuale di episodi:", goal.toString());
+    if (newGoalStr) {
+      const newGoal = parseInt(newGoalStr, 10);
+      if (!isNaN(newGoal) && newGoal > 0) {
+        setGoalMutation.mutate(newGoal);
+      }
+    }
+  };
 
   return (
     <div className="flex flex-col gap-5 max-w-[1600px] mx-auto min-h-full xl:h-full xl:overflow-hidden relative p-2 xl:p-0">
@@ -364,7 +430,14 @@ const TVSeriesPage: React.FC = () => {
             onClick={() => setGoalViewType(prev => prev === 'percent' ? 'fraction' : 'percent')}
             className="flex flex-col w-full bg-white rounded-xl shadow-sm border border-gray-200 p-4 cursor-pointer hover:shadow-md transition-shadow select-none relative group"
           >
-             <div className="absolute right-3 top-3 opacity-0 group-hover:opacity-100 transition-opacity">
+             <div className="absolute right-3 top-3 opacity-0 group-hover:opacity-100 transition-opacity flex gap-2">
+                <button 
+                  onClick={handleEditGoal} 
+                  className="bg-blue-50 text-blue-600 p-1.5 rounded-lg hover:bg-blue-100 border border-blue-200 shadow-sm transition-colors"
+                  title="Modifica Obiettivo"
+                >
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
+                </button>
                 <button 
                   onClick={(e) => { e.stopPropagation(); /* TODO: apri statistiche */ }} 
                   className="bg-blue-50 text-blue-600 p-1.5 rounded-lg hover:bg-blue-100 border border-blue-200 shadow-sm transition-colors"
@@ -639,8 +712,24 @@ const TVSeriesPage: React.FC = () => {
                     }
                   `}
                 </style>
-                <div className="relative flex-1 min-h-0 custom-quote-scrollbar transition-all duration-500 overflow-hidden flex items-center justify-center">
-                  <EmptyState message="Ancora nessuna citazione salvata" />
+                <div className="relative flex-1 min-h-0 custom-quote-scrollbar transition-all duration-500 overflow-hidden flex items-center justify-center p-2">
+                  {dailyQuote ? (
+                    <div className="flex flex-col items-start text-left w-full h-full">
+                      <p className={`text-gray-600 italic text-sm font-medium relative w-full custom-quote-scrollbar pr-2 break-words ${isQuoteExpanded ? 'flex-1 overflow-y-auto' : 'line-clamp-2 overflow-hidden'}`}>
+                        "{dailyQuote.quote_text}"
+                      </p>
+                      <div className="mt-auto shrink-0 w-full text-right transform translate-y-1">
+                        <span className="text-xs text-gray-500">
+                          - {dailyQuote.series_title}
+                          {dailyQuote.season_number && dailyQuote.episode_number && (
+                            ` (S${String(dailyQuote.season_number).padStart(2, '0')}E${String(dailyQuote.episode_number).padStart(2, '0')})`
+                          )}
+                        </span>
+                      </div>
+                    </div>
+                  ) : (
+                    <EmptyState message="Ancora nessuna citazione salvata" />
+                  )}
                 </div>
                 
                 {/* Coda del fumetto */}
@@ -651,10 +740,10 @@ const TVSeriesPage: React.FC = () => {
            {/* CALENDARIO / LOCANDINE */}
            <div className="mx-2 mb-4 overflow-visible flex-1 flex flex-col min-h-0 relative">
              <div className={`absolute inset-0 transition-all duration-500 ease-in-out origin-top flex flex-col min-h-0 ${isQuoteExpanded ? 'opacity-0 pointer-events-none translate-y-4' : 'opacity-100 translate-y-0 delay-100'}`}>
-               <UpcomingCalendarWidget />
+               <UpcomingCalendarWidget openSeriesDetail={openSeriesDetail} />
              </div>
              <div className={`absolute top-0 left-0 right-0 transition-all duration-500 ease-in-out origin-top flex flex-col min-h-0 ${isQuoteExpanded ? 'opacity-100 translate-y-0 delay-100' : 'opacity-0 pointer-events-none -translate-y-4'}`}>
-               <UpcomingEpisodesWidget />
+               <UpcomingEpisodesWidget openSeriesDetail={openSeriesDetail} />
              </div>
            </div>
 
@@ -698,3 +787,4 @@ const TVSeriesPage: React.FC = () => {
 };
 
 export default TVSeriesPage;
+

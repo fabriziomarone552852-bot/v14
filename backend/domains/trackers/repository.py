@@ -162,21 +162,39 @@ def mark_episode_unwatched(db: Session, user_id: int, episode_id: int) -> None:
         db.commit()
 
 
-def get_upcoming_episodes(db: Session, user_id: int) -> List[Tuple[TMDBEpisode, TMDBSeries]]:
+def get_upcoming_episodes(db: Session, user_id: int, start_date=None, end_date=None) -> List[Tuple[TMDBEpisode, TMDBSeries]]:
     """Restituisce i prossimi episodi in uscita per le serie seguite dall'utente."""
     from datetime import date
+    
+    where_clauses = [
+        UserSeriesTracking.user_id == user_id,
+        UserSeriesTracking.status.in_(["watching", "to_watch", "waiting", "completed", "watched"])
+    ]
+    
+    if start_date:
+        where_clauses.append(TMDBEpisode.air_date >= start_date)
+    else:
+        where_clauses.append(TMDBEpisode.air_date >= date.today())
+        
+    if end_date:
+        where_clauses.append(TMDBEpisode.air_date <= end_date)
+
     stmt = (
         select(TMDBEpisode, TMDBSeries)
         .join(TMDBSeries, TMDBSeries.tmdb_id == TMDBEpisode.series_tmdb_id)
         .join(UserSeriesTracking, UserSeriesTracking.series_tmdb_id == TMDBSeries.tmdb_id)
-        .where(
-            UserSeriesTracking.user_id == user_id,
-            TMDBEpisode.air_date >= date.today(),
-            UserSeriesTracking.status.in_(["watching", "to_watch", "waiting"])
+        .where(*where_clauses)
+        .order_by(
+            TMDBEpisode.air_date.asc(),
+            TMDBSeries.title.asc(),
+            TMDBEpisode.season_number.asc(),
+            TMDBEpisode.episode_number.asc()
         )
-        .order_by(TMDBEpisode.air_date.asc())
-        .limit(10)
     )
+    
+    if not start_date and not end_date:
+        stmt = stmt.limit(10)
+        
     return list(db.execute(stmt).all())
 
 

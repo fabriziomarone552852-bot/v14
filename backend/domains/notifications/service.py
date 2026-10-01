@@ -26,7 +26,7 @@ def _hydrate_interaction(db: Session, int_obj: Interaction) -> schemas.Interacti
             int_dict["author_name"] = author.username
             int_dict["author_avatar"] = author.profile_picture_url
             
-    if int_obj.interaction_type in ["SERIES_REVIEW_COMMENT", "SERIES_REVIEW_COMMENT_THREAD"]:
+    if int_obj.interaction_type in ["SERIES_REVIEW_COMMENT", "SERIES_REVIEW_COMMENT_THREAD", "SERIES_REVIEW_MENTION"]:
         from backend.domains.trackers.models import UserSeriesLog, TMDBSeries
         log = db.query(UserSeriesLog).filter(UserSeriesLog.id == int_obj.reference_id).first()
         if log:
@@ -35,7 +35,7 @@ def _hydrate_interaction(db: Session, int_obj: Interaction) -> schemas.Interacti
                 int_dict["context_title"] = series.title
                 int_dict["series_tmdb_id"] = series.tmdb_id
                 
-    elif int_obj.interaction_type in ["EPISODE_REVIEW_COMMENT", "EPISODE_REVIEW_COMMENT_THREAD"]:
+    elif int_obj.interaction_type in ["EPISODE_REVIEW_COMMENT", "EPISODE_REVIEW_COMMENT_THREAD", "EPISODE_REVIEW_MENTION"]:
         from backend.domains.trackers.models import UserEpisodeLog, TMDBEpisode, TMDBSeries
         log = db.query(UserEpisodeLog).filter(UserEpisodeLog.id == int_obj.reference_id).first()
         if log:
@@ -77,27 +77,30 @@ def create_interaction(
     result = repo.add(db, interaction)
 
     if payload.interaction_type in ["SERIES_REVIEW_COMMENT", "EPISODE_REVIEW_COMMENT"]:
-        other_authors = db.query(Interaction.author_id).filter(
-            Interaction.interaction_type == payload.interaction_type,
-            Interaction.reference_id == payload.reference_id,
-            Interaction.author_id != current_user.id,
-            Interaction.author_id != payload.recipient_id
-        ).distinct().all()
+        import re
+        # Extract @username mentions
+        mentioned_usernames = re.findall(r'@([\w.-]+)', payload.content)
         
-        thread_type = payload.interaction_type + "_THREAD"
-        for (other_author_id,) in other_authors:
-            if other_author_id:
-                thread_int = Interaction(
-                    interaction_type=thread_type,
-                    author_id=current_user.id,
-                    recipient_id=other_author_id,
-                    reference_id=payload.reference_id,
-                    content="Nuovo commento nel thread",
-                    created_at=now_utc,
-                    read_at=None,
-                )
-                db.add(thread_int)
-        db.commit()
+        if mentioned_usernames:
+            mentioned_usernames = list(set(mentioned_usernames))
+            mentioned_users = db.query(User).filter(User.username.in_(mentioned_usernames)).all()
+            
+            mention_type = payload.interaction_type.replace("_COMMENT", "_MENTION")
+            
+            for user in mentioned_users:
+                # Do not notify the author or the direct recipient (who gets the main notification)
+                if user.id != current_user.id and user.id != payload.recipient_id:
+                    mention_int = Interaction(
+                        interaction_type=mention_type,
+                        author_id=current_user.id,
+                        recipient_id=user.id,
+                        reference_id=payload.reference_id,
+                        content=f"Ti ha menzionato in un commento",
+                        created_at=now_utc,
+                        read_at=None,
+                    )
+                    db.add(mention_int)
+            db.commit()
         
     return result
 

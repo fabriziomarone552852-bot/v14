@@ -120,3 +120,18 @@ class UserSettingsUpdate(StrictBaseModel):
         if value is None:
             return value
         return str(value).strip().lower()
+
+
+class UserYearlyGoalResponse(ORMBaseModel):
+    """Response model for a user's yearly goal for a specific tracker."""
+    id: int
+    user_id: int
+    year: int
+    tracker_type: str
+    goal_value: int
+    created_at: datetime
+
+
+class UserYearlyGoalUpdate(StrictBaseModel):
+    """Request model to update or set a user's yearly goal."""
+    goal_value: int = Field(..., ge=1, le=100000)

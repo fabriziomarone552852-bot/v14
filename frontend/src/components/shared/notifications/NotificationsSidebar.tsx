@@ -79,10 +79,10 @@ export const NotificationsSidebar: React.FC = () => {
     if (interaction.interaction_type === 'SHOPPING_GROUP_INVITE') {
       navigate(`/shopping?openGroup=${interaction.reference_id}`);
       handleClose();
-    } else if (interaction.interaction_type === 'SERIES_REVIEW_COMMENT' || interaction.interaction_type === 'SERIES_REVIEW_COMMENT_THREAD') {
+    } else if (interaction.interaction_type === 'SERIES_REVIEW_COMMENT' || interaction.interaction_type === 'SERIES_REVIEW_COMMENT_THREAD' || interaction.interaction_type === 'SERIES_REVIEW_MENTION') {
       navigate(`/trackers/serie-tv?tmdb_id=${interaction.series_tmdb_id}&open_review=true&open_review_log_id=${interaction.reference_id}`);
       handleClose();
-    } else if (interaction.interaction_type === 'EPISODE_REVIEW_COMMENT' || interaction.interaction_type === 'EPISODE_REVIEW_COMMENT_THREAD') {
+    } else if (interaction.interaction_type === 'EPISODE_REVIEW_COMMENT' || interaction.interaction_type === 'EPISODE_REVIEW_COMMENT_THREAD' || interaction.interaction_type === 'EPISODE_REVIEW_MENTION') {
       navigate(`/trackers/serie-tv?tmdb_id=${interaction.series_tmdb_id}&open_episode=${interaction.episode_id}&open_review_log_id=${interaction.reference_id}`);
       handleClose();
     }
@@ -240,8 +240,10 @@ export const NotificationsSidebar: React.FC = () => {
                           <p className={`text-sm text-gray-800 ${!notif.read_at ? 'font-bold' : 'font-medium'}`}>
                             {notif.interaction_type === 'SERIES_REVIEW_COMMENT' ? `${notif.author_name || 'Qualcuno'} ha commentato la tua recensione di ${notif.context_title || 'una serie'}` : 
                              notif.interaction_type === 'SERIES_REVIEW_COMMENT_THREAD' ? `${notif.author_name || 'Qualcuno'} ha partecipato alla discussione sulla recensione di ${notif.context_title || 'una serie'}` : 
+                             notif.interaction_type === 'SERIES_REVIEW_MENTION' ? `${notif.author_name || 'Qualcuno'} ti ha menzionato nella recensione di ${notif.context_title || 'una serie'}` :
                              notif.interaction_type === 'EPISODE_REVIEW_COMMENT' ? `${notif.author_name || 'Qualcuno'} ha commentato la tua recensione dell'episodio ${notif.context_title || ''}` : 
                              notif.interaction_type === 'EPISODE_REVIEW_COMMENT_THREAD' ? `${notif.author_name || 'Qualcuno'} ha partecipato alla discussione sulla recensione dell'episodio ${notif.context_title || ''}` : 
+                             notif.interaction_type === 'EPISODE_REVIEW_MENTION' ? `${notif.author_name || 'Qualcuno'} ti ha menzionato nella recensione dell'episodio ${notif.context_title || ''}` :
                              notif.content}
                           </p>
                           <div className="flex justify-between items-center mt-2">

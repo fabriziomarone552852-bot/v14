@@ -7,6 +7,7 @@ import { DatePicker } from '@/components/shared/utils/DatePicker/DatePicker';
 import { useTrackersMutations } from '@/hooks/mutations/useTrackersMutations';
 import { useFriendsSeriesReviews } from '@/hooks/queries/useTrackersQueries';
 import { useNotifications } from '@/hooks/useNotifications';
+import { useSocial } from '@/hooks/useSocial';
 import { useAuth } from '@/context/AuthContext';
 import { EditIcon, TrashIcon } from '@/components/shared/utils/Icons';
 import ConfirmDialog from '@/components/shared/dialog/ConfirmDialog';
@@ -45,6 +46,19 @@ interface SeriesReviewTabProps {
 
 type ViewState = 'main' | 'form' | 'friends_reviews' | 'friend_detail' | 'my_reviews' | 'review_detail';
 
+export const renderCommentText = (text: string) => {
+  const parts = text.split(/(@[\w.-]+)/g);
+  return (
+    <>
+      {parts.map((part, index) => {
+        if (part.startsWith('@')) {
+          return <span key={index} className="font-bold text-blue-600">{part}</span>;
+        }
+        return <span key={index}>{part}</span>;
+      })}
+    </>
+  );
+};
 
 const VisibilityIcon = ({ visibility, className = "w-3 h-3" }: { visibility: string, className?: string }) => {
   if (visibility === 'private') return <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>;
@@ -59,9 +73,76 @@ export const SeriesReviewTab: React.FC<SeriesReviewTabProps> = ({ tmdbSeries, us
   const [selectedFriendId, setSelectedFriendId] = useState<string | null>(null);
   const [selectedReview, setSelectedReview] = useState<UnifiedReviewData | null>(null);
   const [commentText, setCommentText] = useState('');
+  const commentTextRef = React.useRef<HTMLTextAreaElement>(null);
   const { createInteraction } = useNotifications();
+  
+  const handleReplyClick = (username: string) => {
+    const textToInsert = `@${username} `;
+    if (commentTextRef.current) {
+      const cursorPosition = commentTextRef.current.selectionStart;
+      const currentText = commentText;
+      const newText = currentText.slice(0, cursorPosition) + textToInsert + currentText.slice(cursorPosition);
+      setCommentText(newText);
+      setTimeout(() => {
+        if (commentTextRef.current) {
+          commentTextRef.current.focus();
+          const newPos = cursorPosition + textToInsert.length;
+          commentTextRef.current.setSelectionRange(newPos, newPos);
+        }
+      }, 0);
+    } else {
+      setCommentText(prev => prev + textToInsert);
+    }
+  };
   const { addSeriesLog, updateSeriesLog, deleteSeriesLog } = useTrackersMutations();
   const { data: friendsLogsData = [] } = useFriendsSeriesReviews(tmdbSeries.tmdb_id);
+  const { friends } = useSocial();
+  const [mentionQuery, setMentionQuery] = useState<{ active: boolean; query: string; startPos: number }>({ active: false, query: '', startPos: -1 });
+
+  const getFriendUser = (friendship: any) => {
+    return friendship.requester_id === user?.id ? friendship.addressee : friendship.requester;
+  };
+  
+  const mentionSuggestions = useMemo(() => {
+    if (!mentionQuery.active) return [];
+    const q = mentionQuery.query;
+    return friends
+      .map(getFriendUser)
+      .filter(Boolean)
+      .filter((f: any) => f.username.toLowerCase().includes(q))
+      .slice(0, 5);
+  }, [mentionQuery, friends, user]);
+
+  const handleCommentChange = (val: string) => {
+    setCommentText(val);
+    if (commentTextRef.current) {
+      const cursor = commentTextRef.current.selectionStart;
+      const textBeforeCursor = val.slice(0, cursor);
+      const match = textBeforeCursor.match(/@([\w.-]*)$/);
+      if (match) {
+        setMentionQuery({ active: true, query: match[1].toLowerCase(), startPos: match.index! });
+      } else {
+        setMentionQuery({ active: false, query: '', startPos: -1 });
+      }
+    }
+  };
+
+  const handleSelectMention = (username: string) => {
+    if (!mentionQuery.active) return;
+    const start = mentionQuery.startPos;
+    const end = start + mentionQuery.query.length + 1;
+    const newText = commentText.slice(0, start) + `@${username} ` + commentText.slice(end);
+    setCommentText(newText);
+    setMentionQuery({ active: false, query: '', startPos: -1 });
+    
+    setTimeout(() => {
+      if (commentTextRef.current) {
+        commentTextRef.current.focus();
+        const newPos = start + username.length + 2;
+        commentTextRef.current.setSelectionRange(newPos, newPos);
+      }
+    }, 0);
+  };
 
   const SERIES_QUOTES = useMemo(() => {
     if (!tmdbSeries.episodes) return [];
@@ -492,7 +573,7 @@ export const SeriesReviewTab: React.FC<SeriesReviewTabProps> = ({ tmdbSeries, us
                 className="bg-white border border-gray-200 rounded-2xl p-4 flex items-center justify-between cursor-pointer transition-shadow hover:shadow-md hover:border-blue-300 group"
               >
                 <div className="flex items-center gap-4">
-                  <img src={friend.avatar || undefined} alt={friend.name} className="w-10 h-10 rounded-full border border-gray-200" />
+                  <img src={friend.avatar || '/default_avatar.png'} alt={friend.name} className="w-10 h-10 rounded-full border border-gray-200 object-cover" />
                   <span className="font-bold text-gray-900 text-base">{friend.name}</span>
                 </div>
                 <div className="flex items-center">
@@ -634,12 +715,8 @@ export const SeriesReviewTab: React.FC<SeriesReviewTabProps> = ({ tmdbSeries, us
                     <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-700" title={selectedReview.review_visibility === 'private' ? 'Personale (Solo io)' : selectedReview.review_visibility === 'friends_only' ? 'Amici' : 'Pubblica'}>
                       <VisibilityIcon visibility={selectedReview.review_visibility || 'public'} className="w-5 h-5" />
                     </div>
-                  ) : selectedReview.author_avatar ? (
-                    <img src={selectedReview.author_avatar} alt={selectedReview.author_name} className="w-10 h-10 rounded-full border border-gray-100" />
                   ) : (
-                    <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
-                      <span className="text-blue-700 font-bold text-base">{selectedReview.author_name.charAt(0)}</span>
-                    </div>
+                    <img src={selectedReview.author_avatar || '/default_avatar.png'} alt={selectedReview.author_name} className="w-10 h-10 rounded-full border border-gray-100 object-cover" />
                   )}
                 <div>
                   <div className="font-bold text-gray-900">{selectedReview.author_name}</div>
@@ -663,22 +740,30 @@ export const SeriesReviewTab: React.FC<SeriesReviewTabProps> = ({ tmdbSeries, us
             ) : (
               <div className="flex flex-col gap-3">
                 {selectedReview.comments.map(comment => (
-                  <div key={comment.id} className="flex gap-3 items-start bg-gray-50 p-3 rounded-xl">
-                    {comment.author_avatar ? (
-                      <img src={comment.author_avatar} alt={comment.author_name} className="w-8 h-8 rounded-full border border-gray-200 shrink-0" />
-                    ) : (
-                      <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center shrink-0">
-                        <span className="text-blue-700 font-bold text-xs">{comment.author_name.charAt(0)}</span>
-                      </div>
-                    )}
+                  <div key={comment.id} className="flex gap-3 items-start">
+                    <img src={comment.author_avatar || '/default_avatar.png'} alt={comment.author_name} className="w-8 h-8 rounded-full border border-gray-200 shrink-0 mt-1 object-cover" />
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between gap-2 mb-1">
-                        <span className="font-bold text-sm text-gray-900 truncate">{comment.author_name}</span>
-                        <span className="text-xs text-gray-400 shrink-0">
-                          {new Date(comment.created_at).toLocaleDateString('it-IT', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
-                        </span>
+                      <div className="flex items-center justify-between gap-2 mb-1 pl-1">
+                        <div className="flex items-center gap-2">
+                          <span className="font-bold text-sm text-gray-900 truncate">{comment.author_name}</span>
+                          <span className="text-[10px] text-gray-400 shrink-0">
+                            {new Date(comment.created_at).toLocaleDateString('it-IT', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
+                          </span>
+                        </div>
+                        <button 
+                          onClick={() => handleReplyClick(comment.author_name)}
+                          className="text-[11px] font-bold text-gray-400 hover:text-blue-600 transition-colors flex items-center gap-1 uppercase tracking-wide"
+                          title={`Rispondi a @${comment.author_name}`}
+                        >
+                          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
+                          </svg>
+                          Rispondi
+                        </button>
                       </div>
-                      <p className="text-sm text-gray-700 whitespace-pre-wrap leading-relaxed">{comment.text}</p>
+                      <div className="bg-gray-50 border border-gray-100 p-3 rounded-2xl rounded-tl-sm text-sm text-gray-800 whitespace-pre-wrap leading-relaxed shadow-sm">
+                        {renderCommentText(comment.text)}
+                      </div>
                     </div>
                   </div>
                 ))}
@@ -688,11 +773,31 @@ export const SeriesReviewTab: React.FC<SeriesReviewTabProps> = ({ tmdbSeries, us
         </div>
 
         {/* New Comment Input */}
-        <div className="pt-4 mt-2 border-t border-gray-100 shrink-0">
+        <div className="pt-4 mt-2 border-t border-gray-100 shrink-0 relative">
+          
+          {mentionQuery.active && mentionSuggestions.length > 0 && (
+            <div className="absolute bottom-full mb-1 left-0 w-64 bg-white border border-gray-200 rounded-xl shadow-lg overflow-hidden z-50 animate-fadeIn">
+               {mentionSuggestions.map(f => (
+                 <button 
+                   key={f.id} 
+                   onClick={() => handleSelectMention(f.username)}
+                   className="w-full text-left px-4 py-2 hover:bg-blue-50 text-sm font-semibold text-gray-800 transition-colors flex items-center gap-2"
+                 >
+                   <img 
+                     src={f.profile_picture_url || '/default_avatar.png'} 
+                     className="w-6 h-6 rounded-full border border-gray-100 object-cover" 
+                   />
+                   {f.username}
+                 </button>
+               ))}
+            </div>
+          )}
+
           <div className="flex gap-2">
             <textarea
+              ref={commentTextRef}
               value={commentText}
-              onChange={(e) => setCommentText(e.target.value)}
+              onChange={(e) => handleCommentChange(e.target.value)}
               className="flex-1 bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm focus:ring-0 focus:border-blue-500 outline-none resize-none h-12 custom-scrollbar transition-colors"
               placeholder="Scrivi un commento..."
               rows={1}

@@ -4,10 +4,10 @@ User authentication and profile management.
 """
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import TYPE_CHECKING, List, Optional
 
-from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, String, text, JSON
+from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, String, text, JSON, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from backend.core.database import Base
@@ -48,13 +48,6 @@ class User(Base):
         nullable=True,
         default=3,
         server_default=text("3"),
-    )
-
-    tv_episodes_yearly_goal: Mapped[Optional[int]] = mapped_column(
-        Integer,
-        nullable=True,
-        default=300,
-        server_default=text("300"),
     )
 
     profile_picture_url: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
@@ -225,9 +218,43 @@ class User(Base):
         cascade="all, delete-orphan",
     )
 
+    yearly_goals: Mapped[List["UserYearlyGoal"]] = relationship(
+        "UserYearlyGoal",
+        back_populates="user",
+        cascade="all, delete-orphan",
+    )
+
     def __repr__(self) -> str:
         return (
             f"<User id={self.id} username={self.username!r} email={self.email!r} "
             f"deleted_at={self.deleted_at!r} "
             f"max_subtask_depth_user={self.max_subtask_depth_user}>"
         )
+
+
+class UserYearlyGoal(Base):
+    """Annual goals for user trackers (e.g. series, books, movies)."""
+    
+    __tablename__ = "user_yearly_goals"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    user_id: Mapped[int] = mapped_column(
+        Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    
+    year: Mapped[int] = mapped_column(Integer, nullable=False, index=True)
+    tracker_type: Mapped[str] = mapped_column(String(50), nullable=False) 
+    goal_value: Mapped[int] = mapped_column(Integer, nullable=False)
+
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=lambda: datetime.now(timezone.utc)
+    )
+
+    user: Mapped["User"] = relationship("User", back_populates="yearly_goals")
+
+    __table_args__ = (
+        UniqueConstraint("user_id", "year", "tracker_type", name="ux_user_year_tracker"),
+    )
+
+    def __repr__(self) -> str:
+        return f"<UserYearlyGoal user_id={self.user_id} year={self.year} tracker={self.tracker_type} goal={self.goal_value}>"

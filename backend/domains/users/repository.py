@@ -6,7 +6,7 @@ from datetime import datetime, timezone
 from sqlalchemy import func, or_
 from sqlalchemy.orm import Session
 
-from backend.domains.users.models import User
+from backend.domains.users.models import User, UserYearlyGoal
 
 
 def email_in_use(db: Session, email: str) -> bool:
@@ -132,3 +132,35 @@ def get_deleted_by_username_or_email(db: Session, username: str, email: str) -> 
         .filter(User.deleted_at.is_not(None))
         .first()
     )
+
+
+def get_yearly_goal(db: Session, user_id: int, tracker_type: str, year: int) -> UserYearlyGoal | None:
+    return (
+        db.query(UserYearlyGoal)
+        .filter(
+            UserYearlyGoal.user_id == user_id,
+            UserYearlyGoal.tracker_type == tracker_type,
+            UserYearlyGoal.year <= year
+        )
+        .order_by(UserYearlyGoal.year.desc())
+        .first()
+    )
+
+
+def get_exact_yearly_goal(db: Session, user_id: int, tracker_type: str, year: int) -> UserYearlyGoal | None:
+    return (
+        db.query(UserYearlyGoal)
+        .filter(
+            UserYearlyGoal.user_id == user_id,
+            UserYearlyGoal.tracker_type == tracker_type,
+            UserYearlyGoal.year == year
+        )
+        .first()
+    )
+
+
+def save_yearly_goal(db: Session, goal: UserYearlyGoal) -> UserYearlyGoal:
+    db.add(goal)
+    db.commit()
+    db.refresh(goal)
+    return goal

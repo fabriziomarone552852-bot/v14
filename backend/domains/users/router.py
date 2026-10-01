@@ -41,3 +41,39 @@ def delete_my_account(
         deleted_by_user_id=current_user.id,
     )
     return {"detail": "Account disattivato correttamente"}
+
+
+@router.get("/me/yearly-goals/{tracker_type}", response_model=schemas.UserYearlyGoalResponse)
+def get_my_yearly_goals(
+    tracker_type: str,
+    year: int,
+    current_user: User = Depends(deps.get_current_app_user),
+    db: Session = Depends(deps.get_db)
+):
+    """Restituisce l'obiettivo annuale per un determinato tracker_type e anno, 
+    ereditando eventualmente quello dell'anno precedente se non è stato sovrascritto.
+    Ritorna 404 se non esiste alcun record per l'anno in corso o passati.
+    """
+    goal = service.get_yearly_goal(db, current_user.id, tracker_type, year)
+    if not goal:
+        # Fallback value if no goal is ever set, or simply return 404
+        # We'll return 404 so the frontend knows there's no data
+        from fastapi import HTTPException
+        raise HTTPException(status_code=404, detail="Nessun obiettivo trovato per questo tracker")
+    return goal
+
+
+@router.put("/me/yearly-goals/{tracker_type}", response_model=schemas.UserYearlyGoalResponse)
+def set_my_yearly_goal(
+    tracker_type: str,
+    year: int,
+    goal_in: schemas.UserYearlyGoalUpdate,
+    current_user: User = Depends(deps.get_current_app_user),
+    db: Session = Depends(deps.get_db)
+):
+    """Imposta o aggiorna l'obiettivo annuale per un determinato tracker e anno.
+    Se esiste già un record per l'anno specificato, lo aggiorna.
+    Se non esiste (stiamo ereditando da un anno precedente), crea un nuovo record 
+    per l'anno richiesto senza toccare i dati degli anni precedenti.
+    """
+    return service.set_yearly_goal(db, current_user.id, tracker_type, year, goal_in.goal_value)

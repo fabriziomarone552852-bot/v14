@@ -22,43 +22,24 @@ export const CHANGELOG_HISTORY: ChangelogItem[] = [
     isLatest: true,
     published: false,
     highlights: [
-      'Nuova Sezione Serie TV: Gestione completa con sincronizzazione TMDB e nuovo layout a comparsa morbida.',
-      'Pattern "Diario" per il tracking degli episodi: supporta visioni multiple (rewatch) e storico completo.',
-      'Nuova UI Recensioni e Citazioni: riepilogo voti integrato e gestione citazioni per ogni episodio.',
-      'Nuova Inbox Notifiche integrata per messaggi effimeri, richieste amicizia e interazioni sociali.'
+      'Nuova Sezione Serie TV (Modulo Media): Gestione completa con sincronizzazione TMDB, liste personalizzate e tracking episodi avanzato.',
+      'Architettura Liste Multimediali: Creato database e backend per raggruppare film, serie e libri trasversalmente.',
+      'Nuova Inbox Notifiche: Integra messaggi effimeri, richieste amicizia, notifiche di sistema e inviti ai gruppi spesa.',
+      'Menzioni (@username) nei commenti: Autocompletamento, bolle in stile chat e notifiche mirate con deep-linking diretto per rispondere alle recensioni degli amici.'
     ],
     features: [
-
-        'Integrazione Completa Backend per Recensioni e Commenti: Salvataggio e recupero dati reali per valutazioni serie ed episodi.',
-        'Deep-Linking Notifiche: Le notifiche dei commenti ora aprono direttamente il modale corretto della serie in background.','Architettura Liste Multimediali: Creato il database e il backend per raggruppare film, serie e libri in liste personalizzate trasversali.',
-      'Modale Gestione Liste: Nuova interfaccia Master-Detail integrata nelle serie tv per creare, modificare e gestire liste (Privacy e contenuti).',
-      'Modale di dettaglio Serie TV edge-to-edge con pulsanti overlay e status badge colorato.',
-      'Badge Liste Intelligenti: Modale Serie TV con layout dinamico in base allo spazio, per mostrare i badge delle liste o raggrupparli se lo spazio è poco.',
-      'Privacy granulare per le recensioni (visibili solo agli amici o pubbliche).',
-      'Nuovo layout "Prossime Uscite" dinamico nella sidebar, con fallback per le locandine mancanti.',
-      'Commenti alle Recensioni (UI): Layout in stile thread/chat per rispondere alle recensioni degli amici.',
-      'Messaggi Effimeri (UI): Invia messaggi a scomparsa direttamente dalla lista amici nella nuova Inbox.',
-      'Integrazione Inviti Gruppi Spesa: Ricevi notifiche nell\'Inbox con navigazione diretta e apertura automatica del modale del gruppo.'
+      'Commenti alle Recensioni: Layout a thread con privacy granulare per interagire con le recensioni degli amici.',
+      'Messaggistica Effimera: Invia messaggi a scomparsa direttamente dalla lista amici nella nuova Inbox.',
+      'Pattern Diario (Rewatch): Supporto per tracking visioni multiple degli episodi.',
+      'Layout Serie TV Edge-to-Edge: Modale dinamico, badge liste intelligenti e carousel Prossime Uscite ottimizzato.',
+      'Gestione Obiettivi Annuali Trackers: Nuova struttura DB (UserYearlyGoal) e API dinamica con fallback agli anni precedenti per impostare e aggiornare gli obiettivi annuali direttamente dalla UI.'
     ],
     improvements: [
-      'Sistema Notifiche Thread: Implementato il "Sistema 1" per le recensioni. Quando partecipi commentando una recensione (tua o di un amico), riceverai automaticamente una notifica ogni volta che qualcun altro aggiungerà un commento alla stessa discussione ("X ha partecipato alla discussione...").',
-      'UI/UX Recensioni: Ripristinata correttamente l\'etichetta "X commenti" nelle liste riepilogative delle recensioni di serie ed episodi (sia proprie che degli amici) prima di espanderle.',
-      'UI/UX Notifiche: L\'autore di un commento su una propria recensione non riceverà più una notifica superflua per la sua stessa azione.',
-      'Deep-Linking Avanzato Notifiche: Cliccando sulla notifica di un commento, l\'app non solo apre la serie e la tab corretta, ma espande direttamente il thread della singola recensione per leggere subito le risposte.',
-      'UI/UX: Testo delle notifiche personalizzato ("Qualcuno ha commentato la tua recensione di ...") per una lettura istantanea senza rivelare spoiler del commento.',
-      'UI/UX: Migliorata l\'indicazione della privacy per le recensioni utilizzando icone visive.',
-      'Aggiunto calcolo automatico e sincronizzazione dello stato (In lista / In visione / Completata) per le Serie TV in base agli episodi visti.',
-      'Ottimizzato il layout degli avatar degli amici nel modale della serie, ora posizionati in una riga dedicata sopra le liste.',
-      'Notifiche Permanenti e Ordine Cronologico: Tutte le notifiche di sistema (inviti, alert) restano nello storico ordinate dalla più recente.',
-      'Interfaccia Gestione Liste allineata al design system dell\'app (stessi shadow, font e formati del pannello Task).',
-      'Migliorato il calcolo delle medie voti per le stagioni e livellato il comportamento del tasto "+1".',
-      'Nuovo pannello laterale per vedere gli amici che stanno guardando la stessa serie.',
-      'Miglioramenti estetici: scrollbar a gradiente morbido, valutazioni a stelle e UI ottimizzata per le unità di misura.',
-      'UI Commenti: Indicatori minimalisti inline nelle card per non sprecare spazio verticale.',
-      'Migliorato il sistema di recensioni: conversione accurata in stelle 1-5, e inserite azioni rapide di Modifica/Elimina direttamente in testa alla finestra di lettura.',
-      'Segnalatore visivo (pallino rosso) costante sul bottone delle citazioni per le puntate che ne contengono gi.',
-      'Tasto Notifiche Inbox: Ora l\'intero pulsante pulsa in rosso quando ci sono messaggi non letti.',
-      'Aggiunto indicatore visivo di caricamento (Skeleton) per gli avatar degli amici nel modale Serie TV.'
+      'Deep-Linking Notifiche: Le notifiche ora aprono il dettaglio corretto (es. posizionamento sul commento o gruppo spesa).',
+      'Sincronizzazione Stato: Calcolo automatico di In corso/Completata per le serie TV in base agli episodi visti.',
+      'UI/UX: Avatar degli amici con default avatar, posizionati in riga dedicata, scrollbar a gradiente e icone visive della privacy.',
+      'Estetica Modali: Indicatori visivi inline minimalisti, skeleton loading per avatar e modali allineati al design system globale.',
+      'Sistema Voti: Calcolo medie stagioni, conversione stelle 1-5, tasti Modifica/Elimina in testa alla pagina.'
     ],
     fixes: [
       'Backend: Aggiunta la colonna `vote_average` al database per TMDBSeries e TMDBEpisode. Ora i voti di TMDB (convertiti in quinti) sono di nuovo visibili sia nella panoramica Serie che nel dettaglio Episodio.',
