@@ -82,6 +82,14 @@ def get_stats(
     return service.get_dashboard_stats(db, current_user)
 
 
+@router.get("/series/full-stats")
+def get_full_stats(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_app_user),
+):
+    from backend.domains.trackers.schemas import TVFullStats
+    return service.get_full_stats(db, current_user)
+
 @router.get("/series/{tmdb_id}", response_model=TVSeriesResponse)
 async def get_series_detail(
     tmdb_id: int,

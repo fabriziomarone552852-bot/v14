@@ -80,6 +80,16 @@ export const useSeriesStats = () => {
   });
 };
 
+export const useFullSeriesStats = () => {
+  return useQuery<any>({
+    queryKey: ['trackers', 'series', 'full-stats'],
+    queryFn: async () => {
+      const data = await api.get<any>('/trackers/series/full-stats');
+      return data;
+    },
+  });
+};
+
 export const useMyQuotes = () => {
   return useQuery<any[]>({
     queryKey: ['trackers', 'quotes'],

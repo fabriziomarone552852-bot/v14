@@ -10,6 +10,7 @@ import { api } from '@/api/apiService';
 import { userGoalsApi } from '@/api/userGoalsApi';
 import { GlassCardWidget } from './components/GlassCardWidget';
 import RandomSeriesModal from './components/RandomSeriesModal';
+import SeriesStatsModal from './components/SeriesStatsModal';
 import { SeriesDetailModal, type TabType } from './components/SeriesDetailModal';
 import type { TMDBEpisode } from '../../types/trackers';
 import { generateWeeksGrid, nomiMesiLungo, getFirstDayIndex, getDaysInMonth } from '@/utils/dateUtils';
@@ -277,6 +278,7 @@ const TVSeriesPage: React.FC = () => {
   const [debouncedQuery, setDebouncedQuery] = useState('');
   const [isQuoteExpanded, setIsQuoteExpanded] = useState(false);
   const [isRandomModalOpen, setRandomModalOpen] = useState(false);
+  const [statsModalOpen, setStatsModalOpen] = useState(false);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -439,7 +441,7 @@ const TVSeriesPage: React.FC = () => {
                   <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
                 </button>
                 <button 
-                  onClick={(e) => { e.stopPropagation(); /* TODO: apri statistiche */ }} 
+                  onClick={(e) => { e.stopPropagation(); setStatsModalOpen(true); }} 
                   className="bg-blue-50 text-blue-600 p-1.5 rounded-lg hover:bg-blue-100 border border-blue-200 shadow-sm transition-colors"
                   title="Vedi Statistiche"
                 >
@@ -782,6 +784,10 @@ const TVSeriesPage: React.FC = () => {
           }}
         />
       )}
+      {statsModalOpen && (
+        <SeriesStatsModal onClose={() => setStatsModalOpen(false)} />
+      )}
+
     </div>
   );
 };
