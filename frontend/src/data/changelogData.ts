@@ -32,7 +32,8 @@ export const CHANGELOG_HISTORY: ChangelogItem[] = [
       'Messaggistica Effimera: Invia messaggi a scomparsa direttamente dalla lista amici nella nuova Inbox.',
       'Pattern Diario (Rewatch): Supporto per tracking visioni multiple degli episodi.',
       'Layout Serie TV Edge-to-Edge: Modale dinamico, badge liste intelligenti e carousel Prossime Uscite ottimizzato.',
-      'Gestione Obiettivi Annuali Trackers: Nuova struttura DB (UserYearlyGoal) e API dinamica con fallback agli anni precedenti per impostare e aggiornare gli obiettivi annuali direttamente dalla UI.'
+      'Gestione Obiettivi Annuali Trackers: Nuova struttura DB (UserYearlyGoal) e API dinamica con fallback agli anni precedenti per impostare e aggiornare gli obiettivi annuali direttamente dalla UI.',
+      'Disponibilità Piattaforme Streaming: Integrazione dinamica dei dati JustWatch per mostrare su quali servizi (Netflix, Prime Video, ecc.) è attualmente disponibile la serie TV visualizzata.'
     ],
     improvements: [
       'Deep-Linking Notifiche: Le notifiche ora aprono il dettaglio corretto (es. posizionamento sul commento o gruppo spesa).',

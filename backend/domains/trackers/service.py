@@ -177,6 +177,21 @@ async def fetch_tmdb_series_details(tmdb_id: int) -> dict:
 
     return data
 
+async def fetch_tmdb_series_providers(tmdb_id: int) -> dict:
+    url = f"{TMDB_BASE_URL}/tv/{tmdb_id}/watch/providers"
+    async with httpx.AsyncClient(timeout=15.0) as client:
+        response = await client.get(url, headers=get_tmdb_headers())
+    
+    if response.status_code != 200:
+        return {}
+    
+    data = response.json()
+    results = data.get("results", {})
+    # Return IT providers if available, else empty
+    it_providers = results.get("IT", {})
+    return it_providers
+
+
 
 def safe_date(date_str: str | None):
     if not date_str:

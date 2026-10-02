@@ -357,6 +357,14 @@ def get_friends_episode_reviews(
 ):
     return service.get_friends_episode_logs(db, current_user, episode_id)
 
+@router.get("/series/{tmdb_id}/providers")
+async def get_series_providers(
+    tmdb_id: int,
+    current_user: User = Depends(get_current_app_user),
+):
+    return await service.fetch_tmdb_series_providers(tmdb_id)
+
+
 @router.get("/series/{tmdb_id}/preview", response_model=TVSeriesResponse)
 async def get_series_preview(
     tmdb_id: int,

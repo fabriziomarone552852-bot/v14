@@ -86,6 +86,20 @@ export const SeriesDetailModal: React.FC<SeriesDetailModalProps> = ({
     }
   });
 
+  const { data: providersData } = useQuery({
+    queryKey: ['trackers', 'series', 'providers', tmdbIdToFetch],
+    queryFn: async () => {
+      try {
+        const res = await api.get<any>(`/trackers/series/${tmdbIdToFetch}/providers`);
+        return res || null;
+      } catch (err) {
+        return null;
+      }
+    },
+    enabled: isOpen && !!tmdbIdToFetch,
+    staleTime: 24 * 60 * 60 * 1000, // 24 hours
+  });
+
   // Normalizziamo i dati aggirando oggetti freezati
   const isUserTracked = 'status' in series;
   let userTracking = isUserTracked ? (series as UserSeriesTracking) : null;
@@ -199,12 +213,32 @@ export const SeriesDetailModal: React.FC<SeriesDetailModalProps> = ({
           </button>
 
           {/* BADGES IN ALTO A SINISTRA (sopra la locandina) */}
-          <div className="absolute top-4 left-6 flex flex-wrap gap-2 max-w-xl z-20">
-            {genres.map(g => (
-              <span key={g} className="px-3 py-1 bg-black/40 text-white text-xs font-bold rounded-full backdrop-blur-md border border-white/20 shadow-lg">
-                {g}
-              </span>
-            ))}
+          <div className="absolute top-4 left-6 flex flex-col gap-3 max-w-xl z-20">
+            <div className="flex flex-wrap gap-2">
+              {genres.map(g => (
+                <span key={g} className="px-3 py-1 bg-black/40 text-white text-xs font-bold rounded-full backdrop-blur-md border border-white/20 shadow-lg">
+                  {g}
+                </span>
+              ))}
+            </div>
+
+            {/* Piattaforme Streaming */}
+            {providersData?.flatrate?.length > 0 && (
+              <div className="flex flex-wrap gap-2 items-center">
+                {providersData.flatrate.map((provider: any) => (
+                  <div key={provider.provider_id} className="relative group/provider flex items-center">
+                    <img 
+                      src={`https://image.tmdb.org/t/p/original${provider.logo_path}`} 
+                      alt={provider.provider_name}
+                      className="w-7 h-7 rounded-md shadow-md border border-white/20 bg-white"
+                    />
+                    <div className="absolute top-full mt-1 left-1/2 -translate-x-1/2 bg-gray-900 text-white text-[10px] font-bold px-2 py-1 rounded opacity-0 group-hover/provider:opacity-100 transition-opacity whitespace-nowrap pointer-events-none shadow-lg z-30">
+                      {provider.provider_name}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* AMICI CHE LA GUARDANO E LISTE (In basso a destra) */}

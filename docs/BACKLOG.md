@@ -1,4 +1,4 @@
-﻿# ÃƒÂ°Ã…Â¸Ã¢Â€ÂœÃ…Â’ Backlog FunzionalitÃƒÂƒÃ‚Â  & Roadmap Progetto
+# ÃƒÂ°Ã…Â¸Ã¢Â€ÂœÃ…Â’ Backlog FunzionalitÃƒÂƒÃ‚Â  & Roadmap Progetto
 
 Questo documento serve a tracciare in modo strutturato:
 1. **FunzionalitÃƒÂƒÃ‚Â  implementate nel Backend ma non ancora integrate nel Frontend** (Desktop e/o Mobile).
@@ -39,6 +39,7 @@ Questo documento serve a tracciare in modo strutturato:
 | **FEAT-001** | Liste Spesa: Preferite & Pinnate (`pin_status`) | `shopping` | ÃƒÂ°Ã…Â¸Ã…Â¸Ã‚Â¢ Completato | ÃƒÂ°Ã…Â¸Ã¢Â€ÂÃ‚Â´ Da Implementare | Media-Alta |
 | **FEAT-002** | Gestione Inventario Spesa, Inserimento Prezzi & Lotti (`inventory_batches`) | `shopping` | ÃƒÂ°Ã…Â¸Ã…Â¸Ã‚Â¢ Completato | ÃƒÂ°Ã…Â¸Ã…Â¸Ã‚Â¢ Completato | ÃƒÂ°Ã…Â¸Ã…Â¸Ã‚Â¢ **Completato** |
 | **FEAT-003** | **Dashboard Analytics & Storico Prezzi** | `analytics` | ÃƒÂ°Ã…Â¸Ã…Â¸Ã‚Â¢ Completato | ÃƒÂ°Ã…Â¸Ã¢Â€ÂÃ‚Â´ Da Implementare | Bassa |
+| **UI-002** | Fix Orario e Minuti nei Modali Eventi (Calendario) | calendar / UI | N/A | 🔴 Da Implementare | 🟡 Media |
 | **UI-001** | **Selezione Multipla nella Versione Mobile** | `mobile` / UI | ÃƒÂ°Ã…Â¸Ã…Â¸Ã‚Â¢ Completato | ÃƒÂ°Ã…Â¸Ã…Â¸Ã‚Â¢ Completato | ÃƒÂ°Ã…Â¸Ã…Â¸Ã‚Â¢ **Completato** |
 | **TECH-001** | **Verifica & Ottimizzazione Bundle APK Android (Code-Splitting)** | `build` / APK | N/A | ÃƒÂ°Ã…Â¸Ã…Â¸Ã‚Â¢ Completato | Media |
 | **TECH-002** | Spostamento Tasto Switch in Impostazioni / Danger Zone | `routing` / UI | N/A | ÃƒÂ°Ã…Â¸Ã…Â¸Ã‚Â¢ Completato | Bassa |
@@ -127,6 +128,13 @@ Centralizzare le citazioni giornaliere (Quotes) tramite tabella database dedicat
 ---
 
 ## ÃƒÂ¢Ã…Â¡Ã¢Â„Â¢ÃƒÂ¯Ã‚Â¸Ã‚Â 3. Build, Packaging APK & Ottimizzazioni Tecniche
+
+### [UI-002] Fix Selezione Orario e Minuti Modali Eventi
+
+#### 📝 Descrizione
+Sistemare e perfezionare la selezione dell'orario (in particolare i minuti) nei modali di creazione/modifica degli eventi nel Calendario, per garantirne il corretto salvataggio e visualizzazione.
+
+---
 
 ### [TECH-001] Controllo & Ottimizzazione Bundle APK Android (Code-Splitting)
 
@@ -237,6 +245,7 @@ Nuovo modulo completo per gestire, catalogare e monitorare l'intrattenimento per
   - Ã°ÂŸÂ“Â¡ **âœ… Rimozione Dati Mock & Integrazione API (Completato)**: Sostituzione dei Dati Mock (obiettivo annuale, citazioni, serie recenti, carousel prossime uscite, e **Integrazione completa Liste Multimediali e MediaListManagerModal**) con fetch reali dal Database e logica TMDB / React Query.
   - Ã°ÂŸÂŽÂ¨ **UI Schermata di Dettaglio Completata**: Il design del modale di dettaglio della singola serie ÃƒÂ¨ stato completato e rifinito (gestione cast, layout colonne, header integrato, status badge in overlay, e pannello liste).
   - ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Â¨ Gestione dello stato "Empty" per l'assenza di serie.
+  - â Œ **Date di Uscita Italiane (Impossibile)**: L'estrazione delle date di uscita regionali (italiane) per gli episodi non Ã¨ supportata tecnicamente da TMDB, che traccia unicamente la prima data assoluta di messa in onda (first_air_date globale). Si manterrÃ  la data globale poiché integrare API esterne commerciali (Gracenote/JustWatch) ha costi proibitivi per app indipendenti.
 
 #### ÃƒÂ°Ã…Â¸Ã¢Â€ÂÃ¢Â€Âž 4. Analisi Integrazioni Esterne & Sincronizzazione (Goodreads, Fable, TV Time)
 - **FattibilitÃƒÂƒÃ‚Â  Sincronizzazione Piattaforme Esterne**:
@@ -564,7 +573,5 @@ Breve spiegazione di cosa fa la funzionalitÃƒÂƒÃ‚Â  dal punto di vista 
 
 
 
-### [TRACKERS-004] Date di Uscita Italiane vs TMDB (Air Dates)
-- **Obiettivo**: Indagare e valutare se sia possibile ottenere le date di uscita italiane (o localizzate) dalle API di TMDB per gli episodi delle Serie TV, dal momento che attualmente ir_date restituisce di default la data di prima messa in onda assoluta (solitamente statunitense).
-- **UI/UX**: Aggiornare la logica di recupero e l'ordinamento in base alla regione dell'utente o mostrare doppia data se rilevante.
-
+### [TRACKERS-004] Date di Uscita Italiane vs TMDB (Air Dates) - 🔴 CHIUSO / IMPOSSIBILE
+- **Esito**: Indagine completata. Come riportato nella sezione Serie TV, l\'estrazione delle date di uscita regionali (italiane) per gli episodi singoli non è supportata tecnicamente dalle API gratuite di TMDB (che traccia solo la irst_air_date globale assoluta). L\'integrazione di API esterne (es. Gracenote) ha costi proibitivi. Pertanto l\'app manterrà la data globale.
