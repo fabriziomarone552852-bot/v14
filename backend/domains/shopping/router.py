@@ -37,6 +37,8 @@ from backend.domains.shopping.schemas.catalog import (
     ShoppingProductCreate,
     ShoppingProductResponse,
     ShoppingProductUpdate,
+    ShoppingProductBrandCreate,
+    ShoppingProductBrandResponse,
     ShoppingSupplierCreate,
     ShoppingSupplierResponse,
     ShoppingSupplierUpdate,
@@ -260,6 +262,42 @@ def update_product(
     current_user: User = Depends(deps.get_current_app_user),
 ):
     return service.update_product(db, current_user, product_id, product_in)
+
+
+@router.post(
+    "/products/{product_id}/brands",
+    response_model=ShoppingProductBrandResponse,
+    status_code=status.HTTP_201_CREATED,
+)
+def link_product_brand(
+    product_id: int,
+    brand_in: ShoppingProductBrandCreate,
+    db: Session = Depends(deps.get_db),
+    current_user: User = Depends(deps.get_current_app_user),
+):
+    return service.link_product_brand(
+        db,
+        current_user,
+        product_id=product_id,
+        brand_id=brand_in.brand_id,
+        notes=brand_in.notes,
+    )
+
+
+@router.delete(
+    "/products/{product_id}/brands/{brand_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+    response_class=Response,
+)
+def unlink_product_brand(
+    product_id: int,
+    brand_id: int,
+    db: Session = Depends(deps.get_db),
+    current_user: User = Depends(deps.get_current_app_user),
+):
+    service.unlink_product_brand(db, current_user, product_id=product_id, brand_id=brand_id)
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
+
 
 
 @router.get("/items", response_model=List[ShoppingListItemResponse])

@@ -37,6 +37,7 @@ export const CHANGELOG_HISTORY: ChangelogItem[] = [
       'Disponibilità Piattaforme Streaming: Integrazione dinamica dei dati JustWatch per mostrare su quali servizi (Netflix, Prime Video, ecc.) è attualmente disponibile la serie TV visualizzata.',
       'Inserimento Rapido da Catalogo (Modulo Shopping): Vista tabellare A-Z per inserire/rimuovere articoli nella lista spesa tramite checkbox reattive, attivabile con doppio click discreto sul titolo Shopping & Spesa su desktop e con pressione prolungata (Long-press) sull\'icona borsa su mobile.',
       'Gestione Multipla Articoli Spesa: Selezione multipla con toolbar contestuale su Web-App e barra di selezione su Smartphone, con funzioni per spostamento rapido tra liste, copia preservata da liste chiuse e cancellazione massiva.',
+      'Refactoring Catalogo Prodotti & Tabella Ponte Brand (Modulo Shopping): Disaccoppiamento di ShoppingProducts (catalogo asettico senza duplicati) e introduzione della tabella ponte N:N `shopping_product_brands` per associare molteplici brand a un prodotto con note e commenti qualitativi persistenti nel tempo.',
     ],
     improvements: [
       'Deep-Linking Notifiche: Le notifiche ora aprono il dettaglio corretto (es. posizionamento sul commento o gruppo spesa).',

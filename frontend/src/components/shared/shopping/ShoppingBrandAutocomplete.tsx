@@ -70,24 +70,32 @@ export const ShoppingBrandAutocomplete: React.FC<ShoppingBrandAutocompleteProps>
     };
   }, [isOpen]);
 
-  // Brand precedentemente associati a questo prodotto
-  const productAssociatedBrandNames = useMemo(() => {
+  // Mappa dei brand precedentemente associati a questo prodotto con le relative note
+  const productAssociatedBrands = useMemo(() => {
     const pName = (productName || '').trim().toLowerCase();
-    if (!pName) return new Set<string>();
+    if (!pName) return new Map<string, { notes?: string | null }>();
 
     const matching = products.filter((p) => {
       const name = (p?.displayName || p?.nameNormalized || '').toLowerCase();
       return name === pName;
     });
 
-    const set = new Set<string>();
+    const map = new Map<string, { notes?: string | null }>();
     matching.forEach((p) => {
-      if (p?.brandName) {
-        set.add(p.brandName.trim().toLowerCase());
+      // Dalla nuova tabella ponte N:N productBrands
+      if (p?.productBrands && p.productBrands.length > 0) {
+        p.productBrands.forEach((pb) => {
+          const bName = pb.brand?.nameNormalized || brands.find((b) => b.id === pb.brandId)?.name;
+          if (bName) {
+            map.set(bName.trim().toLowerCase(), { notes: pb.notes });
+          }
+        });
+      } else if (p?.brandName) {
+        map.set(p.brandName.trim().toLowerCase(), { notes: null });
       }
     });
-    return set;
-  }, [productName, products]);
+    return map;
+  }, [productName, products, brands]);
 
   // Lista brand filtrata, deduplicata e ordinata per rilevanza rispetto al prodotto
   const suggestions = useMemo(() => {
@@ -109,14 +117,14 @@ export const ShoppingBrandAutocomplete: React.FC<ShoppingBrandAutocompleteProps>
     return uniqueList.sort((a, b) => {
       const aName = (a?.name || '').toLowerCase();
       const bName = (b?.name || '').toLowerCase();
-      const aAssoc = productAssociatedBrandNames.has(aName);
-      const bAssoc = productAssociatedBrandNames.has(bName);
+      const aAssoc = productAssociatedBrands.has(aName);
+      const bAssoc = productAssociatedBrands.has(bName);
 
       if (aAssoc && !bAssoc) return -1;
       if (!aAssoc && bAssoc) return 1;
       return aName.localeCompare(bName);
     }).slice(0, 10);
-  }, [value, brands, productAssociatedBrandNames]);
+  }, [value, brands, productAssociatedBrands]);
 
   const exactMatch = useMemo(() => {
     const q = (value || '').trim().toLowerCase();
@@ -179,7 +187,10 @@ export const ShoppingBrandAutocomplete: React.FC<ShoppingBrandAutocompleteProps>
       {suggestions.map((b, idx) => {
         const isHighlighted = idx === highlightedIndex;
         const brandName = b?.name || '';
-        const isAssociated = brandName ? productAssociatedBrandNames.has(brandName.toLowerCase()) : false;
+        const assocInfo = brandName ? productAssociatedBrands.get(brandName.toLowerCase()) : undefined;
+        const isAssociated = assocInfo !== undefined;
+        const notes = assocInfo?.notes;
+
         return (
           <button
             key={b.id}
@@ -193,11 +204,18 @@ export const ShoppingBrandAutocomplete: React.FC<ShoppingBrandAutocompleteProps>
                 : 'text-gray-700 hover:bg-blue-50/70 hover:text-blue-700'
             }`}
           >
-            <div className="flex items-center gap-1.5 truncate">
-              <span className="truncate">{brandName}</span>
-              {isAssociated && (
-                <span className="px-1.5 py-0.5 rounded-full text-[10px] font-medium bg-blue-100 text-blue-700 shrink-0">
-                  Consigliato
+            <div className="flex flex-col min-w-0 pr-1">
+              <div className="flex items-center gap-1.5 truncate">
+                <span className="truncate">{brandName}</span>
+                {isAssociated && (
+                  <span className="px-1.5 py-0.5 rounded-full text-[10px] font-medium bg-blue-100 text-blue-700 shrink-0">
+                    Consigliato
+                  </span>
+                )}
+              </div>
+              {notes && (
+                <span className="text-[10px] font-normal text-amber-700 italic truncate mt-0.5">
+                  📝 {notes}
                 </span>
               )}
             </div>

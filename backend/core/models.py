@@ -44,8 +44,83 @@ def ensure_database_schema_compat() -> None:
             "ALTER TABLE shopping_suppliers DROP COLUMN IF EXISTS name;",
             "ALTER TABLE shopping_suppliers ADD COLUMN IF NOT EXISTS type_code INTEGER NOT NULL DEFAULT 1;",
             "CREATE INDEX IF NOT EXISTS ix_shopping_suppliers_type_code ON shopping_suppliers (type_code);",
-            "ALTER TABLE shopping_products ADD COLUMN IF NOT EXISTS brand_id INTEGER REFERENCES shopping_suppliers(id) ON DELETE SET NULL;",
-            "CREATE INDEX IF NOT EXISTS ix_shopping_products_brand_id ON shopping_products (brand_id);",
+            """
+            CREATE TABLE IF NOT EXISTS shopping_product_brands (
+                id SERIAL PRIMARY KEY,
+                product_id INTEGER NOT NULL REFERENCES shopping_products(id) ON DELETE CASCADE,
+                brand_id INTEGER NOT NULL REFERENCES shopping_suppliers(id) ON DELETE CASCADE,
+                notes TEXT,
+                created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+                updated_at TIMESTAMP WITH TIME ZONE,
+                CONSTRAINT uq_shopping_product_brands UNIQUE (product_id, brand_id)
+            );
+            """,
+            "CREATE INDEX IF NOT EXISTS ix_shopping_product_brands_product_id ON shopping_product_brands(product_id);",
+            "CREATE INDEX IF NOT EXISTS ix_shopping_product_brands_brand_id ON shopping_product_brands(brand_id);",
+            """
+            DO $$
+            BEGIN
+                IF EXISTS (
+                    SELECT 1 FROM information_schema.columns 
+                    WHERE table_name = 'shopping_products' AND column_name = 'brand_id'
+                ) THEN
+                    INSERT INTO shopping_product_brands (product_id, brand_id, created_at)
+                    SELECT id, brand_id, NOW()
+                    FROM shopping_products
+                    WHERE brand_id IS NOT NULL
+                    ON CONFLICT DO NOTHING;
+                END IF;
+            END $$;
+            """,
+            "ALTER TABLE shopping_products DROP COLUMN IF EXISTS brand_id CASCADE;",
+            """
+            DO $$
+            DECLARE
+                rec RECORD;
+                canonical_id INTEGER;
+            BEGIN
+                -- Deduplicazione e compattazione dei record multipli in shopping_products
+                FOR rec IN (
+                    SELECT name_normalized, MIN(id) AS min_id, ARRAY_AGG(id ORDER BY id) AS all_ids
+                    FROM shopping_products
+                    GROUP BY name_normalized
+                    HAVING COUNT(*) > 1
+                ) LOOP
+                    canonical_id := rec.min_id;
+
+                    -- 1. Unisci i brand collegati evitando duplicati (product_id, brand_id)
+                    INSERT INTO shopping_product_brands (product_id, brand_id, notes, created_at, updated_at)
+                    SELECT canonical_id, spb.brand_id, spb.notes, spb.created_at, spb.updated_at
+                    FROM shopping_product_brands spb
+                    WHERE spb.product_id = ANY(rec.all_ids)
+                      AND spb.product_id != canonical_id
+                    ON CONFLICT (product_id, brand_id) DO NOTHING;
+
+                    -- Cancella i legami dei duplicati
+                    DELETE FROM shopping_product_brands
+                    WHERE product_id = ANY(rec.all_ids)
+                      AND product_id != canonical_id;
+
+                    -- 2. Riassegna shopping_list_items al canonical_id
+                    UPDATE shopping_list_items
+                    SET product_id = canonical_id
+                    WHERE product_id = ANY(rec.all_ids)
+                      AND product_id != canonical_id;
+
+                    -- 3. Riassegna inventory_batch al canonical_id
+                    UPDATE inventory_batch
+                    SET product_id = canonical_id
+                    WHERE product_id = ANY(rec.all_ids)
+                      AND product_id != canonical_id;
+
+                    -- 4. Elimina i record prodotto duplicati
+                    DELETE FROM shopping_products
+                    WHERE id = ANY(rec.all_ids)
+                      AND id != canonical_id;
+                END LOOP;
+            END $$;
+            """,
+            "CREATE UNIQUE INDEX IF NOT EXISTS uq_shopping_products_name_normalized ON shopping_products(name_normalized);",
             "ALTER TABLE events ADD COLUMN IF NOT EXISTS google_event_id VARCHAR(255);",
             "CREATE INDEX IF NOT EXISTS ix_events_google_event_id ON events (google_event_id);",
             """
