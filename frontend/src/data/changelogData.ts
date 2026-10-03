@@ -41,6 +41,7 @@ export const CHANGELOG_HISTORY: ChangelogItem[] = [
       'Refactoring Catalogo Prodotti & Tabella Ponte Brand (Modulo Shopping): Disaccoppiamento di ShoppingProducts (catalogo asettico senza duplicati) e introduzione della tabella ponte N:N `shopping_product_brands` per associare molteplici brand a un prodotto con note e commenti qualitativi persistenti nel tempo.',
     ],
     improvements: [
+      'Sostituita la finestra di conferma di sistema con il ConfirmDialog personalizzato nella pagina delle Serie TV.',
       'Deep-Linking Notifiche: Le notifiche ora aprono il dettaglio corretto (es. posizionamento sul commento o gruppo spesa).',
       'Sincronizzazione Stato: Calcolo automatico di In corso/Completata per le serie TV in base agli episodi visti.',
       'UI/UX: Avatar degli amici con default avatar, posizionati in riga dedicata, scrollbar a gradiente e icone visive della privacy.',
@@ -65,6 +66,7 @@ export const CHANGELOG_HISTORY: ChangelogItem[] = [
       'Fix UI Trama Serie: Inserita scrollbar per la trama principale così da evitare che testi troppo lunghi spingano la sezione Cast fuori dallo schermo.',
       'Implementata la chiamata API per recuperare e mostrare cast e serie consigliate dal database TMDB nel dettaglio della serie',
 
+        'Risolto il problema del filtro "Visti" (icona occhio) nella sezione Serie TV: ora mostra correttamente solo le serie in stato Completato o Visto (senza episodi rimanenti). Aggiunto anche il tab "In Corso" per le serie attualmente in visione con una nuova icona dedicata (Occhio con Play).',
         'Rimozione Dati Mock: Eliminati i dati temporanei da TVSeriesPage, SerieDetailModal, EpisodeDetailView per riflettere le informazioni del database.',
         'Ottimizzazione Empty States: Aggiornata l\'interfaccia di TVSeriesPage e SeriesReviewTab per gestire gracefully le liste vuote e le citazioni mancanti.','Risolto errore di backend 500 durante l\'invio di inviti a Gruppi Spesa a causa di un repository non trovato.',
       'Risolti vari crash backend legati alla ricerca TMDB e al caricamento serie orfane.',
