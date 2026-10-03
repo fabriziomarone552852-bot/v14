@@ -4,6 +4,30 @@ Questo file contiene i task storici che sono stati completati e rimossi dal `BAC
 
 ---
 
+### [SHOPPING-008] Refactoring Catalogo Prodotti, Tabella Ponte Brand N:N con Note & Compattazione DB (✅ Completato)
+
+#### 📋 Descrizione
+Disaccoppiamento del modello catalogo prodotti (shopping_products) per renderlo asettico e privo di duplicazioni (un solo record per tipo prodotto, es. una sola 'farina'). Creazione della tabella ponte molti-a-molti shopping_product_brands tra prodotti e marchi/fornitori con supporto a note e commenti qualitativi persistenti nel tempo (es. 'ottimo', 'da evitare'), con compattazione del database e integrazione UI desktop e mobile.
+
+#### ⚙️ Dettagli Implementazione & Funzionalità Raggiunte
+- **Catalogo Canonico Puro (shopping_products)**: Rimosso il campo rand_id e la relazione 1-a-1 diretta con i fornitori; applicato vincolo di unicità UNIQUE su 
+ame_normalized (uq_shopping_products_name_normalized).
+- **Tabella Ponte N:N (shopping_product_brands)**: Creata con i campi id, product_id (FK CASCADE), rand_id (FK CASCADE), 
+otes (TEXT), created_at, updated_at e vincolo UNIQUE (product_id, brand_id).
+- **Compattazione & Deduplicazione Automatica DB**: Procedura SQL transazionale eseguita all'avvio (ensure_database_schema_compat) e via migrazione Alembic (
+3o4p5q6r7s8) che riassegna le chiavi esterne di liste e lotti/acquisti al record prodotto canonico ed elimina i record duplicati orfani.
+- **Repository, Service & API REST**:
+  - POST /shopping/products/{product_id}/brands: endpoint per associare o aggiornare le note del brand.
+  - DELETE /shopping/products/{product_id}/brands/{brand_id}: endpoint per dissociare il brand.
+  - Ricerca, filtri e seeder aggiornati per popolare e utilizzare la tabella ponte.
+- **Frontend & UI/UX (Desktop & Mobile)**:
+  - **Autocomplete Prodotti**: L'utente visualizza un catalogo pulito senza duplicati.
+  - **Form Inserimento / Modifica Articolo** (ShoppingItemModal.tsx e MobileShoppingItemForm.tsx): Box interattivo 💡 Note e marchi già provati che mostra i brand già recensiti con le relative note storiche; cliccando su un badge viene selezionato direttamente quel brand.
+  - **Dropdown Brand** (ShoppingBrandAutocomplete.tsx): Mostra il badge *Consigliato* e le note qualitative associate sotto ciascun marchio.
+
+---
+
+
 ### [FEAT-002] Gestione Avanzata Inventario, Prezzi Rapidi & Lotti Spesa (âœ… Completato)
 
 #### ðŸ“� Descrizione

@@ -21,9 +21,10 @@ Questo documento serve a tracciare in modo strutturato:
 | **REBRAND-001** | **Rebranding App con Nome "Vita" e Nuova Icona Applicazione** | `brand` / `UI` | ÃƒÂ°Ã…Â¸Ã…Â¸Ã‚Â¢ Completato | ÃƒÂ°Ã…Â¸Ã…Â¸Ã‚Â¢ Completato | ÃƒÂ°Ã…Â¸Ã…Â¸Ã‚Â¢ **Completato** |
 | **HOME-001** | **Widget Homepage Rotante (Citazione del Giorno, Oroscopo & Meteo)** | `home` / `UI` | ÃƒÂ°Ã…Â¸Ã¢Â€ÂÃ‚Â´ Da Iniziare | ÃƒÂ°Ã…Â¸Ã¢Â€ÂÃ‚Â´ Da Iniziare | ÃƒÂ°Ã…Â¸Ã…Â¸Ã‚Â  **Alta** |
 | **SHOPPING-004** | **Ricerca & Visualizzazione Prezzi nel Modale Dettaglio Prodotto (per Brand)** | `shopping` / `UI` | ÃƒÂ°Ã…Â¸Ã¢Â€ÂÃ‚Â´ Da Iniziare | ÃƒÂ°Ã…Â¸Ã¢Â€ÂÃ‚Â´ Da Iniziare | ÃƒÂ°Ã…Â¸Ã…Â¸Ã‚Â  **Alta** |
-| **SEED-001** | **Pulizia Dati Seed Prodotti (Rimozione Marca e QuantitÃƒÂƒÃ‚Â  dal Nome)** | `shopping` / `seed` | ÃƒÂ°Ã…Â¸Ã¢Â€ÂÃ‚Â´ Da Iniziare | ÃƒÂ°Ã…Â¸Ã¢Â€ÂÃ‚Â´ Da Iniziare | ÃƒÂ°Ã…Â¸Ã…Â¸Ã‚Â  **Alta** |
+| **SEED-001** | **Pulizia Dati Seed Prodotti (Disaccoppiamento Brand e Catalogo Asettico)** | shopping / seed | 🟢 Completato | 🟢 Completato | 🟢 **Completato** |
 | **SEED-002** | **Risoluzione Visualizzazione Prodotti Seed Mancanti nelle Liste** | `shopping` / `seed` | ÃƒÂ°Ã…Â¸Ã¢Â€ÂÃ‚Â´ Da Iniziare | ÃƒÂ°Ã…Â¸Ã¢Â€ÂÃ‚Â´ Da Iniziare | ÃƒÂ°Ã…Â¸Ã…Â¸Ã‚Â  **Alta** |
-| **SHOPPING-005** | **Note e Recensioni Prodotti/Brand nel Catalogo** | `shopping` | ÃƒÂ°Ã…Â¸Ã¢Â€ÂÃ‚Â´ Da Iniziare | ÃƒÂ°Ã…Â¸Ã¢Â€ÂÃ‚Â´ Da Iniziare | ÃƒÂ°Ã…Â¸Ã…Â¸Ã‚Â  **Alta** |
+| **SHOPPING-005** | **Note e Recensioni Prodotti/Brand nel Catalogo (Tabella Ponte N:N con Note)** | shopping | 🟢 Completato | 🟢 Completato | 🟢 **Completato** |
+| **SHOPPING-008** | **Refactoring Catalogo Prodotti, Tabella Ponte N:N con Note & Compattazione DB** | shopping / DB | 🟢 Completato | 🟢 Completato | 🟢 **Completato** |
 | **FEAT-012** | **Pagina di Avvio Pinnata / Selezione Landing Page Predefinita** | `settings` / UI | ÃƒÂ°Ã…Â¸Ã…Â¸Ã‚Â¢ Completato | ÃƒÂ°Ã…Â¸Ã…Â¸Ã‚Â¢ Completato | ÃƒÂ°Ã…Â¸Ã…Â¸Ã‚Â¢ **Completato** |
 | **CAL-002** | **Filtro Categorie Eventi nel Calendario Homepage (Menu Ingranaggio ÃƒÂ¢Ã…Â¡Ã¢Â„Â¢ÃƒÂ¯Ã‚Â¸Ã‚Â)** | `calendar` / UI | ÃƒÂ°Ã…Â¸Ã¢Â€ÂÃ‚Â´ Da Iniziare | ÃƒÂ°Ã…Â¸Ã¢Â€ÂÃ‚Â´ Da Iniziare | ÃƒÂ°Ã…Â¸Ã…Â¸Ã‚Â  **Alta** |
 | **FEAT-004** | **Sezione Media: Libri, Film e Serie TV** | `media` / ent | ÃƒÂ°Ã…Â¸Ã…Â¸Ã‚Â¡ Parziale | ÃƒÂ°Ã…Â¸Ã…Â¸Ã‚Â¡ Parziale | ÃƒÂ°Ã…Â¸Ã¢Â€ÂÃ‚Â´ **Massima (Passo Fondamentale)** |
@@ -575,4 +576,5 @@ Breve spiegazione di cosa fa la funzionalitÃƒÂƒÃ‚Â  dal punto di vista 
 
 
 ### [TRACKERS-004] Date di Uscita Italiane vs TMDB (Air Dates) - 🔴 CHIUSO / IMPOSSIBILE
-- **Esito**: Indagine completata. Come riportato nella sezione Serie TV, l\'estrazione delle date di uscita regionali (italiane) per gli episodi singoli non è supportata tecnicamente dalle API gratuite di TMDB (che traccia solo la irst_air_date globale assoluta). L\'integrazione di API esterne (es. Gracenote) ha costi proibitivi. Pertanto l\'app manterrà la data globale.
+- **Esito**: Indagine completata. Come riportato nella sezione Serie TV, l\'estrazione delle date di uscita regionali (italiane) per gli episodi singoli non è supportata tecnicamente dalle API gratuite di TMDB (che traccia solo la 
+irst_air_date globale assoluta). L\'integrazione di API esterne (es. Gracenote) ha costi proibitivi. Pertanto l\'app manterrà la data globale.
