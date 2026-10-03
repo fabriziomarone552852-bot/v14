@@ -54,6 +54,14 @@ def get_my_series(
 ):
     return service.list_user_series(db, current_user)
 
+@router.get("/debug-logs")
+def debug_logs(db: Session = Depends(get_db), current_user: User = Depends(get_current_app_user)):
+    trackings = service.list_user_series(db, current_user)
+    out = []
+    for t in trackings:
+        for log in getattr(t, "logs", []):
+            out.append(log.model_dump())
+    return out
 
 @router.post("/series", response_model=TVSeriesResponse, status_code=status.HTTP_201_CREATED)
 async def add_series(
@@ -137,16 +145,12 @@ def watch_next_episode(
 
 
 
-class SeriesLogCreate(BaseModel):
-    rating: int | None = None
-    notes: str | None = None
-    review_visibility: str | None = None
-    watched_at: str | None = None
+from backend.domains.trackers.schemas import UserSeriesLogCreate, UserSeriesLogUpdate
 
 @router.post("/series/{tmdb_id}/logs", response_model=TVSeriesResponse)
 def add_series_log(
     tmdb_id: int,
-    payload: SeriesLogCreate,
+    payload: UserSeriesLogCreate,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_app_user),
 ):
@@ -155,7 +159,7 @@ def add_series_log(
 @router.patch("/series/logs/{log_id}", response_model=TVSeriesResponse)
 def update_series_log(
     log_id: int,
-    payload: SeriesLogCreate,
+    payload: UserSeriesLogUpdate,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_app_user),
 ):
@@ -418,6 +422,60 @@ def mark_all_episodes_watched_endpoint(
     current_user: User = Depends(get_current_app_user),
 ):
     return service.mark_all_episodes_watched(db, current_user, tmdb_id)
+
+# --- TV Platforms ---
+
+from backend.domains.trackers.schemas import UserTVPlatformResponse
+
+@router.get("/platforms", response_model=List[UserTVPlatformResponse])
+def get_user_platforms(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_app_user),
+):
+    from backend.domains.trackers.models import UserTVPlatform
+    import sqlalchemy
+    platforms = db.execute(sqlalchemy.select(UserTVPlatform).where(UserTVPlatform.user_id == current_user.id).order_by(UserTVPlatform.name.asc())).scalars().all()
+    return platforms
+
+@router.patch("/platforms/{platform_id}", response_model=UserTVPlatformResponse)
+def rename_platform(
+    platform_id: int,
+    payload: dict,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_app_user),
+):
+    from backend.domains.trackers.models import UserTVPlatform
+    import sqlalchemy
+    from fastapi import HTTPException
+    
+    platform = db.execute(sqlalchemy.select(UserTVPlatform).where(UserTVPlatform.id == platform_id, UserTVPlatform.user_id == current_user.id)).scalar_one_or_none()
+    if not platform:
+        raise HTTPException(status_code=404, detail="Piattaforma non trovata")
+        
+    new_name = payload.get("name")
+    if new_name and new_name.strip():
+        platform.name = new_name.strip()
+        db.commit()
+        db.refresh(platform)
+        
+    return platform
+
+@router.delete("/platforms/{platform_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_platform(
+    platform_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_app_user),
+):
+    from backend.domains.trackers.models import UserTVPlatform, UserSeriesLog
+    import sqlalchemy
+    from fastapi import HTTPException
+    
+    platform = db.execute(sqlalchemy.select(UserTVPlatform).where(UserTVPlatform.id == platform_id, UserTVPlatform.user_id == current_user.id)).scalar_one_or_none()
+    if not platform:
+        raise HTTPException(status_code=404, detail="Piattaforma non trovata")
+        
+    db.delete(platform)
+    db.commit()
 
 
 

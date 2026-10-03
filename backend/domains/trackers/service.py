@@ -3,6 +3,7 @@ Business logic and external API integrations for Trackers domain.
 """
 from datetime import datetime, timezone
 from typing import List, Optional
+from collections import defaultdict
 
 import httpx
 from fastapi import HTTPException, status
@@ -372,7 +373,7 @@ def _build_series_response(tracking: UserSeriesTracking, db=None, current_user=N
         from backend.domains.notifications.models import Interaction
         from backend.domains.users.models import User
         
-        stmt = sqlalchemy.select(UserSeriesLog).where(
+        stmt = sqlalchemy.select(UserSeriesLog).options(sqlalchemy.orm.joinedload(UserSeriesLog.viewing_platform)).where(
             UserSeriesLog.user_id == current_user.id,
             UserSeriesLog.series_tmdb_id == tracking.series_tmdb_id
         ).order_by(UserSeriesLog.updated_at.desc())
@@ -408,6 +409,8 @@ def _build_series_response(tracking: UserSeriesTracking, db=None, current_user=N
                 "rating": raw_log.rating,
                 "notes": raw_log.notes,
                 "review_visibility": raw_log.review_visibility,
+                "viewing_platform_id": raw_log.viewing_platform_id,
+                "viewing_platform_name": raw_log.viewing_platform.name if raw_log.viewing_platform else None,
                 "watched_at": raw_log.watched_at,
                 "updated_at": raw_log.updated_at,
                 "comments": comments_list
@@ -918,11 +921,28 @@ def get_friends_episode_logs(db: Session, current_user: User, episode_id: int):
 
 
 
+def _get_or_create_tv_platform(db: Session, user_id: int, platform_name: str) -> int:
+    from backend.domains.trackers.models import UserTVPlatform
+    import sqlalchemy
+    platform_name = platform_name.strip()
+    platform = db.execute(sqlalchemy.select(UserTVPlatform).where(UserTVPlatform.user_id == user_id, UserTVPlatform.name.ilike(platform_name))).scalar_one_or_none()
+    if platform:
+        return platform.id
+    
+    new_platform = UserTVPlatform(user_id=user_id, name=platform_name)
+    db.add(new_platform)
+    db.commit()
+    return new_platform.id
+
 def add_series_log(db, current_user, tmdb_id, payload):
     import sqlalchemy
     from backend.domains.trackers.models import UserSeriesLog
     from datetime import datetime, timezone
     
+    platform_id = payload.viewing_platform_id
+    if getattr(payload, "viewing_platform_name", None):
+        platform_id = _get_or_create_tv_platform(db, current_user.id, payload.viewing_platform_name)
+        
     # Ensure tracking exists
     tracking = repository.get_user_series_tracking(db, tmdb_id, current_user.id)
     if not tracking:
@@ -935,10 +955,12 @@ def add_series_log(db, current_user, tmdb_id, payload):
         rating=payload.rating,
         notes=payload.notes,
         review_visibility=payload.review_visibility or "friends_only",
+        viewing_platform_id=platform_id,
         updated_at=payload.watched_at or datetime.now(timezone.utc)
     )
     db.add(log)
     db.commit()
+    db.expire_all() # Force fresh fetch, don't detach users
     
     # Reload tracking
     tracking = repository.get_user_series_tracking(db, tmdb_id, current_user.id)
@@ -959,11 +981,20 @@ def update_series_log(db, current_user, log_id, payload):
         log.notes = payload.notes
     if getattr(payload, "review_visibility", None) is not None:
         log.review_visibility = payload.review_visibility
+        
+    platform_id = payload.viewing_platform_id
+    if getattr(payload, "viewing_platform_name", None):
+        platform_id = _get_or_create_tv_platform(db, current_user.id, payload.viewing_platform_name)
+    if platform_id is not None or getattr(payload, "viewing_platform_name", None) == "":
+        log.viewing_platform_id = platform_id if platform_id else None
+        
     if getattr(payload, "watched_at", None) is not None:
         log.updated_at = payload.watched_at
         
+    series_tmdb_id = log.series_tmdb_id
     db.commit()
-    tracking = repository.get_user_series_tracking(db, log.series_tmdb_id, current_user.id)
+    db.expire_all() # Force fresh fetch, don't detach users
+    tracking = repository.get_user_series_tracking(db, series_tmdb_id, current_user.id)
     return _build_series_response(tracking, db, current_user)
 
 def delete_series_log(db, current_user, log_id):
@@ -983,8 +1014,7 @@ def delete_series_log(db, current_user, log_id):
     return _build_series_response(tracking, db, current_user)
 
 from collections import defaultdict
-import datetime
-from datetime import timezone
+from datetime import timedelta
 import math
 
 def get_full_stats(db: Session, current_user: User):
@@ -992,7 +1022,7 @@ def get_full_stats(db: Session, current_user: User):
         TVFullStats, GenreStat, TimeTrendStat, TotalWatchTime,
         CompletionRate, WatchlistForecast, PlatformStat, ViewingHabits,
         GraveyardStat, SatisfactionStat, PersonalRecords,
-        RatingDistribution, GenreRating, TopSeries, RewatchStat, RewatchComparison
+        RatingDistribution, GenreRating, TopSeries, RewatchStat, RewatchComparison, GeneralStats, GuiltyPleasureStat
     )
     from backend.domains.trackers.models import UserSeriesTracking, TMDBSeries, UserEpisodeLog, TMDBEpisode, UserSeriesLog
     
@@ -1011,6 +1041,39 @@ def get_full_stats(db: Session, current_user: User):
     
     # We will assume a default runtime of 45 minutes for episodes for now
     DEFAULT_RUNTIME = 45
+    
+    now = datetime.now(timezone.utc)
+    one_month_ago = now - timedelta(days=30)
+    one_year_ago = now - timedelta(days=365)
+    
+    # --- General Stats ---
+    episodes_last_month = sum(1 for log in episode_logs if log.watched_at and log.watched_at >= one_month_ago)
+    episodes_last_year = sum(1 for log in episode_logs if log.watched_at and log.watched_at >= one_year_ago)
+    
+    series_completed_last_month = sum(1 for t in trackings if t.status == 'watched' and t.updated_at and t.updated_at >= one_month_ago)
+    series_completed_last_year = sum(1 for t in trackings if t.status == 'watched' and t.updated_at and t.updated_at >= one_year_ago)
+    
+    series_watching_last_month = sum(1 for t in trackings if t.status == 'watching' and t.updated_at and t.updated_at >= one_month_ago)
+    series_watching_last_year = sum(1 for t in trackings if t.status == 'watching' and t.updated_at and t.updated_at >= one_year_ago)
+    
+    series_to_watch_last_month = sum(1 for t in trackings if t.status == 'to_watch' and t.added_at and t.added_at >= one_month_ago)
+    series_to_watch_last_year = sum(1 for t in trackings if t.status == 'to_watch' and t.added_at and t.added_at >= one_year_ago)
+    
+    series_dropped_last_month = sum(1 for t in trackings if t.status == 'dropped' and t.updated_at and t.updated_at >= one_month_ago)
+    series_dropped_last_year = sum(1 for t in trackings if t.status == 'dropped' and t.updated_at and t.updated_at >= one_year_ago)
+    
+    general_stats = GeneralStats(
+        episodes_last_month=episodes_last_month,
+        episodes_last_year=episodes_last_year,
+        series_completed_last_month=series_completed_last_month,
+        series_completed_last_year=series_completed_last_year,
+        series_watching_last_month=series_watching_last_month,
+        series_watching_last_year=series_watching_last_year,
+        series_to_watch_last_month=series_to_watch_last_month,
+        series_to_watch_last_year=series_to_watch_last_year,
+        series_dropped_last_month=series_dropped_last_month,
+        series_dropped_last_year=series_dropped_last_year
+    )
     
     # --- Genre Distribution ---
     genre_counts = defaultdict(int)
@@ -1032,20 +1095,34 @@ def get_full_stats(db: Session, current_user: User):
                 percentage=round((count / total_genres) * 100, 1)
             ))
             
-    # --- Time Trend (Last 12 months) ---
-    time_trend_map = defaultdict(int)
+    # --- Time Trend (By Year) ---
+    time_trend_map = defaultdict(lambda: defaultdict(int))
     for log in episode_logs:
         if log.watched_at:
-            period = log.watched_at.strftime("%Y-%m")
-            time_trend_map[period] += 1
+            year = log.watched_at.strftime("%Y")
+            period = log.watched_at.strftime("%b").capitalize()  # e.g., 'Gen', 'Feb'
+            time_trend_map[year][period] += 1
             
-    time_trend = []
-    for period, count in sorted(time_trend_map.items()):
-        time_trend.append(TimeTrendStat(
-            period=period,
-            episodes=count,
-            hours=round((count * DEFAULT_RUNTIME) / 60, 1)
-        ))
+    time_trend = {}
+    months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+    # localized roughly
+    month_names = ["Gen", "Feb", "Mar", "Apr", "Mag", "Giu", "Lug", "Ago", "Set", "Ott", "Nov", "Dic"]
+    
+    # Reprocess properly to have all 12 months for every year found
+    years_found = list(time_trend_map.keys())
+    if not years_found:
+        years_found = [now.strftime("%Y")]
+        
+    for year in years_found:
+        time_trend[year] = []
+        for eng_m, ita_m in zip(months, month_names):
+            # check both English and Italian just in case locale affects strftime
+            count = time_trend_map[year].get(eng_m, 0) + time_trend_map[year].get(ita_m, 0)
+            time_trend[year].append(TimeTrendStat(
+                period=ita_m,
+                episodes=count,
+                hours=round((count * DEFAULT_RUNTIME) / 60, 1)
+            ))
         
     # --- Total Watch Time ---
     total_minutes = len(episode_logs) * DEFAULT_RUNTIME
@@ -1066,18 +1143,36 @@ def get_full_stats(db: Session, current_user: User):
     )
     
     # --- Forecast ---
-    to_watch = sum(1 for t in trackings if t.status in ("to_watch", "watching"))
-    # simplistic: assume 10 episodes remaining per watching/to_watch series
-    remaining_episodes = to_watch * 10 
+    # We need to find episodes watched more than once, and series watched more than once.
+    # Group episode logs by episode_id
+    ep_watch_counts = defaultdict(list)
+    for log in episode_logs:
+        ep_watch_counts[log.episode_id].append(log)
+        
+    # Need episode mapping early to calculate exact remaining episodes
+    episodes_cache = db.query(TMDBEpisode).filter(TMDBEpisode.id.in_(ep_watch_counts.keys())).all()
+    ep_map = {e.id: e for e in episodes_cache}
+    
+    watched_eps_by_series = defaultdict(int)
+    for ep_id, logs in ep_watch_counts.items():
+        ep = ep_map.get(ep_id)
+        if ep and len(logs) > 0:
+            watched_eps_by_series[ep.series_tmdb_id] += 1
+            
+    remaining_episodes = 0
+    for t in trackings:
+        if t.status in ("to_watch", "watching"):
+            s = series_map.get(t.series_tmdb_id)
+            tot_eps = s.total_episodes if (s and s.total_episodes) else 10
+            watched = watched_eps_by_series.get(t.series_tmdb_id, 0)
+            remaining_episodes += max(tot_eps - watched, 0)
+            
     remaining_minutes = remaining_episodes * DEFAULT_RUNTIME
     
-    # last 30 days episodes
-    now = datetime.datetime.now(timezone.utc)
-    recent_logs = [log for log in episode_logs if log.watched_at and (now - log.watched_at).days <= 30]
-    daily_pace_minutes = (len(recent_logs) * DEFAULT_RUNTIME) / 30 if recent_logs else DEFAULT_RUNTIME
+    daily_pace_minutes = (episodes_last_month * DEFAULT_RUNTIME) / 30 if episodes_last_month else DEFAULT_RUNTIME
     
     estimated_days = remaining_minutes / daily_pace_minutes if daily_pace_minutes > 0 else 0
-    estimated_date = (now + datetime.timedelta(days=estimated_days)).strftime("%Y-%m-%d") if estimated_days > 0 else None
+    estimated_date = (now + timedelta(days=estimated_days)).strftime("%Y-%m-%d") if estimated_days > 0 else None
     
     watchlist_forecast = WatchlistForecast(
         estimated_date=estimated_date,
@@ -1086,14 +1181,18 @@ def get_full_stats(db: Session, current_user: User):
     )
     
     # --- Platform Distribution ---
+    from backend.domains.trackers.models import UserSeriesLog, UserTVPlatform
+    import sqlalchemy
+    series_logs_stmt = sqlalchemy.select(UserSeriesLog).options(sqlalchemy.orm.joinedload(UserSeriesLog.viewing_platform)).where(UserSeriesLog.user_id == current_user.id)
+    series_logs = list(db.execute(series_logs_stmt).scalars().all())
+    
     platform_counts = defaultdict(int)
     total_platforms = 0
-    for t in trackings:
-        s = series_map.get(t.series_tmdb_id)
-        if s and s.networks:
-            networks = [n.strip() for n in s.networks.split(",")]
-            for n in networks:
-                platform_counts[n] += 1
+    for log in series_logs:
+        if log.viewing_platform and log.viewing_platform.name:
+            platform = log.viewing_platform.name.strip()
+            if platform:
+                platform_counts[platform] += 1
                 total_platforms += 1
                 
     platform_distribution = []
@@ -1106,17 +1205,36 @@ def get_full_stats(db: Session, current_user: User):
             ))
             
     # --- Viewing Habits ---
-    by_day = defaultdict(int)
+    by_day = {}
     by_time = {"Mattina (6-12)": 0, "Pomeriggio (12-18)": 0, "Sera (18-24)": 0, "Notte (0-6)": 0}
     
     weekdays = ["Lunedì", "Martedì", "Mercoledì", "Giovedì", "Venerdì", "Sabato", "Domenica"]
-    for w in weekdays:
-        by_day[w] = 0
+    
+    # Initialize the last 7 days ending today (Today is first, then Yesterday, etc.)
+    last_7_dates = [(now - timedelta(days=i)).date() for i in range(7)]
+    for i, d in enumerate(last_7_dates):
+        if i == 0:
+            name = "Oggi"
+        elif i == 1:
+            name = "Ieri"
+        else:
+            name = weekdays[d.weekday()]
+        by_day[name] = 0
         
     for log in episode_logs:
         if log.watched_at:
-            wday = log.watched_at.weekday()
-            by_day[weekdays[wday]] += 1
+            d = log.watched_at.date()
+            if d in last_7_dates:
+                # Find the index to get the exact name
+                idx = (now.date() - d).days
+                if idx == 0:
+                    name = "Oggi"
+                elif idx == 1:
+                    name = "Ieri"
+                else:
+                    name = weekdays[d.weekday()]
+                by_day[name] += DEFAULT_RUNTIME
+                
             h = log.watched_at.hour
             if 6 <= h < 12:
                 by_time["Mattina (6-12)"] += 1
@@ -1140,12 +1258,10 @@ def get_full_stats(db: Session, current_user: User):
             ))
             
     # --- Ratings & Satisfaction ---
-    series_logs = db.query(UserSeriesLog).filter(UserSeriesLog.user_id == current_user.id).all()
     satisfaction_index = []
-    rating_counts = defaultdict(int)
     
-    for r in range(1, 6):
-        rating_counts[r] = 0
+    series_rating_counts = {r / 2.0: 0 for r in range(1, 11)}
+    episode_rating_counts = {r / 2.0: 0 for r in range(1, 11)}
         
     genre_ratings = defaultdict(list)
     top_series_list = []
@@ -1155,20 +1271,27 @@ def get_full_stats(db: Session, current_user: User):
         if not s: continue
         
         if log.rating:
-            rating_counts[log.rating] += 1
+            r_val = log.rating / 2.0
+            series_rating_counts[r_val] = series_rating_counts.get(r_val, 0) + 1
             if s.genres:
                 for g in [g.strip() for g in s.genres.split(",")]:
-                    genre_ratings[g].append(log.rating)
+                    genre_ratings[g].append(r_val)
                     
             satisfaction_index.append(SatisfactionStat(
                 title=s.title,
                 time_spent_hours=round((s.total_episodes or 0) * DEFAULT_RUNTIME / 60, 1),
-                rating=log.rating
+                rating=r_val
             ))
             
-            top_series_list.append((s.title, log.rating, log.watched_at))
+            top_series_list.append((s.title, r_val, log.watched_at))
             
-    ratings_distribution = [RatingDistribution(rating=r, count=c) for r, c in rating_counts.items()]
+    for log in episode_logs:
+        if log.rating:
+            r_val = log.rating / 2.0
+            episode_rating_counts[r_val] = episode_rating_counts.get(r_val, 0) + 1
+            
+    series_ratings_distribution = [RatingDistribution(rating=r, count=c) for r, c in sorted(series_rating_counts.items())]
+    episode_ratings_distribution = [RatingDistribution(rating=r, count=c) for r, c in sorted(episode_rating_counts.items())]
     
     ratings_by_genre = []
     for genre, ratings in genre_ratings.items():
@@ -1178,8 +1301,15 @@ def get_full_stats(db: Session, current_user: User):
                 average_rating=round(sum(ratings) / len(ratings), 1)
             ))
             
-    top_10 = sorted(top_series_list, key=lambda x: x[1], reverse=True)[:10]
-    top_10_series = [TopSeries(title=t, rating=r) for t, r, _ in top_10]
+    series_avg_map = {}
+    for title, r_val, watched_at in top_series_list:
+        if title not in series_avg_map:
+            series_avg_map[title] = []
+        series_avg_map[title].append(r_val)
+        
+    avg_series_list = [(title, round(sum(ratings) / len(ratings), 1)) for title, ratings in series_avg_map.items()]
+    top_10 = sorted(avg_series_list, key=lambda x: x[1], reverse=True)[:10]
+    top_10_series = [TopSeries(title=t, rating=r) for t, r in top_10]
     
     # --- Personal Records ---
     date_counts = defaultdict(int)
@@ -1198,10 +1328,88 @@ def get_full_stats(db: Session, current_user: User):
     )
     
     # --- Rewatch Stats ---
+    # Calculate most rewatched series (by episodes rewatched) or most rewatched episodes.
+    series_rewatch_counts = defaultdict(int)
+    episode_rewatch_counts = defaultdict(int)
+    total_rewatch_episodes = 0
+    total_first_watch_episodes = 0
+    
+    # Series rating is in series_logs. Build a map of average user ratings for series.
+    series_ratings_list = defaultdict(list)
+    for log in series_logs:
+        if log.rating:
+            series_ratings_list[log.series_tmdb_id].append(log.rating)
+    series_ratings_map = {tid: (sum(r)/len(r)) / 2 for tid, r in series_ratings_list.items()}
+    
+    series_ep_counts = defaultdict(list)
+    
+    for ep_id, logs in ep_watch_counts.items():
+        count = len(logs)
+        if count > 0:
+            total_first_watch_episodes += 1
+            ep = ep_map.get(ep_id)
+            if ep:
+                series_ep_counts[ep.series_tmdb_id].append(count)
+            if count > 1:
+                total_rewatch_episodes += (count - 1)
+                if ep:
+                    episode_rewatch_counts[ep_id] = count
+                    
+    # Calculate average watch count for each series
+    series_watch_counts = {}
+    for tmdb_id, counts in series_ep_counts.items():
+        avg_watch = sum(counts) / len(counts)
+        rounded_watch = round(avg_watch)
+        if rounded_watch > 1:
+            # We store a tuple (rounded_watch, sum_counts) to tie-break on total volume
+            series_watch_counts[tmdb_id] = (rounded_watch, sum(counts))
+            
     most_rewatched = []
-    rewatch_comparison = RewatchComparison(first_watch_hours=hours, rewatch_hours=0.0)
+    guilty_pleasures = []
+    most_rewatched_episodes = []
+    
+    # Sort by rounded_watch DESC, then sum_counts DESC
+    for tmdb_id, (watch_cnt, total_volume) in sorted(series_watch_counts.items(), key=lambda x: (x[1][0], x[1][1]), reverse=True):
+        s = series_map.get(tmdb_id)
+        if s:
+            rating = series_ratings_map.get(tmdb_id)
+            most_rewatched.append(RewatchStat(
+                title=s.title,
+                rewatch_count=watch_cnt,
+                rating=round(rating, 1) if rating is not None else None
+            ))
+            if rating is not None and watch_cnt > 1:
+                guilty_pleasures.append(GuiltyPleasureStat(
+                    title=s.title,
+                    rewatch_count=watch_cnt,
+                    rating=round(rating, 1)
+                ))
+                
+    for ep_id, rewatch_cnt in sorted(episode_rewatch_counts.items(), key=lambda x: x[1], reverse=True):
+        ep = ep_map.get(ep_id)
+        if ep:
+            s = series_map.get(ep.series_tmdb_id)
+            ep_title = f"{s.title if s else 'Serie ignota'} - S{ep.season_number}E{ep.episode_number} ({ep.title})"
+            most_rewatched_episodes.append(RewatchStat(
+                title=ep_title,
+                rewatch_count=rewatch_cnt,
+                rating=None
+            ))
+                
+    most_rewatched = most_rewatched[:10]
+    most_rewatched_episodes = most_rewatched_episodes[:10]
+    
+    # Guilty pleasures: order by rating ASC (lowest first)
+    guilty_pleasures.sort(key=lambda x: x.rating)
+    guilty_pleasures = guilty_pleasures[:5]
+    
+    rewatch_comparison = RewatchComparison(
+        first_watch_hours=round(total_first_watch_episodes * DEFAULT_RUNTIME / 60, 1),
+        rewatch_hours=round(total_rewatch_episodes * DEFAULT_RUNTIME / 60, 1)
+    )
 
     return TVFullStats(
+        general_stats=general_stats,
         genres_distribution=genres_distribution,
         time_trend=time_trend,
         total_watch_time=total_watch_time,
@@ -1212,9 +1420,11 @@ def get_full_stats(db: Session, current_user: User):
         graveyard=graveyard,
         satisfaction_index=satisfaction_index,
         personal_records=personal_records,
-        ratings_distribution=ratings_distribution,
+        series_ratings_distribution=series_ratings_distribution,
+        episode_ratings_distribution=episode_ratings_distribution,
         ratings_by_genre=ratings_by_genre,
         top_10_series=top_10_series,
         most_rewatched=most_rewatched,
-        rewatch_comparison=rewatch_comparison
+        rewatch_comparison=rewatch_comparison,
+        guilty_pleasures=guilty_pleasures
     )

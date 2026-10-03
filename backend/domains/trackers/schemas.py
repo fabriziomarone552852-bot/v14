@@ -101,16 +101,25 @@ class TVEpisodeResponse(ORMBaseModel):
 
 
 
+class UserTVPlatformResponse(ORMBaseModel):
+    id: int
+    user_id: int
+    name: str
+
 class UserSeriesLogCreate(BaseModel):
     rating: Optional[int] = None
     notes: Optional[str] = None
     review_visibility: Optional[str] = "friends_only"
+    viewing_platform_id: Optional[int] = None
+    viewing_platform_name: Optional[str] = None  # To allow auto-creation
     watched_at: Optional[datetime] = None
 
 class UserSeriesLogUpdate(BaseModel):
     rating: Optional[int] = None
     notes: Optional[str] = None
     review_visibility: Optional[str] = None
+    viewing_platform_id: Optional[int] = None
+    viewing_platform_name: Optional[str] = None
     watched_at: Optional[datetime] = None
 
 class UserSeriesLogResponse(ORMBaseModel):
@@ -120,6 +129,8 @@ class UserSeriesLogResponse(ORMBaseModel):
     rating: Optional[int] = None
     notes: Optional[str] = None
     review_visibility: str
+    viewing_platform_id: Optional[int] = None
+    viewing_platform_name: Optional[str] = None  # We'll map this from the relation
     watched_at: datetime
     updated_at: Optional[datetime] = None
     comments: List[dict] = Field(default_factory=list)
@@ -327,7 +338,7 @@ class GraveyardStat(BaseModel):
 class SatisfactionStat(BaseModel):
     title: str
     time_spent_hours: float
-    rating: int
+    rating: float
 
 class PersonalRecords(BaseModel):
     max_episodes_in_day: int
@@ -336,7 +347,7 @@ class PersonalRecords(BaseModel):
     fastest_binge_days: Optional[int]
 
 class RatingDistribution(BaseModel):
-    rating: int
+    rating: float
     count: int
 
 class GenreRating(BaseModel):
@@ -345,19 +356,38 @@ class GenreRating(BaseModel):
 
 class TopSeries(BaseModel):
     title: str
-    rating: int
+    rating: float
 
 class RewatchStat(BaseModel):
     title: str
     rewatch_count: int
+    rating: Optional[float] = None
 
 class RewatchComparison(BaseModel):
     first_watch_hours: float
     rewatch_hours: float
 
+
+class GuiltyPleasureStat(BaseModel):
+    title: str
+    rewatch_count: int
+    rating: float
+
+class GeneralStats(BaseModel):
+    episodes_last_month: int
+    episodes_last_year: int
+    series_completed_last_month: int
+    series_completed_last_year: int
+    series_watching_last_month: int
+    series_watching_last_year: int
+    series_to_watch_last_month: int
+    series_to_watch_last_year: int
+    series_dropped_last_month: int
+    series_dropped_last_year: int
+
 class TVFullStats(BaseModel):
     genres_distribution: List[GenreStat]
-    time_trend: List[TimeTrendStat]
+    time_trend: Dict[str, List[TimeTrendStat]]
     total_watch_time: TotalWatchTime
     completion_rate: CompletionRate
     watchlist_forecast: WatchlistForecast
@@ -366,8 +396,12 @@ class TVFullStats(BaseModel):
     graveyard: List[GraveyardStat]
     satisfaction_index: List[SatisfactionStat]
     personal_records: PersonalRecords
-    ratings_distribution: List[RatingDistribution]
+    series_ratings_distribution: List[RatingDistribution]
+    episode_ratings_distribution: List[RatingDistribution]
+    general_stats: GeneralStats
     ratings_by_genre: List[GenreRating]
     top_10_series: List[TopSeries]
     most_rewatched: List[RewatchStat]
+    most_rewatched_episodes: List[RewatchStat] = Field(default_factory=list)
     rewatch_comparison: RewatchComparison
+    guilty_pleasures: List[GuiltyPleasureStat] = Field(default_factory=list)

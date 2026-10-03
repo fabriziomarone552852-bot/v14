@@ -34,20 +34,23 @@ export const CHANGELOG_HISTORY: ChangelogItem[] = [
       'Pattern Diario (Rewatch): Supporto per tracking visioni multiple degli episodi.',
       'Layout Serie TV Edge-to-Edge: Modale dinamico, badge liste intelligenti e carousel Prossime Uscite ottimizzato.',
       'Gestione Obiettivi Annuali Trackers: Nuova struttura DB (UserYearlyGoal) e API dinamica con fallback agli anni precedenti per impostare e aggiornare gli obiettivi annuali direttamente dalla UI.',
-      'Disponibilità Piattaforme Streaming: Integrazione dinamica dei dati JustWatch per mostrare su quali servizi (Netflix, Prime Video, ecc.) è attualmente disponibile la serie TV visualizzata.'
+      'Disponibilità Piattaforme Streaming: Integrazione dinamica dei dati JustWatch per mostrare su quali servizi (Netflix, Prime Video, ecc.) è attualmente disponibile la serie TV visualizzata.',
+      'Abitudini di Visione Analytics: Switch dinamico Ore/Episodi e modifica rapida dell\'obiettivo annuale dalla Hall of Fame.'
     ],
     improvements: [
       'Deep-Linking Notifiche: Le notifiche ora aprono il dettaglio corretto (es. posizionamento sul commento o gruppo spesa).',
       'Sincronizzazione Stato: Calcolo automatico di In corso/Completata per le serie TV in base agli episodi visti.',
       'UI/UX: Avatar degli amici con default avatar, posizionati in riga dedicata, scrollbar a gradiente e icone visive della privacy.',
       'Estetica Modali: Indicatori visivi inline minimalisti, skeleton loading per avatar e modali allineati al design system globale.',
-      'Sistema Voti: Calcolo medie stagioni, conversione stelle 1-5, tasti Modifica/Elimina in testa alla pagina.'
+      'Sistema Voti: Calcolo medie stagioni, conversione stelle 1-5, tasti Modifica/Elimina in testa alla pagina.',
+      'Hall of Fame & Top Serie: Classifica basata sulla vera media matematica tra le visioni della stessa serie, UI a stelle precise con arrotondamento automatico (mezze stelle, .5).'
     ],
     fixes: [
       'Backend: Aggiunta la colonna `vote_average` al database per TMDBSeries e TMDBEpisode. Ora i voti di TMDB (convertiti in quinti) sono di nuovo visibili sia nella panoramica Serie che nel dettaglio Episodio.',
       'Corretto un bug nel calcolo della media voti degli amici (Serie ed Episodi): il valore non si aggiornava correttamente al termine del caricamento a causa di un problema di cache di React (useMemo).',
       'Rimossa l\'ora (2:00) dalla data delle recensioni (Serie ed Episodi) per una visualizzazione più pulita e coerente.',
       'Risolto il bug degli avatar mancanti: ora gli amici che hanno aggiunto una serie al catalogo (anche senza aver lasciato una recensione) appaiono correttamente nell\'header della serie con il bordo relativo allo stato.',
+      'Piattaforme di Visione: Risolto bug nell\'elenco a discesa che nascondeva le piattaforme di default, ora integrate automaticamente. Grafica unificata tramite componente AddButton compatto.',
       'Backend: Corretto un bug nella query degli amici (Outer Join) che causava errori di caricamento per gli amici che avevano in lista una serie senza recensioni.',
       'Database: Create le migrazioni mancanti per costanti e constraints delle tabelle log e trackers.',
       'Aggiunto avatar di default (default_avatar.png) per gli amici senza immagine profilo.',
@@ -66,6 +69,7 @@ export const CHANGELOG_HISTORY: ChangelogItem[] = [
       'Corretto il loop di sincronizzazione offline in caso di errori 4xx.',
       'Risolto problema di caricamento del dominio media su GitHub.',
       'Risolto il funzionamento della sezione commenti nelle recensioni di Serie TV e Episodi: i commenti ora vengono salvati con l\'ID utente corretto anche per le proprie recensioni, aggiornano immediatamente l\'interfaccia tramite invalidazione della query e vengono inclusi anche nelle query del backend per i log personali.',
+      'Backend: Risolto crash di sincronizzazione serie TV (background full sync) e salvataggio recensioni rimpiazzando l\'importazione ombra del modulo datetime con timedelta, ripristinando il corretto funzionamento di datetime.strptime e datetime.now.'
     ],
   },
   {

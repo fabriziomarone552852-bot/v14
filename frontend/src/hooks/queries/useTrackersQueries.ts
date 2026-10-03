@@ -13,6 +13,16 @@ export const useMySeries = () => {
   });
 };
 
+export const useTVPlatforms = () => {
+  return useQuery<{id: number, name: string}[]>({
+    queryKey: ['trackers', 'platforms'],
+    queryFn: async () => {
+      const data = await api.get<{id: number, name: string}[]>('/trackers/platforms');
+      return data as {id: number, name: string}[];
+    },
+  });
+};
+
 export const useSearchTMDBSeries = (query: string, page: number = 1, enabled: boolean = false) => {
   return useQuery<TMDBPaginatedSearch>({
     queryKey: ['trackers', 'series', 'search', query, page],

@@ -245,3 +245,8 @@ Perfezionamento del sistema di notifiche e interazioni sociali introdotto in FEA
 - 💬 **Messaggistica Istantanea ed Effimera**: Integrazione di messaggi effimeri diretta tra amici.
 - 📡 **Rimozione Dati Mock & Integrazione API**: Sostituzione dei Dati Mock con fetch reali dal Database e logica TMDB / React Query per tutte le sezioni.
 - 🎨 **UI Schermata di Dettaglio Completata**: Design del modale di dettaglio della singola serie completato e rifinito (gestione cast, layout colonne, header integrato, status badge, e pannello liste).
+
+### [FEAT-004] Sotto-task Sezione Media Completati (Ottobre 2026)
+- 📡 **Rimozione Dati Mock & Integrazione API (Completato)**: Sostituzione dei Dati Mock (obiettivo annuale, citazioni, serie recenti, carousel prossime uscite, e Integrazione completa Liste Multimediali e MediaListManagerModal) con fetch reali dal Database e logica TMDB / React Query.
+- 📊 **Statistiche, Piattaforme & Analytics Completati**: Dashboard abitudini completata con switch dinamico Ore/Episodi. Obiettivi annuali modificabili inline con input nativo. Top 10 Hall of Fame rifinita con raggruppamento per serie, aggregazione media dei voti e arrotondamenti precisi tramite StarRating visivo. Gestione piattaforme di visione ottimizzata con AddButton compatto e merging dei default DB.
+- 🎨 **UI Schermata di Dettaglio Completata**: Il design del modale di dettaglio della singola serie è stato completato e rifinito (gestione cast, layout colonne, header integrato, status badge in overlay, e pannello liste).

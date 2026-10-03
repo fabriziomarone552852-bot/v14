@@ -161,6 +161,17 @@ class UserSeriesTracking(Base):
 
 
 
+class UserTVPlatform(Base):
+    """Piattaforme di visione personalizzate dell'utente."""
+    __tablename__ = "tv_user_platforms"
+    
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    user_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+    name: Mapped[str] = mapped_column(String(100), nullable=False)
+    
+    # Relationships
+    user: Mapped["User"] = relationship("User")
+
 class UserSeriesLog(Base):
     """
     User progress/reviews for specific series (Diary pattern).
@@ -176,6 +187,7 @@ class UserSeriesLog(Base):
     notes: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     
     review_visibility: Mapped[str] = mapped_column(String(50), nullable=False, default="friends_only")
+    viewing_platform_id: Mapped[Optional[int]] = mapped_column(Integer, ForeignKey("tv_user_platforms.id", ondelete="SET NULL"), nullable=True)
     
     watched_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
@@ -198,6 +210,7 @@ class UserSeriesLog(Base):
     
     user: Mapped["User"] = relationship("User")
     tmdb_series: Mapped["TMDBSeries"] = relationship("TMDBSeries")
+    viewing_platform: Mapped[Optional["UserTVPlatform"]] = relationship("UserTVPlatform")
 
     def __repr__(self) -> str:
         return f"<UserSeriesLog id={self.id} user={self.user_id} series={self.series_tmdb_id}>"

@@ -81,6 +81,7 @@ export interface UserSeriesLog {
   rating?: number | null;
   notes?: string | null;
   review_visibility: string;
+  viewing_platform_name?: string | null;
   watched_at: string;
   updated_at?: string | null;
   comments: ReviewComment[];

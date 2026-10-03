@@ -67,6 +67,7 @@ export const EpisodeDetailView: React.FC<EpisodeDetailViewProps> = ({ episode, t
   const [selectedReview, setSelectedReview] = useState<UnifiedReviewData | null>(null);
   const [commentText, setCommentText] = useState('');
   const commentTextRef = React.useRef<HTMLTextAreaElement>(null);
+  const { user } = useAuth();
   
   const { friends } = useSocial();
   const [mentionQuery, setMentionQuery] = useState<{ active: boolean; query: string; startPos: number }>({ active: false, query: '', startPos: -1 });
@@ -140,8 +141,6 @@ export const EpisodeDetailView: React.FC<EpisodeDetailViewProps> = ({ episode, t
   const { confirm } = useConfirm();
   const { toggleEpisodeWatched, updateEpisodeNotes, addEpisodeLog, updateEpisodeLog, deleteEpisodeLog, addQuote, updateQuote, deleteQuote } = useTrackersMutations();
   const queryClient = useQueryClient();
-  const { user } = useAuth();
-
   React.useEffect(() => {
     if (initialReviewLogId && (logs.length > 0 || friendsLogsData.length > 0) && view !== 'review_detail') {
       const myLog = logs.find(l => l.id === initialReviewLogId);
