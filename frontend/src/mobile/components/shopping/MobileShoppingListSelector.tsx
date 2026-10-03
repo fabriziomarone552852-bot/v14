@@ -13,11 +13,13 @@ import {
 } from '@/components/shared/utils/Icons';
 import { MoreVertical } from 'lucide-react';
 import { getRoleBadgeClass } from '@/components/shared/shopping/shoppingUi';
+import { useLongPress } from '@/mobile/hooks/useLongPress';
 
 interface MobileShoppingListSelectorProps {
   activeList: ShoppingListSummary | null;
   activeGroup: ShoppingGroupSummary | null;
   onOpenPicker: () => void;
+  onLongPressIcon?: () => void;
   onEditList: (list: ShoppingListSummary) => void;
   onDeleteList: (list: ShoppingListSummary) => void;
   onToggleCompleteList: (list: ShoppingListSummary, isCompleted: boolean) => void;
@@ -28,6 +30,7 @@ export const MobileShoppingListSelector: React.FC<MobileShoppingListSelectorProp
   activeList,
   activeGroup,
   onOpenPicker,
+  onLongPressIcon,
   onEditList,
   onDeleteList,
   onToggleCompleteList,
@@ -35,29 +38,45 @@ export const MobileShoppingListSelector: React.FC<MobileShoppingListSelectorProp
 }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
+  const iconLongPress = useLongPress({
+    delay: 450,
+    stopPropagation: true,
+    onLongPress: () => {
+      onLongPressIcon?.();
+    },
+    onClick: () => {
+      onOpenPicker();
+    },
+  });
+
   return (
     <div className="w-full shrink-0 relative z-20 bg-white border border-gray-200/90 rounded-2xl shadow-2xs">
       {/* SCOMPARTO 1: Barra compatta (al tocco apre la vista espansa) */}
       <div className="p-2.5 flex items-center justify-between gap-2">
-        
         {/* Tasto principale per aprire la vista espansa gruppi e liste */}
-        <button
-          type="button"
-          onClick={onOpenPicker}
-          className="flex-1 min-w-0 flex items-center gap-2.5 text-left focus:outline-none cursor-pointer group"
-          aria-label="Apri selettore gruppo e lista"
+        <div
+          className="flex-1 min-w-0 flex items-center gap-2.5 text-left select-none"
+          aria-label="Selettore gruppo e lista"
         >
-          {/* Badge Icona / Tipo Lista */}
-          <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0 shadow-2xs transition-transform group-active:scale-95 bg-blue-50 text-blue-600 border border-blue-100">
+          {/* Badge Icona / Tipo Lista con Long-press invisibile */}
+          <div
+            {...iconLongPress}
+            className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0 shadow-2xs transition-transform active:scale-95 bg-blue-50 text-blue-600 border border-blue-100 cursor-pointer"
+            title="Tocca per scegliere lista, tieni premuto per inserimento rapido"
+          >
             {activeGroup ? (
-              <span className="text-base">{activeGroup.icon || '👥'}</span>
+              <span className="text-base pointer-events-none">{activeGroup.icon || '👥'}</span>
             ) : (
-              <ShoppingIcon className="w-5 h-5 text-blue-600" />
+              <ShoppingIcon className="w-5 h-5 text-blue-600 pointer-events-none" />
             )}
           </div>
 
           {/* Nome Lista e Dettagli Gruppo/Ruolo su due righe */}
-          <div className="min-w-0 flex-1">
+          <button
+            type="button"
+            onClick={onOpenPicker}
+            className="min-w-0 flex-1 text-left focus:outline-none cursor-pointer group"
+          >
             {/* Riga 1: Nome Lista & Completata */}
             <div className="flex items-center gap-1.5 min-w-0">
               <h2 className="text-sm font-extrabold text-gray-900 truncate leading-tight group-hover:text-blue-600 transition-colors">
@@ -97,8 +116,8 @@ export const MobileShoppingListSelector: React.FC<MobileShoppingListSelectorProp
                 <span className="text-xs text-gray-400 font-normal">Tocca per scegliere o creare una lista</span>
               )}
             </div>
-          </div>
-        </button>
+          </button>
+        </div>
 
         {/* Menu Rapido Opzioni Lista Corrente (3 puntini) */}
         {activeList && (

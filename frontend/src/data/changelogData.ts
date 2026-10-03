@@ -34,7 +34,9 @@ export const CHANGELOG_HISTORY: ChangelogItem[] = [
       'Pattern Diario (Rewatch): Supporto per tracking visioni multiple degli episodi.',
       'Layout Serie TV Edge-to-Edge: Modale dinamico, badge liste intelligenti e carousel Prossime Uscite ottimizzato.',
       'Gestione Obiettivi Annuali Trackers: Nuova struttura DB (UserYearlyGoal) e API dinamica con fallback agli anni precedenti per impostare e aggiornare gli obiettivi annuali direttamente dalla UI.',
-      'Disponibilità Piattaforme Streaming: Integrazione dinamica dei dati JustWatch per mostrare su quali servizi (Netflix, Prime Video, ecc.) è attualmente disponibile la serie TV visualizzata.'
+      'Disponibilità Piattaforme Streaming: Integrazione dinamica dei dati JustWatch per mostrare su quali servizi (Netflix, Prime Video, ecc.) è attualmente disponibile la serie TV visualizzata.',
+      'Inserimento Rapido da Catalogo (Modulo Shopping): Vista tabellare A-Z per inserire/rimuovere articoli nella lista spesa tramite checkbox reattive, attivabile con doppio click discreto sul titolo Shopping & Spesa su desktop e con pressione prolungata (Long-press) sull\'icona borsa su mobile.',
+      'Gestione Multipla Articoli Spesa: Selezione multipla con toolbar contestuale su Web-App e barra di selezione su Smartphone, con funzioni per spostamento rapido tra liste, copia preservata da liste chiuse e cancellazione massiva.',
     ],
     improvements: [
       'Deep-Linking Notifiche: Le notifiche ora aprono il dettaglio corretto (es. posizionamento sul commento o gruppo spesa).',

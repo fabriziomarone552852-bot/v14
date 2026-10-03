@@ -26,10 +26,14 @@ export const ShoppingPage: React.FC = () => {
       <div className="grid grid-cols-1 xl:grid-cols-8 gap-4 flex-1 min-h-0 items-stretch">
         {/* Colonna Sinistra (3/8): Header compatto centrato + Gruppi & Liste Spesa */}
         <div className="xl:col-span-3 flex flex-col gap-3.5 h-[500px] xl:h-full min-h-0 min-w-0">
-          <div className="shrink-0 flex items-center justify-center bg-white rounded-xl shadow-sm border border-gray-200 p-3.5 text-center">
-            <h1 className="text-base sm:text-lg font-bold text-gray-800 flex items-center gap-2">
-              <ShoppingIcon className="w-5 h-5 text-blue-600" />
-              <span>Shopping & Spesa</span>
+          <div
+            onDoubleClick={logic.handleToggleQuickCatalog}
+            className="shrink-0 flex items-center justify-center bg-white rounded-xl shadow-sm border border-gray-200 p-3.5 text-center select-none cursor-default"
+            title="Shopping & Spesa"
+          >
+            <h1 className="text-base sm:text-lg font-bold text-gray-800 flex items-center gap-2 select-none">
+              <ShoppingIcon className="w-5 h-5 text-blue-600 pointer-events-none" />
+              <span className="pointer-events-none">Shopping & Spesa</span>
             </h1>
           </div>
 
@@ -57,6 +61,7 @@ export const ShoppingPage: React.FC = () => {
             brands={logic.brands}
             products={logic.products}
             lists={logic.lists}
+            groups={logic.groups}
             loading={logic.itemsLoading}
             activeListId={logic.activeListId}
             activeList={logic.activeList}
@@ -65,6 +70,9 @@ export const ShoppingPage: React.FC = () => {
             offerFlagOptions={logic.offerFlagOptions}
             searchQuery=""
             userRole={logic.activeUserRole}
+            isQuickCatalogOpen={logic.isQuickCatalogOpen}
+            onCloseQuickCatalog={() => logic.setIsQuickCatalogOpen(false)}
+            onToggleCatalogItem={logic.handleToggleCatalogItem}
             onEditList={logic.handleOpenEditList}
             onDeleteList={logic.handleDeleteList}
             onToggleCompleteList={logic.handleToggleCompleteList}

@@ -14,6 +14,9 @@ import ShoppingQuickAddBar from './ShoppingQuickAddBar';
 import { ShoppingItemsEmptyState } from './ShoppingItemsEmptyState';
 import { ShoppingActiveListHeader } from './ShoppingActiveListHeader';
 import { ShoppingListSearchInput } from './ShoppingListSearchInput';
+import { ShoppingQuickCatalogTable } from './ShoppingQuickCatalogTable';
+import { ShoppingSelectionToolbar } from './ShoppingSelectionToolbar';
+import { ShoppingMoveOrCopyModal } from './ShoppingMoveOrCopyModal';
 
 import { useShoppingItemsColumn } from './useShoppingItemsColumn';
 import { ShoppingItemsColumnModals } from './ShoppingItemsColumnModals';
@@ -28,6 +31,7 @@ interface ShoppingItemsColumnProps {
   brands?: ShoppingSupplierOption[];
   products?: ShoppingProductOption[];
   lists?: ShoppingListSummary[];
+  groups?: import('@/types/shopping').ShoppingGroupSummary[];
   unitOptions: ConfigOption[];
   currencyOptions: ConfigOption[];
   offerFlagOptions: ConfigOption[];
@@ -36,6 +40,9 @@ interface ShoppingItemsColumnProps {
   activeList?: ShoppingListSummary | null;
   searchQuery: string;
   userRole?: string;
+  isQuickCatalogOpen?: boolean;
+  onCloseQuickCatalog?: () => void;
+  onToggleCatalogItem?: (product: ShoppingProductOption, existingItem: ShoppingListItem | null) => void;
   onEditList?: (list: ShoppingListSummary) => void;
   onDeleteList?: (list: ShoppingListSummary) => void;
   onToggleCompleteList?: (list: ShoppingListSummary, isCompleted: boolean) => void;
@@ -53,6 +60,7 @@ const ShoppingItemsColumn = forwardRef<
       brands = [],
       products = [],
       lists = [],
+      groups = [],
       unitOptions,
       currencyOptions,
       offerFlagOptions,
@@ -61,6 +69,9 @@ const ShoppingItemsColumn = forwardRef<
       activeList,
       searchQuery,
       userRole = 'owner',
+      isQuickCatalogOpen = false,
+      onCloseQuickCatalog,
+      onToggleCatalogItem,
       onEditList,
       onDeleteList,
       onToggleCompleteList,
@@ -92,6 +103,19 @@ const ShoppingItemsColumn = forwardRef<
     const canDeleteItem = userRole === 'owner' || userRole === 'admin';
     const canEditList   = userRole === 'owner' || userRole === 'admin';
 
+    if (isQuickCatalogOpen) {
+      return (
+        <ShoppingQuickCatalogTable
+          products={products}
+          items={items}
+          activeList={activeList || null}
+          unitOptions={unitOptions}
+          onToggleItem={onToggleCatalogItem || (() => {})}
+          onClose={onCloseQuickCatalog || (() => {})}
+        />
+      );
+    }
+
     if (!activeListId || !activeList) {
       return <ShoppingItemsEmptyState onQuickPriceAdd={onQuickPriceAdd} />;
     }
@@ -105,30 +129,53 @@ const ShoppingItemsColumn = forwardRef<
             filtroStato={columnLogic.filtroStato}
             onFiltroStatoChange={columnLogic.setFiltroStato}
             canEditList={canEditList}
+            isSelectionMode={columnLogic.isSelectionMode}
+            onToggleSelectionMode={() =>
+              columnLogic.setIsSelectionMode((prev) => {
+                if (prev) columnLogic.setSelectedItemIds([]);
+                return !prev;
+              })
+            }
             onToggleCompleteList={onToggleCompleteList}
             onEditList={onEditList}
             onDeleteList={onDeleteList}
           />
 
-          <ShoppingListSearchInput
-            value={columnLogic.filterQuery}
-            onChange={columnLogic.setFilterQuery}
-          />
-
-          {canCreateItem && (
-            <ShoppingQuickAddBar
-              activeListId={activeListId}
-              unitOptions={unitOptions}
-              quickName={columnLogic.quickName}
-              quickQuantity={columnLogic.quickQuantity}
-              quickUnitId={columnLogic.quickUnitId}
-              products={products}
-              onQuickNameChange={columnLogic.setQuickName}
-              onQuickQuantityChange={columnLogic.setQuickQuantity}
-              onQuickUnitChange={columnLogic.setQuickUnitId}
-              onSubmit={columnLogic.handleQuickAdd}
-              loading={columnLogic.quickAdding}
+          {columnLogic.isSelectionMode ? (
+            <ShoppingSelectionToolbar
+              selectedCount={columnLogic.selectedItemIds.length}
+              totalCount={columnLogic.filteredItems.length}
+              isAllSelected={columnLogic.isAllSelected}
+              isListCompleted={Boolean(activeList.isCompleted)}
+              onToggleSelectAll={columnLogic.toggleSelectAllItems}
+              onOpenMoveModal={columnLogic.handleOpenMoveModal}
+              onOpenCopyModal={columnLogic.handleOpenCopyModal}
+              onDeleteSelected={columnLogic.handleDeleteSelected}
+              onExitSelection={columnLogic.exitSelectionMode}
             />
+          ) : (
+            <>
+              <ShoppingListSearchInput
+                value={columnLogic.filterQuery}
+                onChange={columnLogic.setFilterQuery}
+              />
+
+              {canCreateItem && !activeList.isCompleted && (
+                <ShoppingQuickAddBar
+                  activeListId={activeListId}
+                  unitOptions={unitOptions}
+                  quickName={columnLogic.quickName}
+                  quickQuantity={columnLogic.quickQuantity}
+                  quickUnitId={columnLogic.quickUnitId}
+                  products={products}
+                  onQuickNameChange={columnLogic.setQuickName}
+                  onQuickQuantityChange={columnLogic.setQuickQuantity}
+                  onQuickUnitChange={columnLogic.setQuickUnitId}
+                  onSubmit={columnLogic.handleQuickAdd}
+                  loading={columnLogic.quickAdding}
+                />
+              )}
+            </>
           )}
 
           <div className="min-h-0 flex-1 overflow-hidden">
@@ -136,6 +183,9 @@ const ShoppingItemsColumn = forwardRef<
               items={columnLogic.filteredItems}
               loading={loading && items.length === 0}
               containerRef={containerRef}
+              isSelectionMode={columnLogic.isSelectionMode}
+              selectedItemIds={columnLogic.selectedItemIds}
+              onToggleSelect={columnLogic.toggleSelectItem}
               onToggle={columnLogic.handleTogglePurchased}
               onOpenPurchase={columnLogic.handleOpenPurchase}
               onOpenDetail={(item) => {
@@ -150,7 +200,7 @@ const ShoppingItemsColumn = forwardRef<
           </div>
         </div>
 
-        {canCreateItem && (
+        {canCreateItem && !columnLogic.isSelectionMode && !activeList.isCompleted && (
           <div className="flex flex-col gap-2 mt-3 shrink-0 w-full">
             <AddButton
               label="Nuovo Prodotto"
@@ -194,6 +244,18 @@ const ShoppingItemsColumn = forwardRef<
           canEditItem={canEditItem}
           canEditPurchasedItem={canEditPurchasedItem}
           canDeleteItem={canDeleteItem}
+        />
+
+        {/* Modale Sposta o Copia Articoli Selezionati */}
+        <ShoppingMoveOrCopyModal
+          isOpen={columnLogic.isMoveOrCopyModalOpen}
+          onClose={() => columnLogic.setIsMoveOrCopyModalOpen(false)}
+          actionType={columnLogic.moveOrCopyAction}
+          selectedItemCount={columnLogic.selectedItemIds.length}
+          currentListId={activeListId}
+          lists={lists}
+          groups={groups}
+          onConfirm={columnLogic.handleConfirmMoveOrCopy}
         />
       </div>
     );

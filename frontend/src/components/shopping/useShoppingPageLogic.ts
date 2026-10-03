@@ -1,5 +1,4 @@
-// src/components/shopping/useShoppingPageLogic.ts
-import { useMemo, useState, useEffect } from 'react';
+import { useMemo, useState, useEffect, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
 import { useShoppingData } from '@/hooks/shopping/useShoppingData';
@@ -7,7 +6,7 @@ import { useShoppingMutations } from '@/hooks/shopping/useShoppingMutations';
 import { useModal } from '@/hooks/useModals';
 import { useShoppingGroupActions } from '@/hooks/shopping/useShoppingGroupActions';
 import { makeEmptyForm, type ListFormState } from '@/components/shared/shopping/ShoppingListModal';
-import type { ConfigOption, ShoppingListSummary } from '@/types/shopping';
+import type { ConfigOption, ShoppingListItem, ShoppingListSummary, ShoppingProductOption } from '@/types/shopping';
 
 export const useShoppingPageLogic = () => {
   const queryClient = useQueryClient();
@@ -206,6 +205,51 @@ export const useShoppingPageLogic = () => {
     }
   }, [paramOpenGroup, groups, detailGroup, setDetailGroup, searchParams, setSearchParams]);
 
+  // Gestione Inserimento Rapido Catalogo Articoli
+  const [isQuickCatalogOpen, setIsQuickCatalogOpen] = useState(false);
+
+  const handleToggleQuickCatalog = useCallback(() => {
+    setIsQuickCatalogOpen((prev) => {
+      const next = !prev;
+      if (next) {
+        // Se si apre il catalogo, seleziona la lista predefinita 'Senza lista'
+        const defaultList =
+          lists.find((l) => l.isDefault) ||
+          lists.find((l) => l.name?.toLowerCase() === 'senza lista') ||
+          lists[0];
+        if (defaultList && activeListId !== defaultList.id) {
+          setActiveListId(defaultList.id);
+        }
+      }
+      return next;
+    });
+  }, [lists, activeListId, setActiveListId]);
+
+  const handleToggleCatalogItem = useCallback(
+    async (product: ShoppingProductOption, existingItem: ShoppingListItem | null) => {
+      if (!activeListId) return;
+
+      if (existingItem) {
+        // Rimuovi articolo dalla lista
+        await mutations.deleteItem({ id: existingItem.id, listId: activeListId });
+      } else {
+        // Aggiungi articolo alla lista con quantità predefinita 1
+        const displayName = (product.displayName || product.nameNormalized || '').trim();
+        if (!displayName) return;
+
+        await mutations.createItem({
+          shoppingListId: activeListId,
+          productName: displayName,
+          brandId: product.brandId ?? undefined,
+          brandName: product.brandName ?? undefined,
+          unitId: product.defaultUnitId ?? undefined,
+          quantity: 1,
+        });
+      }
+    },
+    [activeListId, mutations]
+  );
+
   return {
     queryClient,
     lists,
@@ -240,6 +284,10 @@ export const useShoppingPageLogic = () => {
     activeInviteGroup,
     setActiveInviteGroup,
     groupMembersRefreshKey,
+    isQuickCatalogOpen,
+    setIsQuickCatalogOpen,
+    handleToggleQuickCatalog,
+    handleToggleCatalogItem,
     handleCreateGroup,
     handleUpdateGroup,
     handleDeleteGroup,
@@ -253,3 +301,4 @@ export const useShoppingPageLogic = () => {
     handleSaveModalListSubmit,
   };
 };
+

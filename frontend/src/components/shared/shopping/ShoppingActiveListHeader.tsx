@@ -5,6 +5,7 @@ import {
   EditIcon,
   TrashIcon,
   CheckIcon,
+  TaskListIcon,
 } from '@/components/shared/utils/Icons';
 
 export type FiltroStato = 'tutti' | 'aperti' | 'completati';
@@ -15,6 +16,8 @@ export interface ShoppingActiveListHeaderProps {
   filtroStato: FiltroStato;
   onFiltroStatoChange: (stato: FiltroStato) => void;
   canEditList: boolean;
+  isSelectionMode?: boolean;
+  onToggleSelectionMode?: () => void;
   onToggleCompleteList?: (list: ShoppingListSummary, isCompleted: boolean) => void;
   onEditList?: (list: ShoppingListSummary) => void;
   onDeleteList?: (list: ShoppingListSummary) => void;
@@ -26,6 +29,8 @@ export const ShoppingActiveListHeader: React.FC<ShoppingActiveListHeaderProps> =
   filtroStato,
   onFiltroStatoChange,
   canEditList,
+  isSelectionMode = false,
+  onToggleSelectionMode,
   onToggleCompleteList,
   onEditList,
   onDeleteList,
@@ -43,6 +48,25 @@ export const ShoppingActiveListHeader: React.FC<ShoppingActiveListHeaderProps> =
 
         {/* Pulsanti Azione Header Lista */}
         <div className="flex items-center gap-1 shrink-0">
+          {items.length > 0 && onToggleSelectionMode && (
+            <button
+              type="button"
+              onClick={onToggleSelectionMode}
+              className={`p-2 rounded-xl transition cursor-pointer ${
+                isSelectionMode
+                  ? 'text-blue-600 bg-blue-100/90 ring-2 ring-blue-400/60 shadow-xs'
+                  : 'text-gray-400 hover:text-blue-600 hover:bg-blue-50'
+              }`}
+              title={
+                isSelectionMode
+                  ? 'Chiudi selezione multipla'
+                  : 'Attiva selezione multipla (sposta / copia / elimina)'
+              }
+            >
+              <TaskListIcon className="w-5 h-5" />
+            </button>
+          )}
+
           {onToggleCompleteList && canEditList && (
             <button
               type="button"
