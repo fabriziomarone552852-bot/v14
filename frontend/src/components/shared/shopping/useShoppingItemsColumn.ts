@@ -1,5 +1,5 @@
 // src/components/shared/shopping/useShoppingItemsColumn.ts
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import { useShoppingMutations } from '@/hooks/shopping/useShoppingMutations';
 import { useModal } from '@/hooks/useModals';
 import type { FiltroStato } from './ShoppingActiveListHeader';
@@ -40,6 +40,12 @@ export function useShoppingItemsColumn({
   const editModal = useModal<ShoppingListItem>();
   const detailModal = useModal<ShoppingListItem>();
   const [historyModalItem, setHistoryModalItem] = useState<ShoppingListItem | null>(null);
+
+  // 1.1 Stato Selezione Multipla & Modale Sposta/Copia
+  const [isSelectionMode, setIsSelectionMode] = useState(false);
+  const [selectedItemIds, setSelectedItemIds] = useState<number[]>([]);
+  const [isMoveOrCopyModalOpen, setIsMoveOrCopyModalOpen] = useState(false);
+  const [moveOrCopyAction, setMoveOrCopyAction] = useState<'move' | 'copy'>('move');
 
   const [itemForm, setItemForm] = useState<ItemFormState>(emptyItemForm());
   const [editForm, setEditForm] = useState<ItemFormState>(emptyItemForm());
@@ -157,6 +163,101 @@ export function useShoppingItemsColumn({
     return mutations.deleteItem({ id: item.id, listId: item.shoppingListId });
   };
 
+  // 5. Gestione Selezione Multipla
+  const toggleSelectItem = useCallback((id: number) => {
+    setSelectedItemIds((prev) => {
+      if (prev.includes(id)) {
+        return prev.filter((i) => i !== id);
+      }
+      return [...prev, id];
+    });
+  }, []);
+
+  const toggleSelectAllItems = useCallback(() => {
+    setSelectedItemIds((prev) => {
+      const allFilteredIds = filterLogic.filteredItems.map((it) => it.id);
+      if (prev.length === allFilteredIds.length && allFilteredIds.length > 0) {
+        return [];
+      }
+      return allFilteredIds;
+    });
+  }, [filterLogic.filteredItems]);
+
+  const isAllSelected = useMemo(() => {
+    const allFilteredIds = filterLogic.filteredItems.map((it) => it.id);
+    return (
+      allFilteredIds.length > 0 &&
+      allFilteredIds.every((id) => selectedItemIds.includes(id))
+    );
+  }, [filterLogic.filteredItems, selectedItemIds]);
+
+  const exitSelectionMode = useCallback(() => {
+    setIsSelectionMode(false);
+    setSelectedItemIds([]);
+  }, []);
+
+  const handleOpenMoveModal = useCallback(() => {
+    setMoveOrCopyAction('move');
+    setIsMoveOrCopyModalOpen(true);
+  }, []);
+
+  const handleOpenCopyModal = useCallback(() => {
+    setMoveOrCopyAction('copy');
+    setIsMoveOrCopyModalOpen(true);
+  }, []);
+
+  const handleConfirmMoveOrCopy = useCallback(
+    async (targetListId: number) => {
+      if (!activeListId || selectedItemIds.length === 0) return;
+      const itemsToProcess = items.filter((it) => selectedItemIds.includes(it.id));
+
+      if (moveOrCopyAction === 'move') {
+        // Trasferisci articoli
+        await Promise.all(
+          itemsToProcess.map((item) =>
+            mutations.updateItem({
+              id: item.id,
+              listId: activeListId,
+              data: { shoppingListId: targetListId },
+            })
+          )
+        );
+      } else {
+        // Clona articoli nella nuova lista come da acquistare
+        await Promise.all(
+          itemsToProcess.map((item) =>
+            mutations.createItem({
+              shoppingListId: targetListId,
+              productName: item.productName,
+              brandId: item.brandId ?? undefined,
+              brandName: item.brandName ?? undefined,
+              unitId: item.unitId ?? undefined,
+              quantity: item.quantity ?? 1,
+              notes: item.notes ?? undefined,
+            })
+          )
+        );
+      }
+
+      exitSelectionMode();
+    },
+    [activeListId, selectedItemIds, items, moveOrCopyAction, mutations, exitSelectionMode]
+  );
+
+  const handleDeleteSelected = useCallback(async () => {
+    if (!activeListId || selectedItemIds.length === 0) return;
+    const idsToDelete = [...selectedItemIds];
+    await Promise.all(
+      idsToDelete.map((id) =>
+        mutations.deleteItem({
+          id,
+          listId: activeListId,
+        })
+      )
+    );
+    exitSelectionMode();
+  }, [activeListId, selectedItemIds, mutations, exitSelectionMode]);
+
   return {
     isCreateOpen,
     setIsCreateOpen,
@@ -167,6 +268,21 @@ export function useShoppingItemsColumn({
     purchaseModal: purchaseLogic.purchaseModal,
     historyModalItem,
     setHistoryModalItem,
+    isSelectionMode,
+    setIsSelectionMode,
+    selectedItemIds,
+    setSelectedItemIds,
+    isAllSelected,
+    toggleSelectItem,
+    toggleSelectAllItems,
+    exitSelectionMode,
+    isMoveOrCopyModalOpen,
+    setIsMoveOrCopyModalOpen,
+    moveOrCopyAction,
+    handleOpenMoveModal,
+    handleOpenCopyModal,
+    handleConfirmMoveOrCopy,
+    handleDeleteSelected,
     filtroStato: filterLogic.filtroStato,
     setFiltroStato: filterLogic.setFiltroStato,
     filterQuery: filterLogic.filterQuery,

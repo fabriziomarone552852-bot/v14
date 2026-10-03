@@ -29,13 +29,22 @@ export type ShoppingConfigBundleApi = {
   supplierStatusOptions?: ConfigOptionApi[];
 };
 
+export type ShoppingProductBrandApi = {
+  id: number;
+  product_id: number;
+  brand_id: number;
+  notes?: string | null;
+  brand?: { id: number; name_normalized: string; type_code: number } | null;
+};
+
 export type ShoppingProductOptionApi = {
   id: number;
   name_normalized?: string | null;
   display_name?: string | null;
   brand_id?: number | null;
-  brand?: { id: number; name: string; type_code?: number } | null;
+  brand?: { id: number; name?: string; name_normalized?: string; type_code?: number } | null;
   brand_name?: string | null;
+  product_brands?: ShoppingProductBrandApi[];
   default_unit_id?: number | null;
   default_unit_name?: string | null;
   default_unit_code_name?: string | null;
@@ -85,7 +94,20 @@ export function normalizeShoppingProductOption(
     nameNormalized: product.name_normalized ?? '',
     displayName: product.display_name ?? product.name_normalized ?? '',
     brandId: product.brand_id ?? product.brand?.id ?? null,
-    brandName: product.brand?.name ?? product.brand_name ?? null,
+    brandName: product.brand?.name ?? product.brand?.name_normalized ?? product.brand_name ?? null,
+    productBrands: (product.product_brands ?? []).map((pb) => ({
+      id: Number(pb.id),
+      productId: Number(pb.product_id),
+      brandId: Number(pb.brand_id),
+      notes: pb.notes ?? null,
+      brand: pb.brand
+        ? {
+            id: Number(pb.brand.id),
+            nameNormalized: pb.brand.name_normalized,
+            typeCode: Number(pb.brand.type_code ?? 2),
+          }
+        : null,
+    })),
     defaultUnitId: product.default_unit_id ?? null,
     defaultUnitCodeName:
       product.default_unit_code_name ?? product.default_unit_name ?? null,

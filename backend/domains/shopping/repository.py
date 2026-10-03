@@ -11,7 +11,7 @@ from sqlalchemy import func, or_
 from sqlalchemy.orm import Session, selectinload, with_loader_criteria
 
 from backend.domains.config import ConfigCode
-from backend.domains.shopping.models.catalog import ShoppingProduct, ShoppingSupplier
+from backend.domains.shopping.models.catalog import ShoppingProduct, ShoppingProductBrand, ShoppingSupplier
 from backend.domains.shopping.models.groups import ShoppingGroup, ShoppingGroupMember
 from backend.domains.shopping.models.inventory import InventoryBatch
 from backend.domains.shopping.models.lists import ShoppingList, ShoppingListItem
@@ -51,7 +51,7 @@ def _soft_delete_criteria():
 
 def _batch_loaders():
     return (
-        selectinload(InventoryBatch.product).selectinload(ShoppingProduct.brand),
+        selectinload(InventoryBatch.product).selectinload(ShoppingProduct.product_brands).selectinload(ShoppingProductBrand.brand),
         selectinload(InventoryBatch.supplier),
         selectinload(InventoryBatch.list_item).selectinload(ShoppingListItem.unit),
         selectinload(InventoryBatch.list_item).selectinload(ShoppingListItem.shopping_list),
@@ -64,14 +64,15 @@ def _batch_loaders():
 
 def _list_loaders():
     return (
-        selectinload(ShoppingList.items).selectinload(ShoppingListItem.product).selectinload(ShoppingProduct.brand),
+        selectinload(ShoppingList.items).selectinload(ShoppingListItem.product).selectinload(ShoppingProduct.product_brands).selectinload(ShoppingProductBrand.brand),
         selectinload(ShoppingList.items).selectinload(ShoppingListItem.unit),
         selectinload(ShoppingList.items).selectinload(ShoppingListItem.created_by_user),
         selectinload(ShoppingList.items).selectinload(ShoppingListItem.updated_by_user),
         selectinload(ShoppingList.items)
         .selectinload(ShoppingListItem.inventory_batches)
         .selectinload(InventoryBatch.product)
-        .selectinload(ShoppingProduct.brand),
+        .selectinload(ShoppingProduct.product_brands)
+        .selectinload(ShoppingProductBrand.brand),
         selectinload(ShoppingList.items)
         .selectinload(ShoppingListItem.inventory_batches)
         .selectinload(InventoryBatch.supplier),
@@ -90,16 +91,17 @@ def _list_loaders():
 def _item_loaders():
     return (
         selectinload(ShoppingListItem.shopping_list),
-        selectinload(ShoppingListItem.product).selectinload(ShoppingProduct.brand),
+        selectinload(ShoppingListItem.product).selectinload(ShoppingProduct.product_brands).selectinload(ShoppingProductBrand.brand),
         selectinload(ShoppingListItem.unit),
         selectinload(ShoppingListItem.created_by_user),
         selectinload(ShoppingListItem.updated_by_user),
-        selectinload(ShoppingListItem.inventory_batches).selectinload(InventoryBatch.product).selectinload(ShoppingProduct.brand),
+        selectinload(ShoppingListItem.inventory_batches).selectinload(InventoryBatch.product).selectinload(ShoppingProduct.product_brands).selectinload(ShoppingProductBrand.brand),
         selectinload(ShoppingListItem.inventory_batches).selectinload(InventoryBatch.supplier),
         selectinload(ShoppingListItem.inventory_batches).selectinload(InventoryBatch.created_by_user),
         selectinload(ShoppingListItem.inventory_batches).selectinload(InventoryBatch.updated_by_user),
         selectinload(ShoppingListItem.inventory_batches).selectinload(InventoryBatch.purchased_by_user),
     )
+
 
 
 # ------------------------------------------------------------------ Groups
@@ -447,7 +449,7 @@ def list_products(
 ) -> List[ShoppingProduct]:
     query = (
         db.query(ShoppingProduct)
-        .options(selectinload(ShoppingProduct.brand))
+        .options(selectinload(ShoppingProduct.product_brands).selectinload(ShoppingProductBrand.brand))
         .filter(ShoppingProduct.deleted_at.is_(None))
     )
 
@@ -456,7 +458,12 @@ def list_products(
         query = query.filter(ShoppingProduct.name_normalized.ilike(f"%{normalized}%"))
 
     if brand_id is not None:
-        query = query.filter(ShoppingProduct.brand_id == brand_id)
+        # Filtra i prodotti che hanno un legame con il brand richiesto nella tabella ponte
+        query = query.join(
+            ShoppingProductBrand,
+            (ShoppingProductBrand.product_id == ShoppingProduct.id) &
+            (ShoppingProductBrand.brand_id == brand_id),
+        )
 
     return query.order_by(ShoppingProduct.name_normalized.asc()).limit(limit).all()
 
@@ -464,7 +471,7 @@ def list_products(
 def get_product(db: Session, product_id: int) -> Optional[ShoppingProduct]:
     return (
         db.query(ShoppingProduct)
-        .options(selectinload(ShoppingProduct.brand))
+        .options(selectinload(ShoppingProduct.product_brands).selectinload(ShoppingProductBrand.brand))
         .filter(
             ShoppingProduct.id == product_id,
             ShoppingProduct.deleted_at.is_(None),
@@ -473,25 +480,56 @@ def get_product(db: Session, product_id: int) -> Optional[ShoppingProduct]:
     )
 
 
+
 def get_product_by_name_normalized(
     db: Session,
     name_normalized: str,
-    brand_id: Optional[int] = None,
 ) -> Optional[ShoppingProduct]:
-    query = (
+    """Cerca un prodotto canonico per nome normalizzato (univoco nel catalogo)."""
+    return (
         db.query(ShoppingProduct)
-        .options(selectinload(ShoppingProduct.brand))
+        .options(selectinload(ShoppingProduct.product_brands).selectinload(ShoppingProductBrand.brand))
         .filter(
             ShoppingProduct.name_normalized == name_normalized,
             ShoppingProduct.deleted_at.is_(None),
         )
+        .first()
     )
-    if brand_id is not None:
-        query = query.filter(ShoppingProduct.brand_id == brand_id)
-    else:
-        query = query.filter(ShoppingProduct.brand_id.is_(None))
 
-    return query.first()
+
+def get_product_brand_link(
+    db: Session,
+    product_id: int,
+    brand_id: int,
+) -> Optional[ShoppingProductBrand]:
+    """Restituisce il legame prodotto-brand nella tabella ponte, se esiste."""
+    return (
+        db.query(ShoppingProductBrand)
+        .filter(
+            ShoppingProductBrand.product_id == product_id,
+            ShoppingProductBrand.brand_id == brand_id,
+        )
+        .first()
+    )
+
+
+def get_or_create_product_brand_link(
+    db: Session,
+    product_id: int,
+    brand_id: int,
+) -> ShoppingProductBrand:
+    """Crea il legame prodotto-brand nella tabella ponte se non esiste già."""
+    link = get_product_brand_link(db, product_id, brand_id)
+    if link:
+        return link
+    link = ShoppingProductBrand(
+        product_id=product_id,
+        brand_id=brand_id,
+        created_at=_now(),
+    )
+    db.add(link)
+    db.flush()
+    return link
 
 
 def get_or_create_product_by_name(
@@ -500,21 +538,58 @@ def get_or_create_product_by_name(
     user_id: int,
     brand_id: Optional[int] = None,
 ) -> ShoppingProduct:
-    product = get_product_by_name_normalized(db, normalized_name, brand_id=brand_id)
-    if product:
-        return product
+    """Cerca o crea un prodotto canonico per nome.
+    Se viene passato brand_id, crea anche il legame nella tabella ponte.
+    """
+    product = get_product_by_name_normalized(db, normalized_name)
+    if not product:
+        product = ShoppingProduct(
+            name_normalized=normalized_name,
+            created_by_user_id=user_id,
+            updated_by_user_id=user_id,
+            created_at=_now(),
+            updated_at=_now(),
+        )
+        db.add(product)
+        db.flush()
 
-    product = ShoppingProduct(
-        name_normalized=normalized_name,
-        brand_id=brand_id,
-        created_by_user_id=user_id,
-        updated_by_user_id=user_id,
-        created_at=_now(),
-        updated_at=_now(),
-    )
-    db.add(product)
-    db.flush()
+    # Se viene indicato un brand, assicura che il legame esista nella tabella ponte
+    if brand_id is not None:
+        get_or_create_product_brand_link(db, product.id, brand_id)
+
     return product
+
+
+def update_product_brand_notes(
+    db: Session,
+    product_id: int,
+    brand_id: int,
+    notes: Optional[str],
+) -> Optional[ShoppingProductBrand]:
+    """Aggiorna le note di un legame prodotto-brand esistente."""
+    link = get_product_brand_link(db, product_id, brand_id)
+    if not link:
+        return None
+    link.notes = notes
+    link.updated_at = _now()
+    db.flush()
+    return link
+
+
+def delete_product_brand_link(
+    db: Session,
+    product_id: int,
+    brand_id: int,
+) -> bool:
+    """Elimina un legame prodotto-brand dalla tabella ponte. Restituisce True se eliminato."""
+    link = get_product_brand_link(db, product_id, brand_id)
+    if not link:
+        return False
+    db.delete(link)
+    db.flush()
+    return True
+
+
 
 
 # ------------------------------------------------------------------ Items
@@ -707,11 +782,8 @@ def supplier_has_batches(db: Session, supplier_id: int) -> bool:
 
 def supplier_has_branded_products(db: Session, supplier_id: int) -> bool:
     return (
-        db.query(ShoppingProduct.id)
-        .filter(
-            ShoppingProduct.brand_id == supplier_id,
-            ShoppingProduct.deleted_at.is_(None),
-        )
+        db.query(ShoppingProductBrand.id)
+        .filter(ShoppingProductBrand.brand_id == supplier_id)
         .first()
         is not None
     )

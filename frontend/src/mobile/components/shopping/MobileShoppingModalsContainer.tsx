@@ -23,6 +23,7 @@ import MobileShoppingListModal from '../modals/shopping/MobileShoppingListModal'
 import MobileShoppingGroupCreateModal from '../modals/shopping/MobileShoppingGroupCreateModal';
 import MobileShoppingGroupDetailModal from '../modals/shopping/MobileShoppingGroupDetailModal';
 import MobileShoppingGroupInviteModal from '../modals/shopping/MobileShoppingGroupInviteModal';
+import { ShoppingMoveOrCopyModal } from '@/components/shared/shopping/ShoppingMoveOrCopyModal';
 
 export interface MobileShoppingModalsContainerProps {
   isPickerModalOpen: boolean;
@@ -56,6 +57,11 @@ export interface MobileShoppingModalsContainerProps {
   listEditForm: ListFormState;
   setListEditForm: React.Dispatch<React.SetStateAction<ListFormState>>;
   handleSaveEditList: (e: React.FormEvent<HTMLFormElement>) => Promise<void>;
+  isMoveOrCopyModalOpen?: boolean;
+  setIsMoveOrCopyModalOpen?: (open: boolean) => void;
+  moveOrCopyAction?: 'move' | 'copy';
+  selectedItemCount?: number;
+  handleConfirmMoveOrCopy?: (targetListId: number) => Promise<void>;
 }
 
 export const MobileShoppingModalsContainer: React.FC<MobileShoppingModalsContainerProps> = ({
@@ -90,6 +96,11 @@ export const MobileShoppingModalsContainer: React.FC<MobileShoppingModalsContain
   listEditForm,
   setListEditForm,
   handleSaveEditList,
+  isMoveOrCopyModalOpen = false,
+  setIsMoveOrCopyModalOpen,
+  moveOrCopyAction = 'move',
+  selectedItemCount = 0,
+  handleConfirmMoveOrCopy,
 }) => {
   return (
     <>
@@ -257,6 +268,20 @@ export const MobileShoppingModalsContainer: React.FC<MobileShoppingModalsContain
           onClose={() => groupActions.setActiveInviteGroup(null)}
           onSubmit={groupActions.handleInviteMembers}
           zIndexClass="z-[10010]"
+        />
+      )}
+
+      {/* 10. SPOSTA O COPIA ARTICOLI SELEZIONATI */}
+      {isMoveOrCopyModalOpen && handleConfirmMoveOrCopy && setIsMoveOrCopyModalOpen && (
+        <ShoppingMoveOrCopyModal
+          isOpen={isMoveOrCopyModalOpen}
+          onClose={() => setIsMoveOrCopyModalOpen(false)}
+          actionType={moveOrCopyAction}
+          selectedItemCount={selectedItemCount}
+          currentListId={activeListId}
+          lists={lists}
+          groups={groups}
+          onConfirm={handleConfirmMoveOrCopy}
         />
       )}
     </>

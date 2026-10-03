@@ -13,6 +13,9 @@ interface ShoppingItemRowProps {
   onOpenDetail?: (item: ShoppingListItem) => void;
   onOpenPurchase?: (item: ShoppingListItem) => void;
   userRole?: string; // 'owner' | 'admin' | 'editor' | 'reader'
+  isSelectionMode?: boolean;
+  isSelected?: boolean;
+  onToggleSelect?: (id: number) => void;
 }
 
 const capitalizeFirstLetter = (str: string): string => {
@@ -26,6 +29,9 @@ const ShoppingItemRow: React.FC<ShoppingItemRowProps> = ({
   onOpenDetail,
   onOpenPurchase,
   userRole = 'owner',
+  isSelectionMode = false,
+  isSelected = false,
+  onToggleSelect,
 }) => {
   const itemLabel = item.productName || 'articolo';
   const isOwner = userRole === 'owner';
@@ -53,41 +59,68 @@ const ShoppingItemRow: React.FC<ShoppingItemRowProps> = ({
   const unitDisplay = formatUnitForQuantity(item.unitCodeName, item.quantity);
   const formattedName = capitalizeFirstLetter(item.productName);
 
+  const handleClickRow = () => {
+    if (isSelectionMode) {
+      onToggleSelect?.(item.id);
+    } else {
+      onOpenDetail?.(item);
+    }
+  };
+
   return (
     <div
-      onClick={() => onOpenDetail?.(item)}
+      onClick={handleClickRow}
       className={`${shoppingCardClass} flex items-center justify-between gap-3 p-3 transition-all duration-150 cursor-pointer ${
-        item.isPurchased
+        isSelectionMode && isSelected
+          ? 'bg-blue-50/80 border-blue-400 ring-2 ring-blue-400/40 shadow-xs'
+          : item.isPurchased
           ? 'bg-slate-50/60 opacity-60 border-slate-200 hover:opacity-90'
           : 'bg-white hover:border-blue-300 hover:shadow-xs'
       }`}
     >
-      {/* 1. CHECKBOX */}
-      <button
-        type="button"
-        {...checkLongPress}
-        disabled={!canToggleCheck}
-        className={[
-          'inline-flex min-h-[32px] min-w-[32px] shrink-0 items-center justify-center rounded-full border-2 transition focus:outline-none focus:ring-2 focus:ring-blue-400 cursor-pointer',
-          item.isPurchased
-            ? 'border-emerald-500 bg-emerald-500 text-white shadow-xs'
-            : 'border-slate-300 bg-white text-transparent hover:border-emerald-500 hover:text-emerald-500',
-          !canToggleCheck ? 'opacity-50 cursor-not-allowed' : '',
-        ].join(' ')}
-        title={
-          item.isPurchased
-            ? 'Annulla acquisto'
-            : 'Spunta rapida (tieni premuto per inserire prezzo e dettagli)'
-        }
-        aria-label={
-          item.isPurchased
-            ? `Segna ${itemLabel} come da acquistare`
-            : `Segna ${itemLabel} come acquistato`
-        }
-        aria-pressed={item.isPurchased}
-      >
-        <Check className="h-4 w-4" aria-hidden="true" />
-      </button>
+      {/* 1. CHECKBOX SELEZIONE O ACQUISTO */}
+      {isSelectionMode ? (
+        <div
+          onClick={(e) => {
+            e.stopPropagation();
+            onToggleSelect?.(item.id);
+          }}
+          className="flex items-center justify-center min-h-[32px] min-w-[32px] shrink-0 cursor-pointer"
+        >
+          <input
+            type="checkbox"
+            checked={isSelected}
+            onChange={() => onToggleSelect?.(item.id)}
+            className="w-4 h-4 rounded text-blue-600 border-gray-300 focus:ring-blue-500 focus:ring-offset-0 cursor-pointer"
+          />
+        </div>
+      ) : (
+        <button
+          type="button"
+          {...checkLongPress}
+          disabled={!canToggleCheck}
+          className={[
+            'inline-flex min-h-[32px] min-w-[32px] shrink-0 items-center justify-center rounded-full border-2 transition focus:outline-none focus:ring-2 focus:ring-blue-400 cursor-pointer',
+            item.isPurchased
+              ? 'border-emerald-500 bg-emerald-500 text-white shadow-xs'
+              : 'border-slate-300 bg-white text-transparent hover:border-emerald-500 hover:text-emerald-500',
+            !canToggleCheck ? 'opacity-50 cursor-not-allowed' : '',
+          ].join(' ')}
+          title={
+            item.isPurchased
+              ? 'Annulla acquisto'
+              : 'Spunta rapida (tieni premuto per inserire prezzo e dettagli)'
+          }
+          aria-label={
+            item.isPurchased
+              ? `Segna ${itemLabel} come da acquistare`
+              : `Segna ${itemLabel} come acquistato`
+          }
+          aria-pressed={item.isPurchased}
+        >
+          <Check className="h-4 w-4" aria-hidden="true" />
+        </button>
+      )}
 
       {/* 2. QUANTITÀ CON UNITÀ SINGOLARE/PLURALE */}
       {item.quantity != null ? (

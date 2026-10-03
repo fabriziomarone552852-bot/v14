@@ -68,6 +68,16 @@ export const MobileHeader: React.FC<MobileHeaderProps> = ({
                 ? () => selectionState.onArchive!(selectionState.selectedIds)
                 : undefined
             }
+            onMove={
+              selectionState.onMove
+                ? () => selectionState.onMove!(selectionState.selectedIds)
+                : undefined
+            }
+            onCopy={
+              selectionState.onCopy
+                ? () => selectionState.onCopy!(selectionState.selectedIds)
+                : undefined
+            }
           />
         ) : (
           <div className="px-3 h-14 flex items-center justify-between gap-2 max-w-lg mx-auto relative">

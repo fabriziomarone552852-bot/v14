@@ -126,6 +126,56 @@ const ShoppingItemModal: React.FC<ShoppingItemModalProps> = ({
             products={products}
             disabled={disabled}
           />
+          {/* Box preferenze e note sui brand già provati per questo prodotto */}
+          {(() => {
+            const pName = (itemForm.productName || '').trim().toLowerCase();
+            if (!pName) return null;
+            const matched = products.find(
+              (p) => (p?.displayName || p?.nameNormalized || '').toLowerCase() === pName
+            );
+            const brandsWithNotes = matched?.productBrands?.filter((pb) => pb.notes || pb.brand?.nameNormalized) || [];
+            if (brandsWithNotes.length === 0) return null;
+
+            return (
+              <div className="mt-2 p-2.5 bg-amber-50/70 border border-amber-200/70 rounded-xl text-xs space-y-1.5 animate-fadeIn">
+                <div className="font-bold text-amber-800 flex items-center gap-1 text-[11px] uppercase tracking-wide">
+                  <span>💡 Note e marchi già provati:</span>
+                </div>
+                <div className="flex flex-wrap gap-1.5">
+                  {brandsWithNotes.map((pb) => {
+                    const bName = pb.brand?.nameNormalized || brands.find((b) => b.id === pb.brandId)?.name || '';
+                    if (!bName) return null;
+                    const isSelected = (itemForm.brandName || '').trim().toLowerCase() === bName.toLowerCase();
+                    return (
+                      <button
+                        key={pb.id || pb.brandId}
+                        type="button"
+                        onClick={() =>
+                          setItemForm((prev) => ({
+                            ...prev,
+                            brandName: bName,
+                            brandId: String(pb.brandId),
+                          }))
+                        }
+                        className={`text-left px-2.5 py-1 rounded-lg border transition-all cursor-pointer flex flex-col ${
+                          isSelected
+                            ? 'bg-amber-100 border-amber-400 text-amber-900 shadow-2xs'
+                            : 'bg-white/80 border-amber-200 text-gray-700 hover:bg-amber-100/50 hover:border-amber-300'
+                        }`}
+                      >
+                        <span className="font-semibold text-gray-900 capitalize">{bName}</span>
+                        {pb.notes && (
+                          <span className="text-[10px] text-amber-700 italic max-w-[220px] truncate">
+                            «{pb.notes}»
+                          </span>
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            );
+          })()}
         </div>
 
         {/* Quantità & Unità di Misura */}

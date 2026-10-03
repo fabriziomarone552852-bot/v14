@@ -7,6 +7,8 @@ export interface SelectionState {
   allIds: (number | string)[];
   onDelete?: ((ids: (number | string)[]) => Promise<void> | void) | null;
   onArchive?: ((ids: (number | string)[]) => Promise<void> | void) | null;
+  onMove?: ((ids: (number | string)[]) => Promise<void> | void) | null;
+  onCopy?: ((ids: (number | string)[]) => Promise<void> | void) | null;
 }
 
 interface MobileSelectionContextType {
@@ -18,8 +20,10 @@ interface MobileSelectionContextType {
     section: string,
     initialId: number | string,
     allIds: (number | string)[],
-    onDelete?: (ids: (number | string)[]) => Promise<void> | void,
-    onArchive?: (ids: (number | string)[]) => Promise<void> | void
+    onDelete?: ((ids: (number | string)[]) => Promise<void> | void) | null,
+    onArchive?: ((ids: (number | string)[]) => Promise<void> | void) | null,
+    onMove?: ((ids: (number | string)[]) => Promise<void> | void) | null,
+    onCopy?: ((ids: (number | string)[]) => Promise<void> | void) | null
   ) => void;
   toggleItem: (id: number | string) => void;
   toggleSelectAll: () => void;
@@ -37,6 +41,8 @@ export const MobileSelectionProvider: React.FC<{ children: React.ReactNode }> = 
     allIds: [],
     onDelete: null,
     onArchive: null,
+    onMove: null,
+    onCopy: null,
   });
 
   const isSelectionActive = Boolean(state.activeSection && state.selectedIds.length > 0);
@@ -50,8 +56,10 @@ export const MobileSelectionProvider: React.FC<{ children: React.ReactNode }> = 
       section: string,
       initialId: number | string,
       allIds: (number | string)[],
-      onDelete?: (ids: (number | string)[]) => Promise<void> | void,
-      onArchive?: (ids: (number | string)[]) => Promise<void> | void
+      onDelete?: ((ids: (number | string)[]) => Promise<void> | void) | null,
+      onArchive?: ((ids: (number | string)[]) => Promise<void> | void) | null,
+      onMove?: ((ids: (number | string)[]) => Promise<void> | void) | null,
+      onCopy?: ((ids: (number | string)[]) => Promise<void> | void) | null
     ) => {
       setState({
         activeSection: section,
@@ -59,6 +67,8 @@ export const MobileSelectionProvider: React.FC<{ children: React.ReactNode }> = 
         allIds,
         onDelete: onDelete ?? null,
         onArchive: onArchive ?? null,
+        onMove: onMove ?? null,
+        onCopy: onCopy ?? null,
       });
     },
     []
@@ -78,6 +88,8 @@ export const MobileSelectionProvider: React.FC<{ children: React.ReactNode }> = 
           allIds: [],
           onDelete: null,
           onArchive: null,
+          onMove: null,
+          onCopy: null,
         };
       }
 
@@ -98,6 +110,8 @@ export const MobileSelectionProvider: React.FC<{ children: React.ReactNode }> = 
           allIds: [],
           onDelete: null,
           onArchive: null,
+          onMove: null,
+          onCopy: null,
         };
       }
       // Altrimenti seleziona tutti
@@ -115,6 +129,8 @@ export const MobileSelectionProvider: React.FC<{ children: React.ReactNode }> = 
       allIds: [],
       onDelete: null,
       onArchive: null,
+      onMove: null,
+      onCopy: null,
     });
   }, []);
 

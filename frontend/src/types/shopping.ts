@@ -98,12 +98,26 @@ export interface ShoppingSupplierOption {
 }
 
 
+export interface ShoppingProductBrandLink {
+  id: number;
+  productId: number;
+  brandId: number;
+  notes?: string | null;
+  brand?: {
+    id: number;
+    nameNormalized: string;
+    typeCode: number;
+  } | null;
+}
+
+
 export interface ShoppingProductOption {
   id: number;
   nameNormalized: string;
   displayName: string;
   brandId?: number | null;
   brandName?: string | null;
+  productBrands?: ShoppingProductBrandLink[];
   defaultUnitId?: number | null;
   defaultUnitCodeName?: string | null;
   lastPurchasePrice?: number | null;
@@ -113,6 +127,7 @@ export interface ShoppingProductOption {
   lastSupplierName?: string | null;
   lastPurchaseDate?: string | null;
 }
+
 
 /* =========================
  * Read models

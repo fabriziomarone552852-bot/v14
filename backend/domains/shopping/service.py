@@ -10,7 +10,7 @@ from sqlalchemy.orm import Session
 
 from backend.core.seeders import register_seeder
 from backend.domains.shopping import repository as repo
-from backend.domains.shopping.models.catalog import ShoppingProduct, ShoppingSupplier
+from backend.domains.shopping.models.catalog import ShoppingProduct, ShoppingProductBrand, ShoppingSupplier
 
 from backend.core.csv_seed_loader import (
     load_seed_shopping_suppliers,
@@ -58,7 +58,9 @@ def seed_default_shopping_suppliers_for_user(db: Session, user_id: int) -> None:
 
 
 def seed_default_shopping_products_for_user(db: Session, user_id: int) -> None:
-    """Popola i prodotti da shopping_products.csv collegandoli ai marchi corretti."""
+    """Popola i prodotti da shopping_products.csv come catalogo canonico senza brand.
+    I legami prodotto-brand vengono creati nella tabella ponte shopping_product_brands.
+    """
     all_suppliers = db.query(ShoppingSupplier).all()
     suppliers_by_name = {s.name_normalized: s.id for s in all_suppliers}
     suppliers_by_id = {s.id for s in all_suppliers}
@@ -70,19 +72,35 @@ def seed_default_shopping_products_for_user(db: Session, user_id: int) -> None:
     products_data = load_seed_shopping_products()
     for item in products_data:
         normalized = item["name_normalized"]
-        if normalized in existing_names:
-            continue
 
+        # Risolvi brand (per la tabella ponte)
         brand_id = item.get("brand_id")
         if not brand_id and item.get("brand_name_text"):
             brand_id = suppliers_by_name.get(item["brand_name_text"])
-
         if brand_id and brand_id not in suppliers_by_id:
             brand_id = None
 
+        if normalized in existing_names:
+            # Prodotto già esistente: assicura comunque il legame ponte se c'è un brand
+            if brand_id:
+                existing_prod = db.query(ShoppingProduct).filter(
+                    ShoppingProduct.name_normalized == normalized
+                ).first()
+                if existing_prod:
+                    existing_link = db.query(ShoppingProductBrand).filter(
+                        ShoppingProductBrand.product_id == existing_prod.id,
+                        ShoppingProductBrand.brand_id == brand_id,
+                    ).first()
+                    if not existing_link:
+                        db.add(ShoppingProductBrand(
+                            product_id=existing_prod.id,
+                            brand_id=brand_id,
+                        ))
+            continue
+
+        # Crea il prodotto canonico (senza brand_id)
         product_kwargs = {
             "name_normalized": normalized,
-            "brand_id": brand_id,
             "created_by_user_id": user_id,
             "created_at": item.get("created_at") or _now(),
         }
@@ -93,7 +111,22 @@ def seed_default_shopping_products_for_user(db: Session, user_id: int) -> None:
         obj = ShoppingProduct(**product_kwargs)
         db.add(obj)
         existing_names.add(normalized)
+        db.flush()
+
+        # Crea il legame ponte se c'è un brand
+        if brand_id:
+            existing_link = db.query(ShoppingProductBrand).filter(
+                ShoppingProductBrand.product_id == obj.id,
+                ShoppingProductBrand.brand_id == brand_id,
+            ).first()
+            if not existing_link:
+                db.add(ShoppingProductBrand(
+                    product_id=obj.id,
+                    brand_id=brand_id,
+                ))
+
     db.flush()
+
 
 
 def seed_default_inventory_batches_for_user(db: Session, user_id: int) -> None:
@@ -769,7 +802,8 @@ def update_item(
                 brand_id=target_brand_id,
             )
         else:
-            resolved_brand_id = db_item.product.brand_id if db_item.product else None
+            # Nessun cambiamento di brand richiesto: non forziamo alcun brand
+            resolved_brand_id = None
 
         db_brand = repo.get_supplier(db, resolved_brand_id) if resolved_brand_id else None
         brand_suffix = f" ({db_brand.name_normalized})" if db_brand else ""
@@ -1054,25 +1088,14 @@ def add_inventory_batch(
 
     target_product_id = db_item.product_id
     if resolved_brand_id is not None:
-        if db_item.product and db_item.product.brand_id is None:
-            db_item.product.brand_id = resolved_brand_id
-            db_item.product.updated_at = _now()
-            db_item.product.updated_by_user_id = current_user.id
-            db_brand = repo.get_supplier(db, resolved_brand_id)
-            brand_suffix = f" ({db_brand.name_normalized})" if db_brand else ""
-            db_item.name_normalized = f"{_normalize_name(db_item.product.name_normalized)}{brand_suffix}"
-        elif db_item.product and db_item.product.brand_id != resolved_brand_id:
-            new_prod = repo.get_or_create_product_by_name(
-                db,
-                db_item.product.name_normalized,
-                current_user.id,
-                brand_id=resolved_brand_id,
-            )
-            db_item.product_id = new_prod.id
-            target_product_id = new_prod.id
-            db_brand = repo.get_supplier(db, resolved_brand_id)
-            brand_suffix = f" ({db_brand.name_normalized})" if db_brand else ""
-            db_item.name_normalized = f"{_normalize_name(new_prod.name_normalized)}{brand_suffix}"
+        # Crea/assicura il legame nella tabella ponte prodotto-brand
+        repo.get_or_create_product_brand_link(db, target_product_id, resolved_brand_id)
+        # Aggiorna il nome visualizzato dell'articolo di lista con il brand
+        db_brand = repo.get_supplier(db, resolved_brand_id)
+        brand_suffix = f" ({db_brand.name_normalized})" if db_brand else ""
+        base_name = _normalize_name(db_item.product.name_normalized) if db_item.product else db_item.name_normalized
+        db_item.name_normalized = f"{base_name}{brand_suffix}"
+
 
     if batch_in.product_id is not None and batch_in.product_id != db_item.product_id:
         raise HTTPException(
@@ -1604,24 +1627,13 @@ def create_product(
     product_in: ShoppingProductCreate,
 ) -> ShoppingProduct:
     normalized_name = _normalize_name(product_in.name)
-    existing = repo.get_product_by_name_normalized(db, normalized_name, brand_id=product_in.brand_id)
+    existing = repo.get_product_by_name_normalized(db, normalized_name)
     if existing:
-        raise HTTPException(status_code=400, detail="Esiste già un prodotto con questo nome e marchio.")
-
-    if product_in.brand_id:
-        brand = repo.get_supplier(db, product_in.brand_id)
-        if not brand:
-            raise HTTPException(status_code=404, detail="Brand specificato non trovato.")
-        # Se l'entità era solo fornitore (1), promuovila a 3 (Entrambi)
-        if brand.type_code == 1:
-            brand.type_code = 3
-            brand.updated_at = _now()
-            brand.updated_by_user_id = current_user.id
+        raise HTTPException(status_code=400, detail="Esiste già un prodotto con questo nome nel catalogo.")
 
     now = _now()
     db_product = ShoppingProduct(
         name_normalized=normalized_name,
-        brand_id=product_in.brand_id,
         created_by_user_id=current_user.id,
         updated_by_user_id=current_user.id,
         created_at=now,
@@ -1643,24 +1655,77 @@ def update_product(
     if not db_product:
         raise HTTPException(status_code=404, detail="Prodotto non trovato.")
 
-    if product_in.brand_id is not None and product_in.brand_id != db_product.brand_id:
-        brand = repo.get_supplier(db, product_in.brand_id)
-        if not brand:
-            raise HTTPException(status_code=404, detail="Brand specificato non trovato.")
-        if brand.type_code == 1:
-            brand.type_code = 3
-            brand.updated_at = _now()
-            brand.updated_by_user_id = current_user.id
-        db_product.brand_id = product_in.brand_id
-
     if product_in.name is not None:
-        db_product.name_normalized = _normalize_name(product_in.name)
+        normalized_name = _normalize_name(product_in.name)
+        existing = repo.get_product_by_name_normalized(db, normalized_name)
+        if existing and existing.id != product_id:
+            raise HTTPException(status_code=400, detail="Esiste già un altro prodotto con questo nome nel catalogo.")
+        db_product.name_normalized = normalized_name
 
     db_product.updated_at = _now()
     db_product.updated_by_user_id = current_user.id
     repo.commit(db)
     repo.refresh(db, db_product)
     return db_product
+
+
+def link_product_brand(
+    db: Session,
+    current_user: User,
+    product_id: int,
+    brand_id: int,
+    notes: Optional[str] = None,
+) -> ShoppingProductBrand:
+    """Collega un brand a un prodotto con relative note o aggiorna le note se già collegato."""
+    db_product = repo.get_product(db, product_id)
+    if not db_product:
+        raise HTTPException(status_code=404, detail="Prodotto non trovato.")
+
+    brand = repo.get_supplier(db, brand_id)
+    if not brand:
+        raise HTTPException(status_code=404, detail="Brand specificato non trovato.")
+
+    if brand.type_code == 1:
+        brand.type_code = 3
+        brand.updated_at = _now()
+        brand.updated_by_user_id = current_user.id
+
+    link = repo.get_product_brand_link(db, product_id, brand_id)
+    if link:
+        link.notes = notes
+        link.updated_at = _now()
+    else:
+        link = ShoppingProductBrand(
+            product_id=product_id,
+            brand_id=brand_id,
+            notes=notes,
+            created_at=_now(),
+            updated_at=_now(),
+        )
+        db.add(link)
+
+    repo.commit(db)
+    repo.refresh(link)
+    return link
+
+
+def unlink_product_brand(
+    db: Session,
+    current_user: User,
+    product_id: int,
+    brand_id: int,
+) -> None:
+    """Rimuove l'associazione tra prodotto e brand."""
+    db_product = repo.get_product(db, product_id)
+    if not db_product:
+        raise HTTPException(status_code=404, detail="Prodotto non trovato.")
+
+    deleted = repo.delete_product_brand_link(db, product_id, brand_id)
+    if not deleted:
+        raise HTTPException(status_code=404, detail="Associazione prodotto-brand non trovata.")
+
+    repo.commit(db)
+
 
 
 # ------------------------------------------------------------------ Config

@@ -14,7 +14,12 @@ import { useMobileSelection } from '../context/MobileSelectionContext';
 
 // Tipi & Form
 import { makeEmptyForm, type ListFormState } from '@/components/shared/shopping/ShoppingListModal';
-import type { ConfigOption, ShoppingListSummary } from '@/types/shopping';
+import type {
+  ConfigOption,
+  ShoppingListSummary,
+  ShoppingProductOption,
+  ShoppingListItem,
+} from '@/types/shopping';
 
 export const useMobileShoppingLogic = () => {
   const queryClient = useQueryClient();
@@ -83,6 +88,14 @@ export const useMobileShoppingLogic = () => {
     if (!activeList?.groupId) return 'owner';
     return activeGroup?.userRole || 'reader';
   }, [activeList, activeGroup]);
+
+  const isCompleted = Boolean(activeList?.isCompleted);
+  const isReader = Boolean(activeList?.groupId && activeUserRole === 'reader');
+
+  const canCreateItem = !isCompleted && !isReader;
+  const canEditItem = !isCompleted && !isReader;
+  const canEditPurchasedItem = !isCompleted && !isReader;
+  const canDeleteItem = !isCompleted && !isReader;
 
   // 2. HOOK GESTIONE ARTICOLI E MODALI ITEM
   const columnLogic = useShoppingItemsColumn({
@@ -172,7 +185,7 @@ export const useMobileShoppingLogic = () => {
     quickPriceModal,
   ]);
 
-  // 6. GESTIONE SELEZIONE MULTIPLA ARTICOLI
+  // 6. GESTIONE SELEZIONE MULTIPLA ARTICOLI E SPOSTA/COPIA
   const {
     state: selectionState,
     isSelectionActive,
@@ -183,6 +196,9 @@ export const useMobileShoppingLogic = () => {
   } = useMobileSelection();
 
   const isShoppingItemsSelection = isSelectionActive && selectionState.activeSection === 'shopping-items';
+
+  const [isMoveOrCopyModalOpen, setIsMoveOrCopyModalOpen] = useState(false);
+  const [moveOrCopyAction, setMoveOrCopyAction] = useState<'move' | 'copy'>('move');
 
   const allItemIds = useMemo(() => {
     return columnLogic.filteredItems.map((item) => item.id);
@@ -207,15 +223,84 @@ export const useMobileShoppingLogic = () => {
     [columnLogic.filteredItems, mutations, clearSelection]
   );
 
+  const handleOpenMoveSelectedShoppingItems = useCallback(() => {
+    setMoveOrCopyAction('move');
+    setIsMoveOrCopyModalOpen(true);
+  }, []);
+
+  const handleOpenCopySelectedShoppingItems = useCallback(() => {
+    setMoveOrCopyAction('copy');
+    setIsMoveOrCopyModalOpen(true);
+  }, []);
+
+  const handleConfirmMoveOrCopyMobile = useCallback(
+    async (targetListId: number) => {
+      const selectedIds = selectionState.selectedIds.map(Number);
+      if (!activeListId || selectedIds.length === 0) return;
+      const itemsToProcess = items.filter((it) => selectedIds.includes(it.id));
+
+      if (moveOrCopyAction === 'move') {
+        await Promise.all(
+          itemsToProcess.map((item) =>
+            mutations.updateItem({
+              id: item.id,
+              listId: activeListId,
+              data: { shoppingListId: targetListId },
+            })
+          )
+        );
+      } else {
+        await Promise.all(
+          itemsToProcess.map((item) =>
+            mutations.createItem({
+              shoppingListId: targetListId,
+              productName: item.productName,
+              brandId: item.brandId ?? undefined,
+              brandName: item.brandName ?? undefined,
+              unitId: item.unitId ?? undefined,
+              quantity: item.quantity ?? 1,
+              notes: item.notes ?? undefined,
+            })
+          )
+        );
+      }
+
+      setIsMoveOrCopyModalOpen(false);
+      clearSelection();
+    },
+    [activeListId, selectionState.selectedIds, items, moveOrCopyAction, mutations, clearSelection]
+  );
+
   const handleToggleSelectShoppingItem = useCallback(
     (itemId: number) => {
       if (isShoppingItemsSelection) {
         toggleItem(itemId);
       } else {
-        startSelection('shopping-items', itemId, allItemIds, handleDeleteSelectedShoppingItems);
+        const onDeleteHandler = isCompleted ? null : handleDeleteSelectedShoppingItems;
+        const onMoveHandler = isCompleted ? null : handleOpenMoveSelectedShoppingItems;
+        const onCopyHandler = handleOpenCopySelectedShoppingItems;
+
+        startSelection(
+          'shopping-items',
+          itemId,
+          allItemIds,
+          onDeleteHandler,
+          null,
+          onMoveHandler,
+          onCopyHandler
+        );
       }
     },
-    [isShoppingItemsSelection, toggleItem, startSelection, allItemIds, handleDeleteSelectedShoppingItems]
+    [
+      isShoppingItemsSelection,
+      toggleItem,
+      startSelection,
+      allItemIds,
+      isCompleted,
+      handleDeleteSelectedShoppingItems,
+      handleOpenMoveSelectedShoppingItems,
+      handleOpenCopySelectedShoppingItems,
+    ]
   );
 
   // Calcolo articoli divisi per stato (Da Comprare vs Nel Carrello)
@@ -299,11 +384,45 @@ export const useMobileShoppingLogic = () => {
     [mutations]
   );
 
-  // Permessi Utente
-  const canCreateItem = activeUserRole === 'owner' || activeUserRole === 'admin' || activeUserRole === 'editor';
-  const canEditItem = activeUserRole === 'owner' || activeUserRole === 'admin' || activeUserRole === 'editor';
-  const canEditPurchasedItem = activeUserRole === 'owner' || activeUserRole === 'admin';
-  const canDeleteItem = activeUserRole === 'owner' || activeUserRole === 'admin';
+  // Inserimento Rapido Catalogo Articoli (attivabile con Long-press su icona Spesa)
+  const [isQuickCatalogOpen, setIsQuickCatalogOpen] = useState(false);
+
+  const handleToggleQuickCatalog = useCallback(() => {
+    setIsQuickCatalogOpen((prev) => {
+      const next = !prev;
+      if (next) {
+        const defaultList =
+          lists.find((l) => l.isDefault) ||
+          lists.find((l) => l.name?.toLowerCase() === 'senza lista') ||
+          lists[0];
+        if (defaultList && activeListId !== defaultList.id) {
+          setActiveListId(defaultList.id);
+        }
+      }
+      return next;
+    });
+  }, [lists, activeListId, setActiveListId]);
+
+  const handleToggleCatalogItem = useCallback(
+    async (product: ShoppingProductOption, existingItem: ShoppingListItem | null) => {
+      if (!activeListId) return;
+      if (existingItem) {
+        await mutations.deleteItem({ id: existingItem.id, listId: activeListId });
+      } else {
+        const displayName = (product.displayName || product.nameNormalized || '').trim();
+        if (!displayName) return;
+        await mutations.createItem({
+          shoppingListId: activeListId,
+          productName: displayName,
+          brandId: product.brandId ?? undefined,
+          brandName: product.brandName ?? undefined,
+          unitId: product.defaultUnitId ?? undefined,
+          quantity: 1,
+        });
+      }
+    },
+    [activeListId, mutations]
+  );
 
   return {
     // Dati
@@ -328,6 +447,12 @@ export const useMobileShoppingLogic = () => {
     queryClient,
     mutations,
 
+    // Inserimento Rapido Catalogo
+    isQuickCatalogOpen,
+    setIsQuickCatalogOpen,
+    handleToggleQuickCatalog,
+    handleToggleCatalogItem,
+
     // Permessi
     canCreateItem,
     canEditItem,
@@ -348,11 +473,15 @@ export const useMobileShoppingLogic = () => {
     isOmniSearchOpen,
     setIsOmniSearchOpen,
 
-    // Selezione
+    // Selezione & Sposta / Copia
     selectionState,
     isShoppingItemsSelection,
     clearSelection,
     handleToggleSelectShoppingItem,
+    isMoveOrCopyModalOpen,
+    setIsMoveOrCopyModalOpen,
+    moveOrCopyAction,
+    handleConfirmMoveOrCopyMobile,
 
     // Azioni Liste
     handleOpenEditList,

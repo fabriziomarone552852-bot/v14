@@ -12,6 +12,9 @@ interface ShoppingItemsListProps {
   onOpenDetail?: (item: ShoppingListItem) => void;
   onOpenPurchase?: (item: ShoppingListItem) => void;
   userRole?: string;
+  isSelectionMode?: boolean;
+  selectedItemIds?: number[];
+  onToggleSelect?: (id: number) => void;
 }
 
 const ShoppingItemsList: React.FC<ShoppingItemsListProps> = ({
@@ -22,6 +25,9 @@ const ShoppingItemsList: React.FC<ShoppingItemsListProps> = ({
   onOpenDetail,
   onOpenPurchase,
   userRole = 'owner',
+  isSelectionMode = false,
+  selectedItemIds = [],
+  onToggleSelect,
 }) => {
   return (
     <div
@@ -51,6 +57,9 @@ const ShoppingItemsList: React.FC<ShoppingItemsListProps> = ({
                   onOpenDetail={onOpenDetail}
                   onOpenPurchase={onOpenPurchase}
                   userRole={userRole}
+                  isSelectionMode={isSelectionMode}
+                  isSelected={selectedItemIds.includes(item.id)}
+                  onToggleSelect={onToggleSelect}
                 />
               </li>
             ))}

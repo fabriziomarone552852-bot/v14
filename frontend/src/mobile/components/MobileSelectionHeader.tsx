@@ -1,4 +1,3 @@
-// src/mobile/components/MobileSelectionHeader.tsx
 import React from 'react';
 import {
   CloseIcon,
@@ -6,6 +5,8 @@ import {
   CheckboxCheckedIcon,
   CheckboxEmptyIcon,
   ArchiveIcon,
+  ForwardIcon,
+  TaskListIcon,
 } from '@/components/shared/utils/Icons';
 
 export interface MobileSelectionHeaderProps {
@@ -15,6 +16,8 @@ export interface MobileSelectionHeaderProps {
   onToggleSelectAll: () => void;
   onDelete?: () => void;
   onArchive?: () => void;
+  onMove?: () => void;
+  onCopy?: () => void;
   className?: string;
   isInsideModal?: boolean;
 }
@@ -26,6 +29,8 @@ export const MobileSelectionHeader: React.FC<MobileSelectionHeaderProps> = ({
   onToggleSelectAll,
   onDelete,
   onArchive,
+  onMove,
+  onCopy,
   className = '',
   isInsideModal = false,
 }) => {
@@ -56,8 +61,34 @@ export const MobileSelectionHeader: React.FC<MobileSelectionHeaderProps> = ({
         </div>
       </div>
 
-      {/* 2. DESTRA: Azioni contestuali (Archivia, Seleziona Tutto, Elimina) */}
+      {/* 2. DESTRA: Azioni contestuali (Sposta, Copia, Archivia, Seleziona Tutto, Elimina) */}
       <div className="flex items-center gap-1 shrink-0 z-10">
+        {/* Tasto Sposta in... (Solo se fornito onMove) */}
+        {onMove && (
+          <button
+            type="button"
+            onClick={onMove}
+            className="w-9 h-9 rounded-xl text-blue-600 hover:text-blue-700 hover:bg-blue-50 active:scale-95 transition-all focus:outline-none cursor-pointer flex items-center justify-center"
+            title="Sposta elementi selezionati in un'altra lista"
+            aria-label="Sposta"
+          >
+            <ForwardIcon className="w-5 h-5 text-blue-600" />
+          </button>
+        )}
+
+        {/* Tasto Copia in... (Solo se fornito onCopy) */}
+        {onCopy && (
+          <button
+            type="button"
+            onClick={onCopy}
+            className="w-9 h-9 rounded-xl text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 active:scale-95 transition-all focus:outline-none cursor-pointer flex items-center justify-center"
+            title="Copia elementi selezionati in un'altra lista"
+            aria-label="Copia"
+          >
+            <TaskListIcon className="w-5 h-5 text-emerald-600" />
+          </button>
+        )}
+
         {/* Tasto Archiviazione (Solo se fornito onArchive, es. per Gruppi & Liste) */}
         {onArchive && (
           <button
