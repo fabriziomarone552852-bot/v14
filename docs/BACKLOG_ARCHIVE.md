@@ -262,16 +262,19 @@ Perfezionamento del sistema di notifiche e interazioni sociali introdotto in FEA
 
 ### [FEAT-004] Sotto-task Sezione Media Completati (ðŸŸ¢ Completato)
 
-- ðŸ“š **Liste Multimediali Personalizzate**: Creazione di sottoliste miste (es. "MCU", "Da vedere con la ragazza") in cui inserire film, serie o libri. (*UI di gestione liste completata*). Comportamento Homepage vs Sezioni gestito.
-- ðŸ”Ž **Ricerca per Lista**: Aggiunta la possibilitÃ  di filtrare o cercare elementi in base all'appartenenza a specifiche liste.
-- ðŸ’¬ **Commenti alle Recensioni & Menzioni**: Sistema per commentare le singole recensioni (tue, amici o pubbliche) con thread visuali a comparsa (chat bubble) e autocompletamento @menzioni.
-- ðŸ”” **Sistema di Notifiche Avanzato**: Sistema per avvisare l'utente alla ricezione di inviti, commenti o menzioni dirette (@X) nei thread, con deep-linking diretto al commento in questione.
-- ðŸ’¬ **Messaggistica Istantanea ed Effimera**: Integrazione di messaggi effimeri diretta tra amici.
-- ðŸ“¡ **Rimozione Dati Mock & Integrazione API**: Sostituzione dei Dati Mock con fetch reali dal Database e logica TMDB / React Query per tutte le sezioni.
-- ðŸŽ¨ **UI Schermata di Dettaglio Completata**: Design del modale di dettaglio della singola serie completato e rifinito (gestione cast, layout colonne, header integrato, status badge, e pannello liste).
+- 📚 **Liste Multimediali Personalizzate**: Creazione di sottoliste miste (es. "MCU", "Da vedere con la ragazza") in cui inserire film, serie o libri. (*UI di gestione liste completata*). Comportamento Homepage vs Sezioni gestito.
+- 🔎 **Ricerca per Lista**: Aggiunta la possibilità di filtrare o cercare elementi in base all'appartenenza a specifiche liste.
+- 💬 **Commenti alle Recensioni & Menzioni**: Sistema per commentare le singole recensioni (tue, amici o pubbliche) con thread visuali a comparsa (chat bubble) e autocompletamento @menzioni.
+- 🔔 **Sistema di Notifiche Avanzato**: Sistema per avvisare l'utente alla ricezione di inviti, commenti o menzioni dirette (@X) nei thread, con deep-linking diretto al commento in questione.
+- 💬 **Messaggistica Istantanea ed Effimera**: Integrazione di messaggi effimeri diretta tra amici.
+- 📡 **Rimozione Dati Mock & Integrazione API**: Sostituzione dei Dati Mock con fetch reali dal Database e logica TMDB / React Query per tutte le sezioni.
+- 🎨 **UI Schermata di Dettaglio Completata**: Design del modale di dettaglio della singola serie completato e rifinito (gestione cast, layout colonne, header integrato, status badge, e pannello liste).
 
+### [FEAT-004] Sotto-task Sezione Media Completati (Ottobre 2026)
+- 📡 **Rimozione Dati Mock & Integrazione API (Completato)**: Sostituzione dei Dati Mock (obiettivo annuale, citazioni, serie recenti, carousel prossime uscite, e Integrazione completa Liste Multimediali e MediaListManagerModal) con fetch reali dal Database e logica TMDB / React Query.
+- 📊 **Statistiche, Piattaforme & Analytics Completati**: Dashboard abitudini completata con switch dinamico Ore/Episodi. Obiettivi annuali modificabili inline con input nativo. Top 10 Hall of Fame rifinita con raggruppamento per serie, aggregazione media dei voti e arrotondamenti precisi tramite StarRating visivo. Gestione piattaforme di visione ottimizzata con AddButton compatto e merging dei default DB.
+- 🎨 **UI Schermata di Dettaglio Completata**: Il design del modale di dettaglio della singola serie è stato completato e rifinito (gestione cast, layout colonne, header integrato, status badge in overlay, e pannello liste).
 
----
 
 ### [SHOPPING-007] Inserimento Rapido Catalogo & Selezione Multipla Spesa (Sposta / Copia / Elimina) (🟢 Completato)
 

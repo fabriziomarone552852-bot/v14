@@ -31,7 +31,15 @@ export const useTrackersMutations = () => {
     mutationFn: async ({ tmdb_id, payload }: { tmdb_id: number; payload: any }) => {
       return await api.post(`/trackers/series/${tmdb_id}/logs`, payload);
     },
-    onSuccess: () => {
+    onSuccess: (response: any) => {
+      queryClient.setQueryData(['trackers', 'series'], (old: any) => {
+        if (!old) return old;
+        const seriesData = response.data || response;
+        if (!old.find((s: any) => s.tmdb_id === seriesData.tmdb_id)) {
+          return [seriesData, ...old];
+        }
+        return old.map((s: any) => s.tmdb_id === seriesData.tmdb_id ? seriesData : s);
+      });
       queryClient.invalidateQueries({ queryKey: ['trackers', 'series'] });
     },
   });
@@ -40,7 +48,15 @@ export const useTrackersMutations = () => {
     mutationFn: async ({ log_id, payload }: { log_id: number; payload: any }) => {
       return await api.patch(`/trackers/series/logs/${log_id}`, payload);
     },
-    onSuccess: () => {
+    onSuccess: (response: any) => {
+      queryClient.setQueryData(['trackers', 'series'], (old: any) => {
+        if (!old) return old;
+        const seriesData = response.data || response;
+        if (!old.find((s: any) => s.tmdb_id === seriesData.tmdb_id)) {
+          return [seriesData, ...old];
+        }
+        return old.map((s: any) => s.tmdb_id === seriesData.tmdb_id ? seriesData : s);
+      });
       queryClient.invalidateQueries({ queryKey: ['trackers', 'series'] });
     },
   });
@@ -188,6 +204,26 @@ export const useTrackersMutations = () => {
     },
   });
 
+  const renamePlatformMutation = useMutation({
+    mutationFn: async ({ platform_id, name }: { platform_id: number; name: string }) => {
+      return await api.patch(`/trackers/platforms/${platform_id}`, { name });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['trackers', 'platforms'] });
+      queryClient.invalidateQueries({ queryKey: ['trackers', 'series'] });
+    },
+  });
+
+  const deletePlatformMutation = useMutation({
+    mutationFn: async (platform_id: number) => {
+      return await api.delete(`/trackers/platforms/${platform_id}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['trackers', 'platforms'] });
+      queryClient.invalidateQueries({ queryKey: ['trackers', 'series'] });
+    },
+  });
+
   return {
     addSeries: addSeriesMutation.mutate,
     isAddingSeries: addSeriesMutation.isPending,
@@ -223,6 +259,8 @@ export const useTrackersMutations = () => {
     isAddingToList: addToListMutation.isPending,
     removeFromList: removeFromListMutation.mutate,
     isRemovingFromList: removeFromListMutation.isPending,
+    renamePlatform: renamePlatformMutation.mutate,
+    deletePlatform: deletePlatformMutation.mutate,
   };
 };
 

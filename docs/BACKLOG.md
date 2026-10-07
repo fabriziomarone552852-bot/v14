@@ -244,10 +244,8 @@ Nuovo modulo completo per gestire, catalogare e monitorare l'intrattenimento per
   - ÃƒÂ°Ã…Â¸Ã¢Â€Â™Ã‚Â¬ **âœ… Messaggistica Istantanea ed Effimera (Completato)**: Valutare l'integrazione di una chat o messaggistica diretta tra amici, possibilmente con messaggi effimeri, legata alle interazioni sulle serie o commenti.
   - ÃƒÂ°Ã…Â¸Ã…Â’Ã‚Â **DisponibilitÃƒÂƒÃ‚Â  Piattaforme Streaming**: Integrare (ad es. tramite dati JustWatch via API TMDB) la visualizzazione accurata delle piattaforme in cui l'episodio/serie ÃƒÂƒÃ‚Â¨ attualmente visibile (Netflix, Prime Video, ecc.).
   - ÃƒÂ°Ã…Â¸Ã¢Â€Â™Ã‚Â¡ **Suggerimenti Homepage (Raccomandazioni)**: Aggiungere in homepage una sezione con serie TV suggerite e raccomandate dinamicamente in base alle ultime serie guardate.
-  - Ã°ÂŸÂ“Â¡ **âœ… Rimozione Dati Mock & Integrazione API (Completato)**: Sostituzione dei Dati Mock (obiettivo annuale, citazioni, serie recenti, carousel prossime uscite, e **Integrazione completa Liste Multimediali e MediaListManagerModal**) con fetch reali dal Database e logica TMDB / React Query.
-  - Ã°ÂŸÂŽÂ¨ **UI Schermata di Dettaglio Completata**: Il design del modale di dettaglio della singola serie ÃƒÂ¨ stato completato e rifinito (gestione cast, layout colonne, header integrato, status badge in overlay, e pannello liste).
-  - ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Â¨ Gestione dello stato "Empty" per l'assenza di serie.
-  - â Œ **Date di Uscita Italiane (Impossibile)**: L'estrazione delle date di uscita regionali (italiane) per gli episodi non Ã¨ supportata tecnicamente da TMDB, che traccia unicamente la prima data assoluta di messa in onda (first_air_date globale). Si manterrÃ  la data globale poiché integrare API esterne commerciali (Gracenote/JustWatch) ha costi proibitivi per app indipendenti.
+  - 🎨 Gestione dello stato "Empty" per l'assenza di serie.
+  - ❌ **Date di Uscita Italiane (Impossibile)**: L'estrazione delle date di uscita regionali (italiane) per gli episodi non è supportata tecnicamente da TMDB, che traccia unicamente la prima data assoluta di messa in onda (first_air_date globale). Si manterrà la data globale poiché integrare API esterne commerciali (Gracenote/JustWatch) ha costi proibitivi per app indipendenti.
 
 #### ÃƒÂ°Ã…Â¸Ã¢Â€ÂÃ¢Â€Âž 4. Analisi Integrazioni Esterne & Sincronizzazione (Goodreads, Fable, TV Time)
 - **FattibilitÃƒÂƒÃ‚Â  Sincronizzazione Piattaforme Esterne**:

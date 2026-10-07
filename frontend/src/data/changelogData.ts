@@ -35,6 +35,7 @@ export const CHANGELOG_HISTORY: ChangelogItem[] = [
       'Layout Serie TV Edge-to-Edge: Modale dinamico, badge liste intelligenti e carousel Prossime Uscite ottimizzato.',
       'Gestione Obiettivi Annuali Trackers: Nuova struttura DB (UserYearlyGoal) e API dinamica con fallback agli anni precedenti per impostare e aggiornare gli obiettivi annuali direttamente dalla UI.',
       'Disponibilità Piattaforme Streaming: Integrazione dinamica dei dati JustWatch per mostrare su quali servizi (Netflix, Prime Video, ecc.) è attualmente disponibile la serie TV visualizzata.',
+      'Abitudini di Visione Analytics: Switch dinamico Ore/Episodi e modifica rapida dell\'obiettivo annuale dalla Hall of Fame.',
       'Pannello Amministrazione Avanzato (SuperUser): Gestione completa degli utenti con visualizzazione risorse collegate, modifica dati riservati, reset password con generatore sicuro e forzatura cambio password al primo accesso (must_change_password).',
       'Strumenti di Manutenzione & Integrità DB: Nuova sezione nel pannello Admin per sincronizzazione e riallineamento sequenze PostgreSQL, riassegnazione proprietà gruppi spesa orfani e purge definitivo account disattivati.',
       'Controlli Tipizzati Parametri di Sistema: Scheda configurazioni con controlli dedicati per tetto massimo nidificazione task (max_subtask_depth) e finestra temporale storico prezzi spesa.',
@@ -44,12 +45,14 @@ export const CHANGELOG_HISTORY: ChangelogItem[] = [
       'Refactoring Catalogo Prodotti & Tabella Ponte Brand (Modulo Shopping): Disaccoppiamento di ShoppingProducts (catalogo asettico senza duplicati) e introduzione della tabella ponte N:N `shopping_product_brands` per associare molteplici brand a un prodotto con note e commenti qualitativi persistenti nel tempo.',
     ],
     improvements: [
+      'Sostituita la finestra di conferma di sistema con il ConfirmDialog personalizzato nella pagina delle Serie TV.',
       'Allineamento Dinamico Limiti Nidificazione: La scelta della profondità massima sottotask nelle impostazioni utente (Desktop e Mobile) è ora vincolata dinamicamente al tetto massimo impostato dall\'amministratore, con validazione a livello backend.',
       'Deep-Linking Notifiche: Le notifiche ora aprono il dettaglio corretto (es. posizionamento sul commento o gruppo spesa).',
       'Sincronizzazione Stato: Calcolo automatico di In corso/Completata per le serie TV in base agli episodi visti.',
       'UI/UX: Avatar degli amici con default avatar, posizionati in riga dedicata, scrollbar a gradiente e icone visive della privacy.',
       'Estetica Modali: Indicatori visivi inline minimalisti, skeleton loading per avatar e modali allineati al design system globale.',
-      'Sistema Voti: Calcolo medie stagioni, conversione stelle 1-5, tasti Modifica/Elimina in testa alla pagina.'
+      'Sistema Voti: Calcolo medie stagioni, conversione stelle 1-5, tasti Modifica/Elimina in testa alla pagina.',
+      'Hall of Fame & Top Serie: Classifica basata sulla vera media matematica tra le visioni della stessa serie, UI a stelle precise con arrotondamento automatico (mezze stelle, .5).'
     ],
     fixes: [
       'Backend Tasks: Risolto bug sul nome chiave `"max_subtask_depth"` nella query di lettura del limite di sistema da database.',
@@ -57,6 +60,7 @@ export const CHANGELOG_HISTORY: ChangelogItem[] = [
       'Corretto un bug nel calcolo della media voti degli amici (Serie ed Episodi): il valore non si aggiornava correttamente al termine del caricamento a causa di un problema di cache di React (useMemo).',
       'Rimossa l\'ora (2:00) dalla data delle recensioni (Serie ed Episodi) per una visualizzazione più pulita e coerente.',
       'Risolto il bug degli avatar mancanti: ora gli amici che hanno aggiunto una serie al catalogo (anche senza aver lasciato una recensione) appaiono correttamente nell\'header della serie con il bordo relativo allo stato.',
+      'Piattaforme di Visione: Risolto bug nell\'elenco a discesa che nascondeva le piattaforme di default, ora integrate automaticamente. Grafica unificata tramite componente AddButton compatto.',
       'Backend: Corretto un bug nella query degli amici (Outer Join) che causava errori di caricamento per gli amici che avevano in lista una serie senza recensioni.',
       'Database: Create le migrazioni mancanti per costanti e constraints delle tabelle log e trackers.',
       'Aggiunto avatar di default (default_avatar.png) per gli amici senza immagine profilo.',
@@ -68,6 +72,7 @@ export const CHANGELOG_HISTORY: ChangelogItem[] = [
       'Fix UI Trama Serie: Inserita scrollbar per la trama principale così da evitare che testi troppo lunghi spingano la sezione Cast fuori dallo schermo.',
       'Implementata la chiamata API per recuperare e mostrare cast e serie consigliate dal database TMDB nel dettaglio della serie',
 
+        'Risolto il problema del filtro "Visti" (icona occhio) nella sezione Serie TV: ora mostra correttamente solo le serie in stato Completato o Visto (senza episodi rimanenti). Aggiunto anche il tab "In Corso" per le serie attualmente in visione con una nuova icona dedicata (Occhio con Play).',
         'Rimozione Dati Mock: Eliminati i dati temporanei da TVSeriesPage, SerieDetailModal, EpisodeDetailView per riflettere le informazioni del database.',
         'Ottimizzazione Empty States: Aggiornata l\'interfaccia di TVSeriesPage e SeriesReviewTab per gestire gracefully le liste vuote e le citazioni mancanti.','Risolto errore di backend 500 durante l\'invio di inviti a Gruppi Spesa a causa di un repository non trovato.',
       'Risolti vari crash backend legati alla ricerca TMDB e al caricamento serie orfane.',
@@ -75,6 +80,7 @@ export const CHANGELOG_HISTORY: ChangelogItem[] = [
       'Corretto il loop di sincronizzazione offline in caso di errori 4xx.',
       'Risolto problema di caricamento del dominio media su GitHub.',
       'Risolto il funzionamento della sezione commenti nelle recensioni di Serie TV e Episodi: i commenti ora vengono salvati con l\'ID utente corretto anche per le proprie recensioni, aggiornano immediatamente l\'interfaccia tramite invalidazione della query e vengono inclusi anche nelle query del backend per i log personali.',
+      'Backend: Risolto crash di sincronizzazione serie TV (background full sync) e salvataggio recensioni rimpiazzando l\'importazione ombra del modulo datetime con timedelta, ripristinando il corretto funzionamento di datetime.strptime e datetime.now.'
     ],
   },
   {

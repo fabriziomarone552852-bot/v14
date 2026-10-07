@@ -3,7 +3,7 @@ import { useSearchParams } from 'react-router-dom';
 import { useMySeries, useSeriesStats, useUpcomingEpisodes, useMyQuotes } from '@/hooks/queries/useTrackersQueries';
 import PageLoadingState from '@/components/shared/feedback/PageLoadingState';
 import PageErrorState from '@/components/shared/feedback/PageErrorState';
-import { TvIcon, EyeIcon, EyeHalfOpenIcon, EyeClosedIcon, LoadingIcon } from '@/components/shared/utils/Icons';
+import { TvIcon, EyeIcon, EyeHalfOpenIcon, EyeClosedIcon, LoadingIcon, EyePlayIcon } from '@/components/shared/utils/Icons';
 import { EmptyState } from '@/components/shared/utils/EmptyState';
 import { useQueryClient, useQuery, useMutation } from '@tanstack/react-query';
 import { api } from '@/api/apiService';
@@ -15,6 +15,7 @@ import { SeriesDetailModal, type TabType } from './components/SeriesDetailModal'
 import type { TMDBEpisode } from '../../types/trackers';
 import { generateWeeksGrid, nomiMesiLungo, getFirstDayIndex, getDaysInMonth } from '@/utils/dateUtils';
 import { resolveImageUrl } from '@/utils/imageUtils';
+import { useConfirm } from '@/context/ConfirmContext';
 
 
 interface UpcomingProps {
@@ -208,6 +209,7 @@ const UpcomingEpisodesWidget = ({ openSeriesDetail }: UpcomingProps) => {
   );
 };
 const TVSeriesPage: React.FC = () => {
+  const { confirm } = useConfirm();
   const [searchParams, setSearchParams] = useSearchParams();
   const [detailModalOpen, setDetailModalOpen] = useState(false);
   const [detailModalSeries, setDetailModalSeries] = useState<any>(null);
@@ -272,7 +274,7 @@ const TVSeriesPage: React.FC = () => {
     }
   }, [series, detailModalOpen]); // intentionally missing detailModalSeries to avoid loop
 
-  const [activeTab, setActiveTab] = useState<'all' | 'watching' | 'to_watch'>('all');
+  const [activeTab, setActiveTab] = useState<'all' | 'watching' | 'watched' | 'to_watch'>('all');
   const [goalViewType, setGoalViewType] = useState<'percent' | 'fraction'>('fraction');
   const [searchQuery, setSearchQuery] = useState('');
   const [debouncedQuery, setDebouncedQuery] = useState('');
@@ -366,6 +368,14 @@ const TVSeriesPage: React.FC = () => {
     addSeriesMutation.mutate({ tmdb_id: tmdbId, status: 'to_watch' });
   };
 
+  const currentYear = new Date().getFullYear();
+  const { data: goalData } = useQuery({
+    queryKey: ['yearlyGoal', 'series', currentYear],
+    queryFn: () => userGoalsApi.getYearlyGoal('series', currentYear),
+  });
+
+
+
   if (isLoading) {
     return <PageLoadingState messages={['Caricamento Libreria Serie TV...']} />;
   }
@@ -376,9 +386,9 @@ const TVSeriesPage: React.FC = () => {
 
   const watchingSeries = series?.filter(s => s.status === 'watching') || [];
   const toWatchSeries = series?.filter(s => s.status === 'to_watch') || [];
-  const watchedSeries = series?.filter(s => s.status === 'watched') || [];
+  const watchedSeries = series?.filter(s => s.status === 'watched' || s.status === 'completed') || [];
   
-  const displaySeries = (activeTab === 'all' ? (series || []) : activeTab === 'watching' ? watchingSeries : toWatchSeries)
+  const displaySeries = (activeTab === 'all' ? (series || []) : activeTab === 'watching' ? watchingSeries : activeTab === 'watched' ? watchedSeries : toWatchSeries)
     .filter(s => s.title.toLowerCase().includes(searchQuery.toLowerCase()));
 
   // Mocks for top cards
@@ -386,31 +396,11 @@ const TVSeriesPage: React.FC = () => {
   const lastWatched = watchingSeries.length > 0 ? watchingSeries[0] : null;
   const lastCompleted = watchedSeries.length > 0 ? watchedSeries[0] : null;
 
-  const currentYear = new Date().getFullYear();
-  const { data: goalData, refetch: refetchGoal } = useQuery({
-    queryKey: ['yearlyGoal', 'series', currentYear],
-    queryFn: () => userGoalsApi.getYearlyGoal('series', currentYear),
-  });
-
-  const setGoalMutation = useMutation({
-    mutationFn: (newGoal: number) => userGoalsApi.setYearlyGoal('series', currentYear, newGoal),
-    onSuccess: () => refetchGoal()
-  });
-
   const goal = goalData?.goal_value || 300;
   const currentEpisodes = statsData?.episodes_watched_this_year || 0;
   const goalPercent = Math.min(100, Math.round((currentEpisodes / goal) * 100));
 
-  const handleEditGoal = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    const newGoalStr = window.prompt("Imposta il tuo nuovo obiettivo annuale di episodi:", goal.toString());
-    if (newGoalStr) {
-      const newGoal = parseInt(newGoalStr, 10);
-      if (!isNaN(newGoal) && newGoal > 0) {
-        setGoalMutation.mutate(newGoal);
-      }
-    }
-  };
+
 
   return (
     <div className="flex flex-col gap-5 max-w-[1600px] mx-auto min-h-full xl:h-full xl:overflow-hidden relative p-2 xl:p-0">
@@ -433,13 +423,7 @@ const TVSeriesPage: React.FC = () => {
             className="flex flex-col w-full bg-white rounded-xl shadow-sm border border-gray-200 p-4 cursor-pointer hover:shadow-md transition-shadow select-none relative group"
           >
              <div className="absolute right-3 top-3 opacity-0 group-hover:opacity-100 transition-opacity flex gap-2">
-                <button 
-                  onClick={handleEditGoal} 
-                  className="bg-blue-50 text-blue-600 p-1.5 rounded-lg hover:bg-blue-100 border border-blue-200 shadow-sm transition-colors"
-                  title="Modifica Obiettivo"
-                >
-                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
-                </button>
+
                 <button 
                   onClick={(e) => { e.stopPropagation(); setStatsModalOpen(true); }} 
                   className="bg-blue-50 text-blue-600 p-1.5 rounded-lg hover:bg-blue-100 border border-blue-200 shadow-sm transition-colors"
@@ -533,11 +517,12 @@ const TVSeriesPage: React.FC = () => {
              <div className="flex items-center gap-3 pointer-events-auto">
                  {/* Filter Toggle Espandibile */}
                  <div className="flex items-center bg-white/95 backdrop-blur-md p-1 rounded-full border border-gray-200 shrink-0 shadow-sm group transition-all duration-300 hover:gap-1">
-                    {['watching', 'all', 'to_watch'].map((tab) => {
+                    {['watched', 'watching', 'all', 'to_watch'].map((tab) => {
                       const isActive = activeTab === tab;
                       let icon = null;
                       let label = '';
-                      if (tab === 'watching') { icon = <EyeIcon className="w-4 h-4" />; label = 'Visti'; }
+                      if (tab === 'watched') { icon = <EyeIcon className="w-4 h-4" />; label = 'Visti'; }
+                      else if (tab === 'watching') { icon = <EyePlayIcon className="w-4 h-4" />; label = 'In Corso'; }
                       else if (tab === 'all') { icon = <EyeHalfOpenIcon className="w-4 h-4" />; label = 'Tutti'; }
                       else { icon = <EyeClosedIcon className="w-4 h-4" />; label = 'Non Visti'; }
                       
@@ -776,10 +761,17 @@ const TVSeriesPage: React.FC = () => {
             if (!isTracked) {
               addSeriesMutation.mutate({ tmdb_id: tmdbId, status: 'to_watch' } as any);
             } else {
-              if (window.confirm('Sei sicuro di voler rimuovere questa serie dalla tua libreria?')) {
-                removeSeriesMutation.mutate(tmdbId);
-                setDetailModalOpen(false);
-              }
+              confirm({
+                title: 'Rimuovi serie',
+                message: 'Sei sicuro di voler rimuovere questa serie dalla tua libreria?',
+                confirmText: 'Rimuovi',
+                cancelText: 'Annulla',
+                isDestructive: true,
+                onConfirm: () => {
+                  removeSeriesMutation.mutate(tmdbId);
+                  setDetailModalOpen(false);
+                }
+              });
             }
           }}
         />

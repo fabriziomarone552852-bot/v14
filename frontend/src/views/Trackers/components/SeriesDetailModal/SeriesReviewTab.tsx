@@ -5,26 +5,27 @@ import { StarRating } from './StarRating';
 import { EmptyState } from '@/components/shared/utils/EmptyState';
 import { DatePicker } from '@/components/shared/utils/DatePicker/DatePicker';
 import { useTrackersMutations } from '@/hooks/mutations/useTrackersMutations';
-import { useFriendsSeriesReviews } from '@/hooks/queries/useTrackersQueries';
+import { useFriendsSeriesReviews, useTVPlatforms } from '@/hooks/queries/useTrackersQueries';
 import { useNotifications } from '@/hooks/useNotifications';
 import { useSocial } from '@/hooks/useSocial';
 import { useAuth } from '@/context/AuthContext';
 import { EditIcon, TrashIcon } from '@/components/shared/utils/Icons';
 import ConfirmDialog from '@/components/shared/dialog/ConfirmDialog';
-
-
+import { AddButton } from '@/components/shared/utils/AddButton';
 
 export interface UserSeriesLog {
   id: number;
   rating: number;
   notes: string;
   review_visibility: 'private' | 'friends_only' | 'public';
+  viewing_platform_name?: string | null;
   updated_at: string;
   comments?: any[];
 }
 
 export interface UnifiedReviewData {
   review_visibility?: string;
+  viewing_platform_name?: string | null;
   id: string | number;
   author_id: string | number;
   author_name: string;
@@ -96,6 +97,11 @@ export const SeriesReviewTab: React.FC<SeriesReviewTabProps> = ({ tmdbSeries, us
   };
   const { addSeriesLog, updateSeriesLog, deleteSeriesLog } = useTrackersMutations();
   const { data: friendsLogsData = [] } = useFriendsSeriesReviews(tmdbSeries.tmdb_id);
+  const { data: dbPlatforms = [] } = useTVPlatforms();
+  const allPlatforms = useMemo(() => {
+    const defaultPlatforms = ["Netflix", "Prime Video", "Disney+", "Apple TV+", "Sky / NOW", "Paramount+", "Pirati 🏴‍☠️", "DVD / Blu-Ray", "TV (In chiaro)"];
+    return Array.from(new Set([...defaultPlatforms, ...dbPlatforms.map(p => p.name)]));
+  }, [dbPlatforms]);
   const { friends } = useSocial();
   const [mentionQuery, setMentionQuery] = useState<{ active: boolean; query: string; startPos: number }>({ active: false, query: '', startPos: -1 });
 
@@ -165,9 +171,13 @@ export const SeriesReviewTab: React.FC<SeriesReviewTabProps> = ({ tmdbSeries, us
     if (userTracking && userTracking.logs && userTracking.logs.length > 0) {
       return userTracking.logs.map(log => ({
         id: log.id,
+        user_id: log.user_id,
+        series_tmdb_id: log.series_tmdb_id,
         rating: (log.rating || 0) / 2,
         notes: log.notes || '',
         review_visibility: (log.review_visibility as 'private' | 'friends_only' | 'public') || 'friends_only',
+        viewing_platform_name: log.viewing_platform_name,
+        watched_at: log.watched_at || new Date().toISOString(),
         updated_at: log.updated_at || new Date().toISOString(),
         comments: (log as any).comments || []
       }));
@@ -189,6 +199,7 @@ export const SeriesReviewTab: React.FC<SeriesReviewTabProps> = ({ tmdbSeries, us
           comments: (myLog as any).comments || [],
           is_mine: true,
           review_visibility: myLog.review_visibility,
+          viewing_platform_name: myLog.viewing_platform_name,
           original_log: myLog
         });
         setView('review_detail');
@@ -207,6 +218,7 @@ export const SeriesReviewTab: React.FC<SeriesReviewTabProps> = ({ tmdbSeries, us
           updated_at: friendLog.updated_at,
           comments: (friendLog as any).comments || [],
           is_mine: false,
+          review_visibility: friendLog.review_visibility,
           original_log: friendLog
         });
         setView('review_detail');
@@ -234,7 +246,11 @@ export const SeriesReviewTab: React.FC<SeriesReviewTabProps> = ({ tmdbSeries, us
   const [rating, setRating] = useState(0); 
   const [review, setReview] = useState('');
   const [visibility, setVisibility] = useState<UserSeriesLog['review_visibility']>((userTracking?.review_visibility as 'private' | 'friends_only' | 'public') || 'friends_only');
+  const [platform, setPlatform] = useState('');
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [isAddingPlatform, setIsAddingPlatform] = useState(false);
+  const [isPlatformDropdownOpen, setIsPlatformDropdownOpen] = useState(false);
+  const [newPlatformName, setNewPlatformName] = useState('');
   
   const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
   const [reviewDate, setReviewDate] = useState<string>(() => {
@@ -279,6 +295,7 @@ export const SeriesReviewTab: React.FC<SeriesReviewTabProps> = ({ tmdbSeries, us
     setRating(0);
     setReview('');
     setVisibility('friends_only');
+    setPlatform('');
     const d = new Date();
     setReviewDate(`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`);
     setView('form');
@@ -289,6 +306,7 @@ export const SeriesReviewTab: React.FC<SeriesReviewTabProps> = ({ tmdbSeries, us
     setRating(log.rating || 0);
     setReview(log.notes || '');
     setVisibility(log.review_visibility || 'friends_only');
+    setPlatform(log.viewing_platform_name || '');
     setReviewDate(log.updated_at ? log.updated_at.split('T')[0] : '');
     setView('form');
   };
@@ -318,6 +336,7 @@ export const SeriesReviewTab: React.FC<SeriesReviewTabProps> = ({ tmdbSeries, us
           rating: rating > 0 ? Math.round(rating * 2) : null,
           notes: review,
           review_visibility: visibility,
+          viewing_platform_name: platform || null,
           watched_at: reviewDate
         }
       });
@@ -328,6 +347,7 @@ export const SeriesReviewTab: React.FC<SeriesReviewTabProps> = ({ tmdbSeries, us
           rating: rating > 0 ? Math.round(rating * 2) : null,
           notes: review,
           review_visibility: visibility,
+          viewing_platform_name: platform || null,
           watched_at: reviewDate
         }
       });
@@ -354,6 +374,78 @@ export const SeriesReviewTab: React.FC<SeriesReviewTabProps> = ({ tmdbSeries, us
           </div>
 
           <div className="flex items-center gap-2">
+            <div className="relative" style={{ width: '170px' }}>
+              {!isAddingPlatform ? (
+                <div
+                  onClick={() => setIsPlatformDropdownOpen(!isPlatformDropdownOpen)}
+                  className="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm bg-white cursor-pointer flex justify-between items-center hover:border-blue-500 transition-colors shadow-sm"
+                >
+                  <span className="text-gray-700 font-medium truncate">
+                    {platform || 'Piattaforma...'}
+                  </span>
+                  <svg className={`w-4 h-4 text-gray-400 transition-transform ${isPlatformDropdownOpen ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+                </div>
+              ) : (
+                <div className="w-full px-2 py-1.5 border border-blue-500 rounded-xl bg-white flex items-center shadow-sm">
+                  <input
+                    autoFocus
+                    type="text"
+                    value={newPlatformName}
+                    onChange={(e) => setNewPlatformName(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        if (newPlatformName.trim()) {
+                          setPlatform(newPlatformName.trim());
+                          setIsAddingPlatform(false);
+                        }
+                      } else if (e.key === 'Escape') {
+                        setIsAddingPlatform(false);
+                      }
+                    }}
+                    onBlur={() => {
+                        if (newPlatformName.trim()) setPlatform(newPlatformName.trim());
+                        setIsAddingPlatform(false);
+                    }}
+                    className="flex-1 outline-none text-sm px-1 w-full min-w-0"
+                    placeholder="Nome..."
+                  />
+                </div>
+              )}
+
+              {isPlatformDropdownOpen && (
+                <>
+                  <div className="fixed inset-0 z-40" onClick={() => setIsPlatformDropdownOpen(false)} />
+                  <div className="absolute z-50 w-full bg-white border border-gray-100 rounded-xl shadow-xl py-1 mt-1 top-full max-h-48 overflow-y-auto animate-fadeIn custom-scrollbar flex flex-col">
+                    {allPlatforms.map(p => (
+                      <div
+                        key={p}
+                        onClick={() => {
+                          setPlatform(p);
+                          setIsPlatformDropdownOpen(false);
+                        }}
+                        className={`px-3 py-2 text-sm cursor-pointer flex items-center justify-between transition-colors shrink-0 ${platform === p ? 'bg-blue-50 text-blue-900 font-bold' : 'hover:bg-gray-50 text-gray-700'}`}
+                      >
+                        <span className="truncate">{p}</span>
+                        {platform === p && <svg className="w-4 h-4 text-blue-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>}
+                      </div>
+                    ))}
+                    <div className="border-t border-gray-100 pt-1.5 mt-1 space-y-1 pb-1 px-1 shrink-0">
+                      <AddButton
+                        label="Nuova Piattaforma"
+                        compact={true}
+                        onClick={() => {
+                          setIsPlatformDropdownOpen(false);
+                          setIsAddingPlatform(true);
+                          setNewPlatformName('');
+                        }}
+                      />
+                    </div>
+                  </div>
+                </>
+              )}
+            </div>
+
             <div className="relative">
               <DatePicker
                 value={reviewDate}
@@ -432,6 +524,8 @@ export const SeriesReviewTab: React.FC<SeriesReviewTabProps> = ({ tmdbSeries, us
           />
         </div>
 
+
+
         <div className="flex items-center justify-between pt-4 border-t border-gray-100 shrink-0">
           <StarRating value={rating} onChange={setRating} hideNumber />
           <button 
@@ -488,12 +582,13 @@ export const SeriesReviewTab: React.FC<SeriesReviewTabProps> = ({ tmdbSeries, us
                     id: log.id as any,
                     author_id: String(user?.id),
                     author_name: 'Tu',
-                    rating: (log.rating || 0) / 2,
+                    rating: (log.rating || 0),
                     notes: log.notes || '',
                     updated_at: log.updated_at,
                     comments: (log as any).comments || [],
                     is_mine: true,
                     review_visibility: log.review_visibility,
+                    viewing_platform_name: log.viewing_platform_name,
                     original_log: log
                   });
                   setView('review_detail');
@@ -723,6 +818,16 @@ export const SeriesReviewTab: React.FC<SeriesReviewTabProps> = ({ tmdbSeries, us
                   <div className="text-xs text-gray-500">{new Date(selectedReview.updated_at).toLocaleDateString('it-IT', { day: 'numeric', month: 'short', year: 'numeric' })}</div>
                 </div>
               </div>
+
+              {selectedReview.viewing_platform_name && (
+                <div className="flex-1 flex justify-center">
+                  <span className="px-3 py-1 bg-slate-50 text-slate-600 rounded-lg font-bold text-xs border border-slate-200 flex items-center gap-1.5 shadow-sm">
+                    <svg className="w-3.5 h-3.5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
+                    {selectedReview.viewing_platform_name}
+                  </span>
+                </div>
+              )}
+
               <StarRating value={selectedReview.rating || 0} hideNumber readonly iconClassName="w-6 h-6" />
             </div>
             
@@ -933,11 +1038,11 @@ const ReviewItem: React.FC<{ log: UserSeriesLog, onEdit: () => void, onDelete: (
             )}
           </div>
           <div className="text-xs text-gray-500 font-medium flex items-center gap-1.5">
-                    {new Date(log.updated_at).toLocaleDateString('it-IT', { day: 'numeric', month: 'short', year: 'numeric' })}
-                    <div title={log.review_visibility === 'private' ? 'Personale (Solo io)' : log.review_visibility === 'friends_only' ? 'Amici' : 'Pubblica'}>
-                      <VisibilityIcon visibility={log.review_visibility || 'public'} className="w-3.5 h-3.5" />
-                    </div>
-                  </div>
+            {new Date(log.updated_at).toLocaleDateString('it-IT', { day: 'numeric', month: 'short', year: 'numeric' })}
+            <div title={log.review_visibility === 'private' ? 'Personale (Solo io)' : log.review_visibility === 'friends_only' ? 'Amici' : 'Pubblica'}>
+              <VisibilityIcon visibility={log.review_visibility || 'public'} className="w-3.5 h-3.5" />
+            </div>
+          </div>
         </div>
         
         {/* Azioni visibili solo in hover (group-hover) */}
