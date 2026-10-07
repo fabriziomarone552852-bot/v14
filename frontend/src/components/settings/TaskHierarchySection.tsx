@@ -4,27 +4,39 @@ import React from 'react';
 interface TaskHierarchySectionProps {
   maxDepth: number | '';
   onMaxDepthChange: (value: number | '') => void;
+  systemMaxDepth?: number;
   disabled?: boolean;
 }
 
 export const TaskHierarchySection: React.FC<TaskHierarchySectionProps> = ({
   maxDepth,
   onMaxDepthChange,
+  systemMaxDepth = 10,
   disabled = false,
 }) => {
   const MIN_LIMIT = 1;
-  const MAX_LIMIT = 10;
-  const numericValue = typeof maxDepth === 'number' ? Math.max(MIN_LIMIT, Math.min(MAX_LIMIT, maxDepth)) : 3;
+  const MAX_LIMIT = Math.max(MIN_LIMIT, Math.min(10, systemMaxDepth || 10));
+  const numericValue = typeof maxDepth === 'number' ? Math.max(MIN_LIMIT, Math.min(MAX_LIMIT, maxDepth)) : Math.min(3, MAX_LIMIT);
 
-  const keyBenchmarks = [
+  const allBenchmarks = [
     { value: 1, label: '1 (Minimo)', desc: 'Nessun sotto-task' },
-    { value: 3, label: '3 (Consigliato)', desc: 'Standard bilanciato' },
+    { value: 3, label: '3 (Standard)', desc: 'Equilibrato' },
     { value: 6, label: '6 (Avanzato)', desc: 'Progetti articolati' },
     { value: 10, label: '10 (Massimo)', desc: 'Nidificazione profonda' },
   ];
 
+  // Filtra i benchmark che non superano il tetto imposto dall'admin
+  const keyBenchmarks = allBenchmarks.filter((b) => b.value <= MAX_LIMIT);
+  if (keyBenchmarks.length === 0 || keyBenchmarks[keyBenchmarks.length - 1].value < MAX_LIMIT) {
+    keyBenchmarks.push({
+      value: MAX_LIMIT,
+      label: `${MAX_LIMIT} (Tetto Admin)`,
+      desc: 'Massimo consentito dal sistema',
+    });
+  }
+
   // Calcolo percentuale progressiva per colorare la barra in modo fluido
-  const percent = ((numericValue - MIN_LIMIT) / (MAX_LIMIT - MIN_LIMIT)) * 100;
+  const percent = MAX_LIMIT > MIN_LIMIT ? ((numericValue - MIN_LIMIT) / (MAX_LIMIT - MIN_LIMIT)) * 100 : 100;
 
   return (
     <div className="space-y-6">
@@ -43,10 +55,10 @@ export const TaskHierarchySection: React.FC<TaskHierarchySectionProps> = ({
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <label htmlFor="settings-max-depth" className="block text-xs font-bold uppercase tracking-wider text-slate-700">
-              Profondità Massima Sottotask
+              Profondità Massima Sottotask Personale
             </label>
             <p className="text-xs text-slate-500 mt-0.5">
-              Valore compreso tra 1 (solo task radice) e 10 livelli di profondità.
+              Valore compreso tra 1 (solo task radice) e {MAX_LIMIT} livelli (tetto di sistema).
             </p>
           </div>
 
@@ -82,7 +94,7 @@ export const TaskHierarchySection: React.FC<TaskHierarchySectionProps> = ({
             <span className="text-sm font-extrabold text-blue-600 bg-blue-50 px-3 py-1 rounded-full border border-blue-200">
               {numericValue} {numericValue === 1 ? 'Livello' : 'Livelli'}
             </span>
-            <span>Livello 10 (Max)</span>
+            <span>Livello {MAX_LIMIT} (Tetto Admin)</span>
           </div>
 
           <div className="relative py-2 flex items-center">
@@ -156,9 +168,9 @@ export const TaskHierarchySection: React.FC<TaskHierarchySectionProps> = ({
         <div className="flex items-start gap-2.5 rounded-xl bg-blue-50/60 border border-blue-100 p-3 text-xs text-blue-800">
           <span className="text-base leading-none">💡</span>
           <div>
-            <p className="font-semibold">Come funziona il limite effettivo:</p>
+            <p className="font-semibold">Regola del Tetto di Sistema (Admin):</p>
             <p className="mt-0.5 text-blue-700">
-              Se l&apos;amministratore imposta un tetto globale di sistema, il valore effettivo applicato sarà automaticamente il minimo tra la tua preferenza e quella globale.
+              L&apos;amministratore di sistema ha impostato il tetto globale massimo a <strong>{MAX_LIMIT} livelli</strong>. Puoi scegliere liberamente la tua profondità desiderata fino a questo limite.
             </p>
           </div>
         </div>

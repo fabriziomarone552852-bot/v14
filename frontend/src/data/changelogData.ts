@@ -35,11 +35,16 @@ export const CHANGELOG_HISTORY: ChangelogItem[] = [
       'Layout Serie TV Edge-to-Edge: Modale dinamico, badge liste intelligenti e carousel Prossime Uscite ottimizzato.',
       'Gestione Obiettivi Annuali Trackers: Nuova struttura DB (UserYearlyGoal) e API dinamica con fallback agli anni precedenti per impostare e aggiornare gli obiettivi annuali direttamente dalla UI.',
       'Disponibilità Piattaforme Streaming: Integrazione dinamica dei dati JustWatch per mostrare su quali servizi (Netflix, Prime Video, ecc.) è attualmente disponibile la serie TV visualizzata.',
+      'Pannello Amministrazione Avanzato (SuperUser): Gestione completa degli utenti con visualizzazione risorse collegate, modifica dati riservati, reset password con generatore sicuro e forzatura cambio password al primo accesso (must_change_password).',
+      'Strumenti di Manutenzione & Integrità DB: Nuova sezione nel pannello Admin per sincronizzazione e riallineamento sequenze PostgreSQL, riassegnazione proprietà gruppi spesa orfani e purge definitivo account disattivati.',
+      'Controlli Tipizzati Parametri di Sistema: Scheda configurazioni con controlli dedicati per tetto massimo nidificazione task (max_subtask_depth) e finestra temporale storico prezzi spesa.',
+      'Diagnostica & Telemetria di Sistema: Monitoraggio in tempo reale di stato e latenza database, conteggio account attivi/disattivati e spazio occupato dagli upload.',
       'Inserimento Rapido da Catalogo (Modulo Shopping): Vista tabellare A-Z per inserire/rimuovere articoli nella lista spesa tramite checkbox reattive, attivabile con doppio click discreto sul titolo Shopping & Spesa su desktop e con pressione prolungata (Long-press) sull\'icona borsa su mobile.',
       'Gestione Multipla Articoli Spesa: Selezione multipla con toolbar contestuale su Web-App e barra di selezione su Smartphone, con funzioni per spostamento rapido tra liste, copia preservata da liste chiuse e cancellazione massiva.',
       'Refactoring Catalogo Prodotti & Tabella Ponte Brand (Modulo Shopping): Disaccoppiamento di ShoppingProducts (catalogo asettico senza duplicati) e introduzione della tabella ponte N:N `shopping_product_brands` per associare molteplici brand a un prodotto con note e commenti qualitativi persistenti nel tempo.',
     ],
     improvements: [
+      'Allineamento Dinamico Limiti Nidificazione: La scelta della profondità massima sottotask nelle impostazioni utente (Desktop e Mobile) è ora vincolata dinamicamente al tetto massimo impostato dall\'amministratore, con validazione a livello backend.',
       'Deep-Linking Notifiche: Le notifiche ora aprono il dettaglio corretto (es. posizionamento sul commento o gruppo spesa).',
       'Sincronizzazione Stato: Calcolo automatico di In corso/Completata per le serie TV in base agli episodi visti.',
       'UI/UX: Avatar degli amici con default avatar, posizionati in riga dedicata, scrollbar a gradiente e icone visive della privacy.',
@@ -47,6 +52,7 @@ export const CHANGELOG_HISTORY: ChangelogItem[] = [
       'Sistema Voti: Calcolo medie stagioni, conversione stelle 1-5, tasti Modifica/Elimina in testa alla pagina.'
     ],
     fixes: [
+      'Backend Tasks: Risolto bug sul nome chiave `"max_subtask_depth"` nella query di lettura del limite di sistema da database.',
       'Backend: Aggiunta la colonna `vote_average` al database per TMDBSeries e TMDBEpisode. Ora i voti di TMDB (convertiti in quinti) sono di nuovo visibili sia nella panoramica Serie che nel dettaglio Episodio.',
       'Corretto un bug nel calcolo della media voti degli amici (Serie ed Episodi): il valore non si aggiornava correttamente al termine del caricamento a causa di un problema di cache di React (useMemo).',
       'Rimossa l\'ora (2:00) dalla data delle recensioni (Serie ed Episodi) per una visualizzazione più pulita e coerente.',

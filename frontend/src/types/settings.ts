@@ -15,6 +15,7 @@ export interface UserServerSettings {
   username: string;
   email: string;
   max_subtask_depth_user: number | null;
+  system_max_subtask_depth?: number;
   is_superuser: boolean;
   must_change_password: boolean;
   profile_picture_url: string | null;

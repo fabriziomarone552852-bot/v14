@@ -11,11 +11,28 @@ from backend.domains.users import schemas
 from backend.domains.users.models import User
 
 
+def get_user_settings(db: Session, current_user: User) -> schemas.UserSettingsResponse:
+    from backend.domains.tasks.service import get_admin_max_depth
+    admin_limit = get_admin_max_depth(db)
+    return schemas.UserSettingsResponse(
+        id=current_user.id,
+        username=current_user.username,
+        email=current_user.email,
+        max_subtask_depth_user=current_user.max_subtask_depth_user,
+        system_max_subtask_depth=admin_limit,
+        is_superuser=current_user.is_superuser,
+        must_change_password=current_user.must_change_password,
+        profile_picture_url=current_user.profile_picture_url,
+        default_startup_page=current_user.default_startup_page,
+        module_preferences=current_user.module_preferences,
+    )
+
+
 def update_settings(
     db: Session,
     current_user: User,
     settings_in: schemas.UserSettingsUpdate,
-) -> User:
+) -> schemas.UserSettingsResponse:
     if current_user.deleted_at is not None:
         raise HTTPException(status_code=404, detail="Utente non trovato")
 
@@ -36,7 +53,15 @@ def update_settings(
         current_user.must_change_password = False
 
     if "max_subtask_depth_user" in data:
-        current_user.max_subtask_depth_user = data["max_subtask_depth_user"]
+        from backend.domains.tasks.service import get_admin_max_depth
+        admin_limit = get_admin_max_depth(db)
+        chosen_depth = data["max_subtask_depth_user"]
+        if chosen_depth is not None and chosen_depth > admin_limit:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Il livello di nidificazione scelto ({chosen_depth}) supera il massimo di sistema consentito dall'amministratore ({admin_limit}).",
+            )
+        current_user.max_subtask_depth_user = chosen_depth
 
     if "default_startup_page" in data:
         current_user.default_startup_page = data["default_startup_page"]
@@ -47,7 +72,8 @@ def update_settings(
     if "profile_picture_url" in data:
         current_user.profile_picture_url = data["profile_picture_url"]
 
-    return repo.save(db, current_user)
+    saved_user = repo.save(db, current_user)
+    return get_user_settings(db, saved_user)
 
 
 def soft_delete_user(

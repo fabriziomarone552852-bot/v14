@@ -16,9 +16,12 @@ def get_me(current_user: User = Depends(deps.get_current_app_user)):
 
 
 @router.get("/me/settings", response_model=schemas.UserSettingsResponse)
-def get_my_settings(current_user: User = Depends(deps.get_current_app_user)):
-    """Ritorna le impostazioni utente."""
-    return current_user
+def get_my_settings(
+    current_user: User = Depends(deps.get_current_app_user),
+    db: Session = Depends(deps.get_db),
+):
+    """Ritorna le impostazioni utente incluse le configurazioni di sistema."""
+    return service.get_user_settings(db, current_user)
 
 
 @router.patch("/me/settings", response_model=schemas.UserSettingsResponse)
