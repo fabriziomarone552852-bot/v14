@@ -40,11 +40,13 @@ export const CHANGELOG_HISTORY: ChangelogItem[] = [
       'Strumenti di Manutenzione & Integrità DB: Nuova sezione nel pannello Admin per sincronizzazione e riallineamento sequenze PostgreSQL, riassegnazione proprietà gruppi spesa orfani e purge definitivo account disattivati.',
       'Controlli Tipizzati Parametri di Sistema: Scheda configurazioni con controlli dedicati per tetto massimo nidificazione task (max_subtask_depth) e finestra temporale storico prezzi spesa.',
       'Diagnostica & Telemetria di Sistema: Monitoraggio in tempo reale di stato e latenza database, conteggio account attivi/disattivati e spazio occupato dagli upload.',
+      'Inserimento Rapido Scontrini (Pannello Admin): Nuova interfaccia tabellare ultra-rapida per imputare scontrini multi-riga (data e fornitore in testa, autocompletamento predittivo per prodotti/brand e calcolo automatico prezzo unitario) per alimentare in massa lo storico e le statistiche shopping.',
       'Inserimento Rapido da Catalogo (Modulo Shopping): Vista tabellare A-Z per inserire/rimuovere articoli nella lista spesa tramite checkbox reattive, attivabile con doppio click discreto sul titolo Shopping & Spesa su desktop e con pressione prolungata (Long-press) sull\'icona borsa su mobile.',
       'Gestione Multipla Articoli Spesa: Selezione multipla con toolbar contestuale su Web-App e barra di selezione su Smartphone, con funzioni per spostamento rapido tra liste, copia preservata da liste chiuse e cancellazione massiva.',
       'Refactoring Catalogo Prodotti & Tabella Ponte Brand (Modulo Shopping): Disaccoppiamento di ShoppingProducts (catalogo asettico senza duplicati) e introduzione della tabella ponte N:N `shopping_product_brands` per associare molteplici brand a un prodotto con note e commenti qualitativi persistenti nel tempo.',
     ],
     improvements: [
+      'UI/UX Pannello Admin: Barra di navigazione a schede ottimizzata e compattata con badge contatori numerici dedicati, scroll orizzontale fluido e menu a tendina per tablet e mobile.',
       'Sostituita la finestra di conferma di sistema con il ConfirmDialog personalizzato nella pagina delle Serie TV.',
       'Allineamento Dinamico Limiti Nidificazione: La scelta della profondità massima sottotask nelle impostazioni utente (Desktop e Mobile) è ora vincolata dinamicamente al tetto massimo impostato dall\'amministratore, con validazione a livello backend.',
       'Deep-Linking Notifiche: Le notifiche ora aprono il dettaglio corretto (es. posizionamento sul commento o gruppo spesa).',
@@ -55,6 +57,7 @@ export const CHANGELOG_HISTORY: ChangelogItem[] = [
       'Hall of Fame & Top Serie: Classifica basata sulla vera media matematica tra le visioni della stessa serie, UI a stelle precise con arrotondamento automatico (mezze stelle, .5).'
     ],
     fixes: [
+      'Backend Shopping: Corretto il caricamento delle relazioni `ShoppingProduct.product_brands` nei lotti inventario e serializzazione brand.',
       'Backend Tasks: Risolto bug sul nome chiave `"max_subtask_depth"` nella query di lettura del limite di sistema da database.',
       'Backend: Aggiunta la colonna `vote_average` al database per TMDBSeries e TMDBEpisode. Ora i voti di TMDB (convertiti in quinti) sono di nuovo visibili sia nella panoramica Serie che nel dettaglio Episodio.',
       'Corretto un bug nel calcolo della media voti degli amici (Serie ed Episodi): il valore non si aggiornava correttamente al termine del caricamento a causa di un problema di cache di React (useMemo).',

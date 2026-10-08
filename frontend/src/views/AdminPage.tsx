@@ -10,6 +10,7 @@ import PageLoadingState from '@/components/shared/feedback/PageLoadingState';
 import { LOADING_MESSAGES } from '@/data/loadingMessages';
 
 import { AdminUsersSection } from '@/components/admin/AdminUsersSection';
+import { AdminReceiptQuickEntrySection } from '@/components/admin/AdminReceiptQuickEntrySection';
 import { AdminConfigSection } from '@/components/admin/AdminConfigSection';
 import { AdminCodesSection } from '@/components/admin/AdminCodesSection';
 import { AdminMaintenanceSection } from '@/components/admin/AdminMaintenanceSection';
@@ -17,7 +18,7 @@ import { AdminSystemHealthSection } from '@/components/admin/AdminSystemHealthSe
 import { AdminFeedbackSection } from '@/components/admin/AdminFeedbackSection';
 import { extractErrorMessage } from '@/utils/errorUtils';
 
-type AdminTab = 'users' | 'config' | 'codes' | 'maintenance' | 'health' | 'feedback';
+type AdminTab = 'users' | 'receipts' | 'config' | 'codes' | 'maintenance' | 'health' | 'feedback';
 
 const AdminPage: React.FC = () => {
   const { user, isAuthenticated } = useAuth();
@@ -81,7 +82,7 @@ const AdminPage: React.FC = () => {
                 Pannello Amministrazione SuperUser (SU)
               </h1>
               <p className="mt-0.5 text-xs text-slate-500">
-                Gestione riservata delle identità utenti, limiti globali, vocabolari, manutenzione database e diagnostica.
+                Gestione riservata delle identità utenti, inserimento rapido scontrini, limiti globali, manutenzione e diagnostica.
               </p>
             </div>
           </div>
@@ -103,85 +104,81 @@ const AdminPage: React.FC = () => {
         </div>
       )}
 
-      {/* Schede / Navigation Tabs */}
-      <div className="flex overflow-x-auto border-b border-slate-200 text-xs font-semibold scrollbar-none">
-        <button
-          type="button"
-          onClick={() => setActiveTab('users')}
-          className={`flex items-center gap-2 border-b-2 px-4 py-3 whitespace-nowrap transition cursor-pointer ${
-            activeTab === 'users'
-              ? 'border-sky-600 font-bold text-sky-600'
-              : 'border-transparent text-slate-500 hover:text-slate-700'
-          }`}
-        >
-          <span>👥</span>
-          <span>Utenti ({users.length})</span>
-        </button>
+      {/* Selettore Dropdown per schermi piccoli (Mobile / Tablet compatto) */}
+      <div className="md:hidden">
+        <label htmlFor="admin-tab-select" className="sr-only">
+          Seleziona Scheda Amministrazione
+        </label>
+        <div className="relative">
+          <select
+            id="admin-tab-select"
+            value={activeTab}
+            onChange={(e) => setActiveTab(e.target.value as AdminTab)}
+            className="w-full appearance-none rounded-2xl border border-slate-200 bg-white py-3 pl-4 pr-10 text-xs font-bold text-slate-800 shadow-xs focus:border-sky-500 focus:outline-hidden cursor-pointer"
+          >
+            <option value="users">👥 Utenti ({users.length})</option>
+            <option value="receipts">🧾 Scontrini Spesa</option>
+            <option value="config">⚙️ Parametri ({configs.length})</option>
+            <option value="codes">🏷️ Vocabolari ({codes.length})</option>
+            <option value="maintenance">🛠️ Manutenzione DB</option>
+            <option value="health">🔍 Diagnostica</option>
+            <option value="feedback">📨 Feedback</option>
+          </select>
+          <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3 text-slate-400">
+            <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+            </svg>
+          </div>
+        </div>
+      </div>
 
-        <button
-          type="button"
-          onClick={() => setActiveTab('config')}
-          className={`flex items-center gap-2 border-b-2 px-4 py-3 whitespace-nowrap transition cursor-pointer ${
-            activeTab === 'config'
-              ? 'border-sky-600 font-bold text-sky-600'
-              : 'border-transparent text-slate-500 hover:text-slate-700'
-          }`}
-        >
-          <span>⚙️</span>
-          <span>Parametri & Limiti (`Config`) ({configs.length})</span>
-        </button>
+      {/* Schede Orizzontali Compatte (Desktop / Tablet) con Scroll Fluido */}
+      <div className="hidden md:flex overflow-x-auto border-b border-slate-200 text-xs font-semibold gap-1 pb-px">
+        {[
+          { id: 'users' as AdminTab, label: 'Utenti', icon: '👥', count: users.length, color: 'sky' as const },
+          { id: 'receipts' as AdminTab, label: 'Scontrini Spesa', icon: '🧾', count: undefined, color: 'emerald' as const },
+          { id: 'config' as AdminTab, label: 'Parametri', icon: '⚙️', count: configs.length, color: 'sky' as const },
+          { id: 'codes' as AdminTab, label: 'Vocabolari', icon: '🏷️', count: codes.length, color: 'sky' as const },
+          { id: 'maintenance' as AdminTab, label: 'Manutenzione DB', icon: '🛠️', count: undefined, color: 'sky' as const },
+          { id: 'health' as AdminTab, label: 'Diagnostica', icon: '🔍', count: undefined, color: 'sky' as const },
+          { id: 'feedback' as AdminTab, label: 'Feedback', icon: '📨', count: undefined, color: 'sky' as const },
+        ].map((tab) => {
+          const isActive = activeTab === tab.id;
+          const isEmerald = tab.color === 'emerald';
 
-        <button
-          type="button"
-          onClick={() => setActiveTab('codes')}
-          className={`flex items-center gap-2 border-b-2 px-4 py-3 whitespace-nowrap transition cursor-pointer ${
-            activeTab === 'codes'
-              ? 'border-sky-600 font-bold text-sky-600'
-              : 'border-transparent text-slate-500 hover:text-slate-700'
-          }`}
-        >
-          <span>🏷️</span>
-          <span>Vocabolari (`ConfigCodes`) ({codes.length})</span>
-        </button>
+          const activeBorderAndText = isEmerald
+            ? 'border-emerald-600 text-emerald-700 bg-emerald-50/60 font-bold'
+            : 'border-sky-600 text-sky-700 bg-sky-50/60 font-bold';
 
-        <button
-          type="button"
-          onClick={() => setActiveTab('maintenance')}
-          className={`flex items-center gap-2 border-b-2 px-4 py-3 whitespace-nowrap transition cursor-pointer ${
-            activeTab === 'maintenance'
-              ? 'border-sky-600 font-bold text-sky-600'
-              : 'border-transparent text-slate-500 hover:text-slate-700'
-          }`}
-        >
-          <span>🛠️</span>
-          <span>Manutenzione & Integrità DB</span>
-        </button>
-
-        <button
-          type="button"
-          onClick={() => setActiveTab('health')}
-          className={`flex items-center gap-2 border-b-2 px-4 py-3 whitespace-nowrap transition cursor-pointer ${
-            activeTab === 'health'
-              ? 'border-sky-600 font-bold text-sky-600'
-              : 'border-transparent text-slate-500 hover:text-slate-700'
-          }`}
-        >
-          <span>🔍</span>
-          <span>Diagnostica & Telemetria</span>
-        </button>
-
-        <button
-          type="button"
-          onClick={() => setActiveTab('feedback')}
-          className={`flex items-center gap-2 border-b-2 px-4 py-3 whitespace-nowrap transition cursor-pointer ${
-            activeTab === 'feedback'
-              ? 'border-sky-600 font-bold text-sky-600'
-              : 'border-transparent text-slate-500 hover:text-slate-700'
-          }`}
-        >
-          <span>📨</span>
-          <span>Feedback & Bug Report</span>
-        </button>
+          return (
+            <button
+              key={tab.id}
+              type="button"
+              onClick={() => setActiveTab(tab.id)}
+              className={`flex items-center gap-1.5 border-b-2 px-3.5 py-2.5 rounded-t-xl whitespace-nowrap transition-all duration-150 cursor-pointer ${
+                isActive
+                  ? activeBorderAndText
+                  : 'border-transparent text-slate-500 hover:text-slate-800 hover:bg-slate-100/70'
+              }`}
+            >
+              <span className="text-sm">{tab.icon}</span>
+              <span>{tab.label}</span>
+              {tab.count !== undefined && (
+                <span
+                  className={`ml-1 rounded-full px-1.5 py-0.2 text-[10px] font-bold ${
+                    isActive
+                      ? isEmerald
+                        ? 'bg-emerald-200/80 text-emerald-800'
+                        : 'bg-sky-200/80 text-sky-800'
+                      : 'bg-slate-100 text-slate-500'
+                  }`}
+                >
+                  {tab.count}
+                </span>
+              )}
+            </button>
+          );
+        })}
       </div>
 
       {/* Contenuto Tab */}
@@ -190,6 +187,7 @@ const AdminPage: React.FC = () => {
       ) : (
         <div className="flex-1">
           {activeTab === 'users' && <AdminUsersSection users={users} onRefresh={loadData} />}
+          {activeTab === 'receipts' && <AdminReceiptQuickEntrySection />}
           {activeTab === 'config' && <AdminConfigSection configs={configs} onRefresh={loadData} />}
           {activeTab === 'codes' && <AdminCodesSection codes={codes} onRefresh={loadData} />}
           {activeTab === 'maintenance' && <AdminMaintenanceSection users={users} onRefresh={loadData} />}

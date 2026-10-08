@@ -1323,8 +1323,8 @@ def update_inventory_batch(
             brand_name=update_data.get("brand_name"),
             brand_id=update_data.get("brand_id"),
         )
-        if db_batch.product:
-            db_batch.product.brand_id = resolved_brand_id
+        if db_batch.product and resolved_brand_id:
+            repo.get_or_create_product_brand_link(db, db_batch.product.id, resolved_brand_id)
 
     # If list_item_id is None but shopping_list_id is provided, try to find or create list item
     if db_batch.list_item_id is None and update_data.get("shopping_list_id"):
@@ -1448,6 +1448,14 @@ def delete_inventory_batch(db: Session, current_user: User, batch_id: int) -> No
             repo.commit(db)
 
 
+def _get_product_brand_info(product: Optional[ShoppingProduct]) -> tuple[Optional[int], Optional[str]]:
+    if product and getattr(product, "product_brands", None):
+        for pb in product.product_brands:
+            if getattr(pb, "brand", None):
+                return pb.brand.id, pb.brand.name_normalized
+    return None, None
+
+
 def list_item_batches(
     db: Session,
     current_user: User,
@@ -1462,14 +1470,9 @@ def list_item_batches(
         unit_price = (b.purchase_price / qty).quantize(D("0.01")) if qty else None
         list_name: Optional[str] = None
         unit_name: Optional[str] = None
-        brand_id: Optional[int] = None
-        brand_name: Optional[str] = None
-        if b.product and b.product.brand:
-            brand_id = b.product.brand.id
-            brand_name = b.product.brand.name_normalized
-        elif b.list_item and b.list_item.product and b.list_item.product.brand:
-            brand_id = b.list_item.product.brand.id
-            brand_name = b.list_item.product.brand.name_normalized
+        brand_id, brand_name = _get_product_brand_info(b.product)
+        if brand_id is None and b.list_item:
+            brand_id, brand_name = _get_product_brand_info(b.list_item.product)
 
         notes: Optional[str] = None
         if b.list_item:
@@ -1511,18 +1514,13 @@ def list_all_batches(db: Session, current_user: User) -> list:
         unit_name: Optional[str] = None
         notes: Optional[str] = None
         product_name: str = "Prodotto"
-        brand_id: Optional[int] = None
-        brand_name: Optional[str] = None
+        brand_id, brand_name = _get_product_brand_info(b.product)
         if b.product:
             product_name = b.product.name_normalized
-            if b.product.brand:
-                brand_id = b.product.brand.id
-                brand_name = b.product.brand.name_normalized
         elif b.list_item and b.list_item.name_normalized:
             product_name = b.list_item.name_normalized
-            if b.list_item.product and b.list_item.product.brand:
-                brand_id = b.list_item.product.brand.id
-                brand_name = b.list_item.product.brand.name_normalized
+            if brand_id is None and b.list_item.product:
+                brand_id, brand_name = _get_product_brand_info(b.list_item.product)
 
         shopping_list_id: Optional[int] = None
         unit_id: Optional[int] = None
@@ -1577,11 +1575,9 @@ def list_community_prices(
         qty = b.quantity_purchased or D("1")
         unit_price = (b.purchase_price / qty).quantize(D("0.01")) if qty else b.purchase_price
         unit_name: Optional[str] = None
-        brand_id: Optional[int] = None
-        brand_name: Optional[str] = None
-        if b.product and b.product.brand:
-            brand_id = b.product.brand.id
-            brand_name = b.product.brand.name_normalized
+        brand_id, brand_name = _get_product_brand_info(b.product)
+        if brand_id is None and b.list_item:
+            brand_id, brand_name = _get_product_brand_info(b.list_item.product)
         if b.list_item and b.list_item.unit:
             unit_name = b.list_item.unit.code_value or b.list_item.unit.code_name
         result.append({
