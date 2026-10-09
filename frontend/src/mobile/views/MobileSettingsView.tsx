@@ -77,6 +77,7 @@ export const MobileSettingsView: React.FC<MobileSettingsViewProps> = ({ subview:
     return (
       <MobileAppSettingsSection
         maxDepth={maxDepth}
+        systemMaxDepth={settings?.system_max_subtask_depth}
         savingApp={savingApp}
         isClearingCache={isClearingCache}
         notification={notification}

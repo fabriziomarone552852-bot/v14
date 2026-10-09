@@ -93,7 +93,7 @@ export async function fetchItemBatches(itemId: number): Promise<ItemBatchRecord[
     notes?: string | null;
     is_on_sale: boolean;
   }[]>(`/items/${itemId}/inventory-batches`, { method: 'GET' });
-  return (data ?? []).map((b) => ({
+  return (Array.isArray(data) ? data : []).map((b) => ({
     id: b.id,
     productId: b.product_id ?? null,
     productName: b.product_name ?? null,
@@ -138,7 +138,7 @@ export async function fetchAllInventoryBatches(signal?: AbortSignal): Promise<It
     is_seed?: boolean;
     is_on_sale: boolean;
   }[]>('/inventory-batches', { method: 'GET', signal });
-  return (data ?? []).map((b) => ({
+  return (Array.isArray(data) ? data : []).map((b) => ({
     id: b.id,
     productId: b.product_id ?? null,
     productName: b.product_name ?? null,
@@ -174,7 +174,7 @@ export async function fetchCommunityPrices(productId: number): Promise<Community
     unit_name: string | null;
     is_on_sale: boolean;
   }[]>(`/products/${productId}/community-prices`, { method: 'GET' });
-  return (data ?? []).map((p) => ({
+  return (Array.isArray(data) ? data : []).map((p) => ({
     purchaseDate: p.purchase_date,
     unitPrice: Number(p.unit_price),
     supplierId: p.supplier_id,
@@ -224,7 +224,7 @@ export async function createQuickPriceBatch(
     },
   });
 
-  return (data ?? []).map((b) => ({
+  return (Array.isArray(data) ? data : []).map((b) => ({
     id: b.id,
     productId: b.product_id ?? null,
     productName: b.product_name ?? null,

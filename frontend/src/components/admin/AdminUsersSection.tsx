@@ -19,7 +19,7 @@ export const AdminUsersSection: React.FC<AdminUsersSectionProps> = ({ users, onR
       <div>
         <h3 className="text-base font-bold text-slate-800">👥 Gestione Utenti, Abilitazione & Reset Credenziali</h3>
         <p className="text-xs text-slate-500">
-          Visualizza, modifica i dati, disabilita/ripristina gli account oppure imposta una password temporanea/standard per il recupero.
+          Visualizza, modifica i dati riservati, disabilita/ripristina gli account oppure imposta una password temporanea/standard con cambio forzato.
         </p>
       </div>
 
@@ -41,6 +41,7 @@ export const AdminUsersSection: React.FC<AdminUsersSectionProps> = ({ users, onR
         onStartEdit={logic.startEdit}
         onStartResetPassword={logic.startResetPassword}
         onToggleActive={logic.handleToggleActive}
+        onPurgeUser={logic.handlePurgeUser}
       />
 
       {/* Modal Modifica Dati Utente */}
@@ -58,6 +59,11 @@ export const AdminUsersSection: React.FC<AdminUsersSectionProps> = ({ users, onR
         resetUser={logic.resetUser}
         newPassword={logic.newPassword}
         setNewPassword={logic.setNewPassword}
+        mustChangePassword={logic.mustChangePassword}
+        setMustChangePassword={logic.setMustChangePassword}
+        copied={logic.copied}
+        onGenerateRandom={logic.generateRandomPassword}
+        onCopyPassword={logic.copyPasswordToClipboard}
         saving={logic.saving}
         onClose={() => logic.setResetUser(null)}
         onSubmit={logic.handleResetPassword}

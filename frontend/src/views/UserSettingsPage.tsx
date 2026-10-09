@@ -144,6 +144,7 @@ export const UserSettingsPage: React.FC = () => {
               <TaskHierarchySection
                 maxDepth={logic.form.maxDepth}
                 onMaxDepthChange={(val) => logic.setForm((prev) => ({ ...prev, maxDepth: val }))}
+                systemMaxDepth={logic.settings?.system_max_subtask_depth}
                 disabled={logic.saving}
               />
             )}

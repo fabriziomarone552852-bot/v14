@@ -60,6 +60,7 @@ class UserSettingsResponse(ORMBaseModel):
     username: str
     email: EmailStr
     max_subtask_depth_user: int | None = 3
+    system_max_subtask_depth: int = 3
     is_superuser: bool = False
     must_change_password: bool = False
     profile_picture_url: str | None = None

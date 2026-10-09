@@ -861,7 +861,7 @@ def list_batches_for_item(
         )
         .options(
             selectinload(InventoryBatch.supplier),
-            selectinload(InventoryBatch.product).selectinload(ShoppingProduct.brand),
+            selectinload(InventoryBatch.product).selectinload(ShoppingProduct.product_brands).selectinload(ShoppingProductBrand.brand),
             selectinload(InventoryBatch.list_item).selectinload(ShoppingListItem.unit),
             selectinload(InventoryBatch.list_item).selectinload(ShoppingListItem.shopping_list),
         )
@@ -926,7 +926,7 @@ def list_all_batches_for_user(
         )
         .options(
             selectinload(InventoryBatch.supplier),
-            selectinload(InventoryBatch.product).selectinload(ShoppingProduct.brand),
+            selectinload(InventoryBatch.product).selectinload(ShoppingProduct.product_brands).selectinload(ShoppingProductBrand.brand),
             selectinload(InventoryBatch.list_item).selectinload(ShoppingListItem.unit),
             selectinload(InventoryBatch.list_item).selectinload(ShoppingListItem.shopping_list),
         )
@@ -984,7 +984,7 @@ def list_community_prices_for_product(
         db.query(InventoryBatch)
         .options(
             selectinload(InventoryBatch.supplier),
-            selectinload(InventoryBatch.product).selectinload(ShoppingProduct.brand),
+            selectinload(InventoryBatch.product).selectinload(ShoppingProduct.product_brands).selectinload(ShoppingProductBrand.brand),
             selectinload(InventoryBatch.list_item).selectinload(ShoppingListItem.unit),
         )
         .filter(

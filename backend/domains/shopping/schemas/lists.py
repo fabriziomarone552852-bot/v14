@@ -214,12 +214,20 @@ class ShoppingListItemResponse(ORMBaseModel):
     @computed_field
     @property
     def brand_id(self) -> Optional[int]:
-        return self.product.brand_id if self.product else None
+        if self.product and getattr(self.product, "product_brands", None):
+            for pb in self.product.product_brands:
+                if getattr(pb, "brand", None):
+                    return pb.brand.id
+        return None
 
     @computed_field
     @property
     def brand_name(self) -> Optional[str]:
-        return self.product.brand.name_normalized if self.product and self.product.brand else None
+        if self.product and getattr(self.product, "product_brands", None):
+            for pb in self.product.product_brands:
+                if getattr(pb, "brand", None):
+                    return pb.brand.name_normalized
+        return None
 
     @computed_field
     @property

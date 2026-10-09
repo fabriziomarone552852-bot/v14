@@ -26,7 +26,7 @@ _COMPLETED_LOOKBACK_DAYS = 90
 
 def get_admin_max_depth(db: Session) -> int:
     """Legge il limite di profondità dalla configurazione di sistema."""
-    stmt = select(Config).where(Config.key == "maxsubtaskdepth")
+    stmt = select(Config).where(Config.key == "max_subtask_depth")
     config_db = db.execute(stmt).scalar_one_or_none()
     return int(config_db.value) if config_db else settings.default_max_subtask_depth
 
