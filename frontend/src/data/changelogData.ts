@@ -37,6 +37,7 @@ export const CHANGELOG_HISTORY: ChangelogItem[] = [
       'Layout Serie TV Edge-to-Edge: Modale dinamico, badge liste intelligenti e carousel Prossime Uscite ottimizzato.',
       'Gestione Obiettivi Annuali Trackers: Nuova struttura DB (UserYearlyGoal) e API dinamica con fallback agli anni precedenti per impostare e aggiornare gli obiettivi annuali direttamente dalla UI.',
       'Disponibilità Piattaforme Streaming: Integrazione dinamica dei dati JustWatch per mostrare su quali servizi (Netflix, Prime Video, ecc.) è attualmente disponibile la serie TV visualizzata.',
+      'Estrazione Casuale Serie TV: Nuova finestra dedicata per estrarre casualmente e suggerire una serie TV tra tutte quelle in lista o tra quelle ancora da iniziare (con grafica integrata e messaggi popup moderni).',
       'Abitudini di Visione Analytics: Switch dinamico Ore/Episodi e modifica rapida dell\'obiettivo annuale dalla Hall of Fame.',
       'Pannello Amministrazione Avanzato (SuperUser): Gestione completa degli utenti con visualizzazione risorse collegate, modifica dati riservati, reset password con generatore sicuro e forzatura cambio password al primo accesso (must_change_password).',
       'Strumenti di Manutenzione & Integrità DB: Nuova sezione nel pannello Admin per sincronizzazione e riallineamento sequenze PostgreSQL, riassegnazione proprietà gruppi spesa orfani e purge definitivo account disattivati.',

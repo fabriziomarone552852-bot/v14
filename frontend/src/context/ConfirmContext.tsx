@@ -8,6 +8,9 @@ interface ConfirmOptions {
   confirmText?: string;
   cancelText?: string;
   isDestructive?: boolean;
+  hideCancel?: boolean;
+  hideConfirm?: boolean;
+  autoCloseMs?: number;
   onConfirm: () => void | Promise<void>;
 }
 
@@ -25,6 +28,12 @@ export const ConfirmProvider: React.FC<{ children: ReactNode }> = ({ children })
   const confirm = useCallback((newOptions: ConfirmOptions) => {
     setOptions(newOptions);
     setIsOpen(true);
+
+    if (newOptions.autoCloseMs) {
+      setTimeout(() => {
+        setIsOpen(false);
+      }, newOptions.autoCloseMs);
+    }
   }, []);
 
   const handleConfirm = async () => {
@@ -54,6 +63,8 @@ export const ConfirmProvider: React.FC<{ children: ReactNode }> = ({ children })
           confirmText={options.confirmText}
           cancelText={options.cancelText}
           isDestructive={options.isDestructive}
+          hideCancel={options.hideCancel}
+          hideConfirm={options.hideConfirm}
           onConfirm={handleConfirm}
           onCancel={handleCancel}
         />

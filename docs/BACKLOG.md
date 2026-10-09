@@ -226,7 +226,6 @@ Nuovo modulo completo per gestire, catalogare e monitorare l'intrattenimento per
 - **Tracking Avanzamento**: Gestione dettagliata del progresso (es. "Stagione 2 - Episodio 7"), pulsante rapido touch/click per avanzare di un episodio visto (+1 episodio).
 - **Stato Serie**: `Da iniziare`, `In corso`, `In attesa di nuova stagione`, `Completata`, `Mollata`.
 - **Prossimi Step Sviluppo (Da Iniziare)**:
-  - 🎲 **Estrazione Casuale**: Aggiungere l'opzione per scegliere se estrarre una serie tra quelle non viste o già viste.
   - ÃƒÂ°Ã…Â¸Ã‚Â¤Ã‚Â **Incrocio Liste Amici & Stato Visione**: Aggiunta di un tasto e relativa funzione nella barra principale della sezione per permettere di incrociare/comparare le liste delle serie TV salvate da piÃƒÂƒÃ‚Â¹ amici. Inoltre, agli amici verrÃƒÂƒÃ‚Â  mostrato se una serie la sta guardando un altro amico (tramite la sua foto profilo con un bordo colorato associato allo stato: se l'ha finita, droppata, in corso, ecc.).
   - Ã°ÂŸÂ“Âš **âœ… Liste Multimediali Personalizzate (Completato)**: Creazione di sottoliste miste (es. "MCU", "Da vedere con la ragazza") in cui inserire film, serie o libri. (*UI di gestione liste completata*).
     - **Comportamento Homepage vs Sezioni**: Nella Homepage verranno mostrate le liste complete con tutto il loro contenuto eterogeneo. Nelle sezioni dedicate (es. Serie TV), la lista mostrerÃƒÂ  *esclusivamente* gli elementi pertinenti.

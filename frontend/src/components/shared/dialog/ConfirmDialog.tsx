@@ -6,16 +6,18 @@ import { TrashIcon, WarningIcon } from '@/components/shared/utils/Icons';
 interface ConfirmDialogProps {
   isOpen: boolean;
   title: string;
-  message: React.ReactNode; // Permette di passare anche JSX (es. i messaggi con il tag ⚠️)
+  message: React.ReactNode;
   confirmText?: string;
   cancelText?: string;
   onConfirm: () => void;
   onCancel: () => void;
-  isDestructive?: boolean; // Se true, il bottone è rosso (es. Elimina)
+  isDestructive?: boolean;
+  hideCancel?: boolean;
+  hideConfirm?: boolean;
 }
 
 const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
-  isOpen, title, message, confirmText = 'Conferma', cancelText = 'Annulla', onConfirm, onCancel, isDestructive = true
+  isOpen, title, message, confirmText = 'Conferma', cancelText = 'Annulla', onConfirm, onCancel, isDestructive = true, hideCancel = false, hideConfirm = false
 }) => {
   const [mounted, setMounted] = useState(false);
 
@@ -43,14 +45,20 @@ const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
         </div>
         <h3 className="text-lg font-extrabold text-gray-900 mb-2">{title}</h3>
         <div className="text-sm text-gray-600 mb-6">{message}</div>
-        <div className="flex gap-3">
-          <button type="button" onClick={onCancel} className="flex-1 py-2 bg-white border border-gray-200 hover:bg-gray-50 text-gray-600 rounded-xl font-bold text-sm transition-colors">
-            {cancelText}
-          </button>
-          <button type="button" onClick={onConfirm} className={`flex-1 py-2 text-white rounded-xl font-bold text-sm transition-colors ${isDestructive ? 'bg-red-500 hover:bg-red-600' : 'bg-blue-500 hover:bg-blue-600'}`}>
-            {confirmText}
-          </button>
-        </div>
+        {(!hideCancel || !hideConfirm) && (
+          <div className="flex gap-3">
+            {!hideCancel && (
+              <button type="button" onClick={onCancel} className="flex-1 py-2 bg-white border border-gray-200 hover:bg-gray-50 text-gray-600 rounded-xl font-bold text-sm transition-colors">
+                {cancelText}
+              </button>
+            )}
+            {!hideConfirm && (
+              <button type="button" onClick={onConfirm} className={`flex-1 py-2 text-white rounded-xl font-bold text-sm transition-colors ${isDestructive ? 'bg-red-500 hover:bg-red-600' : 'bg-blue-500 hover:bg-blue-600'}`}>
+                {confirmText}
+              </button>
+            )}
+          </div>
+        )}
       </div>
     </div>,
     document.body
