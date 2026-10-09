@@ -28,6 +28,8 @@ export const CHANGELOG_HISTORY: ChangelogItem[] = [
       'Menzioni (@username) nei commenti: Autocompletamento, bolle in stile chat e notifiche mirate con deep-linking diretto per rispondere alle recensioni degli amici.'
     ],
     features: [
+      'Ricerca Globale TMDB: Implementato motore di ricerca esteso tramite filtri dinamici (Genere, Piattaforme, Anno) dal modale.',
+      'Filtri Rapidi Interattivi (Serie TV): I badge dei generi e delle piattaforme sono ora cliccabili per filtrare istantaneamente la griglia.',
       'Statistiche Avanzate Serie TV: Nuova modale con grafici su andamento nel tempo, completamento, distribuzioni per genere/piattaforma, abitudini di visione e rating profilato.',
       'Commenti alle Recensioni: Layout a thread con privacy granulare per interagire con le recensioni degli amici.',
       'Messaggistica Effimera: Invia messaggi a scomparsa direttamente dalla lista amici nella nuova Inbox.',

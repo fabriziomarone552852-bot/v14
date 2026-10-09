@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { useMySeries, useSeriesStats, useUpcomingEpisodes, useMyQuotes, useMediaLists } from '@/hooks/queries/useTrackersQueries';
+import { useMySeries, useSeriesStats, useUpcomingEpisodes, useMyQuotes, useMediaLists, useTMDBDiscover } from '@/hooks/queries/useTrackersQueries';
 import PageLoadingState from '@/components/shared/feedback/PageLoadingState';
 import PageErrorState from '@/components/shared/feedback/PageErrorState';
 import { TvIcon, EyeIcon, EyeHalfOpenIcon, EyeClosedIcon, LoadingIcon, EyePlayIcon } from '@/components/shared/utils/Icons';
@@ -341,6 +341,8 @@ const TVSeriesPage: React.FC = () => {
     },
     enabled: !!debouncedQuery.trim(),
   });
+
+  const { data: discoverData, isLoading: isDiscoverLoading } = useTMDBDiscover(filters);
 
 
   const removeSeriesMutation = useMutation({
@@ -699,21 +701,31 @@ const TVSeriesPage: React.FC = () => {
              <div 
                className="absolute inset-0 overflow-y-auto modal-scrollbar pr-4 pb-8 pt-[120px] sm:pt-[80px] grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-x-4 gap-y-6 content-start"
              >
-                {debouncedQuery ? (
-                  isSearchLoading ? (
-                    <div className="col-span-full h-40 flex flex-col items-center justify-center gap-3 text-blue-500">
-                      <LoadingIcon className="w-8 h-8 animate-spin" />
-                      <p className="text-sm font-medium">Ricerca in corso...</p>
-                    </div>
-                  ) : searchResults?.results?.length === 0 ? (
-                    <div className="col-span-full h-40">
-                       <EmptyState 
-                         message={`Nessun risultato trovato per "${debouncedQuery}"`} 
-                         icon={<TvIcon className="w-12 h-12 opacity-20" />} 
-                       />
-                    </div>
-                  ) : (
-                    searchResults?.results?.map((res: any) => {
+                {debouncedQuery || (filters.globalSearch && (filters.genre !== 'all' || filters.network !== 'all' || filters.year !== 'all')) ? (() => {
+                  const isLoading = debouncedQuery ? isSearchLoading : isDiscoverLoading;
+                  const results = debouncedQuery ? searchResults?.results : discoverData?.results;
+                  
+                  if (isLoading) {
+                    return (
+                      <div className="col-span-full h-40 flex flex-col items-center justify-center gap-3 text-blue-500">
+                        <LoadingIcon className="w-8 h-8 animate-spin" />
+                        <p className="text-sm font-medium">Ricerca in corso...</p>
+                      </div>
+                    );
+                  }
+                  
+                  if (!results || results.length === 0) {
+                    return (
+                      <div className="col-span-full h-40">
+                         <EmptyState 
+                           message={debouncedQuery ? `Nessun risultato trovato per "${debouncedQuery}"` : `Nessun risultato trovato`} 
+                           icon={<TvIcon className="w-12 h-12 opacity-20" />} 
+                         />
+                      </div>
+                    );
+                  }
+                  
+                  return results.map((res: any) => {
                       const existingSeries = series?.find(s => s.tmdb_id === res.id);
                       return (
                          <div key={res.id} className="flex flex-col group cursor-pointer w-full relative" onClick={() => {
@@ -768,9 +780,9 @@ const TVSeriesPage: React.FC = () => {
                             </div>
                          </div>
                       );
-                    })
-                  )
-                ) : displaySeries.length === 0 ? (
+                    });
+                  })()
+                 : displaySeries.length === 0 ? (
                   <div className="col-span-full h-40">
                      <EmptyState 
                        message="Nessuna serie trovata." 

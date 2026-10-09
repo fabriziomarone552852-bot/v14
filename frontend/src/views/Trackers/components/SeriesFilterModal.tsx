@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { ArchiveFilterSearchInput } from '@/components/archive/common';
 import type { TVSeries } from '@/types/trackers';
+import { useTMDBGenres, useTMDBProviders } from '@/hooks/queries/useTrackersQueries';
 import DatePicker from '@/components/shared/utils/DatePicker/DatePicker';
 import { DropdownIcon } from '@/components/shared/utils/Icons';
 import BaseModal from '@/components/shared/dialog/BaseModal';
@@ -15,6 +16,7 @@ export interface SeriesFilterState {
   year: string;
   sortBy: string;
   listId: number | null;
+  globalSearch?: boolean;
 }
 
 const CustomSelect = ({ label, value, options, onChange, allLabel = 'Tutti' }: any) => {
@@ -112,7 +114,13 @@ export const SeriesFilterModal: React.FC<SeriesFilterModalProps> = ({
 }) => {
   const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
 
+  const { data: tmdbGenres = [] } = useTMDBGenres();
+  const { data: tmdbProviders = [] } = useTMDBProviders();
+
   const availableGenres = useMemo(() => {
+    if (filters.globalSearch) {
+      return tmdbGenres.map((g: any) => ({ value: String(g.id), label: g.name })).sort((a: any, b: any) => a.label.localeCompare(b.label));
+    }
     const genresSet = new Set<string>();
     series.forEach((s) => {
       if (s.genres) {
@@ -120,9 +128,12 @@ export const SeriesFilterModal: React.FC<SeriesFilterModalProps> = ({
       }
     });
     return Array.from(genresSet).filter(Boolean).sort().map(g => ({ value: g, label: g }));
-  }, [series]);
+  }, [series, filters.globalSearch, tmdbGenres]);
 
   const availableNetworks = useMemo(() => {
+    if (filters.globalSearch) {
+      return tmdbProviders.map((p: any) => ({ value: String(p.provider_id), label: p.provider_name })).sort((a: any, b: any) => a.label.localeCompare(b.label));
+    }
     const networksSet = new Set<string>();
     series.forEach((s) => {
       if (s.networks) {
@@ -130,7 +141,7 @@ export const SeriesFilterModal: React.FC<SeriesFilterModalProps> = ({
       }
     });
     return Array.from(networksSet).filter(Boolean).sort().map(n => ({ value: n, label: n }));
-  }, [series]);
+  }, [series, filters.globalSearch, tmdbProviders]);
 
   const handleFieldChange = <K extends keyof SeriesFilterState>(
     field: K,
@@ -234,6 +245,31 @@ export const SeriesFilterModal: React.FC<SeriesFilterModalProps> = ({
       overflowVisible={true}
     >
       <div className="space-y-4">
+        
+        {/* Toggle Ricerca Globale TMDB */}
+        <div className="flex items-center justify-between p-3 bg-blue-50/50 border border-blue-100 rounded-xl mb-4">
+          <div className="flex flex-col">
+            <span className="text-sm font-bold text-blue-900">🌐 Cerca in tutto TMDB</span>
+            <span className="text-xs text-blue-700/80">Cerca anche tra le serie non in lista</span>
+          </div>
+          <button
+            type="button"
+            onClick={() => {
+               const isNowGlobal = !filters.globalSearch;
+               const newFilters = { ...filters, globalSearch: isNowGlobal };
+               // reset dependencies that might mismatch IDs when switching context
+               if (isNowGlobal) {
+                 newFilters.genre = 'all';
+                 newFilters.network = 'all';
+               }
+               onFilterChange(newFilters);
+            }}
+            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${filters.globalSearch ? 'bg-blue-600' : 'bg-gray-300'}`}
+          >
+            <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${filters.globalSearch ? 'translate-x-6' : 'translate-x-1'}`} />
+          </button>
+        </div>
+
         <ArchiveFilterSearchInput
           label="Cerca per Nome"
           value={filters.keyword || ''}

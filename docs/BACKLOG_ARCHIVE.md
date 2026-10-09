@@ -312,3 +312,13 @@ Implementazione completa su Web-App (Desktop) e Smartphone (Mobile) di due funzi
 
 #### 🏁 Esito
 **Stato**: 🟢 Completato (Ottobre 2026)
+
+### Task completati in data odierna (Serie TV)
+| **SEED-001** | **Pulizia Dati Seed Prodotti (Disaccoppiamento Brand e Catalogo Asettico)** | shopping / seed | 🟢 Completato | 🟢 Completato | 🟢 **Completato** |
+| **SHOPPING-005** | **Note e Recensioni Prodotti/Brand nel Catalogo (Tabella Ponte N:N con Note)** | shopping | 🟢 Completato | 🟢 Completato | 🟢 **Completato** |
+| **SHOPPING-008** | **Refactoring Catalogo Prodotti, Tabella Ponte N:N con Note & Compattazione DB** | shopping / DB | 🟢 Completato | 🟢 Completato | 🟢 **Completato** |
+| **SHOPPING-006** | **Ordinamento Intuitivo Unità di Misura Spesa (Canoniche + Alfabetico Comune con Divisore)** | `shopping` / UI | 🟢 Completato | 🟢 Completato | 🟢 **Completato** |
+| **SHOPPING-007** | **Inserimento Rapido Catalogo & Selezione Multipla Spesa (Sposta / Copia)** | `shopping` / UI | 🟢 Completato | 🟢 Completato | 🟢 **Completato** |
+  - 🟢 **Completato**: Integrazione **barra di ricerca TMDB inline** direttamente nella grid principale, rimuovendo il modale popup. Digitando si deve aprire un elenco a comparsa per l'aggiunta rapida.
+  - 🟢 **Completato**: **Ricerca per Genere e Piattaforma da Badge**: Cliccando sul badge di un genere (nella card o nel dettaglio serie) l'app filtrerÃƒÂƒÃ‚Â /cercherÃƒÂƒÃ‚Â  automaticamente altre serie in lista appartenenti allo stesso genere.
+  - 🟢 **Completato**: **Ricerca Globale Modale Filtri**: Aggiunto toggle per usare l'endpoint Discover di TMDB e cercare globalmente per Generi e Piattaforme.

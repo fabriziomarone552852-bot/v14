@@ -21,10 +21,7 @@ Questo documento serve a tracciare in modo strutturato:
 | **REBRAND-001** | **Rebranding App con Nome "Vita" e Nuova Icona Applicazione** | `brand` / `UI` | ÃƒÂ°Ã…Â¸Ã…Â¸Ã‚Â¢ Completato | ÃƒÂ°Ã…Â¸Ã…Â¸Ã‚Â¢ Completato | ÃƒÂ°Ã…Â¸Ã…Â¸Ã‚Â¢ **Completato** |
 | **HOME-001** | **Widget Homepage Rotante (Citazione del Giorno, Oroscopo & Meteo)** | `home` / `UI` | ÃƒÂ°Ã…Â¸Ã¢Â€ÂÃ‚Â´ Da Iniziare | ÃƒÂ°Ã…Â¸Ã¢Â€ÂÃ‚Â´ Da Iniziare | ÃƒÂ°Ã…Â¸Ã…Â¸Ã‚Â  **Alta** |
 | **SHOPPING-004** | **Ricerca & Visualizzazione Prezzi nel Modale Dettaglio Prodotto (per Brand)** | `shopping` / `UI` | ÃƒÂ°Ã…Â¸Ã¢Â€ÂÃ‚Â´ Da Iniziare | ÃƒÂ°Ã…Â¸Ã¢Â€ÂÃ‚Â´ Da Iniziare | ÃƒÂ°Ã…Â¸Ã…Â¸Ã‚Â  **Alta** |
-| **SEED-001** | **Pulizia Dati Seed Prodotti (Disaccoppiamento Brand e Catalogo Asettico)** | shopping / seed | 🟢 Completato | 🟢 Completato | 🟢 **Completato** |
 | **SEED-002** | **Risoluzione Visualizzazione Prodotti Seed Mancanti nelle Liste** | `shopping` / `seed` | ÃƒÂ°Ã…Â¸Ã¢Â€ÂÃ‚Â´ Da Iniziare | ÃƒÂ°Ã…Â¸Ã¢Â€ÂÃ‚Â´ Da Iniziare | ÃƒÂ°Ã…Â¸Ã…Â¸Ã‚Â  **Alta** |
-| **SHOPPING-005** | **Note e Recensioni Prodotti/Brand nel Catalogo (Tabella Ponte N:N con Note)** | shopping | 🟢 Completato | 🟢 Completato | 🟢 **Completato** |
-| **SHOPPING-008** | **Refactoring Catalogo Prodotti, Tabella Ponte N:N con Note & Compattazione DB** | shopping / DB | 🟢 Completato | 🟢 Completato | 🟢 **Completato** |
 | **FEAT-012** | **Pagina di Avvio Pinnata / Selezione Landing Page Predefinita** | `settings` / UI | ÃƒÂ°Ã…Â¸Ã…Â¸Ã‚Â¢ Completato | ÃƒÂ°Ã…Â¸Ã…Â¸Ã‚Â¢ Completato | ÃƒÂ°Ã…Â¸Ã…Â¸Ã‚Â¢ **Completato** |
 | **CAL-002** | **Filtro Categorie Eventi nel Calendario Homepage (Menu Ingranaggio ÃƒÂ¢Ã…Â¡Ã¢Â„Â¢ÃƒÂ¯Ã‚Â¸Ã‚Â)** | `calendar` / UI | ÃƒÂ°Ã…Â¸Ã¢Â€ÂÃ‚Â´ Da Iniziare | ÃƒÂ°Ã…Â¸Ã¢Â€ÂÃ‚Â´ Da Iniziare | ÃƒÂ°Ã…Â¸Ã…Â¸Ã‚Â  **Alta** |
 | **FEAT-004** | **Sezione Media: Libri, Film e Serie TV** | `media` / ent | ÃƒÂ°Ã…Â¸Ã…Â¸Ã‚Â¡ Parziale | ÃƒÂ°Ã…Â¸Ã…Â¸Ã‚Â¡ Parziale | ÃƒÂ°Ã…Â¸Ã¢Â€ÂÃ‚Â´ **Massima (Passo Fondamentale)** |
@@ -45,8 +42,6 @@ Questo documento serve a tracciare in modo strutturato:
 | **TECH-001** | **Verifica & Ottimizzazione Bundle APK Android (Code-Splitting)** | `build` / APK | N/A | ÃƒÂ°Ã…Â¸Ã…Â¸Ã‚Â¢ Completato | Media |
 | **TECH-002** | Spostamento Tasto Switch in Impostazioni / Danger Zone | `routing` / UI | N/A | ÃƒÂ°Ã…Â¸Ã…Â¸Ã‚Â¢ Completato | Bassa |
 | **TECH-003** | **Persistenza Volume Uploads su Docker NAS** | `build` / docker | ÃƒÂ°Ã…Â¸Ã…Â¸Ã‚Â¢ Completato | ÃƒÂ°Ã…Â¸Ã…Â¸Ã‚Â¢ Completato | ÃƒÂ°Ã…Â¸Ã…Â¸Ã‚Â¢ **Completato** |
-| **SHOPPING-006** | **Ordinamento Intuitivo Unità di Misura Spesa (Canoniche + Alfabetico Comune con Divisore)** | `shopping` / UI | 🟢 Completato | 🟢 Completato | 🟢 **Completato** |
-| **SHOPPING-007** | **Inserimento Rapido Catalogo & Selezione Multipla Spesa (Sposta / Copia)** | `shopping` / UI | 🟢 Completato | 🟢 Completato | 🟢 **Completato** |
 
 | **FEAT-013** | **Archivio Notifiche / Sezione Storico Notifiche** | `notifications` / UI | ÃƒÂ°Ã…Â¸Ã…Â¸Ã‚Â¢ Completato | ÃƒÂ°Ã…Â¸Ã…Â¸Ã‚Â¡ Da Implementare | ÃƒÂ°Ã…Â¸Ã…Â¸Ã‚Â¡ Media |
 
@@ -232,8 +227,6 @@ Nuovo modulo completo per gestire, catalogare e monitorare l'intrattenimento per
 - **Stato Serie**: `Da iniziare`, `In corso`, `In attesa di nuova stagione`, `Completata`, `Mollata`.
 - **Prossimi Step Sviluppo (Da Iniziare)**:
   - 🎲 **Estrazione Casuale**: Aggiungere l'opzione per scegliere se estrarre una serie tra quelle non viste o già viste.
-  - 🟢 **Completato**: Integrazione **barra di ricerca TMDB inline** direttamente nella grid principale, rimuovendo il modale popup. Digitando si deve aprire un elenco a comparsa per l'aggiunta rapida.
-  - 🟢 **Completato**: **Ricerca per Genere e Piattaforma da Badge**: Cliccando sul badge di un genere (nella card o nel dettaglio serie) l'app filtrerÃƒÂƒÃ‚Â /cercherÃƒÂƒÃ‚Â  automaticamente altre serie in lista appartenenti allo stesso genere.
   - ÃƒÂ°Ã…Â¸Ã‚Â¤Ã‚Â **Incrocio Liste Amici & Stato Visione**: Aggiunta di un tasto e relativa funzione nella barra principale della sezione per permettere di incrociare/comparare le liste delle serie TV salvate da piÃƒÂƒÃ‚Â¹ amici. Inoltre, agli amici verrÃƒÂƒÃ‚Â  mostrato se una serie la sta guardando un altro amico (tramite la sua foto profilo con un bordo colorato associato allo stato: se l'ha finita, droppata, in corso, ecc.).
   - Ã°ÂŸÂ“Âš **âœ… Liste Multimediali Personalizzate (Completato)**: Creazione di sottoliste miste (es. "MCU", "Da vedere con la ragazza") in cui inserire film, serie o libri. (*UI di gestione liste completata*).
     - **Comportamento Homepage vs Sezioni**: Nella Homepage verranno mostrate le liste complete con tutto il loro contenuto eterogeneo. Nelle sezioni dedicate (es. Serie TV), la lista mostrerÃƒÂ  *esclusivamente* gli elementi pertinenti.
