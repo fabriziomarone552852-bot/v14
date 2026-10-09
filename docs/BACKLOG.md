@@ -231,8 +231,9 @@ Nuovo modulo completo per gestire, catalogare e monitorare l'intrattenimento per
 - **Tracking Avanzamento**: Gestione dettagliata del progresso (es. "Stagione 2 - Episodio 7"), pulsante rapido touch/click per avanzare di un episodio visto (+1 episodio).
 - **Stato Serie**: `Da iniziare`, `In corso`, `In attesa di nuova stagione`, `Completata`, `Mollata`.
 - **Prossimi Step Sviluppo (Da Iniziare)**:
-  - ÃƒÂ°Ã…Â¸Ã¢Â€ÂÃ‚Â Integrazione **barra di ricerca TMDB inline** direttamente nella grid principale, rimuovendo il modale popup. Digitando si deve aprire un elenco a comparsa per l'aggiunta rapida.
-  - ÃƒÂ°Ã…Â¸Ã‚ÂÃ‚Â·ÃƒÂ¯Ã‚Â¸Ã‚Â **Ricerca per Genere da Badge**: Cliccando sul badge di un genere (nella card o nel dettaglio serie) l'app filtrerÃƒÂƒÃ‚Â /cercherÃƒÂƒÃ‚Â  automaticamente altre serie in lista appartenenti allo stesso genere.
+  - 🎲 **Estrazione Casuale**: Aggiungere l'opzione per scegliere se estrarre una serie tra quelle non viste o già viste.
+  - 🟢 **Completato**: Integrazione **barra di ricerca TMDB inline** direttamente nella grid principale, rimuovendo il modale popup. Digitando si deve aprire un elenco a comparsa per l'aggiunta rapida.
+  - 🟢 **Completato**: **Ricerca per Genere e Piattaforma da Badge**: Cliccando sul badge di un genere (nella card o nel dettaglio serie) l'app filtrerÃƒÂƒÃ‚Â /cercherÃƒÂƒÃ‚Â  automaticamente altre serie in lista appartenenti allo stesso genere.
   - ÃƒÂ°Ã…Â¸Ã‚Â¤Ã‚Â **Incrocio Liste Amici & Stato Visione**: Aggiunta di un tasto e relativa funzione nella barra principale della sezione per permettere di incrociare/comparare le liste delle serie TV salvate da piÃƒÂƒÃ‚Â¹ amici. Inoltre, agli amici verrÃƒÂƒÃ‚Â  mostrato se una serie la sta guardando un altro amico (tramite la sua foto profilo con un bordo colorato associato allo stato: se l'ha finita, droppata, in corso, ecc.).
   - Ã°ÂŸÂ“Âš **âœ… Liste Multimediali Personalizzate (Completato)**: Creazione di sottoliste miste (es. "MCU", "Da vedere con la ragazza") in cui inserire film, serie o libri. (*UI di gestione liste completata*).
     - **Comportamento Homepage vs Sezioni**: Nella Homepage verranno mostrate le liste complete con tutto il loro contenuto eterogeneo. Nelle sezioni dedicate (es. Serie TV), la lista mostrerÃƒÂ  *esclusivamente* gli elementi pertinenti.
@@ -576,3 +577,7 @@ Breve spiegazione di cosa fa la funzionalitÃƒÂƒÃ‚Â  dal punto di vista 
 ### [TRACKERS-004] Date di Uscita Italiane vs TMDB (Air Dates) - 🔴 CHIUSO / IMPOSSIBILE
 - **Esito**: Indagine completata. Come riportato nella sezione Serie TV, l\'estrazione delle date di uscita regionali (italiane) per gli episodi singoli non è supportata tecnicamente dalle API gratuite di TMDB (che traccia solo la 
 irst_air_date globale assoluta). L\'integrazione di API esterne (es. Gracenote) ha costi proibitivi. Pertanto l\'app manterrà la data globale.
+
+### [HABITS-001] Recap Mensile: Ripetizioni Multiple
+- **Descrizione**: Sistemare le habits/routines nel recap mensile in modo da mostrare correttamente quante volte sono state fatte le routines con più ripetizioni giornaliere (es. se una routine è da fare 3 volte al giorno e l'utente l'ha fatta 2 volte, mostrare 2/3 nel recap anziché solo se è stata fatta o meno).
+- **Stato**: 🔴 Da Iniziare (Modifica aggregazione e UI Recap Mensile).

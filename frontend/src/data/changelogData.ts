@@ -50,6 +50,8 @@ export const CHANGELOG_HISTORY: ChangelogItem[] = [
       'Hall of Fame & Top Serie: Classifica basata sulla vera media matematica tra le visioni della stessa serie, UI a stelle precise con arrotondamento automatico (mezze stelle, .5).'
     ],
     fixes: [
+      'Corretto il calcolo del voto medio delle Serie TV e il filtraggio in base ai voti (risolto discrepanza base 10 vs base 5).',
+      'Traduzione in italiano degli stati di produzione delle Serie TV e layout modale filtri ristrutturato come side-panel.',
       'Backend: Aggiunta la colonna `vote_average` al database per TMDBSeries e TMDBEpisode. Ora i voti di TMDB (convertiti in quinti) sono di nuovo visibili sia nella panoramica Serie che nel dettaglio Episodio.',
       'Corretto un bug nel calcolo della media voti degli amici (Serie ed Episodi): il valore non si aggiornava correttamente al termine del caricamento a causa di un problema di cache di React (useMemo).',
       'Rimossa l\'ora (2:00) dalla data delle recensioni (Serie ed Episodi) per una visualizzazione più pulita e coerente.',

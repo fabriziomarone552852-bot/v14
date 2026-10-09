@@ -5,11 +5,11 @@ Splits TMDB global data from User Tracking data.
 
 from datetime import date, datetime, timezone
 from typing import TYPE_CHECKING, List, Optional
-
 from sqlalchemy import (
     Boolean,
     Date,
     DateTime,
+    Float,
     ForeignKey,
     Integer,
     Float,
@@ -183,7 +183,7 @@ class UserSeriesLog(Base):
     user_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
     series_tmdb_id: Mapped[int] = mapped_column(Integer, ForeignKey("tmdb_series.tmdb_id", ondelete="CASCADE"), nullable=False, index=True)
     
-    rating: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
+    rating: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
     notes: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     
     review_visibility: Mapped[str] = mapped_column(String(50), nullable=False, default="friends_only")
@@ -226,7 +226,7 @@ class UserEpisodeLog(Base):
     user_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
     episode_id: Mapped[int] = mapped_column(Integer, ForeignKey("tmdb_episodes.id", ondelete="CASCADE"), nullable=False)
     
-    rating: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
+    rating: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
     notes: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     
     # Privacy & Social Sharing (FEAT-007)

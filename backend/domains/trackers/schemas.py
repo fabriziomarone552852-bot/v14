@@ -35,7 +35,7 @@ class TVSeriesCreate(StrictBaseModel):
 class TVSeriesUpdate(StrictBaseModel):
     """Payload to update an existing tracked TV Series."""
     status: Optional[str] = None
-    rating: Optional[int] = Field(None, ge=1, le=5)
+    rating: Optional[float] = Field(None, ge=1, le=5)
     notes: Optional[str] = None
     custom_poster_path: Optional[str] = None
     custom_backdrop_path: Optional[str] = None
@@ -73,7 +73,7 @@ class TVQuoteResponse(ORMBaseModel):
 class EpisodeLogResponse(ORMBaseModel):
     """A single view (rewatch) of an episode."""
     id: int
-    rating: Optional[int] = None
+    rating: Optional[float] = None
     notes: Optional[str] = None
     review_visibility: str
     watched_at: datetime
@@ -107,7 +107,7 @@ class UserTVPlatformResponse(ORMBaseModel):
     name: str
 
 class UserSeriesLogCreate(BaseModel):
-    rating: Optional[int] = None
+    rating: Optional[float] = None
     notes: Optional[str] = None
     review_visibility: Optional[str] = "friends_only"
     viewing_platform_id: Optional[int] = None
@@ -115,7 +115,7 @@ class UserSeriesLogCreate(BaseModel):
     watched_at: Optional[datetime] = None
 
 class UserSeriesLogUpdate(BaseModel):
-    rating: Optional[int] = None
+    rating: Optional[float] = None
     notes: Optional[str] = None
     review_visibility: Optional[str] = None
     viewing_platform_id: Optional[int] = None
@@ -126,7 +126,7 @@ class UserSeriesLogResponse(ORMBaseModel):
     id: int
     user_id: int
     series_tmdb_id: int
-    rating: Optional[int] = None
+    rating: Optional[float] = None
     notes: Optional[str] = None
     review_visibility: str
     viewing_platform_id: Optional[int] = None
@@ -280,7 +280,7 @@ class FriendSeriesLogResponse(ORMBaseModel):
     friend_name: str
     friend_avatar: Optional[str] = None
     status: str
-    rating: Optional[int] = None
+    rating: Optional[float] = None
     notes: Optional[str] = None
     review_visibility: str
     updated_at: datetime
@@ -291,7 +291,7 @@ class FriendEpisodeLogResponse(ORMBaseModel):
     friend_id: int
     friend_name: str
     friend_avatar: Optional[str] = None
-    rating: Optional[int] = None
+    rating: Optional[float] = None
     notes: Optional[str] = None
     review_visibility: str
     watched_at: datetime

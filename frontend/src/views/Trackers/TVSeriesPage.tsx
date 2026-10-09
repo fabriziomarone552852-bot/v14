@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { useMySeries, useSeriesStats, useUpcomingEpisodes, useMyQuotes } from '@/hooks/queries/useTrackersQueries';
+import { useMySeries, useSeriesStats, useUpcomingEpisodes, useMyQuotes, useMediaLists } from '@/hooks/queries/useTrackersQueries';
 import PageLoadingState from '@/components/shared/feedback/PageLoadingState';
 import PageErrorState from '@/components/shared/feedback/PageErrorState';
 import { TvIcon, EyeIcon, EyeHalfOpenIcon, EyeClosedIcon, LoadingIcon, EyePlayIcon } from '@/components/shared/utils/Icons';
@@ -12,6 +12,7 @@ import { GlassCardWidget } from './components/GlassCardWidget';
 import RandomSeriesModal from './components/RandomSeriesModal';
 import SeriesStatsModal from './components/SeriesStatsModal';
 import { SeriesDetailModal, type TabType } from './components/SeriesDetailModal';
+import { SeriesFilterModal, type SeriesFilterState } from './components/SeriesFilterModal';
 import type { TMDBEpisode } from '../../types/trackers';
 import { generateWeeksGrid, nomiMesiLungo, getFirstDayIndex, getDaysInMonth } from '@/utils/dateUtils';
 import { resolveImageUrl } from '@/utils/imageUtils';
@@ -274,10 +275,52 @@ const TVSeriesPage: React.FC = () => {
     }
   }, [series, detailModalOpen]); // intentionally missing detailModalSeries to avoid loop
 
+  const { data: myLists } = useMediaLists();
+  
   const [activeTab, setActiveTab] = useState<'all' | 'watching' | 'watched' | 'to_watch'>('all');
   const [goalViewType, setGoalViewType] = useState<'percent' | 'fraction'>('fraction');
-  const [searchQuery, setSearchQuery] = useState('');
   const [debouncedQuery, setDebouncedQuery] = useState('');
+  
+  const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
+  const [filters, setFilters] = useState<SeriesFilterState>({
+    keyword: '',
+    genre: 'all',
+    network: 'all',
+    ratings: [],
+    tmdbStatus: 'all',
+    year: 'all',
+    sortBy: 'date_added_desc',
+    listId: null,
+  });
+  
+  const searchQuery = filters.keyword;
+  
+  const handleFilterChange = (newFilters: SeriesFilterState) => {
+    setFilters(newFilters);
+  };
+  
+  const handleResetFilters = () => {
+    setFilters({
+      keyword: '',
+      genre: 'all',
+      network: 'all',
+      ratings: [],
+      tmdbStatus: 'all',
+      year: 'all',
+      sortBy: 'date_added_desc',
+      listId: null,
+    });
+  };
+  
+  const hasActiveFilters = 
+    filters.keyword !== '' ||
+    filters.genre !== 'all' ||
+    filters.network !== 'all' ||
+    (filters.ratings || []).length > 0 ||
+    filters.tmdbStatus !== 'all' ||
+    filters.year !== 'all' ||
+    filters.listId !== null ||
+    filters.sortBy !== 'date_added_desc';
   const [isQuoteExpanded, setIsQuoteExpanded] = useState(false);
   const [isRandomModalOpen, setRandomModalOpen] = useState(false);
   const [statsModalOpen, setStatsModalOpen] = useState(false);
@@ -385,11 +428,109 @@ const TVSeriesPage: React.FC = () => {
   }
 
   const watchingSeries = series?.filter(s => s.status === 'watching') || [];
-  const toWatchSeries = series?.filter(s => s.status === 'to_watch') || [];
   const watchedSeries = series?.filter(s => s.status === 'watched' || s.status === 'completed') || [];
   
-  const displaySeries = (activeTab === 'all' ? (series || []) : activeTab === 'watching' ? watchingSeries : activeTab === 'watched' ? watchedSeries : toWatchSeries)
-    .filter(s => s.title.toLowerCase().includes(searchQuery.toLowerCase()));
+  let displaySeries = (series || []).filter(s => {
+    // 1. Tab Attiva (Stato Personale)
+    if (activeTab !== 'all') {
+      if (activeTab === 'watching' && s.status !== 'watching') return false;
+      if (activeTab === 'to_watch' && s.status !== 'to_watch') return false;
+      if (activeTab === 'watched' && s.status !== 'watched' && s.status !== 'completed') return false;
+    }
+
+    // 2. Keyword
+    if (filters.keyword && !s.title.toLowerCase().includes(filters.keyword.toLowerCase())) return false;
+    
+    // 3. Genre
+    if (filters.genre !== 'all') {
+      if (!s.genres || !s.genres.includes(filters.genre)) return false;
+    }
+
+    // 4. Network
+    if (filters.network !== 'all') {
+      if (!s.networks || !s.networks.includes(filters.network)) return false;
+    }
+
+    // 5. TMDB Status
+    if (filters.tmdbStatus !== 'all') {
+      if (filters.tmdbStatus === 'Miniseries') {
+        if (s.tmdb_status !== 'Miniseries') return false;
+      } else {
+        if (s.tmdb_status !== filters.tmdbStatus) return false;
+      }
+    }
+
+    // 6. Year
+    if (filters.year && filters.year !== 'all') {
+      if (!s.first_air_date || !s.first_air_date.startsWith(filters.year)) return false;
+    }
+
+    // 7. Rating Personale (Selezione Multipla)
+    const activeRatings = filters.ratings || [];
+    if (activeRatings.length > 0) {
+      // Calcola la media delle recensioni come Voto Globale (se presente)
+      // Il database salva in decimi, quindi divido per 2.
+      const validLogs = s.logs ? s.logs.filter((l: any) => l.rating !== null && l.rating !== undefined && Number(l.rating) > 0) : [];
+      let calculatedRating = 0;
+      if (validLogs.length > 0) {
+        calculatedRating = validLogs.reduce((acc: number, l: any) => acc + (Number(l.rating) / 2), 0) / validLogs.length;
+      }
+      
+      // Fallback a s.rating (se esistesse)
+      const sRatingBase = (s.rating !== undefined && s.rating !== null) ? (Number(s.rating) > 5 ? Number(s.rating) / 2 : Number(s.rating)) : 0;
+      const rawR = calculatedRating > 0 ? calculatedRating : sRatingBase;
+      const r = Number(rawR.toFixed(1)); // Fix float come 2.999
+
+      let matched = false;
+      if (activeRatings.includes('unrated') && r === 0) matched = true;
+      if (activeRatings.includes('5') && r >= 4.9) matched = true;
+      if (activeRatings.includes('4') && r >= 4.0 && r < 4.9) matched = true;
+      if (activeRatings.includes('3') && r >= 3.0 && r < 4.0) matched = true;
+      if (activeRatings.includes('2') && r >= 2.0 && r < 3.0) matched = true;
+      if (activeRatings.includes('1') && r > 0 && r < 2.0) matched = true;
+      
+      if (!matched) return false;
+    }
+    
+    // 8. Lista Personale (listId)
+    if (filters.listId !== null && myLists) {
+      const targetList = myLists.find(l => l.id === filters.listId);
+      if (targetList) {
+        // controlla se s.tmdb_id e' presente in targetList.items
+        const isInList = targetList.items?.some((item: any) => item.series_tmdb_id === s.tmdb_id);
+        if (!isInList) return false;
+      } else {
+        return false;
+      }
+    }
+
+    return true;
+  });
+
+  // Ordinamento
+  displaySeries.sort((a, b) => {
+    if (filters.sortBy === 'date_added_desc') {
+      return new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime();
+    } else if (filters.sortBy === 'name_asc') {
+      return a.title.localeCompare(b.title);
+    } else if (filters.sortBy === 'name_desc') {
+      return b.title.localeCompare(a.title);
+    } else if (filters.sortBy === 'rating_desc') {
+      const getRating = (s: any) => {
+        const validLogs = s.logs ? s.logs.filter((l: any) => l.rating !== null && l.rating !== undefined && Number(l.rating) > 0) : [];
+        if (validLogs.length > 0) {
+          return validLogs.reduce((acc: number, l: any) => acc + (Number(l.rating) / 2), 0) / validLogs.length;
+        }
+        return s.rating ? (Number(s.rating) > 5 ? Number(s.rating) / 2 : Number(s.rating)) : 0;
+      };
+      return getRating(b) - getRating(a);
+    } else if (filters.sortBy === 'release_date_desc') {
+      return new Date(b.first_air_date || 0).getTime() - new Date(a.first_air_date || 0).getTime();
+    } else if (filters.sortBy === 'release_date_asc') {
+      return new Date(a.first_air_date || 0).getTime() - new Date(b.first_air_date || 0).getTime();
+    }
+    return 0;
+  });
 
   // Mocks for top cards
   const lastAdded = series && series.length > 0 ? [...series].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())[0] : null;
@@ -499,17 +640,21 @@ const TVSeriesPage: React.FC = () => {
              {/* Search Bar */}
              <div className="relative w-full sm:flex-1 sm:max-w-sm pointer-events-auto">
                 <button 
-                  onClick={() => { /* TODO: Implementare apertura modale Ricerca Approfondita */ }}
-                  className="absolute inset-y-0 left-0 pl-3 pr-2 flex items-center cursor-pointer text-gray-400 hover:text-blue-500 transition-colors z-10 outline-none"
+                  onClick={() => setIsFilterModalOpen(true)}
+                  className={`absolute inset-y-0 left-0 pl-3 pr-2 flex items-center cursor-pointer transition-colors z-10 outline-none ${hasActiveFilters ? 'text-blue-600 drop-shadow-sm' : 'text-gray-400 hover:text-blue-500'}`}
                   title="Ricerca approfondita"
                 >
                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+                   {hasActiveFilters && <span className="absolute top-2 right-1.5 w-2 h-2 bg-red-500 rounded-full border border-white"></span>}
                 </button>
                 <input 
                   type="text" 
                   placeholder="Cerca serie TV..." 
                   value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onChange={(e) => {
+                     setDebouncedQuery(e.target.value);
+                     handleFilterChange({ ...filters, keyword: e.target.value });
+                  }}
                   className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-xl leading-5 bg-white/95 backdrop-blur-md shadow-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm transition-shadow"
                 />
              </div>
@@ -774,12 +919,30 @@ const TVSeriesPage: React.FC = () => {
               });
             }
           }}
+          onGenreClick={(genre) => {
+            setFilters(prev => ({ ...prev, genre }));
+            setDetailModalOpen(false);
+          }}
+          onPlatformClick={(platform) => {
+            setFilters(prev => ({ ...prev, network: platform }));
+            setDetailModalOpen(false);
+          }}
         />
       )}
       {statsModalOpen && (
         <SeriesStatsModal onClose={() => setStatsModalOpen(false)} />
       )}
 
+      <SeriesFilterModal
+        isOpen={isFilterModalOpen}
+        onClose={() => setIsFilterModalOpen(false)}
+        filters={filters}
+        onFilterChange={handleFilterChange}
+        onReset={handleResetFilters}
+        hasActiveFilters={hasActiveFilters}
+        series={series || []}
+        myLists={myLists}
+      />
     </div>
   );
 };

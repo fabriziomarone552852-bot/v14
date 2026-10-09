@@ -24,6 +24,8 @@ interface SeriesDetailModalProps {
   initialReviewLogId?: number;
   onToggleTrack?: (tmdbId: number, isTracked: boolean) => void;
   onSelectRecommendation?: (tmdbId: number) => void;
+  onGenreClick?: (genre: string) => void;
+  onPlatformClick?: (platform: string) => void;
 }
 
 export type TabType = 'overview' | 'seasons' | 'review';
@@ -36,7 +38,9 @@ export const SeriesDetailModal: React.FC<SeriesDetailModalProps> = ({
   initialEpisode = null,
   initialReviewLogId,
   onToggleTrack,
-  onSelectRecommendation
+  onSelectRecommendation,
+  onGenreClick,
+  onPlatformClick
 }) => {
   const [activeTab, setActiveTab] = useState<TabType>(initialTab);
   const [internalEpisode, setInternalEpisode] = useState<TMDBEpisode | null>(initialEpisode);
@@ -131,22 +135,22 @@ export const SeriesDetailModal: React.FC<SeriesDetailModalProps> = ({
       list.items?.some((item: any) => item.series_tmdb_id === tmdbSeries.tmdb_id)
     );
   }, [mediaLists, tmdbSeries.tmdb_id]);
-  const statusLabel = tmdbSeries.tmdb_status || 'Sconosciuto';
+  const tmdbStatusMap: Record<string, string> = { 'Returning Series': 'In produzione', 'Ended': 'Conclusa', 'Canceled': 'Cancellata', 'Miniseries': 'Miniserie', 'In Production': 'In produzione', 'Planned': 'Annunciata', 'Pilot': 'Pilot' }; const rawStatus = tmdbSeries.tmdb_status || 'Sconosciuto'; const statusLabel = tmdbStatusMap[rawStatus] || rawStatus;
 
   // Logica icona status
   let StatusIcon = null;
   let statusColor = "bg-gray-500";
   let statusText = statusLabel;
 
-  if (statusLabel === 'Canceled') {
+  if (rawStatus === 'Canceled') {
     StatusIcon = <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M6 18L18 6M6 6l12 12" /></svg>;
     statusColor = "bg-red-500";
     statusText = "Cancellata";
-  } else if (statusLabel === 'Ended') {
+  } else if (rawStatus === 'Ended') {
     StatusIcon = <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" rx="2" /></svg>;
     statusColor = "bg-blue-500";
     statusText = "Conclusa";
-  } else if (statusLabel === 'Returning Series' || statusLabel === 'In Production') {
+  } else if (rawStatus === 'Returning Series' || rawStatus === 'In Production') {
     StatusIcon = <svg className="w-4 h-4 translate-x-[1px]" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z" /></svg>;
     statusColor = "bg-green-500";
     statusText = "In produzione";
@@ -216,7 +220,11 @@ export const SeriesDetailModal: React.FC<SeriesDetailModalProps> = ({
           <div className="absolute top-4 left-6 flex flex-col gap-3 max-w-xl z-20">
             <div className="flex flex-wrap gap-2">
               {genres.map(g => (
-                <span key={g} className="px-3 py-1 bg-black/40 text-white text-xs font-bold rounded-full backdrop-blur-md border border-white/20 shadow-lg">
+                <span 
+                  key={g} 
+                  onClick={() => onGenreClick && onGenreClick(g)}
+                  className={`px-3 py-1 bg-black/40 text-white text-xs font-bold rounded-full backdrop-blur-md border border-white/20 shadow-lg ${onGenreClick ? 'cursor-pointer hover:bg-black/60 transition-colors' : ''}`}
+                >
                   {g}
                 </span>
               ))}
@@ -226,11 +234,15 @@ export const SeriesDetailModal: React.FC<SeriesDetailModalProps> = ({
             {providersData?.flatrate?.length > 0 && (
               <div className="flex flex-wrap gap-2 items-center">
                 {providersData.flatrate.map((provider: any) => (
-                  <div key={provider.provider_id} className="relative group/provider flex items-center">
+                  <div 
+                    key={provider.provider_id} 
+                    className="relative group/provider flex items-center"
+                    onClick={() => onPlatformClick && onPlatformClick(provider.provider_name)}
+                  >
                     <img 
                       src={`https://image.tmdb.org/t/p/original${provider.logo_path}`} 
                       alt={provider.provider_name}
-                      className="w-7 h-7 rounded-md shadow-md border border-white/20 bg-white"
+                      className={`w-7 h-7 rounded-md shadow-md border border-white/20 bg-white ${onPlatformClick ? 'cursor-pointer hover:scale-110 transition-transform' : ''}`}
                     />
                     <div className="absolute top-full mt-1 left-1/2 -translate-x-1/2 bg-gray-900 text-white text-[10px] font-bold px-2 py-1 rounded opacity-0 group-hover/provider:opacity-100 transition-opacity whitespace-nowrap pointer-events-none shadow-lg z-30">
                       {provider.provider_name}
