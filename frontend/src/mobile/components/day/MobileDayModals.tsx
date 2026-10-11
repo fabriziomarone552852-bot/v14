@@ -9,7 +9,7 @@ import HabitNewModal from '@/components/day/HabitNewModal';
 import MobileNotesBottomSheet from '../MobileNotesBottomSheet';
 import type { LocalNoteEntry, NoteVariant } from '@/types';
 
-export interface ModalController<T = unknown> {
+export interface ModalController<T = void> {
   isOpen: boolean;
   data: T | null;
   open: (data?: T | null) => void;
@@ -18,7 +18,7 @@ export interface ModalController<T = unknown> {
 
 export interface MobileDayModalsProps {
   // Countdowns
-  countdownHubModal: ModalController<unknown>;
+  countdownHubModal: ModalController;
   countdownDetailModal: ModalController<CountdownItem>;
   countdownFormModal: ModalController<CountdownItem>;
   countdowns: CountdownItem[];
@@ -26,7 +26,7 @@ export interface MobileDayModalsProps {
   onDeleteCountdown: (id: number) => Promise<unknown> | void;
 
   // Habit
-  habitFormModal: ModalController<unknown>;
+  habitFormModal: ModalController;
   onSaveHabit: (titolo: string, immagine_url?: string) => void;
 
   // Note

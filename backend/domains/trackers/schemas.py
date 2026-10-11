@@ -405,3 +405,39 @@ class TVFullStats(BaseModel):
     most_rewatched_episodes: List[RewatchStat] = Field(default_factory=list)
     rewatch_comparison: RewatchComparison
     guilty_pleasures: List[GuiltyPleasureStat] = Field(default_factory=list)
+
+# --- Series Match Session ---
+
+class SeriesMatchParticipantCreate(BaseModel):
+    user_id: int
+
+class SeriesMatchSessionCreate(BaseModel):
+    friend_ids: List[int]
+    media_list_id: Optional[int] = None
+    use_entire_catalog: bool = False
+
+class SeriesMatchJoin(BaseModel):
+    media_list_id: Optional[int] = None
+    use_entire_catalog: bool = False
+
+class SeriesMatchParticipantResponse(ORMBaseModel):
+    id: int
+    user_id: int
+    media_list_id: Optional[int] = None
+    use_entire_catalog: bool
+    status: str
+    joined_at: Optional[datetime] = None
+
+class SeriesMatchSessionResponse(ORMBaseModel):
+    id: int
+    initiator_id: int
+    status: str
+    created_at: datetime
+    expires_at: datetime
+    participants: List[SeriesMatchParticipantResponse] = Field(default_factory=list)
+
+class SeriesMatchResult(BaseModel):
+    tmdb_id: int
+    title: str
+    poster_path: Optional[str] = None
+    matched_users: List[int]

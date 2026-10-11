@@ -10,12 +10,14 @@ import { ShoppingModalProvider } from '@/context/ShoppingModalContext';
 import { ArchiveHeaderProvider } from '@/context/ArchiveHeaderContext';
 import { TailscaleGate } from '@/components/TailscaleGate';
 import AppErrorBoundary from '@/components/AppErrorBoundary';
+import AppUpdateChecker from '@/components/AppUpdateChecker';
 
 function App() {
   return (
     <BrowserRouter>
       <AppErrorBoundary>
         <TailscaleGate>
+          <AppUpdateChecker />
           <AuthProvider>
             <ConfirmProvider>
               <DayProvider>

@@ -510,3 +510,67 @@ def delete_platform(
 
 
 
+
+
+# --- Series Match Sessions ---
+from backend.domains.trackers.schemas import (
+    SeriesMatchSessionCreate,
+    SeriesMatchJoin,
+    SeriesMatchSessionResponse,
+    SeriesMatchResult
+)
+
+
+@router.post("/series/match/create", response_model=SeriesMatchSessionResponse)
+def create_match_session(
+    data: SeriesMatchSessionCreate,
+    current_user: User = Depends(get_current_app_user),
+    db: Session = Depends(get_db)
+):
+    """Crea una nuova sessione di incrocio liste e invita gli amici."""
+    return service.create_series_match_session(db, current_user.id, data)
+
+@router.post("/series/match/{session_id}/join", response_model=SeriesMatchSessionResponse)
+def join_match_session(
+    session_id: int,
+    data: SeriesMatchJoin,
+    current_user: User = Depends(get_current_app_user),
+    db: Session = Depends(get_db)
+):
+    """Risponde a un invito all'incrocio liste."""
+    return service.join_series_match_session(db, current_user.id, session_id, data)
+
+@router.post("/series/match/{session_id}/decline", status_code=status.HTTP_204_NO_CONTENT)
+def decline_match_session(
+    session_id: int,
+    current_user: User = Depends(get_current_app_user),
+    db: Session = Depends(get_db)
+):
+    """Rifiuta un invito all'incrocio liste."""
+    service.decline_series_match_session(db, current_user.id, session_id)
+
+@router.get("/series/match", response_model=List[SeriesMatchSessionResponse])
+def list_match_sessions(
+    current_user: User = Depends(get_current_app_user),
+    db: Session = Depends(get_db)
+):
+    """Mostra le sessioni di incrocio attive per l'utente."""
+    return service.get_user_match_sessions(db, current_user.id)
+
+@router.get("/series/match/{session_id}", response_model=SeriesMatchSessionResponse)
+def get_match_session(
+    session_id: int,
+    current_user: User = Depends(get_current_app_user),
+    db: Session = Depends(get_db)
+):
+    """Mostra i dettagli di una specifica sessione (chi ha accettato, ecc)."""
+    return service.get_series_match_session(db, current_user.id, session_id)
+
+@router.get("/series/match/{session_id}/results", response_model=List[SeriesMatchResult])
+def get_match_results(
+    session_id: int,
+    current_user: User = Depends(get_current_app_user),
+    db: Session = Depends(get_db)
+):
+    """Calcola i risultati dell'incrocio liste (disponibile solo se completato)."""
+    return service.calculate_match_results(db, current_user.id, session_id)

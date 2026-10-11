@@ -274,6 +274,7 @@ Perfezionamento del sistema di notifiche e interazioni sociali introdotto in FEA
 - 📡 **Rimozione Dati Mock & Integrazione API (Completato)**: Sostituzione dei Dati Mock (obiettivo annuale, citazioni, serie recenti, carousel prossime uscite, e Integrazione completa Liste Multimediali e MediaListManagerModal) con fetch reali dal Database e logica TMDB / React Query.
 - 📊 **Statistiche, Piattaforme & Analytics Completati**: Dashboard abitudini completata con switch dinamico Ore/Episodi. Obiettivi annuali modificabili inline con input nativo. Top 10 Hall of Fame rifinita con raggruppamento per serie, aggregazione media dei voti e arrotondamenti precisi tramite StarRating visivo. Gestione piattaforme di visione ottimizzata con AddButton compatto e merging dei default DB.
 - 🎨 **UI Schermata di Dettaglio Completata**: Il design del modale di dettaglio della singola serie è stato completato e rifinito (gestione cast, layout colonne, header integrato, status badge in overlay, e pannello liste).
+- 🤝 **Stato Visione Amici (Completato)**: Agli amici verrà mostrato se una serie la sta guardando un altro amico tramite la sua foto profilo con un bordo colorato associato allo stato di visione.
 
 
 ### [SHOPPING-007] Inserimento Rapido Catalogo & Selezione Multipla Spesa (Sposta / Copia / Elimina) (🟢 Completato)
@@ -325,3 +326,39 @@ Implementazione completa su Web-App (Desktop) e Smartphone (Mobile) di due funzi
 
 - **[FEAT-004] Serie TV - Estrazione Casuale**: Aggiunta opzione per estrarre serie non viste o tutta la lista. (Completato)
 - **[FEAT-004] Serie TV - Disponibilità Piattaforme Streaming**: Integrata la visualizzazione accurata delle piattaforme (Netflix, Prime Video, ecc.). (Completato)
+
+### [FEAT-004] Sotto-task Sezione Media Completati (Ottobre 2026)
+- 🟢 **Refactoring Architetturale Modulare Frontend (Serie TV e Inbox) Completato**: Smantellamento dei macro-file React nella sezione Trackers (SeriesDetailModal, TVSeriesPage, EpisodeDetailView) e NotificationsSidebar per aderire strettamente alla regola della separazione logica-visiva e ridurre il peso a <= 20KB per file. La libreria Serie TV ora rispetta alla lettera gli standard.
+
+---
+
+### [CORE-002] Refactoring Continuo, Modularità & Cleanup Codice (🟢 Completato - Ottobre 2026)
+
+#### 📋 Descrizione
+Attività continuativa di ottimizzazione e refactoring architetturale per mantenere la codebase snella, modulare e facilmente manutenibile, applicando le 5 Regole d'Oro architetturali ("Mazzo di Carte", "Peso Piuma", "Memoria Strategica", "Zero Tolleranza any", "Suddivisione e Riduzione Peso file").
+
+#### ⚙️ Dettagli Implementazione & Risultati
+1. **Zero Tolleranza Any (Strict TypeScript 100%)**:
+   - Eliminazione completa e definitiva di tutti i tipi `any` residui in tutto il frontend (inclusi `EpisodeDetailView.tsx`, `SeriesReviewTab.tsx`, `SeriesReviewForm.tsx`).
+   - Standardizzazione con interfacce e DTO rigorosi; compilazione `npm run build` (`tsc -b && vite build`) a 0 errori e 0 warning.
+2. **Scomposizione Macro-Componenti e Riduzione Peso**:
+   - **`SeriesReviewTab.tsx`**: Incapsulamento delle 11 variabili di stato form in `SeriesReviewForm.tsx` (con emissione dell'evento `onSave`) e della logica menzioni/commenti in `SeriesReviewDetail.tsx`. Il file genitore opera ora come puro router/orchestratore.
+   - **`AdminReceiptQuickEntrySection.tsx`**: Scorporata la logica complessa di rendering riga, autocompletamenti e rimozione nel nuovo componente `AdminReceiptQuickEntryRow.tsx`, snellendo il componente padre di oltre 150 righe.
+   - **`EpisodeDetailView.tsx`**: Applicata la stessa simmetria di SeriesReviewTab. Estratte oltre 20 variabili di stato e prop-drilling: `EpisodeDetailForm.tsx` gestisce autonomamente il proprio form e `EpisodeReviewDetail.tsx` incapsula interamente la logica dei commenti e dell'autocompletamento delle menzioni `@amico`.
+
+---
+
+### [FEAT-007] Sistema di Amicizie & Condivisione Recensioni (Social & Sharing Network) (🟢 Completato - Ottobre 2026)
+
+#### 📋 Descrizione
+Sistema integrato di connessione tra utenti (Amicizie) per la condivisione sociale di contenuti personali, recensioni e valutazioni multimediali.
+
+#### ⚙️ Dettagli Implementazione & Risultati
+1. **Architettura Relazioni & Amicizie**:
+   - Ricerca utenti, invio richieste di amicizia, gestione stati (`pending`, `accepted`, `rejected`, `blocked`) e lista amici attiva con avatar personalizzati o fallback.
+   - Livelli di privacy e visibilità granulari: `Privato` (Solo io), `Amici` (Solo Amici), `Pubblico`.
+2. **Condivisione Recensioni & Interazioni Sociali**:
+   - Recensioni degli amici visibili sia a livello di Serie TV che di singolo Episodio, con medie voti ricalcolate in tempo reale.
+   - Commenti e risposte alle recensioni con thread conversazionale.
+   - Sistema di menzioni `@username` nei commenti con autocompletamento in tempo reale, bolle stile chat e notifiche mirate.
+   - Nuova Inbox Notifiche che unifica messaggistica effimera, richieste di amicizia, inviti ai gruppi spesa e notifiche di sistema.

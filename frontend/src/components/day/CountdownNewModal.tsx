@@ -1,5 +1,5 @@
 // src/components/day/CountdownNewModal.tsx
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import type { CountdownItem } from '@/components/day/CountdownWidget';
 import DatePicker from '@/components/shared/utils/DatePicker/DatePicker';
 import TimeInput from '@/components/shared/utils/TimeInput';
@@ -9,7 +9,7 @@ import { pad } from '@/utils/dateUtils';
 import { DEFAULT_COVER_IMAGE } from '@/utils/constants';
 import { resolveImageUrl } from '@/utils/imageUtils';
 import BaseModal from '@/components/shared/dialog/BaseModal';
-import { mediaService } from '@/api/mediaService';
+import { useImageUpload } from '@/hooks/useImageUpload';
 import { logger } from '@/utils/logger';
 
 export type CountdownSavePayload = Omit<CountdownItem, 'id'> & { id?: number };
@@ -31,43 +31,17 @@ const CountdownNewModal: React.FC<CountdownNewModalProps> = ({ isOpen, onClose, 
   const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
   const [isPositionModalOpen, setIsPositionModalOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
-  const [isUploading, setIsUploading] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    try {
-      setIsUploading(true);
-      const res = await mediaService.uploadImage(file, 'countdowns');
-      setImageUrl(res.url);
-    } catch (error) {
-      logger.error('Errore durante il caricamento foto per countdown:', error);
-    } finally {
-      setIsUploading(false);
-      if (fileInputRef.current) fileInputRef.current.value = '';
-    }
-  };
-
-  const handleUrlBlur = async () => {
-    const rawUrl = imageUrl?.trim();
-    if (!rawUrl || rawUrl.startsWith('/uploads/') || rawUrl.startsWith('data:') || rawUrl.startsWith('blob:')) {
-      return;
-    }
-
-    if (rawUrl.startsWith('http://') || rawUrl.startsWith('https://')) {
-      try {
-        setIsUploading(true);
-        const res = await mediaService.fetchImageFromUrl(rawUrl, 'countdowns');
-        setImageUrl(res.url);
-      } catch (error) {
-        logger.warn('Download immagine da URL fallito, mantengo URL:', error);
-      } finally {
-        setIsUploading(false);
-      }
-    }
-  };
+  const {
+    fileInputRef,
+    isUploading,
+    handleFileUpload,
+    handleUrlFetch,
+    triggerFileInput,
+  } = useImageUpload({
+    folder: 'countdowns',
+    onSuccess: (url) => setImageUrl(url),
+  });
 
   useEffect(() => {
     if (countdownToEdit && isOpen) {
@@ -178,7 +152,7 @@ const CountdownNewModal: React.FC<CountdownNewModalProps> = ({ isOpen, onClose, 
                   />
                   <button
                     type="button"
-                    onClick={() => fileInputRef.current?.click()}
+                    onClick={triggerFileInput}
                     disabled={isUploading}
                     className="hover:bg-blue-100 text-blue-600 bg-blue-50/80 border border-blue-200 p-1 rounded-lg transition-colors cursor-pointer flex items-center justify-center shadow-2xs disabled:opacity-50"
                     title="Carica foto dal dispositivo"
@@ -205,7 +179,7 @@ const CountdownNewModal: React.FC<CountdownNewModalProps> = ({ isOpen, onClose, 
                 type="text"
                 value={imageUrl}
                 onChange={e => setImageUrl(e.target.value)}
-                onBlur={handleUrlBlur}
+                onBlur={() => handleUrlFetch(imageUrl)}
                 placeholder="Incolla URL o carica foto..."
                 className="w-full bg-white border border-gray-200 text-gray-800 text-sm rounded-xl focus:ring-blue-500 focus:border-blue-500 block p-3 shadow-sm"
               />

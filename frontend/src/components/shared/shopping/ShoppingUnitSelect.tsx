@@ -1,8 +1,7 @@
-// src/components/shared/shopping/ShoppingUnitSelect.tsx
 import React, { useState, useMemo } from 'react';
-import { createPortal } from 'react-dom';
 import { useOutsideClick } from '@/hooks/useOutsideClick';
-import { DropdownIcon, CloseIcon } from '@/components/shared/utils/Icons';
+import { DropdownIcon } from '@/components/shared/utils/Icons';
+import { SelectModalDialog } from '@/components/shared/form';
 import type { ConfigOption } from '@/types/shopping';
 
 import {
@@ -140,112 +139,86 @@ export const ShoppingUnitSelect: React.FC<ShoppingUnitSelectProps> = ({
       </div>
 
       {/* Modalità Finestra/Modale a Tutto Schermo al Centro */}
-      {asModal && isOpen && !disabled &&
-        createPortal(
-          <div
-            className="fixed inset-0 z-[10030] bg-gray-900/60 backdrop-blur-xs flex items-center justify-center p-4 animate-fadeIn pointer-events-auto"
-            onClick={() => setIsOpen(false)}
-          >
-            <div
-              className="bg-white rounded-3xl shadow-2xl w-full max-w-sm p-5 space-y-4 border border-gray-100 animate-scaleUp pointer-events-auto max-h-[85vh] flex flex-col"
-              onClick={(e) => e.stopPropagation()}
-            >
-              {/* Header Finestra */}
-              <div className="flex items-center justify-between pb-2 border-b border-gray-100 shrink-0">
-                <h3 className="text-sm font-extrabold text-gray-900 uppercase tracking-wide">
-                  Unità di Misura
-                </h3>
-                <button
-                  type="button"
-                  onClick={() => setIsOpen(false)}
-                  className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-xl transition-colors cursor-pointer"
-                  title="Chiudi"
-                >
-                  <CloseIcon className="w-5 h-5" />
-                </button>
-              </div>
-
-              {/* Elenco Unità di Misura con Nomi Estesi */}
-              <div className="flex-1 min-h-0 overflow-y-auto custom-scrollbar space-y-1.5 pr-0.5">
-                {/* Opzione Nessuna Unità */}
-                <button
-                  type="button"
-                  onClick={() => handleSelect('')}
-                  className={`w-full p-3 rounded-2xl text-left transition-all flex items-center justify-between border cursor-pointer active:scale-[0.98] ${
-                    !value
-                      ? 'bg-blue-50/90 border-blue-400 ring-2 ring-blue-400/20 font-bold text-blue-900'
-                      : 'bg-gray-50/80 hover:bg-gray-100 border-gray-200/80 text-gray-600 italic font-medium'
-                  }`}
-                >
-                  <span className="text-xs">Nessuna unità</span>
-                  {!value && (
-                    <div className="w-5 h-5 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-xs shrink-0 shadow-xs">
-                      ✓
-                    </div>
-                  )}
-                </button>
-
-                {/* Gruppo 1: Unità Canoniche */}
-                {canonicalOptions.map((opt) => {
-                  const isSelected = String(opt.id) === value;
-                  const displayName = getUnitDisplayName(opt);
-
-                  return (
-                    <button
-                      key={opt.id}
-                      type="button"
-                      onClick={() => handleSelect(String(opt.id))}
-                      className={`w-full p-3 rounded-2xl text-left transition-all flex items-center justify-between border cursor-pointer active:scale-[0.98] ${
-                        isSelected
-                          ? 'bg-blue-50/90 border-blue-400 ring-2 ring-blue-400/20 font-bold text-blue-900'
-                          : 'bg-gray-50/80 hover:bg-gray-100 border-gray-200/80 text-gray-800 font-medium'
-                      }`}
-                    >
-                      <span className="text-xs capitalize">{displayName}</span>
-                      {isSelected && (
-                        <div className="w-5 h-5 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-xs shrink-0 shadow-xs">
-                          ✓
-                        </div>
-                      )}
-                    </button>
-                  );
-                })}
-
-                {/* Linea di confine tra gruppi canonici e gruppo comune */}
-                {canonicalOptions.length > 0 && commonOptions.length > 0 && (
-                  <div className="my-2 border-t border-gray-200" />
-                )}
-
-                {/* Gruppo 2: Unità Comuni in ordine alfabetico */}
-                {commonOptions.map((opt) => {
-                  const isSelected = String(opt.id) === value;
-                  const displayName = getUnitDisplayName(opt);
-
-                  return (
-                    <button
-                      key={opt.id}
-                      type="button"
-                      onClick={() => handleSelect(String(opt.id))}
-                      className={`w-full p-3 rounded-2xl text-left transition-all flex items-center justify-between border cursor-pointer active:scale-[0.98] ${
-                        isSelected
-                          ? 'bg-blue-50/90 border-blue-400 ring-2 ring-blue-400/20 font-bold text-blue-900'
-                          : 'bg-gray-50/80 hover:bg-gray-100 border-gray-200/80 text-gray-800 font-medium'
-                      }`}
-                    >
-                      <span className="text-xs capitalize">{displayName}</span>
-                      {isSelected && (
-                        <div className="w-5 h-5 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-xs shrink-0 shadow-xs">
-                          ✓
-                        </div>
-                      )}
-                    </button>
-                  );
-                })}
-              </div>
+      <SelectModalDialog
+        isOpen={asModal && isOpen && !disabled}
+        onClose={() => setIsOpen(false)}
+        title="Unità di Misura"
+      >
+        {/* Opzione Nessuna Unità */}
+        <button
+          type="button"
+          onClick={() => handleSelect('')}
+          className={`w-full p-3 rounded-2xl text-left transition-all flex items-center justify-between border cursor-pointer active:scale-[0.98] ${
+            !value
+              ? 'bg-blue-50/90 border-blue-400 ring-2 ring-blue-400/20 font-bold text-blue-900'
+              : 'bg-gray-50/80 hover:bg-gray-100 border-gray-200/80 text-gray-600 italic font-medium'
+          }`}
+        >
+          <span className="text-xs">Nessuna unità</span>
+          {!value && (
+            <div className="w-5 h-5 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-xs shrink-0 shadow-xs">
+              ✓
             </div>
-          </div>,
-          document.body
+          )}
+        </button>
+
+        {/* Gruppo 1: Unità Canoniche */}
+        {canonicalOptions.map((opt) => {
+          const isSelected = String(opt.id) === value;
+          const displayName = getUnitDisplayName(opt);
+
+          return (
+            <button
+              key={opt.id}
+              type="button"
+              onClick={() => handleSelect(String(opt.id))}
+              className={`w-full p-3 rounded-2xl text-left transition-all flex items-center justify-between border cursor-pointer active:scale-[0.98] ${
+                isSelected
+                  ? 'bg-blue-50/90 border-blue-400 ring-2 ring-blue-400/20 font-bold text-blue-900'
+                  : 'bg-gray-50/80 hover:bg-gray-100 border-gray-200/80 text-gray-800 font-medium'
+              }`}
+            >
+              <span className="text-xs capitalize">{displayName}</span>
+              {isSelected && (
+                <div className="w-5 h-5 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-xs shrink-0 shadow-xs">
+                  ✓
+                </div>
+              )}
+            </button>
+          );
+        })}
+
+        {/* Linea di confine tra gruppi canonici e gruppo comune */}
+        {canonicalOptions.length > 0 && commonOptions.length > 0 && (
+          <div className="my-2 border-t border-gray-200" />
         )}
+
+        {/* Gruppo 2: Unità Comuni in ordine alfabetico */}
+        {commonOptions.map((opt) => {
+          const isSelected = String(opt.id) === value;
+          const displayName = getUnitDisplayName(opt);
+
+          return (
+            <button
+              key={opt.id}
+              type="button"
+              onClick={() => handleSelect(String(opt.id))}
+              className={`w-full p-3 rounded-2xl text-left transition-all flex items-center justify-between border cursor-pointer active:scale-[0.98] ${
+                isSelected
+                  ? 'bg-blue-50/90 border-blue-400 ring-2 ring-blue-400/20 font-bold text-blue-900'
+                  : 'bg-gray-50/80 hover:bg-gray-100 border-gray-200/80 text-gray-800 font-medium'
+              }`}
+            >
+              <span className="text-xs capitalize">{displayName}</span>
+              {isSelected && (
+                <div className="w-5 h-5 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-xs shrink-0 shadow-xs">
+                  ✓
+                </div>
+              )}
+            </button>
+          );
+        })}
+      </SelectModalDialog>
     </>
   );
 };

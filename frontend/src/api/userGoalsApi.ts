@@ -15,9 +15,9 @@ export const userGoalsApi = {
     try {
       const result = await api.get<UserYearlyGoal>(`/users/me/yearly-goals/${trackerType}?year=${year}`);
       return result;
-    } catch (e: any) {
+    } catch (e: unknown) {
       // Se il backend ritorna 404, significa che non c'è un obiettivo
-      if (e?.message?.includes('404')) {
+      if (e instanceof Error && e.message.includes('404')) {
         return null;
       }
       throw e;

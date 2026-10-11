@@ -1,5 +1,5 @@
 // src/mobile/components/shopping/MobileShoppingQuickCatalog.tsx
-import React, { useState, useMemo, useCallback } from 'react';
+import React from 'react';
 import {
   TagIcon,
   SearchIcon,
@@ -13,6 +13,7 @@ import type {
   ShoppingListSummary,
   ConfigOption,
 } from '@/types/shopping';
+import { useShoppingQuickCatalogLogic } from '@/components/shared/shopping/useShoppingQuickCatalogLogic';
 
 interface MobileShoppingQuickCatalogProps {
   products: ShoppingProductOption[];
@@ -31,68 +32,17 @@ export const MobileShoppingQuickCatalog: React.FC<MobileShoppingQuickCatalogProp
   onToggleItem,
   onClose,
 }) => {
-  const [searchQuery, setSearchQuery] = useState('');
-
-  // Mappa rapida degli item presenti nella lista corrente
-  const itemsInListMap = useMemo(() => {
-    const map = new Map<string, ShoppingListItem>();
-    for (const it of items) {
-      if (it.productId && it.productId > 0) {
-        map.set(`id:${it.productId}`, it);
-      }
-      const norm = (it.nameNormalized || it.productName || '').trim().toLowerCase();
-      if (norm) {
-        map.set(`name:${norm}`, it);
-      }
-    }
-    return map;
-  }, [items]);
-
-  // Helper per trovare se l'articolo è già presente
-  const getExistingItem = useCallback(
-    (product: ShoppingProductOption): ShoppingListItem | null => {
-      if (product.id && itemsInListMap.has(`id:${product.id}`)) {
-        return itemsInListMap.get(`id:${product.id}`)!;
-      }
-      const norm = (product.nameNormalized || product.displayName || '').trim().toLowerCase();
-      if (norm && itemsInListMap.has(`name:${norm}`)) {
-        return itemsInListMap.get(`name:${norm}`)!;
-      }
-      return null;
-    },
-    [itemsInListMap]
-  );
-
-  // Filtro e ordinamento alfabetico A-Z
-  const filteredProducts = useMemo(() => {
-    const q = searchQuery.trim().toLowerCase();
-    let list = products;
-
-    if (q) {
-      list = list.filter((p) => {
-        const name = (p.displayName || p.nameNormalized || '').toLowerCase();
-        const brand = (p.brandName || '').toLowerCase();
-        return name.includes(q) || brand.includes(q);
-      });
-    }
-
-    return [...list].sort((a, b) => {
-      const nameA = (a.displayName || a.nameNormalized || '').trim();
-      const nameB = (b.displayName || b.nameNormalized || '').trim();
-      return nameA.localeCompare(nameB, undefined, { sensitivity: 'base' });
-    });
-  }, [products, searchQuery]);
-
-  // Conteggio articoli presenti in lista
-  const inListCount = useMemo(() => {
-    let count = 0;
-    for (const p of products) {
-      if (getExistingItem(p)) {
-        count++;
-      }
-    }
-    return count;
-  }, [products, getExistingItem]);
+  const {
+    searchQuery,
+    setSearchQuery,
+    clearSearch,
+    getExistingItem,
+    filteredProducts,
+    inListCount,
+  } = useShoppingQuickCatalogLogic({
+    products,
+    items,
+  });
 
   return (
     <div className="flex-1 min-h-0 w-full bg-white border border-gray-200/90 rounded-2xl shadow-2xs p-2.5 flex flex-col justify-between overflow-hidden animate-fadeIn select-none">
@@ -142,7 +92,7 @@ export const MobileShoppingQuickCatalog: React.FC<MobileShoppingQuickCatalogProp
             {searchQuery && (
               <button
                 type="button"
-                onClick={() => setSearchQuery('')}
+                onClick={clearSearch}
                 className="absolute right-2 top-1/2 -translate-y-1/2 p-0.5 text-gray-400 hover:text-gray-600 rounded-md"
               >
                 <CloseIcon className="w-3 h-3" />

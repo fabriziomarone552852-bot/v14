@@ -67,11 +67,13 @@ export function useDailyEntryMutations<T extends CacheWithDailyEntries>(queryKey
       queryClient.setQueryData<T>(queryKey, (old) => {
         if (!old) return old;
 
-        const updateArray = <ItemType extends { id: number }>(list?: ItemType[]): ItemType[] => {
+        type CacheItem = DailyEntry | DbMonthlyEntry;
+
+        const updateArray = <ItemType extends CacheItem>(list?: ItemType[]): ItemType[] => {
           const arr = list || [];
           if (isDelete) return arr.filter(item => item.id !== payload.id);
           const exists = arr.some(item => item.id === tempId);
-          return exists ? arr.map(item => item.id === tempId ? (entry as unknown as ItemType) : item) : [...arr, entry as unknown as ItemType];
+          return exists ? arr.map(item => item.id === tempId ? (entry as ItemType) : item) : [...arr, entry as ItemType];
         };
 
         if (payload.tipo === 'PX') {
@@ -114,8 +116,9 @@ export function useDailyEntryMutations<T extends CacheWithDailyEntries>(queryKey
           if (!old) return old;
 
           const tempId = context.tempId;
-          const swapEntry = <ItemType extends { id: number }>(list?: ItemType[]): ItemType[] => 
-            (list || []).map(item => item.id === tempId ? (savedEntryFromDB as unknown as ItemType) : item);
+          type CacheItem = DailyEntry | DbMonthlyEntry;
+          const swapEntry = <ItemType extends CacheItem>(list?: ItemType[]): ItemType[] => 
+            (list || []).map(item => item.id === tempId ? (savedEntryFromDB as ItemType) : item);
 
           switch (payload.tipo) {
             case 'OD': 

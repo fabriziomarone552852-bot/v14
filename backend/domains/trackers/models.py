@@ -324,6 +324,14 @@ class MediaList(Base):
 
 
 class MediaListItem(Base):
+    """
+    Principio Architetturale (Liste Miste):
+    Attualmente questa tabella gestisce solo le Serie TV (series_tmdb_id), ma 
+    è concepita per diventare una lista mista multimediale universale.
+    In futuro, per supportare nuovi elementi (es. film, libri, videogiochi),
+    basterà aggiungere nuove colonne opzionali (es. movie_tmdb_id, book_id) 
+    e idealmente un campo `media_type` per distinguere rapidamente il contenuto.
+    """
     __tablename__ = "media_list_items"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
@@ -355,3 +363,74 @@ class MediaListItem(Base):
     def __repr__(self) -> str:
         return f"<MediaListItem id={self.id} list_id={self.list_id} series_id={self.series_tmdb_id}>"
 
+
+from datetime import timedelta
+
+class SeriesMatchSession(Base):
+    __tablename__ = "series_match_sessions"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    initiator_id: Mapped[int] = mapped_column(
+        Integer,
+        ForeignKey("users.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True
+    )
+    status: Mapped[str] = mapped_column(String(20), default="pending")  # pending, completed, cancelled
+    
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        nullable=False,
+        default=lambda: datetime.now(timezone.utc)
+    )
+    expires_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        nullable=False,
+        default=lambda: datetime.now(timezone.utc) + timedelta(hours=24)
+    )
+
+    initiator: Mapped["User"] = relationship("User")
+    participants: Mapped[List["SeriesMatchParticipant"]] = relationship(
+        "SeriesMatchParticipant",
+        back_populates="session",
+        cascade="all, delete-orphan"
+    )
+
+    def __repr__(self) -> str:
+        return f"<SeriesMatchSession id={self.id} initiator={self.initiator_id} status={self.status}>"
+
+
+class SeriesMatchParticipant(Base):
+    __tablename__ = "series_match_participants"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    session_id: Mapped[int] = mapped_column(
+        Integer,
+        ForeignKey("series_match_sessions.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True
+    )
+    user_id: Mapped[int] = mapped_column(
+        Integer,
+        ForeignKey("users.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True
+    )
+    
+    media_list_id: Mapped[Optional[int]] = mapped_column(
+        Integer,
+        ForeignKey("media_lists.id", ondelete="SET NULL"),
+        nullable=True
+    )
+    use_entire_catalog: Mapped[bool] = mapped_column(Boolean, default=False)
+    
+    status: Mapped[str] = mapped_column(String(20), default="invited")  # invited, joined, declined
+    
+    joined_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
+
+    session: Mapped["SeriesMatchSession"] = relationship("SeriesMatchSession", back_populates="participants")
+    user: Mapped["User"] = relationship("User")
+    media_list: Mapped[Optional["MediaList"]] = relationship("MediaList")
+
+    def __repr__(self) -> str:
+        return f"<SeriesMatchParticipant id={self.id} session={self.session_id} user={self.user_id} status={self.status}>"

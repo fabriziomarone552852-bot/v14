@@ -22,6 +22,20 @@ if ($LASTEXITCODE -ne 0) {
     exit 1
 }
 
+# Sincronizzazione automatica di public/version.json da package.json
+$pkgPath = Join-Path (Get-Location) "frontend\package.json"
+$versionJsonPath = Join-Path (Get-Location) "frontend\public\version.json"
+if ((Test-Path $pkgPath) -and (Test-Path $versionJsonPath)) {
+    try {
+        $pkg = Get-Content $pkgPath -Raw | ConvertFrom-Json
+        if ($pkg.version) {
+            $vJson = Get-Content $versionJsonPath -Raw | ConvertFrom-Json
+            $vJson.version = $pkg.version
+            $vJson | ConvertTo-Json -Depth 5 | Set-Content -Path $versionJsonPath -Encoding UTF8
+        }
+    } catch {}
+}
+
 # 2. Build Frontend
 Write-Host "`n[2/4] Build immagine Frontend React/Nginx..." -ForegroundColor Yellow
 docker build -t vxame14_frontend:latest -f frontend/Dockerfile frontend/

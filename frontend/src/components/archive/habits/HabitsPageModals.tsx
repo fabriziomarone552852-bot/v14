@@ -19,8 +19,8 @@ import { MobileHabitNewModal } from '@/mobile/components/modals/MobileHabitNewMo
 interface HabitsPageModalsProps {
   isMobile: boolean;
   activeTab: HabitTabType;
-  /** Il modale filtri non usa .data — unknown è il default di useModal<T> */
-  filterModal: UseModalResult<unknown>;
+  /** Il modale filtri non usa dati */
+  filterModal: UseModalResult;
   filters: HabitFilterState;
   onFilterChange: (filters: HabitFilterState) => void;
   onResetFilters: () => void;

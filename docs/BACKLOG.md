@@ -149,22 +149,6 @@ Verificare e ottimizzare il processo di compilazione dell'APK eseguito da [`buil
 
 ## ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Â¯ 4. Prossimi Passi Fondamentali (PrioritÃƒÂƒÃ‚Â  Immediata)
 
-### [CORE-002] Refactoring Continuo, ModularitÃƒÂƒÃ‚Â  & Cleanup Codice
-
-#### ÃƒÂ°Ã…Â¸Ã¢Â€ÂœÃ‚Â Descrizione
-AttivitÃƒÂƒÃ‚Â  continuativa di ottimizzazione e refactoring architetturale per mantenere la codebase snella, modulare e facilmente manutenibile durante l'evoluzione delle nuove funzionalitÃƒÂƒÃ‚Â .
-
-#### ÃƒÂ°Ã…Â¸Ã¢Â€ÂºÃ‚Â ÃƒÂ¯Ã‚Â¸Ã‚Â Ambito & Obiettivi
-1. **Scomposizione Componenti & Hook**:
-   - Individuazione e refactoring preventivo di componenti o sotto-pagine in crescita prima che superino la soglia di leggibilitÃƒÂƒÃ‚Â .
-   - Estrazione di sotto-hook personalizzati per la separazione tra logica di stato e resa grafica.
-2. **Ottimizzazione Prestazioni & Re-Render**:
-   - Profilazione dei re-render e memoizzazione strategica (`useMemo`, `useCallback`, `React.memo`) nelle viste ad alta densitÃƒÂƒÃ‚Â  informativa (es. Calendario, Liste Spesa, Timeline).
-3. **Mantenimento Standard di QualitÃƒÂƒÃ‚Â **:
-   - Garanzia del livello **Zero `any`** in TypeScript con interfacce e DTO trasparenti.
-   - Pulizia periodica di codice legacy, asset o funzioni obsolete sia in Frontend che in Backend.
-
----
 
 ### [FEAT-012] Pagina di Avvio Pinnata / Selezione Landing Page Predefinita
 
@@ -226,18 +210,18 @@ Nuovo modulo completo per gestire, catalogare e monitorare l'intrattenimento per
 - **Tracking Avanzamento**: Gestione dettagliata del progresso (es. "Stagione 2 - Episodio 7"), pulsante rapido touch/click per avanzare di un episodio visto (+1 episodio).
 - **Stato Serie**: `Da iniziare`, `In corso`, `In attesa di nuova stagione`, `Completata`, `Mollata`.
 - **Prossimi Step Sviluppo (Da Iniziare)**:
-  - ÃƒÂ°Ã…Â¸Ã‚Â¤Ã‚Â **Incrocio Liste Amici & Stato Visione**: Aggiunta di un tasto e relativa funzione nella barra principale della sezione per permettere di incrociare/comparare le liste delle serie TV salvate da piÃƒÂƒÃ‚Â¹ amici. Inoltre, agli amici verrÃƒÂƒÃ‚Â  mostrato se una serie la sta guardando un altro amico (tramite la sua foto profilo con un bordo colorato associato allo stato: se l'ha finita, droppata, in corso, ecc.).
+  - ÃƒÂ°Ã…Â¸Ã‚Â¤Ã‚Â **Incrocio Liste Amici**: Aggiunta di un tasto e relativa funzione nella barra principale della sezione per permettere di incrociare/comparare le liste delle serie TV salvate da piÃÆÃÆÃâÃÂ¹ amici.
   - Ã°ÂŸÂ“Âš **âœ… Liste Multimediali Personalizzate (Completato)**: Creazione di sottoliste miste (es. "MCU", "Da vedere con la ragazza") in cui inserire film, serie o libri. (*UI di gestione liste completata*).
     - **Comportamento Homepage vs Sezioni**: Nella Homepage verranno mostrate le liste complete con tutto il loro contenuto eterogeneo. Nelle sezioni dedicate (es. Serie TV), la lista mostrerÃƒÂ  *esclusivamente* gli elementi pertinenti.
+    - **Principio Architetturale**: Nel database (`MediaListItem`), l'estensione a nuovi tipi di media (film, libri) avverrà aggiungendo colonne opzionali per l'ID (es. `movie_tmdb_id`, `book_id`) e un campo `media_type` per distinguere l'elemento.
   - Ã°ÂŸÂ”ÂŽ **âœ… Ricerca per Lista (Completato)**: Aggiungere la possibilitÃƒÂ  di filtrare o cercare elementi in base all'appartenenza a specifiche liste direttamente all'interno della ricerca dettagliata/globale.
   - ÃƒÂ°Ã…Â¸Ã¢Â€Â˜Ã¢Â‚Â¬ **Check Finale Recensioni**: Al termine dello sviluppo della sezione, effettuare un controllo generale di come vengono visualizzate le recensioni e le liste delle recensioni (layout, text-wrapping, visualizzazione modale).
   - ÃƒÂ°Ã…Â¸Ã…Â’Ã…Â¸ **Voto Community**: Sostituire il voto TMDB con il voto medio della community dell'app. Al clic sul voto, si aprirÃƒÂƒÃ‚Â  una struttura simile a quella delle recensioni degli amici per leggerle.
   - ÃƒÂ°Ã…Â¸Ã¢Â€Â™Ã‚Â¬ **âœ… Commenti alle Recensioni (Completato)**: Aggiungere la possibilitÃƒÂƒÃ‚Â  di commentare le singole recensioni (tue, degli amici o pubbliche). Cliccando su una recensione, si espanderÃƒÂƒÃ‚Â  mostrando sotto il thread dei commenti (richiede implementazione backend dedicata).
   - ÃƒÂ°Ã…Â¸Ã¢Â€ÂÃ¢Â€Â **âœ… Sistema di Notifiche (Completato) (Commenti/Interazioni)**: Prevedere un sistema di notifiche (in-app/push) per avvisare l'utente quando riceve un commento a una sua recensione o ci sono interazioni rilevanti.
   - ÃƒÂ°Ã…Â¸Ã¢Â€Â™Ã‚Â¬ **âœ… Messaggistica Istantanea ed Effimera (Completato)**: Valutare l'integrazione di una chat o messaggistica diretta tra amici, possibilmente con messaggi effimeri, legata alle interazioni sulle serie o commenti.
-  - ÃƒÂ°Ã…Â¸Ã…Â’Ã‚Â **DisponibilitÃƒÂƒÃ‚Â  Piattaforme Streaming**: Integrare (ad es. tramite dati JustWatch via API TMDB) la visualizzazione accurata delle piattaforme in cui l'episodio/serie ÃƒÂƒÃ‚Â¨ attualmente visibile (Netflix, Prime Video, ecc.).
   - ÃƒÂ°Ã…Â¸Ã¢Â€Â™Ã‚Â¡ **Suggerimenti Homepage (Raccomandazioni)**: Aggiungere in homepage una sezione con serie TV suggerite e raccomandate dinamicamente in base alle ultime serie guardate.
-  - 🎨 Gestione dello stato "Empty" per l'assenza di serie.
+  - 🎨 **✅ Gestione dello stato "Empty" per l'assenza di serie (Completato)**.
   - ❌ **Date di Uscita Italiane (Impossibile)**: L'estrazione delle date di uscita regionali (italiane) per gli episodi non è supportata tecnicamente da TMDB, che traccia unicamente la prima data assoluta di messa in onda (first_air_date globale). Si manterrà la data globale poiché integrare API esterne commerciali (Gracenote/JustWatch) ha costi proibitivi per app indipendenti.
 
 #### ÃƒÂ°Ã…Â¸Ã¢Â€ÂÃ¢Â€Âž 4. Analisi Integrazioni Esterne & Sincronizzazione (Goodreads, Fable, TV Time)
@@ -378,29 +362,6 @@ Evoluzione della sezione Spesa in un ecosistema integrato e modulare per la gest
 
 ---
 
-### [FEAT-007] Sistema di Amicizie & Condivisione Recensioni (Social & Sharing Network)
-
-#### ÃƒÂ°Ã…Â¸Ã¢Â€ÂœÃ‚Â Descrizione
-Studio e architettura di un sistema di connessione tra utenti (*Amicizie / Family & Friends Network*) per consentire la condivisione sociale di contenuti personali, con prioritÃƒÂƒÃ‚Â  iniziale per le recensioni e valutazioni della sezione Media (Libri, Film, Serie TV), ed estendibile a ricette e liste.
-
-#### ÃƒÂ°Ã…Â¸Ã¢Â€Â˜Ã‚Â¥ 1. Architettura delle Relazioni & Amicizie
-- **Ricerca & Connessione Utenti**: Ricerca per username o email, invio richiesta di amicizia, gestione stati (`pending`, `accepted`, `rejected`, `blocked`), lista amici attiva.
-- **Livelli di Privacy & VisibilitÃƒÂƒÃ‚Â **: Configurazione granulare dei permessi per ogni contenuto creato:
-  - `Privato` (visibile solo all'autore).
-  - `Solo Amici` (visibile agli utenti confermati nella propria lista amici).
-  - `Gruppo/Famiglia` (visibile ai membri di un gruppo condiviso).
-
-#### ÃƒÂ°Ã…Â¸Ã‚ÂÃ‚Â¿ 2. Condivisione Recensioni & Valutazioni Media (Film, Serie TV, Libri)
-- **Feed AttivitÃƒÂƒÃ‚Â  Amici**: Timeline/Bacheca per visualizzare in tempo reale cosa stanno leggendo, guardando o valutando i propri amici (es. *"Marco ha votato 5 stelle e recensito 'Dune - Parte Due'"*).
-- **Schede Titolo Arricchite con Recensioni Amici**: Quando si visualizza la pagina di dettaglio di un film, serie o libro, mostrare in evidenza i commenti, i voti e le note lasciate dai propri amici.
-- **Consigli Diretti**: Pulsante rapido per raccomandare un titolo specifico a un amico con una nota personalizzata.
-
-#### ÃƒÂ°Ã…Â¸Ã…Â’Ã‚Â 3. Estensioni Future del Sistema Social
-- Condivisione ricette preferite dal proprio Ricettario verso il ricettario di un amico.
-- Condivisione wishlist desideri per facilitare regali di compleanno, festivitÃƒÂƒÃ‚Â  o occasioni speciali.
-- Condivisione collaborativa di liste tematiche (es. "Ristoranti consigliati", "Posti da visitare").
-
----
 
 ### [FEAT-011] Sezione Lavoro & Gestione Turni di Lavoro
 
@@ -573,3 +534,8 @@ irst_air_date globale assoluta). L\'integrazione di API esterne (es. Gracenote) 
 ### [HABITS-001] Recap Mensile: Ripetizioni Multiple
 - **Descrizione**: Sistemare le habits/routines nel recap mensile in modo da mostrare correttamente quante volte sono state fatte le routines con più ripetizioni giornaliere (es. se una routine è da fare 3 volte al giorno e l'utente l'ha fatta 2 volte, mostrare 2/3 nel recap anziché solo se è stata fatta o meno).
 - **Stato**: 🔴 Da Iniziare (Modifica aggregazione e UI Recap Mensile).
+
+## 🚀 Progetti Futuri & Ideazione
+- [ ] **Incrocio Liste Miste**: Spostare il tasto e il modale SeriesMatchModal (già completato e funzionante, attualmente conservato nel codice) in una futura Homepage Trackers dedicata per permettere l'incrocio misto tra Serie TV, Film e altre categorie.
+
+- [x] **Refactoring Architetturale Modulare Frontend (Ottobre 2026)**: Smantellamento dei macro-file React nella sezione Trackers (SeriesDetailModal, TVSeriesPage, EpisodeDetailView) e NotificationsSidebar per aderire strettamente alla regola della separazione logica-visiva e ridurre il peso a <= 20KB per file.

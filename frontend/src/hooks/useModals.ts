@@ -1,6 +1,6 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 
-export function useModal<T = unknown>(initialData: T | null = null) {
+export function useModal<T = void>(initialData: T | null = null) {
   const [isOpen, setIsOpen] = useState(false);
   const [data, setData] = useState<T | null>(initialData);
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -29,4 +29,4 @@ export function useModal<T = unknown>(initialData: T | null = null) {
   return { isOpen, data, open, close };
 }
 
-export type UseModalResult<T = unknown> = ReturnType<typeof useModal<T>>;
+export type UseModalResult<T = void> = ReturnType<typeof useModal<T>>;

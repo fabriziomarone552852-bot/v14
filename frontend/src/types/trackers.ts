@@ -10,8 +10,8 @@ export interface TMDBEpisode {
   vote_average?: number | null;
   is_watched?: boolean;
   watch_count?: number;
-  logs?: any[];
-  quotes?: any[];
+  logs?: UserEpisodeLog[];
+  quotes?: SeriesQuote[];
 }
 
 export interface ReviewComment {
@@ -72,6 +72,8 @@ export interface TMDBSeries {
   episodes?: TMDBEpisode[];
   cast?: SeriesCastMember[];
   recommendations?: SeriesRecommendation[];
+  vote_average?: number | null;
+  vote_count?: number | null;
 }
 
 export interface UserSeriesLog {
@@ -114,6 +116,25 @@ export interface TVEpisode {
 
 export type TVSeries = TMDBSeries & UserSeriesTracking;
 
+export type SeriesDetailTarget = TVSeries | TMDBSeries | SeriesRecommendation | TMDBSeriesSearchResult | Partial<TVSeries>;
+
+export function extractSeriesTmdbId(item: SeriesDetailTarget | null | undefined): number | undefined {
+  if (!item) return undefined;
+  if ('tmdb_id' in item && typeof item.tmdb_id === 'number') {
+    return item.tmdb_id;
+  }
+  if ('series_tmdb_id' in item && typeof item.series_tmdb_id === 'number') {
+    return item.series_tmdb_id;
+  }
+  if ('tmdb_series' in item && item.tmdb_series && typeof item.tmdb_series.tmdb_id === 'number') {
+    return item.tmdb_series.tmdb_id;
+  }
+  if ('id' in item && typeof item.id === 'number') {
+    return item.id;
+  }
+  return undefined;
+}
+
 export interface TMDBSeriesSearchResult {
   id: number;
   name: string;
@@ -142,6 +163,8 @@ export interface FriendSeriesLog {
   notes?: string | null;
   review_visibility: string;
   updated_at: string;
+  watched_at?: string | null;
+  viewing_platform_name?: string | null;
   comments: ReviewComment[];
 }
 
@@ -165,3 +188,184 @@ export interface TVDashboardStats {
   last_watched_episode?: string;
   last_completed_series?: string;
 }
+
+export interface UpcomingEpisode {
+  episode_id: number;
+  series_tmdb_id: number;
+  series_title: string;
+  series_poster_path?: string | null;
+  season_number: number;
+  episode_number: number;
+  episode_title?: string | null;
+  air_date: string;
+}
+
+export interface SeriesQuote {
+  id: number;
+  episode_id: number;
+  quote_text: string;
+  created_at: string;
+  series_title: string;
+  season_number: number;
+  episode_number: number;
+  series_poster_path?: string | null;
+}
+
+export interface TMDBSeriesSimple {
+  tmdb_id: number;
+  title: string;
+  poster_path?: string | null;
+  first_air_date?: string | null;
+  genres?: string | null;
+  status?: string;
+}
+
+export interface MediaListItem {
+  id: number;
+  list_id: number;
+  series_tmdb_id?: number | null;
+  sort_order: number;
+  added_at: string;
+  series?: TMDBSeriesSimple | null;
+}
+
+export interface MediaList {
+  id: number;
+  user_id: number;
+  name: string;
+  description?: string | null;
+  visibility: string;
+  created_at: string;
+  updated_at?: string | null;
+  items: MediaListItem[];
+}
+
+export interface GenreDistribution {
+  genre: string;
+  percentage: number;
+}
+
+export interface TimeTrendPeriod {
+  period: string;
+  hours: number;
+  episodes: number;
+}
+
+export interface PlatformDistribution {
+  platform: string;
+  percentage: number;
+}
+
+export interface GraveyardSeries {
+  title: string;
+  abandoned_date: string | null;
+}
+
+export interface RatingDistribution {
+  rating: number;
+  count: number;
+}
+
+export interface GenreRating {
+  genre: string;
+  average_rating: number;
+}
+
+export interface TopSeries {
+  title: string;
+  rating: number;
+}
+
+export interface RewatchedItem {
+  title: string;
+  rating?: number | null;
+  rewatch_count: number;
+}
+
+export interface TVFullStats {
+  genres_distribution: GenreDistribution[];
+  time_trend: Record<string, TimeTrendPeriod[]>;
+  total_watch_time: { days: number; hours: number };
+  completion_rate: { percentage: number; completed: number; dropped: number };
+  watchlist_forecast: { estimated_date: string | null };
+  platform_distribution: PlatformDistribution[];
+  viewing_habits: { by_day: Record<string, number> };
+  graveyard: GraveyardSeries[];
+  satisfaction_index: { period: string; index: number }[];
+  personal_records: { max_episodes_in_day: number; max_episodes_day: string | null };
+  series_ratings_distribution: RatingDistribution[];
+  episode_ratings_distribution: RatingDistribution[];
+  general_stats: {
+    episodes_last_month: number;
+    episodes_last_year: number;
+    series_completed_last_month: number;
+    series_completed_last_year: number;
+    series_watching_last_month: number;
+    series_watching_last_year: number;
+    series_to_watch_last_month: number;
+    series_to_watch_last_year: number;
+    series_dropped_last_month: number;
+    series_dropped_last_year: number;
+  };
+  ratings_by_genre: GenreRating[];
+  top_10_series: TopSeries[];
+  most_rewatched: RewatchedItem[];
+  most_rewatched_episodes: RewatchedItem[];
+  rewatch_comparison: { first_watch_hours: number; rewatch_hours: number };
+  guilty_pleasures: RewatchedItem[];
+}
+
+export interface GenericSuccessResponse {
+  success: boolean;
+  message?: string;
+}
+
+export interface ToggleEpisodeWatchedResponse {
+  watched: boolean;
+  watch_count: number;
+}
+
+export interface MarkAllWatchedResponse {
+  success: boolean;
+  watched_count?: number;
+}
+
+export interface SeriesLogMutationPayload {
+  rating?: number | null;
+  notes?: string;
+  review_visibility?: string;
+  watched_at?: string;
+  viewing_platform_name?: string | null;
+}
+
+export type AnyReviewLog = UserSeriesLog | UserEpisodeLog | FriendSeriesLog | FriendEpisodeLog;
+
+export interface UnifiedReviewData<TLog extends AnyReviewLog = AnyReviewLog> {
+  id: string | number;
+  author_id: string | number;
+  author_name: string;
+  author_avatar?: string | null;
+  rating: number;
+  notes: string;
+  updated_at: string;
+  review_visibility?: 'private' | 'friends_only' | 'public' | string;
+  viewing_platform_name?: string | null;
+  comments: ReviewComment[];
+  is_mine: boolean;
+  original_log?: TLog | null;
+}
+
+export interface SeriesFriendDisplayItem {
+  id: number;
+  name: string;
+  avatar: string;
+  status: string;
+}
+
+export interface EpisodeQuotePayload {
+  episode_id: number;
+  quote_text: string;
+}
+
+
+

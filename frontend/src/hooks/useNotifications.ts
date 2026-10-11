@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/api/apiService';
-import type { NotificationResponse } from '@/types/notifications';
+import type { NotificationResponse, NotificationCreate } from '@/types/notifications';
 
 export const useNotifications = () => {
   const queryClient = useQueryClient();
@@ -34,7 +34,7 @@ export const useNotifications = () => {
     },
   });
 
-  const createInteraction = useMutation<NotificationResponse, Error, { interaction_type: string; recipient_id?: number; content: string; reference_id?: number }>({
+  const createInteraction = useMutation<NotificationResponse, Error, NotificationCreate>({
     mutationFn: async (payload) => {
       const res = await api.post<NotificationResponse>('/interactions', payload);
       if (!res) throw new Error('No response');

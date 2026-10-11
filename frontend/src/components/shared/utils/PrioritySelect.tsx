@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useOutsideClick } from '@/hooks/useOutsideClick';
+import { useDropdownPosition } from '@/hooks/useDropdownPosition';
 import { DropdownIcon, CloseIcon, CheckCircleIcon } from './Icons'; 
 
 interface PrioritySelectProps {
@@ -15,20 +16,16 @@ const PrioritySelect: React.FC<PrioritySelectProps> = ({
   overlay = false,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
-  const [openUpwards, setOpenUpwards] = useState(false);
   
   const ref = useOutsideClick<HTMLDivElement>(() => {
     if (overlay) return;
     if (isOpen) setIsOpen(false);
   });
 
-  useEffect(() => {
-    if (isOpen && !overlay && ref.current) {
-      const rect = ref.current.getBoundingClientRect();
-      const spaceBelow = window.innerHeight - rect.bottom;
-      setOpenUpwards(spaceBelow < 150); 
-    }
-  }, [isOpen, overlay, ref]);
+  const { openUpwards } = useDropdownPosition(ref, {
+    isOpen: isOpen && !overlay,
+    threshold: 150,
+  });
 
   const dotStyles = { Alta: 'bg-red-500', Media: 'bg-orange-500', Bassa: 'bg-yellow-500' };
 

@@ -28,6 +28,16 @@ if (Test-Path $changelogPath) {
     }
 }
 
+# Auto-sincronizzazione di public/version.json
+$versionJsonPath = Join-Path $frontendDir "public\version.json"
+if (Test-Path $versionJsonPath) {
+    try {
+        $vJson = Get-Content $versionJsonPath -Raw | ConvertFrom-Json
+        $vJson.version = $appVersion
+        $vJson | ConvertTo-Json -Depth 5 | Set-Content -Path $versionJsonPath -Encoding UTF8
+    } catch {}
+}
+
 # Calcolo del versionCode intero basato su major/minor (default: 14)
 $versionCode = 14
 if ($appVersion -match '^(\d+)') {

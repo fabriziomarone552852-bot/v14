@@ -22,7 +22,7 @@ const UserSettingsPage = !IS_MOBILE_BUILD ? React.lazy(() => import('@/views/Use
 const ShoppingPage = !IS_MOBILE_BUILD ? React.lazy(() => import('@/views/ShoppingPage')) : () => null;
 const AdminPage = !IS_MOBILE_BUILD ? React.lazy(() => import('@/views/AdminPage')) : () => null;
 const NotFoundPage = !IS_MOBILE_BUILD ? React.lazy(() => import('@/views/NotFoundPage')) : () => null;
-const TVSeriesPage = !IS_MOBILE_BUILD ? React.lazy(() => import('@/views/Trackers/TVSeriesPage')) : () => null;
+const TVSeriesPage = !IS_MOBILE_BUILD ? React.lazy(() => import('@/views/TVSeriesPage')) : () => null;
 
 
 // Pagine Archivio Desktop

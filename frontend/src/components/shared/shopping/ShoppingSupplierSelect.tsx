@@ -1,9 +1,9 @@
 // src/components/shared/shopping/ShoppingSupplierSelect.tsx
 import React, { useState, useRef } from 'react';
-import { createPortal } from 'react-dom';
 import { useOutsideClick } from '@/hooks/useOutsideClick';
 import { useDropdownPosition } from '@/hooks/useDropdownPosition';
 import { PlusIcon, DropdownIcon, StoreIcon, CloseIcon } from '@/components/shared/utils/Icons';
+import { PortalDropdownMenu, SelectModalDialog } from '@/components/shared/form';
 import type { ShoppingSupplierOption } from '@/types/shopping';
 import { ShoppingSupplierCreateModal } from './supplier';
 
@@ -52,76 +52,6 @@ export const ShoppingSupplierSelect: React.FC<ShoppingSupplierSelectProps> = ({
     onChange(val);
     setIsOpen(false);
   };
-
-  const dropdownMenu = (
-    <div
-      ref={dropdownRef}
-      style={
-        usePortal
-          ? {
-              position: 'fixed',
-              top: openUpwards ? undefined : `${coords.top + 4}px`,
-              bottom: openUpwards ? `${coords.bottom + 4}px` : undefined,
-              left: `${coords.left}px`,
-              width: `${coords.width}px`,
-              zIndex: 10030,
-            }
-          : undefined
-      }
-      className={`bg-white border border-gray-200 rounded-xl shadow-xl overflow-hidden animate-fadeIn ${
-        !usePortal
-          ? openUpwards
-            ? 'absolute bottom-full mb-1 left-0 right-0 z-50'
-            : 'absolute top-full mt-1 left-0 right-0 z-50'
-          : ''
-      }`}
-    >
-      <div className="max-h-48 overflow-y-auto p-1 space-y-0.5 custom-scrollbar">
-        <div
-          onClick={() => handleSelect('')}
-          className={`px-3 py-2 text-xs font-semibold rounded-lg cursor-pointer transition ${
-            !value ? 'bg-blue-50 text-blue-700' : 'text-gray-500 hover:bg-gray-50'
-          }`}
-        >
-          Nessun negozio selezionato
-        </div>
-
-        {suppliers.map((s) => {
-          const isSelected = String(s.id) === value;
-          return (
-            <div
-              key={s.id}
-              onClick={() => handleSelect(String(s.id))}
-              className={`px-3 py-2 text-xs font-semibold rounded-lg cursor-pointer flex items-center justify-between transition min-w-0 ${
-                isSelected
-                  ? 'bg-blue-50 text-blue-700 font-bold'
-                  : 'text-gray-700 hover:bg-gray-50'
-              }`}
-            >
-              <span className="truncate min-w-0 flex-1" title={s.name}>
-                {s.name}
-              </span>
-              {isSelected && <span className="text-blue-600 text-xs shrink-0 ml-1">✓</span>}
-            </div>
-          );
-        })}
-      </div>
-
-      <div className="p-1.5 border-t border-gray-100 bg-gray-50/70">
-        <button
-          type="button"
-          onClick={() => {
-            setIsOpen(false);
-            setIsCreateModalOpen(true);
-          }}
-          className="w-full py-1.5 px-2 text-xs font-bold text-blue-600 hover:bg-blue-50 rounded-lg transition flex items-center justify-center gap-1.5 cursor-pointer"
-        >
-          <PlusIcon className="w-3.5 h-3.5" />
-          <span>Crea Nuovo Negozio</span>
-        </button>
-      </div>
-    </div>
-  );
 
   return (
     <>
@@ -185,77 +115,108 @@ export const ShoppingSupplierSelect: React.FC<ShoppingSupplierSelectProps> = ({
           </div>
 
           {/* Menu a Discesa (Portal Overlay o Relativo) */}
-          {isOpen && !asModal && (usePortal ? createPortal(dropdownMenu, document.body) : dropdownMenu)}
+          <PortalDropdownMenu
+            isOpen={isOpen && !asModal}
+            coords={coords}
+            openUpwards={openUpwards}
+            dropdownRef={dropdownRef}
+            usePortal={usePortal}
+            zIndex={10030}
+          >
+            <div className="max-h-48 overflow-y-auto p-1 space-y-0.5 custom-scrollbar">
+              <div
+                onClick={() => handleSelect('')}
+                className={`px-3 py-2 text-xs font-semibold rounded-lg cursor-pointer transition ${
+                  !value ? 'bg-blue-50 text-blue-700' : 'text-gray-500 hover:bg-gray-50'
+                }`}
+              >
+                Nessun negozio selezionato
+              </div>
+
+              {suppliers.map((s) => {
+                const isSelected = String(s.id) === value;
+                return (
+                  <div
+                    key={s.id}
+                    onClick={() => handleSelect(String(s.id))}
+                    className={`px-3 py-2 text-xs font-semibold rounded-lg cursor-pointer flex items-center justify-between transition min-w-0 ${
+                      isSelected
+                        ? 'bg-blue-50 text-blue-700 font-bold'
+                        : 'text-gray-700 hover:bg-gray-50'
+                    }`}
+                  >
+                    <span className="truncate min-w-0 flex-1" title={s.name}>
+                      {s.name}
+                    </span>
+                    {isSelected && <span className="text-blue-600 text-xs shrink-0 ml-1">✓</span>}
+                  </div>
+                );
+              })}
+            </div>
+
+            <div className="p-1.5 border-t border-gray-100 bg-gray-50/70">
+              <button
+                type="button"
+                onClick={() => {
+                  setIsOpen(false);
+                  setIsCreateModalOpen(true);
+                }}
+                className="w-full py-1.5 px-2 text-xs font-bold text-blue-600 hover:bg-blue-50 rounded-lg transition flex items-center justify-center gap-1.5 cursor-pointer"
+              >
+                <PlusIcon className="w-3.5 h-3.5" />
+                <span>Crea Nuovo Negozio</span>
+              </button>
+            </div>
+          </PortalDropdownMenu>
         </div>
       </div>
 
       {/* Modale Overlay Centrato Mobile (se asModal è true) */}
-      {isOpen && asModal && (
-        createPortal(
-          <div
-            className="fixed inset-0 z-[20000] bg-black/40 backdrop-blur-xs flex items-center justify-center p-4 animate-fadeIn"
-            onClick={() => setIsOpen(false)}
+      <SelectModalDialog
+        isOpen={isOpen && asModal}
+        onClose={() => setIsOpen(false)}
+        title="Seleziona Negozio"
+        maxWidthClass="max-w-sm sm:max-w-md"
+        zIndex={20000}
+        footerSlot={
+          <button
+            type="button"
+            onClick={() => {
+              setIsOpen(false);
+              setIsCreateModalOpen(true);
+            }}
+            className="w-full py-2 px-3 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-xl transition flex items-center justify-center gap-1.5 cursor-pointer"
           >
-            <div
-              className="bg-white w-full max-w-sm sm:max-w-md rounded-2xl p-5 shadow-2xl max-h-[80vh] flex flex-col animate-fadeIn"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <div className="flex items-center justify-between pb-3 border-b border-gray-100">
-                <span className="text-sm font-bold text-gray-800">Seleziona Negozio</span>
-                <button
-                  type="button"
-                  onClick={() => setIsOpen(false)}
-                  className="p-1 text-gray-400 hover:text-gray-600 rounded-lg"
-                >
-                  <CloseIcon className="w-4 h-4" />
-                </button>
-              </div>
-
-              <div className="flex-1 overflow-y-auto py-2 space-y-1">
-                <button
-                  type="button"
-                  onClick={() => handleSelect('')}
-                  className={`w-full text-left px-3 py-2.5 rounded-xl text-xs font-semibold ${
-                    !value ? 'bg-blue-50 text-blue-700' : 'text-gray-600 hover:bg-gray-50'
-                  }`}
-                >
-                  Nessun negozio selezionato
-                </button>
-                {suppliers.map((s) => (
-                  <button
-                    key={s.id}
-                    type="button"
-                    onClick={() => handleSelect(String(s.id))}
-                    className={`w-full text-left px-3 py-2.5 rounded-xl text-xs flex items-center justify-between min-w-0 ${
-                      String(s.id) === value
-                        ? 'bg-blue-50 text-blue-700 font-bold'
-                        : 'text-gray-700 hover:bg-gray-50 font-medium'
-                    }`}
-                  >
-                    <span className="truncate min-w-0 flex-1" title={s.name}>{s.name}</span>
-                    {String(s.id) === value && <span className="text-blue-600 shrink-0 ml-1">✓</span>}
-                  </button>
-                ))}
-              </div>
-
-              <div className="pt-2 border-t border-gray-100">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setIsOpen(false);
-                    setIsCreateModalOpen(true);
-                  }}
-                  className="w-full py-2 px-3 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-xl transition flex items-center justify-center gap-1.5"
-                >
-                  <PlusIcon className="w-3.5 h-3.5" />
-                  <span>Nuovo Negozio</span>
-                </button>
-              </div>
-            </div>
-          </div>,
-          document.body
-        )
-      )}
+            <PlusIcon className="w-3.5 h-3.5" />
+            <span>Nuovo Negozio</span>
+          </button>
+        }
+      >
+        <button
+          type="button"
+          onClick={() => handleSelect('')}
+          className={`w-full text-left px-3 py-2.5 rounded-xl text-xs font-semibold transition ${
+            !value ? 'bg-blue-50 text-blue-700' : 'text-gray-600 hover:bg-gray-50'
+          }`}
+        >
+          Nessun negozio selezionato
+        </button>
+        {suppliers.map((s) => (
+          <button
+            key={s.id}
+            type="button"
+            onClick={() => handleSelect(String(s.id))}
+            className={`w-full text-left px-3 py-2.5 rounded-xl text-xs flex items-center justify-between min-w-0 transition ${
+              String(s.id) === value
+                ? 'bg-blue-50 text-blue-700 font-bold'
+                : 'text-gray-700 hover:bg-gray-50 font-medium'
+            }`}
+          >
+            <span className="truncate min-w-0 flex-1" title={s.name}>{s.name}</span>
+            {String(s.id) === value && <span className="text-blue-600 shrink-0 ml-1">✓</span>}
+          </button>
+        ))}
+      </SelectModalDialog>
 
       {/* Modale Creazione Negozio */}
       <ShoppingSupplierCreateModal

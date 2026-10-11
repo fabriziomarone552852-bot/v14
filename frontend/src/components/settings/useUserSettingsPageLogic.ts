@@ -8,6 +8,7 @@ import type {
   UserSettingsFormState,
   UserSettingsUpdatePayload,
 } from '@/types/settings';
+import type { UserResponse } from '@/types/auth';
 
 export const useUserSettingsPageLogic = () => {
   const { logout, updateUser } = useAuth();
@@ -143,7 +144,7 @@ export const useUserSettingsPageLogic = () => {
           modulePreferences: updated.module_preferences ?? {},
         });
         // Refetch user data and update global AuthContext
-        const meRes = await api.get<any>('/users/me');
+        const meRes = await api.get<UserResponse>('/users/me');
         if (meRes) updateUser(meRes);
         setSuccess('Impostazioni salvate con successo.');
       }

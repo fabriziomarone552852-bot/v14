@@ -22,8 +22,8 @@ interface SuppliersPageModalsProps {
   isSuperuser: boolean;
   config?: ShoppingConfigBundle | null;
   // Modali e filtri Negozi
-  /** Il modale filtri negozi non usa .data — unknown è il default di useModal<T> */
-  supplierFilterModal: UseModalResult<unknown>;
+  /** Il modale filtri negozi non usa dati */
+  supplierFilterModal: UseModalResult;
   supplierDetailModal: UseModalResult<EnrichedSupplier>;
   supplierFormModal: UseModalResult<ShoppingSupplierOption>;
   supplierFilters: SupplierFilterState;
@@ -33,8 +33,8 @@ interface SuppliersPageModalsProps {
   onDeleteSupplier: (supplier: EnrichedSupplier) => void;
   onPageReset: () => void;
   // Modali e filtri Brand
-  /** Il modale filtri brand non usa .data — unknown è il default di useModal<T> */
-  brandFilterModal: UseModalResult<unknown>;
+  /** Il modale filtri brand non usa dati */
+  brandFilterModal: UseModalResult;
   brandDetailModal: UseModalResult<EnrichedBrand>;
   brandFormModal: UseModalResult<ShoppingSupplierOption>;
   brandFilters: BrandFilterState;

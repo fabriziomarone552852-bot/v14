@@ -5,6 +5,7 @@ import { api } from '@/api/apiService';
 import { CloseIcon, LoadingIcon } from '@/components/shared/utils/Icons';
 import type { FriendStatusResponse } from '@/types/social';
 import { resolveImageUrl } from '@/utils/imageUtils';
+import { extractErrorMessage } from '@/utils/errorUtils';
 
 interface UserProfileModalProps {
   userStatus: FriendStatusResponse;
@@ -50,8 +51,8 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({ userStatus, 
         setStatus('none');
       }
       queryClient.invalidateQueries({ queryKey: ['social'] });
-    } catch (e: any) {
-      setError(e.message || 'Errore durante l\'operazione');
+    } catch (e: unknown) {
+      setError(extractErrorMessage(e, 'Errore durante l\'operazione'));
     } finally {
       setLoading(false);
     }

@@ -1,13 +1,15 @@
 import os
+import json
 
-path = 'c:/Users/Fabrizio/Desktop/app/smart/v14/frontend/src/data/changelogData.ts'
-with open(path, 'r', encoding='utf-8') as f:
-    lines = f.readlines()
+src_path = 'frontend/src/data/changelogData.ts'
+with open(src_path, 'r', encoding='utf-8') as f:
+    content = f.read()
 
-for i, line in enumerate(lines):
-    if 'features: [' in line:
-        lines.insert(i+1, "      'Ricerca Globale TMDB: Implementato motore di ricerca esteso tramite filtri dinamici (Genere, Piattaforme, Anno) dal modale.',\n      'Filtri Rapidi Interattivi (Serie TV): I badge dei generi e delle piattaforme sono ora cliccabili per filtrare istantaneamente la griglia.',\n")
-        break
+idx = content.find('improvements: [')
+if idx != -1:
+    insert_idx = content.find('[', idx) + 1
+    new_improvement = "\n      'Refactoring Architetturale Modulare Frontend: Smantellamento dei macro-file React nella sezione Trackers (SeriesDetailModal, TVSeriesPage, ecc) e NotificationsSidebar (file divisi per separazione logica-visiva, peso ridotto sotto i 20KB).',"
+    content = content[:insert_idx] + new_improvement + content[insert_idx:]
 
-with open(path, 'w', encoding='utf-8') as f:
-    f.writelines(lines)
+with open(src_path, 'w', encoding='utf-8') as f:
+    f.write(content)

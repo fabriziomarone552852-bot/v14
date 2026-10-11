@@ -1,5 +1,5 @@
 // src/components/shared/shopping/ShoppingQuickCatalogTable.tsx
-import React, { useState, useMemo, useCallback } from 'react';
+import React from 'react';
 import {
   TagIcon,
   SearchIcon,
@@ -13,6 +13,7 @@ import type {
   ShoppingListSummary,
   ConfigOption,
 } from '@/types/shopping';
+import { useShoppingQuickCatalogLogic } from './useShoppingQuickCatalogLogic';
 
 interface ShoppingQuickCatalogTableProps {
   products: ShoppingProductOption[];
@@ -31,71 +32,19 @@ export const ShoppingQuickCatalogTable: React.FC<ShoppingQuickCatalogTableProps>
   onToggleItem,
   onClose,
 }) => {
-  const [searchQuery, setSearchQuery] = useState('');
-  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
-
-  // Mappa rapida degli item presenti nella lista corrente
-  // Indicizzati per productId e per nameNormalized (case-insensitive)
-  const itemsInListMap = useMemo(() => {
-    const map = new Map<string, ShoppingListItem>();
-    for (const it of items) {
-      if (it.productId && it.productId > 0) {
-        map.set(`id:${it.productId}`, it);
-      }
-      const norm = (it.nameNormalized || it.productName || '').trim().toLowerCase();
-      if (norm) {
-        map.set(`name:${norm}`, it);
-      }
-    }
-    return map;
-  }, [items]);
-
-  // Helper per verificare se un prodotto è già nella lista attiva
-  const getExistingItem = useCallback(
-    (product: ShoppingProductOption): ShoppingListItem | null => {
-      if (product.id && itemsInListMap.has(`id:${product.id}`)) {
-        return itemsInListMap.get(`id:${product.id}`)!;
-      }
-      const norm = (product.nameNormalized || product.displayName || '').trim().toLowerCase();
-      if (norm && itemsInListMap.has(`name:${norm}`)) {
-        return itemsInListMap.get(`name:${norm}`)!;
-      }
-      return null;
-    },
-    [itemsInListMap]
-  );
-
-  // Filtro e ordinamento alfabetico dei prodotti
-  const filteredProducts = useMemo(() => {
-    const q = searchQuery.trim().toLowerCase();
-    let list = products;
-
-    if (q) {
-      list = list.filter((p) => {
-        const name = (p.displayName || p.nameNormalized || '').toLowerCase();
-        const brand = (p.brandName || '').toLowerCase();
-        return name.includes(q) || brand.includes(q);
-      });
-    }
-
-    return [...list].sort((a, b) => {
-      const nameA = (a.displayName || a.nameNormalized || '').trim();
-      const nameB = (b.displayName || b.nameNormalized || '').trim();
-      const comp = nameA.localeCompare(nameB, undefined, { sensitivity: 'base' });
-      return sortDirection === 'asc' ? comp : -comp;
-    });
-  }, [products, searchQuery, sortDirection]);
-
-  // Conteggio articoli selezionati
-  const inListCount = useMemo(() => {
-    let count = 0;
-    for (const p of products) {
-      if (getExistingItem(p)) {
-        count++;
-      }
-    }
-    return count;
-  }, [products, getExistingItem]);
+  const {
+    searchQuery,
+    setSearchQuery,
+    clearSearch,
+    sortDirection,
+    toggleSortDirection,
+    getExistingItem,
+    filteredProducts,
+    inListCount,
+  } = useShoppingQuickCatalogLogic({
+    products,
+    items,
+  });
 
   return (
     <div className="flex h-full min-h-0 flex-col justify-between select-none">
@@ -146,7 +95,7 @@ export const ShoppingQuickCatalogTable: React.FC<ShoppingQuickCatalogTableProps>
             {searchQuery && (
               <button
                 type="button"
-                onClick={() => setSearchQuery('')}
+                onClick={clearSearch}
                 className="absolute right-2.5 top-1/2 -translate-y-1/2 p-0.5 text-gray-400 hover:text-gray-600 rounded-md transition cursor-pointer"
               >
                 <CloseIcon className="w-3.5 h-3.5" />
@@ -170,7 +119,7 @@ export const ShoppingQuickCatalogTable: React.FC<ShoppingQuickCatalogTableProps>
           <div className="text-center">#</div>
           <button
             type="button"
-            onClick={() => setSortDirection((prev) => (prev === 'asc' ? 'desc' : 'asc'))}
+            onClick={toggleSortDirection}
             className="flex items-center gap-1 text-left hover:text-blue-600 transition cursor-pointer"
           >
             <span>Articolo</span>

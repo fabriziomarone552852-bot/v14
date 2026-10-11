@@ -1,103 +1,36 @@
 // src/mobile/hooks/useMobileShoppingLogic.ts
-import React, { useState, useMemo, useEffect, useCallback } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useState, useMemo, useEffect, useCallback } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 
-// Hooks Shopping
-import { useShoppingData } from '@/hooks/shopping/useShoppingData';
-import { useShoppingMutations } from '@/hooks/shopping/useShoppingMutations';
+// Hooks Condivisi
+import { useShoppingCoreListLogic } from '@/hooks/shopping/useShoppingCoreListLogic';
 import { useShoppingGroupActions } from '@/hooks/shopping/useShoppingGroupActions';
 import { useShoppingItemsColumn } from '@/components/shared/shopping/useShoppingItemsColumn';
 import { useShoppingModals } from '@/context/ShoppingModalContext';
-import { useModal } from '@/hooks/useModals';
 import { useMobileSelection } from '../context/MobileSelectionContext';
-
-// Tipi & Form
-import { makeEmptyForm, type ListFormState } from '@/components/shared/shopping/ShoppingListModal';
-import type {
-  ConfigOption,
-  ShoppingListSummary,
-  ShoppingProductOption,
-  ShoppingListItem,
-} from '@/types/shopping';
 
 export const useMobileShoppingLogic = () => {
   const queryClient = useQueryClient();
-  const mutations = useShoppingMutations();
+  const core = useShoppingCoreListLogic();
 
-  // 1. DATA FETCHING PRINCIPALE
   const {
-    lists,
-    groups,
     activeListId,
-    setActiveListId,
+    activeList,
     items,
-    suppliers,
-    brands,
-    products,
-    config,
-    isInitialLoading,
-    isError,
-    refreshLists,
+    currencyOptions,
     refreshGroups,
-  } = useShoppingData();
+    refreshLists,
+    mutations,
+    quickPriceModal,
+    handleOpenCreatePersonalList,
+    handleOpenCreateGroupList,
+    isCompleted,
+  } = core;
 
-  // Gestione query param ?listId=
-  const [searchParams] = useSearchParams();
-  const paramListId = searchParams.get('listId');
+  // 1. GESTIONE GRUPPI (Condiviso)
+  const groupActions = useShoppingGroupActions({ refreshGroups, refreshLists, queryClient });
 
-  useEffect(() => {
-    if (paramListId) {
-      const parsed = parseInt(paramListId, 10);
-      if (!isNaN(parsed) && parsed > 0) {
-        setActiveListId(parsed);
-      }
-    }
-  }, [paramListId, setActiveListId]);
-
-  // Configurazioni & Opzioni
-  const unitOptions = config?.unitOptions ?? [];
-  const currencyOptions = config?.currencyOptions ?? [];
-  const offerFlagOptions = config?.offerFlagOptions ?? [];
-  const listVisibilityOptions = useMemo(() => config?.visibilityOptions ?? [], [config?.visibilityOptions]);
-
-  const groupVisibilityId = useMemo(() => {
-    const opt = listVisibilityOptions.find(
-      (o: ConfigOption) => o.codeValue?.toLowerCase() === 'group' || o.codeName?.toLowerCase() === 'group'
-    );
-    return opt ? Number(opt.id) : 2;
-  }, [listVisibilityOptions]);
-
-  const privateVisibilityId = useMemo(() => {
-    const opt = listVisibilityOptions.find(
-      (o: ConfigOption) => o.codeValue?.toLowerCase() === 'private' || o.codeName?.toLowerCase() === 'private'
-    );
-    return opt ? Number(opt.id) : 1;
-  }, [listVisibilityOptions]);
-
-  const activeList = useMemo(() => {
-    return lists.find((l) => l.id === activeListId) ?? null;
-  }, [lists, activeListId]);
-
-  const activeGroup = useMemo(() => {
-    if (!activeList?.groupId) return null;
-    return groups.find((g) => g.id === activeList.groupId) ?? null;
-  }, [activeList, groups]);
-
-  const activeUserRole = useMemo(() => {
-    if (!activeList?.groupId) return 'owner';
-    return activeGroup?.userRole || 'reader';
-  }, [activeList, activeGroup]);
-
-  const isCompleted = Boolean(activeList?.isCompleted);
-  const isReader = Boolean(activeList?.groupId && activeUserRole === 'reader');
-
-  const canCreateItem = !isCompleted && !isReader;
-  const canEditItem = !isCompleted && !isReader;
-  const canEditPurchasedItem = !isCompleted && !isReader;
-  const canDeleteItem = !isCompleted && !isReader;
-
-  // 2. HOOK GESTIONE ARTICOLI E MODALI ITEM
+  // 2. GESTIONE ARTICOLI E COLONNA
   const columnLogic = useShoppingItemsColumn({
     items,
     currencyOptions,
@@ -107,52 +40,9 @@ export const useMobileShoppingLogic = () => {
     initialFiltroStato: 'tutti',
   });
 
-  // 3. HOOK GESTIONE GRUPPI
-  const groupActions = useShoppingGroupActions({ refreshGroups, refreshLists, queryClient });
-
-  // 4. STATI MODALI LOCALI & PICKER
-  const quickPriceModal = useModal<null>();
-  const editListModal = useModal<ShoppingListSummary>();
-  const [listEditForm, setListEditForm] = useState<ListFormState>(() => makeEmptyForm(''));
+  // 3. STATI MODALI SPECIFICI PER MOBILE (Picker & OmniSearch)
   const [isPickerModalOpen, setIsPickerModalOpen] = useState(false);
-
-  // 5. REGISTRAZIONE HANDLERS PER MOBILEHEADER
   const { registerHandlers, isOmniSearchOpen, setIsOmniSearchOpen } = useShoppingModals();
-
-  const handleOpenCreatePersonalList = useCallback(() => {
-    setListEditForm(makeEmptyForm(''));
-    editListModal.open({
-      id: 0,
-      name: '',
-      visibilityId: privateVisibilityId,
-      groupId: null,
-      openItemsCount: 0,
-      purchasedItemsCount: 0,
-      totalItemsCount: 0,
-      isCompleted: false,
-      canEdit: true,
-      canDelete: true,
-    });
-  }, [editListModal, privateVisibilityId]);
-
-  const handleOpenCreateGroupList = useCallback(
-    (groupId?: number) => {
-      setListEditForm(makeEmptyForm(groupId ? String(groupId) : ''));
-      editListModal.open({
-        id: 0,
-        name: '',
-        visibilityId: groupId ? groupVisibilityId : privateVisibilityId,
-        groupId: groupId ?? null,
-        openItemsCount: 0,
-        purchasedItemsCount: 0,
-        totalItemsCount: 0,
-        isCompleted: false,
-        canEdit: true,
-        canDelete: true,
-      });
-    },
-    [editListModal, groupVisibilityId, privateVisibilityId]
-  );
 
   useEffect(() => {
     registerHandlers({
@@ -185,7 +75,7 @@ export const useMobileShoppingLogic = () => {
     quickPriceModal,
   ]);
 
-  // 6. GESTIONE SELEZIONE MULTIPLA ARTICOLI E SPOSTA/COPIA
+  // 4. GESTIONE SELEZIONE MULTIPLA ARTICOLI E SPOSTA/COPIA (Mobile Only)
   const {
     state: selectionState,
     isSelectionActive,
@@ -312,168 +202,23 @@ export const useMobileShoppingLogic = () => {
     return columnLogic.filteredItems.filter((item) => item.isPurchased);
   }, [columnLogic.filteredItems]);
 
-  const handleOpenEditList = useCallback(
-    (list: ShoppingListSummary) => {
-      setListEditForm({
-        name: list.name,
-        description: list.description ?? '',
-        destinationValue: list.groupId ? String(list.groupId) : '',
-      });
-      editListModal.open(list);
-    },
-    [editListModal]
-  );
-
-  const handleSaveEditList = useCallback(
-    async (e: React.FormEvent<HTMLFormElement>) => {
-      e.preventDefault();
-      if (!editListModal.data) return;
-      const trimmedName = listEditForm.name.trim();
-      if (!trimmedName) return;
-
-      const isGroup = Boolean(listEditForm.destinationValue);
-      const visibilityId = isGroup ? groupVisibilityId : privateVisibilityId;
-      const groupId = isGroup ? Number(listEditForm.destinationValue) : null;
-
-      if (editListModal.data.id === 0) {
-        const created = await mutations.createList({
-          name: trimmedName,
-          description: listEditForm.description.trim() || undefined,
-          groupId,
-          visibilityId,
-          isCompleted: false,
-        });
-        if (created?.id) {
-          setActiveListId(created.id);
-        }
-      } else {
-        await mutations.updateList({
-          id: editListModal.data.id,
-          data: {
-            name: trimmedName,
-            description: listEditForm.description.trim() || undefined,
-            groupId,
-            visibilityId,
-          },
-        });
-      }
-
-      editListModal.close();
-    },
-    [editListModal, listEditForm, groupVisibilityId, privateVisibilityId, mutations, setActiveListId]
-  );
-
-  const handleDeleteList = useCallback(
-    async (list: ShoppingListSummary) => {
-      await mutations.deleteList(list.id);
-      if (activeListId === list.id) {
-        const remaining = lists.filter((l) => l.id !== list.id);
-        setActiveListId(remaining[0]?.id ?? null);
-      }
-    },
-    [activeListId, lists, mutations, setActiveListId]
-  );
-
-  const handleToggleCompleteList = useCallback(
-    async (list: ShoppingListSummary, isCompleted: boolean) => {
-      await mutations.updateList({
-        id: list.id,
-        data: { isCompleted },
-      });
-    },
-    [mutations]
-  );
-
-  // Inserimento Rapido Catalogo Articoli (attivabile con Long-press su icona Spesa)
-  const [isQuickCatalogOpen, setIsQuickCatalogOpen] = useState(false);
-
-  const handleToggleQuickCatalog = useCallback(() => {
-    setIsQuickCatalogOpen((prev) => {
-      const next = !prev;
-      if (next) {
-        const defaultList =
-          lists.find((l) => l.isDefault) ||
-          lists.find((l) => l.name?.toLowerCase() === 'senza lista') ||
-          lists[0];
-        if (defaultList && activeListId !== defaultList.id) {
-          setActiveListId(defaultList.id);
-        }
-      }
-      return next;
-    });
-  }, [lists, activeListId, setActiveListId]);
-
-  const handleToggleCatalogItem = useCallback(
-    async (product: ShoppingProductOption, existingItem: ShoppingListItem | null) => {
-      if (!activeListId) return;
-      if (existingItem) {
-        await mutations.deleteItem({ id: existingItem.id, listId: activeListId });
-      } else {
-        const displayName = (product.displayName || product.nameNormalized || '').trim();
-        if (!displayName) return;
-        await mutations.createItem({
-          shoppingListId: activeListId,
-          productName: displayName,
-          brandId: product.brandId ?? undefined,
-          brandName: product.brandName ?? undefined,
-          unitId: product.defaultUnitId ?? undefined,
-          quantity: 1,
-        });
-      }
-    },
-    [activeListId, mutations]
-  );
-
   return {
-    // Dati
-    lists,
-    groups,
-    activeListId,
-    setActiveListId,
-    activeList,
-    activeGroup,
-    items,
-    suppliers,
-    brands,
-    products,
-    config,
-    unitOptions,
-    currencyOptions,
-    offerFlagOptions,
-    openItems,
-    purchasedItems,
-    isInitialLoading,
-    isError,
     queryClient,
-    mutations,
+    ...core,
 
-    // Inserimento Rapido Catalogo
-    isQuickCatalogOpen,
-    setIsQuickCatalogOpen,
-    handleToggleQuickCatalog,
-    handleToggleCatalogItem,
-
-    // Permessi
-    canCreateItem,
-    canEditItem,
-    canEditPurchasedItem,
-    canDeleteItem,
-
-    // Logiche
+    // Logiche Colonna & Gruppi
     columnLogic,
     groupActions,
 
-    // Modali
-    quickPriceModal,
-    editListModal,
-    listEditForm,
-    setListEditForm,
+    // Modali & Viste Mobile
     isPickerModalOpen,
     setIsPickerModalOpen,
     isOmniSearchOpen,
     setIsOmniSearchOpen,
+    openItems,
+    purchasedItems,
 
-    // Selezione & Sposta / Copia
+    // Selezione & Sposta / Copia Mobile
     selectionState,
     isShoppingItemsSelection,
     clearSelection,
@@ -482,12 +227,5 @@ export const useMobileShoppingLogic = () => {
     setIsMoveOrCopyModalOpen,
     moveOrCopyAction,
     handleConfirmMoveOrCopyMobile,
-
-    // Azioni Liste
-    handleOpenEditList,
-    handleSaveEditList,
-    handleDeleteList,
-    handleToggleCompleteList,
-    handleOpenCreateGroupList,
   };
 };

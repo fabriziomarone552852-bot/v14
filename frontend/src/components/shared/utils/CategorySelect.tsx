@@ -1,7 +1,8 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { CategoryGenre, type Category } from '@/types';
 import { useOutsideClick } from '@/hooks/useOutsideClick';
+import { useDropdownPosition } from '@/hooks/useDropdownPosition';
 import { PlusIcon, DropdownIcon, CloseIcon, CheckCircleIcon } from './Icons';
 import { useCategories } from '@/hooks/useCategories';
 import { formatName } from '@/utils/uiUtils';
@@ -34,7 +35,6 @@ const CategorySelect: React.FC<CategorySelectProps> = ({
 
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isNewModalOpen, setIsNewModalOpen] = useState(false);
-  const [openUpwards, setOpenUpwards] = useState(false);
 
   const activeColor =
     categories.find((c: Category) => c.category_name === value)?.colore || '#9CA3AF';
@@ -44,13 +44,10 @@ const CategorySelect: React.FC<CategorySelectProps> = ({
     if (isDropdownOpen) setIsDropdownOpen(false);
   });
 
-  useEffect(() => {
-    if (isDropdownOpen && !overlay && wrapperRef.current) {
-      const rect = wrapperRef.current.getBoundingClientRect();
-      const spaceBelow = window.innerHeight - rect.bottom;
-      setOpenUpwards(spaceBelow < 220);
-    }
-  }, [isDropdownOpen, overlay, wrapperRef]);
+  const { openUpwards } = useDropdownPosition(wrapperRef, {
+    isOpen: isDropdownOpen && !overlay,
+    threshold: 220,
+  });
 
   const standardDropdown = (
     <div

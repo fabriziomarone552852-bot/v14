@@ -5,6 +5,7 @@ import type { useAuth } from '@/context/AuthContext';
 import { resolveImageUrl } from '@/utils/imageUtils';
 import { mediaService } from '@/api/mediaService';
 import { api } from '@/api/apiService';
+import { extractErrorMessage } from '@/utils/errorUtils';
 import { LoadingIcon } from '@/components/shared/utils/Icons';
 
 interface MobileSettingsProfileHeaderProps {
@@ -39,10 +40,10 @@ export const MobileSettingsProfileHeader: React.FC<MobileSettingsProfileHeaderPr
       setIsUploadingImage(true);
       const res = await mediaService.uploadImage(file, 'profiles');
       await api.patch('/users/me/settings', { profile_picture_url: res.url });
-      const meRes = await api.get<any>('/users/me');
+      const meRes = await api.get<NonNullable<typeof user>>('/users/me');
       if (meRes) updateUser(meRes);
-    } catch (err: any) {
-      alert(err.message || "Errore durante il caricamento dell'immagine.");
+    } catch (err: unknown) {
+      alert(extractErrorMessage(err, "Errore durante il caricamento dell'immagine."));
     } finally {
       setIsUploadingImage(false);
       if (fileInputRef.current) fileInputRef.current.value = '';

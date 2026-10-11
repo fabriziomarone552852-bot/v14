@@ -2,32 +2,17 @@
 import React, { useState } from 'react';
 import { Link, useLocation, Outlet } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
-import { SettingsIcon, SwitchSidebarIcon, ShoppingIcon, UniversityIcon, FreeTimeIcon, CountdownIcon, CalendarDayIcon, CalendarWeekIcon, CalendarMonthIcon, CalendarYearIcon, MenuBarsIcon, FilmIcon, TvIcon, BookIcon } from './shared/utils/Icons';
+import {
+  SettingsIcon,
+  SwitchSidebarIcon,
+  ShoppingIcon,
+  UniversityIcon,
+  MenuBarsIcon,
+} from './shared/utils/Icons';
 import { NotificationsSidebar } from '@/components/shared/notifications/NotificationsSidebar';
-
-interface SidebarItemProps {
-  to: string;
-  icon: React.ReactNode;
-  label: string;
-  isActive: boolean;
-  isSidebarOpen: boolean;
-  isDevMenu?: boolean;
-}
-
-const SidebarItem: React.FC<SidebarItemProps> = ({ to, icon, label, isActive, isSidebarOpen }) => {
-  const base = "flex items-center transition-all duration-200 rounded-xl focus:outline-none cursor-pointer";
-  const layout = isSidebarOpen ? "px-4 py-3 gap-4 mx-2 justify-start" : "py-3 mx-3 justify-center";
-  const colors = isActive
-    ? "bg-blue-600 text-white shadow-md"
-    : "text-gray-400 hover:bg-gray-700 hover:text-white";
-
-  return (
-    <Link to={to} className={`${base} ${layout} ${colors}`} title={!isSidebarOpen ? label : undefined}>
-      <span className="w-6 h-6 shrink-0">{icon}</span>
-      {isSidebarOpen && <span className="font-semibold tracking-wide text-sm">{label}</span>}
-    </Link>
-  );
-};
+import { SidebarItem } from './navigation/SidebarItem';
+import { AgendaNavSection } from './navigation/AgendaNavSection';
+import { TrackersNavSection } from './navigation/TrackersNavSection';
 
 interface AppShellLayoutProps {
   onLogout?: () => void;
@@ -36,27 +21,22 @@ interface AppShellLayoutProps {
 const AppShellLayout: React.FC<AppShellLayoutProps> = ({ onLogout }) => {
   const location = useLocation();
   const { user } = useAuth();
-  
+
   // true = Sidebar estesa (w-64), false = Mini Sidebar con icone (w-20)
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
-  const [isAgendaHovered, setIsAgendaHovered] = useState(false);
-  const [isTrackersHovered, setIsTrackersHovered] = useState(false);
 
   const displayUsername = user?.username ? user.username.toUpperCase() : 'OSPITE';
   const isActive = (path: string) => location.pathname === path;
-  const isAgendaActive = isActive('/') || isActive('/giorno') || isActive('/settimana') || isActive('/mese') || isActive('/anno');
 
   // Funzione per generare classi CSS dinamiche e perfette per i bottoni principali
   const getNavLinkClass = (active: boolean) => {
-    const base = "flex items-center transition-all duration-200 rounded-xl focus:outline-none cursor-pointer";
-    const layout = isSidebarOpen ? "px-4 py-3 gap-4 mx-2 justify-start" : "py-3 mx-3 justify-center";
-    const colors = active 
-      ? "bg-blue-600 text-white shadow-md" 
-      // Qui abbiamo aumentato il contrasto per l'hover (bg-gray-700 o bg-white/10)
-      : "text-gray-400 hover:bg-gray-700 hover:text-white"; 
+    const base = 'flex items-center transition-all duration-200 rounded-xl focus:outline-none cursor-pointer';
+    const layout = isSidebarOpen ? 'px-4 py-3 gap-4 mx-2 justify-start' : 'py-3 mx-3 justify-center';
+    const colors = active
+      ? 'bg-blue-600 text-white shadow-md'
+      : 'text-gray-400 hover:bg-gray-700 hover:text-white';
     return `${base} ${layout} ${colors}`;
   };
-
 
   const isArchiveActive =
     isActive('/archivio') ||
@@ -81,20 +61,21 @@ const AppShellLayout: React.FC<AppShellLayoutProps> = ({ onLogout }) => {
     ...(showShopping ? [{ to: '/shopping', label: 'Shopping', icon: <ShoppingIcon className="w-6 h-6 shrink-0" /> }] : []),
   ];
 
-  const isTrackersActive = location.pathname.startsWith('/trackers');
-
   return (
     <div className="app-container flex h-screen overflow-hidden relative bg-gray-50">
-      
       {/* SIDEBAR DINAMICA (Sfondo scuro nativo) */}
-      <aside 
-        className={`h-full z-40 bg-gray-900 transition-all duration-300 ease-in-out shrink-0 overflow-hidden flex flex-col shadow-xl
-        ${isSidebarOpen ? 'w-64' : 'w-20'}`}
+      <aside
+        className={`h-full z-40 bg-gray-900 transition-all duration-300 ease-in-out shrink-0 overflow-hidden flex flex-col shadow-xl ${
+          isSidebarOpen ? 'w-64' : 'w-20'
+        }`}
       >
         <div className="h-full flex flex-col py-4 justify-between">
-          
           {/* HEADER DELLA SIDEBAR */}
-          <div className={`flex items-center mb-8 min-h-[40px] ${isSidebarOpen ? 'justify-between px-6' : 'justify-center px-0'}`}>
+          <div
+            className={`flex items-center mb-8 min-h-[40px] ${
+              isSidebarOpen ? 'justify-between px-6' : 'justify-center px-0'
+            }`}
+          >
             {isSidebarOpen && (
               <div className="flex items-center gap-3 truncate pr-2">
                 <img src="/favicon.png" alt="Vita Logo" className="w-8 h-8 shrink-0 object-contain" />
@@ -106,134 +87,42 @@ const AppShellLayout: React.FC<AppShellLayoutProps> = ({ onLogout }) => {
                 </div>
               </div>
             )}
-            
+
             {/* Tasto Switch Sidebar */}
-            <button 
-              onClick={() => setIsSidebarOpen(!isSidebarOpen)} 
+            <button
+              onClick={() => setIsSidebarOpen(!isSidebarOpen)}
               className="p-1.5 rounded-lg text-gray-400 hover:text-white hover:bg-gray-700 transition-all focus:outline-none cursor-pointer"
-              title={isSidebarOpen ? "Rimpicciolisci menu" : "Espandi menu"}
+              title={isSidebarOpen ? 'Rimpicciolisci menu' : 'Espandi menu'}
             >
-              <SwitchSidebarIcon className={`h-5 w-5 transition-transform duration-300 ${isSidebarOpen ? 'rotate-0' : 'rotate-180'}`} />
+              <SwitchSidebarIcon
+                className={`h-5 w-5 transition-transform duration-300 ${isSidebarOpen ? 'rotate-0' : 'rotate-180'}`}
+              />
             </button>
           </div>
 
           {/* NAVIGAZIONE PRINCIPALE */}
           <nav className="flex-1 overflow-y-auto custom-scrollbar flex flex-col gap-1">
-            
             {/* ITEM: AGENDA CON SOTTOMENU */}
             {showAgenda && (
-            <div 
-              onMouseEnter={() => setIsAgendaHovered(true)} 
-              onMouseLeave={() => setIsAgendaHovered(false)}
-              className="flex flex-col"
-            >
-              <Link to="/" className={getNavLinkClass(isAgendaActive)} title={!isSidebarOpen ? "Agenda" : undefined}>
-                <CountdownIcon className="w-6 h-6 shrink-0" />
-                {isSidebarOpen && <span className="font-semibold tracking-wide">Agenda</span>}
-              </Link>
-
-              {/* SOTTOMENU (Visibile sia aperto che chiuso se attivo o in hover) */}
-              {(isAgendaActive || isAgendaHovered) && (
-                <div className={`flex flex-col mt-1 mb-2 animate-fadeIn ${isSidebarOpen ? 'pl-6 pr-2 space-y-1' : 'items-center space-y-2 mt-2'}`}>
-                  
-                  {/* Sottomenu: GIORNO */}
-                  <Link 
-                    to="/giorno" 
-                    title={!isSidebarOpen ? "Giorno" : undefined} 
-                    className={`flex items-center gap-3 rounded-lg transition-colors focus:outline-none ${isSidebarOpen ? 'py-1.5 px-3' : 'p-2 justify-center'} ${isActive('/giorno') ? 'bg-gray-700 text-white font-bold' : 'text-gray-400 hover:bg-gray-700 hover:text-white'}`}
-                  >
-                    <CalendarDayIcon className="w-4 h-4 shrink-0" />
-                    {isSidebarOpen && <span className="text-sm">Giorno</span>}
-                  </Link>
-
-                  {/* Sottomenu: SETTIMANA */}
-                  <Link 
-                    to="/settimana" 
-                    title={!isSidebarOpen ? "Settimana" : undefined} 
-                    className={`flex items-center gap-3 rounded-lg transition-colors focus:outline-none ${isSidebarOpen ? 'py-1.5 px-3' : 'p-2 justify-center'} ${isActive('/settimana') ? 'bg-gray-700 text-white font-bold' : 'text-gray-400 hover:bg-gray-700 hover:text-white'}`}
-                  >
-                    <CalendarWeekIcon className="w-4 h-4 shrink-0" />
-                    {isSidebarOpen && <span className="text-sm">Settimana</span>}
-                  </Link>
-
-                  {/* Sottomenu: MESE */}
-                  <Link 
-                    to="/mese" 
-                    title={!isSidebarOpen ? "Mese" : undefined} 
-                    className={`flex items-center gap-3 rounded-lg transition-colors focus:outline-none ${isSidebarOpen ? 'py-1.5 px-3' : 'p-2 justify-center'} ${isActive('/mese') ? 'bg-gray-700 text-white font-bold' : 'text-gray-400 hover:bg-gray-700 hover:text-white'}`}
-                  >
-                    <CalendarMonthIcon className="w-4 h-4 shrink-0" />
-                    {isSidebarOpen && <span className="text-sm">Mese</span>}
-                  </Link>
-
-                  {/* Sottomenu: ANNO */}
-                  <Link 
-                    to="/anno" 
-                    title={!isSidebarOpen ? "Anno" : undefined} 
-                    className={`flex items-center gap-3 rounded-lg transition-colors focus:outline-none ${isSidebarOpen ? 'py-1.5 px-3' : 'p-2 justify-center'} ${isActive('/anno') ? 'bg-gray-700 text-white font-bold' : 'text-gray-400 hover:bg-gray-700 hover:text-white'}`}
-                  >
-                    <CalendarYearIcon className="w-4 h-4 shrink-0" />
-                    {isSidebarOpen && <span className="text-sm">Anno</span>}
-                  </Link>
-
-                </div>
-              )}
-            </div>
+              <AgendaNavSection
+                isSidebarOpen={isSidebarOpen}
+                getNavLinkClass={getNavLinkClass}
+              />
             )}
 
             {/* ITEM: TRACKERS CON SOTTOMENU */}
             {showTrackers && (
-            <div 
-              onMouseEnter={() => setIsTrackersHovered(true)} 
-              onMouseLeave={() => setIsTrackersHovered(false)}
-              className="flex flex-col mt-1"
-            >
-              <Link to="/trackers" className={getNavLinkClass(isTrackersActive)} title={!isSidebarOpen ? "Trackers" : undefined}>
-                <FreeTimeIcon className="w-6 h-6 shrink-0" />
-                {isSidebarOpen && <span className="font-semibold tracking-wide">Trackers</span>}
-              </Link>
-
-              {/* SOTTOMENU TRACKERS */}
-              {(isTrackersActive || isTrackersHovered) && (
-                <div className={`flex flex-col mt-1 mb-2 animate-fadeIn ${isSidebarOpen ? 'pl-6 pr-2 space-y-1' : 'items-center space-y-2 mt-2'}`}>
-                  
-                  <Link 
-                    to="/trackers/film" 
-                    title={!isSidebarOpen ? "Film" : undefined} 
-                    className={`flex items-center gap-3 rounded-lg transition-colors focus:outline-none ${isSidebarOpen ? 'py-1.5 px-3' : 'p-2 justify-center'} ${isActive('/trackers/film') ? 'bg-gray-700 text-white font-bold' : 'text-gray-400 hover:bg-gray-700 hover:text-white'}`}
-                  >
-                    <FilmIcon className="w-4 h-4 shrink-0" />
-                    {isSidebarOpen && <span className="text-sm">Film</span>}
-                  </Link>
-
-                  <Link 
-                    to="/trackers/serie-tv" 
-                    title={!isSidebarOpen ? "Serie TV" : undefined} 
-                    className={`flex items-center gap-3 rounded-lg transition-colors focus:outline-none ${isSidebarOpen ? 'py-1.5 px-3' : 'p-2 justify-center'} ${isActive('/trackers/serie-tv') ? 'bg-gray-700 text-white font-bold' : 'text-gray-400 hover:bg-gray-700 hover:text-white'}`}
-                  >
-                    <TvIcon className="w-4 h-4 shrink-0" />
-                    {isSidebarOpen && <span className="text-sm">Serie TV</span>}
-                  </Link>
-
-                  <Link 
-                    to="/trackers/libri" 
-                    title={!isSidebarOpen ? "Libri" : undefined} 
-                    className={`flex items-center gap-3 rounded-lg transition-colors focus:outline-none ${isSidebarOpen ? 'py-1.5 px-3' : 'p-2 justify-center'} ${isActive('/trackers/libri') ? 'bg-gray-700 text-white font-bold' : 'text-gray-400 hover:bg-gray-700 hover:text-white'}`}
-                  >
-                    <BookIcon className="w-4 h-4 shrink-0" />
-                    {isSidebarOpen && <span className="text-sm">Libri</span>}
-                  </Link>
-
-                </div>
-              )}
-            </div>
+              <TrackersNavSection
+                isSidebarOpen={isSidebarOpen}
+                getNavLinkClass={getNavLinkClass}
+              />
             )}
 
             {/* ========================================= */}
             {/* VOCI PRINCIPALI MAPPATE IN AUTOMATICO */}
             {/* ========================================= */}
-            {mainNavItems.map(item => (
-              <SidebarItem 
+            {mainNavItems.map((item) => (
+              <SidebarItem
                 key={item.to}
                 to={item.to}
                 label={item.label}
@@ -247,7 +136,7 @@ const AppShellLayout: React.FC<AppShellLayoutProps> = ({ onLogout }) => {
             {/* SEZIONE ARCHIVIO DATI (Icona a 3 linee) */}
             {/* ========================================= */}
             <div className="pt-3 mt-2 border-t border-gray-800 flex flex-col gap-1">
-              <SidebarItem 
+              <SidebarItem
                 to="/archivio"
                 label="Archivio"
                 icon={<MenuBarsIcon className="w-6 h-6 shrink-0" />}
@@ -261,7 +150,9 @@ const AppShellLayout: React.FC<AppShellLayoutProps> = ({ onLogout }) => {
             {/* ========================================= */}
             {user?.is_superuser && (
               <div className="pt-3 mt-1 border-t border-gray-800 flex flex-col gap-1">
-                {isSidebarOpen && <p className="px-6 text-[9px] font-bold text-amber-500 uppercase tracking-wider mb-1">Pannello SU</p>}
+                {isSidebarOpen && (
+                  <p className="px-6 text-[9px] font-bold text-amber-500 uppercase tracking-wider mb-1">Pannello SU</p>
+                )}
                 <SidebarItem
                   to="/admin"
                   label="Amministrazione SU"
@@ -275,8 +166,11 @@ const AppShellLayout: React.FC<AppShellLayoutProps> = ({ onLogout }) => {
 
           {/* FOOTER SIDEBAR: Settings + Logout */}
           <div className="pt-4 mt-2 border-t border-gray-800 flex flex-col gap-2 shrink-0">
-
-            <div className={`flex ${isSidebarOpen ? 'flex-row items-center justify-between px-6' : 'flex-col gap-4 items-center px-0'}`}>
+            <div
+              className={`flex ${
+                isSidebarOpen ? 'flex-row items-center justify-between px-6' : 'flex-col gap-4 items-center px-0'
+              }`}
+            >
               <div className="flex items-center gap-2">
                 <Link
                   to="/settings"
@@ -284,20 +178,21 @@ const AppShellLayout: React.FC<AppShellLayoutProps> = ({ onLogout }) => {
                   title="Impostazioni"
                 >
                   <SettingsIcon className="w-6 h-6" />
-
                 </Link>
-                {/* Il tasto notifiche è stato spostato in HomePage */}
               </div>
-              <button 
-                onClick={onLogout} 
-                className={`font-bold rounded-xl text-red-400 transition-colors focus:outline-none ${isSidebarOpen ? 'text-sm w-full py-1 hover:text-white hover:bg-red-600' : 'text-[14px] pb-2 hover:text-red-200'}`}
+              <button
+                onClick={onLogout}
+                className={`font-bold rounded-xl text-red-400 transition-colors focus:outline-none ${
+                  isSidebarOpen
+                    ? 'text-sm w-full py-1 hover:text-white hover:bg-red-600'
+                    : 'text-[14px] pb-2 hover:text-red-200'
+                }`}
                 title="Disconnetti"
               >
                 Esci
               </button>
             </div>
           </div>
-
         </div>
       </aside>
 

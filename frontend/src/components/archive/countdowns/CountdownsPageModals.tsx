@@ -13,8 +13,8 @@ import { MobileCountdownNewModal } from '@/mobile/components/modals/MobileCountd
 
 interface CountdownsPageModalsProps {
   isMobile: boolean;
-  /** Il modale filtri non usa .data — unknown è il default di useModal<T> */
-  filterModal: UseModalResult<unknown>;
+  /** Il modale filtri non usa dati */
+  filterModal: UseModalResult;
   filters: CountdownFilterState;
   onFilterChange: (filters: CountdownFilterState) => void;
   onResetFilters: () => void;

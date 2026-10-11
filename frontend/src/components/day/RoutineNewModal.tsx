@@ -1,16 +1,15 @@
-import React, { useState, useEffect, useRef } from 'react';
+// src/components/day/RoutineNewModal.tsx
+import React from 'react';
 import type { RoutineItem } from '@/components/day/RoutineColumn';
 import DatePicker from '@/components/shared/utils/DatePicker/DatePicker'; 
-import { getLocalTodayStr } from '@/utils/dateUtils'; 
-import { parseRRule, buildRRule } from '@/utils/rruleUtils'; 
 import BaseModal from '@/components/shared/dialog/BaseModal';
 import { RecurrenceEditor } from '@/components/shared/utils/RecurrenceEditor';
 import ImagePositionModal from '@/components/shared/dialog/ImagePositionModal';
 import { TargetIcon, PhotoIcon, LoadingIcon } from '@/components/shared/utils/Icons';
 import { DEFAULT_COVER_IMAGE } from '@/utils/constants';
 import { resolveImageUrl } from '@/utils/imageUtils';
-import { logger } from '@/utils/logger';
-import { mediaService } from '@/api/mediaService';
+import { useImageUpload } from '@/hooks/useImageUpload';
+import { useRoutineFormLogic } from '@/hooks/forms/useRoutineFormLogic';
 
 export interface RoutineSavePayload {
   titolo: string;
@@ -30,125 +29,35 @@ interface RoutineNewModalProps {
 }
 
 const RoutineNewModal: React.FC<RoutineNewModalProps> = ({ isOpen, onClose, routineToEdit, onSave }) => {
-  const [form, setForm] = useState({
-    titolo: '',
-    data_inizio: getLocalTodayStr(),
-    immagine_url: '',
-    immagine_posizione: '50% 50%',
-    piu_volte: false,
-    target_completamenti: 1,
-    rruleInterval: '1',
-    rruleFreq: 'DAILY',
-    rruleUntil: '',       
-    isRecurrent: true
+  const {
+    form,
+    setForm,
+    isDatePickerOpen,
+    setIsDatePickerOpen,
+    isPositionModalOpen,
+    setIsPositionModalOpen,
+    isSaving,
+    incrementTarget,
+    decrementTarget,
+    handlePiuVolteToggle,
+    handleSubmit,
+  } = useRoutineFormLogic({
+    isOpen,
+    onClose,
+    routineToEdit,
+    onSave,
   });
 
-  const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
-  const [isPositionModalOpen, setIsPositionModalOpen] = useState(false);
-  const [isSaving, setIsSaving] = useState(false);
-  const [isUploading, setIsUploading] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
-
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    try {
-      setIsUploading(true);
-      const res = await mediaService.uploadImage(file, 'habits');
-      setForm((prev) => ({ ...prev, immagine_url: res.url }));
-    } catch (error) {
-      logger.error('Errore durante il caricamento della foto:', error);
-    } finally {
-      setIsUploading(false);
-      if (fileInputRef.current) fileInputRef.current.value = '';
-    }
-  };
-
-  const handleUrlBlur = async () => {
-    const rawUrl = form.immagine_url?.trim();
-    if (!rawUrl || rawUrl.startsWith('/uploads/') || rawUrl.startsWith('data:') || rawUrl.startsWith('blob:')) {
-      return;
-    }
-
-    if (rawUrl.startsWith('http://') || rawUrl.startsWith('https://')) {
-      try {
-        setIsUploading(true);
-        const res = await mediaService.fetchImageFromUrl(rawUrl, 'habits');
-        setForm((prev) => ({ ...prev, immagine_url: res.url }));
-      } catch (error) {
-        logger.warn('Download immagine da URL fallito, mantengo URL originale:', error);
-      } finally {
-        setIsUploading(false);
-      }
-    }
-  };
-
-  useEffect(() => {
-    if (isOpen) {
-      if (routineToEdit) {
-        const { isRecurrent, freq, interval, until } = parseRRule(routineToEdit.rrule);
-        setForm({
-          titolo: routineToEdit.titolo || '',
-          data_inizio: routineToEdit.data_inizio || getLocalTodayStr(),
-          immagine_url: routineToEdit.imageUrl || '',
-          immagine_posizione: routineToEdit.immaginePosizione || '50% 50%',
-          piu_volte: routineToEdit.targetCompletions > 1,
-          target_completamenti: routineToEdit.targetCompletions || 1,
-          rruleFreq: freq,
-          rruleInterval: interval,
-          rruleUntil: until,
-          isRecurrent: isRecurrent
-        });
-      } else {
-        setForm({
-          titolo: '',
-          data_inizio: getLocalTodayStr(),
-          immagine_url: '',
-          immagine_posizione: '50% 50%',
-          piu_volte: false,
-          target_completamenti: 1,
-          rruleFreq: 'DAILY',
-          rruleInterval: '1',
-          rruleUntil: '', 
-          isRecurrent: true
-        });
-      }
-    } else {
-      setIsDatePickerOpen(false);
-      setIsPositionModalOpen(false);
-    }
-  }, [isOpen, routineToEdit]);
-
-  // 3. handleSubmit aggiornato con async, try/finally e form.*
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsSaving(true); // <-- Accendiamo il caricamento
-
-    try {
-      // 🪄 Creiamo la stringa RRULE solo se isRecurrent è true
-      const rruleString = form.isRecurrent 
-        ? buildRRule(form.rruleFreq, form.rruleInterval, form.rruleUntil) 
-        : '';
-
-      const payload: RoutineSavePayload = {
-        titolo: form.titolo,
-        tipo: 'R', 
-        data_inizio: form.data_inizio,
-        immagine_url: form.immagine_url || '',
-        immagine_posizione: form.immagine_posizione,
-        target_completamenti: form.target_completamenti,
-        rrule: rruleString
-      };
-
-      await onSave(payload);
-      onClose();
-    } catch (error) {
-      logger.error("Errore nel salvataggio:", error);
-    } finally {
-      setIsSaving(false);
-    }
-  };
+  const {
+    fileInputRef,
+    isUploading,
+    handleFileUpload,
+    handleUrlFetch,
+    triggerFileInput,
+  } = useImageUpload({
+    folder: 'habits',
+    onSuccess: (url) => setForm((prev) => ({ ...prev, immagine_url: url })),
+  });
 
   if (!isOpen) return null;
 
@@ -203,7 +112,7 @@ const RoutineNewModal: React.FC<RoutineNewModalProps> = ({ isOpen, onClose, rout
                     />
                     <button
                       type="button"
-                      onClick={() => fileInputRef.current?.click()}
+                      onClick={triggerFileInput}
                       disabled={isUploading}
                       className="hover:bg-blue-100 text-blue-600 bg-blue-50/80 border border-blue-200 p-0.5 rounded-lg transition-colors cursor-pointer flex items-center justify-center shadow-2xs disabled:opacity-50"
                       title="Carica foto dal dispositivo"
@@ -230,7 +139,7 @@ const RoutineNewModal: React.FC<RoutineNewModalProps> = ({ isOpen, onClose, rout
                   type="text"
                   value={form.immagine_url}
                   onChange={(e) => setForm({ ...form, immagine_url: e.target.value })}
-                  onBlur={handleUrlBlur}
+                  onBlur={() => handleUrlFetch(form.immagine_url)}
                   placeholder="Incolla URL o carica foto..."
                   className="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all shadow-sm"
                 />
@@ -258,7 +167,7 @@ const RoutineNewModal: React.FC<RoutineNewModalProps> = ({ isOpen, onClose, rout
                   type="checkbox" 
                   id="multiToggle"
                   checked={form.piu_volte}
-                  onChange={(e) => setForm({...form, piu_volte: e.target.checked, target_completamenti: e.target.checked ? 2 : 1})}
+                  onChange={(e) => handlePiuVolteToggle(e.target.checked)}
                   className="w-5 h-5 text-blue-600 rounded border-gray-300 focus:ring-blue-500 cursor-pointer"
                 />
                 <label htmlFor="multiToggle" className="text-sm font-bold text-gray-800 cursor-pointer select-none">
@@ -270,9 +179,9 @@ const RoutineNewModal: React.FC<RoutineNewModalProps> = ({ isOpen, onClose, rout
                 <div className="flex items-center justify-between mt-4 pl-8 animate-fadeIn">
                    <span className="text-sm font-medium text-gray-600">Volte al giorno:</span>
                    <div className="flex items-center bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden">
-                      <button type="button" onClick={() => setForm({...form, target_completamenti: Math.max(2, form.target_completamenti - 1)})} className="px-4 py-1.5 text-gray-500 hover:bg-gray-100 hover:text-red-500 font-black transition-colors">-</button>
+                      <button type="button" onClick={decrementTarget} className="px-4 py-1.5 text-gray-500 hover:bg-gray-100 hover:text-red-500 font-black transition-colors">-</button>
                       <span className="px-4 py-1.5 font-bold text-gray-800 border-x border-gray-100 min-w-[3rem] text-center">{form.target_completamenti}</span>
-                      <button type="button" onClick={() => setForm({...form, target_completamenti: form.target_completamenti + 1})} className="px-4 py-1.5 text-gray-500 hover:bg-gray-100 hover:text-green-500 font-black transition-colors">+</button>
+                      <button type="button" onClick={incrementTarget} className="px-4 py-1.5 text-gray-500 hover:bg-gray-100 hover:text-green-500 font-black transition-colors">+</button>
                    </div>
                 </div>
               )}

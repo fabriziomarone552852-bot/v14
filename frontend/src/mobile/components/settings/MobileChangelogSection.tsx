@@ -1,7 +1,7 @@
-// src/mobile/components/settings/MobileChangelogSection.tsx
 import React, { useState } from 'react';
-import { Sparkles, CheckCircle2, Calendar, Tag, ShieldCheck } from 'lucide-react';
+import { Sparkles, CheckCircle2, Calendar, Tag, ShieldCheck, RefreshCw } from 'lucide-react';
 import { FeedbackModal } from '@/components/modals/FeedbackModal';
+import { checkAppUpdate } from '@/services/versionChecker';
 import {
   CHANGELOG_HISTORY,
   APP_VERSION_NAME,
@@ -11,6 +11,27 @@ import {
 
 export const MobileChangelogSection: React.FC = () => {
   const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
+  const [isCheckingUpdate, setIsCheckingUpdate] = useState(false);
+  const [checkMessage, setCheckMessage] = useState<string | null>(null);
+
+  const handleCheckUpdate = async () => {
+    setIsCheckingUpdate(true);
+    setCheckMessage(null);
+    try {
+      const res = await checkAppUpdate(true);
+      if (res?.hasUpdate) {
+        window.dispatchEvent(new CustomEvent('vita:check-update'));
+      } else if (res) {
+        setCheckMessage('Sei già all\'ultima versione!');
+        setTimeout(() => setCheckMessage(null), 3500);
+      } else {
+        setCheckMessage('Impossibile verificare ora.');
+        setTimeout(() => setCheckMessage(null), 3500);
+      }
+    } finally {
+      setIsCheckingUpdate(false);
+    }
+  };
 
   return (
     <div className="w-full space-y-4 animate-fadeIn pb-12">
@@ -32,7 +53,7 @@ export const MobileChangelogSection: React.FC = () => {
       </div>
 
       {/* Banner Versione Corrente */}
-      <div className="w-full bg-gradient-to-br from-blue-600 to-indigo-700 text-white rounded-2xl p-4 shadow-sm space-y-2">
+      <div className="w-full bg-gradient-to-br from-blue-600 to-indigo-700 text-white rounded-2xl p-4 shadow-sm space-y-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-xl bg-white/20 backdrop-blur-md flex items-center justify-center p-1.5">
@@ -49,6 +70,24 @@ export const MobileChangelogSection: React.FC = () => {
             <CheckCircle2 className="w-3 h-3" />
             Installata
           </span>
+        </div>
+
+        {/* Verifica Aggiornamenti Manuale */}
+        <div className="pt-2 border-t border-white/20 flex flex-wrap items-center justify-between gap-2 text-xs">
+          <button
+            type="button"
+            onClick={handleCheckUpdate}
+            disabled={isCheckingUpdate}
+            className="inline-flex items-center gap-1.5 font-bold px-3 py-1.5 rounded-xl bg-white/20 hover:bg-white/30 active:scale-95 transition-all text-white backdrop-blur-md cursor-pointer disabled:opacity-60"
+          >
+            <RefreshCw className={`w-3.5 h-3.5 ${isCheckingUpdate ? 'animate-spin' : ''}`} />
+            {isCheckingUpdate ? 'Controllo in corso...' : 'Verifica disponibilità aggiornamenti'}
+          </button>
+          {checkMessage && (
+            <span className="text-[11px] text-blue-100 font-medium animate-fadeIn">
+              {checkMessage}
+            </span>
+          )}
         </div>
       </div>
 

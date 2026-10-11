@@ -29,16 +29,16 @@ def upgrade() -> None:
     sa.PrimaryKeyConstraint('id')
     )
     op.create_index(op.f('ix_tv_user_platforms_user_id'), 'tv_user_platforms', ['user_id'], unique=False)
-    op.drop_index(op.f('ix_shopping_product_brands_brand_id'), table_name='shopping_product_brands')
-    op.drop_index(op.f('ix_shopping_product_brands_product_id'), table_name='shopping_product_brands')
-    op.drop_table('shopping_product_brands')
-    op.drop_index(op.f('ix_feedback_reports_created_at'), table_name='feedback_reports')
-    op.add_column('shopping_products', sa.Column('brand_id', sa.Integer(), nullable=True))
-    op.create_index(op.f('ix_shopping_products_brand_id'), 'shopping_products', ['brand_id'], unique=False)
-    op.create_foreign_key(None, 'shopping_products', 'shopping_suppliers', ['brand_id'], ['id'], ondelete='SET NULL')
-    op.add_column('tv_user_series_logs', sa.Column('viewing_platform_id', sa.Integer(), nullable=True))
-    op.create_foreign_key(None, 'tv_user_series_logs', 'tv_user_platforms', ['viewing_platform_id'], ['id'], ondelete='SET NULL')
-    op.drop_column('tv_user_series_logs', 'viewing_platform')
+    # op.drop_index(op.f('ix_shopping_product_brands_brand_id'), table_name='shopping_product_brands')
+    # op.drop_index(op.f('ix_shopping_product_brands_product_id'), table_name='shopping_product_brands')
+    # op.drop_table('shopping_product_brands')
+    # op.drop_index(op.f('ix_feedback_reports_created_at'), table_name='feedback_reports')
+    # op.add_column('shopping_products', sa.Column('brand_id', sa.Integer(), nullable=True))
+    # op.create_index(op.f('ix_shopping_products_brand_id'), 'shopping_products', ['brand_id'], unique=False)
+    # op.create_foreign_key(None, 'shopping_products', 'shopping_suppliers', ['brand_id'], ['id'], ondelete='SET NULL')
+    # op.add_column('tv_user_series_logs', sa.Column('viewing_platform_id', sa.Integer(), nullable=True))
+    # op.create_foreign_key(None, 'tv_user_series_logs', 'tv_user_platforms', ['viewing_platform_id'], ['id'], ondelete='SET NULL')
+    # op.drop_column('tv_user_series_logs', 'viewing_platform')
     # ### end Alembic commands ###
 
 
@@ -48,24 +48,24 @@ def downgrade() -> None:
     op.add_column('tv_user_series_logs', sa.Column('viewing_platform', sa.VARCHAR(length=100), autoincrement=False, nullable=True))
     op.drop_constraint(None, 'tv_user_series_logs', type_='foreignkey')
     op.drop_column('tv_user_series_logs', 'viewing_platform_id')
-    op.drop_constraint(None, 'shopping_products', type_='foreignkey')
-    op.drop_index(op.f('ix_shopping_products_brand_id'), table_name='shopping_products')
-    op.drop_column('shopping_products', 'brand_id')
-    op.create_index(op.f('ix_feedback_reports_created_at'), 'feedback_reports', [sa.literal_column('created_at DESC')], unique=False)
-    op.create_table('shopping_product_brands',
-    sa.Column('id', sa.INTEGER(), autoincrement=True, nullable=False),
-    sa.Column('product_id', sa.INTEGER(), autoincrement=False, nullable=False),
-    sa.Column('brand_id', sa.INTEGER(), autoincrement=False, nullable=False),
-    sa.Column('notes', sa.TEXT(), autoincrement=False, nullable=True),
-    sa.Column('created_at', postgresql.TIMESTAMP(timezone=True), server_default=sa.text('now()'), autoincrement=False, nullable=False),
-    sa.Column('updated_at', postgresql.TIMESTAMP(timezone=True), autoincrement=False, nullable=True),
-    sa.ForeignKeyConstraint(['brand_id'], ['shopping_suppliers.id'], name=op.f('shopping_product_brands_brand_id_fkey'), ondelete='CASCADE'),
-    sa.ForeignKeyConstraint(['product_id'], ['shopping_products.id'], name=op.f('shopping_product_brands_product_id_fkey'), ondelete='CASCADE'),
-    sa.PrimaryKeyConstraint('id', name=op.f('shopping_product_brands_pkey')),
-    sa.UniqueConstraint('product_id', 'brand_id', name=op.f('uq_shopping_product_brands'), postgresql_include=[], postgresql_nulls_not_distinct=False)
-    )
-    op.create_index(op.f('ix_shopping_product_brands_product_id'), 'shopping_product_brands', ['product_id'], unique=False)
-    op.create_index(op.f('ix_shopping_product_brands_brand_id'), 'shopping_product_brands', ['brand_id'], unique=False)
+    # op.drop_constraint(None, 'shopping_products', type_='foreignkey')
+    # op.drop_index(op.f('ix_shopping_products_brand_id'), table_name='shopping_products')
+    # op.drop_column('shopping_products', 'brand_id')
+    # op.create_index(op.f('ix_feedback_reports_created_at'), 'feedback_reports', [sa.literal_column('created_at DESC')], unique=False)
+    # op.create_table('shopping_product_brands',
+    # sa.Column('id', sa.INTEGER(), autoincrement=True, nullable=False),
+    # sa.Column('product_id', sa.INTEGER(), autoincrement=False, nullable=False),
+    # sa.Column('brand_id', sa.INTEGER(), autoincrement=False, nullable=False),
+    # sa.Column('notes', sa.TEXT(), autoincrement=False, nullable=True),
+    # sa.Column('created_at', postgresql.TIMESTAMP(timezone=True), server_default=sa.text('now()'), autoincrement=False, nullable=False),
+    # sa.Column('updated_at', postgresql.TIMESTAMP(timezone=True), autoincrement=False, nullable=True),
+    # sa.ForeignKeyConstraint(['brand_id'], ['shopping_suppliers.id'], name=op.f('shopping_product_brands_brand_id_fkey'), ondelete='CASCADE'),
+    # sa.ForeignKeyConstraint(['product_id'], ['shopping_products.id'], name=op.f('shopping_product_brands_product_id_fkey'), ondelete='CASCADE'),
+    # sa.PrimaryKeyConstraint('id', name=op.f('shopping_product_brands_pkey')),
+    # sa.UniqueConstraint('product_id', 'brand_id', name=op.f('uq_shopping_product_brands'), postgresql_include=[], postgresql_nulls_not_distinct=False)
+    # )
+    # op.create_index(op.f('ix_shopping_product_brands_product_id'), 'shopping_product_brands', ['product_id'], unique=False)
+    # op.create_index(op.f('ix_shopping_product_brands_brand_id'), 'shopping_product_brands', ['brand_id'], unique=False)
     op.drop_index(op.f('ix_tv_user_platforms_user_id'), table_name='tv_user_platforms')
     op.drop_table('tv_user_platforms')
     # ### end Alembic commands ###

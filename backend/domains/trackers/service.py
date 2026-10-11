@@ -1478,3 +1478,247 @@ async def discover_tmdb_series(with_genres: str = None, with_networks: str = Non
         total_pages=data.get("total_pages", 0),
         total_results=data.get("total_results", 0)
     )
+
+
+# --- Series Match Session Logic ---
+from datetime import timedelta
+import sqlalchemy
+from backend.domains.trackers import models, schemas
+from backend.domains.notifications.service import create_interaction
+from backend.domains.notifications.schemas import InteractionCreate
+from backend.domains.users.models import User
+
+def create_series_match_session(
+    db: Session,
+    user_id: int,
+    data: schemas.SeriesMatchSessionCreate
+) -> models.SeriesMatchSession:
+    # Validate input
+    if not data.friend_ids:
+        raise HTTPException(status_code=400, detail="Devi invitare almeno un amico.")
+    if not data.media_list_id and not data.use_entire_catalog:
+        raise HTTPException(status_code=400, detail="Devi selezionare una lista o l'intero catalogo.")
+
+    # Create session
+    new_session = models.SeriesMatchSession(
+        initiator_id=user_id,
+        status="pending"
+    )
+    db.add(new_session)
+    db.flush()
+
+    # Add initiator as participant
+    initiator_participant = models.SeriesMatchParticipant(
+        session_id=new_session.id,
+        user_id=user_id,
+        media_list_id=data.media_list_id,
+        use_entire_catalog=data.use_entire_catalog,
+        status="joined",
+        joined_at=datetime.now(timezone.utc)
+    )
+    db.add(initiator_participant)
+
+    # Add friends as invited
+    for friend_id in data.friend_ids:
+        friend_participant = models.SeriesMatchParticipant(
+            session_id=new_session.id,
+            user_id=friend_id,
+            status="invited"
+        )
+        db.add(friend_participant)
+        
+        # Send Notification to friend
+        system_user = db.execute(sqlalchemy.select(User).where(User.username == "System")).scalar_one_or_none()
+        if system_user:
+            create_interaction(
+                db=db,
+                current_user=system_user,
+                payload=InteractionCreate(
+                    interaction_type="SYSTEM_ALERT",
+                    recipient_id=friend_id,
+                    reference_id=new_session.id,
+                    content=f"Sei stato invitato a un incrocio di liste TV da {user_id}! Clicca qui per unirti: /trackers/series/match/{new_session.id}"
+                )
+            )
+
+    db.commit()
+    db.refresh(new_session)
+    return new_session
+
+def join_series_match_session(
+    db: Session,
+    user_id: int,
+    session_id: int,
+    data: schemas.SeriesMatchJoin
+) -> models.SeriesMatchSession:
+    if not data.media_list_id and not data.use_entire_catalog:
+        raise HTTPException(status_code=400, detail="Devi selezionare una lista o l'intero catalogo.")
+
+    stmt = sqlalchemy.select(models.SeriesMatchParticipant).where(
+        models.SeriesMatchParticipant.session_id == session_id,
+        models.SeriesMatchParticipant.user_id == user_id
+    )
+    participant = db.execute(stmt).scalar_one_or_none()
+
+    if not participant:
+        raise HTTPException(status_code=404, detail="Non sei stato invitato a questa sessione.")
+
+    if participant.status != "invited":
+        raise HTTPException(status_code=400, detail="Hai già risposto a questo invito.")
+
+    participant.media_list_id = data.media_list_id
+    participant.use_entire_catalog = data.use_entire_catalog
+    participant.status = "joined"
+    participant.joined_at = datetime.now(timezone.utc)
+
+    # Check if all participants have joined
+    all_stmt = sqlalchemy.select(models.SeriesMatchParticipant).where(
+        models.SeriesMatchParticipant.session_id == session_id
+    )
+    all_participants = db.execute(all_stmt).scalars().all()
+
+    all_joined = all(p.status == "joined" for p in all_participants)
+    
+    match_session = db.execute(sqlalchemy.select(models.SeriesMatchSession).where(models.SeriesMatchSession.id == session_id)).scalar_one()
+
+    if all_joined:
+        match_session.status = "completed"
+        match_session.expires_at = datetime.now(timezone.utc) + timedelta(hours=24)
+        
+        # Notify all participants that it's complete
+        for p in all_participants:
+            system_user = db.execute(sqlalchemy.select(User).where(User.username == "System")).scalar_one_or_none()
+            if system_user:
+                create_interaction(
+                    db=db,
+                    current_user=system_user,
+                    payload=InteractionCreate(
+                        interaction_type="SYSTEM_ALERT",
+                        recipient_id=p.user_id,
+                        reference_id=session_id,
+                        content=f"L'incrocio liste è pronto! Scopri i risultati: /trackers/series/match/{session_id}/results"
+                    )
+                )
+
+    db.commit()
+    db.refresh(match_session)
+    return match_session
+
+def decline_series_match_session(
+    db: Session,
+    user_id: int,
+    session_id: int
+):
+    stmt = sqlalchemy.select(models.SeriesMatchParticipant).where(
+        models.SeriesMatchParticipant.session_id == session_id,
+        models.SeriesMatchParticipant.user_id == user_id
+    )
+    participant = db.execute(stmt).scalar_one_or_none()
+
+    if not participant:
+        raise HTTPException(status_code=404, detail="Non sei stato invitato a questa sessione.")
+
+    participant.status = "declined"
+
+    match_session = db.execute(sqlalchemy.select(models.SeriesMatchSession).where(models.SeriesMatchSession.id == session_id)).scalar_one()
+    match_session.status = "cancelled"
+    
+    db.commit()
+
+def get_series_match_session(
+    db: Session,
+    user_id: int,
+    session_id: int
+) -> models.SeriesMatchSession:
+    stmt = sqlalchemy.select(models.SeriesMatchSession).options(
+        sqlalchemy.orm.joinedload(models.SeriesMatchSession.participants)
+    ).where(models.SeriesMatchSession.id == session_id)
+    match_session = db.execute(stmt).unique().scalar_one_or_none()
+
+    if not match_session:
+        raise HTTPException(status_code=404, detail="Sessione non trovata.")
+
+    is_participant = any(p.user_id == user_id for p in match_session.participants)
+    if not is_participant:
+        raise HTTPException(status_code=403, detail="Non hai accesso a questa sessione.")
+
+    return match_session
+
+def get_user_match_sessions(
+    db: Session,
+    user_id: int
+) -> List[models.SeriesMatchSession]:
+    stmt = sqlalchemy.select(models.SeriesMatchSession).join(models.SeriesMatchParticipant).options(
+        sqlalchemy.orm.joinedload(models.SeriesMatchSession.participants)
+    ).where(
+        models.SeriesMatchParticipant.user_id == user_id,
+        models.SeriesMatchSession.expires_at > datetime.now(timezone.utc)
+    ).order_by(models.SeriesMatchSession.created_at.desc())
+    
+    return list(db.execute(stmt).unique().scalars().all())
+
+
+def calculate_match_results(
+    db: Session,
+    user_id: int,
+    session_id: int
+) -> List[schemas.SeriesMatchResult]:
+    match_session = get_series_match_session(db, user_id, session_id)
+    if match_session.status != "completed":
+        raise HTTPException(status_code=400, detail="L'incrocio non è ancora completato.")
+
+    user_tmdb_ids = {} 
+    series_info = {} 
+
+    for p in match_session.participants:
+        if p.status != "joined":
+            continue
+            
+        tmdb_ids = set()
+        if p.use_entire_catalog:
+            stmt = sqlalchemy.select(models.UserSeriesTracking, models.TMDBSeries).join(
+                models.TMDBSeries, models.UserSeriesTracking.series_tmdb_id == models.TMDBSeries.tmdb_id
+            ).where(
+                models.UserSeriesTracking.user_id == p.user_id,
+                models.UserSeriesTracking.status.in_(["to_watch", "watching"])
+            )
+            for tracking, series in db.execute(stmt).all():
+                tmdb_ids.add(series.tmdb_id)
+                if series.tmdb_id not in series_info:
+                    series_info[series.tmdb_id] = {"title": series.title, "poster_path": series.poster_path}
+        elif p.media_list_id:
+            stmt = sqlalchemy.select(models.MediaListItem, models.TMDBSeries).join(
+                models.TMDBSeries, models.MediaListItem.series_tmdb_id == models.TMDBSeries.tmdb_id
+            ).where(
+                models.MediaListItem.list_id == p.media_list_id
+            )
+            for item, series in db.execute(stmt).all():
+                tmdb_ids.add(series.tmdb_id)
+                if series.tmdb_id not in series_info:
+                    series_info[series.tmdb_id] = {"title": series.title, "poster_path": series.poster_path}
+        
+        user_tmdb_ids[p.user_id] = tmdb_ids
+
+    if not user_tmdb_ids:
+        return []
+        
+    all_tmdb_ids = set.union(*user_tmdb_ids.values())
+    all_results = []
+    for tmdb_id in all_tmdb_ids:
+        matched_by = [uid for uid, ids in user_tmdb_ids.items() if tmdb_id in ids]
+        if len(matched_by) > 1: # We only care about matches with > 1 user. Or maybe all? Let's say len > 1 for matches, or len >= 1 for everything. The prompt said "anche quelli che non hanno corrispondenza".
+            all_results.append(schemas.SeriesMatchResult(
+                tmdb_id=tmdb_id,
+                title=series_info[tmdb_id]["title"],
+                poster_path=series_info[tmdb_id]["poster_path"],
+                matched_users=matched_by
+            ))
+        elif len(matched_by) == 1:
+            all_results.append(schemas.SeriesMatchResult(
+                tmdb_id=tmdb_id,
+                title=series_info[tmdb_id]["title"],
+                poster_path=series_info[tmdb_id]["poster_path"],
+                matched_users=matched_by
+            ))
+
+    return all_results

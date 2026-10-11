@@ -45,7 +45,7 @@ interface UseOptimisticTagReturn {
  * 6. Crea l'entry reale sul backend
  * 7. In caso di errore, fa rollback di tutto
  */
-export function useOptimisticTag<TEntry>(
+export function useOptimisticTag<TEntry extends { id: number }>(
   allTags: Category[],
   handleAddTag: (categoryId: number) => void | Promise<void>,
   queryKey: QueryKey,
@@ -103,12 +103,11 @@ export function useOptimisticTag<TEntry>(
         const entries = (old[config.entriesKey] as TEntry[]) || [];
         return {
           ...old,
-          [config.entriesKey]: entries.map(e => {
-            const entryRecord = e as Record<string, unknown>;
-            return entryRecord['id'] === tempEntryId
+          [config.entriesKey]: entries.map(e =>
+            e.id === tempEntryId
               ? { ...e, [config.fieldName]: String(newCat.id) }
-              : e;
-          }),
+              : e
+          ),
         };
       });
 
@@ -121,10 +120,7 @@ export function useOptimisticTag<TEntry>(
           const entries = (old[config.entriesKey] as TEntry[]) || [];
           return {
             ...old,
-            [config.entriesKey]: entries.map(e => {
-              const entryRecord = e as Record<string, unknown>;
-              return entryRecord['id'] === tempEntryId ? realEntry : e;
-            }),
+            [config.entriesKey]: entries.map(e => (e.id === tempEntryId ? realEntry : e)),
           };
         });
       });
@@ -139,7 +135,7 @@ export function useOptimisticTag<TEntry>(
         const entries = (old[config.entriesKey] as TEntry[]) || [];
         return {
           ...old,
-          [config.entriesKey]: (entries as Array<Record<string, unknown>>).filter(e => e['id'] !== tempEntryId),
+          [config.entriesKey]: entries.filter(e => e.id !== tempEntryId),
         };
       });
     });
