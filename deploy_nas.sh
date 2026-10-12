@@ -45,8 +45,15 @@ docker run -d \
 
 # 5. Allineamento Database con Alembic
 echo "\n[5/6] Allineamento automatico schema database (Alembic)..."
-sleep 2
-docker exec backend alembic upgrade head || true
+if ! docker exec backend alembic upgrade head; then
+    echo "❌ [ERRORE CRITICO ALEMBIC] Aggiornamento schema database fallito! Controllare le migrazioni."
+fi
+
+# Verifica salute immediata backend
+if ! docker ps --filter "name=backend" --filter "status=running" | grep -q "backend"; then
+    echo "⚠️ ATTENZIONE: Il container backend non è in esecuzione! Log di errore:"
+    docker logs --tail 30 backend
+fi
 
 # 6. Avvio Frontend
 echo "\n[6/6] Avvio container Frontend..."

@@ -97,6 +97,7 @@ class TVEpisodeResponse(ORMBaseModel):
     watch_count: int
     logs: List[EpisodeLogResponse] = Field(default_factory=list)
     quotes: List[TVQuoteResponse] = Field(default_factory=list)
+    quotes: List[TVQuoteResponse] = Field(default_factory=list)
 
 
 

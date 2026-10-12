@@ -1,7 +1,8 @@
 """
 Business logic and external API integrations for Trackers domain.
 """
-from datetime import datetime, timezone
+from __future__ import annotations
+from datetime import date, datetime, timezone
 from typing import List, Optional
 from collections import defaultdict
 
@@ -725,6 +726,20 @@ def add_quote(db: Session, current_user: User, episode_id: int, quote_text: str)
     from backend.domains.trackers.schemas import TVQuoteResponse
     quote = TVQuote(user_id=current_user.id, episode_id=episode_id, quote_text=quote_text)
     db.add(quote)
+    db.commit()
+    db.refresh(quote)
+    return TVQuoteResponse.model_validate(quote)
+
+def update_quote(db: Session, current_user: User, quote_id: int, quote_text: str):
+    import sqlalchemy
+    from backend.domains.trackers.models import TVQuote
+    from backend.domains.trackers.schemas import TVQuoteResponse
+    from fastapi import HTTPException, status
+    stmt = sqlalchemy.select(TVQuote).where(TVQuote.id == quote_id, TVQuote.user_id == current_user.id)
+    quote = db.execute(stmt).scalar_one_or_none()
+    if not quote:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Citazione non trovata.")
+    quote.quote_text = quote_text
     db.commit()
     db.refresh(quote)
     return TVQuoteResponse.model_validate(quote)

@@ -36,7 +36,7 @@ def upgrade() -> None:
     op.drop_index(op.f('ix_user_episode_tracking_episode_id'), table_name='user_episode_tracking')
     op.drop_index(op.f('ix_user_episode_tracking_user_id'), table_name='user_episode_tracking')
     op.drop_table('user_episode_tracking')
-    op.drop_index(op.f('ix_feedback_reports_created_at'), table_name='feedback_reports')
+    op.drop_index(op.f('ix_feedback_reports_created_at'), table_name='feedback_reports', if_exists=True)
     # ### end Alembic commands ###
 
 

@@ -4,6 +4,68 @@ Questo file contiene i task storici che sono stati completati e rimossi dal `BAC
 
 ---
 
+### [TECH-006] Allineamento Migrazioni Alembic DB Produzione (NAS) & Fix Login 500 (✅ Completato)
+
+#### 📋 Descrizione
+Diagnosi e risoluzione dell'errore HTTP `500 (Internal Server Error)` restituito dalla rotta `/auth/login` dopo il deployment sul NAS QNAP, e bonifica strutturale delle migrazioni Alembic per garantire idempotenza e allineamento trasparente tra ambiente di sviluppo e produzione.
+
+#### ⚙️ Dettagli Implementazione & Funzionalità Raggiunte
+- **Root Cause Analysis (Causa dell'HTTP 500 al login)**:
+  - Il database di produzione sul NAS (`family-smart` su PostgreSQL) era fermo alla revisione Alembic `a282ff0494d6`.
+  - Il modello SQLAlchemy `User` referenziava colonne aggiunte in migrazioni successive (`profile_picture_url`, `default_startup_page`, `module_preferences` introdotte in `189c36cbe774`).
+  - Durante l'accesso (`/auth/login`), la query `users_repo.get_by_username()` generava l'eccezione `UndefinedColumn: column users.profile_picture_url does not exist`, provocando il fallimento con status 500.
+- **Idempotenza delle Migrazioni Alembic Storiche**:
+  - Rese completamente resilienti e idempotenti le migrazioni che fallivano in caso di indici o tabelle già preesistenti (`IF NOT EXISTS` / `if_exists=True`):
+    - `a007ba13ba83`: rimosso drop accidentale di `shopping_product_brands`.
+    - `1a169030e611`, `49954307e44a`, `17c037efa957`, `c9e47583cd2f`, `3a87b89f56d8`, `02fe1ea0d62c`, `c8a6d18e94b6`: applicato `if_exists=True` su `drop_index` di `ix_feedback_reports_created_at`.
+    - `4f099aed880c`: creata tabella `tv_user_series_logs` con `CREATE TABLE IF NOT EXISTS`.
+    - `n3o4p5q6r7s8`: creata tabella `shopping_product_brands` e indice univoco con clausole `IF NOT EXISTS`.
+    - `9887b53d6bfe`: resa idempotente la tabella `tv_user_platforms`.
+    - `z9y8x7w6v5u4`: rese idempotenti le tabelle `series_match_sessions` e `series_match_participants`.
+- **Esecuzione Upgrade Produzione (`alembic-prod.bat`)**:
+  - Aggiornato `alembic-prod.bat` per puntare direttamente all'endpoint accessibile da rete locale (`192.168.11.20:5432/family-smart`).
+  - Eseguito `alembic upgrade head`, portando il database `family-smart` alla versione di testa `z9y8x7w6v5u4`.
+- **Verifica**:
+  - Chiamata endpoint `/auth/login` verificata con successo via HTTP (restituisce 401 per credenziali errate anziché 500 con eccezione database).
+
+---
+
+### [TECH-005] Risoluzione 502 Bad Gateway NAS & Automated Docker Smoke Test (✅ Completato)
+
+#### 📋 Descrizione
+Diagnosi e risoluzione dell'errore HTTP `502 (Bad Gateway)` restituito dal container Nginx (`vxame14_frontend`) su tutte le chiamate API (`/users/me`, `/categories`, ecc.) dopo il deployment sul NAS QNAP.
+
+#### ⚙️ Dettagli Implementazione & Funzionalità Raggiunte
+- **Root Cause Analysis (Causa del crash)**:
+  - Il container `backend` sul NAS andava in continuo crash loop all'avvio a causa di un'eccezione Python `NameError: name 'date' is not defined` nella firma della funzione `add_episode_log` all'interno di `backend/domains/trackers/service.py`.
+  - Poiché il backend crashava in frazioni di secondo, la porta 8000 non veniva mai aperta (`TcpTestSucceeded: False`). Di conseguenza, Nginx su porta 8181 non riusciva a contattare il backend proxy e restituiva `502 Bad Gateway`.
+- **Correzione Python (`backend/domains/trackers/service.py`)**:
+  - Aggiunto `from __future__ import annotations` e importato esplicitamente `date` da `datetime` (`from datetime import date, datetime, timezone`).
+  - Bonificati e riallineati gli import deprecati in `backend/services/analytics_prices.py` e convertito `backend/add_col.py` in codifica UTF-8 pulita priva di byte nulli.
+- **Automated Docker Smoke Test in `deploy_build_pc.ps1`**:
+  - Introdotto uno step automatico `1.1 Smoke test avvio Backend nel container` che esegue un test di avvio di `backend.main` nel container Docker appena compilato (`docker run --rm ... python -c "import backend.main"`).
+  - Se il backend presenta anche un solo errore di import o di sintassi, il processo di build su Windows si arresta all'istante con un errore bloccante, impedendo l'esportazione di file `.tar` corrotti verso il NAS.
+- **Health Check Automatico in `deploy_nas.sh`**:
+  - Aggiunta una verifica dello stato del container backend dopo il comando alembic (`docker ps --filter "name=backend" --filter "status=running"`): se il container non è attivo, stampa immediatamente gli ultimi 30 log d'errore a terminale.
+
+---
+
+### [TECH-004] Reverse Proxy Nginx, Routing API & Crash AppShellLayout in Docker (✅ Completato)
+
+#### 📋 Descrizione
+Risoluzione del crash `TypeError: t.filter is not a function at K (AppShellLayout-....js)` verificatosi durante l'esecuzione dell'applicazione via container Docker (immagine web server Nginx).
+
+#### ⚙️ Dettagli Implementazione & Funzionalità Raggiunte
+- **Configurazione Nginx Reverse Proxy (`frontend/nginx.conf`)**:
+  - Inserite le route API mancanti nel pattern regex del blocco proxy verso `backend:8000`: `/interactions`, `/social`, `/trackers`, `/feedback`, `/planning`.
+  - In precedenza, la mancanza di `/interactions` e `/social` causava il fallback automatico di Nginx su `index.html` (comportamento Single Page Application), restituendo il markup HTML con codice 200 anziché il JSON degli elenchi.
+- **Scudo Anti-Fallback SPA in `frontend/src/api/apiService.ts`**:
+  - Aggiunto controllo preventivo che rileva se un endpoint API risponde con `Content-Type: text/html` o con un markup che inizia per `<!DOCTYPE`. In tal caso viene sollevata un'eccezione esplicita, impedendo che stringhe HTML contaminino lo stato o la cache di TanStack Query.
+- **Validazione Difensiva Array (`useNotifications.ts`, `useSocial.ts`, `NotificationsSidebar.tsx`)**:
+  - Tutte le query e i selettori verificano rigorosamente la natura di array dei dati (`Array.isArray(data) ? data : []`) prima di invocare `.filter()`, `.map()` o `.sort()`, garantendo resilienza totale a livello di interfaccia.
+
+---
+
 ### [SHOPPING-008] Refactoring Catalogo Prodotti, Tabella Ponte Brand N:N con Note & Compattazione DB (✅ Completato)
 
 #### 📋 Descrizione

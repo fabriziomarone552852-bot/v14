@@ -91,7 +91,7 @@ def upgrade() -> None:
     op.drop_index(op.f('ix_tracker_tv_series_tmdb_id'), table_name='tracker_tv_series')
     op.drop_index(op.f('ix_tracker_tv_series_user_id'), table_name='tracker_tv_series')
     
-    op.drop_index(op.f('ix_feedback_reports_created_at'), table_name='feedback_reports')
+    op.drop_index(op.f('ix_feedback_reports_created_at'), table_name='feedback_reports', if_exists=True)
     op.add_column('tracker_tv_quotes', sa.Column('episode_id', sa.Integer(), nullable=False))
     op.drop_index(op.f('ix_tracker_tv_quotes_series_id'), table_name='tracker_tv_quotes')
     op.create_index(op.f('ix_tracker_tv_quotes_episode_id'), 'tracker_tv_quotes', ['episode_id'], unique=False)

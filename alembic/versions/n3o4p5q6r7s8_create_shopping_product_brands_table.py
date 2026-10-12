@@ -19,22 +19,20 @@ depends_on: Union[str, Sequence[str], None] = None
 
 
 def upgrade() -> None:
-    # 1. Crea tabella ponte shopping_product_brands
-    op.create_table(
-        'shopping_product_brands',
-        sa.Column('id', sa.Integer(), autoincrement=True, nullable=False),
-        sa.Column('product_id', sa.Integer(), nullable=False),
-        sa.Column('brand_id', sa.Integer(), nullable=False),
-        sa.Column('notes', sa.Text(), nullable=True),
-        sa.Column('created_at', sa.DateTime(timezone=True), nullable=False, server_default=sa.text('now()')),
-        sa.Column('updated_at', sa.DateTime(timezone=True), nullable=True),
-        sa.ForeignKeyConstraint(['brand_id'], ['shopping_suppliers.id'], ondelete='CASCADE'),
-        sa.ForeignKeyConstraint(['product_id'], ['shopping_products.id'], ondelete='CASCADE'),
-        sa.PrimaryKeyConstraint('id'),
-        sa.UniqueConstraint('product_id', 'brand_id', name='uq_shopping_product_brands')
-    )
-    op.create_index(op.f('ix_shopping_product_brands_brand_id'), 'shopping_product_brands', ['brand_id'], unique=False)
-    op.create_index(op.f('ix_shopping_product_brands_product_id'), 'shopping_product_brands', ['product_id'], unique=False)
+    # 1. Crea tabella ponte shopping_product_brands se non esiste
+    op.execute("""
+        CREATE TABLE IF NOT EXISTS shopping_product_brands (
+            id SERIAL PRIMARY KEY,
+            product_id INTEGER NOT NULL REFERENCES shopping_products(id) ON DELETE CASCADE,
+            brand_id INTEGER NOT NULL REFERENCES shopping_suppliers(id) ON DELETE CASCADE,
+            notes TEXT,
+            created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+            updated_at TIMESTAMP WITH TIME ZONE,
+            CONSTRAINT uq_shopping_product_brands UNIQUE (product_id, brand_id)
+        );
+        CREATE INDEX IF NOT EXISTS ix_shopping_product_brands_brand_id ON shopping_product_brands (brand_id);
+        CREATE INDEX IF NOT EXISTS ix_shopping_product_brands_product_id ON shopping_product_brands (product_id);
+    """)
 
     # 2. Migra i dati legacy se presenti
     op.execute("""
@@ -104,13 +102,8 @@ def upgrade() -> None:
         END $$;
     """)
 
-    # 5. Crea indice UNIQUE su name_normalized
-    op.create_index(
-        'uq_shopping_products_name_normalized',
-        'shopping_products',
-        ['name_normalized'],
-        unique=True
-    )
+    # 5. Crea indice UNIQUE su name_normalized se non esiste
+    op.execute("CREATE UNIQUE INDEX IF NOT EXISTS uq_shopping_products_name_normalized ON shopping_products (name_normalized);")
 
 
 

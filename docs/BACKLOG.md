@@ -41,7 +41,10 @@ Questo documento serve a tracciare in modo strutturato:
 | **UI-001** | **Selezione Multipla nella Versione Mobile** | `mobile` / UI | ÃƒÂ°Ã…Â¸Ã…Â¸Ã‚Â¢ Completato | ÃƒÂ°Ã…Â¸Ã…Â¸Ã‚Â¢ Completato | ÃƒÂ°Ã…Â¸Ã…Â¸Ã‚Â¢ **Completato** |
 | **TECH-001** | **Verifica & Ottimizzazione Bundle APK Android (Code-Splitting)** | `build` / APK | N/A | ÃƒÂ°Ã…Â¸Ã…Â¸Ã‚Â¢ Completato | Media |
 | **TECH-002** | Spostamento Tasto Switch in Impostazioni / Danger Zone | `routing` / UI | N/A | ÃƒÂ°Ã…Â¸Ã…Â¸Ã‚Â¢ Completato | Bassa |
-| **TECH-003** | **Persistenza Volume Uploads su Docker NAS** | `build` / docker | ÃƒÂ°Ã…Â¸Ã…Â¸Ã‚Â¢ Completato | ÃƒÂ°Ã…Â¸Ã…Â¸Ã‚Â¢ Completato | ÃƒÂ°Ã…Â¸Ã…Â¸Ã‚Â¢ **Completato** |
+| **TECH-003** | **Persistenza Volume Uploads su Docker NAS** | `build` / docker | 🟢 Completato | 🟢 Completato | 🟢 **Completato** |
+| **TECH-004** | **Reverse Proxy Nginx, Routing API & Crash AppShellLayout (Docker)** | `build` / docker | 🟢 Completato | 🟢 Completato | 🟢 **Completato** |
+| **TECH-005** | **Risoluzione 502 Bad Gateway NAS & Automated Docker Smoke Test** | `build` / docker | 🟢 Completato | 🟢 Completato | 🟢 **Completato** |
+| **TECH-006** | **Allineamento Migrazioni Alembic DB Produzione (NAS) & Fix Login 500** | `build` / `db` | 🟢 Completato | 🟢 Completato | 🟢 **Completato** |
 
 | **FEAT-013** | **Archivio Notifiche / Sezione Storico Notifiche** | `notifications` / UI | ÃƒÂ°Ã…Â¸Ã…Â¸Ã‚Â¢ Completato | ÃƒÂ°Ã…Â¸Ã…Â¸Ã‚Â¡ Da Implementare | ÃƒÂ°Ã…Â¸Ã…Â¸Ã‚Â¡ Media |
 

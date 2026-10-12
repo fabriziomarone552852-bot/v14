@@ -1,4 +1,4 @@
-// src/data/changelogData.ts
+﻿// src/data/changelogData.ts
 
 export interface ChangelogItem {
   id: string;
@@ -15,12 +15,60 @@ export interface ChangelogItem {
 
 export const CHANGELOG_HISTORY: ChangelogItem[] = [
   {
+    id: 'v15.0.3',
+    version: '15.0.3',
+    date: 'Ottobre 2026',
+    title: 'Allineamento Migrazioni Database Produzione (NAS) & Fix Login HTTP 500',
+    isLatest: true,
+    published: true,
+    highlights: [
+      'Risolto l\'errore HTTP 500 in fase di login sul NAS (PostgreSQL family-smart) dovuto a colonne utente mancanti (profile_picture_url, default_startup_page, module_preferences).',
+      'Rese completamente idempotenti le migrazioni Alembic storiche e allineato il database di produzione alla versione HEAD (z9y8x7w6v5u4).'
+    ],
+    fixes: [
+      'Login & Auth (/auth/login): Ripristinata la corretta autenticazione degli utenti eliminando il fallimento della query users causato dal disallineamento dello schema PostgreSQL.',
+      'Alembic Migrations Idempotency: Bonificate le migrazioni storiche (indici feedback reports, tabelle tracker serie TV, brand spesa, piattaforme e sessioni match) con clausole IF NOT EXISTS e if_exists=True per prevenire fallimenti su database parzialmente migrati.',
+      'Script alembic-prod.bat: Aggiornata la configurazione per puntare direttamente all\'IP del server NAS (192.168.11.20) dall\'ambiente di sviluppo host.'
+    ]
+  },
+  {
+    id: 'v15.0.2',
+    version: '15.0.2',
+    date: 'Ottobre 2026',
+    title: 'Risoluzione 502 Bad Gateway NAS & Automated Docker Smoke Test',
+    isLatest: false,
+    published: true,
+    highlights: [
+      'Risolto il crash in avvio del Backend FastAPI (NameError date non definita nel modulo trackers) che impediva l\'apertura della porta 8000 e causava l\'errore 502 Bad Gateway tramite Nginx.',
+      'Aggiunto Smoke Test automatico in deploy_build_pc.ps1 per bloccare all\'istante il rilascio su PC in presenza di errori di avvio nel container backend.'
+    ],
+    fixes: [
+      'Backend Crash Loop (Porta 8000 / 502 Bad Gateway): Corretto import mancante di date e abilitato __future__.annotations in backend/domains/trackers/service.py.',
+      'Deploy Pipeline PC & NAS: Integrato test di avvio automatico del container backend in deploy_build_pc.ps1 e diagnostica immediata dello stato dei container in deploy_nas.sh.'
+    ]
+  },
+  {
+    id: 'v15.0.1',
+    version: '15.0.1',
+    date: 'Ottobre 2026',
+    title: 'Fix Reverse Proxy Nginx & Crash AppShellLayout in Docker',
+    isLatest: false,
+    published: true,
+    highlights: [
+      'Risolto il crash TypeError: t.filter is not a function al caricamento dell\'applicazione nei container Docker.',
+      'Allineamento completo delle route nel reverse proxy Nginx per interazioni, social, trackers e feedback.'
+    ],
+    fixes: [
+      'Reverse Proxy Nginx & Crash AppShellLayout (Docker): Aggiunte le route mancanti (interactions, social, trackers, feedback, planning) in nginx.conf e introdotta una guardia anti-fallback in apiService e nei componenti notifiche per impedire che risposte HTML causassero il crash TypeError: t.filter is not a function.'
+    ]
+  },
+  {
     id: 'v15.0.0',
     version: '15.0.0',
     date: 'Ottobre 2026',
     title: 'Modulo Serie TV (Trackers), Nuova Inbox Notifiche & Refactoring Architetturale',
-    isLatest: true,
-    published: false,
+    isLatest: false,
+    published: true,
     highlights: [
       'Nuova Sezione Serie TV (Modulo Media): Gestione completa con sincronizzazione TMDB, liste personalizzate, statistiche e tracking episodi avanzato.',
       'Architettura Liste Multimediali: Creato database e backend per raggruppare film, serie e libri trasversalmente.',
@@ -515,6 +563,10 @@ export const CHANGELOG_HISTORY: ChangelogItem[] = [
 export const APP_VERSION: string = CHANGELOG_HISTORY[0].version;
 export const APP_VERSION_NAME: string = `v${APP_VERSION}`;
 export const APP_LAST_UPDATE: string = CHANGELOG_HISTORY[0].date;
+
+
+
+
 
 
 

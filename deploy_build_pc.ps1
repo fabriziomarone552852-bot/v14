@@ -22,6 +22,14 @@ if ($LASTEXITCODE -ne 0) {
     exit 1
 }
 
+# 1.1 Smoke test avvio Backend nel container
+Write-Host "Verifica automatica integrità e avvio Backend nel container..." -ForegroundColor Cyan
+docker run --rm -e DATABASE_URL="sqlite:///:memory:" -e APP_ENV=dev vxame14_backend:latest python -c "import backend.main; print('[OK] Modulo Backend FastAPI avviato e validato!')"
+if ($LASTEXITCODE -ne 0) {
+    Write-Host "[ERRORE CRITICO] Il container Backend non riesce ad importare backend.main! Impossibile proseguire col deploy." -ForegroundColor Red
+    exit 1
+}
+
 # Sincronizzazione automatica di public/version.json da package.json
 $pkgPath = Join-Path (Get-Location) "frontend\package.json"
 $versionJsonPath = Join-Path (Get-Location) "frontend\public\version.json"
@@ -31,9 +39,17 @@ if ((Test-Path $pkgPath) -and (Test-Path $versionJsonPath)) {
         if ($pkg.version) {
             $vJson = Get-Content $versionJsonPath -Raw | ConvertFrom-Json
             $vJson.version = $pkg.version
-            $vJson | ConvertTo-Json -Depth 5 | Set-Content -Path $versionJsonPath -Encoding UTF8
+            # Nota: apkVersion non viene toccata qui, preservando la reale versione dell'APK presente su Drive
+            [System.IO.File]::WriteAllText($versionJsonPath, ($vJson | ConvertTo-Json -Depth 5), [System.Text.UTF8Encoding]::new($false))
         }
     } catch {}
+}
+
+# Verifica preventiva integrità rotte Nginx e versioning
+node frontend/scripts/checkSync.js
+if ($LASTEXITCODE -ne 0) {
+    Write-Host "[ERRORE] Verifica integrità o allineamento rotte Nginx fallita!" -ForegroundColor Red
+    exit 1
 }
 
 # 2. Build Frontend

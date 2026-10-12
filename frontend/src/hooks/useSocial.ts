@@ -7,17 +7,26 @@ export const useSocial = () => {
 
   const { data: friends = [] as FriendshipResponse[], isLoading: isLoadingFriends } = useQuery<FriendshipResponse[]>({
     queryKey: ['social', 'friends'],
-    queryFn: async () => (await api.get<FriendshipResponse[]>('/social/friends')) || [],
+    queryFn: async () => {
+      const res = await api.get<FriendshipResponse[]>('/social/friends');
+      return Array.isArray(res) ? res : [];
+    },
   });
 
   const { data: pendingRequests = [] as FriendshipResponse[], isLoading: isLoadingPending } = useQuery<FriendshipResponse[]>({
     queryKey: ['social', 'pending'],
-    queryFn: async () => (await api.get<FriendshipResponse[]>('/social/friends/pending')) || [],
+    queryFn: async () => {
+      const res = await api.get<FriendshipResponse[]>('/social/friends/pending');
+      return Array.isArray(res) ? res : [];
+    },
   });
 
   const { data: sentRequests = [] as FriendshipResponse[], isLoading: isLoadingSent } = useQuery<FriendshipResponse[]>({
     queryKey: ['social', 'sent'],
-    queryFn: async () => (await api.get<FriendshipResponse[]>('/social/friends/pending/sent')) || [],
+    queryFn: async () => {
+      const res = await api.get<FriendshipResponse[]>('/social/friends/pending/sent');
+      return Array.isArray(res) ? res : [];
+    },
   });
 
   const searchUser = useMutation<FriendStatusResponse[], Error, string>({

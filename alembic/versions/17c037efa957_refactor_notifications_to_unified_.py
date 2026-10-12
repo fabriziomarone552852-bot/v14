@@ -41,7 +41,7 @@ def upgrade() -> None:
     op.drop_index(op.f('ix_notifications_notification_type_id'), table_name='notifications')
     op.drop_index(op.f('ix_notifications_user_id'), table_name='notifications')
     op.drop_table('notifications')
-    op.drop_index(op.f('ix_feedback_reports_created_at'), table_name='feedback_reports')
+    op.drop_index(op.f('ix_feedback_reports_created_at'), table_name='feedback_reports', if_exists=True)
     op.create_foreign_key(None, 'tv_user_episode_logs', 'users', ['user_id'], ['id'], ondelete='CASCADE')
     # ### end Alembic commands ###
 

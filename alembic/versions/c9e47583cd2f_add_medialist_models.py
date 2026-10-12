@@ -45,7 +45,7 @@ def upgrade() -> None:
     )
     op.create_index(op.f('ix_media_list_items_list_id'), 'media_list_items', ['list_id'], unique=False)
     op.create_index(op.f('ix_media_list_items_series_tmdb_id'), 'media_list_items', ['series_tmdb_id'], unique=False)
-    op.drop_index(op.f('ix_feedback_reports_created_at'), table_name='feedback_reports')
+    op.drop_index(op.f('ix_feedback_reports_created_at'), table_name='feedback_reports', if_exists=True)
     # ### end Alembic commands ###
 
 

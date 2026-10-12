@@ -7,12 +7,18 @@ export const useNotifications = () => {
 
   const { data: unreadNotifications = [] as NotificationResponse[], isLoading: isLoadingUnread } = useQuery<NotificationResponse[]>({
     queryKey: ['interactions', 'unread'],
-    queryFn: async () => (await api.get<NotificationResponse[]>('/interactions?unread_only=true')) || [],
+    queryFn: async () => {
+      const res = await api.get<NotificationResponse[]>('/interactions?unread_only=true');
+      return Array.isArray(res) ? res : [];
+    },
   });
 
   const { data: allNotifications = [] as NotificationResponse[], isLoading: isLoadingAll } = useQuery<NotificationResponse[]>({
     queryKey: ['interactions', 'all'],
-    queryFn: async () => (await api.get<NotificationResponse[]>('/interactions')) || [],
+    queryFn: async () => {
+      const res = await api.get<NotificationResponse[]>('/interactions');
+      return Array.isArray(res) ? res : [];
+    },
   });
 
   // Read a single interaction (will trigger burn-after-reading for ephemeral messages)

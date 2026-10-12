@@ -1,12 +1,12 @@
 {
   "name": "agenda-smart-frontend-react",
   "private": true,
-  "version": "15.0.0",
+  "version": "15.0.3",
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc -b && vite build",
-    "build:mobile": "tsc -b && vite build --mode mobile",
+    "build": "node scripts/checkSync.js && tsc -b && vite build",
+    "build:mobile": "node scripts/checkSync.js && tsc -b && vite build --mode mobile",
     "lint": "eslint .",
     "preview": "vite preview"
   },

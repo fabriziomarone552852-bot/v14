@@ -9,7 +9,8 @@ Questo file definisce le istruzioni e le convenzioni operative obbligatorie per 
 Ogni volta che vengono apportate modifiche, nuove funzionalità o bug fix rilevanti:
 
 ### A. Controllo dello Stato di Pubblicazione (`published`)
-L'assistente deve controllare la prima voce in cima a `CHANGELOG_HISTORY` in `frontend/src/data/changelogData.ts`:
+L'assistente deve controllare la prima voce in cima a `CHANGELOG_HISTORY` in `frontend/src/data/changelogData.ts`.
+> ⚠️ **Controllo Live su Disco Obbligatorio**: Prima di modificare `package.json` o `changelogData.ts`, l'assistente deve **rileggere TASSATIVAMENTE il file reale su disco** (`view_file`). Non fidarsi MAI della memoria pregressa della conversazione, poiché l'utente potrebbe aver eseguito uno script di build o deploy (`deploy_build_pc.ps1` o `build_apk.ps1`) che ha marcato la versione come pubblicata (`published: true`).
 
 1. **Se `published: false` (Versione ancora in sviluppo / non ancora rilasciata)**:
    - **NON creare un nuovo numero di versione** e **NON modificare `package.json`**.
@@ -52,9 +53,9 @@ L'assistente deve controllare la prima voce in cima a `CHANGELOG_HISTORY` in `fr
 ---
 
 ## 🚀 2. Finalizzazione e Pubblicazione Automatica
-- **Quando si esegue `.\build_apk.ps1` o `.\deploy_build_pc.ps1`**:
+- **Quando si esegue `.\build_all.ps1`, `.\build_apk.ps1` o `.\deploy_build_pc.ps1`**:
   - Gli script rilevano automaticamente se la versione corrente ha `published: false` e la contrassegnano automaticamente come **`published: true`**.
-  - L'APK viene generato con il nome `smartagenda-vX.Y.Z.apk`.
+  - `build_all.ps1` unifica in un solo comando la build dei container per il NAS e dell'APK Android, allineando sia `version` sia `apkVersion` in `version.json`.
   - Da quel momento, le successive modifiche in qualsiasi chat apriranno un nuovo ciclo di versione (`published: false`).
 
 Per la guida completa e dettagliata, fare riferimento a [`docs/VERSIONING_GUIDE.md`](file:///c:/Users/Fabrizio/Desktop/app/smart/v14/docs/VERSIONING_GUIDE.md).
@@ -96,4 +97,12 @@ Quando l'utente scrive **"fine"** (o frasi equivalenti come *"abbiamo finito"*, 
 
 ## 🛠️ 5. Regole di Sviluppo: Mock Data & Migrazioni Database
 1. **Nessun Dato Mock**: Evitare categoricamente l'utilizzo di dati mock (dati finti codificati nel frontend), in quanto complicano l'integrazione e il mantenimento. Utilizzare piuttosto dati/stati vuoti (es. liste vuote, stati di caricamento temporanei) o procedere il prima possibile con il collegamento reale alle API del backend.
-2. **Migrazioni Alembic & Ambiente Test**: Quando si creano o modificano modelli e serve effettuare una migrazione del database (Alembic), tenere sempre in considerazione l'ambiente di test. Utilizzare script predisposti come `test.bat` (e in particolare `alembic-test.bat`) per assicurarsi di generare ed effettuare le migrazioni puntando al database di test corretto, anziché eseguire comandi diretti che potrebbero fallire o puntare altrove.
+2. **Migrazioni Alembic, Idempotenza & Doppio Ambiente (Test vs NAS Produzione)**:
+   - **Idempotenza Assoluta e Sicurezza DDL**: Le migrazioni Alembic non devono MAI fallire su database che contengono già strutture parziali o indici preesistenti:
+     - Su ogni `op.drop_index(...)` o `op.drop_table(...)`, specificare TASSATIVAMENTE `if_exists=True`.
+     - Nelle istruzioni SQL o create dirette, utilizzare sempre clausole difensive (`CREATE TABLE IF NOT EXISTS`, `CREATE INDEX IF NOT EXISTS`).
+     - Ispezionare SEMPRE il file generato da `--autogenerate` prima di confermarlo: rimuovere categoricamente qualsiasi `drop_table` o `drop_column` accidentale generato da modelli non ancora registrati in memoria nei metadati.
+   - **Verifica Multi-Ambiente (Test e Produzione NAS)**:
+     - Usare `alembic-test.bat` per generare e testare le migrazioni sull'ambiente di test (`test-smart`).
+     - Verificare e applicare l'allineamento sul database reale di produzione del NAS (`family-smart` su `192.168.11.20`) eseguendo `alembic-prod.bat upgrade head` per garantire che il backend in produzione non fallisca con errori 500 (colonne mancanti).
+3. **Allineamento Rotte Nginx & Reverse Proxy**: Ogni nuova rotta API creata nel backend (o in `vite.config.ts`) deve essere TASSATIVAMENTE registrata anche nel reverse proxy di `frontend/nginx.conf`. Lo script `frontend/scripts/checkSync.js` (eseguito automaticamente da `npm run build` e `deploy_build_pc.ps1`) bloccherà il processo segnalando immediatamente qualsiasi rotta mancante.

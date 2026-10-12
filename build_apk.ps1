@@ -28,13 +28,14 @@ if (Test-Path $changelogPath) {
     }
 }
 
-# Auto-sincronizzazione di public/version.json
+# Auto-sincronizzazione di public/version.json (allinea sia versione web che apkVersion)
 $versionJsonPath = Join-Path $frontendDir "public\version.json"
 if (Test-Path $versionJsonPath) {
     try {
         $vJson = Get-Content $versionJsonPath -Raw | ConvertFrom-Json
         $vJson.version = $appVersion
-        $vJson | ConvertTo-Json -Depth 5 | Set-Content -Path $versionJsonPath -Encoding UTF8
+        $vJson.apkVersion = $appVersion
+        [System.IO.File]::WriteAllText($versionJsonPath, ($vJson | ConvertTo-Json -Depth 5), [System.Text.UTF8Encoding]::new($false))
     } catch {}
 }
 

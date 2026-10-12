@@ -282,6 +282,19 @@ def update_quote(
     return service.update_quote(db, current_user, quote_id, payload.quote_text)
 
 
+class QuoteUpdate(BaseModel):
+    quote_text: str
+
+@router.patch("/quotes/{quote_id}", response_model=TVQuoteResponse)
+def update_quote(
+    quote_id: int,
+    payload: QuoteUpdate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_app_user),
+):
+    return service.update_quote(db, current_user, quote_id, payload.quote_text)
+
+
 @router.delete("/quotes/{quote_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_quote(
     quote_id: int,

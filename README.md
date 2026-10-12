@@ -68,19 +68,27 @@ Puoi sviluppare e testare sia l'interfaccia Desktop che quella Mobile direttamen
 
 ---
 
-## 📦 Compilazione dell'APK Android
+## 📦 Compilazione e Rilascio (Docker NAS & APK Android)
 
-La compilazione dell'APK è completamente automatizzata tramite Docker e non richiede l'installazione manuale di Android Studio o SDK locali:
+La compilazione dell'APK e delle immagini per il NAS è completamente automatizzata tramite script PowerShell:
 
-1. Apri un terminale PowerShell nella root del progetto:
-   ```powershell
-   .\build_apk.ps1
-   ```
-2. Lo script:
-   - Compila il bundle web ottimizzato con Vite (`npm run build`).
-   - Sincronizza gli asset nell'applicazione Android (`npx cap sync android`).
-   - Compila e firma l'APK nativo con la chiave permanente `smartagenda.keystore`.
-   - Genera i file finali **`smartagenda.apk`** e **`smartagenda-vX.Y.Z.apk`** nella cartella dedicata **[`apk/`](file:///c:/Users/Fabrizio/Desktop/app/smart/v14/apk/)**.
+### 🌟 Opzione 1: Rilascio Completo (NAS + APK)
+```powershell
+.\build_all.ps1
+```
+Compila ed esporta in un unico passaggio sia i container per il NAS (`vxame14_backend.tar` e `vxame14_frontend.tar`), sia l'APK Android (`apk/vita-vX.Y.Z.apk`), sincronizzando in automatico il controllo di versione in-app.
+
+### 📱 Opzione 2: Solo APK Android
+```powershell
+.\build_apk.ps1
+```
+Compila solo il pacchetto APK per smartphone salvandolo in **[`apk/`](file:///c:/Users/Fabrizio/Desktop/app/smart/v14/apk/)**.
+
+### 🌐 Opzione 3: Solo Web / NAS
+```powershell
+.\deploy_build_pc.ps1
+```
+Compila ed esporta solo le immagini per il NAS preservando la versione dell'APK. (Se usati separatamente per rilasciare entrambi, eseguire prima `build_apk.ps1` e poi `deploy_build_pc.ps1`).
 
 ### 🔄 Aggiornamenti In-Place
 Tutte le compilazioni utilizzano lo stesso certificato crittografico (`smartagenda.keystore`). Quando installi una nuova versione dell'APK sullo smartphone, Android la riconoscerà automaticamente come un aggiornamento ufficiale, senza dover disinstallare l'app e senza perdere credenziali o dati memorizzati.

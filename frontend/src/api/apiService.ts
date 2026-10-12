@@ -50,7 +50,19 @@ const handleAxiosError = (error: unknown): never => {
 const executeRequest = async <T>(fn: () => Promise<AxiosResponse<T>>): Promise<T | null> => {
   try {
     const response = await fn();
-    return response.status === 204 ? null : response.data;
+    if (response.status === 204) return null;
+
+    // Controllo di sicurezza: se il server risponde con una pagina HTML (es. fallback SPA su index.html),
+    // intercettiamo l'anomalia prima che contamini i dati applicativi o la cache di React Query.
+    const contentType = String(response.headers?.['content-type'] ?? '');
+    if (
+      contentType.includes('text/html') ||
+      (typeof response.data === 'string' && (response.data.startsWith('<!doctype') || response.data.startsWith('<!DOCTYPE')))
+    ) {
+      throw new Error('Risposta API non valida: il web server ha restituito una pagina HTML anziché JSON (verificare le route nel reverse proxy)');
+    }
+
+    return response.data;
   } catch (error) {
     return handleAxiosError(error);
   }

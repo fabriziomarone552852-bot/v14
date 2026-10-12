@@ -4,6 +4,7 @@ import { APP_VERSION } from '@/data/changelogData';
 
 export interface RemoteVersionInfo {
   version: string;
+  apkVersion?: string;
   driveUrl: string;
   notes?: string;
 }
@@ -68,12 +69,14 @@ export async function checkAppUpdate(ignoreDismissed = false): Promise<VersionCh
       return null;
     }
 
-    const hasUpdate = isVersionNewer(data.version, APP_VERSION);
+    // Se è definita un'apkVersion specifica per l'app mobile, confrontiamo quella; altrimenti fallback su version
+    const targetVersion = data.apkVersion || data.version;
+    const hasUpdate = isVersionNewer(targetVersion, APP_VERSION);
 
     // Se l'utente ha già cliccato "Più tardi" in questa sessione per questa specifica versione
     if (hasUpdate && !ignoreDismissed) {
       const dismissed = sessionStorage.getItem(SESSION_DISMISSED_KEY);
-      if (dismissed === data.version) {
+      if (dismissed === targetVersion) {
         return null;
       }
     }
@@ -81,7 +84,7 @@ export async function checkAppUpdate(ignoreDismissed = false): Promise<VersionCh
     return {
       hasUpdate,
       currentVersion: APP_VERSION,
-      remoteVersion: data.version,
+      remoteVersion: targetVersion,
       driveUrl: data.driveUrl || 'https://drive.google.com/drive/folders/1UrahhXpwuU4xPXjF1aT83LflnhIeEkPz?usp=sharing',
       notes: data.notes
     };

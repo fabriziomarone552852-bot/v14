@@ -24,30 +24,36 @@ export const NotificationsSidebar: React.FC = () => {
   const [messageText, setMessageText] = useState('');
   const [retainedMessages, setRetainedMessages] = useState<NotificationResponse[]>([]);
   
+  // Difesa contro risposte anomale: garantisce che i dati siano sempre array prima di eseguire filter/sort
+  const safeAllNotifications = Array.isArray(allNotifications) ? allNotifications : [];
+  const safeUnreadNotifications = Array.isArray(unreadNotifications) ? unreadNotifications : [];
+  const safeFriends = Array.isArray(friends) ? friends : [];
+  const safePendingRequests = Array.isArray(pendingRequests) ? pendingRequests : [];
+
   // Separazione Notifiche regolari da Messaggi Effimeri, ordinate dalla più recente
-  const regularNotifications = allNotifications
+  const regularNotifications = safeAllNotifications
     .filter(n => n.interaction_type !== 'EPHEMERAL_MSG')
     .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
   
   // Uniamo i messaggi effimeri correnti con quelli appena letti (trattenuti in UI fino alla chiusura)
   const ephemeralMessages = [
-    ...allNotifications.filter(n => n.interaction_type === 'EPHEMERAL_MSG'),
+    ...safeAllNotifications.filter(n => n.interaction_type === 'EPHEMERAL_MSG'),
     ...retainedMessages
   ]
     .filter((v, i, a) => a.findIndex(t => (t.id === v.id)) === i) // unique by id
     .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
   
-  const unreadRegularCount = unreadNotifications.filter(n => n.interaction_type !== 'EPHEMERAL_MSG').length;
-  const unreadEphemeralCount = unreadNotifications.filter(n => n.interaction_type === 'EPHEMERAL_MSG').length;
+  const unreadRegularCount = safeUnreadNotifications.filter(n => n.interaction_type !== 'EPHEMERAL_MSG').length;
+  const unreadEphemeralCount = safeUnreadNotifications.filter(n => n.interaction_type === 'EPHEMERAL_MSG').length;
   
-  const hasUnreadNotifiche = unreadRegularCount > 0 || pendingRequests.length > 0;
+  const hasUnreadNotifiche = unreadRegularCount > 0 || safePendingRequests.length > 0;
   const hasUnreadMessaggi = unreadEphemeralCount > 0;
   const hasUnread = hasUnreadNotifiche || hasUnreadMessaggi;
 
   useEffect(() => {
     // Quando la sidebar è aperta e siamo sulla tab 'messaggi', consideriamo TUTTI i messaggi effimeri visibili come "letti"
     if (isOpen && activeTab === 'messaggi') {
-      const unreadEphemerals = allNotifications.filter(n => n.interaction_type === 'EPHEMERAL_MSG' && !n.read_at);
+      const unreadEphemerals = safeAllNotifications.filter(n => n.interaction_type === 'EPHEMERAL_MSG' && !n.read_at);
       if (unreadEphemerals.length > 0) {
         // Li salviamo localmente così restano visibili finché non chiude la sidebar
         setRetainedMessages(prev => {
@@ -95,7 +101,7 @@ export const NotificationsSidebar: React.FC = () => {
   };
 
   // Creiamo la lista validFriends e aggiungiamo un flag se hanno messaggi effimeri pendenti
-  let validFriends = friends
+  let validFriends = safeFriends
     .map(f => {
       const friendUser = getFriendUser(f);
       if (!friendUser) return null;

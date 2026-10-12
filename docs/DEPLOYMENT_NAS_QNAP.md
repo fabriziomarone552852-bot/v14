@@ -139,19 +139,43 @@ docker image prune -f
 
 ## 5. 🔄 Procedura per il Rilascio di Futuri Aggiornamenti
 
-Quando effettui modifiche al codice (backend o frontend) sul PC di sviluppo, segui questa procedura in 2 passaggi:
+A seconda dell'aggiornamento effettuato, puoi scegliere tra 3 modalità di compilazione ed esportazione sul PC di sviluppo:
 
-### FASE A: Sul PC Windows (PowerShell)
-Dalla cartella del progetto (`C:\Users\user\Documents\PYTHON\VxAme14`):
-
+### 🌟 Opzione 1: Rilascio Completo Unificato (CONSIGLIATA) — `.\build_all.ps1`
+Quando vuoi rilasciare sia i container per il NAS sia l'APK Android aggiornato per gli smartphone:
 ```powershell
-# Esegui lo script di build automatico
+.\build_all.ps1
+```
+Lo script esegue automaticamente tutto in sequenza nell'ordine corretto:
+1. Allinea `version.json` impostando sia `version` (web) sia `apkVersion` al nuovo numero.
+2. Compila ed esporta i container NAS (`vxame14_backend.tar` e `vxame14_frontend.tar`).
+3. Compila l'APK Android per gli smartphone (`apk/vita-vX.Y.Z.apk`).
+4. Genera il report finale con i percorsi dei file generati.
+
+---
+
+### 🌐 Opzione 2: Rilascio Solo-Web / NAS — `.\deploy_build_pc.ps1`
+Quando hai fatto modifiche che riguardano **solo il sito web o il backend** (es. fix layout desktop, Nginx, query DB) e non serve rilasciare un nuovo APK:
+```powershell
 .\deploy_build_pc.ps1
 ```
+- Aggiorna solo `version` nel `version.json` sul sito.
+- **Preserva l'ultimo `apkVersion` invariato**, evitando che gli utenti Android ricevano falsi allarmi di aggiornamento APK.
+- Genera i file `vxame14_backend.tar` e `vxame14_frontend.tar`.
 
-Questo script crea/aggiorna i due archivi:
-- `vxame14_backend.tar`
-- `vxame14_frontend.tar`
+---
+
+### 📱 Opzione 3: Rilascio Solo-Mobile APK — `.\build_apk.ps1`
+Quando compili solo l'APK Android da caricare su Google Drive:
+```powershell
+.\build_apk.ps1
+```
+- Compila il bundle mobile Vite e genera l'APK in `apk/vita-vX.Y.Z.apk`.
+- Aggiorna `apkVersion` in `version.json` locale.
+
+> ⚠️ **Regola Operativa Importante**: Se decidi di usare gli script singoli per rilasciare **sia** l'APK **sia** il NAS, esegui **SEMPRE prima `.\build_apk.ps1` e POI `.\deploy_build_pc.ps1`**. In questo modo l'immagine `vxame14_frontend.tar` conterrà il file `version.json` già aggiornato con la nuova `apkVersion`! (Con `.\build_all.ps1` questo passaggio avviene già in automatico).
+
+---
 
 ### FASE B: Trasferimento e Avvio sul NAS
 1. Copia i file `.tar` e lo script `deploy_nas.sh` nella cartella condivisa del NAS:
@@ -163,6 +187,11 @@ Questo script crea/aggiorna i due archivi:
    ```
 
 Lo script `deploy_nas.sh` carica le nuove immagini, riavvia i container con tutti i parametri corretti e applica automaticamente eventuali nuove migrazioni del database con Alembic.
+
+### FASE C: Caricamento APK su Google Drive (Se compilato)
+Carica il nuovo file `apk/vita-vX.Y.Z.apk` nella cartella Google Drive condivisa:
+`https://drive.google.com/drive/folders/1UrahhXpwuU4xPXjF1aT83LflnhIeEkPz?usp=sharing`
+Gli utenti riceveranno automaticamente il popup di invito all'aggiornamento appena apriranno l'app sul telefono!
 
 ---
 
