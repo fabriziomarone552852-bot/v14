@@ -7,8 +7,10 @@ import {
 import { useMobileHeaderLogic, DEFAULT_ARCHIVE_TITLES } from '../hooks/useMobileHeaderLogic';
 import MobileSelectionHeader from './MobileSelectionHeader';
 import { MobileHeaderPeriodSwitcher } from './header/MobileHeaderPeriodSwitcher';
+import { MobileHeaderTrackerSwitcher } from './header/MobileHeaderTrackerSwitcher';
 import { MobileHeaderRightActions } from './header/MobileHeaderRightActions';
 import { MobileHeaderSpeedDial } from './header/MobileHeaderSpeedDial';
+import { useTrackerHeader } from '@/context/TrackerHeaderContext';
 
 interface MobileHeaderProps {
   onOpenDrawer: () => void;
@@ -24,6 +26,7 @@ export const MobileHeader: React.FC<MobileHeaderProps> = ({
     isMonth,
     isYear,
     isShopping,
+    isTrackers,
     isSettings,
     isSettingsSubpage,
     isArchivePage,
@@ -48,6 +51,12 @@ export const MobileHeader: React.FC<MobileHeaderProps> = ({
     handleShoppingNewGroup,
     handleHeaderBack,
   } = useMobileHeaderLogic();
+
+  const {
+    triggerSearch: triggerTrackerSearch,
+    triggerRandom: triggerTrackerRandom,
+    hasActiveFilters: trackerHasActiveFilters,
+  } = useTrackerHeader();
 
   return (
     <>
@@ -116,6 +125,8 @@ export const MobileHeader: React.FC<MobileHeaderProps> = ({
                 </div>
                 <div className="flex-1" />
               </>
+            ) : isTrackers ? (
+              <MobileHeaderTrackerSwitcher />
             ) : isShopping || isSettings ? (
               <div className="flex-1" />
             ) : (
@@ -132,10 +143,14 @@ export const MobileHeader: React.FC<MobileHeaderProps> = ({
               isArchivePage={isArchivePage}
               isShopping={isShopping}
               isSettings={isSettings}
+              isTrackers={isTrackers}
               archiveConfig={archiveConfig}
               triggerOpenSearch={triggerOpenSearch}
               triggerOpenNew={triggerOpenNew}
               openOmniSearch={openOmniSearch}
+              triggerTrackerSearch={triggerTrackerSearch}
+              triggerTrackerRandom={triggerTrackerRandom}
+              trackerHasActiveFilters={trackerHasActiveFilters}
               isAddMenuOpen={isAddMenuOpen}
               onToggleAddMenu={() => setIsAddMenuOpen((prev) => !prev)}
             />
@@ -145,7 +160,7 @@ export const MobileHeader: React.FC<MobileHeaderProps> = ({
 
       {/* 4. Menu Fluttuante Speed-Dial */}
       <MobileHeaderSpeedDial
-        isOpen={!isSettings && !isArchivePage && isAddMenuOpen}
+        isOpen={!isSettings && !isArchivePage && !isTrackers && isAddMenuOpen}
         onClose={() => setIsAddMenuOpen(false)}
         isShopping={isShopping}
         isDay={isDay}

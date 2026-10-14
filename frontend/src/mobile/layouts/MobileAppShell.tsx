@@ -6,6 +6,7 @@ import MobileDrawer from '../components/MobileDrawer';
 import { initCapacitorBackButton } from '@/utils/backButtonManager';
 
 import { MobileSelectionProvider } from '../context/MobileSelectionContext';
+import { TrackerHeaderProvider } from '@/context/TrackerHeaderContext';
 
 const ARCHIVE_PATHS = [
   '/tasks',
@@ -48,25 +49,27 @@ export const MobileAppShell: React.FC = () => {
 
   return (
     <MobileSelectionProvider>
-      <div className="h-[100dvh] flex flex-col overflow-hidden bg-gray-50 text-gray-900 selection:bg-blue-600 selection:text-white font-sans relative">
-        
-        {/* 1. HEADER MOBILE (Stile Google Calendar con Hamburger, Selettore 4 viste & Impostazioni) */}
-        <MobileHeader
-          onOpenDrawer={() => setIsDrawerOpen(true)}
-        />
+      <TrackerHeaderProvider>
+        <div className="h-[100dvh] flex flex-col overflow-hidden bg-gray-50 text-gray-900 selection:bg-blue-600 selection:text-white font-sans relative">
+          
+          {/* 1. HEADER MOBILE (Stile Google Calendar con Hamburger, Selettore 4 viste & Impostazioni) */}
+          <MobileHeader
+            onOpenDrawer={() => setIsDrawerOpen(true)}
+          />
 
-        {/* 2. MENU LATERALE A SCOMPARSA (Drawer) */}
-        <MobileDrawer
-          isOpen={isDrawerOpen}
-          onClose={() => setIsDrawerOpen(false)}
-        />
+          {/* 2. MENU LATERALE A SCOMPARSA (Drawer) */}
+          <MobileDrawer
+            isOpen={isDrawerOpen}
+            onClose={() => setIsDrawerOpen(false)}
+          />
 
-        {/* 3. MAIN CONTENT AREA (Occupa tutto lo spazio residuo senza scrollbar esterne) */}
-        <main className={`flex-1 min-h-0 w-full max-w-lg mx-auto px-2 py-1.5 overflow-y-auto flex flex-col ${isSettings ? 'no-scrollbar' : 'custom-scrollbar'}`}>
-          <Outlet />
-        </main>
+          {/* 3. MAIN CONTENT AREA (Occupa tutto lo spazio residuo senza scrollbar esterne) */}
+          <main className={`flex-1 min-h-0 w-full max-w-lg mx-auto px-2 py-1.5 overflow-y-auto flex flex-col ${isSettings ? 'no-scrollbar' : 'custom-scrollbar'}`}>
+            <Outlet />
+          </main>
 
-      </div>
+        </div>
+      </TrackerHeaderProvider>
     </MobileSelectionProvider>
   );
 };

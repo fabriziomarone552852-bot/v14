@@ -6,6 +6,7 @@ interface MobileHeaderRightActionsProps {
   isArchivePage: boolean;
   isShopping: boolean;
   isSettings: boolean;
+  isTrackers?: boolean;
   archiveConfig: {
     hasSearch?: boolean;
     hasNew?: boolean;
@@ -15,6 +16,9 @@ interface MobileHeaderRightActionsProps {
   triggerOpenSearch: () => void;
   triggerOpenNew: () => void;
   openOmniSearch: () => void;
+  triggerTrackerSearch?: () => void;
+  triggerTrackerRandom?: () => void;
+  trackerHasActiveFilters?: boolean;
   isAddMenuOpen: boolean;
   onToggleAddMenu: () => void;
 }
@@ -23,10 +27,14 @@ export const MobileHeaderRightActions: React.FC<MobileHeaderRightActionsProps> =
   isArchivePage,
   isShopping,
   isSettings,
+  isTrackers = false,
   archiveConfig,
   triggerOpenSearch,
   triggerOpenNew,
   openOmniSearch,
+  triggerTrackerSearch,
+  triggerTrackerRandom,
+  trackerHasActiveFilters = false,
   isAddMenuOpen,
   onToggleAddMenu,
 }) => {
@@ -92,10 +100,36 @@ export const MobileHeaderRightActions: React.FC<MobileHeaderRightActionsProps> =
         >
           <SearchIcon className="w-5 h-5 text-gray-800" />
         </button>
+      ) : isTrackers && !isSettings ? (
+        /* SE SIAMO IN TRACKERS: 1. RICERCA, 2. PALLINO BLU CON ? PER ESTRAZIONE CASUALE */
+        <>
+          <button
+            type="button"
+            onClick={triggerTrackerSearch}
+            className="relative w-9 h-9 rounded-xl text-gray-700 hover:text-gray-900 hover:bg-gray-100 active:scale-95 transition-all focus:outline-none cursor-pointer flex items-center justify-center"
+            title="Cerca nel catalogo"
+            aria-label="Cerca"
+          >
+            <SearchIcon className="w-5 h-5 text-gray-800" />
+            {trackerHasActiveFilters && (
+              <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-blue-600 rounded-full border border-white" />
+            )}
+          </button>
+
+          <button
+            type="button"
+            onClick={triggerTrackerRandom}
+            className="w-8 h-8 rounded-full bg-blue-600 hover:bg-blue-700 active:scale-95 text-white font-extrabold text-base flex items-center justify-center shadow-md transition-all cursor-pointer focus:outline-none"
+            title="Cosa guardare oggi? (Estrazione casuale)"
+            aria-label="Cosa guardare oggi?"
+          >
+            ?
+          </button>
+        </>
       ) : null}
 
-      {/* Tasto Più (+) per Agenda & Shopping (non mostrato in impostazioni o archivio) */}
-      {!isSettings && !isArchivePage && (
+      {/* Tasto Più (+) per Agenda & Shopping (non mostrato in impostazioni, archivio o trackers) */}
+      {!isSettings && !isArchivePage && !isTrackers && (
         <button
           type="button"
           onClick={onToggleAddMenu}

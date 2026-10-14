@@ -164,10 +164,21 @@ export const TrendUpIcon = ({ className = "w-5 h-5" }: { className?: string }) =
   </svg>
 );
 
-// Icona Film (Ciak)
+// Icona Film (Ciak cinematografico aperto)
 export const FilmIcon = ({ className = "w-4 h-4" }: { className?: string }) => (
-  <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="M3.375 7.5h17.25M3.375 16.5h17.25M6 4.5v15M18 4.5v15" />
+  <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
+    {/* Base della lavagnetta clapper */}
+    <path d="M2.5 10h19v9.75a1.75 1.75 0 01-1.75 1.75H4.25A1.75 1.75 0 012.5 19.75V10z" />
+    <path d="M2.5 13.5h19" />
+    {/* Strisce diagonali sulla barra inferiore */}
+    <path d="M6 10l2.5 3.5M10.5 10l2.5 3.5M15 10l2.5 3.5M19.5 10l1.5 2.1" />
+    {/* Braccio superiore aperto angolato a circa 22 gradi */}
+    <g transform="rotate(-22 3.5 10)">
+      <rect x="2.5" y="6.5" width="19" height="3.5" rx="0.75" />
+      <path d="M6 6.5l2.5 3.5M10.5 6.5l2.5 3.5M15 6.5l2.5 3.5M19.5 6.5l1.5 2.1" />
+    </g>
+    {/* Perno circolare a sinistra */}
+    <circle cx="3.5" cy="10" r="1.2" fill="currentColor" />
   </svg>
 );
 

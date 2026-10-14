@@ -46,7 +46,7 @@ def delete_my_account(
     return {"detail": "Account disattivato correttamente"}
 
 
-@router.get("/me/yearly-goals/{tracker_type}", response_model=schemas.UserYearlyGoalResponse)
+@router.get("/me/yearly-goals/{tracker_type}", response_model=schemas.UserYearlyGoalResponse | None)
 def get_my_yearly_goals(
     tracker_type: str,
     year: int,
@@ -55,15 +55,9 @@ def get_my_yearly_goals(
 ):
     """Restituisce l'obiettivo annuale per un determinato tracker_type e anno, 
     ereditando eventualmente quello dell'anno precedente se non è stato sovrascritto.
-    Ritorna 404 se non esiste alcun record per l'anno in corso o passati.
+    Ritorna None se non esiste alcun record per l'anno in corso o passati.
     """
-    goal = service.get_yearly_goal(db, current_user.id, tracker_type, year)
-    if not goal:
-        # Fallback value if no goal is ever set, or simply return 404
-        # We'll return 404 so the frontend knows there's no data
-        from fastapi import HTTPException
-        raise HTTPException(status_code=404, detail="Nessun obiettivo trovato per questo tracker")
-    return goal
+    return service.get_yearly_goal(db, current_user.id, tracker_type, year)
 
 
 @router.put("/me/yearly-goals/{tracker_type}", response_model=schemas.UserYearlyGoalResponse)

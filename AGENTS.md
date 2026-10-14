@@ -106,3 +106,64 @@ Quando l'utente scrive **"fine"** (o frasi equivalenti come *"abbiamo finito"*, 
      - Usare `alembic-test.bat` per generare e testare le migrazioni sull'ambiente di test (`test-smart`).
      - Verificare e applicare l'allineamento sul database reale di produzione del NAS (`family-smart` su `192.168.11.20`) eseguendo `alembic-prod.bat upgrade head` per garantire che il backend in produzione non fallisca con errori 500 (colonne mancanti).
 3. **Allineamento Rotte Nginx & Reverse Proxy**: Ogni nuova rotta API creata nel backend (o in `vite.config.ts`) deve essere TASSATIVAMENTE registrata anche nel reverse proxy di `frontend/nginx.conf`. Lo script `frontend/scripts/checkSync.js` (eseguito automaticamente da `npm run build` e `deploy_build_pc.ps1`) bloccherà il processo segnalando immediatamente qualsiasi rotta mancante.
+
+---
+
+## 🏛️ 6. Regole Architetturali d'Oro (Frontend-First & Gestione Dati)
+
+1. **La Regola del "Mazzo di Carte" (Tutto nel Frontend)**:
+   - I dati scaricati dal server sono da considerare come un "mazzo di carte" caricato nella memoria del client (RAM) all'avvio.
+   - **Il Backend è solo un archivio passivo**: FastAPI/Python gestisce solo operazioni CRUD (Create, Read, Update, Delete), permessi e controlli di sicurezza. Può applicare solo filtri macro iniziali (es. dati degli ultimi N giorni o per utente).
+   - **Tutta la logica interattiva vive in React**: Filtri, cambi di ordinamento, visibilità categorie, ricerche testuali, aggregazioni e gerarchie di sottotask avvengono **esclusivamente nel frontend**. Non si interroga continuamente il server per rimescolare o filtrare dati già presenti.
+
+2. **Gestione "Peso Piuma" per gli Allegati**:
+   - Per file, immagini o documenti si utilizzano **esclusivamente URL/link testuali**.
+   - Non salvare MAI file fisici, base64 o blob all'interno del database relazionale e non caricarli massivamente nella memoria del dispositivo.
+
+3. **Memoria Strategica ("Caldo" vs "Freddo")**:
+   - I dati "caldi" (di uso quotidiano e immediato) sono sempre pronti in RAM.
+   - Per i dati "freddi" (storico, mesi/anni passati, archivi), utilizzare il caricamento su richiesta (**Lazy Loading**), scaricandoli dal server solo se e quando l'utente li richiede esplicitamente.
+
+4. **Regola d'Oro Mobile UI: Modali Centrali per Selettori e Menu a Discesa**:
+   - Su smartphone / viste mobile, **NON utilizzare MAI menu a tendina aperti inline o popover a discesa libera** (che provocano tagli, clipping da overflow, problemi di z-index o difficoltà di tocco).
+   - Utilizzare **esclusivamente un piccolo modale centrato a finestra con backdrop oscurato** (`SelectModalDialog` o `MobileModalSelect`):
+     - Finestra centrata e contenuta (`max-w-sm`), con titolo esplicito della selezione e pulsante `X` per chiudere.
+     - Elenco opzioni verticale touch-friendly (`py-3`), con evidenziazione dell'opzione attiva in blu e spunta (`CheckCircleIcon`).
+     - Al tocco di un'opzione, la selezione si aggiorna istantaneamente e il modale si chiude in automatico.
+     - Applicare questo standard a tutti i selettori di liste personali, categorie, generi, network, stati di produzione o criteri di ordinamento nelle pagine mobile.
+
+---
+
+## 📐 7. Standard di Qualità del Codice & TypeScript Rigido
+
+1. **Eliminazione Assoluta di `any` (TypeScript Strict)**:
+   - È severamente vietato l'uso del tipo `any`. Nessuna scorciatoia di comodo.
+   - Se si incontra un dato non tipizzato, analizzarne la struttura e ricostruire la sua identità esatta creando `interface` o `type` dedicati, anche se annidati o complessi.
+   - Spiegare sempre sinteticamente quali tipi sono stati definiti e perché.
+
+2. **Principio DRY (Don't Repeat Yourself) & Estrazione**:
+   - Individuare duplicazioni logiche, funzionali o visive.
+   - Estrarre logiche condivise in funzioni helper (`utils/`), **Custom Hooks** di React o componenti UI atomici riutilizzabili.
+   - Mantenere un'unica fonte di verità per ogni meccanismo.
+
+3. **Separazione Logica / UI, File Snelli & Monitoraggio Dimensioni**:
+   - Evitare file monolitici o con troppe responsabilità. Se un componente o file supera la dimensione ottimale o fa troppe cose, spezzarlo.
+   - Separare nettamente la **logica applicativa e stato** (in custom hook dedicati) dalla **logica di visualizzazione** (componente visivo/JSX puro).
+   - **Avviso e Riduzione Automatica File Troppo Grandi**: Se durante la programmazione viene creato o modificato un file che risulta eccessivamente grande (indicativamente oltre 300-400 righe o con troppe logiche accorpate):
+     - L'assistente deve **segnalare immediatamente e in modo esplicito il problema all'utente nel messaggio successivo**.
+     - L'assistente deve **intervenire per ridurne la dimensione**, spezzando il file ed estraendo sotto-componenti visivi, custom hooks per lo stato, helper in `utils/` o definizioni di tipi dedicati.
+
+4. **Armonia, Coerenza e Nomenclatura**:
+   - Mantenere nomenclature coerenti in tutto il progetto (italiano o convenzioni già consolidate).
+   - Rispettare la struttura logica e modulare delle cartelle del progetto.
+
+---
+
+## 💬 8. Stile di Comunicazione & Spiegazioni con l'Utente
+
+1. **Spiegazioni Chiare, Semplici e Passo-Passo**:
+   - Spiegare le modifiche e le scelte architetturali in modo chiaro, amichevole e comprensibile anche a chi non è un programmatore professionista.
+   - Evitare tecnicismi astratti o gergo informatico superfluo quando si illustrano le novità o i passaggi svolti.
+2. **Codice Sempre Completo e Pronto**:
+   - Fornire soluzioni complete, concrete e rifinite, evitando mezze implementazioni o frammenti con segnaposto non funzionanti.
+

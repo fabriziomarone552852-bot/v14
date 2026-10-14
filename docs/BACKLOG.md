@@ -45,6 +45,7 @@ Questo documento serve a tracciare in modo strutturato:
 | **TECH-004** | **Reverse Proxy Nginx, Routing API & Crash AppShellLayout (Docker)** | `build` / docker | 🟢 Completato | 🟢 Completato | 🟢 **Completato** |
 | **TECH-005** | **Risoluzione 502 Bad Gateway NAS & Automated Docker Smoke Test** | `build` / docker | 🟢 Completato | 🟢 Completato | 🟢 **Completato** |
 | **TECH-006** | **Allineamento Migrazioni Alembic DB Produzione (NAS) & Fix Login 500** | `build` / `db` | 🟢 Completato | 🟢 Completato | 🟢 **Completato** |
+| **TECH-007** | **Configurazione TMDB Produzione NAS & Fix 500 Ricerca Serie** | `build` / `NAS` | 🟢 Completato | 🟢 Completato | 🟢 **Completato** |
 
 | **FEAT-013** | **Archivio Notifiche / Sezione Storico Notifiche** | `notifications` / UI | ÃƒÂ°Ã…Â¸Ã…Â¸Ã‚Â¢ Completato | ÃƒÂ°Ã…Â¸Ã…Â¸Ã‚Â¡ Da Implementare | ÃƒÂ°Ã…Â¸Ã…Â¸Ã‚Â¡ Media |
 

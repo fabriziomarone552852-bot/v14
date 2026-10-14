@@ -123,6 +123,7 @@ const AppRouter: React.FC = () => {
           <Route path="/shopping" element={<ShoppingPage />} />
 
           
+          <Route path="/trackers" element={<Navigate to="/trackers/serie-tv" replace />} />
           <Route path="/trackers/serie-tv" element={<TVSeriesPage />} />
 
           <Route path="/admin" element={<AdminPage />} />

@@ -86,6 +86,8 @@ Da qualsiasi computer, smartphone o tablet connesso alla rete locale (LAN o Wi-F
 - `ALGORITHM=HS256`
 - `ACCESS_TOKEN_EXPIRE_MINUTES=60`
 - `REFRESH_TOKEN_EXPIRE_DAYS=7`
+- `TMDB_API_KEY`: chiave API v3 TheMovieDatabase per il catalogo Serie TV e film
+- `TMDB_READ_ACCESS_TOKEN`: Bearer Token v4 per le chiamate REST a TheMovieDatabase
 
 ---
 
@@ -139,41 +141,40 @@ docker image prune -f
 
 ## 5. 🔄 Procedura per il Rilascio di Futuri Aggiornamenti
 
-A seconda dell'aggiornamento effettuato, puoi scegliere tra 3 modalità di compilazione ed esportazione sul PC di sviluppo:
+Il sistema utilizza una **versione unica unificata per tutto l'ecosistema Vita** (`package.json`, `version.json`, Web e APK Android). A seconda delle tue esigenze, puoi scegliere tra 3 script di compilazione:
 
 ### 🌟 Opzione 1: Rilascio Completo Unificato (CONSIGLIATA) — `.\build_all.ps1`
-Quando vuoi rilasciare sia i container per il NAS sia l'APK Android aggiornato per gli smartphone:
+Quando vuoi rilasciare contemporaneamente sia l'aggiornamento per il NAS sia il nuovo APK Android per gli smartphone:
 ```powershell
 .\build_all.ps1
 ```
-Lo script esegue automaticamente tutto in sequenza nell'ordine corretto:
-1. Allinea `version.json` impostando sia `version` (web) sia `apkVersion` al nuovo numero.
+Lo script esegue automaticamente tutto in un unico comando:
+1. Allinea `version.json` con la versione attuale di `package.json`.
 2. Compila ed esporta i container NAS (`vxame14_backend.tar` e `vxame14_frontend.tar`).
 3. Compila l'APK Android per gli smartphone (`apk/vita-vX.Y.Z.apk`).
-4. Genera il report finale con i percorsi dei file generati.
+4. Genera il report finale con i percorsi di tutti i file pronti per NAS e Google Drive.
 
 ---
 
 ### 🌐 Opzione 2: Rilascio Solo-Web / NAS — `.\deploy_build_pc.ps1`
-Quando hai fatto modifiche che riguardano **solo il sito web o il backend** (es. fix layout desktop, Nginx, query DB) e non serve rilasciare un nuovo APK:
+Quando hai fatto modifiche al solo backend o al sito web desktop/LAN e vuoi aggiornare esclusivamente i container del NAS:
 ```powershell
 .\deploy_build_pc.ps1
 ```
-- Aggiorna solo `version` nel `version.json` sul sito.
-- **Preserva l'ultimo `apkVersion` invariato**, evitando che gli utenti Android ricevano falsi allarmi di aggiornamento APK.
-- Genera i file `vxame14_backend.tar` e `vxame14_frontend.tar`.
+- Allinea `version.json` e verifica l'integrità del sistema.
+- Compila ed esporta i container `vxame14_backend.tar` e `vxame14_frontend.tar`.
 
 ---
 
-### 📱 Opzione 3: Rilascio Solo-Mobile APK — `.\build_apk.ps1`
-Quando compili solo l'APK Android da caricare su Google Drive:
+### 📱 Opzione 3: Compilazione Solo-Mobile APK — `.\build_apk.ps1`
+Quando vuoi compilare esclusivamente il nuovo pacchetto APK per smartphone:
 ```powershell
 .\build_apk.ps1
 ```
-- Compila il bundle mobile Vite e genera l'APK in `apk/vita-vX.Y.Z.apk`.
-- Aggiorna `apkVersion` in `version.json` locale.
+- Compila il bundle mobile Vite e genera l'APK nativo in `apk/vita-vX.Y.Z.apk`.
+- Allinea `version.json` locale.
 
-> ⚠️ **Regola Operativa Importante**: Se decidi di usare gli script singoli per rilasciare **sia** l'APK **sia** il NAS, esegui **SEMPRE prima `.\build_apk.ps1` e POI `.\deploy_build_pc.ps1`**. In questo modo l'immagine `vxame14_frontend.tar` conterrà il file `version.json` già aggiornato con la nuova `apkVersion`! (Con `.\build_all.ps1` questo passaggio avviene già in automatico).
+> 💡 **Nota Operativa**: Se devi rilasciare sia l'aggiornamento NAS sia l'APK, **usa direttamente `.\build_all.ps1`**: compila entrambi in parallelo e garantisce che il sito sul NAS e l'APK su Drive abbiano esattamente lo stesso numero di versione. Se usi gli script separati, esegui prima `.\build_apk.ps1` e poi `.\deploy_build_pc.ps1`.
 
 ---
 

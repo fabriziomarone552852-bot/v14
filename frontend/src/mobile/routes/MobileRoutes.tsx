@@ -10,6 +10,8 @@ import MobileMonthView from '../views/MobileMonthView';
 import MobileYearView from '../views/MobileYearView';
 
 import MobileShoppingView from '../views/MobileShoppingView';
+const MobileTVSeriesView = React.lazy(() => import('../views/MobileTVSeriesView'));
+const MobileTrackersPlaceholderView = React.lazy(() => import('../views/MobileTrackersPlaceholderView'));
 
 // Viste secondarie caricate su richiesta (Lazy)
 const AdminPage = React.lazy(() => import('@/views/AdminPage'));
@@ -50,7 +52,13 @@ export const MobileRoutes: React.FC = () => {
         <Route path="/shopping" element={<MobileShoppingView />} />
         <Route path="/shopping-archive" element={<ShoppingArchivePage />} />
 
-        {/* Sezione 3: Impostazioni & Hub Altro */}
+        {/* Sezione 3: Trackers (Serie TV, Film, Libri) */}
+        <Route path="/trackers" element={<Navigate to="/trackers/serie-tv" replace />} />
+        <Route path="/trackers/serie-tv" element={<MobileTVSeriesView />} />
+        <Route path="/trackers/film" element={<MobileTrackersPlaceholderView />} />
+        <Route path="/trackers/libri" element={<MobileTrackersPlaceholderView />} />
+
+        {/* Sezione 4: Impostazioni & Hub Altro */}
         <Route path="/settings" element={<MobileSettingsView />} />
         <Route path="/settings/user" element={<MobileSettingsView subview="user" />} />
         <Route path="/settings/profile" element={<MobileSettingsView subview="user" />} />

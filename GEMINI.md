@@ -24,3 +24,14 @@ Fare sempre riferimento a:
 - **DB, Alembic & Idempotenza**:
   - Tutte le migrazioni devono essere difensive e idempotenti (`if_exists=True` su drop index/table, `IF NOT EXISTS` su creazioni). Rimuovere `drop_table` accidentali generate da autogenerate.
   - Verifica sempre su test (`alembic-test.bat`) e accertati dell'allineamento sul DB di produzione NAS (`alembic-prod.bat upgrade head`).
+- **Architettura "Mazzo di Carte" & Frontend-First**:
+  - Il backend è un archivio CRUD passivo: filtri, ordinamenti, ricerche e gerarchie sottotask avvengono tutti in React/RAM.
+  - Allegati e file: **esclusivamente URL testuali**, mai blob o binari nel database.
+  - Memoria: dati caldi in RAM, dati storici/freddi caricati su richiesta (Lazy Loading).
+  - **Mobile UI & Selettori Centrali**: Su mobile vietati i dropdown/popover inline; usare sempre un piccolo modale centrato a finestra (`SelectModalDialog` / `MobileModalSelect`) con backdrop scuro, righe touch-friendly e chiusura automatica al tap.
+- **Standard Qualità Codice (TypeScript Strict & Clean)**:
+  - **Zero any**: vietato l'uso di `any`; tipizzare sempre con `interface`/`type` espliciti.
+  - **DRY & Modularità**: estrarre logiche ripetute in utils o custom hooks; spezzare i file lunghi separando UI (JSX) e logica/stato.
+  - **File Snelli & Monitoraggio Dimensioni**: se un file creato/modificato diventa troppo grande (> 300-400 righe o troppe responsabilità), segnalare subito il problema nel messaggio successivo all'utente e intervenire per spezzarlo/ridurlo estraendo sotto-componenti, custom hooks o helper.
+- **Comunicazione**: spiegazioni chiare, semplici e passo-passo senza tecnicismi superflui; codice sempre completo e rifinito.
+

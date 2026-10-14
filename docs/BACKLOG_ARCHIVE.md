@@ -4,6 +4,25 @@ Questo file contiene i task storici che sono stati completati e rimossi dal `BAC
 
 ---
 
+### [TECH-007] Configurazione TMDB Produzione NAS & Fix 500 Ricerca Serie (🟢 Completato)
+
+#### 📋 Descrizione
+Diagnosi e risoluzione dell'errore HTTP `500 (Internal Server Error)` restituito dalle chiamate API verso TheMovieDatabase (`/series/search`, `/tmdb/genres`, `/tmdb/providers`) dopo il deployment sul NAS QNAP, e bonifica del falso errore 404 per gli obiettivi annuali serie TV non ancora configurati.
+
+#### ⚙️ Dettagli Implementazione & Funzionalità Raggiunte
+- **Root Cause Analysis (Causa dell'HTTP 500)**:
+  - In ambiente locale di test (`test.bat`), `APP_ENV=test` caricava `backend/.env.test` dove `TMDB_API_KEY` e `TMDB_READ_ACCESS_TOKEN` erano presenti e valorizzati.
+  - In produzione sul NAS (`APP_ENV=prod`), il container Docker veniva avviato senza le variabili d'ambiente di TMDB, e `backend/.env.prod` ne era privo.
+  - La funzione `get_tmdb_headers()` in `backend/domains/trackers/service.py` sollevava un'eccezione HTTP 500 (`TMDB API non configurata (Token mancante)`) bloccando qualsiasi ricerca o catalogo serie TV.
+- **Configurazione e Deployment NAS**:
+  - Inserite le credenziali `TMDB_API_KEY` e `TMDB_READ_ACCESS_TOKEN` in `backend/.env.prod`, `backend/.env.prod.foggia` e `backend/.env.prod.vieste`.
+  - Aggiornato `deploy_nas.sh` includendo le variabili `-e TMDB_API_KEY` e `-e TMDB_READ_ACCESS_TOKEN` nel comando `docker run` per il container `backend`.
+  - Documentati i parametri e le variabili in `docs/DEPLOYMENT_NAS_QNAP.md`.
+- **Pulizia Log Endpoint Obiettivi Annuali**:
+  - Modificato l'endpoint `/users/me/yearly-goals/{tracker_type}` in `backend/domains/users/router.py` affinché restituisca `200 OK` con valore `null` anziché `404 Not Found` quando non esiste ancora un record per l'anno in corso, eliminando i messaggi d'errore rossi nella console del browser.
+
+---
+
 ### [TECH-006] Allineamento Migrazioni Alembic DB Produzione (NAS) & Fix Login 500 (✅ Completato)
 
 #### 📋 Descrizione

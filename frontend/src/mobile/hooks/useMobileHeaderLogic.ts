@@ -89,6 +89,7 @@ export const useMobileHeaderLogic = () => {
   const isMonth = path === '/mese';
   const isYear = path === '/anno';
   const isShopping = path === '/shopping';
+  const isTrackers = path.startsWith('/trackers');
   const isSettings = path.startsWith('/settings') || path === '/archivio' || path === '/admin';
   const isSettingsSubpage =
     path.startsWith('/settings/') || path === '/archivio' || path === '/admin';
@@ -169,6 +170,7 @@ export const useMobileHeaderLogic = () => {
     isMonth,
     isYear,
     isShopping,
+    isTrackers,
     isSettings,
     isSettingsSubpage,
     isArchivePage,

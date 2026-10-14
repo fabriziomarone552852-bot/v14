@@ -39,7 +39,9 @@ if ((Test-Path $pkgPath) -and (Test-Path $versionJsonPath)) {
         if ($pkg.version) {
             $vJson = Get-Content $versionJsonPath -Raw | ConvertFrom-Json
             $vJson.version = $pkg.version
-            # Nota: apkVersion non viene toccata qui, preservando la reale versione dell'APK presente su Drive
+            if ($vJson.PSObject.Properties['apkVersion']) {
+                $vJson.PSObject.Properties.Remove('apkVersion')
+            }
             [System.IO.File]::WriteAllText($versionJsonPath, ($vJson | ConvertTo-Json -Depth 5), [System.Text.UTF8Encoding]::new($false))
         }
     } catch {}

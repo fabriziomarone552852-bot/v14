@@ -41,6 +41,8 @@ docker run -d \
   -e GOOGLE_CLIENT_ID="948133104741-hsv9jk7ujtsavhq315m6j0oklcabu995.apps.googleusercontent.com" \
   -e GOOGLE_CLIENT_SECRET="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" \
   -e GOOGLE_REDIRECT_URI="https://smartagenda.tailf3b58c.ts.net/api/v1/google-calendar/callback" \
+  -e TMDB_API_KEY="843439e230288335ea2d15119f8a6c27" \
+  -e TMDB_READ_ACCESS_TOKEN="eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiI4NDM0MzllMjMwMjg4MzM1ZWEyZDE1MTE5ZjhhNmMyNyIsIm5iZiI6MTc4OTY2ODE3OS4xMTksInN1YiI6IjZhYWMyYjUzNDFmNjMwYmFlM2I0NDE1OSIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.UqqP0lMzZDRLgUOld7QAgjZJhfqg0FPECXnsIUG34xA" \
   vxame14_backend:latest
 
 # 5. Allineamento Database con Alembic

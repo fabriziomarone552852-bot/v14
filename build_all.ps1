@@ -35,15 +35,17 @@ if (Test-Path $changelogPath) {
     }
 }
 
-# Sincronizzazione automatica di public/version.json (allinea sia versione web che apkVersion)
+# Sincronizzazione automatica di public/version.json
 $versionJsonPath = Join-Path $frontendDir "public\version.json"
 if (Test-Path $versionJsonPath) {
     try {
         $vJson = Get-Content $versionJsonPath -Raw | ConvertFrom-Json
         $vJson.version = $appVersion
-        $vJson.apkVersion = $appVersion
+        if ($vJson.PSObject.Properties['apkVersion']) {
+            $vJson.PSObject.Properties.Remove('apkVersion')
+        }
         [System.IO.File]::WriteAllText($versionJsonPath, ($vJson | ConvertTo-Json -Depth 5), [System.Text.UTF8Encoding]::new($false))
-        Write-Host "Allineato version.json (web: v$appVersion, apk: v$appVersion)" -ForegroundColor Green
+        Write-Host "Allineato version.json alla versione v$appVersion" -ForegroundColor Green
     } catch {}
 }
 

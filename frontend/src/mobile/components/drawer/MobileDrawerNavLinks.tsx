@@ -1,6 +1,6 @@
-// src/mobile/components/drawer/MobileDrawerNavLinks.tsx
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
+import { useAuth } from '@/context/AuthContext';
 import {
   CountdownIcon,
   CalendarDayIcon,
@@ -8,6 +8,9 @@ import {
   CalendarMonthIcon,
   CalendarYearIcon,
   FreeTimeIcon,
+  TvIcon,
+  FilmIcon,
+  BookIcon,
   UniversityIcon,
   ShoppingIcon,
 } from '@/components/shared/utils/Icons';
@@ -41,71 +44,120 @@ export const MobileDrawerNavLinks: React.FC<MobileDrawerNavLinksProps> = ({
   onClose,
   isSuperuser,
 }) => {
+  const location = useLocation();
+  const { user } = useAuth();
+
+  const prefs = user?.module_preferences || {};
+  const showAgenda = prefs.agenda !== false;
+  const showShopping = prefs.shopping !== false;
+  const showTrackers = prefs.trackers !== false;
+
+  const isTrackersActive = location.pathname.startsWith('/trackers');
+
   return (
     <nav className="flex-1 overflow-y-auto px-1 py-4 space-y-1 custom-scrollbar">
       {/* Sezione: Agenda */}
-      <div className="flex flex-col">
-        <Link
-          to="/"
-          onClick={onClose}
-          className={getMainLinkClasses(isAgendaActive && isActive('/'))}
-        >
-          <CountdownIcon className="w-6 h-6 shrink-0" />
-          <span className="font-semibold tracking-wide text-sm">Agenda</span>
-        </Link>
+      {showAgenda && (
+        <div className="flex flex-col">
+          <Link
+            to="/"
+            onClick={onClose}
+            className={getMainLinkClasses(isAgendaActive && isActive('/'))}
+          >
+            <CountdownIcon className="w-6 h-6 shrink-0" />
+            <span className="font-semibold tracking-wide text-sm">Agenda</span>
+          </Link>
 
-        {/* Sottomenu Viste Agenda */}
-        {isAgendaActive && (
-          <div className="flex flex-col mt-1 mb-2 animate-fadeIn pl-6 pr-2 space-y-1">
-            <Link
-              to="/giorno"
-              onClick={onClose}
-              className={getSubLinkClasses(isActive('/giorno'))}
-            >
-              <CalendarDayIcon className="w-4 h-4 shrink-0" />
-              <span className="text-sm">Giorno</span>
-            </Link>
+          {/* Sottomenu Viste Agenda */}
+          {isAgendaActive && (
+            <div className="flex flex-col mt-1 mb-2 animate-fadeIn pl-6 pr-2 space-y-1">
+              <Link
+                to="/giorno"
+                onClick={onClose}
+                className={getSubLinkClasses(isActive('/giorno'))}
+              >
+                <CalendarDayIcon className="w-4 h-4 shrink-0" />
+                <span className="text-sm">Giorno</span>
+              </Link>
 
-            <Link
-              to="/settimana"
-              onClick={onClose}
-              className={getSubLinkClasses(isActive('/settimana'))}
-            >
-              <CalendarWeekIcon className="w-4 h-4 shrink-0" />
-              <span className="text-sm">Settimana</span>
-            </Link>
+              <Link
+                to="/settimana"
+                onClick={onClose}
+                className={getSubLinkClasses(isActive('/settimana'))}
+              >
+                <CalendarWeekIcon className="w-4 h-4 shrink-0" />
+                <span className="text-sm">Settimana</span>
+              </Link>
 
-            <Link
-              to="/mese"
-              onClick={onClose}
-              className={getSubLinkClasses(isActive('/mese'))}
-            >
-              <CalendarMonthIcon className="w-4 h-4 shrink-0" />
-              <span className="text-sm">Mese</span>
-            </Link>
+              <Link
+                to="/mese"
+                onClick={onClose}
+                className={getSubLinkClasses(isActive('/mese'))}
+              >
+                <CalendarMonthIcon className="w-4 h-4 shrink-0" />
+                <span className="text-sm">Mese</span>
+              </Link>
 
-            <Link
-              to="/anno"
-              onClick={onClose}
-              className={getSubLinkClasses(isActive('/anno'))}
-            >
-              <CalendarYearIcon className="w-4 h-4 shrink-0" />
-              <span className="text-sm">Anno</span>
-            </Link>
-          </div>
-        )}
-      </div>
+              <Link
+                to="/anno"
+                onClick={onClose}
+                className={getSubLinkClasses(isActive('/anno'))}
+              >
+                <CalendarYearIcon className="w-4 h-4 shrink-0" />
+                <span className="text-sm">Anno</span>
+              </Link>
+            </div>
+          )}
+        </div>
+      )}
 
-      {/* Voci Principali: Free Time, Università, Shopping */}
-      <Link
-        to="/free-time"
-        onClick={onClose}
-        className={getMainLinkClasses(isActive('/free-time'))}
-      >
-        <FreeTimeIcon className="w-6 h-6 shrink-0" />
-        <span className="font-semibold tracking-wide text-sm">Free Time</span>
-      </Link>
+      {/* Sezione: Trackers */}
+      {showTrackers && (
+        <div className="flex flex-col">
+          <Link
+            to="/trackers/serie-tv"
+            onClick={onClose}
+            className={getMainLinkClasses(isTrackersActive)}
+          >
+            <FreeTimeIcon className="w-6 h-6 shrink-0" />
+            <span className="font-semibold tracking-wide text-sm">Trackers</span>
+          </Link>
 
+          {/* Sottomenu Viste Trackers */}
+          {isTrackersActive && (
+            <div className="flex flex-col mt-1 mb-2 animate-fadeIn pl-6 pr-2 space-y-1">
+              <Link
+                to="/trackers/serie-tv"
+                onClick={onClose}
+                className={getSubLinkClasses(isActive('/trackers/serie-tv'))}
+              >
+                <TvIcon className="w-4 h-4 shrink-0" />
+                <span className="text-sm">Serie TV</span>
+              </Link>
+
+              <Link
+                to="/trackers/film"
+                onClick={onClose}
+                className={getSubLinkClasses(isActive('/trackers/film'))}
+              >
+                <FilmIcon className="w-4 h-4 shrink-0" />
+                <span className="text-sm">Film</span>
+              </Link>
+
+              <Link
+                to="/trackers/libri"
+                onClick={onClose}
+                className={getSubLinkClasses(isActive('/trackers/libri'))}
+              >
+                <BookIcon className="w-4 h-4 shrink-0" />
+                <span className="text-sm">Libri</span>
+              </Link>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Voci Principali: Università, Shopping */}
       <Link
         to="/universita"
         onClick={onClose}
@@ -115,14 +167,16 @@ export const MobileDrawerNavLinks: React.FC<MobileDrawerNavLinksProps> = ({
         <span className="font-semibold tracking-wide text-sm">Università</span>
       </Link>
 
-      <Link
-        to="/shopping"
-        onClick={onClose}
-        className={getMainLinkClasses(isActive('/shopping'))}
-      >
-        <ShoppingIcon className="w-6 h-6 shrink-0" />
-        <span className="font-semibold tracking-wide text-sm">Shopping</span>
-      </Link>
+      {showShopping && (
+        <Link
+          to="/shopping"
+          onClick={onClose}
+          className={getMainLinkClasses(isActive('/shopping'))}
+        >
+          <ShoppingIcon className="w-6 h-6 shrink-0" />
+          <span className="font-semibold tracking-wide text-sm">Shopping</span>
+        </Link>
+      )}
 
       {/* Superuser Section (se admin) */}
       {isSuperuser && (

@@ -1,4 +1,4 @@
-﻿// src/data/changelogData.ts
+// src/data/changelogData.ts
 
 export interface ChangelogItem {
   id: string;
@@ -15,11 +15,51 @@ export interface ChangelogItem {
 
 export const CHANGELOG_HISTORY: ChangelogItem[] = [
   {
+    id: 'v15.1.0',
+    version: '15.1.0',
+    date: 'Ottobre 2026',
+    title: 'Supporto Mobile Trackers & Serie TV con Header Slider e Vista a Pagine',
+    isLatest: true,
+    published: false,
+    highlights: [
+      'Introdotta la nuova vista mobile dedicata per le Serie TV con navigazione swipe touch a due pagine (Libreria e Dashboard/Attività).',
+      'Aggiunto lo switcher a scorrimento nell\'Header Mobile per alternare tra Serie TV, Film e Libri con tasto di ricerca e pallino blu "?" per l\'estrazione casuale.',
+      'Modale estrazione casuale a tutto schermo su mobile con sfondo chiaro smerigliato dove le locandine rotanti sono chiaramente visibili in trasparenza, con pulsante "Mostra in dettaglio".',
+      'Allineati routing e navigazione in AppShell (Desktop e Mobile) con redirect automatico da /trackers a /trackers/serie-tv.'
+    ],
+    features: [
+      'Mobile TV Series View: Pagina ottimizzata per smartphone con pillole di stato, banner informativo filtri attivi e griglia locandine a 2 colonne.',
+      'Mobile TV Series Search & Filters Fullscreen: Nuova interfaccia di ricerca a tutto schermo richiamabile dalla lente nell\'header con barra superiore fissa: freccia indietro, campo di ricerca e pulsante "X" per azzerare l\'intera ricerca. All\'avvio della ricerca compaiono direttamente sotto le locandine TMDB (o il messaggio di nessun risultato) senza banner intermedi. Toccando il campo di ricerca si riaprono le impostazioni approfondite (sezione "Liste" pulita, Genere, Network, Anno, Stato, Voto e Ordinamento con modali centrali).',
+      'Mobile TV Slider Header: Segmented switcher orizzontale nell\'header mobile per Serie TV, Film e Libri coerente con il selettore periodi dell\'agenda con badge di notifica per filtri attivi.',
+      'Header Trackers Mobile Actions: Rimosso il tasto "+" speed dial e inseriti la lente di ricerca e il pulsante circolare blu "?" per l\'estrazione casuale.',
+      'Modale Estrazione Casuale Fullscreen: Schermata a tutto schermo su mobile con sfondo chiaro smerigliato (frosted glass) con locandine rotanti ben visibili, animazione di estrazione e pulsante "Mostra in dettaglio". Versione Web ripristinata con BaseModal.',
+      'Icona Ciak Aperto Film: Grafica vettoriale per la sezione Film con ciak aperto inclinato, perno laterale e strisce diagonali alternate.',
+      'EmptyState Modale Estrazione: Integrato il componente ufficiale EmptyState con emoji 😢 quando la libreria è vuota, sia su Desktop che Mobile.',
+      'Mobile TV Bottom Sliding: Paginazione touch orizzontale con indicatori dots tra Libreria locandine e Dashboard con obiettivo annuale, prossimi episodi e citazione del giorno.',
+      'Mobile Trackers Placeholder: Viste informative dedicate per Film e Libri per consentire una navigazione fluida e priva di errori 404 tra tutte le voci dello slider Trackers.',
+      'Mobile Drawer Navigation: Integrata la sezione espandibile Trackers nel menu a scomparsa laterale al posto del vecchio placeholder Free Time.'
+    ],
+    improvements: [
+      'Mobile TV Series Search Cards Orizzontali: I risultati di ricerca TMDB e per liste personali sono ora visualizzati con card orizzontali compatte dotate di locandina a sinistra con bordo colorato ispessito per lo stato in libreria, anno di uscita pulito (senza badge) posizionato sopra il titolo, titolo con troncatura a massimo 2 righe e tasto rapido "+" per l\'aggiunta immediata.',
+      'Mobile Search Button Fisso & Filtri Scrollabili: Il pulsante blu di azione ricerca è ora fissato stabilmente sul fondo dello schermo con safe area Android, lasciando scorrere in modo indipendente l\'area dei filtri tra header e pulsante.',
+      'Ricerca per Liste Personali Diretta: Selezionando una lista personale senza digitare testo, vengono caricate e mostrate direttamente le serie presenti nella lista selezionata, con modale centrale di ordinamento ripulito da duplicati.',
+      'Ottimizzazione Spazio Mobile Serie TV: Rimossa la barra di ricerca fissa sopra le locandine su mobile, massimizzando l\'area visuale per le copertine della libreria.',
+      'Routing AppShell: Reindirizzamento trasparente di /trackers verso /trackers/serie-tv per evitare schermate 404 sia su Desktop che Mobile.',
+      'Supporto Back Gesture Android: Chiusura immediata della ricerca e del modale di estrazione a tutto schermo tramite tasto o gesture Indietro di sistema.'
+    ],
+    fixes: [
+      'React Rules of Hooks in Ricerca Serie TV: Corretto l\'ordine di esecuzione degli hook in MobileTVSeriesSearchModal, spostando il controllo di apertura (isOpen) dopo tutti gli hook di stato e memoizzazione per prevenire l\'errore "Rendered more hooks than during the previous render".',
+      'Navigazione Mobile da Serie TV: Risolto il blocco della navigazione che impediva di cambiare pagina dopo essere entrati in Serie TV, eliminando il ciclo di re-render in TrackerHeaderProvider tramite stabilizzazione useMemo e useCallback.',
+      'Configurazione TMDB Produzione (NAS): Integrate le chiavi TMDB_API_KEY e TMDB_READ_ACCESS_TOKEN in .env.prod e deploy_nas.sh, eliminando il fallimento HTTP 500 durante la ricerca serie TV e il recupero generi/provider.',
+      'Endpoint Obiettivi Annuali Tracker: Allineato l\'endpoint /users/me/yearly-goals/{tracker_type} per ritornare 200 con null invece di 404 quando nessun obiettivo è ancora configurato, ripulendo i log del browser.'
+    ]
+  },
+  {
     id: 'v15.0.3',
     version: '15.0.3',
     date: 'Ottobre 2026',
     title: 'Allineamento Migrazioni Database Produzione (NAS) & Fix Login HTTP 500',
-    isLatest: true,
+    isLatest: false,
     published: true,
     highlights: [
       'Risolto l\'errore HTTP 500 in fase di login sul NAS (PostgreSQL family-smart) dovuto a colonne utente mancanti (profile_picture_url, default_startup_page, module_preferences).',

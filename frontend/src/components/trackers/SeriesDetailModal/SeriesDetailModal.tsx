@@ -36,6 +36,7 @@ interface SeriesDetailModalProps {
   onSelectRecommendation?: (series: SeriesRecommendation) => void;
   onGenreClick?: (genre: string) => void;
   onPlatformClick?: (platform: string) => void;
+  zIndexClass?: string;
 }
 
 export const SeriesDetailModal: React.FC<SeriesDetailModalProps> = ({
@@ -49,6 +50,7 @@ export const SeriesDetailModal: React.FC<SeriesDetailModalProps> = ({
   onSelectRecommendation,
   onGenreClick,
   onPlatformClick,
+  zIndexClass,
 }) => {
   const { updateSeries } = useTrackersMutations();
 
@@ -104,6 +106,7 @@ export const SeriesDetailModal: React.FC<SeriesDetailModalProps> = ({
       title=""
       maxWidthClass="max-w-5xl"
       hideHeader={true}
+      zIndexClass={zIndexClass || 'z-[10020]'}
     >
       <div className="-m-6 relative flex flex-col min-h-[70vh] max-h-[85vh] rounded-2xl overflow-hidden bg-gray-50">
         {/* TESTATA CON BACKDROP, BADGE E AMICI */}
