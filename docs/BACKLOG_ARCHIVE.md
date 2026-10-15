@@ -4,6 +4,66 @@ Questo file contiene i task storici che sono stati completati e rimossi dal `BAC
 
 ---
 
+### [SHOPPING-011] Gestione ed Editing Rapido Scontrini della Sessione in Corso (🟢 Completato)
+
+#### 📋 Descrizione
+Introduzione di un pannello di controllo ed editing immediato nella pagina di registrazione rapida scontrini riservata all'amministratore/superuser (`AdminReceiptQuickEntrySection`), consentendo di visualizzare, modificare qualsiasi campo o eliminare all'istante le righe appena registrate durante la sessione senza dover navigare nell'Archivio Prezzi.
+
+#### ⚙️ Dettagli Implementazione & Funzionalità Raggiunte
+- **Custom Hook `useAdminReceiptSessionBatches`**:
+  - Mantiene lo stato in memoria RAM dei lotti registrati nella sessione attiva (`sessionBatches`).
+  - Carica automaticamente all'apertura i lotti inseriti nella giornata odierna (`loadTodayBatches`) per preservare la continuità anche in caso di refresh della pagina.
+  - Al salvataggio di uno scontrino (`createQuickPriceBatch`), i record restituiti dal server vengono catturati e aggiunti istantaneamente in cima alla lista.
+  - Fornisce funzioni per il salvataggio modifiche (`updateInventoryBatch`) e la cancellazione con conferma (`deleteInventoryBatch`), sincronizzando transparentemente sia lo stato locale in RAM che il ricaricamento dei cataloghi/autocompletamento.
+- **Componente Visivo `AdminReceiptSessionBatchesSection`**:
+  - Posizionato direttamente sotto al modulo di inserimento scontrino.
+  - Mostra il riepilogo conteggio articoli e totale monetario speso nella sessione (`€`).
+  - Tabella completa con colonne Data, Prodotto, Brand (badge), Supermercato/Negozio (badge), Quantità con formattazione dinamica fino a 3 decimali (es. `0,104 kg` o `1 pz`), Prezzo Totale e Prezzo Unitario.
+  - Azioni rapide per riga: pulsante ✏️ (Modifica) che apre il modale completo e pulsante 🗑️ (Elimina) con alert di conferma.
+  - Stato vuoto elegante con placeholder esplicativo in assenza di registrazioni.
+- **Supporto Eliminazione in `ShoppingEditBatchModal`**:
+  - Aggiunto il pulsante 🗑️ Elimina Registrazione nei footer sia desktop (`BaseModal`) che mobile (`MobileBaseModal`) quando la prop `onDelete` è fornita.
+
+---
+
+### [SHOPPING-010] Precisione Quantità e Pesature Spesa a 3 Decimali (NUMERIC 12,3) (🟢 Completato)
+
+#### 📋 Descrizione
+Estensione della precisione numerica delle quantità acquistate nel modulo Shopping per gestire correttamente valori inferiori all'unità e pesature al banco (es. `0,104 kg` / `104 grammi`), risolvendo il troncamento forzato al primo decimale (`0,1`).
+
+#### ⚙️ Dettagli Implementazione & Funzionalità Raggiunte
+- **Database & Migrazione Alembic Idempotente**:
+  - Creata la migrazione `b1c2d3e4f5a6_alter_quantity_columns_to_numeric_12_3.py`.
+  - Aggiornate le colonne `inventory_batch.quantity_purchased` e `shopping_list_items.quantity` da `NUMERIC(12, 2)` a `NUMERIC(12, 3)`.
+  - Eseguita con successo la migrazione sia sul database di collaudo locale `test-smart` (`alembic-test.bat upgrade head`) sia sul database di produzione reale del NAS `family-smart` (`alembic-prod.bat upgrade head`).
+- **Modelli SQLAlchemy & Schemi Pydantic**:
+  - Allineati `backend/domains/shopping/models/inventory.py` e `backend/domains/shopping/models/lists.py`.
+  - Aggiornati gli schemi Pydantic (`InventoryBatchBase`, `QuickPriceRecordCreate`, `InventoryBatchUpdate`, `ShoppingListItemCreate`, `ShoppingListItemUpdate`) impostando `decimal_places=3`.
+  - Separato il validatore di troncamento: `_truncate_quantity` preserva 3 cifre decimali (`0.001`), mantenendo `_truncate_2_decimals` rigorosamente a 2 cifre (`0.01`) per i prezzi monetari.
+- **Frontend & Arrotondamenti Stepper**:
+  - Aggiornato `ShoppingQuantityInput.tsx` per calcolare gli step e gli arrotondamenti su base millesimale (`Math.round(nextNum * 1000) / 1000`), evitando artefatti di floating point in JavaScript.
+
+---
+
+### [SHOPPING-009] Allineamento "Mazzo di Carte" Cross-Dominio & Rimozione Limiti Catalogo (🟢 Completato)
+
+#### 📋 Descrizione
+Eliminazione dei limiti forzati di default imposti dal backend (`limit=20`, `limit=50`, `limit=100`) su catalogo shopping, eventi, interazioni/notifiche e feedback, riallineando l'intera applicazione al principio architetturale aureo "Mazzo di Carte" (dati scaricati integralmente in RAM del client, filtri e logica interattiva gestiti in React).
+
+#### ⚙️ Dettagli Implementazione & Funzionalità Raggiunte
+- **Catalogo Shopping (`/products`, `/suppliers`, `/brands`)**:
+  - Rimosso il `limit=20` predefinito negli endpoint backend del catalogo shopping.
+  - Risolta l'anomalia per cui nell'inserimento rapido scontrini alcuni prodotti già registrati non venivano rilevati nell'autocompletamento o comparivano solo i primi 20 in ordine alfabetico.
+- **Agenda & Eventi (`/events`)**:
+  - Resi opzionali `limit` e `offset` nel router, service e repository di `events`.
+  - Il frontend riceve l'intero archivio eventi per consentire visualizzazione annuale, filtri per categoria e ricerche storiche senza troncamenti a 100 impegni.
+- **Notifiche & Interazioni (`/interactions`)**:
+  - Reso opzionale `limit` nell'endpoint `/interactions` per garantire che tutte le notifiche di sistema restino permanenti e storicizzate nella sidebar senza autodistruggersi o scomparire oltre la 50esima.
+- **Segnalazioni Feedback (`/feedback/reports`, `/feedback/reports/me`)**:
+  - Resi opzionali `limit` e `offset` nel router e service, e rimosso l'hardcoding `limit: 100` in `feedbackApi.ts`.
+
+---
+
 ### [TECH-007] Configurazione TMDB Produzione NAS & Fix 500 Ricerca Serie (🟢 Completato)
 
 #### 📋 Descrizione

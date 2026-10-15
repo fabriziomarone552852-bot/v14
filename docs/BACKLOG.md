@@ -46,6 +46,9 @@ Questo documento serve a tracciare in modo strutturato:
 | **TECH-005** | **Risoluzione 502 Bad Gateway NAS & Automated Docker Smoke Test** | `build` / docker | 🟢 Completato | 🟢 Completato | 🟢 **Completato** |
 | **TECH-006** | **Allineamento Migrazioni Alembic DB Produzione (NAS) & Fix Login 500** | `build` / `db` | 🟢 Completato | 🟢 Completato | 🟢 **Completato** |
 | **TECH-007** | **Configurazione TMDB Produzione NAS & Fix 500 Ricerca Serie** | `build` / `NAS` | 🟢 Completato | 🟢 Completato | 🟢 **Completato** |
+| **SHOPPING-009** | **Allineamento "Mazzo di Carte" Cross-Dominio & Rimozione Limiti Catalogo** | `core` / `shopping` | 🟢 Completato | 🟢 Completato | 🟢 **Completato** |
+| **SHOPPING-010** | **Precisione Quantità e Pesature Spesa a 3 Decimali (NUMERIC 12,3)** | `shopping` / `db` | 🟢 Completato | 🟢 Completato | 🟢 **Completato** |
+| **SHOPPING-011** | **Gestione ed Editing Rapido Scontrini della Sessione in Corso** | `shopping` / `admin` | 🟢 Completato | 🟢 Completato | 🟢 **Completato** |
 
 | **FEAT-013** | **Archivio Notifiche / Sezione Storico Notifiche** | `notifications` / UI | ÃƒÂ°Ã…Â¸Ã…Â¸Ã‚Â¢ Completato | ÃƒÂ°Ã…Â¸Ã…Â¸Ã‚Â¡ Da Implementare | ÃƒÂ°Ã…Â¸Ã…Â¸Ã‚Â¡ Media |
 
@@ -462,13 +465,6 @@ Studio di fattibilitÃƒÂƒÃ‚Â , analisi delle architetture e prototipazio
 #### [SEED-002] Verifica e Risoluzione Prodotti Seed Mancanti nelle Liste
 - **Descrizione**: Indagine e fix del problema di visualizzazione per cui alcuni prodotti seed (prodotti di sistema iniziale) non vengono mostrati o risultano nascosti nelle liste e nello storico dell'applicazione.
 - **Stato**: ÃƒÂ°Ã…Â¸Ã¢Â€ÂÃ‚Â´ Da Iniziare (Analisi query repository e filtri frontend).
-
-#### [SHOPPING-005] Note e Recensioni Prodotti/Brand nel Catalogo
-- **Descrizione**: Aggiunta della possibilitÃƒÂƒÃ‚Â  di inserire note testuali o valutazioni (es. "Non mi piace, ÃƒÂƒÃ‚Â¨ troppo amaro") specifiche per i prodotti a catalogo e i brand associati, rendendole visibili durante l'inserimento nella lista della spesa.
-- **Possibili Approcci Architetturali**:
-  - **Via 1 (Soluzione Preferita - Tabella Dedicata)**: Creare una nuova tabella `ShoppingProductFeedback` (`user_id`, `product_id`, `rating`, `notes`) per permettere valutazioni personali separate per ogni utente del gruppo familiare e massima scalabilitÃƒÂƒÃ‚Â .
-  - **Via 2 (Soluzione Alternativa - Campo Singolo)**: Aggiungere un semplice campo `rating_notes` direttamente nel modello `ShoppingProduct`, nel caso si preferisca una singola "nota globale" visibile e modificabile da tutta la famiglia.
-- **Stato**: ÃƒÂ°Ã…Â¸Ã¢Â€ÂÃ‚Â´ Da Iniziare (Nuovo modello o colonna DB, Alembic e UI Frontend).
 
 ---
 
