@@ -19,6 +19,11 @@ def _truncate_2_decimals(value: object) -> Decimal:
     return dec.quantize(Decimal("0.01"), rounding=ROUND_DOWN)
 
 
+def _truncate_quantity(value: object) -> Decimal:
+    dec = Decimal(str(value))
+    return dec.quantize(Decimal("0.001"), rounding=ROUND_DOWN)
+
+
 class InventoryBatchBase(StrictBaseModel):
     product_id: Optional[int] = None
     list_item_id: Optional[int] = None
@@ -33,7 +38,7 @@ class InventoryBatchBase(StrictBaseModel):
     quantity_purchased: Decimal = Field(
         ...,
         max_digits=12,
-        decimal_places=2,
+        decimal_places=3,
         gt=Decimal("0"),
     )
 
@@ -47,9 +52,16 @@ class InventoryBatchBase(StrictBaseModel):
     is_on_sale: bool = False
     purchased_by_user_id: Optional[int] = None
 
-    @field_validator("quantity_purchased", "purchase_price", mode="before")
+    @field_validator("quantity_purchased", mode="before")
     @classmethod
-    def truncate_decimals(cls, value: object) -> object:
+    def truncate_quantity_purchased(cls, value: object) -> object:
+        if value is None or value == "":
+            return value
+        return _truncate_quantity(value)
+
+    @field_validator("purchase_price", mode="before")
+    @classmethod
+    def truncate_purchase_price(cls, value: object) -> object:
         if value is None or value == "":
             return value
         return _truncate_2_decimals(value)
@@ -70,7 +82,7 @@ class QuickPriceRecordCreate(StrictBaseModel):
     quantity_purchased: Decimal = Field(
         default=Decimal("1"),
         max_digits=12,
-        decimal_places=2,
+        decimal_places=3,
         gt=Decimal("0"),
     )
     purchase_price: Decimal = Field(
@@ -81,9 +93,16 @@ class QuickPriceRecordCreate(StrictBaseModel):
     )
     is_on_sale: bool = False
 
-    @field_validator("quantity_purchased", "purchase_price", mode="before")
+    @field_validator("quantity_purchased", mode="before")
     @classmethod
-    def truncate_decimals(cls, value: object) -> object:
+    def truncate_quantity_purchased(cls, value: object) -> object:
+        if value is None or value == "":
+            return value
+        return _truncate_quantity(value)
+
+    @field_validator("purchase_price", mode="before")
+    @classmethod
+    def truncate_purchase_price(cls, value: object) -> object:
         if value is None or value == "":
             return value
         return _truncate_2_decimals(value)
@@ -119,7 +138,7 @@ class InventoryBatchUpdate(StrictBaseModel):
     quantity_purchased: Optional[Decimal] = Field(
         default=None,
         max_digits=12,
-        decimal_places=2,
+        decimal_places=3,
         gt=Decimal("0"),
     )
 
@@ -133,9 +152,16 @@ class InventoryBatchUpdate(StrictBaseModel):
     is_on_sale: Optional[bool] = None
     purchased_by_user_id: Optional[int] = None
 
-    @field_validator("quantity_purchased", "purchase_price", mode="before")
+    @field_validator("quantity_purchased", mode="before")
     @classmethod
-    def truncate_decimals(cls, value: object) -> object:
+    def truncate_quantity_purchased(cls, value: object) -> object:
+        if value is None or value == "":
+            return value
+        return _truncate_quantity(value)
+
+    @field_validator("purchase_price", mode="before")
+    @classmethod
+    def truncate_purchase_price(cls, value: object) -> object:
         if value is None or value == "":
             return value
         return _truncate_2_decimals(value)

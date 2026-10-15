@@ -19,6 +19,11 @@ def _truncate_2_decimals(value: object) -> Decimal:
     return dec.quantize(Decimal("0.01"), rounding=ROUND_DOWN)
 
 
+def _truncate_quantity(value: object) -> Decimal:
+    dec = Decimal(str(value))
+    return dec.quantize(Decimal("0.001"), rounding=ROUND_DOWN)
+
+
 class ShoppingListCreate(StrictBaseModel):
     group_id: Optional[int] = None
     visibility_id: int
@@ -91,7 +96,7 @@ class ShoppingListItemCreate(StrictBaseModel):
     quantity: Optional[Decimal] = Field(
         default=None,
         max_digits=12,
-        decimal_places=2,
+        decimal_places=3,
         ge=Decimal("0"),
     )
     unit_id: Optional[int] = None
@@ -118,7 +123,7 @@ class ShoppingListItemCreate(StrictBaseModel):
     def truncate_quantity(cls, value: object) -> object:
         if value is None or value == "":
             return value
-        return _truncate_2_decimals(value)
+        return _truncate_quantity(value)
 
 
 class ShoppingListItemUpdate(StrictBaseModel):
@@ -129,7 +134,7 @@ class ShoppingListItemUpdate(StrictBaseModel):
     quantity: Optional[Decimal] = Field(
         default=None,
         max_digits=12,
-        decimal_places=2,
+        decimal_places=3,
         ge=Decimal("0"),
     )
     unit_id: Optional[int] = None
@@ -159,7 +164,7 @@ class ShoppingListItemUpdate(StrictBaseModel):
     def truncate_quantity(cls, value: object) -> object:
         if value is None or value == "":
             return value
-        return _truncate_2_decimals(value)
+        return _truncate_quantity(value)
 
 
 class _ShoppingSupplierLiteResponse(ORMBaseModel):

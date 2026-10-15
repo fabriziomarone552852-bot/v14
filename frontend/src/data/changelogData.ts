@@ -22,12 +22,14 @@ export const CHANGELOG_HISTORY: ChangelogItem[] = [
     isLatest: true,
     published: false,
     highlights: [
+      'Gestione & Editing Registrazioni Scontrini di Sessione: Introdotto il pannello di revisione immediata nella registrazione rapida scontrini, con modifica e cancellazione rapida in memoria e supporto a 3 decimali per le quantità.',
       'Introdotta la nuova vista mobile dedicata per le Serie TV con navigazione swipe touch a due pagine (Libreria e Dashboard/Attività).',
       'Aggiunto lo switcher a scorrimento nell\'Header Mobile per alternare tra Serie TV, Film e Libri con tasto di ricerca e pallino blu "?" per l\'estrazione casuale.',
       'Modale estrazione casuale a tutto schermo su mobile con sfondo chiaro smerigliato dove le locandine rotanti sono chiaramente visibili in trasparenza, con pulsante "Mostra in dettaglio".',
       'Allineati routing e navigazione in AppShell (Desktop e Mobile) con redirect automatico da /trackers a /trackers/serie-tv.'
     ],
     features: [
+      'Gestione & Editing Registrazioni Scontrini di Sessione: Aggiunta la sezione "Registrazioni della Sessione in Corso" direttamente in fondo alla pagina di immissione rapida scontrini. Consente la visualizzazione immediata dei lotti salvati, la modifica approfondita tramite modale completo (prodotto, brand, prezzo, pesature al banco fino a 3 decimali, fornitore, data) e l\'eliminazione rapida di registrazioni errate con sincronizzazione istantanea in memoria.',
       'Mobile TV Series View: Pagina ottimizzata per smartphone con pillole di stato, banner informativo filtri attivi e griglia locandine a 2 colonne.',
       'Mobile TV Series Search & Filters Fullscreen: Nuova interfaccia di ricerca a tutto schermo richiamabile dalla lente nell\'header con barra superiore fissa: freccia indietro, campo di ricerca e pulsante "X" per azzerare l\'intera ricerca. All\'avvio della ricerca compaiono direttamente sotto le locandine TMDB (o il messaggio di nessun risultato) senza banner intermedi. Toccando il campo di ricerca si riaprono le impostazioni approfondite (sezione "Liste" pulita, Genere, Network, Anno, Stato, Voto e Ordinamento con modali centrali).',
       'Mobile TV Slider Header: Segmented switcher orizzontale nell\'header mobile per Serie TV, Film e Libri coerente con il selettore periodi dell\'agenda con badge di notifica per filtri attivi.',
@@ -53,7 +55,8 @@ export const CHANGELOG_HISTORY: ChangelogItem[] = [
       'Configurazione TMDB Produzione (NAS): Integrate le chiavi TMDB_API_KEY e TMDB_READ_ACCESS_TOKEN in .env.prod e deploy_nas.sh, eliminando il fallimento HTTP 500 durante la ricerca serie TV e il recupero generi/provider.',
       'Endpoint Obiettivi Annuali Tracker: Allineato l\'endpoint /users/me/yearly-goals/{tracker_type} per ritornare 200 con null invece di 404 quando nessun obiettivo è ancora configurato, ripulendo i log del browser.',
       'Catalogo Shopping & Lookup Prodotti: Rimosso il limite forzato a 20 elementi di default negli endpoint /products, /suppliers e /brands. Il frontend ora riceve il catalogo completo per l\'autocompletamento in memoria e la vista A-Z di immissione rapida da scontrini, eliminando la mancata rilevazione di prodotti già inseriti precedentemente.',
-      'Allineamento Architettura \'Mazzo di Carte\' Cross-Dominio: Rimossi i limiti forzati di default negli endpoint /events (precedentemente 100), /interactions (precedentemente 50) e /feedback/reports (precedentemente 100). Il frontend ora riceve gli archivi completi per la gestione e i filtri in memoria, garantendo la visibilità dell\'intero storico impegni (senza tagli nel calendario annuale o nell\'archivio eventi), la permanenza di tutte le notifiche nella sidebar e l\'accesso integrale a tutte le segnalazioni nel pannello amministrativo.'
+      'Allineamento Architettura \'Mazzo di Carte\' Cross-Dominio: Rimossi i limiti forzati di default negli endpoint /events (precedentemente 100), /interactions (precedentemente 50) e /feedback/reports (precedentemente 100). Il frontend ora riceve gli archivi completi per la gestione e i filtri in memoria, garantendo la visibilità dell\'intero storico impegni (senza tagli nel calendario annuale o nell\'archivio eventi), la permanenza di tutte le notifiche nella sidebar e l\'accesso integrale a tutte le segnalazioni nel pannello amministrativo.',
+      'Precisione Quantità e Pesature Spesa (3 Decimali): Esteso il supporto delle quantità per la spesa a 3 cifre decimali (NUMERIC 12,3 con migrazione b1c2d3e4f5a6 applicata con successo sia su database di test che di produzione NAS). Risolto il troncamento dei valori con decimali multipli o inferiori all\'unità (es. pesature al banco come 0,104 kg / 104 g) sia nel modale di modifica lotti/prezzi sia nell\'immissione rapida scontrini e liste spesa.'
     ]
   },
   {

@@ -35,7 +35,7 @@ export const ShoppingQuantityInput: React.FC<ShoppingQuantityInputProps> = ({
     }
 
     // Arrotonda per evitare artefatti di floating point come 5.500000000000001
-    const rounded = Math.round(nextNum * 100) / 100;
+    const rounded = Math.round(nextNum * 1000) / 1000;
     onChange(rounded > 0 ? String(rounded) : '');
   };
 

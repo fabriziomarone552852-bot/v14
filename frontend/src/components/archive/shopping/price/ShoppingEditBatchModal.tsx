@@ -57,6 +57,7 @@ export const ShoppingEditBatchModal: React.FC<ShoppingEditBatchModalProps> = ({
   unitOptions = [],
   currencyOptions = [],
   onSave,
+  onDelete,
 }) => {
   const {
     isMobile,
@@ -132,6 +133,20 @@ export const ShoppingEditBatchModal: React.FC<ShoppingEditBatchModalProps> = ({
           />
 
           <div className="fixed bottom-0 left-0 right-0 p-4 bg-white/90 backdrop-blur-md border-t border-gray-100 flex items-center gap-3 z-30">
+            {onDelete && (
+              <button
+                type="button"
+                onClick={async () => {
+                  if (!window.confirm('Vuoi davvero eliminare questa registrazione?')) return;
+                  await onDelete(batch.id);
+                  onClose();
+                }}
+                disabled={isSubmitting}
+                className="py-3 px-4 text-xs font-bold text-rose-600 bg-rose-50 hover:bg-rose-100 rounded-2xl transition-colors cursor-pointer shrink-0"
+              >
+                🗑️ Elimina
+              </button>
+            )}
             <button
               type="button"
               onClick={onClose}
@@ -190,22 +205,40 @@ export const ShoppingEditBatchModal: React.FC<ShoppingEditBatchModalProps> = ({
           setIsDatePickerOpen={setIsDatePickerOpen}
         />
 
-        <div className="flex items-center justify-end gap-3 pt-4 border-t border-gray-100 mt-2">
-          <button
-            type="button"
-            onClick={onClose}
-            disabled={isSubmitting}
-            className="px-5 py-2.5 text-sm font-bold text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-xl transition-colors cursor-pointer"
-          >
-            Annulla
-          </button>
-          <button
-            type="submit"
-            disabled={isSubmitting}
-            className="px-6 py-2.5 text-sm font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-xl transition-colors cursor-pointer shadow-sm shadow-blue-500/20 disabled:opacity-50"
-          >
-            {isSubmitting ? 'Salvataggio...' : 'Salva Modifiche'}
-          </button>
+        <div className="flex items-center justify-between gap-3 pt-4 border-t border-gray-100 mt-2">
+          {onDelete ? (
+            <button
+              type="button"
+              onClick={async () => {
+                if (!window.confirm('Vuoi davvero eliminare questa registrazione?')) return;
+                await onDelete(batch.id);
+                onClose();
+              }}
+              disabled={isSubmitting}
+              className="px-4 py-2.5 text-xs font-bold text-rose-600 bg-rose-50 hover:bg-rose-100 rounded-xl transition-colors cursor-pointer flex items-center gap-1.5"
+            >
+              <span>🗑️</span>
+              <span>Elimina Registrazione</span>
+            </button>
+          ) : <div />}
+
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={onClose}
+              disabled={isSubmitting}
+              className="px-5 py-2.5 text-sm font-bold text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-xl transition-colors cursor-pointer"
+            >
+              Annulla
+            </button>
+            <button
+              type="submit"
+              disabled={isSubmitting}
+              className="px-6 py-2.5 text-sm font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-xl transition-colors cursor-pointer shadow-sm shadow-blue-500/20 disabled:opacity-50"
+            >
+              {isSubmitting ? 'Salvataggio...' : 'Salva Modifiche'}
+            </button>
+          </div>
         </div>
       </form>
     </BaseModal>

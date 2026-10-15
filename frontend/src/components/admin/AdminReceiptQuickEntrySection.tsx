@@ -3,6 +3,7 @@ import React from 'react';
 import { PlusIcon } from '@/components/shared/utils/Icons';
 import { ShoppingSupplierSelect } from '@/components/shared/shopping/ShoppingSupplierSelect';
 import { AdminReceiptQuickEntryRow } from './AdminReceiptQuickEntryRow';
+import { AdminReceiptSessionBatchesSection } from './AdminReceiptSessionBatchesSection';
 import {
   useAdminReceiptQuickEntryLogic,
   type ReceiptItemRow,
@@ -36,6 +37,7 @@ export const AdminReceiptQuickEntrySection: React.FC = () => {
     handleKeyDownOnPrice,
     handleSaveReceipt,
     handleResetForm,
+    sessionLogic,
   } = useAdminReceiptQuickEntryLogic();
 
   return (
@@ -61,6 +63,18 @@ export const AdminReceiptQuickEntrySection: React.FC = () => {
           }`}
         >
           {message.text}
+        </div>
+      )}
+
+      {sessionLogic.feedbackMessage && (
+        <div
+          className={`rounded-2xl p-4 text-xs font-semibold animate-fadeIn ${
+            sessionLogic.feedbackMessage.type === 'success'
+              ? 'border border-emerald-200 bg-emerald-50 text-emerald-800'
+              : 'border border-rose-200 bg-rose-50 text-rose-800'
+          }`}
+        >
+          {sessionLogic.feedbackMessage.text}
         </div>
       )}
 
@@ -219,6 +233,22 @@ export const AdminReceiptQuickEntrySection: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* SEZIONE GESTIONE / EDITING REGISTRAZIONI SESSIONE IN CORSO */}
+      <AdminReceiptSessionBatchesSection
+        sessionBatches={sessionLogic.sessionBatches}
+        loadingSessionBatches={sessionLogic.loadingSessionBatches}
+        editingBatch={sessionLogic.editingBatch}
+        suppliers={suppliers}
+        brands={brands}
+        products={products}
+        sessionSummary={sessionLogic.sessionSummary}
+        onStartEdit={sessionLogic.handleStartEditBatch}
+        onCloseEdit={sessionLogic.handleCloseEditBatch}
+        onSaveEdit={sessionLogic.handleSaveBatchEdit}
+        onDelete={sessionLogic.handleDeleteSessionBatch}
+        onRefresh={sessionLogic.loadTodayBatches}
+      />
     </div>
   );
 };

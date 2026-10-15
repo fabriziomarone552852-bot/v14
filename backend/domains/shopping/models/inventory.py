@@ -43,7 +43,7 @@ class InventoryBatch(Base):
     )
 
     quantity_purchased: Mapped[Decimal] = mapped_column(
-        Numeric(12, 2),
+        Numeric(12, 3),
         nullable=False,
     )
 

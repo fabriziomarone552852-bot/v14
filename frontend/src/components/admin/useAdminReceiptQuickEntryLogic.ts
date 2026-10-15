@@ -5,6 +5,7 @@ import { fetchShoppingSuppliers, fetchShoppingBrands } from '@/api/shopping/shop
 import { createQuickPriceBatch } from '@/api/shopping/shoppingInventoryApi';
 import type { ShoppingProductOption, ShoppingSupplierOption } from '@/types/shopping';
 import { extractErrorMessage } from '@/utils/errorUtils';
+import { useAdminReceiptSessionBatches } from './useAdminReceiptSessionBatches';
 
 export interface ReceiptItemRow {
   id: string;
@@ -77,6 +78,12 @@ export const useAdminReceiptQuickEntryLogic = () => {
   useEffect(() => {
     loadCatalogs();
   }, [loadCatalogs]);
+
+  // Gestione lotti e cronologia della sessione corrente
+  const sessionLogic = useAdminReceiptSessionBatches({
+    suppliers,
+    onCatalogReloadRequested: loadCatalogs,
+  });
 
   // Calcolo prezzo unitario
   const calculateUnitPrice = (priceStr: string, qty: number | ''): number | null => {
@@ -216,7 +223,7 @@ export const useAdminReceiptQuickEntryLogic = () => {
 
     setSaving(true);
     try {
-      await createQuickPriceBatch({
+      const createdBatches = await createQuickPriceBatch({
         records: validRows.map((r) => ({
           productName: r.productName.trim(),
           brandName: r.brandName.trim() || undefined,
@@ -229,6 +236,8 @@ export const useAdminReceiptQuickEntryLogic = () => {
           isOnSale: false,
         })),
       });
+
+      sessionLogic.addSessionBatches(createdBatches);
 
       setMessage({
         text: `✅ Scontrino registrato con successo! ${validRows.length} articoli inseriti per un totale di ${receiptSummary.total.toFixed(2)} €.`,
@@ -289,5 +298,6 @@ export const useAdminReceiptQuickEntryLogic = () => {
     handleKeyDownOnPrice,
     handleSaveReceipt,
     handleResetForm,
+    sessionLogic,
   };
 };
