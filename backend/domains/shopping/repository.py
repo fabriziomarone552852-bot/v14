@@ -445,7 +445,7 @@ def list_products(
     db: Session,
     search: Optional[str] = None,
     brand_id: Optional[int] = None,
-    limit: int = 200,
+    limit: Optional[int] = None,
 ) -> List[ShoppingProduct]:
     query = (
         db.query(ShoppingProduct)
@@ -465,7 +465,11 @@ def list_products(
             (ShoppingProductBrand.brand_id == brand_id),
         )
 
-    return query.order_by(ShoppingProduct.name_normalized.asc()).limit(limit).all()
+    query = query.order_by(ShoppingProduct.name_normalized.asc())
+    if limit is not None:
+        query = query.limit(limit)
+
+    return query.all()
 
 
 def get_product(db: Session, product_id: int) -> Optional[ShoppingProduct]:
@@ -746,7 +750,7 @@ def search_suppliers(
     db: Session,
     search: str,
     type_code: Optional[int] = None,
-    limit: int = 50,
+    limit: Optional[int] = None,
 ) -> List[ShoppingSupplier]:
     normalized = normalize_name(search)
 
@@ -761,11 +765,11 @@ def search_suppliers(
         else:
             query = query.filter(ShoppingSupplier.type_code == type_code)
 
-    return (
-        query.order_by(ShoppingSupplier.name_normalized.asc())
-        .limit(limit)
-        .all()
-    )
+    query = query.order_by(ShoppingSupplier.name_normalized.asc())
+    if limit is not None:
+        query = query.limit(limit)
+
+    return query.all()
 
 
 def supplier_has_batches(db: Session, supplier_id: int) -> bool:

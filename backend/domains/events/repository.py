@@ -32,8 +32,8 @@ def list_filtered(
     luogo: Optional[str] = None,
     user_category_id: Optional[int] = None,
     tutto_il_giorno: Optional[bool] = None,
-    limit: int = 100,
-    offset: int = 0,
+    limit: Optional[int] = None,
+    offset: Optional[int] = None,
 ) -> Tuple[int, List[Event]]:
     query = (
         db.query(Event)
@@ -53,7 +53,12 @@ def list_filtered(
         query = query.filter(Event.tutto_il_giorno == tutto_il_giorno)
 
     total = query.count()
-    events = query.order_by(Event.data_inizio.asc()).limit(limit).offset(offset).all()
+    query = query.order_by(Event.data_inizio.asc())
+    if offset is not None:
+        query = query.offset(offset)
+    if limit is not None:
+        query = query.limit(limit)
+    events = query.all()
     return total, events
 
 

@@ -225,7 +225,7 @@ def delete_shopping_list(
 def list_products(
     search: Optional[str] = Query(None, min_length=1, max_length=255),
     brand_id: Optional[int] = Query(None),
-    limit: int = Query(20, ge=1, le=100),
+    limit: Optional[int] = Query(None, ge=1, le=5000),
     db: Session = Depends(deps.get_db),
     current_user: User = Depends(deps.get_current_app_user),
 ):
@@ -364,7 +364,7 @@ def get_shopping_config(
 def list_suppliers(
     search: Optional[str] = Query(None, min_length=1, max_length=255),
     type_code: Optional[int] = Query(None, ge=1, le=3),
-    limit: int = Query(20, ge=1, le=100),
+    limit: Optional[int] = Query(None, ge=1, le=5000),
     db: Session = Depends(deps.get_db),
     current_user: User = Depends(deps.get_current_app_user),
 ):
@@ -374,7 +374,7 @@ def list_suppliers(
 @router.get("/brands", response_model=List[ShoppingSupplierResponse])
 def list_brands(
     search: Optional[str] = Query(None, min_length=1, max_length=255),
-    limit: int = Query(20, ge=1, le=100),
+    limit: Optional[int] = Query(None, ge=1, le=5000),
     db: Session = Depends(deps.get_db),
     current_user: User = Depends(deps.get_current_app_user),
 ):

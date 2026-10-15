@@ -28,8 +28,8 @@ export async function fetchFeedbackReports(
       status: params?.status || undefined,
       severity: params?.severity || undefined,
       type: params?.type || undefined,
-      limit: params?.limit || 100,
-      offset: params?.offset || 0,
+      limit: params?.limit ?? undefined,
+      offset: params?.offset ?? undefined,
     },
   });
   return response.data;
@@ -38,9 +38,9 @@ export async function fetchFeedbackReports(
 /**
  * Recupera le proprie segnalazioni inviate dall'utente autenticato.
  */
-export async function fetchMyFeedbackReports(limit: number = 50): Promise<FeedbackReport[]> {
+export async function fetchMyFeedbackReports(limit?: number): Promise<FeedbackReport[]> {
   const response = await apiClient.get<FeedbackReport[]>('/feedback/my-reports', {
-    params: { limit },
+    params: { limit: limit ?? undefined },
   });
   return response.data;
 }

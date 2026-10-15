@@ -915,19 +915,21 @@ def list_suppliers(
     current_user: User,
     search: Optional[str] = None,
     type_code: Optional[int] = None,
-    limit: int = 20,
+    limit: Optional[int] = None,
 ) -> List[ShoppingSupplier]:
     if search:
         return repo.search_suppliers(db, search=search, type_code=type_code, limit=limit)
     suppliers = repo.list_suppliers(db, type_code=type_code)
-    return suppliers[:limit]
+    if limit is not None:
+        return suppliers[:limit]
+    return suppliers
 
 
 def list_brands(
     db: Session,
     current_user: User,
     search: Optional[str] = None,
-    limit: int = 20,
+    limit: Optional[int] = None,
 ) -> List[ShoppingSupplier]:
     return list_suppliers(db, current_user, search=search, type_code=2, limit=limit)
 
@@ -1601,7 +1603,7 @@ def list_products(
     db: Session,
     search: Optional[str] = None,
     brand_id: Optional[int] = None,
-    limit: int = 20,
+    limit: Optional[int] = None,
 ) -> List[ShoppingProduct]:
     return repo.list_products(db, search=search, brand_id=brand_id, limit=limit)
 

@@ -1,5 +1,4 @@
-"""Router del dominio Interactions (sostituisce Notifications)."""
-from typing import List
+from typing import List, Optional
 
 from fastapi import APIRouter, Depends, Query, status
 from sqlalchemy.orm import Session
@@ -17,7 +16,7 @@ router = APIRouter(prefix="/interactions", tags=["Interactions"])
 @router.get("", response_model=List[schemas.InteractionResponse])
 def get_interactions(
     unread_only: bool = Query(False, description="Filtra solo gli elementi non letti"),
-    limit: int = Query(50, ge=1, le=100),
+    limit: Optional[int] = Query(None, ge=1, le=1000),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):

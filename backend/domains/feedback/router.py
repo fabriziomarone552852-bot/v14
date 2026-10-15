@@ -36,8 +36,8 @@ def list_feedback_reports(
     status_filter: Optional[str] = Query(None, alias="status", description="Filtra per status: new, in_progress, resolved, dismissed"),
     severity_filter: Optional[str] = Query(None, alias="severity", description="Filtra per gravità: low, medium, high, critical"),
     report_type_filter: Optional[str] = Query(None, alias="type", description="Filtra per tipologia: bug, visual, feature_request, other"),
-    limit: int = Query(100, ge=1, le=200),
-    offset: int = Query(0, ge=0),
+    limit: Optional[int] = Query(None, ge=1, le=1000),
+    offset: Optional[int] = Query(None, ge=0),
     db: Session = Depends(deps.get_db),
     current_user: User = Depends(deps.require_superuser),
 ):
@@ -57,7 +57,7 @@ def list_feedback_reports(
     summary="Elenca le proprie segnalazioni inviate",
 )
 def list_my_reports(
-    limit: int = Query(50, ge=1, le=100),
+    limit: Optional[int] = Query(None, ge=1, le=1000),
     db: Session = Depends(deps.get_db),
     current_user: User = Depends(deps.get_current_app_user),
 ):

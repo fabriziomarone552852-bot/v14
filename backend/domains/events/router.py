@@ -39,8 +39,8 @@ def get_events(
         description="ID della categoria utente da usare come filtro",
     ),
     tutto_il_giorno: Optional[bool] = None,
-    limit: int = Query(default=100, ge=1, le=500),
-    offset: int = Query(default=0, ge=0),
+    limit: Optional[int] = Query(default=None, ge=1, le=5000),
+    offset: Optional[int] = Query(default=None, ge=0),
     current_user: User = Depends(deps.get_current_app_user),
     db: Session = Depends(deps.get_db),
 ):
