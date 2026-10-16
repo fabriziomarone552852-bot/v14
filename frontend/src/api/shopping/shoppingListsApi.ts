@@ -24,6 +24,7 @@ export type ShoppingListItemApi = {
   unit_name?: string | null;
   unit_code_name?: string | null;
   notes?: string | null;
+  brand_notes?: string | null;
   is_purchased: boolean;
   inventory_batches?: InventoryBatchRow[];
   created_at?: string;
@@ -58,6 +59,7 @@ export function normalizeShoppingListItem(item: ShoppingListItemApi): ShoppingLi
     nameNormalized: item.name_normalized,
     brandId: item.brand_id ?? null,
     brandName: item.brand_name ?? null,
+    brandNotes: item.brand_notes ?? null,
     quantity: toNumberOrNull(item.quantity),
     unitId: item.unit_id ?? null,
     unitCodeName: item.unit_code_name ?? item.unit_name ?? null,
@@ -122,6 +124,7 @@ export function serializeShoppingListPayload(
 export function serializeShoppingListItemCreatePayload(
   payload: ShoppingListItemCreatePayload
 ) {
+  const brandNotes = payload.brandNotes !== undefined ? payload.brandNotes : payload.brand_notes;
   return {
     shopping_list_id: payload.shoppingListId,
     product_name: payload.productName,
@@ -130,12 +133,14 @@ export function serializeShoppingListItemCreatePayload(
     ...(payload.quantity !== undefined ? { quantity: payload.quantity } : {}),
     ...(payload.unitId !== undefined ? { unit_id: payload.unitId } : {}),
     ...(payload.notes !== undefined ? { notes: payload.notes } : {}),
+    ...(brandNotes !== undefined ? { brand_notes: brandNotes } : {}),
   };
 }
 
 export function serializeShoppingListItemUpdatePayload(
   payload: ShoppingListItemUpdatePayload
 ) {
+  const brandNotes = payload.brandNotes !== undefined ? payload.brandNotes : payload.brand_notes;
   return {
     ...(payload.shoppingListId !== undefined ? { shopping_list_id: payload.shoppingListId } : {}),
     ...(payload.productName !== undefined ? { product_name: payload.productName } : {}),
@@ -145,6 +150,7 @@ export function serializeShoppingListItemUpdatePayload(
     ...(payload.unitId !== undefined ? { unit_id: payload.unitId } : {}),
     ...(payload.notes !== undefined ? { notes: payload.notes } : {}),
     ...(payload.isPurchased !== undefined ? { is_purchased: payload.isPurchased } : {}),
+    ...(brandNotes !== undefined ? { brand_notes: brandNotes } : {}),
   };
 }
 

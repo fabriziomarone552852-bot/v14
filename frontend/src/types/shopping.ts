@@ -168,6 +168,7 @@ export interface ShoppingListItem {
   nameNormalized: string;
   brandId?: number | null;
   brandName?: string | null;
+  brandNotes?: string | null;
 
   quantity?: number | null;
   unitId?: number | null;
@@ -384,6 +385,8 @@ export interface ShoppingListItemCreatePayload {
   quantity?: number | null;
   unitId?: number | null;
   notes?: string | null;
+  brandNotes?: string | null;
+  brand_notes?: string | null;
 }
 
 export interface ShoppingListItemUpdatePayload {
@@ -394,6 +397,8 @@ export interface ShoppingListItemUpdatePayload {
   quantity?: number | null;
   unitId?: number | null;
   notes?: string | null;
+  brandNotes?: string | null;
+  brand_notes?: string | null;
   isPurchased?: boolean;
 }
 

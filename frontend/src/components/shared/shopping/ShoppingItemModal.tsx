@@ -9,6 +9,8 @@ import ShoppingListSelect from './ShoppingListSelect';
 import type { ConfigOption, ShoppingListSummary, ShoppingProductOption, ShoppingSupplierOption } from '@/types/shopping';
 import type { ItemFormState } from './shoppingItems.utils';
 import { ShoppingIcon, EditIcon } from '@/components/shared/utils/Icons';
+import BrandPreferenceRatingControl from './BrandPreferenceRatingControl';
+import { parseBrandPreference } from '@/utils/shoppingBrandPreference';
 
 interface ShoppingItemModalProps {
   mode: 'create' | 'edit';
@@ -114,13 +116,21 @@ const ShoppingItemModal: React.FC<ShoppingItemModalProps> = ({
           </label>
           <ShoppingBrandAutocomplete
             value={itemForm.brandName}
-            onChange={(bName, brandObj) =>
+            onChange={(bName, brandObj) => {
+              const pName = (itemForm.productName || '').trim().toLowerCase();
+              const matchedProd = products.find(
+                (p) => (p?.displayName || p?.nameNormalized || '').toLowerCase() === pName
+              );
+              const brandLink = matchedProd?.productBrands?.find(
+                (pb) => (pb.brand?.nameNormalized || '').toLowerCase() === bName.trim().toLowerCase()
+              );
               setItemForm((prev) => ({
                 ...prev,
                 brandName: bName,
-                brandId: brandObj?.id ? String(brandObj.id) : '',
-              }))
-            }
+                brandId: brandObj?.id ? String(brandObj.id) : brandLink?.brandId ? String(brandLink.brandId) : '',
+                brandNotes: brandLink?.notes || prev.brandNotes || '',
+              }));
+            }}
             brands={brands}
             productName={itemForm.productName}
             products={products}
@@ -146,6 +156,10 @@ const ShoppingItemModal: React.FC<ShoppingItemModalProps> = ({
                     const bName = pb.brand?.nameNormalized || brands.find((b) => b.id === pb.brandId)?.name || '';
                     if (!bName) return null;
                     const isSelected = (itemForm.brandName || '').trim().toLowerCase() === bName.toLowerCase();
+                    const pref = parseBrandPreference(pb.notes);
+                    const isPos = pref?.sentiment === 'positive';
+                    const isNeg = pref?.sentiment === 'negative';
+
                     return (
                       <button
                         key={pb.id || pb.brandId}
@@ -155,18 +169,36 @@ const ShoppingItemModal: React.FC<ShoppingItemModalProps> = ({
                             ...prev,
                             brandName: bName,
                             brandId: String(pb.brandId),
+                            brandNotes: pb.notes || '',
                           }))
                         }
                         className={`text-left px-2.5 py-1 rounded-lg border transition-all cursor-pointer flex flex-col ${
                           isSelected
-                            ? 'bg-amber-100 border-amber-400 text-amber-900 shadow-2xs'
-                            : 'bg-white/80 border-amber-200 text-gray-700 hover:bg-amber-100/50 hover:border-amber-300'
+                            ? isNeg
+                              ? 'bg-rose-100 border-rose-400 text-rose-950 shadow-2xs ring-1 ring-rose-400'
+                              : isPos
+                              ? 'bg-emerald-100 border-emerald-400 text-emerald-950 shadow-2xs ring-1 ring-emerald-400'
+                              : 'bg-amber-100 border-amber-400 text-amber-900 shadow-2xs ring-1 ring-amber-400'
+                            : isNeg
+                            ? 'bg-rose-50/80 border-rose-200 text-rose-800 hover:bg-rose-100/70'
+                            : isPos
+                            ? 'bg-emerald-50/80 border-emerald-200 text-emerald-800 hover:bg-emerald-100/70'
+                            : 'bg-white/80 border-amber-200 text-gray-700 hover:bg-amber-100/50'
                         }`}
                       >
-                        <span className="font-semibold text-gray-900 capitalize">{bName}</span>
+                        <span className="font-semibold capitalize flex items-center gap-1">
+                          {isNeg && <span>👎</span>}
+                          {isPos && <span>👍</span>}
+                          {!isNeg && !isPos && pb.notes && <span>📝</span>}
+                          <span>{bName}</span>
+                        </span>
                         {pb.notes && (
-                          <span className="text-[10px] text-amber-700 italic max-w-[220px] truncate">
-                            «{pb.notes}»
+                          <span
+                            className={`text-[10px] italic max-w-[220px] truncate ${
+                              isNeg ? 'text-rose-700 font-medium' : isPos ? 'text-emerald-700 font-medium' : 'text-amber-700'
+                            }`}
+                          >
+                            «{pref?.comment || pb.notes}»
                           </span>
                         )}
                       </button>
@@ -174,6 +206,30 @@ const ShoppingItemModal: React.FC<ShoppingItemModalProps> = ({
                   })}
                 </div>
               </div>
+            );
+          })()}
+
+          {/* Valutazione Rapida Marchio (Stelle / Pollice Su / Pollice Giù + Nota) */}
+          {itemForm.productName.trim() && itemForm.brandName.trim() && (() => {
+            const pName = itemForm.productName.trim().toLowerCase();
+            const matched = products.find(
+              (p) => (p?.displayName || p?.nameNormalized || '').toLowerCase() === pName
+            );
+            return (
+              <BrandPreferenceRatingControl
+                productName={itemForm.productName}
+                brandName={itemForm.brandName}
+                value={itemForm.brandNotes}
+                onChange={(val) =>
+                  setItemForm((prev) => ({
+                    ...prev,
+                    brandNotes: val ?? '',
+                  }))
+                }
+                productId={matched?.id}
+                brandId={itemForm.brandId ? Number(itemForm.brandId) : undefined}
+                disabled={disabled}
+              />
             );
           })()}
         </div>

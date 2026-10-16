@@ -2,6 +2,7 @@
 import type {
   ShoppingConfigBundle,
   ShoppingProductOption,
+  ShoppingProductBrandLink,
 } from '@/types/shopping';
 import { apiRequest, toNumberOrNull } from './shoppingClient';
 
@@ -168,4 +169,45 @@ export async function mergeShoppingProducts(
     },
   });
 }
+
+export interface SaveProductBrandPayload {
+  productId: number;
+  brandId: number;
+  notes?: string | null;
+}
+
+export async function saveProductBrandPreference(
+  payload: SaveProductBrandPayload
+): Promise<ShoppingProductBrandLink> {
+  const data = await apiRequest<ShoppingProductBrandApi>(`/products/${payload.productId}/brands`, {
+    method: 'POST',
+    body: {
+      brand_id: payload.brandId,
+      notes: payload.notes ?? null,
+    },
+  });
+  return {
+    id: Number(data.id),
+    productId: Number(data.product_id),
+    brandId: Number(data.brand_id),
+    notes: data.notes ?? null,
+    brand: data.brand
+      ? {
+          id: Number(data.brand.id),
+          nameNormalized: data.brand.name_normalized,
+          typeCode: Number(data.brand.type_code ?? 2),
+        }
+      : null,
+  };
+}
+
+export async function deleteProductBrandPreference(
+  productId: number,
+  brandId: number
+): Promise<void> {
+  await apiRequest<void>(`/products/${productId}/brands/${brandId}`, {
+    method: 'DELETE',
+  });
+}
+
 

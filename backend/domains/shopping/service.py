@@ -706,6 +706,10 @@ def create_item(
         current_user.id,
         brand_id=resolved_brand_id,
     )
+    if resolved_brand_id and item_in.brand_notes is not None:
+        link = repo.get_or_create_product_brand_link(db, db_product.id, resolved_brand_id)
+        link.notes = item_in.brand_notes.strip() if item_in.brand_notes.strip() else None
+        link.updated_at = _now()
     now = _now()
 
     db_item = ShoppingListItem(
@@ -848,6 +852,23 @@ def update_item(
         update_data.pop("product_name", None)
         update_data.pop("brand_name", None)
         update_data.pop("brand_id", None)
+
+    if "brand_notes" in update_data:
+        brand_notes_val = update_data.pop("brand_notes")
+        target_brand_id = (
+            resolved_brand_id
+            if (has_brand_change and resolved_brand_id)
+            else (db_item.product.brand_id if db_item.product else None)
+        )
+        if not target_brand_id and db_item.product and getattr(db_item.product, "product_brands", None):
+            for pb in db_item.product.product_brands:
+                if getattr(pb, "brand_id", None):
+                    target_brand_id = pb.brand_id
+                    break
+        if target_brand_id and db_item.product_id:
+            link = repo.get_or_create_product_brand_link(db, db_item.product_id, target_brand_id)
+            link.notes = brand_notes_val.strip() if (brand_notes_val and brand_notes_val.strip()) else None
+            link.updated_at = _now()
 
     for field, value in update_data.items():
         setattr(db_item, field, value)

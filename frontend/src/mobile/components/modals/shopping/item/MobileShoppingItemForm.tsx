@@ -5,6 +5,8 @@ import ShoppingQuantityInput from '@/components/shared/shopping/ShoppingQuantity
 import ShoppingProductAutocomplete from '@/components/shared/shopping/ShoppingProductAutocomplete';
 import ShoppingBrandAutocomplete from '@/components/shared/shopping/ShoppingBrandAutocomplete';
 import ShoppingListSelect from '@/components/shared/shopping/ShoppingListSelect';
+import BrandPreferenceRatingControl from '@/components/shared/shopping/BrandPreferenceRatingControl';
+import { parseBrandPreference } from '@/utils/shoppingBrandPreference';
 import type { ConfigOption, ShoppingListSummary, ShoppingProductOption, ShoppingSupplierOption } from '@/types/shopping';
 import type { ItemFormState } from '@/components/shared/shopping/shoppingItems.utils';
 
@@ -84,13 +86,21 @@ export const MobileShoppingItemForm: React.FC<MobileShoppingItemFormProps> = ({
         </label>
         <ShoppingBrandAutocomplete
           value={itemForm.brandName}
-          onChange={(brandName, brand) =>
+          onChange={(brandName, brand) => {
+            const pName = (itemForm.productName || '').trim().toLowerCase();
+            const matchedProd = products.find(
+              (p) => (p?.displayName || p?.nameNormalized || '').toLowerCase() === pName
+            );
+            const brandLink = matchedProd?.productBrands?.find(
+              (pb) => (pb.brand?.nameNormalized || '').toLowerCase() === brandName.trim().toLowerCase()
+            );
             setItemForm((prev) => ({
               ...prev,
               brandName,
-              brandId: brand?.id ? String(brand.id) : prev.brandId,
-            }))
-          }
+              brandId: brand?.id ? String(brand.id) : brandLink?.brandId ? String(brandLink.brandId) : prev.brandId,
+              brandNotes: brandLink?.notes || prev.brandNotes || '',
+            }));
+          }}
           brands={brands}
           productName={itemForm.productName}
           products={products}
@@ -116,6 +126,10 @@ export const MobileShoppingItemForm: React.FC<MobileShoppingItemFormProps> = ({
                   const bName = pb.brand?.nameNormalized || brands.find((b) => b.id === pb.brandId)?.name || '';
                   if (!bName) return null;
                   const isSelected = (itemForm.brandName || '').trim().toLowerCase() === bName.toLowerCase();
+                  const pref = parseBrandPreference(pb.notes);
+                  const isPos = pref?.sentiment === 'positive';
+                  const isNeg = pref?.sentiment === 'negative';
+
                   return (
                     <button
                       key={pb.id || pb.brandId}
@@ -125,18 +139,36 @@ export const MobileShoppingItemForm: React.FC<MobileShoppingItemFormProps> = ({
                           ...prev,
                           brandName: bName,
                           brandId: String(pb.brandId),
+                          brandNotes: pb.notes || '',
                         }))
                       }
                       className={`text-left px-2.5 py-1 rounded-lg border transition-all cursor-pointer flex flex-col ${
                         isSelected
-                          ? 'bg-amber-100 border-amber-400 text-amber-900 shadow-2xs'
+                          ? isNeg
+                            ? 'bg-rose-100 border-rose-400 text-rose-950 shadow-2xs ring-1 ring-rose-400'
+                            : isPos
+                            ? 'bg-emerald-100 border-emerald-400 text-emerald-950 shadow-2xs ring-1 ring-emerald-400'
+                            : 'bg-amber-100 border-amber-400 text-amber-900 shadow-2xs ring-1 ring-amber-400'
+                          : isNeg
+                          ? 'bg-rose-50/80 border-rose-200 text-rose-800 active:bg-rose-100'
+                          : isPos
+                          ? 'bg-emerald-50/80 border-emerald-200 text-emerald-800 active:bg-emerald-100'
                           : 'bg-white/80 border-amber-200 text-gray-700 active:bg-amber-100'
                       }`}
                     >
-                      <span className="font-semibold text-gray-900 capitalize">{bName}</span>
+                      <span className="font-semibold capitalize flex items-center gap-1">
+                        {isNeg && <span>👎</span>}
+                        {isPos && <span>👍</span>}
+                        {!isNeg && !isPos && pb.notes && <span>📝</span>}
+                        <span>{bName}</span>
+                      </span>
                       {pb.notes && (
-                        <span className="text-[10px] text-amber-700 italic max-w-[200px] truncate">
-                          «{pb.notes}»
+                        <span
+                          className={`text-[10px] italic max-w-[200px] truncate ${
+                            isNeg ? 'text-rose-700 font-medium' : isPos ? 'text-emerald-700 font-medium' : 'text-amber-700'
+                          }`}
+                        >
+                          «{pref?.comment || pb.notes}»
                         </span>
                       )}
                     </button>
@@ -144,6 +176,29 @@ export const MobileShoppingItemForm: React.FC<MobileShoppingItemFormProps> = ({
                 })}
               </div>
             </div>
+          );
+        })()}
+
+        {/* Valutazione Rapida Marchio (Stelle / Pollice Su / Pollice Giù + Nota) */}
+        {itemForm.productName.trim() && itemForm.brandName.trim() && (() => {
+          const pName = itemForm.productName.trim().toLowerCase();
+          const matched = products.find(
+            (p) => (p?.displayName || p?.nameNormalized || '').toLowerCase() === pName
+          );
+          return (
+            <BrandPreferenceRatingControl
+              productName={itemForm.productName}
+              brandName={itemForm.brandName}
+              value={itemForm.brandNotes}
+              onChange={(val) =>
+                setItemForm((prev) => ({
+                  ...prev,
+                  brandNotes: val ?? '',
+                }))
+              }
+              productId={matched?.id}
+              brandId={itemForm.brandId ? Number(itemForm.brandId) : undefined}
+            />
           );
         })()}
       </div>
