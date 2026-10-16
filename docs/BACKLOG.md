@@ -49,8 +49,12 @@ Questo documento serve a tracciare in modo strutturato:
 | **SHOPPING-009** | **Allineamento "Mazzo di Carte" Cross-Dominio & Rimozione Limiti Catalogo** | `core` / `shopping` | 🟢 Completato | 🟢 Completato | 🟢 **Completato** |
 | **SHOPPING-010** | **Precisione Quantità e Pesature Spesa a 3 Decimali (NUMERIC 12,3)** | `shopping` / `db` | 🟢 Completato | 🟢 Completato | 🟢 **Completato** |
 | **SHOPPING-011** | **Gestione ed Editing Rapido Scontrini della Sessione in Corso** | `shopping` / `admin` | 🟢 Completato | 🟢 Completato | 🟢 **Completato** |
+| **SHOPPING-012** | **Hub Amministrazione Desktop con Data Grid Spesa, Eventi e Attività** | `admin` / `shopping` | 🟢 Completato | 🟢 Completato | 🟢 **Completato** |
+| **SHOPPING-013** | **Valutazione & Opinioni sui Marchi dei Prodotti (Opzione C)** | `shopping` / `catalogs` | 🟢 Completato | 🟢 Completato | 🟢 **Completato** |
+| **SHOPPING-014** | **Supporto Universale Separatori Decimali (Virgola e Punto) & Regola d'Oro** | `core` / `UI` | 🟢 Completato | 🟢 Completato | 🟢 **Completato** |
+| **SHOPPING-015** | **Calcolo Inverso da Prezzo Unitario nelle Pagine Amministrative** | `admin` / `shopping` | 🟢 Completato | 🟢 Completato | 🟢 **Completato** |
 
-| **FEAT-013** | **Archivio Notifiche / Sezione Storico Notifiche** | `notifications` / UI | ÃƒÂ°Ã…Â¸Ã…Â¸Ã‚Â¢ Completato | ÃƒÂ°Ã…Â¸Ã…Â¸Ã‚Â¡ Da Implementare | ÃƒÂ°Ã…Â¸Ã…Â¸Ã‚Â¡ Media |
+| **FEAT-013** | **Archivio Notifiche / Sezione Storico Notifiche** | `notifications` / UI | 🟢 Completato | 🟡 Da Implementare | 🟡 Media |
 
 *Legenda:*
 - ÃƒÂ°Ã…Â¸Ã…Â¸Ã‚Â¢ **Completato**: Pronto, testato o supportato a livello di sistema/API.

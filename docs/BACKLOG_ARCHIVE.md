@@ -4,6 +4,67 @@ Questo file contiene i task storici che sono stati completati e rimossi dal `BAC
 
 ---
 
+### [SHOPPING-015] Calcolo Inverso da Prezzo Unitario nelle Pagine Amministrative (🟢 Completato)
+
+#### 📋 Descrizione
+Implementata la modalità di calcolo inverso del dato mancante (quantità o prezzo totale) tramite doppio click sul campo del prezzo per unità di misura nelle viste amministrative riservate (`AdminReceiptQuickEntryRow` e `AdminShoppingDataGridRow`). Se entrambi i dati canonici sono già presenti, la modifica del prezzo unitario resta tassativamente disabilitata per proteggere l'integrità dei dati immessi.
+
+#### ⚙️ Dettagli Implementazione & Funzionalità Raggiunte
+- **Condizione di Blocco Rigorosa**:
+  - Quando sia la Quantità che il Prezzo Totale sono presenti e maggiori di zero, la cella del Prezzo Unitario è in sola lettura: il doppio click è disabilitato e non apre alcun campo di input.
+- **Sblocco Condizionale su Dato Mancante**:
+  - Se manca la Quantità (vuota o zero) e il Prezzo Totale è noto: doppio click sul prezzo unitario consente di inserire il valore al kg/lt; alla conferma (`Invio` o `Blur`), il sistema calcola e compila istantaneamente la Quantità $\text{Quantità} = \frac{\text{Prezzo Totale}}{\text{Prezzo Unitario}}$ (fino a 3 cifre decimali).
+  - Se manca il Prezzo Totale (vuoto o zero) e la Quantità è nota: doppio click consente di inserire il prezzo unitario; alla conferma, calcola e compila istantaneamente $\text{Prezzo Totale} = \text{Quantità} \times \text{Prezzo Unitario}$ (a 2 decimali).
+  - Tasto `Esc` per annullare senza modificare.
+
+---
+
+### [SHOPPING-014] Supporto Universale Separatori Decimali (Virgola e Punto) & Regola d'Oro (🟢 Completato)
+
+#### 📋 Descrizione
+Risolto il problema per cui i campi numerici con `<input type="number">` sui browser con locale italiano (`it-IT`) scartavano il tasto del punto (`.`) dal tastierino numerico o dalla tastiera standard. Codificata e applicata la nuova Regola d'Oro generale che impone su tutta l'applicazione (Web e Mobile) l'accettazione universale di virgola e punto.
+
+#### ⚙️ Dettagli Implementazione & Funzionalità Raggiunte
+- **Modulo Centralizzato [`decimalUtils.ts`](file:///c:/Users/user/Documents/PYTHON/VxAme14/frontend/src/utils/decimalUtils.ts)**:
+  - `sanitizeDecimalString(val)`: consente solo cifre, virgola e punto, prevenendo doppi separatori consecutivi (es. `12..5` o `12,,5`) durante la battitura.
+  - `parseDecimalValue(val, defaultValue)`: converte in modo sicuro qualsiasi stringa con `,` o `.` in float JavaScript (`number`).
+- **Standard Architetturale Regola d'Oro 5 Codificata in `AGENTS.md` e `GEMINI.md`**:
+  - Divieto di usare `<input type="number">` standard.
+  - Adozione obbligatoria di `type="text" inputMode="decimal"`.
+- **Applicazione nelle Griglie Amministrative**:
+  - Aggiornati i campi di quantità e prezzo in `AdminShoppingDataGridRow.tsx`, `AdminReceiptQuickEntryRow.tsx`, `useAdminReceiptQuickEntryLogic.ts` e `ShoppingQuantityInput.tsx`.
+
+---
+
+### [SHOPPING-013] Valutazione & Opinioni sui Marchi dei Prodotti (Opzione C) (🟢 Completato)
+
+#### 📋 Descrizione
+Introdotto un sistema completo per consentire agli utenti di registrare un gradimento permanente (👍 Gradito / 👎 Da evitare / ⚪ Neutro + commento memorizzabile) per la combinazione Prodotto + Marchio (es. Farina Barilla: 👍 Buona; Farina Granoro: 👎 Non ricomprare). La preferenza viene memorizzata nel catalogo e mostrata con badge e alert visivi per prevenire acquisti sgraditi.
+
+#### ⚙️ Dettagli Implementazione & Funzionalità Raggiunte
+- **Backend & Database**:
+  - Estesa la persistenza del mapping Brand-Prodotto con campi per il rating (`rating`: `'like' | 'dislike' | 'neutral'`) e `rating_notes`.
+  - Nuovi endpoint protetti nel router shopping per la lettura e il salvataggio atomico delle preferenze marchio.
+- **Frontend & Integrazione UI**:
+  - Creato il componente [`BrandPreferenceRatingControl.tsx`](file:///c:/Users/user/Documents/PYTHON/VxAme14/frontend/src/components/shared/shopping/BrandPreferenceRatingControl.tsx).
+  - Integrato nei modali di creazione/modifica articolo (`ShoppingItemModal.tsx`, `MobileShoppingItemForm.tsx`).
+  - Badge di avviso colorato nell'autocomplete dei marchi e alert rosso marcato nelle righe della lista della spesa desktop e mobile quando un marchio è contrassegnato come sconsigliato.
+
+---
+
+### [SHOPPING-012] Hub Amministrazione Desktop con Data Grid Spesa, Eventi e Attività (🟢 Completato)
+
+#### 📋 Descrizione
+Potenziamento della console amministrativa per superuser: raggruppamento delle funzionalità shopping sotto una macro-scheda "Spesa" con tabs segmentate (Inserimento Scontrini, Data Grid Revisione Lotti, Unione Prodotti Duplicati) ed estensione dello schema Data Grid ad alta densità anche per Eventi e Attività/Task senza ricorrere a pgAdmin.
+
+#### ⚙️ Dettagli Implementazione & Funzionalità Raggiunte
+- **Hub Amministrazione Spesa (Proposta A)**: macro-scheda con selettore a pillole segmentate.
+- **Data Grid Revisione Lotti Spesa**: modifica inline, calcolo istantaneo prezzo unitario, filtri date, brand, fornitori, anomalie e salvataggio massivo in memoria.
+- **Strumento Unione Prodotti Duplicati**: interfaccia a 2 colonne per migrare lotti d'acquisto e liste ed eliminare duplicati.
+- **Data Grid Eventi & Attività**: gestione tabellare ad alta densità con correzione inline date, riassegnazione cross-utente e filtri RAM.
+
+---
+
 ### [SHOPPING-011] Gestione ed Editing Rapido Scontrini della Sessione in Corso (🟢 Completato)
 
 #### 📋 Descrizione

@@ -90,6 +90,37 @@ export const AdminShoppingDataGridRow: React.FC<AdminShoppingDataGridRowProps> =
     onCellChange(batch.id, 'purchasePrice', val);
   };
 
+  // Stato per calcolo inverso da prezzo unitario con doppio click
+  const [isEditingUnitPrice, setIsEditingUnitPrice] = useState<boolean>(false);
+  const [unitPriceInput, setUnitPriceInput] = useState<string>('');
+
+  const q = parseDecimalValue(qtyInput, 0);
+  const p = parseDecimalValue(priceInput, 0);
+  const isBothCanonicalPresent = q > 0 && p > 0;
+  // Abilitato solo se manca almeno uno dei due dati canonici e l'altro è presente
+  const canUnlockUnitPrice = !isBothCanonicalPresent && (q > 0 || p > 0);
+
+  const handleApplyUnitPrice = () => {
+    setIsEditingUnitPrice(false);
+    const u = parseDecimalValue(unitPriceInput, 0);
+    if (u <= 0) return;
+
+    // Regola bloccante: se presenti entrambi i dati canonici, la modifica non è ammessa
+    if (q > 0 && p > 0) return;
+
+    if (q > 0 && p <= 0) {
+      // Caso 1: Quantità nota, Prezzo Totale mancante -> Prezzo Totale = Q * U
+      const calcPrice = Math.round(q * u * 100) / 100;
+      setPriceInput(String(calcPrice));
+      onCellChange(batch.id, 'purchasePrice', calcPrice);
+    } else if (p > 0 && q <= 0) {
+      // Caso 2: Prezzo Totale noto, Quantità mancante -> Quantità = P / U
+      const calcQty = Math.round((p / u) * 1000) / 1000;
+      setQtyInput(String(calcQty));
+      onCellChange(batch.id, 'quantityPurchased', calcQty);
+    }
+  };
+
   return (
     <tr
       className={`transition-colors text-xs border-b border-slate-100 ${
@@ -240,16 +271,63 @@ export const AdminShoppingDataGridRow: React.FC<AdminShoppingDataGridRowProps> =
         />
       </td>
 
-      {/* 8. Prezzo Unitario Calcolato (€) */}
+      {/* 8. Prezzo Unitario Calcolato (€) o sbloccabile con doppio click se manca un dato */}
       <td className="py-2 px-3 w-24 text-right font-mono whitespace-nowrap">
-        <span
-          className={`font-bold text-xs ${
-            isSuspiciousPrice ? 'text-rose-600 bg-rose-50 px-1.5 py-0.5 rounded' : 'text-slate-600'
-          }`}
-          title={isSuspiciousPrice ? 'Prezzo unitario anomalo (molto elevato o quasi nullo)' : undefined}
-        >
-          {unitPrice.toFixed(2)} €
-        </span>
+        {isEditingUnitPrice ? (
+          <div className="relative flex items-center justify-end">
+            <input
+              type="text"
+              inputMode="decimal"
+              autoFocus
+              disabled={disabled}
+              placeholder="0.00"
+              value={unitPriceInput}
+              onChange={(e) => setUnitPriceInput(sanitizeDecimalString(e.target.value))}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault();
+                  handleApplyUnitPrice();
+                } else if (e.key === 'Escape') {
+                  e.preventDefault();
+                  setIsEditingUnitPrice(false);
+                }
+              }}
+              onBlur={handleApplyUnitPrice}
+              className="w-24 px-1.5 py-0.5 text-right font-mono font-bold text-xs border-2 border-indigo-500 rounded-lg bg-white outline-none focus:ring-2 focus:ring-indigo-200 text-indigo-900 shadow-sm"
+              title="Premi Invio per calcolare il valore mancante o Esc per annullare"
+            />
+          </div>
+        ) : canUnlockUnitPrice ? (
+          <span
+            onDoubleClick={() => {
+              if (disabled) return;
+              setUnitPriceInput(unitPrice > 0 ? String(Math.round(unitPrice * 100) / 100) : '');
+              setIsEditingUnitPrice(true);
+            }}
+            className="inline-block px-2 py-0.5 rounded-lg bg-amber-50 hover:bg-amber-100/80 text-amber-900 border border-amber-300 font-mono font-bold text-xs cursor-pointer transition select-none shadow-2xs group"
+            title="💡 Doppio click per inserire il prezzo unitario e ricavare il dato mancante (quantità o prezzo totale) 🧮"
+          >
+            <span className="flex items-center gap-1">
+              <span>🧮</span>
+              <span>{unitPrice > 0 ? `${unitPrice.toFixed(2)} €` : 'Calcola'}</span>
+            </span>
+          </span>
+        ) : (
+          <span
+            className={`font-bold text-xs select-none ${
+              isSuspiciousPrice ? 'text-rose-600 bg-rose-50 px-1.5 py-0.5 rounded' : 'text-slate-600'
+            }`}
+            title={
+              isBothCanonicalPresent
+                ? (isSuspiciousPrice
+                    ? 'Prezzo unitario anomalo (modifica disabilitata: quantità e prezzo già presenti)'
+                    : 'Prezzo unitario calcolato automaticamente (modifica disabilitata)')
+                : 'Inserisci quantità o prezzo per abilitare il calcolo da prezzo unitario'
+            }
+          >
+            {unitPrice > 0 ? `${unitPrice.toFixed(2)} €` : '-'}
+          </span>
+        )}
       </td>
 
       {/* 9. Offerta / Volantino */}
