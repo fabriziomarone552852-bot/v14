@@ -3,7 +3,6 @@ import React from 'react';
 import { PlusIcon } from '@/components/shared/utils/Icons';
 import { ShoppingSupplierSelect } from '@/components/shared/shopping/ShoppingSupplierSelect';
 import { AdminReceiptQuickEntryRow } from './AdminReceiptQuickEntryRow';
-import { AdminReceiptSessionBatchesSection } from './AdminReceiptSessionBatchesSection';
 import {
   useAdminReceiptQuickEntryLogic,
   type ReceiptItemRow,
@@ -37,7 +36,6 @@ export const AdminReceiptQuickEntrySection: React.FC = () => {
     handleKeyDownOnPrice,
     handleSaveReceipt,
     handleResetForm,
-    sessionLogic,
   } = useAdminReceiptQuickEntryLogic();
 
   return (
@@ -66,17 +64,6 @@ export const AdminReceiptQuickEntrySection: React.FC = () => {
         </div>
       )}
 
-      {sessionLogic.feedbackMessage && (
-        <div
-          className={`rounded-2xl p-4 text-xs font-semibold animate-fadeIn ${
-            sessionLogic.feedbackMessage.type === 'success'
-              ? 'border border-emerald-200 bg-emerald-50 text-emerald-800'
-              : 'border border-rose-200 bg-rose-50 text-rose-800'
-          }`}
-        >
-          {sessionLogic.feedbackMessage.text}
-        </div>
-      )}
 
       {/* HEADER SCONTRINO: DATA & FORNITORE */}
       <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-xs space-y-4">
@@ -164,8 +151,9 @@ export const AdminReceiptQuickEntrySection: React.FC = () => {
             <thead className="bg-slate-50 border-b border-slate-200 text-[11px] font-bold uppercase tracking-wider text-slate-500 sticky top-0 z-20">
               <tr>
                 <th className="py-2.5 px-3 w-10 text-center">#</th>
-                <th className="py-2.5 px-3 min-w-[200px]">Nome Prodotto (Obbligatorio)</th>
-                <th className="py-2.5 px-3 min-w-[150px]">Brand / Marchio (Opzionale)</th>
+                <th className="py-2.5 px-3 min-w-[170px] w-48">Nome Prodotto</th>
+                <th className="py-2.5 px-3 min-w-[150px] w-44">Brand / Marchio</th>
+                <th className="py-2.5 px-1.5 w-20 text-center" title="Valutazione Brand/Prodotto">Val.</th>
                 <th className="py-2.5 px-2 w-20 text-center">Quantità</th>
                 <th className="py-2.5 px-3 w-28 text-right">Prezzo Tot. (€)</th>
                 <th className="py-2.5 px-3 w-28 text-right">Prezzo Unit. (€)</th>
@@ -233,22 +221,6 @@ export const AdminReceiptQuickEntrySection: React.FC = () => {
           </div>
         </div>
       </div>
-
-      {/* SEZIONE GESTIONE / EDITING REGISTRAZIONI SESSIONE IN CORSO */}
-      <AdminReceiptSessionBatchesSection
-        sessionBatches={sessionLogic.sessionBatches}
-        loadingSessionBatches={sessionLogic.loadingSessionBatches}
-        editingBatch={sessionLogic.editingBatch}
-        suppliers={suppliers}
-        brands={brands}
-        products={products}
-        sessionSummary={sessionLogic.sessionSummary}
-        onStartEdit={sessionLogic.handleStartEditBatch}
-        onCloseEdit={sessionLogic.handleCloseEditBatch}
-        onSaveEdit={sessionLogic.handleSaveBatchEdit}
-        onDelete={sessionLogic.handleDeleteSessionBatch}
-        onRefresh={sessionLogic.loadTodayBatches}
-      />
     </div>
   );
 };

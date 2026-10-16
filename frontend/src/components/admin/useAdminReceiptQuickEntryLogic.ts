@@ -1,12 +1,12 @@
 // src/components/admin/useAdminReceiptQuickEntryLogic.ts
 import { useEffect, useState, useRef, useMemo, useCallback } from 'react';
-import { fetchShoppingProducts } from '@/api/shopping/shoppingConfigApi';
+import { fetchShoppingProducts, saveProductBrandPreference } from '@/api/shopping/shoppingConfigApi';
 import { fetchShoppingSuppliers, fetchShoppingBrands } from '@/api/shopping/shoppingSuppliersApi';
 import { createQuickPriceBatch } from '@/api/shopping/shoppingInventoryApi';
 import type { ShoppingProductOption, ShoppingSupplierOption } from '@/types/shopping';
 import { extractErrorMessage } from '@/utils/errorUtils';
 import { parseDecimalValue } from '@/utils/decimalUtils';
-import { useAdminReceiptSessionBatches } from './useAdminReceiptSessionBatches';
+import { findBrandPreferenceInProducts } from '@/utils/shoppingBrandPreference';
 
 export interface ReceiptItemRow {
   id: string;
@@ -17,6 +17,7 @@ export interface ReceiptItemRow {
   quantity: number | string;
   price: string;
   unitPrice: number | null;
+  notes?: string | null;
 }
 
 export const createEmptyReceiptRow = (): ReceiptItemRow => ({
@@ -28,6 +29,7 @@ export const createEmptyReceiptRow = (): ReceiptItemRow => ({
   quantity: 1,
   price: '',
   unitPrice: null,
+  notes: null,
 });
 
 export const useAdminReceiptQuickEntryLogic = () => {
@@ -80,12 +82,6 @@ export const useAdminReceiptQuickEntryLogic = () => {
     loadCatalogs();
   }, [loadCatalogs]);
 
-  // Gestione lotti e cronologia della sessione corrente
-  const sessionLogic = useAdminReceiptSessionBatches({
-    suppliers,
-    onCatalogReloadRequested: loadCatalogs,
-  });
-
   // Calcolo prezzo unitario
   const calculateUnitPrice = (priceStr: string, qty: number | string | ''): number | null => {
     const cleanPrice = parseDecimalValue(priceStr, 0);
@@ -122,12 +118,15 @@ export const useAdminReceiptQuickEntryLogic = () => {
     setRows((prev) =>
       prev.map((row) => {
         if (row.id !== rowId) return row;
+        const finalBrandName = prod?.brandName || row.brandName;
+        const pref = findBrandPreferenceInProducts(products, name, finalBrandName);
         return {
           ...row,
           productName: name,
           productId: prod?.id ?? null,
-          brandName: prod?.brandName || row.brandName,
+          brandName: finalBrandName,
           brandId: prod?.brandId ?? row.brandId,
+          notes: pref?.rawNotes ?? row.notes ?? null,
         };
       })
     );
@@ -137,10 +136,12 @@ export const useAdminReceiptQuickEntryLogic = () => {
     setRows((prev) =>
       prev.map((row) => {
         if (row.id !== rowId) return row;
+        const pref = findBrandPreferenceInProducts(products, row.productName, name);
         return {
           ...row,
           brandName: name,
           brandId: brand?.id ?? null,
+          notes: pref?.rawNotes ?? row.notes ?? null,
         };
       })
     );
@@ -241,7 +242,27 @@ export const useAdminReceiptQuickEntryLogic = () => {
         })),
       });
 
-      sessionLogic.addSessionBatches(createdBatches);
+      // Sincronizza preferenze brand nel catalogo permanente (se valorizzate)
+      for (const r of validRows) {
+        if (r.notes) {
+          const matchedBatch = createdBatches.find(
+            (b) => (b.productName || '').toLowerCase() === r.productName.trim().toLowerCase()
+          );
+          const resolvedProdId = r.productId || matchedBatch?.productId;
+          const resolvedBrandId = r.brandId || matchedBatch?.brandId;
+          if (resolvedProdId && resolvedBrandId) {
+            try {
+              await saveProductBrandPreference({
+                productId: resolvedProdId,
+                brandId: resolvedBrandId,
+                notes: r.notes,
+              });
+            } catch (prefErr) {
+              console.warn('Nota preferenza brand non sincronizzata da scontrino:', prefErr);
+            }
+          }
+        }
+      }
 
       setMessage({
         text: `✅ Scontrino registrato con successo! ${validRows.length} articoli inseriti per un totale di ${receiptSummary.total.toFixed(2)} €.`,
@@ -302,6 +323,5 @@ export const useAdminReceiptQuickEntryLogic = () => {
     handleKeyDownOnPrice,
     handleSaveReceipt,
     handleResetForm,
-    sessionLogic,
   };
 };

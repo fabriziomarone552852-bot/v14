@@ -4,6 +4,29 @@ Questo file contiene i task storici che sono stati completati e rimossi dal `BAC
 
 ---
 
+### [SHOPPING-016] Micro Split-Pill Valutazione Brand, Pareggiamento Colonne Data Grid & Snellimento Scontrini (🟢 Completato)
+
+#### 📋 Descrizione
+Evoluzione dell'esperienza di valutazione marchi nelle griglie amministrative ad alta densità: sostituzione del campo testuale `Note` con una micro-colonna di valutazione compatta e reattiva, pareggiamento geometrico delle colonne Prodotto e Brand nella Data Grid Revisione Lotti, riduzione della colonna Prodotto e rimozione della sezione inferiore ridondante nella pagina Inserimento Rapido Scontrini.
+
+#### ⚙️ Dettagli Implementazione & Funzionalità Raggiunte
+- **Componente Atomico [`BrandPreferenceSplitPill.tsx`](file:///c:/Users/user/Documents/PYTHON/VxAme14/frontend/src/components/shared/shopping/BrandPreferenceSplitPill.tsx)**:
+  - Formato micro split-pill `[ 👍 | 👎 ]` (~56-64 px) con singolo tocco toggle on/off:
+    - Click su `👍`: assegna valutazione positiva (memorizza nel DB l'etichetta descrittiva `"👍 Consigliato"`). Secondo click disattiva a neutro (`NULL`).
+    - Click su `👎`: assegna valutazione negativa (memorizza nel DB `"👎 Da evitare"`). Secondo click disattiva a neutro (`NULL`).
+  - **Doppio Click con Popover Note**: Aprendo un micro-editor al doppio click, consente l'immissione o rettifica al volo di una nota testuale personalizzata (es. *"ottima qualità bio"*).
+  - **Indicatore Visivo & Tooltip**: Mostra l'icona 💬 quando è presente un commento testuale e tooltip descrittivo nativo al passaggio del mouse.
+- **Data Grid Revisione Lotti Spesa ([`AdminShoppingDataGridSection`](file:///c:/Users/user/Documents/PYTHON/VxAme14/frontend/src/components/admin/shopping/AdminShoppingDataGridSection.tsx) / [`AdminShoppingDataGridRow`](file:///c:/Users/user/Documents/PYTHON/VxAme14/frontend/src/components/admin/shopping/AdminShoppingDataGridRow.tsx))**:
+  - Pareggiata la larghezza delle colonne Prodotto e Brand alla stessa identica misura (`min-w-[220px] w-56`).
+  - Inserita la colonna `Val.` (`w-20`) tra Brand e Punto Vendita.
+  - Sincronizzazione automatica al salvataggio (singolo o massivo) verso la tabella permanente di catalogo `shopping_product_brands`.
+- **Inserimento Rapido Scontrini ([`AdminReceiptQuickEntrySection`](file:///c:/Users/user/Documents/PYTHON/VxAme14/frontend/src/components/admin/AdminReceiptQuickEntrySection.tsx) / [`AdminReceiptQuickEntryRow`](file:///c:/Users/user/Documents/PYTHON/VxAme14/frontend/src/components/admin/AdminReceiptQuickEntryRow.tsx))**:
+  - Ridotta la colonna Nome Prodotto a `w-48` / `min-w-[170px]` per fare spazio alla nuova colonna `Val.` senza generare overflow orizzontale.
+  - Pre-caricamento automatico della preferenza da catalogo in RAM quando si seleziona una combinazione Prodotto-Brand già recensita.
+  - Rimossa la sezione inferiore di editing sessione lotti (`AdminReceiptSessionBatchesSection`), rendendo l'interfaccia leggera e al 100% focalizzata sull'immissione veloce continua.
+
+---
+
 ### [SHOPPING-015] Calcolo Inverso da Prezzo Unitario nelle Pagine Amministrative (🟢 Completato)
 
 #### 📋 Descrizione

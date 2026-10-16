@@ -151,7 +151,7 @@ export const AdminShoppingDataGridFilters: React.FC<AdminShoppingDataGridFilters
         {/* Ricerca Testuale */}
         <div>
           <label className="block text-[11px] font-bold text-slate-600 mb-1">
-            🔍 Cerca Articolo, Brand o Note
+            🔍 Cerca Articolo o Brand
           </label>
           <input
             type="text"

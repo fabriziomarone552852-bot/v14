@@ -12,6 +12,7 @@ import {
 } from '@/api/shopping/shoppingInventoryApi';
 import {
   fetchShoppingProducts,
+  saveProductBrandPreference,
 } from '@/api/shopping/shoppingConfigApi';
 import {
   fetchShoppingSuppliers,
@@ -349,6 +350,19 @@ export const useAdminShoppingDataGridLogic = (): UseAdminShoppingDataGridLogicRe
           notes: effective.notes ?? undefined,
         });
 
+        // Sincronizza preferenza brand nel catalogo permanente (se associato)
+        if (effective.productId && effective.brandId) {
+          try {
+            await saveProductBrandPreference({
+              productId: effective.productId,
+              brandId: effective.brandId,
+              notes: effective.notes ?? null,
+            });
+          } catch (prefErr) {
+            console.warn('Nota preferenza brand non sincronizzata con catalogo:', prefErr);
+          }
+        }
+
         // Aggiorna lo stato dei lotti in memoria (Mazzo di Carte)
         setBatches((prev) =>
           prev.map((b) => (b.id === batchId ? effective : b))
@@ -399,6 +413,19 @@ export const useAdminShoppingDataGridLogic = (): UseAdminShoppingDataGridLogicRe
           brandId: effective.brandId ?? undefined,
           notes: effective.notes ?? undefined,
         });
+
+        if (effective.productId && effective.brandId) {
+          try {
+            await saveProductBrandPreference({
+              productId: effective.productId,
+              brandId: effective.brandId,
+              notes: effective.notes ?? null,
+            });
+          } catch {
+            // Continua
+          }
+        }
+
         successCount++;
         setBatches((prev) => prev.map((b) => (b.id === batchId ? effective : b)));
         handleRevertRow(batchId);

@@ -4,6 +4,7 @@ import ShoppingProductAutocomplete from '@/components/shared/shopping/ShoppingPr
 import ShoppingBrandAutocomplete from '@/components/shared/shopping/ShoppingBrandAutocomplete';
 import type { ShoppingProductOption, ShoppingSupplierOption } from '@/types/shopping';
 import { sanitizeDecimalString, parseDecimalValue } from '@/utils/decimalUtils';
+import { BrandPreferenceSplitPill } from '@/components/shared/shopping/BrandPreferenceSplitPill';
 import type { ReceiptItemRow } from './AdminReceiptQuickEntrySection';
 
 export interface AdminReceiptQuickEntryRowProps {
@@ -73,7 +74,7 @@ export const AdminReceiptQuickEntryRow: React.FC<AdminReceiptQuickEntryRowProps>
       </td>
 
       {/* Prodotto con Autocomplete */}
-      <td className="py-2 px-3">
+      <td className="py-2 px-3 min-w-[170px] w-48">
         <ShoppingProductAutocomplete
           id={`prod-input-${index}`}
           value={row.productName}
@@ -87,7 +88,7 @@ export const AdminReceiptQuickEntryRow: React.FC<AdminReceiptQuickEntryRowProps>
       </td>
 
       {/* Brand con Autocomplete */}
-      <td className="py-2 px-3">
+      <td className="py-2 px-3 min-w-[150px] w-44">
         <ShoppingBrandAutocomplete
           id={`brand-input-${index}`}
           value={row.brandName}
@@ -98,6 +99,14 @@ export const AdminReceiptQuickEntryRow: React.FC<AdminReceiptQuickEntryRowProps>
           placeholder="Es. Barilla, Granarolo..."
           className="w-full text-xs"
           usePortal={true}
+        />
+      </td>
+
+      {/* Valutazione Brand / Prodotto */}
+      <td className="py-2 px-1.5 w-20 text-center whitespace-nowrap">
+        <BrandPreferenceSplitPill
+          value={row.notes}
+          onChange={(newVal) => onUpdateRow(row.id, 'notes', newVal)}
         />
       </td>
 

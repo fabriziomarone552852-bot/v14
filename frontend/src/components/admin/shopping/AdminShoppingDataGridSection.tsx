@@ -163,12 +163,13 @@ export const AdminShoppingDataGridSection: React.FC = () => {
                     Data {sortField === 'purchaseDate' ? (sortDirection === 'asc' ? '▲' : '▼') : ''}
                   </th>
                   <th
-                    className="py-2.5 px-2 min-w-[200px] cursor-pointer hover:text-slate-800"
+                    className="py-2.5 px-2 min-w-[220px] w-56 cursor-pointer hover:text-slate-800"
                     onClick={() => handleSort('productName')}
                   >
                     Prodotto {sortField === 'productName' ? (sortDirection === 'asc' ? '▲' : '▼') : ''}
                   </th>
-                  <th className="py-2.5 px-2 min-w-[200px] w-56">Brand</th>
+                  <th className="py-2.5 px-2 min-w-[220px] w-56">Brand</th>
+                  <th className="py-2.5 px-1.5 w-20 text-center" title="Valutazione Brand/Prodotto">Val.</th>
                   <th className="py-2.5 px-2 min-w-[140px]">Punto Vendita</th>
                   <th
                     className="py-2.5 px-2 w-20 text-center cursor-pointer hover:text-slate-800"

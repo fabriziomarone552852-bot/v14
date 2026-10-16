@@ -124,7 +124,7 @@ export const AdminReceiptSessionBatchesSection: React.FC<
                 <tr>
                   <th className="py-2.5 px-3 w-24">Data</th>
                   <th className="py-2.5 px-3 min-w-[180px]">Prodotto</th>
-                  <th className="py-2.5 px-3 min-w-[130px]">Brand</th>
+                  <th className="py-2.5 px-3 min-w-[160px] w-44">Brand</th>
                   <th className="py-2.5 px-3 min-w-[130px]">Supermercato / Negozio</th>
                   <th className="py-2.5 px-2 w-24 text-center">Quantità</th>
                   <th className="py-2.5 px-3 w-28 text-right">Prezzo Tot.</th>

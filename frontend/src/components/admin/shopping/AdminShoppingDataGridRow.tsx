@@ -7,6 +7,7 @@ import type {
 } from '@/types/shopping';
 import { TrashIcon } from '@/components/shared/utils/Icons';
 import { sanitizeDecimalString, parseDecimalValue } from '@/utils/decimalUtils';
+import { BrandPreferenceSplitPill } from '@/components/shared/shopping/BrandPreferenceSplitPill';
 
 interface AdminShoppingDataGridRowProps {
   batch: ItemBatchRecord;
@@ -162,7 +163,7 @@ export const AdminShoppingDataGridRow: React.FC<AdminShoppingDataGridRowProps> =
       </td>
 
       {/* 3. Prodotto (Selettore o Input con Riassegnazione) */}
-      <td className="py-2 px-2 min-w-[200px]">
+      <td className="py-2 px-2 min-w-[220px] w-56">
         <div className="space-y-0.5">
           <input
             type="text"
@@ -196,7 +197,7 @@ export const AdminShoppingDataGridRow: React.FC<AdminShoppingDataGridRowProps> =
       </td>
 
       {/* 4. Brand / Produttore */}
-      <td className="py-2 px-2 min-w-[200px] w-56">
+      <td className="py-2 px-2 min-w-[220px] w-56">
         <select
           value={batch.brandId ?? ''}
           disabled={disabled}
@@ -215,6 +216,15 @@ export const AdminShoppingDataGridRow: React.FC<AdminShoppingDataGridRowProps> =
             </option>
           ))}
         </select>
+      </td>
+
+      {/* 4b. Valutazione Brand / Prodotto */}
+      <td className="py-2 px-1.5 w-20 text-center whitespace-nowrap">
+        <BrandPreferenceSplitPill
+          value={batch.notes}
+          onChange={(newVal) => onCellChange(batch.id, 'notes', newVal)}
+          disabled={disabled}
+        />
       </td>
 
       {/* 5. Supermercato / Fornitore */}

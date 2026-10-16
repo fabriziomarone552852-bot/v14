@@ -24,10 +24,14 @@ export function parseBrandPreference(notes?: string | null): BrandPreference | n
     raw.toLowerCase().startsWith('consigliato') ||
     raw.toLowerCase().startsWith('gradito')
   ) {
-    const comment = raw
+    const cleanComment = raw
       .replace(/^(\ud83d\udc4d|\[\+\]|consigliato:?|gradito:?)\s*/i, '')
       .replace(/^[-–—:]\s*/, '')
       .trim();
+    const comment =
+      cleanComment.toLowerCase() === 'consigliato' || cleanComment.toLowerCase() === 'gradito'
+        ? ''
+        : cleanComment;
     return {
       sentiment: 'positive',
       comment,
@@ -44,10 +48,16 @@ export function parseBrandPreference(notes?: string | null): BrandPreference | n
     raw.toLowerCase().startsWith('non comprare') ||
     raw.toLowerCase().startsWith('non ricomprare')
   ) {
-    const comment = raw
+    const cleanComment = raw
       .replace(/^(\ud83d\udc4e|\[-\]|sconsigliato:?|da evitare:?|non comprare:?|non ricomprare:?)\s*/i, '')
       .replace(/^[-–—:]\s*/, '')
       .trim();
+    const isDefaultLabel =
+      cleanComment.toLowerCase() === 'da evitare' ||
+      cleanComment.toLowerCase() === 'sconsigliato' ||
+      cleanComment.toLowerCase() === 'non comprare' ||
+      cleanComment.toLowerCase() === 'non ricomprare';
+    const comment = isDefaultLabel ? '' : cleanComment;
     return {
       sentiment: 'negative',
       comment,
