@@ -3,6 +3,7 @@ import { TrashIcon } from '@/components/shared/utils/Icons';
 import ShoppingProductAutocomplete from '@/components/shared/shopping/ShoppingProductAutocomplete';
 import ShoppingBrandAutocomplete from '@/components/shared/shopping/ShoppingBrandAutocomplete';
 import type { ShoppingProductOption, ShoppingSupplierOption } from '@/types/shopping';
+import { sanitizeDecimalString } from '@/utils/decimalUtils';
 import type { ReceiptItemRow } from './AdminReceiptQuickEntrySection';
 
 export interface AdminReceiptQuickEntryRowProps {
@@ -74,15 +75,15 @@ export const AdminReceiptQuickEntryRow: React.FC<AdminReceiptQuickEntryRowProps>
       {/* Quantità */}
       <td className="py-2 px-2">
         <input
-          type="number"
-          min="0.01"
-          step="any"
+          type="text"
+          inputMode="decimal"
+          placeholder="1"
           value={row.quantity}
           onChange={(e) => {
-            const v = e.target.value;
-            onUpdateRow(row.id, 'quantity', v === '' ? '' : Math.max(0.01, Number(v)));
+            const v = sanitizeDecimalString(e.target.value);
+            onUpdateRow(row.id, 'quantity', v);
           }}
-          className="w-full rounded-xl border border-slate-200 bg-white px-2 py-1.5 text-center text-xs font-bold text-slate-800 outline-none focus:border-sky-500"
+          className="w-full rounded-xl border border-slate-200 bg-white px-2 py-1.5 text-center text-xs font-bold text-slate-800 outline-none focus:border-sky-500 font-mono"
         />
       </td>
 
@@ -98,7 +99,7 @@ export const AdminReceiptQuickEntryRow: React.FC<AdminReceiptQuickEntryRowProps>
               onUpdateRow(
                 row.id,
                 'price',
-                e.target.value.replace(/[^0-9.,]/g, '').replace(/,/g, '.')
+                sanitizeDecimalString(e.target.value)
               )
             }
             onKeyDown={(e) => onKeyDownOnPrice(e, index)}

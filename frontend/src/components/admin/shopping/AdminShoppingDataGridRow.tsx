@@ -1,11 +1,12 @@
 // src/components/admin/shopping/AdminShoppingDataGridRow.tsx
-import React, { memo } from 'react';
+import React, { memo, useState, useEffect } from 'react';
 import type {
   ItemBatchRecord,
   ShoppingProductOption,
   ShoppingSupplierOption,
 } from '@/types/shopping';
 import { TrashIcon } from '@/components/shared/utils/Icons';
+import { sanitizeDecimalString, parseDecimalValue } from '@/utils/decimalUtils';
 
 interface AdminShoppingDataGridRowProps {
   batch: ItemBatchRecord;
@@ -39,6 +40,55 @@ export const AdminShoppingDataGridRow: React.FC<AdminShoppingDataGridRowProps> =
   // Anomalie visive
   const isSuspiciousPrice = unitPrice > 45 || unitPrice < 0.15;
   const isSuspiciousQty = qty <= 0;
+
+  // Stato locale per digitazione libera di decimali (sia virgola che punto)
+  const [qtyInput, setQtyInput] = useState<string>(() =>
+    batch.quantityPurchased != null ? String(batch.quantityPurchased) : '1'
+  );
+  const [priceInput, setPriceInput] = useState<string>(() =>
+    batch.purchasePrice != null ? String(batch.purchasePrice) : '0'
+  );
+
+  useEffect(() => {
+    const parsed = parseDecimalValue(qtyInput);
+    if (parsed !== batch.quantityPurchased) {
+      setQtyInput(batch.quantityPurchased != null ? String(batch.quantityPurchased) : '');
+    }
+  }, [batch.id, batch.quantityPurchased]);
+
+  useEffect(() => {
+    const parsed = parseDecimalValue(priceInput);
+    if (parsed !== batch.purchasePrice) {
+      setPriceInput(batch.purchasePrice != null ? String(batch.purchasePrice) : '');
+    }
+  }, [batch.id, batch.purchasePrice]);
+
+  const handleQtyChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const clean = sanitizeDecimalString(e.target.value);
+    setQtyInput(clean);
+    const parsed = parseDecimalValue(clean);
+    onCellChange(batch.id, 'quantityPurchased', parsed);
+  };
+
+  const handleQtyBlur = () => {
+    const val = parseDecimalValue(qtyInput);
+    const formatted = val > 0 ? String(val) : '';
+    setQtyInput(formatted);
+    onCellChange(batch.id, 'quantityPurchased', val);
+  };
+
+  const handlePriceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const clean = sanitizeDecimalString(e.target.value);
+    setPriceInput(clean);
+    const parsed = parseDecimalValue(clean);
+    onCellChange(batch.id, 'purchasePrice', parsed);
+  };
+
+  const handlePriceBlur = () => {
+    const val = parseDecimalValue(priceInput);
+    setPriceInput(String(val));
+    onCellChange(batch.id, 'purchasePrice', val);
+  };
 
   return (
     <tr
@@ -163,15 +213,13 @@ export const AdminShoppingDataGridRow: React.FC<AdminShoppingDataGridRowProps> =
       {/* 6. Quantità Acquistata */}
       <td className="py-2 px-2 w-20 text-center">
         <input
-          type="number"
-          step="0.001"
-          min="0.001"
-          value={batch.quantityPurchased}
+          type="text"
+          inputMode="decimal"
+          value={qtyInput}
           disabled={disabled}
-          onChange={(e) => {
-            const val = parseFloat(e.target.value) || 0;
-            onCellChange(batch.id, 'quantityPurchased', val);
-          }}
+          onChange={handleQtyChange}
+          onBlur={handleQtyBlur}
+          placeholder="1"
           className={`w-20 px-1.5 py-1 text-center font-bold text-xs border rounded-lg bg-white/90 outline-none focus:border-sky-500 font-mono ${
             isSuspiciousQty ? 'border-rose-300 bg-rose-50 text-rose-800' : 'border-slate-200'
           }`}
@@ -181,15 +229,13 @@ export const AdminShoppingDataGridRow: React.FC<AdminShoppingDataGridRowProps> =
       {/* 7. Prezzo Totale (€) */}
       <td className="py-2 px-2 w-24 text-right">
         <input
-          type="number"
-          step="0.01"
-          min="0"
-          value={batch.purchasePrice}
+          type="text"
+          inputMode="decimal"
+          value={priceInput}
           disabled={disabled}
-          onChange={(e) => {
-            const val = parseFloat(e.target.value) || 0;
-            onCellChange(batch.id, 'purchasePrice', val);
-          }}
+          onChange={handlePriceChange}
+          onBlur={handlePriceBlur}
+          placeholder="0.00"
           className="w-24 px-2 py-1 text-right font-extrabold text-xs border border-slate-200 rounded-lg bg-white/90 outline-none focus:border-sky-500 font-mono text-slate-900"
         />
       </td>

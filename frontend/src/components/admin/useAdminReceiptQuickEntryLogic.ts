@@ -5,6 +5,7 @@ import { fetchShoppingSuppliers, fetchShoppingBrands } from '@/api/shopping/shop
 import { createQuickPriceBatch } from '@/api/shopping/shoppingInventoryApi';
 import type { ShoppingProductOption, ShoppingSupplierOption } from '@/types/shopping';
 import { extractErrorMessage } from '@/utils/errorUtils';
+import { parseDecimalValue } from '@/utils/decimalUtils';
 import { useAdminReceiptSessionBatches } from './useAdminReceiptSessionBatches';
 
 export interface ReceiptItemRow {
@@ -13,7 +14,7 @@ export interface ReceiptItemRow {
   productId?: number | null;
   brandName: string;
   brandId?: number | null;
-  quantity: number | '';
+  quantity: number | string;
   price: string;
   unitPrice: number | null;
 }
@@ -86,10 +87,10 @@ export const useAdminReceiptQuickEntryLogic = () => {
   });
 
   // Calcolo prezzo unitario
-  const calculateUnitPrice = (priceStr: string, qty: number | ''): number | null => {
-    const cleanPrice = parseFloat(priceStr.replace(',', '.'));
-    const cleanQty = typeof qty === 'number' && qty > 0 ? qty : 1;
-    if (isNaN(cleanPrice) || cleanPrice <= 0) return null;
+  const calculateUnitPrice = (priceStr: string, qty: number | string | ''): number | null => {
+    const cleanPrice = parseDecimalValue(priceStr, 0);
+    const cleanQty = parseDecimalValue(qty, 1);
+    if (cleanPrice <= 0 || cleanQty <= 0) return null;
     return Math.round((cleanPrice / cleanQty) * 100) / 100;
   };
 
@@ -108,7 +109,7 @@ export const useAdminReceiptQuickEntryLogic = () => {
         // Ricalcola prezzo unitario se cambiano prezzo o quantità
         if (field === 'price' || field === 'quantity') {
           const newPrice = field === 'price' ? String(value) : row.price;
-          const newQty = field === 'quantity' ? (value as number | '') : row.quantity;
+          const newQty = field === 'quantity' ? (value as number | string) : row.quantity;
           updated.unitPrice = calculateUnitPrice(newPrice, newQty);
         }
 
@@ -178,8 +179,8 @@ export const useAdminReceiptQuickEntryLogic = () => {
     let validCount = 0;
 
     rows.forEach((r) => {
-      const p = parseFloat(r.price.replace(',', '.'));
-      if (!isNaN(p) && p > 0 && r.productName.trim()) {
+      const p = parseDecimalValue(r.price, 0);
+      if (p > 0 && r.productName.trim()) {
         total += p;
         validCount += 1;
       }
@@ -209,8 +210,8 @@ export const useAdminReceiptQuickEntryLogic = () => {
 
     // Filtra righe valide nel frontend
     const validRows = rows.filter((r) => {
-      const p = parseFloat(r.price.replace(',', '.'));
-      return r.productName.trim() !== '' && !isNaN(p) && p > 0;
+      const p = parseDecimalValue(r.price, 0);
+      return r.productName.trim() !== '' && p > 0;
     });
 
     if (validRows.length === 0) {
@@ -231,8 +232,11 @@ export const useAdminReceiptQuickEntryLogic = () => {
           supplierId: resolvedSupId,
           supplierName: resolvedSupName,
           purchaseDate: purchaseDate,
-          quantityPurchased: typeof r.quantity === 'number' && r.quantity > 0 ? r.quantity : 1,
-          purchasePrice: parseFloat(r.price.replace(',', '.')),
+          quantityPurchased: (() => {
+            const q = typeof r.quantity === 'number' ? r.quantity : parseDecimalValue(r.quantity, 1);
+            return q > 0 ? q : 1;
+          })(),
+          purchasePrice: parseDecimalValue(r.price, 0),
           isOnSale: false,
         })),
       });

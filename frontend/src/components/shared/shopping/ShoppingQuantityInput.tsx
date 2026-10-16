@@ -1,5 +1,6 @@
 // src/components/shared/shopping/ShoppingQuantityInput.tsx
 import React from 'react';
+import { sanitizeDecimalString, parseDecimalValue } from '@/utils/decimalUtils';
 
 interface ShoppingQuantityInputProps {
   value: string;
@@ -20,9 +21,8 @@ export const ShoppingQuantityInput: React.FC<ShoppingQuantityInputProps> = ({
 }) => {
   const handleStep = (direction: 'up' | 'down') => {
     if (disabled) return;
-    const currentStr = (value || '').replace(',', '.').trim();
-    const currentNum = currentStr ? parseFloat(currentStr) : 0;
-    if (isNaN(currentNum)) {
+    const currentNum = parseDecimalValue(value, 0);
+    if (currentNum === 0 && !value) {
       onChange(direction === 'up' ? '1' : '');
       return;
     }
@@ -57,9 +57,7 @@ export const ShoppingQuantityInput: React.FC<ShoppingQuantityInputProps> = ({
         inputMode="decimal"
         value={value}
         onChange={(e) => {
-          // Permette solo numeri, virgola e punto
-          const val = e.target.value.replace(/[^0-9.,]/g, '');
-          onChange(val);
+          onChange(sanitizeDecimalString(e.target.value));
         }}
         onKeyDown={handleKeyDown}
         placeholder={placeholder}
