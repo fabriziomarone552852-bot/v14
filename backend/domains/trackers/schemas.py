@@ -172,15 +172,19 @@ class TVSeriesResponse(ORMBaseModel):
 
 
 class UpcomingEpisodeResponse(BaseModel):
-    """Schema per il carousel 'Prossime Uscite'."""
+    """Schema per il carousel 'Prossime Uscite' e feed uscite episodi."""
     episode_id: int
     series_tmdb_id: int
     series_title: str
     series_poster_path: Optional[str] = None
+    series_backdrop_path: Optional[str] = None
     season_number: int
     episode_number: int
     episode_title: Optional[str] = None
+    episode_overview: Optional[str] = None
+    episode_still_path: Optional[str] = None
     air_date: date
+    is_watched: bool = False
 
 
 class TVDashboardStats(BaseModel):

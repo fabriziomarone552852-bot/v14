@@ -25,6 +25,12 @@ Questo documento serve a tracciare in modo strutturato:
 | **FEAT-012** | **Pagina di Avvio Pinnata / Selezione Landing Page Predefinita** | `settings` / UI | ÃƒÂ°Ã…Â¸Ã…Â¸Ã‚Â¢ Completato | ÃƒÂ°Ã…Â¸Ã…Â¸Ã‚Â¢ Completato | ÃƒÂ°Ã…Â¸Ã…Â¸Ã‚Â¢ **Completato** |
 | **CAL-002** | **Filtro Categorie Eventi nel Calendario Homepage (Menu Ingranaggio ÃƒÂ¢Ã…Â¡Ã¢Â„Â¢ÃƒÂ¯Ã‚Â¸Ã‚Â)** | `calendar` / UI | ÃƒÂ°Ã…Â¸Ã¢Â€ÂÃ‚Â´ Da Iniziare | ÃƒÂ°Ã…Â¸Ã¢Â€ÂÃ‚Â´ Da Iniziare | ÃƒÂ°Ã…Â¸Ã…Â¸Ã‚Â  **Alta** |
 | **FEAT-004** | **Sezione Media: Libri, Film e Serie TV** | `media` / ent | ÃƒÂ°Ã…Â¸Ã…Â¸Ã‚Â¡ Parziale | ÃƒÂ°Ã…Â¸Ã…Â¸Ã‚Â¡ Parziale | ÃƒÂ°Ã…Â¸Ã¢Â€ÂÃ‚Â´ **Massima (Passo Fondamentale)** |
+| **TRACKERS-001** | **Mobile TV Series Timeline & Restyling Card Episodi** | trackers / mobile | 🟢 Completato | 🟢 Completato | 🟢 **Completato** |
+| **TRACKERS-002** | **Mobile TV Series Detail Modal, Bottom Drawers & Gestione Liste** | `trackers` / `mobile` | 🟢 Completato | 🟢 Completato | 🟢 **Completato** |
+| **TRACKERS-006** | **Mobile TV Episode Detail, Recensioni/Citazioni & Action Buttons Style** | `trackers` / `mobile` | 🟢 Completato | 🟢 Completato | 🟢 **Completato** |
+| **TRACKERS-003** | **Homepage Mobile TV Series: Feed Serie "In Corso" ("In Questo Periodo")** | `trackers` / `mobile` | 🟡 Da Valutare | 🔴 Da Valutare | 🟡 Media-Alta |
+| **TRACKERS-005** | **Ottimizzazione Latenza: Aggiornamento Ottimistico Spunta/Rewatch & Citazioni, Audit Notifiche** | `trackers` / `mobile` | 🟢 Supportato | 🔴 Da Implementare | 🟡 **Media-Alta** |
+| **TRACKERS-007** | **Ordinamento Serie nella Sezione Principale (In Visione, Da Iniziare, Pausa, Completate)** | `trackers` / `UI` | N/A | 🔴 Da Implementare | 🟡 **Media-Alta** |
 | **FEAT-005** | **Sezione Liste Tematiche & Personalizzate** | `custom_lists` | Ã°ÂŸÂŸÂ¡ Parziale | Ã°ÂŸÂŸÂ¡ Parziale | Ã°ÂŸÂ”Â´ **Massima (Passo Fondamentale)** |
 | **FEAT-006** | **Hub Spesa, Ricettario, Meal Prep & Wishlist Oggetti** | `shopping` / food | ÃƒÂ°Ã…Â¸Ã¢Â€ÂÃ‚Â´ Da Strutturare | ÃƒÂ°Ã…Â¸Ã¢Â€ÂÃ‚Â´ Da Implementare | ÃƒÂ°Ã…Â¸Ã¢Â€ÂÃ‚Â´ **Massima (Passo Fondamentale)** |
 | **FEAT-007** | **Sistema Amicizie & Condivisione Recensioni (Social/Sharing)** | `social` / media | ÃƒÂ°Ã…Â¸Ã…Â¸Ã‚Â¢ Completato | ÃƒÂ°Ã…Â¸Ã…Â¸Ã‚Â¢ Completato | ÃƒÂ°Ã…Â¸Ã…Â¸Ã‚Â¢ **Completato** |
@@ -46,8 +52,9 @@ Questo documento serve a tracciare in modo strutturato:
 | **TECH-005** | **Risoluzione 502 Bad Gateway NAS & Automated Docker Smoke Test** | `build` / docker | 🟢 Completato | 🟢 Completato | 🟢 **Completato** |
 | **TECH-006** | **Allineamento Migrazioni Alembic DB Produzione (NAS) & Fix Login 500** | `build` / `db` | 🟢 Completato | 🟢 Completato | 🟢 **Completato** |
 | **TECH-007** | **Configurazione TMDB Produzione NAS & Fix 500 Ricerca Serie** | `build` / `NAS` | 🟢 Completato | 🟢 Completato | 🟢 **Completato** |
-
-| **FEAT-013** | **Archivio Notifiche / Sezione Storico Notifiche** | `notifications` / UI | ÃƒÂ°Ã…Â¸Ã…Â¸Ã‚Â¢ Completato | ÃƒÂ°Ã…Â¸Ã…Â¸Ã‚Â¡ Da Implementare | ÃƒÂ°Ã…Â¸Ã…Â¸Ã‚Â¡ Media |
+| **UI-003** | **Sostituzione Pulsante "Reset Filtri" con Freccia (Serie TV Web)** | `trackers` / `UI` | N/A | 🔴 Da Implementare | 🟢 Bassa |
+| **SHOPPING-005** | **Pannello Laterale Recensioni & Giudizio Marchi in Aggiunta Prodotto** | `shopping` / `UI` | 🔴 Da Strutturare | 🔴 Da Implementare | 🟡 Media-Alta |
+| **FEAT-013** | **Archivio Notifiche / Sezione Storico Notifiche** | `notifications` / UI | 🟢 Completato | 🟡 Da Implementare | 🟡 Media |
 
 *Legenda:*
 - ÃƒÂ°Ã…Â¸Ã…Â¸Ã‚Â¢ **Completato**: Pronto, testato o supportato a livello di sistema/API.
@@ -137,40 +144,10 @@ Sistemare e perfezionare la selezione dell'orario (in particolare i minuti) nei 
 
 ---
 
-### [TECH-001] Controllo & Ottimizzazione Bundle APK Android (Code-Splitting)
-
-#### ÃƒÂ°Ã…Â¸Ã¢Â€ÂœÃ‚Â Descrizione
-Verificare e ottimizzare il processo di compilazione dell'APK eseguito da [`build_apk.ps1`](file:///c:/Users/Fabrizio/Desktop/app/smart/v14/build_apk.ps1), controllando come Vite impacchetta i file web e mobile.
-
-#### ÃƒÂ°Ã…Â¸Ã¢Â€ÂÃ‚Â Aspetti da Verificare
-- **Analisi del Bundle Vite**: I file della cartella `frontend/src/mobile/` importano moduli condivisi (`src/api`, `src/types`, `src/context`, `src/utils`) che vengono usati anche dalle pagine Desktop (`src/views/`, `src/components/`).
-- **Obiettivo**: Verificare se le pagine e i componenti specifici per Desktop (es. `HomePage`, `WeekPage`, `MonthPage`, `YearPage`, `AppShellLayout`) finiscono nel bundle caricato su Android o se possono essere isolati tramite **React.lazy / Dynamic Imports** e chunking in Vite.
-- **Benefici**:
-  - Riduzione delle dimensioni finali dell'APK (`smartagenda.apk`).
-  - Riduzione dell'impronta di memoria RAM e avvio piÃƒÂƒÃ‚Â¹ veloce dell'app mobile su smartphone Android.
-
----
 
 ## ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Â¯ 4. Prossimi Passi Fondamentali (PrioritÃƒÂƒÃ‚Â  Immediata)
 
 
-### [FEAT-012] Pagina di Avvio Pinnata / Selezione Landing Page Predefinita
-
-#### ÃƒÂ°Ã…Â¸Ã¢Â€ÂœÃ‚Â Descrizione
-PossibilitÃƒÂƒÃ‚Â  per l'utente di scegliere e fissare (pinnare) nelle impostazioni personali quale pagina/sezione dell'applicazione deve essere aperta per prima al login o al lancio dell'app (es. Homepage Agenda, Spesa / Shopping, Vista Giorno, Liste Tematiche, Sezione Media, ecc.).
-
-#### ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Â¯ Casi d'Uso & FunzionalitÃƒÂƒÃ‚Â 
-1. **Personalizzazione dell'Esperienza d'Uso**:
-   - Utenti che usano l'app principalmente per la spesa possono impostare l'Hub Spesa come prima schermata all'avvio.
-   - Utenti focalizzati sugli impegni giornalieri possono scegliere la vista Giorno (`/giorno`) o la Homepage Calendario (`/`).
-2. **Routing Intelligente**:
-   - Reindirizzamento automatico trasparente sia su Desktop Web che su Mobile App (Capacitor/Android) all'apertura del percorso root.
-
-#### ÃƒÂ°Ã…Â¸Ã¢Â€ÂºÃ‚Â ÃƒÂ¯Ã‚Â¸Ã‚Â Dettagli Tecnologici & UI
-- **Impostazioni Utente**: Nuova opzione *"Pagina di Avvio Predefinita"* nel profilo utente (sincronizzata a DB e salvata in `localStorage` per accesso istantaneo offline).
-- **Integrazione Navigazione**: Pulsante puntina opzionale nelle intestazioni delle varie viste per impostare rapidamente la pagina corrente come vista di avvio predefinita.
-
----
 
 ### [CAL-002] Filtro Categorie Eventi nel Calendario Homepage (Menu Ingranaggio ÃƒÂ¢Ã…Â¡Ã¢Â„Â¢ÃƒÂ¯Ã‚Â¸Ã‚Â)
 
@@ -226,6 +203,8 @@ Nuovo modulo completo per gestire, catalogare e monitorare l'intrattenimento per
   - ÃƒÂ°Ã…Â¸Ã¢Â€Â™Ã‚Â¬ **âœ… Messaggistica Istantanea ed Effimera (Completato)**: Valutare l'integrazione di una chat o messaggistica diretta tra amici, possibilmente con messaggi effimeri, legata alle interazioni sulle serie o commenti.
   - ÃƒÂ°Ã…Â¸Ã¢Â€Â™Ã‚Â¡ **Suggerimenti Homepage (Raccomandazioni)**: Aggiungere in homepage una sezione con serie TV suggerite e raccomandate dinamicamente in base alle ultime serie guardate.
   - 🎨 **✅ Gestione dello stato "Empty" per l'assenza di serie (Completato)**.
+  - 📺 **Homepage Mobile TV: Serie in corso ("In Questo Periodo") (TRACKERS-003)**: Nella finestra principale delle Serie TV su mobile, oltre al feed delle prossime uscite, mostrare le serie che l'utente sta guardando in questo periodo (in corso di visione / stato `watching`). Da strutturare e definire UX/UI (es. riga/carosello orizzontale in cima alle uscite, tab dedicato, o sezione espandibile per accedere rapidamente alla puntata successiva da guardare).
+  - 🔄 **Sostituzione Pulsante "Reset Filtri" con Freccia (Web Serie TV - UI-003)**: Nella vista Web/Desktop delle Serie TV ([TVSeriesLibrary.tsx](file:///c:/Users/Fabrizio/Desktop/app/smart/v14/frontend/src/components/trackers/TVSeriesLibrary.tsx)), sostituire il pulsante testuale "Reset filtri" con un'icona freccia di ripristino per uniformare l'interfaccia grafica e ridurre l'ingombro visivo.
   - ❌ **Date di Uscita Italiane (Impossibile)**: L'estrazione delle date di uscita regionali (italiane) per gli episodi non è supportata tecnicamente da TMDB, che traccia unicamente la prima data assoluta di messa in onda (first_air_date globale). Si manterrà la data globale poiché integrare API esterne commerciali (Gracenote/JustWatch) ha costi proibitivi per app indipendenti.
 
 #### ÃƒÂ°Ã…Â¸Ã¢Â€ÂÃ¢Â€Âž 4. Analisi Integrazioni Esterne & Sincronizzazione (Goodreads, Fable, TV Time)
@@ -363,6 +342,24 @@ Evoluzione della sezione Spesa in un ecosistema integrato e modulare per la gest
   - Box "Cosa si mangia oggi" (pasti del giorno estratti dal Meal Prep).
   - Alert prodotti in scadenza in dispensa/frigorifero.
   - Accesso rapido a Ricettario, Meal Prep, Fornitori e Wishlist.
+
+---
+
+### [SHOPPING-005] Finestra Laterale Recensioni & Giudizio Marchi all'Aggiunta Prodotto
+
+#### 📋 Descrizione
+Nel modulo Spesa / Shopping, durante la fase di inserimento o aggiunta di un nuovo prodotto a una lista della spesa, integrare una finestra / pannello laterale a comparsa (o drawer/sidebar reattivo) che visualizzi le recensioni, le valutazioni qualitative e i giudizi precedentemente espressi per i diversi marchi (brand) di quello specifico prodotto.
+
+#### 🎯 Casi d'Uso & Funzionalità
+1. **Confronto Marchi & Produttori in Tempo Reale**:
+   - Quando l'utente seleziona o digita un prodotto generico (es. "Caffè in chicchi", "Passata di pomodoro", "Biscotti", "Detersivo piatti"), il pannello laterale mostra l'elenco di tutti i marchi già provati e recensiti in passato.
+2. **Valutazione e Feedback Visivo**:
+   - Per ciascun marchio vengono visualizzati:
+     - Valutazione a stelle (es. 1-5 ⭐).
+     - Giudizio sintetico e note di qualità (es. "Ottima tostatura e profumo", "Gusto troppo acido", "Poco concentrato").
+     - Eventuale ultimo prezzo registrato o fornitore abituale.
+3. **Supporto alla Decisione d'Acquisto**:
+   - Consente all'utente di ricordare immediatamente quali marchi preferire e quali evitare nel momento esatto in cui compila la lista della spesa.
 
 ---
 
@@ -531,9 +528,22 @@ Breve spiegazione di cosa fa la funzionalitÃƒÂƒÃ‚Â  dal punto di vista 
 
 
 
-### [TRACKERS-004] Date di Uscita Italiane vs TMDB (Air Dates) - 🔴 CHIUSO / IMPOSSIBILE
-- **Esito**: Indagine completata. Come riportato nella sezione Serie TV, l\'estrazione delle date di uscita regionali (italiane) per gli episodi singoli non è supportata tecnicamente dalle API gratuite di TMDB (che traccia solo la 
-irst_air_date globale assoluta). L\'integrazione di API esterne (es. Gracenote) ha costi proibitivi. Pertanto l\'app manterrà la data globale.
+
+### [TRACKERS-005] Ottimizzazione Latenza: Aggiornamento Ottimistico Spunta/Rewatch & Citazioni, Audit Notifiche
+- **Descrizione**:
+  - **Aggiornamento Ottimistico Spunta/Rewatch**: Verificare e garantire che al tocco della spunta dell'episodio (o del cambio visualizzazioni rewatch) lo stato visivo si aggiorni istantaneamente nel frontend/React RAM prima dell'esito della chiamata asincrona al backend, eliminando qualsiasi ritardo o latenza percepita.
+  - **Aggiornamento Ottimistico Citazioni**: Applicare il salvataggio ottimistico immediato anche all'inserimento, modifica ed eliminazione delle citazioni dell'episodio per una reattività touch istantanea.
+  - **Audit Notifiche**: Effettuare un check completo sul flusso delle notifiche generate dal sistema per definire chiaramente dove e quando farle comparire a schermo (evitando sovrapposizioni o disturbo nelle viste mobile).
+- **Stato**: 🔴 Da Iniziare.
+
+### [TRACKERS-007] Ordinamento Personalizzato Serie TV nella Libreria Principale
+- **Descrizione**: Configurare l'ordinamento predefinito delle serie TV nella sezione principale (Libreria Trackers) prioritizzando lo stato di visione nel seguente ordine:
+  1. **In Visione** (`watching` / blu / in corso)
+  2. **Non ancora iniziate** (`to_watch` / grigio / da iniziare)
+  3. **In Pausa** (`paused` / viola)
+  4. **Completate** (`completed` / verde)
+  (e a seguire eventuali serie abbandonate `dropped`).
+- **Stato**: 🔴 Da Iniziare (Frontend React hook / filtro).
 
 ### [HABITS-001] Recap Mensile: Ripetizioni Multiple
 - **Descrizione**: Sistemare le habits/routines nel recap mensile in modo da mostrare correttamente quante volte sono state fatte le routines con più ripetizioni giornaliere (es. se una routine è da fare 3 volte al giorno e l'utente l'ha fatta 2 volte, mostrare 2/3 nel recap anziché solo se è stata fatta o meno).

@@ -10,12 +10,14 @@ interface MediaListManagerModalProps {
   isOpen: boolean;
   onClose: () => void;
   seriesId?: number; // L'ID della serie che stiamo cercando di aggiungere
+  zIndexClass?: string;
 }
 
 export const MediaListManagerModal: React.FC<MediaListManagerModalProps> = ({
   isOpen,
   onClose,
-  seriesId
+  seriesId,
+  zIndexClass = 'z-[10050]'
 }) => {
   const [selectedListId, setSelectedListId] = useState<number | 'new' | null>(null);
   const [isPrivacyDropdownOpen, setIsPrivacyDropdownOpen] = useState(false);
@@ -28,6 +30,10 @@ export const MediaListManagerModal: React.FC<MediaListManagerModalProps> = ({
   const selectedList = selectedListId === 'new' 
     ? { name: '', visibility: listPrivacy, items: [] as MediaListItem[] } 
     : mediaLists.find((l: MediaList) => l.id === selectedListId);
+
+  const isAlreadyInList = Boolean(
+    seriesId && selectedListId !== 'new' && selectedList?.items?.some((it: MediaListItem) => it.series_tmdb_id === seriesId)
+  );
 
   const handleSave = () => {
     if (selectedListId === 'new') {
@@ -79,6 +85,15 @@ export const MediaListManagerModal: React.FC<MediaListManagerModalProps> = ({
             placeholder="Es. Serie preferite..."
           />
         </div>
+
+        {isAlreadyInList && (
+          <div className="p-3 bg-blue-50 border border-blue-200 text-blue-800 rounded-xl text-xs font-semibold flex items-center gap-2">
+            <svg className="w-4 h-4 text-blue-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <span>Questa serie è già presente in questa lista.</span>
+          </div>
+        )}
 
         <div className="pt-2">
           <label className="block text-sm font-semibold text-gray-700 mb-2">Contenuto attuale della lista</label>
@@ -165,9 +180,10 @@ export const MediaListManagerModal: React.FC<MediaListManagerModalProps> = ({
         {/* Tasto Salva */}
         <button 
           onClick={handleSave}
-          className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-xl transition-all shadow-md active:scale-[0.98]"
+          disabled={isAlreadyInList}
+          className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-xl transition-all shadow-md active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          Salva
+          {isAlreadyInList ? 'Già in questa lista' : 'Salva'}
         </button>
       </div>
     </div>
@@ -180,6 +196,7 @@ export const MediaListManagerModal: React.FC<MediaListManagerModalProps> = ({
       title="Le Tue Liste"
       maxWidthClass="max-w-md"
       sidePanel={DetailPanel}
+      zIndexClass={zIndexClass}
     >
       <div className="space-y-4">
         

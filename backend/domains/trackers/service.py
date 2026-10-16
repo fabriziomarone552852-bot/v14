@@ -59,6 +59,50 @@ def is_missing_overview(overview: str | None) -> bool:
     ]
     return any(phrase in lower_ov for phrase in missing_phrases)
 
+def is_generic_episode_title(title: str | None, episode_number: int | None = None) -> bool:
+    if not title or not title.strip():
+        return True
+    t = title.strip().lower()
+    if t in ("tba", "tbd", "untitled", "unknown", "senza titolo", "da definire"):
+        return True
+    if episode_number is not None:
+        generic_patterns = (
+            f"episodio {episode_number}",
+            f"episode {episode_number}",
+            f"ep {episode_number}",
+            f"ep. {episode_number}",
+            f"puntata {episode_number}",
+            f"parte {episode_number}",
+            f"part {episode_number}",
+        )
+        if t in generic_patterns:
+            return True
+    return False
+
+def is_generic_season_name(name: str | None, season_number: int | None = None) -> bool:
+    if not name or not name.strip():
+        return True
+    s = name.strip().lower()
+    if s in ("tba", "tbd", "untitled", "unknown", "senza titolo", "da definire"):
+        return True
+    if season_number is not None:
+        generic_patterns = (
+            f"stagione {season_number}",
+            f"stagione {season_number:02d}",
+            f"season {season_number}",
+            f"season {season_number:02d}",
+            f"s{season_number}",
+            f"s{season_number:02d}",
+            f"serie {season_number}",
+            f"series {season_number}",
+        )
+        if s in generic_patterns:
+            return True
+    import re
+    if re.match(r"^(stagione|season|series|serie)\s*\d+$", s):
+        return True
+    return False
+
 from backend.domains.trackers.schemas import (
     TMDBPaginatedSearch,
     TMDBSeriesSearchResult,
@@ -126,9 +170,54 @@ async def get_tmdb_series_extras(tmdb_id: int) -> dict:
         } for r in recs_data[:10]
     ]
 
+    # Estrai le stagioni con risoluzione del nome proprio (IT -> EN -> Stagione N, e 'Episodi Speciali' per stagione 0)
+    it_seasons = data.get("seasons", [])
+    needs_en = any(
+        is_generic_season_name(s.get("name"), s.get("season_number", 0))
+        for s in it_seasons
+        if (s.get("season_number") or 0) > 0
+    )
+    en_seasons_map: dict[int, str] = {}
+    if needs_en:
+        try:
+            async with httpx.AsyncClient(timeout=15.0) as client_en:
+                resp_en = await client_en.get(
+                    url,
+                    headers=get_tmdb_headers(),
+                    params={"language": "en-US"},
+                )
+                if resp_en.status_code == 200:
+                    for s in resp_en.json().get("seasons", []):
+                        sn = s.get("season_number")
+                        sname = s.get("name")
+                        if sn is not None and sname and not is_generic_season_name(sname, sn):
+                            en_seasons_map[sn] = sname.strip()
+        except Exception:
+            pass
+
+    seasons = []
+    for s in it_seasons:
+        sn = s.get("season_number", 0)
+        sname_it = (s.get("name") or "").strip()
+        if sn == 0:
+            final_name = "Episodi Speciali"
+        elif sname_it and not is_generic_season_name(sname_it, sn):
+            final_name = sname_it
+        elif sn in en_seasons_map:
+            final_name = en_seasons_map[sn]
+        else:
+            final_name = f"Stagione {sn}"
+
+        seasons.append({
+            "season_number": sn,
+            "name": final_name,
+            "poster_path": s.get("poster_path"),
+        })
+
     return {
         "cast": cast,
-        "recommendations": recommendations
+        "recommendations": recommendations,
+        "seasons": seasons,
     }
 
 async def search_tmdb_series(query: str, page: int = 1) -> TMDBPaginatedSearch:
@@ -252,15 +341,31 @@ async def sync_tmdb_episodes_for_seasons(db: Session, tmdb_id: int, seasons: lis
                 resp = await client.get(url, headers=get_tmdb_headers(), params=params)
                 if resp.status_code == 200:
                     data = resp.json().get("episodes", [])
-                    needs_en = any(is_missing_overview(ep.get("overview")) for ep in data)
+                    needs_en = any(
+                        is_missing_overview(ep.get("overview")) or
+                        is_generic_episode_title(ep.get("name"), ep.get("episode_number"))
+                        for ep in data
+                    )
                     if needs_en:
                         resp_en = await client.get(url, headers=get_tmdb_headers(), params={"language": "en-US"})
                         if resp_en.status_code == 200:
                             data_en = resp_en.json().get("episodes", [])
-                            en_dict = {ep.get("episode_number"): ep.get("overview") for ep in data_en if not is_missing_overview(ep.get("overview"))}
+                            en_overview_dict = {
+                                ep.get("episode_number"): ep.get("overview")
+                                for ep in data_en
+                                if not is_missing_overview(ep.get("overview"))
+                            }
+                            en_name_dict = {
+                                ep.get("episode_number"): ep.get("name")
+                                for ep in data_en
+                                if not is_generic_episode_title(ep.get("name"), ep.get("episode_number"))
+                            }
                             for ep in data:
-                                if is_missing_overview(ep.get("overview")) and ep.get("episode_number") in en_dict:
-                                    ep["overview"] = en_dict[ep.get("episode_number")]
+                                ep_num = ep.get("episode_number")
+                                if is_missing_overview(ep.get("overview")) and ep_num in en_overview_dict:
+                                    ep["overview"] = en_overview_dict[ep_num]
+                                if is_generic_episode_title(ep.get("name"), ep_num) and ep_num in en_name_dict:
+                                    ep["name"] = en_name_dict[ep_num]
                     return data
                 return []
                 
@@ -777,12 +882,16 @@ def get_upcoming_episodes(db: Session, current_user: User, start_date=None, end_
             series_tmdb_id=s.tmdb_id,
             series_title=s.title,
             series_poster_path=s.poster_path,
+            series_backdrop_path=s.backdrop_path,
             season_number=ep.season_number,
             episode_number=ep.episode_number,
             episode_title=ep.title,
-            air_date=ep.air_date
+            episode_overview=ep.overview,
+            episode_still_path=ep.still_path,
+            air_date=ep.air_date,
+            is_watched=bool(is_watched)
         )
-        for ep, s in results
+        for ep, s, is_watched in results
     ]
 
 def get_user_quotes(db: Session, current_user: User) -> List[TVQuoteExtendedResponse]:
@@ -867,6 +976,11 @@ async def add_item_to_media_list(db: Session, current_user: User, list_id: int, 
         series = repository.get_tmdb_series(db, payload.series_tmdb_id)
         if not series:
             await sync_tmdb_series_lazy(db, payload.series_tmdb_id)
+
+        # Avoid duplicate entries of the same series in the list
+        existing = next((x for x in lst.items if x.series_tmdb_id == payload.series_tmdb_id), None)
+        if existing:
+            return _build_media_list_item_response(existing)
 
     item = MediaListItem(
         list_id=list_id,

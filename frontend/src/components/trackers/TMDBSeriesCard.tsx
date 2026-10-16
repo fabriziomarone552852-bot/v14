@@ -1,5 +1,6 @@
 import React from 'react';
 import type { TVSeries, TMDBSeriesSearchResult } from '@/types/trackers';
+import { getMediaBorderClass } from '@/utils/mediaStatusTheme';
 
 interface TMDBSeriesCardProps {
   result: TMDBSeriesSearchResult;
@@ -33,9 +34,7 @@ export const TMDBSeriesCard: React.FC<TMDBSeriesCardProps> = ({
       }}
     >
       <div className={`relative aspect-[2/3] w-full rounded-lg overflow-hidden bg-gray-100 shadow-sm border-[3px] transition-all duration-300 group-hover:scale-105 ${
-        existingSeries 
-          ? (existingSeries.status === 'watching' ? 'border-yellow-400' : (existingSeries.status === 'completed' || existingSeries.status === 'watched') ? (existingSeries.tmdb_status === 'Returning Series' ? 'border-purple-500' : 'border-green-500') : 'border-transparent') 
-          : 'border-transparent'
+        getMediaBorderClass(existingSeries?.status, existingSeries?.tmdb_status)
       }`}>
         {result.poster_path ? (
           <img src={`https://image.tmdb.org/t/p/w500${result.poster_path}`} alt={result.name} className="w-full h-full object-cover" />

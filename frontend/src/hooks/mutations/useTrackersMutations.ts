@@ -224,6 +224,7 @@ export const useTrackersMutations = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['trackers', 'series'] });
       queryClient.invalidateQueries({ queryKey: ['trackers', 'series', 'detail'] });
+      queryClient.invalidateQueries({ queryKey: ['trackers', 'upcoming'] });
     },
   });
 
@@ -307,10 +308,13 @@ export const useTrackersMutations = () => {
     deleteQuote: deleteQuoteMutation.mutate,
     isDeletingQuote: deleteQuoteMutation.isPending,
     createList: createListMutation.mutate,
+    createListAsync: createListMutation.mutateAsync,
     isCreatingList: createListMutation.isPending,
     addToList: addToListMutation.mutate,
+    addToListAsync: addToListMutation.mutateAsync,
     isAddingToList: addToListMutation.isPending,
     removeFromList: removeFromListMutation.mutate,
+    removeFromListAsync: removeFromListMutation.mutateAsync,
     isRemovingFromList: removeFromListMutation.isPending,
     renamePlatform: renamePlatformMutation.mutate,
     deletePlatform: deletePlatformMutation.mutate,

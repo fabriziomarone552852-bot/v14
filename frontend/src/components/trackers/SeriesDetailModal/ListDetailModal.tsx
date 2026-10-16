@@ -8,12 +8,14 @@ interface ListDetailModalProps {
   isOpen: boolean;
   onClose: () => void;
   listId: number | null;
+  zIndexClass?: string;
 }
 
 export const ListDetailModal: React.FC<ListDetailModalProps> = ({
   isOpen,
   onClose,
-  listId
+  listId,
+  zIndexClass = 'z-[10050]'
 }) => {
   const { data: mediaLists = [] } = useMediaLists();
   const { removeFromList } = useTrackersMutations();
@@ -32,6 +34,7 @@ export const ListDetailModal: React.FC<ListDetailModalProps> = ({
     <BaseModal 
       isOpen={isOpen} 
       onClose={onClose}
+      zIndexClass={zIndexClass}
       title={
         <div className="flex items-center gap-1.5 px-2.5 py-1 bg-gray-200/60 rounded-lg text-gray-600 w-fit">
            {list.visibility === 'public' ? (

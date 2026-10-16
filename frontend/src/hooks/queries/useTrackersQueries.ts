@@ -1,6 +1,6 @@
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, keepPreviousData } from '@tanstack/react-query';
 import { api } from '@/api/apiService';
-import type { TVSeries, TMDBPaginatedSearch, FriendSeriesLog, FriendEpisodeLog, SeriesCastMember, SeriesRecommendation, MediaList, TVDashboardStats, TVFullStats, SeriesQuote, UpcomingEpisode } from '@/types/trackers';
+import type { TVSeries, TMDBPaginatedSearch, FriendSeriesLog, FriendEpisodeLog, SeriesCastMember, SeriesRecommendation, SeriesSeasonInfo, MediaList, TVDashboardStats, TVFullStats, SeriesQuote, UpcomingEpisode } from '@/types/trackers';
 
 export const useMySeries = () => {
   return useQuery<TVSeries[]>({
@@ -60,11 +60,23 @@ export const useFriendsEpisodeReviews = (episodeId: number, enabled: boolean = t
 
 
 export const useSeriesExtras = (tmdbId: number, enabled: boolean = true) => {
-  return useQuery<{ cast: SeriesCastMember[], recommendations: SeriesRecommendation[] }>({
+  return useQuery<{
+    cast: SeriesCastMember[];
+    recommendations: SeriesRecommendation[];
+    seasons?: SeriesSeasonInfo[];
+  }>({
     queryKey: ['trackers', 'series', tmdbId, 'extras'],
     queryFn: async () => {
-      const data = await api.get<{ cast: SeriesCastMember[], recommendations: SeriesRecommendation[] }>(`/trackers/series/${tmdbId}/extras`);
-      return data as { cast: SeriesCastMember[], recommendations: SeriesRecommendation[] };
+      const data = await api.get<{
+        cast: SeriesCastMember[];
+        recommendations: SeriesRecommendation[];
+        seasons?: SeriesSeasonInfo[];
+      }>(`/trackers/series/${tmdbId}/extras`);
+      return data as {
+        cast: SeriesCastMember[];
+        recommendations: SeriesRecommendation[];
+        seasons?: SeriesSeasonInfo[];
+      };
     },
     enabled: enabled && !!tmdbId,
     staleTime: 1000 * 60 * 60 * 24, // 24 hours
@@ -120,6 +132,7 @@ export const useUpcomingEpisodes = (startDate?: string, endDate?: string) => {
       const data = await api.get<UpcomingEpisode[]>('/trackers/series/upcoming', { params });
       return data || [];
     },
+    placeholderData: keepPreviousData,
   });
 };
 

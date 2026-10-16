@@ -3,6 +3,7 @@ import type { TMDBSeries, UserSeriesTracking, TMDBEpisode } from '@/types/tracke
 import { EpisodeDetailView } from './EpisodeDetailView';
 import { StarRating } from './StarRating';
 import { useTrackersMutations } from '@/hooks/mutations/useTrackersMutations';
+import { useSeriesExtras } from '@/hooks/queries/useTrackersQueries';
 
 interface SeasonsTabProps {
   tmdbSeries: TMDBSeries;
@@ -17,6 +18,27 @@ export const SeasonsTab: React.FC<SeasonsTabProps> = ({ tmdbSeries, initialEpiso
   const [expandedSeason, setExpandedSeason] = useState<number | null>(initialEpisode ? initialEpisode.season_number : null);
 
   const { toggleEpisodeWatched } = useTrackersMutations();
+  const { data: extras } = useSeriesExtras(tmdbSeries.tmdb_id);
+
+  // Mappa dei nomi propri delle stagioni (es. AHS: "Murder House", "Asylum", ecc.)
+  const seasonNamesMap = React.useMemo(() => {
+    const map: Record<number, string> = {};
+    if (extras?.seasons) {
+      extras.seasons.forEach((s) => {
+        if (s.season_number === 0) {
+          map[0] = 'Episodi Speciali';
+        } else if (s.name) {
+          map[s.season_number] = s.name;
+        }
+      });
+    }
+    return map;
+  }, [extras?.seasons]);
+
+  const getSeasonTitle = (sn: number) => {
+    if (sn === 0) return 'Episodi Speciali';
+    return seasonNamesMap[sn] || `Stagione ${sn}`;
+  };
 
   React.useEffect(() => {
     if (initialEpisode) {
@@ -255,7 +277,7 @@ export const SeasonsTab: React.FC<SeasonsTabProps> = ({ tmdbSeries, initialEpiso
                   onSub={(e) => { e.stopPropagation(); changeAllEpisodes(seasonEpisodes, -1, seasonMinWatchCount); }}
                 />
                 
-                <h3 className="font-bold text-gray-900 text-lg">Stagione {seasonNumber}</h3>
+                <h3 className="font-bold text-gray-900 text-lg">{getSeasonTitle(seasonNumber)}</h3>
                 <span className="text-xs font-semibold text-gray-500 bg-gray-100 px-2 py-1 rounded-md ml-2">
                   {watched} / {total}
                 </span>

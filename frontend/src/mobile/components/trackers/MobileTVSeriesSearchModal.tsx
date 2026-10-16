@@ -24,6 +24,7 @@ export interface MobileTVSeriesSearchModalProps {
   isDiscoverLoading: boolean;
   onCardClick: (mockSeries: Partial<TVSeries>) => void;
   onAddClick: (tmdbId: number, e: React.MouseEvent) => void;
+  onToggleTrack?: (tmdbId: number, isTracked: boolean, e: React.MouseEvent) => void;
 }
 
 export const MobileTVSeriesSearchModal: React.FC<MobileTVSeriesSearchModalProps> = ({
@@ -43,13 +44,14 @@ export const MobileTVSeriesSearchModal: React.FC<MobileTVSeriesSearchModalProps>
   isDiscoverLoading,
   onCardClick,
   onAddClick,
+  onToggleTrack,
 }) => {
   const inputRef = useRef<HTMLInputElement>(null);
   const [viewMode, setViewMode] = useState<'filters' | 'results'>(debouncedQuery ? 'results' : 'filters');
 
   // Gestione tasto Back (freccia UI e pulsante hardware Android)
   const handleBack = () => {
-    if (viewMode === 'filters' && debouncedQuery) {
+    if (viewMode === 'filters' && (debouncedQuery || filters.genre !== 'all' || filters.network !== 'all')) {
       setViewMode('results');
       return;
     }
@@ -76,7 +78,8 @@ export const MobileTVSeriesSearchModal: React.FC<MobileTVSeriesSearchModalProps>
       onFilterChange({ ...filters, globalSearch: true });
     }
 
-    if (debouncedQuery) {
+    const hasCategoryFilter = (filters.genre && filters.genre !== 'all') || (filters.network && filters.network !== 'all');
+    if (debouncedQuery || hasCategoryFilter) {
       setViewMode('results');
       return undefined;
     } else {
@@ -86,7 +89,7 @@ export const MobileTVSeriesSearchModal: React.FC<MobileTVSeriesSearchModalProps>
       }, 150);
       return () => clearTimeout(timer);
     }
-  }, [isOpen]);
+  }, [isOpen, filters.genre, filters.network]);
 
   const {
     availableGenres,
@@ -229,6 +232,18 @@ export const MobileTVSeriesSearchModal: React.FC<MobileTVSeriesSearchModalProps>
       ? searchResults?.results
       : discoverData?.results;
 
+  const activeFilterLabel = useMemo(() => {
+    if (filters.genre && filters.genre !== 'all') {
+      const g = availableGenres.find((x) => x.value === filters.genre);
+      return g ? `Genere: ${g.label}` : 'Filtro Genere';
+    }
+    if (filters.network && filters.network !== 'all') {
+      const n = availableNetworks.find((x) => x.value === filters.network);
+      return n ? `Piattaforma: ${n.label}` : 'Filtro Piattaforma';
+    }
+    return null;
+  }, [filters.genre, filters.network, availableGenres, availableNetworks]);
+
   const emptyMessage =
     filters.listId !== null
       ? 'Nessuna serie trovata in questa lista con questi criteri.'
@@ -277,7 +292,7 @@ export const MobileTVSeriesSearchModal: React.FC<MobileTVSeriesSearchModalProps>
                   handleExecuteSearch();
                 }
               }}
-              placeholder="Cerca su TMDB e premi Invio..."
+              placeholder={activeFilterLabel ? `${activeFilterLabel}...` : 'Cerca su TMDB e premi Invio...'}
               className="w-full pl-9 pr-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs text-gray-900 placeholder-gray-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all font-medium shadow-2xs"
             />
           </div>
@@ -305,6 +320,7 @@ export const MobileTVSeriesSearchModal: React.FC<MobileTVSeriesSearchModalProps>
               series={series}
               onCardClick={onCardClick}
               onAddClick={onAddClick}
+              onToggleTrack={onToggleTrack}
               emptyMessage={emptyMessage}
             />
           </div>

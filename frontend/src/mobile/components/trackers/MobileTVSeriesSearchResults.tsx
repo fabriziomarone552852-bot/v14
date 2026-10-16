@@ -11,6 +11,7 @@ export interface MobileTVSeriesSearchResultsProps {
   series?: TVSeries[];
   onCardClick: (mockSeries: Partial<TVSeries>) => void;
   onAddClick: (tmdbId: number, e: React.MouseEvent) => void;
+  onToggleTrack?: (tmdbId: number, isTracked: boolean, e: React.MouseEvent) => void;
   emptyMessage?: string;
 }
 
@@ -20,6 +21,7 @@ export const MobileTVSeriesSearchResults: React.FC<MobileTVSeriesSearchResultsPr
   series,
   onCardClick,
   onAddClick,
+  onToggleTrack,
   emptyMessage = 'Nessuna serie trovata su TMDB con questi criteri.',
 }) => {
   return (
@@ -47,6 +49,7 @@ export const MobileTVSeriesSearchResults: React.FC<MobileTVSeriesSearchResultsPr
                 existingSeries={existing}
                 onCardClick={onCardClick}
                 onAddClick={onAddClick}
+                onToggleTrack={onToggleTrack}
               />
             );
           })}

@@ -2,6 +2,141 @@
 
 Questo file contiene i task storici che sono stati completati e rimossi dal `BACKLOG.md` principale per mantenere il documento snello.
 
+### [TRACKERS-006] Mobile TV Episode Fullscreen Detail, Quotes & Reviews Redesign, Multi-Selection & Action Buttons Alignment (🟢 Completato)
+
+#### 📋 Descrizione
+Riprogettazione completa dell'esperienza mobile per il singolo episodio della serie TV (`MobileEpisodeDetailView`) e per la scheda recensioni dell'intera serie (`MobileSeriesReviewTab`), con visualizzazione a tutto schermo, banner still dell'episodio, gestione visioni multiple (rewatch) e navigazione di ritorno alla stagione; restyling della gestione citazioni e recensioni con schermata dedicata "Nuova/Modifica Recensione", selezione multipla con pressione prolungata (long-press), box voti unificato per serie ed episodi, selettore piattaforma con flusso semplificato e allineamento stilistico dei tasti azione rispetto a `MobileTaskDetailModal` ed eventi.
+
+#### 🎯 Funzionalità Implementate
+- **Dettaglio Episodio Mobile a Tutto Schermo**:
+  - Banner superiore con foto backdrop/still dell'episodio, gradiente di contrasto per la leggibilità del titolo e pulsante di chiusura `X` che riporta direttamente alla lista delle stagioni/episodi.
+  - Sotto-intestazione codice/data (`STAGIONE X - EPISODIO X | Data`) con pallino visto interattivo (supporto a visualizzazioni multiple `X1`, `X2`... e drawer rewatch).
+  - Trama dell'episodio a tutta larghezza e sezione voti (TMDB, Amici e Il Tuo Voto).
+  - Dalla bottom bar fissa, cliccando nuovamente su "Serie" l'utente chiude la vista dell'episodio e torna istantaneamente all'elenco stagioni.
+- **Rinnovamento Citazioni Episodio & Serie**:
+  - Badge a pallino con conteggio numerico delle citazioni salvate per l'episodio al posto del testo grezzo `(X)`.
+  - Rimossa la dicitura ridondante "tocca per aprire episodio" nella lista citazioni serie in `MobileSeriesReviewTab`.
+  - Stato vuoto ripulito e integrato con il componente standard `EmptyState`.
+  - Pulsante "Aggiungi citazione" in stile `AddButton` posizionato in calce sopra la bottom bar, con apertura di textarea rapida sopra di sé ed auto-salvataggio.
+- **Box Voti Unificato a Tutto Tondo (Serie ed Episodio)**:
+  - Invece di un box isolato per il voto personale, un contenitore unico racchiude armoniosamente TMDB e Amici in alto con separatore verticale, e "Il Tuo Voto" in basso con stelle centrate o prompt "Aggiungilo!".
+- **Schermata Dedicata "Nuova / Modifica Recensione" & Zero Scorrimento**:
+  - Componenti autonomi `MobileEpisodeReviewForm.tsx` e `MobileSeriesReviewForm.tsx` con stelline centrate orizzontalmente in alto sotto la barra.
+  - Ancoraggio a schermo intero `absolute inset-0 z-20 overflow-hidden` che impedisce qualsiasi scorrimento della pagina o del contenitore sottostante.
+  - Textarea a ingombro adattativo (`flex-1 min-h-[40px]`): su schermi piccoli o con tastiera aperta si riduce dinamicamente senza spingere i comandi fuori schermo; su schermi alti si espande per occupare tutto lo spazio disponibile.
+  - Barra inferiore fissa a 4 colonne con: Colonna 1 (Calendario a modale centrale overlay), Colonna 2 (Privacy a modale centrale `SelectModalDialog`), Colonne 3 e 4 (Pulsante Salva in risalto blu), perfettamente a filo con la barra di navigazione inferiore.
+- **Selettore Piattaforma di Visione Semplificato**:
+  - Riga orizzontale compatta con `TvIcon` blu e dicitura "Dove l'hai guardato?" posizionata accanto al pulsante menu a discesa della piattaforma.
+  - Modale centrale `SelectModalDialog` con selezione con un clic, pulsante "+ Nuova Piattaforma" che si trasforma direttamente in input di testo (senza tasti inline aggiungi/annulla) e tasto fisso "Aggiungi" in calce per confermare la scelta. Scrollbar visibile completamente rimossa.
+- **Selezione Multipla & Azioni Header (Citazioni & Recensioni Serie ed Episodio)**:
+  - Selezione attivata tramite pressione prolungata (long-press ~400ms) sia per le citazioni che per le recensioni personali della serie e dell'episodio.
+  - Tasti azione collocati nell'header a destra del titolo: se 1 elemento selezionato mostra Modifica ed Elimina, se più di 1 elemento selezionato mostra solo Elimina batch con popup di conferma `useConfirm`.
+  - Chiusura automatica o deselezione batch al termine dell'operazione.
+- **Uniformità Tasti Azione con `MobileTaskDetailModal` & `MobileEventDetailModal`**:
+  - Icone ufficiali `EditIcon` e `TrashIcon` (`h-5 w-5`) da `@/components/shared/utils/Icons`.
+  - Contenitore `flex items-center gap-1`.
+  - Stile nativo senza riquadri a riposo: `p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-colors cursor-pointer` per Modifica e `p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-xl transition-colors cursor-pointer` per Elimina.
+  - Uniformato in `MobileEpisodeQuotesSection.tsx`, `MobileEpisodeMyReviewsList.tsx`, `MobileSeriesMyReviewsList.tsx` e `MobileReviewDetailView.tsx`.
+- **Barra Inferiore Serie TV Uniforme in Blu**:
+  - Sostituito lo stato attivo giallo/ambra del pulsante Recensioni (stella) con lo stile blu coordinato a tutte le altre schede.
+- **Ricerca Serie Mobile con Tasto Catalogo Blu e Spunta Bianca**:
+  - Nei risultati di ricerca TMDB, le serie già presenti nel catalogo mostrano un pulsante blu con spunta bianca che consente la rimozione con conferma, mentre le altre mostrano il pulsante `+` per l'aggiunta rapida.
+
+---
+
+### [TRACKERS-004] Date di Uscita Italiane vs TMDB (Air Dates) - 🔴 Chiuso / Archiviato
+- **Esito**: Indagine completata. L'estrazione delle date di uscita regionali (italiane) per gli episodi singoli non è supportata tecnicamente dalle API gratuite di TMDB (che traccia solo la first_air_date globale assoluta). L'integrazione di API esterne proprietarie (es. Gracenote) ha costi proibitivi. L'app mantiene la data globale ufficiale fornita da TMDB.
+
+---
+
+### [TRACKERS-002] Mobile TV Series Detail Modal, Bottom Drawers & Gestione Liste (🟢 Completato)
+
+#### 📋 Descrizione
+Sviluppo completo dell'esperienza mobile a schermo intero per la scheda di dettaglio delle Serie TV (`MobileTVSeriesDetailModal`), con banner fotografico nitido senza blur, menu opzioni tre puntini (...) per cambio locandina nativo, bottom drawers in stile agenda per Amici e Liste, navigazione fluida verso la ricerca globale TMDB al tocco di generi o provider streaming, modale di gestione liste con selezione multipla touch-friendly e allineamento z-index dei sub-modali su Web e Mobile.
+
+#### 🎯 Funzionalità Implementate
+- **Mobile TV Series Detail Modal a Tutto Schermo**:
+  - Banner fotografico hero con backdrop nitido (senza effetto blur).
+  - Pills dei generi multilinea in alto a sinistra stilizzate come su Desktop Web.
+  - Pulsante opzioni tre puntini (...) in alto a destra con menu per cambiare la locandina tramite il selettore immagini nativo del dispositivo (o ripristinare quella predefinita).
+  - Icona di stato colorata circolare posta prima del titolo della serie nel margine inferiore del banner.
+  - Tasti circolari per Amici (visibile solo se almeno un amico ha la serie in catalogo) e Liste posizionati verticalmente a destra sotto la 'X'.
+- **Sezione "Dove guardarlo?" e Aggiunta a Catalogo**:
+  - Posizionata subito sotto il banner con titolo a sinistra allineato orizzontalmente al pulsante quadrato di aggiunta/rimozione catalogo (a tocco singolo pulito, senza pressione prolungata).
+  - Pills interattive dei distributori streaming (`flatrate`). Toccando una pillola o un genere, si apre direttamente la ricerca globale TMDB pre-filtrata per quel genere/piattaforma.
+- **Bottom Drawers in Stile Agenda Note**:
+  - Drawer Amici con avatar, bordo colorato dello stato (in visione, completata, ecc.) ed etichetta testuale.
+  - Drawer Liste personali con elenco delle liste che contengono la serie e pulsante `AddButton` in calce per aprire il gestore liste.
+- **Mobile Media List Manager Modal & Selezione Multipla**:
+  - Selezione multipla con checkbox circolari touch-friendly (`selectedListIds`), con pre-selezione automatica delle liste in cui la serie è già inserita.
+  - Form "Nuova Lista" con pulsante "Annulla" spostato a destra e selettore privacy stile Webpage con menu a discesa contestuale e icone (Solo Io, Amici, Pubblico).
+  - Tasto principale "Salva" in blu in calce che applica in batch tutte le modifiche (creazione nuova lista, aggiunte e rimozioni) con stato di caricamento.
+- **Allineamento Z-Index & Idempotenza Backend**:
+  - Elevato lo z-index di `ConfirmDialog` a `z-[10090]` e dei sub-modali Web (`MediaListManagerModal`, `ListDetailModal`, `SeriesImageModal`) a `z-[10050]`, risolvendo il problema dei modali nascosti dietro la scheda principale.
+  - Introdotto controllo di idempotenza in `add_item_to_media_list` nel backend per prevenire duplicati della stessa serie all'interno di una lista.
+- **Navigazione Inferiore con Icone & Scheda Panoramica Mobile**:
+  - Sostituito lo slider testuale superiore con una barra fissa in fondo allo schermo con safe-area e 3 pulsanti touch-friendly con icone tematiche (Info per Panoramica, Layers per Stagioni, Star per Recensioni stile Review Mesi/Anni).
+  - Nuova scheda Panoramica fluida: blocco "Dove guardarlo?" con distributori streaming, "Trama" con sinossi pulita senza titolo serie duplicato, "Cast Principale" con foto profilo circolari a scorrimento orizzontale, e "Consigliati" con card 16:9 orizzontali.
+  - Scrollbar verticali rese invisibili in tutte le schede e cassetti secondari del modale dettaglio serie per garantire una UI pulita e moderna.
+- **Scheda Stagioni ed Episodi Mobile & Rewatch Action Drawer**:
+  - Titoli stagione allineati a sinistra con font compatto e contatore visti.
+  - Miniature still 16:9 degli episodi per identificazione immediata a colpo d'occhio.
+  - Media voti recensioni dell'utente (scala 5 stelle con mezzi voti `roundToHalfStar`) a fianco al pallino visto per i singoli episodi e per l'intera stagione (media delle medie).
+  - Rimozione completa della freccia/chevron di apertura per gli episodi.
+  - Apertura con tutte le stagioni chiuse/collassate di default all'accesso del modale.
+  - Tocco sul pallino già visto trasformato in un cassetto inferiore (Drawer) con opzioni "Aggiungi una visione" (+1), "Segna come non visto" (azzera) e "Togli una visione" (-1, se visto più di una volta).
+- **Nomi Propri delle Stagioni & Fallback Intelligente**:
+  - Backend `get_tmdb_series_extras` arricchito per rilevare i nomi generici delle stagioni ("Stagione N") in italiano e recuperare automaticamente da TMDB in lingua inglese il titolo/sottotitolo proprio (es. American Horror Story: "Murder House", "Asylum", "Coven", ecc.).
+  - Gerarchia di fallback: nome italiano -> nome inglese -> "Stagione N", integrata dinamicamente sia su Mobile che su Webpage desktop (`SeasonsTab`).
+- **Allineamento Stagione 0 come "Episodi Speciali"**:
+  - La stagione 0 viene ora identificata e visualizzata uniformemente come "Episodi Speciali" (e non più "Stagione 0") sia su Webpage desktop (`SeasonsTab`, `EpisodeMainOverview`) che su Mobile (`MobileSeriesSeasonsTab`, `MobileWatchActionDrawer`, `MobileEpisodeDetailModal`).
+- **Modularizzazione & Qualità del Codice (Regola 7.3)**:
+  - Rifattorizzazione di `MobileSeriesSeasonsTab.tsx` con estrazione del custom hook `useMobileSeriesSeasonsLogic.ts` e del componente atomico `MobileEpisodeItem.tsx`, riducendo le dimensioni a sole 215 righe nel pieno rispetto degli standard di pulizia e zero `any`.
+
+---
+
+### [TRACKERS-001] Mobile TV Series Timeline & Restyling Card Episodi (🟢 Completato)
+
+#### 📋 Descrizione
+Progettazione, sviluppo e rifinitura completa dell'esperienza mobile per le Serie TV, sostituendo la visualizzazione predefinita con una Timeline dinamica delle uscite ancorata a "Oggi", scroll infinito bidirezionale (passato e futuro) con card di caricamento compatte, e restyling della card orizzontale dell'episodio.
+
+#### 🎯 Funzionalità Implementate
+- **Navigazione Mobile Swipe a Due Pagine**: Slider touch orizzontale con indicatori dots tra Timeline Uscite Episodi (Pagina 0) e Dashboard/Attività con obiettivi e citazioni (Pagina 1).
+- **Timeline Continua Uscite Episodi**:
+  - Calcolo dinamico della finestra temporale (-2 mesi / +2 mesi all'avvio, con espansione automatica fino a 12 mesi per riempire la vista se le uscite future sono poche).
+  - Ancoraggio visivo e scroll automatico iniziale sul primo episodio in uscita oggi o sul prossimo futuro.
+  - Tasto circolare fluttuante "Torna a oggi" centrato in basso con freccia dinamica (in alto o in basso) in base alla direzione di scorrimento.
+  - Caricamenti dinamici discreti sopra (storico passato) e sotto (uscite future) senza schermate bianche o lampeggi.
+  - Barra di scorrimento reattiva a scomparsa (`.fade-scrollbar`) visibile solo durante il tocco attivo.
+- **Restyling Card Orizzontale Episodio**:
+  - Locandina poster verticale a sinistra con angoli arrotondati.
+  - Colonna informativa centrale allineata a sinistra:
+    - Data di uscita in alto: evidenziata in blu brillante (`text-blue-600`) per gli episodi da guardare e grigio per i visti; mostra unicamente `OGGI` o `DOMANI` (senza giorno/mese) oppure la data formattata (`22 ott`).
+    - Codice e nome episodio in mezzo: formattato come `SXX EXX | NNNNNN` in nero marcato, senza testo barrato anche per gli episodi visti.
+    - Nome serie in basso: pillola sagomata cerchiata con bordo (`rounded-full border border-gray-400 bg-white/70`), cliccabile con `e.stopPropagation()` per aprire direttamente la scheda di dettaglio della serie.
+  - Pallino interattivo a destra: centrato verticalmente sul margine destro, diventa blu brillante con spunta bianca se l'episodio è visto (con l'intera card desaturata a toni di grigio) e cerchio neutro da toccare se non visto, supportato da optimistic updates a 0ms di latenza.
+- **Sincronizzazione Titoli Episodi Backend**: Helper intelligente `sync_tmdb_episodes_for_seasons` che rileva i titoli generici ("Episodio X", "Episode X", "TBA") e recupera automaticamente il titolo reale in lingua originale da TMDB.
+- **Rifattorizzazione Architetturale (Regola 7.3)**: Estratto `MobileTVSeriesDashboardSlide.tsx` per mantenere `MobileTVSeriesView.tsx` snello (< 280 righe).
+
+---
+
+### [FEAT-012] Pagina di Avvio Pinnata / Selezione Landing Page Predefinita (🟢 Completato)
+
+#### 📋 Descrizione
+Possibilità per l'utente di scegliere e fissare (pinnare) nelle impostazioni personali quale pagina/sezione dell'applicazione deve essere aperta per prima al login o al lancio dell'app (es. Homepage Agenda, Spesa / Shopping, Vista Giorno, Liste Tematiche, Sezione Media, ecc.).
+
+#### 🎯 Funzionalità Implementate
+- **Personalizzazione Esperienza d'Uso**: Scelta della landing page nelle impostazioni profilo utente (`default_startup_page`), persistita a database e in local cache per navigazione immediata.
+- **Routing Intelligente**: Reindirizzamento trasparente all'accesso al root `/` sia su Desktop Web che Mobile App (Capacitor/Android).
+- **Tasto Pin Rapido**: Icona puntina integrabile nelle intestazioni per impostare al volo la vista corrente come predefinita.
+
+---
+
+### [TECH-001] Controllo & Ottimizzazione Bundle APK Android (Code-Splitting) (🟢 Completato)
+
+#### 📋 Descrizione
+Verifica e ottimizzazione del processo di compilazione dell'APK eseguito da `build_apk.ps1`, separando i chunk desktop e mobile per ridurre l'impronta di memoria e la dimensione del pacchetto finale installato su dispositivi Android.
+
 ---
 
 ### [TECH-007] Configurazione TMDB Produzione NAS & Fix 500 Ricerca Serie (🟢 Completato)
