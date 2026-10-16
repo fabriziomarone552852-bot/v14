@@ -6,11 +6,12 @@ from typing import Any, Dict, List, Optional
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel, EmailStr, Field
 from sqlalchemy import func, select, text
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, selectinload
 
 from backend.core import deps
 from backend.core.sequence_sync import sync_all_table_sequences
 from backend.domains.admin import service
+from backend.domains.categories.models import UserCategory
 from backend.domains.config.models import Config
 from backend.domains.events.models import Event
 from backend.domains.shopping.models.groups import ShoppingGroup, ShoppingGroupMember
@@ -423,3 +424,381 @@ def reseed_shopping_data_by_admin(
         )
 
     return {"message": "Seed prodotti spesa, negozi e lotti completato con successo!"}
+
+
+# ---------------------------------------------------------------------------
+# SCHEMAS DATA GRID: EVENTI & ATTIVITÀ
+# ---------------------------------------------------------------------------
+
+class AdminEventItem(BaseModel):
+    id: int
+    user_id: int
+    username: str
+    titolo: str
+    descrizione: Optional[str] = None
+    data_inizio: datetime
+    data_fine: Optional[datetime] = None
+    tutto_il_giorno: bool = False
+    luogo: Optional[str] = None
+    user_category_id: Optional[int] = None
+    category_name: Optional[str] = None
+    rrule: Optional[str] = None
+
+    class Config:
+        from_attributes = True
+
+
+class AdminEventUpdate(BaseModel):
+    titolo: Optional[str] = None
+    descrizione: Optional[str] = None
+    data_inizio: Optional[datetime] = None
+    data_fine: Optional[datetime] = None
+    tutto_il_giorno: Optional[bool] = None
+    luogo: Optional[str] = None
+    user_category_id: Optional[int] = None
+    user_id: Optional[int] = None
+    rrule: Optional[str] = None
+
+
+class AdminTaskItem(BaseModel):
+    id: int
+    user_id: int
+    username: str
+    titolo: str
+    descrizione: Optional[str] = None
+    data_start: datetime
+    data_scadenza: Optional[datetime] = None
+    priorita: str
+    fatto: bool = False
+    data_fatto: Optional[datetime] = None
+    luogo: Optional[str] = None
+    user_category_id: Optional[int] = None
+    category_name: Optional[str] = None
+    parent_id: Optional[int] = None
+
+    class Config:
+        from_attributes = True
+
+
+class AdminTaskUpdate(BaseModel):
+    titolo: Optional[str] = None
+    descrizione: Optional[str] = None
+    data_start: Optional[datetime] = None
+    data_scadenza: Optional[datetime] = None
+    priorita: Optional[str] = None
+    fatto: Optional[bool] = None
+    luogo: Optional[str] = None
+    user_category_id: Optional[int] = None
+    user_id: Optional[int] = None
+
+
+class AdminCategoryItem(BaseModel):
+    id: int
+    user_id: int
+    username: Optional[str] = None
+    category_name: str
+    colore: Optional[str] = None
+    genre: int
+
+    class Config:
+        from_attributes = True
+
+
+# ---------------------------------------------------------------------------
+# DATA GRID AMMINISTRAZIONE: EVENTI
+# ---------------------------------------------------------------------------
+
+@router.get("/events", response_model=List[AdminEventItem])
+def list_admin_events(
+    user_id: Optional[int] = None,
+    db: Session = Depends(deps.get_db),
+    current_user: User = Depends(deps.require_superuser),
+):
+    """Restituisce tutti gli impegni per l'editing tabellare admin."""
+    query = (
+        db.query(Event)
+        .options(selectinload(Event.user), selectinload(Event.category))
+        .order_by(Event.data_inizio.desc())
+    )
+    if user_id is not None:
+        query = query.filter(Event.user_id == user_id)
+
+    events = query.all()
+    results = []
+    for ev in events:
+        results.append(
+            AdminEventItem(
+                id=ev.id,
+                user_id=ev.user_id,
+                username=ev.user.username if ev.user else f"User #{ev.user_id}",
+                titolo=ev.titolo,
+                descrizione=ev.descrizione,
+                data_inizio=ev.data_inizio,
+                data_fine=ev.data_fine,
+                tutto_il_giorno=ev.tutto_il_giorno,
+                luogo=ev.luogo,
+                user_category_id=ev.user_category_id,
+                category_name=ev.category.category_name if ev.category else None,
+                rrule=ev.rrule,
+            )
+        )
+    return results
+
+
+@router.patch("/events/{event_id}", response_model=AdminEventItem)
+def update_admin_event(
+    event_id: int,
+    payload: AdminEventUpdate,
+    db: Session = Depends(deps.get_db),
+    current_user: User = Depends(deps.require_superuser),
+):
+    """Aggiorna un impegno da console admin."""
+    ev = (
+        db.query(Event)
+        .options(selectinload(Event.user), selectinload(Event.category))
+        .filter(Event.id == event_id)
+        .first()
+    )
+    if not ev:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Impegno non trovato")
+
+    if payload.titolo is not None:
+        val = payload.titolo.strip()
+        if not val:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Il titolo non può essere vuoto")
+        ev.titolo = val
+
+    if payload.descrizione is not None:
+        ev.descrizione = payload.descrizione
+
+    if payload.data_inizio is not None:
+        ev.data_inizio = payload.data_inizio
+
+    if payload.data_fine is not None:
+        ev.data_fine = payload.data_fine
+
+    if payload.tutto_il_giorno is not None:
+        ev.tutto_il_giorno = payload.tutto_il_giorno
+
+    if payload.luogo is not None:
+        ev.luogo = payload.luogo
+
+    if payload.user_id is not None:
+        target_user = db.query(User).filter(User.id == payload.user_id).first()
+        if not target_user:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Utente assegnatario non trovato")
+        ev.user_id = payload.user_id
+
+    if payload.user_category_id is not None:
+        if payload.user_category_id == 0:
+            ev.user_category_id = None
+        else:
+            cat = db.query(UserCategory).filter(UserCategory.id == payload.user_category_id).first()
+            if not cat:
+                raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Categoria non trovata")
+            ev.user_category_id = payload.user_category_id
+
+    if payload.rrule is not None:
+        ev.rrule = payload.rrule.strip() or None
+
+    db.commit()
+    db.refresh(ev)
+
+    return AdminEventItem(
+        id=ev.id,
+        user_id=ev.user_id,
+        username=ev.user.username if ev.user else f"User #{ev.user_id}",
+        titolo=ev.titolo,
+        descrizione=ev.descrizione,
+        data_inizio=ev.data_inizio,
+        data_fine=ev.data_fine,
+        tutto_il_giorno=ev.tutto_il_giorno,
+        luogo=ev.luogo,
+        user_category_id=ev.user_category_id,
+        category_name=ev.category.category_name if ev.category else None,
+        rrule=ev.rrule,
+    )
+
+
+@router.delete("/events/{event_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_admin_event(
+    event_id: int,
+    db: Session = Depends(deps.get_db),
+    current_user: User = Depends(deps.require_superuser),
+):
+    """Elimina definitivamente un evento da console admin."""
+    ev = db.query(Event).filter(Event.id == event_id).first()
+    if not ev:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Impegno non trovato")
+    db.delete(ev)
+    db.commit()
+    return None
+
+
+# ---------------------------------------------------------------------------
+# DATA GRID AMMINISTRAZIONE: ATTIVITÀ / TASKS
+# ---------------------------------------------------------------------------
+
+@router.get("/tasks", response_model=List[AdminTaskItem])
+def list_admin_tasks(
+    user_id: Optional[int] = None,
+    db: Session = Depends(deps.get_db),
+    current_user: User = Depends(deps.require_superuser),
+):
+    """Restituisce tutte le attività per l'editing tabellare admin."""
+    query = (
+        db.query(Task)
+        .options(selectinload(Task.user), selectinload(Task.category))
+        .order_by(Task.id.desc())
+    )
+    if user_id is not None:
+        query = query.filter(Task.user_id == user_id)
+
+    tasks = query.all()
+    results = []
+    for t in tasks:
+        results.append(
+            AdminTaskItem(
+                id=t.id,
+                user_id=t.user_id,
+                username=t.user.username if t.user else f"User #{t.user_id}",
+                titolo=t.titolo,
+                descrizione=t.descrizione,
+                data_start=t.data_start,
+                data_scadenza=t.data_scadenza,
+                priorita=t.priorita.value if hasattr(t.priorita, 'value') else str(t.priorita),
+                fatto=t.fatto,
+                data_fatto=t.data_fatto,
+                luogo=t.luogo,
+                user_category_id=t.user_category_id,
+                category_name=t.category.category_name if t.category else None,
+                parent_id=t.parent_id,
+            )
+        )
+    return results
+
+
+@router.patch("/tasks/{task_id}", response_model=AdminTaskItem)
+def update_admin_task(
+    task_id: int,
+    payload: AdminTaskUpdate,
+    db: Session = Depends(deps.get_db),
+    current_user: User = Depends(deps.require_superuser),
+):
+    """Aggiorna un'attività da console admin."""
+    t = (
+        db.query(Task)
+        .options(selectinload(Task.user), selectinload(Task.category))
+        .filter(Task.id == task_id)
+        .first()
+    )
+    if not t:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Attività non trovata")
+
+    if payload.titolo is not None:
+        val = payload.titolo.strip()
+        if not val:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Il titolo non può essere vuoto")
+        t.titolo = val
+
+    if payload.descrizione is not None:
+        t.descrizione = payload.descrizione
+
+    if payload.data_start is not None:
+        t.data_start = payload.data_start
+
+    if payload.data_scadenza is not None:
+        t.data_scadenza = payload.data_scadenza
+
+    if payload.priorita is not None:
+        t.priorita = payload.priorita
+
+    if payload.fatto is not None:
+        t.fatto = payload.fatto
+        if payload.fatto and not t.data_fatto:
+            t.data_fatto = datetime.now(timezone.utc)
+        elif not payload.fatto:
+            t.data_fatto = None
+
+    if payload.luogo is not None:
+        t.luogo = payload.luogo
+
+    if payload.user_id is not None:
+        target_user = db.query(User).filter(User.id == payload.user_id).first()
+        if not target_user:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Utente assegnatario non trovato")
+        t.user_id = payload.user_id
+
+    if payload.user_category_id is not None:
+        if payload.user_category_id == 0:
+            t.user_category_id = None
+        else:
+            cat = db.query(UserCategory).filter(UserCategory.id == payload.user_category_id).first()
+            if not cat:
+                raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Categoria non trovata")
+            t.user_category_id = payload.user_category_id
+
+    db.commit()
+    db.refresh(t)
+
+    return AdminTaskItem(
+        id=t.id,
+        user_id=t.user_id,
+        username=t.user.username if t.user else f"User #{t.user_id}",
+        titolo=t.titolo,
+        descrizione=t.descrizione,
+        data_start=t.data_start,
+        data_scadenza=t.data_scadenza,
+        priorita=t.priorita.value if hasattr(t.priorita, 'value') else str(t.priorita),
+        fatto=t.fatto,
+        data_fatto=t.data_fatto,
+        luogo=t.luogo,
+        user_category_id=t.user_category_id,
+        category_name=t.category.category_name if t.category else None,
+        parent_id=t.parent_id,
+    )
+
+
+@router.delete("/tasks/{task_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_admin_task(
+    task_id: int,
+    db: Session = Depends(deps.get_db),
+    current_user: User = Depends(deps.require_superuser),
+):
+    """Elimina definitivamente un'attività da console admin."""
+    t = db.query(Task).filter(Task.id == task_id).first()
+    if not t:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Attività non trovata")
+    db.delete(t)
+    db.commit()
+    return None
+
+
+# ---------------------------------------------------------------------------
+# DATA GRID AMMINISTRAZIONE: CATEGORIE UTENTE
+# ---------------------------------------------------------------------------
+
+@router.get("/categories", response_model=List[AdminCategoryItem])
+def list_admin_categories(
+    db: Session = Depends(deps.get_db),
+    current_user: User = Depends(deps.require_superuser),
+):
+    """Restituisce le categorie utente per l'assegnazione nei filtri e data grid."""
+    cats = (
+        db.query(UserCategory)
+        .options(selectinload(UserCategory.user))
+        .order_by(UserCategory.category_name.asc())
+        .all()
+    )
+    return [
+        AdminCategoryItem(
+            id=c.id,
+            user_id=c.user_id,
+            username=c.user.username if c.user else f"User #{c.user_id}",
+            category_name=c.category_name,
+            colore=c.colore,
+            genre=c.genre,
+        )
+        for c in cats
+    ]
+

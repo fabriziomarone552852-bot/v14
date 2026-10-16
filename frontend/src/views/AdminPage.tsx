@@ -12,6 +12,8 @@ import { LOADING_MESSAGES } from '@/data/loadingMessages';
 
 import { AdminUsersSection } from '@/components/admin/AdminUsersSection';
 import { AdminShoppingHubSection } from '@/components/admin/AdminShoppingHubSection';
+import { AdminEventsDataGridSection } from '@/components/admin/events/AdminEventsDataGridSection';
+import { AdminTasksDataGridSection } from '@/components/admin/tasks/AdminTasksDataGridSection';
 import { AdminConfigSection } from '@/components/admin/AdminConfigSection';
 import { AdminCodesSection } from '@/components/admin/AdminCodesSection';
 import { AdminMaintenanceSection } from '@/components/admin/AdminMaintenanceSection';
@@ -19,7 +21,24 @@ import { AdminSystemHealthSection } from '@/components/admin/AdminSystemHealthSe
 import { AdminFeedbackSection } from '@/components/admin/AdminFeedbackSection';
 import { extractErrorMessage } from '@/utils/errorUtils';
 
-type AdminTab = 'users' | 'shopping' | 'config' | 'codes' | 'maintenance' | 'health' | 'feedback';
+type AdminTab =
+  | 'users'
+  | 'shopping'
+  | 'events'
+  | 'tasks'
+  | 'config'
+  | 'codes'
+  | 'maintenance'
+  | 'health'
+  | 'feedback';
+
+interface AdminTabItemDef {
+  id: AdminTab;
+  label: string;
+  icon: string;
+  count?: number;
+  color: 'sky' | 'emerald' | 'violet' | 'amber';
+}
 
 const AdminPage: React.FC = () => {
   const { user, isAuthenticated } = useAuth();
@@ -133,21 +152,26 @@ const AdminPage: React.FC = () => {
 
       {/* Schede Orizzontali Desktop con Scroll Fluido */}
       <div className="flex overflow-x-auto border-b border-slate-200 text-xs font-semibold gap-1 pb-px">
-        {[
-          { id: 'users' as AdminTab, label: 'Utenti', icon: '👥', count: users.length, color: 'sky' as const },
-          { id: 'shopping' as AdminTab, label: 'Spesa', icon: '🛒', count: undefined, color: 'emerald' as const },
-          { id: 'config' as AdminTab, label: 'Parametri', icon: '⚙️', count: configs.length, color: 'sky' as const },
-          { id: 'codes' as AdminTab, label: 'Vocabolari', icon: '🏷️', count: codes.length, color: 'sky' as const },
-          { id: 'maintenance' as AdminTab, label: 'Manutenzione DB', icon: '🛠️', count: undefined, color: 'sky' as const },
-          { id: 'health' as AdminTab, label: 'Diagnostica', icon: '🔍', count: undefined, color: 'sky' as const },
-          { id: 'feedback' as AdminTab, label: 'Feedback', icon: '📨', count: undefined, color: 'sky' as const },
-        ].map((tab) => {
+        {([
+          { id: 'users', label: 'Utenti', icon: '👥', count: users.length, color: 'sky' },
+          { id: 'shopping', label: 'Spesa', icon: '🛒', count: undefined, color: 'emerald' },
+          { id: 'events', label: 'Eventi', icon: '📅', count: undefined, color: 'violet' },
+          { id: 'tasks', label: 'Attività', icon: '✅', count: undefined, color: 'amber' },
+          { id: 'config', label: 'Parametri', icon: '⚙️', count: configs.length, color: 'sky' },
+          { id: 'codes', label: 'Vocabolari', icon: '🏷️', count: codes.length, color: 'sky' },
+          { id: 'maintenance', label: 'Manutenzione DB', icon: '🛠️', count: undefined, color: 'sky' },
+          { id: 'health', label: 'Diagnostica', icon: '🔍', count: undefined, color: 'sky' },
+          { id: 'feedback', label: 'Feedback', icon: '📨', count: undefined, color: 'sky' },
+        ] as AdminTabItemDef[]).map((tab) => {
           const isActive = activeTab === tab.id;
-          const isEmerald = tab.color === 'emerald';
-
-          const activeBorderAndText = isEmerald
-            ? 'border-emerald-600 text-emerald-700 bg-emerald-50/60 font-bold'
-            : 'border-sky-600 text-sky-700 bg-sky-50/60 font-bold';
+          let activeBorderAndText = 'border-sky-600 text-sky-700 bg-sky-50/60 font-bold';
+          if (tab.color === 'emerald') {
+            activeBorderAndText = 'border-emerald-600 text-emerald-700 bg-emerald-50/60 font-bold';
+          } else if (tab.color === 'violet') {
+            activeBorderAndText = 'border-violet-600 text-violet-700 bg-violet-50/60 font-bold';
+          } else if (tab.color === 'amber') {
+            activeBorderAndText = 'border-amber-600 text-amber-700 bg-amber-50/60 font-bold';
+          }
 
           return (
             <button
@@ -166,9 +190,7 @@ const AdminPage: React.FC = () => {
                 <span
                   className={`ml-1 rounded-full px-1.5 py-0.2 text-[10px] font-bold ${
                     isActive
-                      ? isEmerald
-                        ? 'bg-emerald-200/80 text-emerald-800'
-                        : 'bg-sky-200/80 text-sky-800'
+                      ? 'bg-sky-200/80 text-sky-800'
                       : 'bg-slate-100 text-slate-500'
                   }`}
                 >
@@ -187,6 +209,8 @@ const AdminPage: React.FC = () => {
         <div className="flex-1">
           {activeTab === 'users' && <AdminUsersSection users={users} onRefresh={loadData} />}
           {activeTab === 'shopping' && <AdminShoppingHubSection />}
+          {activeTab === 'events' && <AdminEventsDataGridSection />}
+          {activeTab === 'tasks' && <AdminTasksDataGridSection />}
           {activeTab === 'config' && <AdminConfigSection configs={configs} onRefresh={loadData} />}
           {activeTab === 'codes' && <AdminCodesSection codes={codes} onRefresh={loadData} />}
           {activeTab === 'maintenance' && <AdminMaintenanceSection users={users} onRefresh={loadData} />}

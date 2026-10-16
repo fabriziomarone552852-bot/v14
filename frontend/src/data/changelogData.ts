@@ -18,10 +18,11 @@ export const CHANGELOG_HISTORY: ChangelogItem[] = [
     id: 'v15.1.0',
     version: '15.1.0',
     date: 'Ottobre 2026',
-    title: 'Hub Amministrazione Spesa Desktop con Data Grid, Unione Duplicati e Supporto Mobile Trackers',
+    title: 'Hub Amministrazione Desktop con Data Grid Spesa, Eventi e Attività con Deduplicazione e Supporto Mobile Trackers',
     isLatest: true,
     published: false,
     highlights: [
+      'Estensione Data Grid Amministrazione a Eventi e Attività: Introdotte due nuove schede amministrative "📅 Eventi" e "✅ Attività" con Data Grid ad alta densità per la verifica, sanatoria e modifica massiva in linea di appuntamenti, scadenze, priorità, categorie e riassegnazione utenti senza dover ricorrere a pgAdmin.',
       'Hub Amministrazione Spesa (Proposta A): Raggruppate tutte le funzionalità amministrative legate alla spesa sotto un\'unica macro-sezione "Spesa" nella barra superiore con selettore secondario a schede segmentate: Inserimento Rapido Scontrini, Data Grid Revisione Lotti e Unione Prodotti Duplicati.',
       'Data Grid Desktop Revisione Lotti Spesa: Nuova interfaccia tabellare ad alta densità per la revisione, correzione e modifica inline di date, prodotti, brand, fornitori, quantità e prezzi senza necessità di ricorrere a pgAdmin, con rilevamento anomalie e salvataggio massivo.',
       'Strumento Unione Prodotti Duplicati: Interfaccia a due colonne per accorpare prodotti con descrizioni o diciture differenti dello stesso articolo, migrando in modo atomico tutti i lotti d\'acquisto e le liste collegate.',
@@ -32,6 +33,9 @@ export const CHANGELOG_HISTORY: ChangelogItem[] = [
       'Allineati routing e navigazione in AppShell (Desktop e Mobile) con redirect automatico da /trackers a /trackers/serie-tv.'
     ],
     features: [
+      'Data Grid Amministrazione Eventi Agenda: Console tabellare per SuperUser con filtri per utente, categoria, intervallo date (Oggi, 7gg, Mese, Anno, Personalizzato), tipologia (tutto il giorno / con orario) e ricerca testuale in RAM. Permette la modifica in linea di titoli, date/ore inizio e fine con rilevamento automatico date incoerenti, riassegnazione utente, categoria e cancellazione rapida, con salvataggio massivo in un click.',
+      'Data Grid Amministrazione Attività / Tasks: Console tabellare per SuperUser con filtri per utente, categoria, priorità (Alta, Media, Bassa), stato (da fare / completati), date e ricerca rapida. Permette la modifica in linea di scadenze, stato di completamento, priorità e riassegnazione utente con evidenziazione automatica dei task scaduti e salvataggio massivo in memoria.',
+      'Nuovi Endpoint Amministrativi Backend: Introdotti in router.py gli endpoint protetti GET/PATCH/DELETE per /admin/events e /admin/tasks, nonché /admin/categories per gestire e riassegnare entità e categorie cross-utente senza vincoli o limitazioni di ownership standard.',
       'Hub Amministrazione Spesa (Proposta A): Introdotta la macro-scheda "Spesa" nel pannello Admin con barra secondaria a pillole segmentate (Segmented Tabs) per alternare istantaneamente tra "Inserimento Rapido Scontrini", "Data Grid Revisione Lotti" e "Unione Prodotti Duplicati", mantenendo la barra di navigazione pulita e organizzata per macro-argomenti.',
       'Admin Shopping Data Grid: Griglia di gestione e modifica inline dei lotti spesa per amministratori. Include filtri rapidi per date, fornitore, brand e ricerca testuale in memoria (RAM), toggle "Solo anomalie" per intercettare prezzi nulli o fuori scala, modifica contestuale con calcolo immediato del prezzo al kg/l e barra fissa per il salvataggio rapido massivo delle modifiche in sospeso.',
       'Deduplicazione & Fusione Prodotti Spesa: Strumento dedicato per SuperUser per selezionare un prodotto sorgente (duplicato o con refuso) e un prodotto di destinazione ufficiale. Esegue l\'accorpamento transazionale lato backend (endpoint POST /products/merge) riassegnando tutti i lotti d\'acquisto, i collegamenti brand e gli elementi delle liste spesa prima di eliminare il prodotto obsoleto.',
