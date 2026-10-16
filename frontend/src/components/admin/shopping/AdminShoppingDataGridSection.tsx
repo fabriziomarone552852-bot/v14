@@ -168,7 +168,7 @@ export const AdminShoppingDataGridSection: React.FC = () => {
                   >
                     Prodotto {sortField === 'productName' ? (sortDirection === 'asc' ? '▲' : '▼') : ''}
                   </th>
-                  <th className="py-2.5 px-2 min-w-[130px]">Brand</th>
+                  <th className="py-2.5 px-2 min-w-[200px] w-56">Brand</th>
                   <th className="py-2.5 px-2 min-w-[140px]">Punto Vendita</th>
                   <th
                     className="py-2.5 px-2 w-20 text-center cursor-pointer hover:text-slate-800"
@@ -189,7 +189,6 @@ export const AdminShoppingDataGridSection: React.FC = () => {
                     Unit. (€) {sortField === 'unitPrice' ? (sortDirection === 'asc' ? '▲' : '▼') : ''}
                   </th>
                   <th className="py-2.5 px-2 w-16 text-center">Offerta</th>
-                  <th className="py-2.5 px-2 min-w-[120px]">Note</th>
                   <th className="py-2.5 px-3 w-28 text-center">Azioni</th>
                 </tr>
               </thead>

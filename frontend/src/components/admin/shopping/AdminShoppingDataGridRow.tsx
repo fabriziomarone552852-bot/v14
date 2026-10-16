@@ -115,7 +115,7 @@ export const AdminShoppingDataGridRow: React.FC<AdminShoppingDataGridRowProps> =
       </td>
 
       {/* 4. Brand / Produttore */}
-      <td className="py-2 px-2 min-w-[130px]">
+      <td className="py-2 px-2 min-w-[200px] w-56">
         <select
           value={batch.brandId ?? ''}
           disabled={disabled}
@@ -125,7 +125,7 @@ export const AdminShoppingDataGridRow: React.FC<AdminShoppingDataGridRowProps> =
             onCellChange(batch.id, 'brandId', val);
             onCellChange(batch.id, 'brandName', matchedBrand?.name ?? null);
           }}
-          className="w-full px-2 py-1 text-xs border border-slate-200 rounded-lg bg-white/90 outline-none focus:border-sky-500 cursor-pointer"
+          className="w-full px-2.5 py-1 text-xs font-medium border border-slate-200 rounded-lg bg-white/90 outline-none focus:border-sky-500 cursor-pointer"
         >
           <option value="">- Nessun Brand -</option>
           {brands.map((b) => (
@@ -218,17 +218,6 @@ export const AdminShoppingDataGridRow: React.FC<AdminShoppingDataGridRowProps> =
         />
       </td>
 
-      {/* 10. Note */}
-      <td className="py-2 px-2 min-w-[120px]">
-        <input
-          type="text"
-          value={batch.notes || ''}
-          disabled={disabled}
-          placeholder="Note opzionali..."
-          onChange={(e) => onCellChange(batch.id, 'notes', e.target.value)}
-          className="w-full px-2 py-1 text-[11px] border border-slate-200 rounded-lg bg-white/90 outline-none focus:border-sky-500 text-slate-600"
-        />
-      </td>
 
       {/* 11. Azioni Riga */}
       <td className="py-2 px-3 text-center whitespace-nowrap w-28">

@@ -48,6 +48,7 @@ export const CHANGELOG_HISTORY: ChangelogItem[] = [
       'Mobile Drawer Navigation: Integrata la sezione espandibile Trackers nel menu a scomparsa laterale al posto del vecchio placeholder Free Time.'
     ],
     improvements: [
+      'Ottimizzazione Layout Shopping Data Grid: Rimossa la colonna Note per ridurre il carico visivo e ampliata la larghezza e leggibilità della colonna Brand/Produttore (portata a oltre 200px con tipografia rinforzata), eliminando troncamenti sui marchi lunghi e migliorando la chiarezza dell\'editing tabellare.',
       'Flessibilità Modifica Lotti per SuperUser: L\'endpoint di aggiornamento lotti consente ora agli amministratori SuperUser di riassegnare direttamente il prodotto associato al lotto (product_id) senza generare conflitti di vincolo univoco o richiedere interventi manuali sul database.',
       'Mobile TV Series Search Cards Orizzontali: I risultati di ricerca TMDB e per liste personali sono ora visualizzati con card orizzontali compatte dotate di locandina a sinistra con bordo colorato ispessito per lo stato in libreria, anno di uscita pulito (senza badge) posizionato sopra il titolo, titolo con troncatura a massimo 2 righe e tasto rapido "+" per l\'aggiunta immediata.',
       'Mobile Search Button Fisso & Filtri Scrollabili: Il pulsante blu di azione ricerca è ora fissato stabilmente sul fondo dello schermo con safe area Android, lasciando scorrere in modo indipendente l\'area dei filtri tra header e pulsante.',
