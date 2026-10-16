@@ -2,6 +2,7 @@
 import type {
   ShoppingConfigBundle,
   ShoppingProductOption,
+  ShoppingProductBrandLink,
 } from '@/types/shopping';
 import { apiRequest, toNumberOrNull } from './shoppingClient';
 
@@ -142,3 +143,71 @@ export async function fetchShoppingProducts(
 
   return (data ?? []).map(normalizeShoppingProductOption);
 }
+
+export interface MergeShoppingProductsPayload {
+  sourceProductId: number;
+  targetProductId: number;
+}
+
+export interface MergeShoppingProductsResponse {
+  source_product_id: number;
+  target_product_id: number;
+  target_product_name: string;
+  moved_batches_count: number;
+  moved_items_count: number;
+  message: string;
+}
+
+export async function mergeShoppingProducts(
+  payload: MergeShoppingProductsPayload
+): Promise<MergeShoppingProductsResponse> {
+  return await apiRequest<MergeShoppingProductsResponse>('/products/merge', {
+    method: 'POST',
+    body: {
+      source_product_id: payload.sourceProductId,
+      target_product_id: payload.targetProductId,
+    },
+  });
+}
+
+export interface SaveProductBrandPayload {
+  productId: number;
+  brandId: number;
+  notes?: string | null;
+}
+
+export async function saveProductBrandPreference(
+  payload: SaveProductBrandPayload
+): Promise<ShoppingProductBrandLink> {
+  const data = await apiRequest<ShoppingProductBrandApi>(`/products/${payload.productId}/brands`, {
+    method: 'POST',
+    body: {
+      brand_id: payload.brandId,
+      notes: payload.notes ?? null,
+    },
+  });
+  return {
+    id: Number(data.id),
+    productId: Number(data.product_id),
+    brandId: Number(data.brand_id),
+    notes: data.notes ?? null,
+    brand: data.brand
+      ? {
+          id: Number(data.brand.id),
+          nameNormalized: data.brand.name_normalized,
+          typeCode: Number(data.brand.type_code ?? 2),
+        }
+      : null,
+  };
+}
+
+export async function deleteProductBrandPreference(
+  productId: number,
+  brandId: number
+): Promise<void> {
+  await apiRequest<void>(`/products/${productId}/brands/${brandId}`, {
+    method: 'DELETE',
+  });
+}
+
+

@@ -2,6 +2,7 @@
 import React from 'react';
 import { useLongPress } from '@/mobile/hooks/useLongPress';
 import type { ShoppingListItem } from '@/types/shopping';
+import { parseBrandPreference } from '@/utils/shoppingBrandPreference';
 
 export interface ShoppingItemRowProps {
   item: ShoppingListItem;
@@ -79,11 +80,32 @@ export const ShoppingItemRow: React.FC<ShoppingItemRowProps> = ({
         </div>
 
         <div className="flex items-center gap-1.5 text-[11px] text-gray-400 mt-0.5 truncate">
-          {item.brandName && (
-            <span className="text-gray-600 font-medium">
-              {item.brandName}
-            </span>
-          )}
+          {item.brandName && (() => {
+            const pref = parseBrandPreference(item.brandNotes);
+            const isPos = pref?.sentiment === 'positive';
+            const isNeg = pref?.sentiment === 'negative';
+
+            if (isNeg) {
+              return (
+                <span className="text-rose-700 font-bold bg-rose-50 px-1.5 py-0.5 rounded border border-rose-200 flex items-center gap-1">
+                  <span>👎 {item.brandName}</span>
+                  <span className="text-[9px] text-rose-600 uppercase tracking-tighter font-extrabold">(evitare)</span>
+                </span>
+              );
+            }
+            if (isPos) {
+              return (
+                <span className="text-emerald-700 font-semibold bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200 flex items-center gap-0.5">
+                  <span>👍 {item.brandName}</span>
+                </span>
+              );
+            }
+            return (
+              <span className="text-gray-600 font-medium">
+                {item.brandName}
+              </span>
+            );
+          })()}
           {item.notes && (
             <span className="italic text-gray-400 truncate">
               • {item.notes}

@@ -101,8 +101,8 @@ def list_events(
     tutto_il_giorno: Optional[bool] = None,
     start_date: Optional[date] = None,
     end_date: Optional[date] = None,
-    limit: int = 100,
-    offset: int = 0,
+    limit: Optional[int] = None,
+    offset: Optional[int] = None,
 ) -> schemas.PaginatedEvents:
     total, events_db = repo.list_filtered(
         db,
@@ -126,8 +126,8 @@ def list_events(
     return schemas.PaginatedEvents(
         items=items,
         total=total,
-        limit=limit,
-        offset=offset,
+        limit=limit if limit is not None else max(len(items), 1),
+        offset=offset if offset is not None else 0,
     )
 
 

@@ -42,6 +42,8 @@ from backend.domains.shopping.schemas.catalog import (
     ShoppingSupplierCreate,
     ShoppingSupplierResponse,
     ShoppingSupplierUpdate,
+    ShoppingProductMergeRequest,
+    ShoppingProductMergeResponse,
 )
 from backend.domains.shopping.schemas.config import ShoppingConfigBundle
 from backend.domains.users.models import User
@@ -225,7 +227,7 @@ def delete_shopping_list(
 def list_products(
     search: Optional[str] = Query(None, min_length=1, max_length=255),
     brand_id: Optional[int] = Query(None),
-    limit: int = Query(20, ge=1, le=100),
+    limit: Optional[int] = Query(None, ge=1, le=5000),
     db: Session = Depends(deps.get_db),
     current_user: User = Depends(deps.get_current_app_user),
 ):
@@ -262,6 +264,30 @@ def update_product(
     current_user: User = Depends(deps.get_current_app_user),
 ):
     return service.update_product(db, current_user, product_id, product_in)
+
+
+@router.post(
+    "/products/merge",
+    response_model=ShoppingProductMergeResponse,
+    status_code=status.HTTP_200_OK,
+)
+def merge_products(
+    payload: ShoppingProductMergeRequest,
+    db: Session = Depends(deps.get_db),
+    current_user: User = Depends(deps.get_current_app_user),
+):
+    if not current_user.is_superuser:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Solo gli utenti SuperUser possono unire o deduplicare i prodotti del catalogo.",
+        )
+    return service.merge_products(
+        db,
+        current_user,
+        source_product_id=payload.source_product_id,
+        target_product_id=payload.target_product_id,
+    )
+
 
 
 @router.post(
@@ -364,7 +390,7 @@ def get_shopping_config(
 def list_suppliers(
     search: Optional[str] = Query(None, min_length=1, max_length=255),
     type_code: Optional[int] = Query(None, ge=1, le=3),
-    limit: int = Query(20, ge=1, le=100),
+    limit: Optional[int] = Query(None, ge=1, le=5000),
     db: Session = Depends(deps.get_db),
     current_user: User = Depends(deps.get_current_app_user),
 ):
@@ -374,7 +400,7 @@ def list_suppliers(
 @router.get("/brands", response_model=List[ShoppingSupplierResponse])
 def list_brands(
     search: Optional[str] = Query(None, min_length=1, max_length=255),
-    limit: int = Query(20, ge=1, le=100),
+    limit: Optional[int] = Query(None, ge=1, le=5000),
     db: Session = Depends(deps.get_db),
     current_user: User = Depends(deps.get_current_app_user),
 ):

@@ -165,7 +165,7 @@ class ShoppingListItem(Base):
         index=True,
     )
 
-    quantity: Mapped[Optional[Decimal]] = mapped_column(Numeric(12, 2), nullable=True)
+    quantity: Mapped[Optional[Decimal]] = mapped_column(Numeric(12, 3), nullable=True)
 
     unit_id: Mapped[Optional[int]] = mapped_column(
         Integer,

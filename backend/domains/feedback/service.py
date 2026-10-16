@@ -72,8 +72,8 @@ def list_reports(
     status_filter: Optional[str] = None,
     severity_filter: Optional[str] = None,
     report_type_filter: Optional[str] = None,
-    limit: int = 100,
-    offset: int = 0,
+    limit: Optional[int] = None,
+    offset: Optional[int] = None,
 ) -> List[schemas.FeedbackReportResponse]:
     """Elenca tutti i report (riservato agli amministratori)."""
     reports = repository.list_reports(
@@ -144,7 +144,7 @@ def delete_report(db: Session, report_id: int) -> None:
 def list_my_reports(
     db: Session,
     current_user: User,
-    limit: int = 50,
+    limit: Optional[int] = None,
 ) -> List[schemas.FeedbackReportResponse]:
     """Elenca le segnalazioni inviate dall'utente autenticato."""
     reports = repository.list_by_user(db, current_user.id, limit=limit)

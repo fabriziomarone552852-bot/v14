@@ -6,6 +6,8 @@ from .catalog import (
     ShoppingSupplierResponse,
     ShoppingSupplierUpdate,
     ShoppingSupplierSummary,
+    ShoppingProductMergeRequest,
+    ShoppingProductMergeResponse,
 )
 from .config import ConfigOption, ShoppingConfigBundle
 from .groups import (
@@ -36,6 +38,7 @@ from .lists import (
 
 __all__ = [
     "ShoppingProductCreate", "ShoppingProductResponse", "ShoppingProductUpdate",
+    "ShoppingProductMergeRequest", "ShoppingProductMergeResponse",
     "ShoppingSupplierCreate", "ShoppingSupplierResponse", "ShoppingSupplierUpdate",
     "ConfigOption", "ShoppingConfigBundle",
     "ShoppingGroupCreate", "ShoppingGroupMemberCreate", "ShoppingGroupMemberInvite", "ShoppingGroupMemberUpdate",

@@ -13,8 +13,6 @@ import MobileShoppingView from '../views/MobileShoppingView';
 const MobileTVSeriesView = React.lazy(() => import('../views/MobileTVSeriesView'));
 const MobileTrackersPlaceholderView = React.lazy(() => import('../views/MobileTrackersPlaceholderView'));
 
-// Viste secondarie caricate su richiesta (Lazy)
-const AdminPage = React.lazy(() => import('@/views/AdminPage'));
 const NotFoundPage = React.lazy(() => import('@/views/NotFoundPage'));
 
 // Pagine archivio caricate on-demand
@@ -70,7 +68,7 @@ export const MobileRoutes: React.FC = () => {
         <Route path="/settings/social" element={<MobileSettingsView subview="social" />} />
 
         {/* Sezioni di approfondimento accessibili dall'Hub Impostazioni */}
-        <Route path="/admin" element={<AdminPage />} />
+        <Route path="/admin" element={<Navigate to="/settings" replace />} />
         <Route path="/archivio" element={<MobileSettingsView subview="archive" />} />
         <Route path="/tasks" element={<TasksPage />} />
         <Route path="/events" element={<EventsPage />} />

@@ -132,6 +132,16 @@ Quando l'utente scrive **"fine"** (o frasi equivalenti come *"abbiamo finito"*, 
      - Al tocco di un'opzione, la selezione si aggiorna istantaneamente e il modale si chiude in automatico.
      - Applicare questo standard a tutti i selettori di liste personali, categorie, generi, network, stati di produzione o criteri di ordinamento nelle pagine mobile.
 
+5. **Regola d'Oro Campi Decimali: Accettazione Universale di Virgola (`,`) e Punto (`.`) sia Web che Mobile**:
+   - In tutti i campi di input dell'applicazione che accettano o elaborano numeri con decimali (prezzi, importi, quantità, pesature, misure, percentuali, ecc.), **NON utilizzare mai `<input type="number">` standard**.
+   - **Motivo**: L'elemento HTML nativo `<input type="number">` delega il parsing alla lingua del browser. Nei browser impostati con locale italiano (`it-IT`), l'evento di battitura del punto (`.`) — presente tipicamente sul tastierino numerico/numpad o sulla tastiera fisica — viene intercettato e scartato a monte dal browser prima ancora di poter raggiungere React, bloccando l'utente.
+   - **Standard Obbligatorio di Implementazione**:
+     - Utilizzare **sempre** `type="text"` combinato con l'attributo `inputMode="decimal"` (che su smartphone apre in automatico il tastierino numerico con separatore decimale).
+     - Gestire la digitazione e il parsing importando gli helper centralizzati da [`frontend/src/utils/decimalUtils.ts`](file:///c:/Users/user/Documents/PYTHON/VxAme14/frontend/src/utils/decimalUtils.ts):
+       - `sanitizeDecimalString(val)`: consente solo cifre, virgola e punto, ripulendo caratteri non validi e prevenendo doppi separatori consecutivi (es. `12..5` o `12,,5`) durante la digitazione.
+       - `parseDecimalValue(val, defaultValue)`: converte in modo sicuro e trasparente qualsiasi stringa contenente sia `,` che `.` in un float JavaScript standard (`number`) per i calcoli in RAM o per l'invio via API al database.
+     - Nei componenti con editing in linea (es. Data Grid), mantenere uno stato locale di stringa per consentire all'utente di digitare senza interruzioni anche cifre intermedie (es. `1,` o `1.`) senza che l'input venga cancellato o riformattato prematuramente prima che la digitazione sia conclusa.
+
 ---
 
 ## 📐 7. Standard di Qualità del Codice & TypeScript Rigido

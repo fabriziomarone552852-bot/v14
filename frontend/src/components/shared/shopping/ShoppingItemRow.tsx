@@ -6,6 +6,7 @@ import { shoppingCardClass } from './shoppingUi';
 import { StoreIcon } from '@/components/shared/utils/Icons';
 import { formatUnitForQuantity } from './ShoppingUnitSelect';
 import { useLongPress } from '@/mobile/hooks/useLongPress';
+import { parseBrandPreference } from '@/utils/shoppingBrandPreference';
 
 interface ShoppingItemRowProps {
   item: ShoppingListItem;
@@ -141,18 +142,42 @@ const ShoppingItemRow: React.FC<ShoppingItemRowProps> = ({
         >
           {formattedName}
         </p>
-        {item.brandName && (
-          <span
-            className={[
-              'shrink-0 text-xs px-1.5 py-0.5 rounded-md font-medium',
-              item.isPurchased
-                ? 'bg-slate-100 text-slate-400 border border-slate-200 line-through'
-                : 'bg-indigo-50 text-indigo-700 border border-indigo-100',
-            ].join(' ')}
-          >
-            {item.brandName}
-          </span>
-        )}
+        {item.brandName && (() => {
+          const pref = parseBrandPreference(item.brandNotes);
+          const isPos = pref?.sentiment === 'positive';
+          const isNeg = pref?.sentiment === 'negative';
+
+          return (
+            <span
+              title={
+                isNeg
+                  ? `Marchio da evitare: ${pref?.comment || 'Non ricomprare'}`
+                  : isPos
+                  ? `Marchio consigliato: ${pref?.comment || 'Gradito'}`
+                  : item.brandNotes || undefined
+              }
+              className={[
+                'shrink-0 text-xs px-1.5 py-0.5 rounded-md font-medium flex items-center gap-1',
+                item.isPurchased
+                  ? 'bg-slate-100 text-slate-400 border border-slate-200 line-through'
+                  : isNeg
+                  ? 'bg-rose-100 text-rose-800 border border-rose-300 font-bold shadow-2xs'
+                  : isPos
+                  ? 'bg-emerald-50 text-emerald-800 border border-emerald-200 font-semibold'
+                  : 'bg-indigo-50 text-indigo-700 border border-indigo-100',
+              ].join(' ')}
+            >
+              {isNeg && <span>👎</span>}
+              {isPos && <span>👍</span>}
+              <span>{item.brandName}</span>
+              {isNeg && !item.isPurchased && (
+                <span className="text-[10px] font-bold text-rose-600 uppercase tracking-tighter">
+                  (da evitare)
+                </span>
+              )}
+            </span>
+          );
+        })()}
       </div>
 
       {/* 4. NOTE (se presenti) */}

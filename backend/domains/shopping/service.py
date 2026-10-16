@@ -706,6 +706,10 @@ def create_item(
         current_user.id,
         brand_id=resolved_brand_id,
     )
+    if resolved_brand_id and item_in.brand_notes is not None:
+        link = repo.get_or_create_product_brand_link(db, db_product.id, resolved_brand_id)
+        link.notes = item_in.brand_notes.strip() if item_in.brand_notes.strip() else None
+        link.updated_at = _now()
     now = _now()
 
     db_item = ShoppingListItem(
@@ -849,6 +853,23 @@ def update_item(
         update_data.pop("brand_name", None)
         update_data.pop("brand_id", None)
 
+    if "brand_notes" in update_data:
+        brand_notes_val = update_data.pop("brand_notes")
+        target_brand_id = (
+            resolved_brand_id
+            if (has_brand_change and resolved_brand_id)
+            else (db_item.product.brand_id if db_item.product else None)
+        )
+        if not target_brand_id and db_item.product and getattr(db_item.product, "product_brands", None):
+            for pb in db_item.product.product_brands:
+                if getattr(pb, "brand_id", None):
+                    target_brand_id = pb.brand_id
+                    break
+        if target_brand_id and db_item.product_id:
+            link = repo.get_or_create_product_brand_link(db, db_item.product_id, target_brand_id)
+            link.notes = brand_notes_val.strip() if (brand_notes_val and brand_notes_val.strip()) else None
+            link.updated_at = _now()
+
     for field, value in update_data.items():
         setattr(db_item, field, value)
 
@@ -915,19 +936,21 @@ def list_suppliers(
     current_user: User,
     search: Optional[str] = None,
     type_code: Optional[int] = None,
-    limit: int = 20,
+    limit: Optional[int] = None,
 ) -> List[ShoppingSupplier]:
     if search:
         return repo.search_suppliers(db, search=search, type_code=type_code, limit=limit)
     suppliers = repo.list_suppliers(db, type_code=type_code)
-    return suppliers[:limit]
+    if limit is not None:
+        return suppliers[:limit]
+    return suppliers
 
 
 def list_brands(
     db: Session,
     current_user: User,
     search: Optional[str] = None,
-    limit: int = 20,
+    limit: Optional[int] = None,
 ) -> List[ShoppingSupplier]:
     return list_suppliers(db, current_user, search=search, type_code=2, limit=limit)
 
@@ -1303,10 +1326,15 @@ def update_inventory_batch(
 
     if "product_id" in update_data and update_data["product_id"] is not None:
         if update_data["product_id"] != db_batch.product_id:
-            raise HTTPException(
-                status_code=400,
-                detail="Il product_id del lotto non può essere modificato.",
-            )
+            if not current_user.is_superuser:
+                raise HTTPException(
+                    status_code=400,
+                    detail="Il product_id del lotto non può essere modificato.",
+                )
+            new_prod = repo.get_product(db, update_data["product_id"])
+            if not new_prod:
+                raise HTTPException(status_code=404, detail="Nuovo prodotto non trovato nel catalogo.")
+            db_batch.product_id = new_prod.id
 
     if "list_item_id" in update_data and update_data["list_item_id"] is not None:
         if update_data["list_item_id"] != db_batch.list_item_id:
@@ -1377,7 +1405,13 @@ def update_inventory_batch(
     # Sync product catalog item if linked
     if db_batch.product:
         if "product_name" in update_data and update_data["product_name"]:
-            db_batch.product.name_normalized = _normalize_name(update_data["product_name"])
+            norm_name = _normalize_name(update_data["product_name"])
+            if norm_name != db_batch.product.name_normalized:
+                if current_user.is_superuser:
+                    target_prod = repo.get_or_create_product_by_name(db, norm_name, current_user.id)
+                    db_batch.product_id = target_prod.id
+                else:
+                    db_batch.product.name_normalized = norm_name
 
     for field, value in update_data.items():
         if hasattr(db_batch, field):
@@ -1601,7 +1635,7 @@ def list_products(
     db: Session,
     search: Optional[str] = None,
     brand_id: Optional[int] = None,
-    limit: int = 20,
+    limit: Optional[int] = None,
 ) -> List[ShoppingProduct]:
     return repo.list_products(db, search=search, brand_id=brand_id, limit=limit)
 
@@ -1736,3 +1770,82 @@ def get_config_bundle(db: Session) -> ShoppingConfigBundle:
         groupRoleOptions=repo.get_config_options(db, "shopping_group_role"),
         supplierStatusOptions=repo.get_config_options(db, "supplier_status"),
     )
+
+
+# ------------------------------------------------------------------ Product Merge
+def merge_products(
+    db: Session,
+    current_user: User,
+    source_product_id: int,
+    target_product_id: int,
+) -> dict:
+    """Unisce due prodotti duplicati (source_product_id -> target_product_id).
+
+    Tutti i lotti di acquisto (inventory_batch), gli elementi delle liste spesa (shopping_list_items)
+    e le associazioni brand vengono riassegnati al prodotto principale (target).
+    Il prodotto sorgente duplicato viene eliminato.
+    Operazione riservata esclusivamente ai SuperUser.
+    """
+    if source_product_id == target_product_id:
+        raise HTTPException(
+            status_code=400,
+            detail="Non puoi unire un prodotto con se stesso.",
+        )
+    source_product = repo.get_product(db, source_product_id)
+    if not source_product:
+        raise HTTPException(status_code=404, detail="Prodotto sorgente (duplicato da eliminare) non trovato.")
+    target_product = repo.get_product(db, target_product_id)
+    if not target_product:
+        raise HTTPException(status_code=404, detail="Prodotto destinazione (master da mantenere) non trovato.")
+
+    # 1. Sposta tutti gli inventory_batch
+    moved_batches = (
+        db.query(InventoryBatch)
+        .filter(InventoryBatch.product_id == source_product_id)
+        .update({InventoryBatch.product_id: target_product_id}, synchronize_session="fetch")
+    )
+
+    # 2. Sposta tutti gli shopping_list_items
+    moved_items = (
+        db.query(ShoppingListItem)
+        .filter(ShoppingListItem.product_id == source_product_id)
+        .update({ShoppingListItem.product_id: target_product_id}, synchronize_session="fetch")
+    )
+
+    # 3. Sposta i product_brands
+    source_links = (
+        db.query(ShoppingProductBrand)
+        .filter(ShoppingProductBrand.product_id == source_product_id)
+        .all()
+    )
+    for link in source_links:
+        existing_target_link = (
+            db.query(ShoppingProductBrand)
+            .filter(
+                ShoppingProductBrand.product_id == target_product_id,
+                ShoppingProductBrand.brand_id == link.brand_id,
+            )
+            .first()
+        )
+        if not existing_target_link:
+            new_link = ShoppingProductBrand(
+                product_id=target_product_id,
+                brand_id=link.brand_id,
+                notes=link.notes,
+            )
+            db.add(new_link)
+        db.delete(link)
+
+    # 4. Elimina il prodotto duplicato
+    db.delete(source_product)
+
+    repo.commit(db)
+
+    return {
+        "source_product_id": source_product_id,
+        "target_product_id": target_product_id,
+        "target_product_name": target_product.name_normalized,
+        "moved_batches_count": moved_batches,
+        "moved_items_count": moved_items,
+        "message": f"Fusione completata! Spostati {moved_batches} lotti e {moved_items} elementi della lista su '{target_product.name_normalized}'.",
+    }

@@ -96,8 +96,8 @@ class PaginatedBase(ORMBaseModel, Generic[T]):
 
     items: List[T] = Field(default_factory=list)
     total: int = Field(..., ge=0)
-    limit: int = Field(..., ge=1)
-    offset: int = Field(..., ge=0)
+    limit: Optional[int] = Field(None, ge=1)
+    offset: Optional[int] = Field(None, ge=0)
 
 
 class PaginatedEvents(PaginatedBase[EventResponse]):

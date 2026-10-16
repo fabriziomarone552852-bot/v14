@@ -5,7 +5,6 @@ import { useAuth } from '@/context/AuthContext';
 import { useSocial } from '@/hooks/useSocial';
 import type { useGoogleCalendarIntegration } from '@/hooks/useGoogleCalendarIntegration';
 import { MobileSettingsProfileHeader } from './MobileSettingsProfileHeader';
-import { MobileSettingsAdminBanner } from './MobileSettingsAdminBanner';
 import { MobileSettingsNavList } from './MobileSettingsNavList';
 import { MobileSettingsLogoutModal } from './MobileSettingsLogoutModal';
 
@@ -48,12 +47,7 @@ export const MobileSettingsMainHub: React.FC<MobileSettingsMainHubProps> = ({
         pendingRequestsCount={pendingRequests.length}
       />
 
-      {/* 2. SEZIONE SUPERUSER (Se Admin) */}
-      {user?.is_superuser && (
-        <MobileSettingsAdminBanner onOpenAdmin={() => navigate('/admin')} />
-      )}
-
-      {/* 3. LISTA DELLE VOCI PRINCIPALI DI NAVIGAZIONE */}
+      {/* 2. LISTA DELLE VOCI PRINCIPALI DI NAVIGAZIONE */}
       <MobileSettingsNavList
         onNavigate={navigate}
         isGoogleConnected={googleSync.status?.is_connected}

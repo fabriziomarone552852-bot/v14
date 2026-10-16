@@ -32,8 +32,8 @@ def list_reports(
     status_filter: Optional[str] = None,
     severity_filter: Optional[str] = None,
     report_type_filter: Optional[str] = None,
-    limit: int = 100,
-    offset: int = 0,
+    limit: Optional[int] = None,
+    offset: Optional[int] = None,
 ) -> List[FeedbackReport]:
     """Elenca le segnalazioni con filtri opzionali e ordinamento per data decrescente."""
     query = db.query(FeedbackReport).options(joinedload(FeedbackReport.user))
@@ -45,27 +45,28 @@ def list_reports(
     if report_type_filter:
         query = query.filter(FeedbackReport.report_type == report_type_filter)
 
-    return (
-        query.order_by(desc(FeedbackReport.created_at))
-        .offset(offset)
-        .limit(limit)
-        .all()
-    )
+    query = query.order_by(desc(FeedbackReport.created_at))
+    if offset is not None:
+        query = query.offset(offset)
+    if limit is not None:
+        query = query.limit(limit)
+    return query.all()
 
 
 def list_by_user(
     db: Session,
     user_id: int,
-    limit: int = 50,
+    limit: Optional[int] = None,
 ) -> List[FeedbackReport]:
     """Elenca le segnalazioni inviate da uno specifico utente."""
-    return (
+    query = (
         db.query(FeedbackReport)
         .filter(FeedbackReport.user_id == user_id)
         .order_by(desc(FeedbackReport.created_at))
-        .limit(limit)
-        .all()
     )
+    if limit is not None:
+        query = query.limit(limit)
+    return query.all()
 
 
 def delete(db: Session, report: FeedbackReport) -> None:

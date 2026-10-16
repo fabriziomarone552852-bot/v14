@@ -101,6 +101,7 @@ export function useShoppingItemsColumn({
       quantity: itemForm.quantity ? Number(itemForm.quantity) : undefined,
       unitId: itemForm.unitId ? Number(itemForm.unitId) : undefined,
       notes: itemForm.notes?.trim() || undefined,
+      brandNotes: itemForm.brandNotes?.trim() || undefined,
     });
     handleCloseCreate();
   };
@@ -131,6 +132,7 @@ export function useShoppingItemsColumn({
       quantity: item.quantity != null ? String(item.quantity) : '',
       unitId: item.unitId != null ? String(item.unitId) : '',
       notes: item.notes ?? '',
+      brandNotes: item.brandNotes ?? '',
     });
     editModal.open(item);
   };
@@ -154,6 +156,7 @@ export function useShoppingItemsColumn({
         quantity: editForm.quantity ? Number(editForm.quantity) : undefined,
         unitId: editForm.unitId ? Number(editForm.unitId) : undefined,
         notes: editForm.notes?.trim() || undefined,
+        brandNotes: editForm.brandNotes?.trim() || undefined,
       },
     });
     handleCloseEdit();

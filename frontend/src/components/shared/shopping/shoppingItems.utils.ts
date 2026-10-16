@@ -10,6 +10,7 @@ export interface ItemFormState {
   quantity: string;
   unitId: string;
   notes: string;
+  brandNotes: string;
 }
 
 export interface PurchaseFormState {
@@ -32,6 +33,7 @@ export const emptyItemForm = (shoppingListId = ''): ItemFormState => ({
   quantity: '',
   unitId: '',
   notes: '',
+  brandNotes: '',
 });
 
 export const emptyPurchaseForm = (

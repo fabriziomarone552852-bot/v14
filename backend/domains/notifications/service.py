@@ -53,7 +53,7 @@ def list_interactions(
     db: Session,
     current_user: User,
     unread_only: bool = False,
-    limit: int = 50,
+    limit: Optional[int] = None,
 ) -> List[schemas.InteractionResponse]:
     interactions = repo.list_for_user(db, current_user.id, unread_only=unread_only, limit=limit)
     return [_hydrate_interaction(db, int_obj) for int_obj in interactions]

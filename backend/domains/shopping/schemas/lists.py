@@ -19,6 +19,11 @@ def _truncate_2_decimals(value: object) -> Decimal:
     return dec.quantize(Decimal("0.01"), rounding=ROUND_DOWN)
 
 
+def _truncate_quantity(value: object) -> Decimal:
+    dec = Decimal(str(value))
+    return dec.quantize(Decimal("0.001"), rounding=ROUND_DOWN)
+
+
 class ShoppingListCreate(StrictBaseModel):
     group_id: Optional[int] = None
     visibility_id: int
@@ -91,11 +96,12 @@ class ShoppingListItemCreate(StrictBaseModel):
     quantity: Optional[Decimal] = Field(
         default=None,
         max_digits=12,
-        decimal_places=2,
+        decimal_places=3,
         ge=Decimal("0"),
     )
     unit_id: Optional[int] = None
     notes: Optional[str] = None
+    brand_notes: Optional[str] = None
 
     @field_validator("product_name")
     @classmethod
@@ -118,7 +124,7 @@ class ShoppingListItemCreate(StrictBaseModel):
     def truncate_quantity(cls, value: object) -> object:
         if value is None or value == "":
             return value
-        return _truncate_2_decimals(value)
+        return _truncate_quantity(value)
 
 
 class ShoppingListItemUpdate(StrictBaseModel):
@@ -129,11 +135,12 @@ class ShoppingListItemUpdate(StrictBaseModel):
     quantity: Optional[Decimal] = Field(
         default=None,
         max_digits=12,
-        decimal_places=2,
+        decimal_places=3,
         ge=Decimal("0"),
     )
     unit_id: Optional[int] = None
     notes: Optional[str] = None
+    brand_notes: Optional[str] = None
     is_purchased: Optional[bool] = None
 
     @field_validator("product_name")
@@ -159,7 +166,7 @@ class ShoppingListItemUpdate(StrictBaseModel):
     def truncate_quantity(cls, value: object) -> object:
         if value is None or value == "":
             return value
-        return _truncate_2_decimals(value)
+        return _truncate_quantity(value)
 
 
 class _ShoppingSupplierLiteResponse(ORMBaseModel):
@@ -167,11 +174,20 @@ class _ShoppingSupplierLiteResponse(ORMBaseModel):
     name_normalized: str
 
 
+class _ShoppingProductBrandLiteResponse(ORMBaseModel):
+    id: int
+    product_id: int
+    brand_id: int
+    notes: Optional[str] = None
+    brand: Optional[_ShoppingSupplierLiteResponse] = None
+
+
 class _ShoppingProductLiteResponse(ORMBaseModel):
     id: int
     name_normalized: str
     brand_id: Optional[int] = None
     brand: Optional[_ShoppingSupplierLiteResponse] = None
+    product_brands: List[_ShoppingProductBrandLiteResponse] = Field(default_factory=list)
 
 
 class _ShoppingUnitLiteResponse(ORMBaseModel):
@@ -227,6 +243,19 @@ class ShoppingListItemResponse(ORMBaseModel):
             for pb in self.product.product_brands:
                 if getattr(pb, "brand", None):
                     return pb.brand.name_normalized
+        return None
+
+    @computed_field
+    @property
+    def brand_notes(self) -> Optional[str]:
+        if self.product and getattr(self.product, "product_brands", None):
+            target_bid = self.brand_id
+            for pb in self.product.product_brands:
+                if target_bid is not None:
+                    if pb.brand_id == target_bid:
+                        return pb.notes
+                elif getattr(pb, "notes", None):
+                    return pb.notes
         return None
 
     @computed_field

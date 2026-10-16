@@ -139,6 +139,150 @@ Verifica e ottimizzazione del processo di compilazione dell'APK eseguito da `bui
 
 ---
 
+### [SHOPPING-016] Micro Split-Pill Valutazione Brand, Pareggiamento Colonne Data Grid & Snellimento Scontrini (🟢 Completato)
+
+#### 📋 Descrizione
+Evoluzione dell'esperienza di valutazione marchi nelle griglie amministrative ad alta densità: sostituzione del campo testuale `Note` con una micro-colonna di valutazione compatta e reattiva, pareggiamento geometrico delle colonne Prodotto e Brand nella Data Grid Revisione Lotti, riduzione della colonna Prodotto e rimozione della sezione inferiore ridondante nella pagina Inserimento Rapido Scontrini.
+
+#### ⚙️ Dettagli Implementazione & Funzionalità Raggiunte
+- **Componente Atomico [`BrandPreferenceSplitPill.tsx`](file:///c:/Users/user/Documents/PYTHON/VxAme14/frontend/src/components/shared/shopping/BrandPreferenceSplitPill.tsx)**:
+  - Formato micro split-pill `[ 👍 | 👎 ]` (~56-64 px) con singolo tocco toggle on/off:
+    - Click su `👍`: assegna valutazione positiva (memorizza nel DB l'etichetta descrittiva `"👍 Consigliato"`). Secondo click disattiva a neutro (`NULL`).
+    - Click su `👎`: assegna valutazione negativa (memorizza nel DB `"👎 Da evitare"`). Secondo click disattiva a neutro (`NULL`).
+  - **Doppio Click con Popover Note**: Aprendo un micro-editor al doppio click, consente l'immissione o rettifica al volo di una nota testuale personalizzata (es. *"ottima qualità bio"*).
+  - **Indicatore Visivo & Tooltip**: Mostra l'icona 💬 quando è presente un commento testuale e tooltip descrittivo nativo al passaggio del mouse.
+- **Data Grid Revisione Lotti Spesa ([`AdminShoppingDataGridSection`](file:///c:/Users/user/Documents/PYTHON/VxAme14/frontend/src/components/admin/shopping/AdminShoppingDataGridSection.tsx) / [`AdminShoppingDataGridRow`](file:///c:/Users/user/Documents/PYTHON/VxAme14/frontend/src/components/admin/shopping/AdminShoppingDataGridRow.tsx))**:
+  - Pareggiata la larghezza delle colonne Prodotto e Brand alla stessa identica misura (`min-w-[220px] w-56`).
+  - Inserita la colonna `Val.` (`w-20`) tra Brand e Punto Vendita.
+  - Sincronizzazione automatica al salvataggio (singolo o massivo) verso la tabella permanente di catalogo `shopping_product_brands`.
+- **Inserimento Rapido Scontrini ([`AdminReceiptQuickEntrySection`](file:///c:/Users/user/Documents/PYTHON/VxAme14/frontend/src/components/admin/AdminReceiptQuickEntrySection.tsx) / [`AdminReceiptQuickEntryRow`](file:///c:/Users/user/Documents/PYTHON/VxAme14/frontend/src/components/admin/AdminReceiptQuickEntryRow.tsx))**:
+  - Ridotta la colonna Nome Prodotto a `w-48` / `min-w-[170px]` per fare spazio alla nuova colonna `Val.` senza generare overflow orizzontale.
+  - Pre-caricamento automatico della preferenza da catalogo in RAM quando si seleziona una combinazione Prodotto-Brand già recensita.
+  - Rimossa la sezione inferiore di editing sessione lotti (`AdminReceiptSessionBatchesSection`), rendendo l'interfaccia leggera e al 100% focalizzata sull'immissione veloce continua.
+
+---
+
+### [SHOPPING-015] Calcolo Inverso da Prezzo Unitario nelle Pagine Amministrative (🟢 Completato)
+
+#### 📋 Descrizione
+Implementata la modalità di calcolo inverso del dato mancante (quantità o prezzo totale) tramite doppio click sul campo del prezzo per unità di misura nelle viste amministrative riservate (`AdminReceiptQuickEntryRow` e `AdminShoppingDataGridRow`). Se entrambi i dati canonici sono già presenti, la modifica del prezzo unitario resta tassativamente disabilitata per proteggere l'integrità dei dati immessi.
+
+#### ⚙️ Dettagli Implementazione & Funzionalità Raggiunte
+- **Condizione di Blocco Rigorosa**:
+  - Quando sia la Quantità che il Prezzo Totale sono presenti e maggiori di zero, la cella del Prezzo Unitario è in sola lettura: il doppio click è disabilitato e non apre alcun campo di input.
+- **Sblocco Condizionale su Dato Mancante**:
+  - Se manca la Quantità (vuota o zero) e il Prezzo Totale è noto: doppio click sul prezzo unitario consente di inserire il valore al kg/lt; alla conferma (`Invio` o `Blur`), il sistema calcola e compila istantaneamente la Quantità $\text{Quantità} = \frac{\text{Prezzo Totale}}{\text{Prezzo Unitario}}$ (fino a 3 cifre decimali).
+  - Se manca il Prezzo Totale (vuoto o zero) e la Quantità è nota: doppio click consente di inserire il prezzo unitario; alla conferma, calcola e compila istantaneamente $\text{Prezzo Totale} = \text{Quantità} \times \text{Prezzo Unitario}$ (a 2 decimali).
+  - Tasto `Esc` per annullare senza modificare.
+
+---
+
+### [SHOPPING-014] Supporto Universale Separatori Decimali (Virgola e Punto) & Regola d'Oro (🟢 Completato)
+
+#### 📋 Descrizione
+Risolto il problema per cui i campi numerici con `<input type="number">` sui browser con locale italiano (`it-IT`) scartavano il tasto del punto (`.`) dal tastierino numerico o dalla tastiera standard. Codificata e applicata la nuova Regola d'Oro generale che impone su tutta l'applicazione (Web e Mobile) l'accettazione universale di virgola e punto.
+
+#### ⚙️ Dettagli Implementazione & Funzionalità Raggiunte
+- **Modulo Centralizzato [`decimalUtils.ts`](file:///c:/Users/user/Documents/PYTHON/VxAme14/frontend/src/utils/decimalUtils.ts)**:
+  - `sanitizeDecimalString(val)`: consente solo cifre, virgola e punto, prevenendo doppi separatori consecutivi (es. `12..5` o `12,,5`) durante la battitura.
+  - `parseDecimalValue(val, defaultValue)`: converte in modo sicuro qualsiasi stringa con `,` o `.` in float JavaScript (`number`).
+- **Standard Architetturale Regola d'Oro 5 Codificata in `AGENTS.md` e `GEMINI.md`**:
+  - Divieto di usare `<input type="number">` standard.
+  - Adozione obbligatoria di `type="text" inputMode="decimal"`.
+- **Applicazione nelle Griglie Amministrative**:
+  - Aggiornati i campi di quantità e prezzo in `AdminShoppingDataGridRow.tsx`, `AdminReceiptQuickEntryRow.tsx`, `useAdminReceiptQuickEntryLogic.ts` e `ShoppingQuantityInput.tsx`.
+
+---
+
+### [SHOPPING-013] Valutazione & Opinioni sui Marchi dei Prodotti (Opzione C) (🟢 Completato)
+
+#### 📋 Descrizione
+Introdotto un sistema completo per consentire agli utenti di registrare un gradimento permanente (👍 Gradito / 👎 Da evitare / ⚪ Neutro + commento memorizzabile) per la combinazione Prodotto + Marchio (es. Farina Barilla: 👍 Buona; Farina Granoro: 👎 Non ricomprare). La preferenza viene memorizzata nel catalogo e mostrata con badge e alert visivi per prevenire acquisti sgraditi.
+
+#### ⚙️ Dettagli Implementazione & Funzionalità Raggiunte
+- **Backend & Database**:
+  - Estesa la persistenza del mapping Brand-Prodotto con campi per il rating (`rating`: `'like' | 'dislike' | 'neutral'`) e `rating_notes`.
+  - Nuovi endpoint protetti nel router shopping per la lettura e il salvataggio atomico delle preferenze marchio.
+- **Frontend & Integrazione UI**:
+  - Creato il componente [`BrandPreferenceRatingControl.tsx`](file:///c:/Users/user/Documents/PYTHON/VxAme14/frontend/src/components/shared/shopping/BrandPreferenceRatingControl.tsx).
+  - Integrato nei modali di creazione/modifica articolo (`ShoppingItemModal.tsx`, `MobileShoppingItemForm.tsx`).
+  - Badge di avviso colorato nell'autocomplete dei marchi e alert rosso marcato nelle righe della lista della spesa desktop e mobile quando un marchio è contrassegnato come sconsigliato.
+
+---
+
+### [SHOPPING-012] Hub Amministrazione Desktop con Data Grid Spesa, Eventi e Attività (🟢 Completato)
+
+#### 📋 Descrizione
+Potenziamento della console amministrativa per superuser: raggruppamento delle funzionalità shopping sotto una macro-scheda "Spesa" con tabs segmentate (Inserimento Scontrini, Data Grid Revisione Lotti, Unione Prodotti Duplicati) ed estensione dello schema Data Grid ad alta densità anche per Eventi e Attività/Task senza ricorrere a pgAdmin.
+
+#### ⚙️ Dettagli Implementazione & Funzionalità Raggiunte
+- **Hub Amministrazione Spesa (Proposta A)**: macro-scheda con selettore a pillole segmentate.
+- **Data Grid Revisione Lotti Spesa**: modifica inline, calcolo istantaneo prezzo unitario, filtri date, brand, fornitori, anomalie e salvataggio massivo in memoria.
+- **Strumento Unione Prodotti Duplicati**: interfaccia a 2 colonne per migrare lotti d'acquisto e liste ed eliminare duplicati.
+- **Data Grid Eventi & Attività**: gestione tabellare ad alta densità con correzione inline date, riassegnazione cross-utente e filtri RAM.
+
+---
+
+### [SHOPPING-011] Gestione ed Editing Rapido Scontrini della Sessione in Corso (🟢 Completato)
+
+#### 📋 Descrizione
+Introduzione di un pannello di controllo ed editing immediato nella pagina di registrazione rapida scontrini riservata all'amministratore/superuser (`AdminReceiptQuickEntrySection`), consentendo di visualizzare, modificare qualsiasi campo o eliminare all'istante le righe appena registrate durante la sessione senza dover navigare nell'Archivio Prezzi.
+
+#### ⚙️ Dettagli Implementazione & Funzionalità Raggiunte
+- **Custom Hook `useAdminReceiptSessionBatches`**:
+  - Mantiene lo stato in memoria RAM dei lotti registrati nella sessione attiva (`sessionBatches`).
+  - Carica automaticamente all'apertura i lotti inseriti nella giornata odierna (`loadTodayBatches`) per preservare la continuità anche in caso di refresh della pagina.
+  - Al salvataggio di uno scontrino (`createQuickPriceBatch`), i record restituiti dal server vengono catturati e aggiunti istantaneamente in cima alla lista.
+  - Fornisce funzioni per il salvataggio modifiche (`updateInventoryBatch`) e la cancellazione con conferma (`deleteInventoryBatch`), sincronizzando transparentemente sia lo stato locale in RAM che il ricaricamento dei cataloghi/autocompletamento.
+- **Componente Visivo `AdminReceiptSessionBatchesSection`**:
+  - Posizionato direttamente sotto al modulo di inserimento scontrino.
+  - Mostra il riepilogo conteggio articoli e totale monetario speso nella sessione (`€`).
+  - Tabella completa con colonne Data, Prodotto, Brand (badge), Supermercato/Negozio (badge), Quantità con formattazione dinamica fino a 3 decimali (es. `0,104 kg` o `1 pz`), Prezzo Totale e Prezzo Unitario.
+  - Azioni rapide per riga: pulsante ✏️ (Modifica) che apre il modale completo e pulsante 🗑️ (Elimina) con alert di conferma.
+  - Stato vuoto elegante con placeholder esplicativo in assenza di registrazioni.
+- **Supporto Eliminazione in `ShoppingEditBatchModal`**:
+  - Aggiunto il pulsante 🗑️ Elimina Registrazione nei footer sia desktop (`BaseModal`) che mobile (`MobileBaseModal`) quando la prop `onDelete` è fornita.
+
+---
+
+### [SHOPPING-010] Precisione Quantità e Pesature Spesa a 3 Decimali (NUMERIC 12,3) (🟢 Completato)
+
+#### 📋 Descrizione
+Estensione della precisione numerica delle quantità acquistate nel modulo Shopping per gestire correttamente valori inferiori all'unità e pesature al banco (es. `0,104 kg` / `104 grammi`), risolvendo il troncamento forzato al primo decimale (`0,1`).
+
+#### ⚙️ Dettagli Implementazione & Funzionalità Raggiunte
+- **Database & Migrazione Alembic Idempotente**:
+  - Creata la migrazione `b1c2d3e4f5a6_alter_quantity_columns_to_numeric_12_3.py`.
+  - Aggiornate le colonne `inventory_batch.quantity_purchased` e `shopping_list_items.quantity` da `NUMERIC(12, 2)` a `NUMERIC(12, 3)`.
+  - Eseguita con successo la migrazione sia sul database di collaudo locale `test-smart` (`alembic-test.bat upgrade head`) sia sul database di produzione reale del NAS `family-smart` (`alembic-prod.bat upgrade head`).
+- **Modelli SQLAlchemy & Schemi Pydantic**:
+  - Allineati `backend/domains/shopping/models/inventory.py` e `backend/domains/shopping/models/lists.py`.
+  - Aggiornati gli schemi Pydantic (`InventoryBatchBase`, `QuickPriceRecordCreate`, `InventoryBatchUpdate`, `ShoppingListItemCreate`, `ShoppingListItemUpdate`) impostando `decimal_places=3`.
+  - Separato il validatore di troncamento: `_truncate_quantity` preserva 3 cifre decimali (`0.001`), mantenendo `_truncate_2_decimals` rigorosamente a 2 cifre (`0.01`) per i prezzi monetari.
+- **Frontend & Arrotondamenti Stepper**:
+  - Aggiornato `ShoppingQuantityInput.tsx` per calcolare gli step e gli arrotondamenti su base millesimale (`Math.round(nextNum * 1000) / 1000`), evitando artefatti di floating point in JavaScript.
+
+---
+
+### [SHOPPING-009] Allineamento "Mazzo di Carte" Cross-Dominio & Rimozione Limiti Catalogo (🟢 Completato)
+
+#### 📋 Descrizione
+Eliminazione dei limiti forzati di default imposti dal backend (`limit=20`, `limit=50`, `limit=100`) su catalogo shopping, eventi, interazioni/notifiche e feedback, riallineando l'intera applicazione al principio architetturale aureo "Mazzo di Carte" (dati scaricati integralmente in RAM del client, filtri e logica interattiva gestiti in React).
+
+#### ⚙️ Dettagli Implementazione & Funzionalità Raggiunte
+- **Catalogo Shopping (`/products`, `/suppliers`, `/brands`)**:
+  - Rimosso il `limit=20` predefinito negli endpoint backend del catalogo shopping.
+  - Risolta l'anomalia per cui nell'inserimento rapido scontrini alcuni prodotti già registrati non venivano rilevati nell'autocompletamento o comparivano solo i primi 20 in ordine alfabetico.
+- **Agenda & Eventi (`/events`)**:
+  - Resi opzionali `limit` e `offset` nel router, service e repository di `events`.
+  - Il frontend riceve l'intero archivio eventi per consentire visualizzazione annuale, filtri per categoria e ricerche storiche senza troncamenti a 100 impegni.
+- **Notifiche & Interazioni (`/interactions`)**:
+  - Reso opzionale `limit` nell'endpoint `/interactions` per garantire che tutte le notifiche di sistema restino permanenti e storicizzate nella sidebar senza autodistruggersi o scomparire oltre la 50esima.
+- **Segnalazioni Feedback (`/feedback/reports`, `/feedback/reports/me`)**:
+  - Resi opzionali `limit` e `offset` nel router e service, e rimosso l'hardcoding `limit: 100` in `feedbackApi.ts`.
+
+---
+
 ### [TECH-007] Configurazione TMDB Produzione NAS & Fix 500 Ricerca Serie (🟢 Completato)
 
 #### 📋 Descrizione

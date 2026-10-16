@@ -64,6 +64,7 @@ export const AdminReceiptQuickEntrySection: React.FC = () => {
         </div>
       )}
 
+
       {/* HEADER SCONTRINO: DATA & FORNITORE */}
       <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-xs space-y-4">
         <div className="text-xs font-extrabold uppercase tracking-wider text-slate-600 flex items-center gap-1.5 border-b border-slate-100 pb-2">
@@ -150,8 +151,9 @@ export const AdminReceiptQuickEntrySection: React.FC = () => {
             <thead className="bg-slate-50 border-b border-slate-200 text-[11px] font-bold uppercase tracking-wider text-slate-500 sticky top-0 z-20">
               <tr>
                 <th className="py-2.5 px-3 w-10 text-center">#</th>
-                <th className="py-2.5 px-3 min-w-[200px]">Nome Prodotto (Obbligatorio)</th>
-                <th className="py-2.5 px-3 min-w-[150px]">Brand / Marchio (Opzionale)</th>
+                <th className="py-2.5 px-3 min-w-[170px] w-48">Nome Prodotto</th>
+                <th className="py-2.5 px-3 min-w-[150px] w-44">Brand / Marchio</th>
+                <th className="py-2.5 px-1.5 w-20 text-center" title="Valutazione Brand/Prodotto">Val.</th>
                 <th className="py-2.5 px-2 w-20 text-center">Quantità</th>
                 <th className="py-2.5 px-3 w-28 text-right">Prezzo Tot. (€)</th>
                 <th className="py-2.5 px-3 w-28 text-right">Prezzo Unit. (€)</th>

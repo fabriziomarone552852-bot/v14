@@ -12,7 +12,7 @@ def list_for_user(
     db: Session,
     user_id: int,
     unread_only: bool = False,
-    limit: int = 50,
+    limit: Optional[int] = None,
 ) -> List[Interaction]:
     query = db.query(Interaction).filter(
         or_(
@@ -27,7 +27,10 @@ def list_for_user(
     if unread_only:
         query = query.filter(Interaction.read_at.is_(None))
 
-    return query.order_by(Interaction.created_at.desc()).limit(limit).all()
+    query = query.order_by(Interaction.created_at.desc())
+    if limit is not None:
+        query = query.limit(limit)
+    return query.all()
 
 
 def get_owned(db: Session, interaction_id: int, user_id: int) -> Optional[Interaction]:

@@ -1,10 +1,12 @@
 // src/components/admin/useAdminReceiptQuickEntryLogic.ts
 import { useEffect, useState, useRef, useMemo, useCallback } from 'react';
-import { fetchShoppingProducts } from '@/api/shopping/shoppingConfigApi';
+import { fetchShoppingProducts, saveProductBrandPreference } from '@/api/shopping/shoppingConfigApi';
 import { fetchShoppingSuppliers, fetchShoppingBrands } from '@/api/shopping/shoppingSuppliersApi';
 import { createQuickPriceBatch } from '@/api/shopping/shoppingInventoryApi';
 import type { ShoppingProductOption, ShoppingSupplierOption } from '@/types/shopping';
 import { extractErrorMessage } from '@/utils/errorUtils';
+import { parseDecimalValue } from '@/utils/decimalUtils';
+import { findBrandPreferenceInProducts } from '@/utils/shoppingBrandPreference';
 
 export interface ReceiptItemRow {
   id: string;
@@ -12,9 +14,10 @@ export interface ReceiptItemRow {
   productId?: number | null;
   brandName: string;
   brandId?: number | null;
-  quantity: number | '';
+  quantity: number | string;
   price: string;
   unitPrice: number | null;
+  notes?: string | null;
 }
 
 export const createEmptyReceiptRow = (): ReceiptItemRow => ({
@@ -26,6 +29,7 @@ export const createEmptyReceiptRow = (): ReceiptItemRow => ({
   quantity: 1,
   price: '',
   unitPrice: null,
+  notes: null,
 });
 
 export const useAdminReceiptQuickEntryLogic = () => {
@@ -79,10 +83,10 @@ export const useAdminReceiptQuickEntryLogic = () => {
   }, [loadCatalogs]);
 
   // Calcolo prezzo unitario
-  const calculateUnitPrice = (priceStr: string, qty: number | ''): number | null => {
-    const cleanPrice = parseFloat(priceStr.replace(',', '.'));
-    const cleanQty = typeof qty === 'number' && qty > 0 ? qty : 1;
-    if (isNaN(cleanPrice) || cleanPrice <= 0) return null;
+  const calculateUnitPrice = (priceStr: string, qty: number | string | ''): number | null => {
+    const cleanPrice = parseDecimalValue(priceStr, 0);
+    const cleanQty = parseDecimalValue(qty, 1);
+    if (cleanPrice <= 0 || cleanQty <= 0) return null;
     return Math.round((cleanPrice / cleanQty) * 100) / 100;
   };
 
@@ -101,7 +105,7 @@ export const useAdminReceiptQuickEntryLogic = () => {
         // Ricalcola prezzo unitario se cambiano prezzo o quantità
         if (field === 'price' || field === 'quantity') {
           const newPrice = field === 'price' ? String(value) : row.price;
-          const newQty = field === 'quantity' ? (value as number | '') : row.quantity;
+          const newQty = field === 'quantity' ? (value as number | string) : row.quantity;
           updated.unitPrice = calculateUnitPrice(newPrice, newQty);
         }
 
@@ -114,12 +118,15 @@ export const useAdminReceiptQuickEntryLogic = () => {
     setRows((prev) =>
       prev.map((row) => {
         if (row.id !== rowId) return row;
+        const finalBrandName = prod?.brandName || row.brandName;
+        const pref = findBrandPreferenceInProducts(products, name, finalBrandName);
         return {
           ...row,
           productName: name,
           productId: prod?.id ?? null,
-          brandName: prod?.brandName || row.brandName,
+          brandName: finalBrandName,
           brandId: prod?.brandId ?? row.brandId,
+          notes: pref?.rawNotes ?? row.notes ?? null,
         };
       })
     );
@@ -129,10 +136,12 @@ export const useAdminReceiptQuickEntryLogic = () => {
     setRows((prev) =>
       prev.map((row) => {
         if (row.id !== rowId) return row;
+        const pref = findBrandPreferenceInProducts(products, row.productName, name);
         return {
           ...row,
           brandName: name,
           brandId: brand?.id ?? null,
+          notes: pref?.rawNotes ?? row.notes ?? null,
         };
       })
     );
@@ -171,8 +180,8 @@ export const useAdminReceiptQuickEntryLogic = () => {
     let validCount = 0;
 
     rows.forEach((r) => {
-      const p = parseFloat(r.price.replace(',', '.'));
-      if (!isNaN(p) && p > 0 && r.productName.trim()) {
+      const p = parseDecimalValue(r.price, 0);
+      if (p > 0 && r.productName.trim()) {
         total += p;
         validCount += 1;
       }
@@ -202,8 +211,8 @@ export const useAdminReceiptQuickEntryLogic = () => {
 
     // Filtra righe valide nel frontend
     const validRows = rows.filter((r) => {
-      const p = parseFloat(r.price.replace(',', '.'));
-      return r.productName.trim() !== '' && !isNaN(p) && p > 0;
+      const p = parseDecimalValue(r.price, 0);
+      return r.productName.trim() !== '' && p > 0;
     });
 
     if (validRows.length === 0) {
@@ -216,7 +225,7 @@ export const useAdminReceiptQuickEntryLogic = () => {
 
     setSaving(true);
     try {
-      await createQuickPriceBatch({
+      const createdBatches = await createQuickPriceBatch({
         records: validRows.map((r) => ({
           productName: r.productName.trim(),
           brandName: r.brandName.trim() || undefined,
@@ -224,11 +233,36 @@ export const useAdminReceiptQuickEntryLogic = () => {
           supplierId: resolvedSupId,
           supplierName: resolvedSupName,
           purchaseDate: purchaseDate,
-          quantityPurchased: typeof r.quantity === 'number' && r.quantity > 0 ? r.quantity : 1,
-          purchasePrice: parseFloat(r.price.replace(',', '.')),
+          quantityPurchased: (() => {
+            const q = typeof r.quantity === 'number' ? r.quantity : parseDecimalValue(r.quantity, 1);
+            return q > 0 ? q : 1;
+          })(),
+          purchasePrice: parseDecimalValue(r.price, 0),
           isOnSale: false,
         })),
       });
+
+      // Sincronizza preferenze brand nel catalogo permanente (se valorizzate)
+      for (const r of validRows) {
+        if (r.notes) {
+          const matchedBatch = createdBatches.find(
+            (b) => (b.productName || '').toLowerCase() === r.productName.trim().toLowerCase()
+          );
+          const resolvedProdId = r.productId || matchedBatch?.productId;
+          const resolvedBrandId = r.brandId || matchedBatch?.brandId;
+          if (resolvedProdId && resolvedBrandId) {
+            try {
+              await saveProductBrandPreference({
+                productId: resolvedProdId,
+                brandId: resolvedBrandId,
+                notes: r.notes,
+              });
+            } catch (prefErr) {
+              console.warn('Nota preferenza brand non sincronizzata da scontrino:', prefErr);
+            }
+          }
+        }
+      }
 
       setMessage({
         text: `✅ Scontrino registrato con successo! ${validRows.length} articoli inseriti per un totale di ${receiptSummary.total.toFixed(2)} €.`,
