@@ -10,6 +10,7 @@ import {
   type SeriesFriendDisplayItem,
   extractSeriesTmdbId,
 } from '@/types/trackers';
+import { getMediaBorderClass } from '@/utils/mediaStatusTheme';
 import { useTrackersMutations } from '@/hooks/mutations/useTrackersMutations';
 import { useMediaLists, useFriendsSeriesReviews } from '@/hooks/queries/useTrackersQueries';
 
@@ -252,19 +253,7 @@ export const useSeriesDetailModalLogic = ({
   );
 
   const getStatusBorderColor = (status: string) => {
-    switch (status) {
-      case 'watching':
-        return 'border-yellow-500';
-      case 'completed':
-        return 'border-green-500';
-      case 'waiting':
-        return 'border-purple-500';
-      case 'dropped':
-        return 'border-red-500';
-      case 'planned':
-      default:
-        return 'border-gray-400';
-    }
+    return getMediaBorderClass(status);
   };
 
   // Long press for marking all watched

@@ -31,6 +31,36 @@
     scrollbar-width: none;
   }
 
+  /* Scrollbar reattiva a scomparsa: compare solo durante lo scorrimento attivo e sfuma a riposo */
+  .fade-scrollbar {
+    scrollbar-width: thin;
+    scrollbar-color: transparent transparent;
+    transition: scrollbar-color 0.4s ease;
+  }
+  .fade-scrollbar::-webkit-scrollbar {
+    width: 4px;
+    height: 4px;
+  }
+  .fade-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .fade-scrollbar::-webkit-scrollbar-thumb {
+    background-color: transparent;
+    border-radius: 20px;
+    transition: background-color 0.4s ease;
+  }
+  .fade-scrollbar.is-scrolling {
+    scrollbar-color: rgba(156, 163, 175, 0.6) transparent;
+  }
+  .fade-scrollbar.is-scrolling::-webkit-scrollbar-thumb {
+    background-color: rgba(156, 163, 175, 0.6);
+  }
+  .fade-scrollbar::-webkit-scrollbar-button {
+    display: none !important;
+    width: 0px !important;
+    height: 0px !important;
+  }
+
   /* Animazione fluida per l'apertura dei sottomenu */
   .animate-fadeIn {
     animation: fadeIn 0.2s ease-out forwards;

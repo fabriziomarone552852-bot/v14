@@ -208,6 +208,7 @@ export const SeriesDetailModal: React.FC<SeriesDetailModalProps> = ({
           isOpen={isListManagerOpen}
           onClose={() => setIsListManagerOpen(false)}
           seriesId={tmdbSeries.tmdb_id}
+          zIndexClass="z-[10050]"
         />
       )}
 
@@ -216,6 +217,7 @@ export const SeriesDetailModal: React.FC<SeriesDetailModalProps> = ({
           isOpen={isImageModalOpen}
           onClose={() => setIsImageModalOpen(false)}
           currentUrl={posterUrl}
+          zIndexClass="z-[10050]"
           onSave={(url) => {
             if (tmdbSeries.tmdb_id) {
               updateSeries({ id: tmdbSeries.tmdb_id, updates: { custom_poster_path: url } });
@@ -229,6 +231,7 @@ export const SeriesDetailModal: React.FC<SeriesDetailModalProps> = ({
           isOpen={listDetailId !== null}
           onClose={() => setListDetailId(null)}
           listId={listDetailId}
+          zIndexClass="z-[10050]"
         />
       )}
     </BaseModal>

@@ -9,13 +9,15 @@ interface SeriesImageModalProps {
   onClose: () => void;
   onSave: (url: string) => void;
   currentUrl?: string;
+  zIndexClass?: string;
 }
 
 export const SeriesImageModal: React.FC<SeriesImageModalProps> = ({
   isOpen,
   onClose,
   onSave,
-  currentUrl = ''
+  currentUrl = '',
+  zIndexClass = 'z-[10050]'
 }) => {
   const [imageUrl, setImageUrl] = useState(currentUrl);
   const [isUploading, setIsUploading] = useState(false);
@@ -162,7 +164,7 @@ export const SeriesImageModal: React.FC<SeriesImageModalProps> = ({
   );
 
   return (
-    <BaseModal isOpen={isOpen} onClose={onClose} maxWidthClass="max-w-md">
+    <BaseModal isOpen={isOpen} onClose={onClose} maxWidthClass="max-w-md" zIndexClass={zIndexClass}>
       {ModalContent}
     </BaseModal>
   );

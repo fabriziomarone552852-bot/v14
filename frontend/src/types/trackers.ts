@@ -53,6 +53,12 @@ export interface SeriesRecommendation {
   poster_path?: string | null;
 }
 
+export interface SeriesSeasonInfo {
+  season_number: number;
+  name: string;
+  poster_path?: string | null;
+}
+
 export interface TMDBSeries {
   tmdb_id: number;
   title: string;
@@ -72,6 +78,7 @@ export interface TMDBSeries {
   episodes?: TMDBEpisode[];
   cast?: SeriesCastMember[];
   recommendations?: SeriesRecommendation[];
+  seasons?: SeriesSeasonInfo[];
   vote_average?: number | null;
   vote_count?: number | null;
 }
@@ -194,10 +201,14 @@ export interface UpcomingEpisode {
   series_tmdb_id: number;
   series_title: string;
   series_poster_path?: string | null;
+  series_backdrop_path?: string | null;
   season_number: number;
   episode_number: number;
   episode_title?: string | null;
+  episode_overview?: string | null;
+  episode_still_path?: string | null;
   air_date: string;
+  is_watched?: boolean;
 }
 
 export interface SeriesQuote {

@@ -3,7 +3,7 @@ Repository for Trackers domain.
 """
 from typing import List, Optional, Tuple, Sequence
 from datetime import datetime
-from sqlalchemy import select, delete, and_, update
+from sqlalchemy import select, delete, and_, update, exists
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.orm import Session, selectinload
 
@@ -162,8 +162,8 @@ def mark_episode_unwatched(db: Session, user_id: int, episode_id: int) -> None:
         db.commit()
 
 
-def get_upcoming_episodes(db: Session, user_id: int, start_date=None, end_date=None) -> List[Tuple[TMDBEpisode, TMDBSeries]]:
-    """Restituisce i prossimi episodi in uscita per le serie seguite dall'utente."""
+def get_upcoming_episodes(db: Session, user_id: int, start_date=None, end_date=None) -> List[Tuple[TMDBEpisode, TMDBSeries, bool]]:
+    """Restituisce i prossimi episodi in uscita per le serie seguite dall'utente con lo stato is_watched."""
     from datetime import date
     
     where_clauses = [
@@ -179,8 +179,17 @@ def get_upcoming_episodes(db: Session, user_id: int, start_date=None, end_date=N
     if end_date:
         where_clauses.append(TMDBEpisode.air_date <= end_date)
 
+    watched_subq = (
+        select(UserEpisodeLog.id)
+        .where(
+            UserEpisodeLog.episode_id == TMDBEpisode.id,
+            UserEpisodeLog.user_id == user_id
+        )
+        .exists()
+    )
+
     stmt = (
-        select(TMDBEpisode, TMDBSeries)
+        select(TMDBEpisode, TMDBSeries, watched_subq.label("is_watched"))
         .join(TMDBSeries, TMDBSeries.tmdb_id == TMDBEpisode.series_tmdb_id)
         .join(UserSeriesTracking, UserSeriesTracking.series_tmdb_id == TMDBSeries.tmdb_id)
         .where(*where_clauses)

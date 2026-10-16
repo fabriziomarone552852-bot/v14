@@ -1,5 +1,6 @@
 import React from 'react';
 import { resolveImageUrl } from '@/utils/imageUtils';
+import { getMediaBorderClass } from '@/utils/mediaStatusTheme';
 
 interface MediaCardProps {
   id?: number | string;
@@ -22,17 +23,7 @@ export const MediaCard: React.FC<MediaCardProps> = ({
   onClick,
   overrideBorderColor
 }) => {
-  const getBorderColor = () => {
-    if (overrideBorderColor) return overrideBorderColor;
-    if (!status) return 'border-transparent';
-    if (status === 'watching' || status === 'reading' || status === 'playing') return 'border-yellow-400';
-    if (status === 'completed' || status === 'watched' || status === 'read' || status === 'played') {
-      return externalStatus === 'Returning Series' ? 'border-purple-500' : 'border-green-500';
-    }
-    return 'border-transparent';
-  };
-
-  const borderColor = getBorderColor();
+  const borderColor = overrideBorderColor || getMediaBorderClass(status, externalStatus);
   const finalPoster = customPosterPath 
     ? resolveImageUrl(customPosterPath) 
     : posterPath 

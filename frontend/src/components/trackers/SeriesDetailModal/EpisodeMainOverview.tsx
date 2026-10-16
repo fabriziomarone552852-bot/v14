@@ -49,7 +49,9 @@ export const EpisodeMainOverview: React.FC<EpisodeMainOverviewProps> = ({
           <div>
             <span className="text-blue-600 font-bold text-sm tracking-wider uppercase flex items-center gap-2">
               <span>
-                Stagione {episode.season_number} - Episodio {episode.episode_number}
+                {episode.season_number === 0
+                  ? `Episodi Speciali - Episodio ${episode.episode_number}`
+                  : `Stagione ${episode.season_number} - Episodio ${episode.episode_number}`}
               </span>
               {episode.air_date && (
                 <>

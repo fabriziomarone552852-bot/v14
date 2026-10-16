@@ -1,6 +1,7 @@
 // src/components/trackers/SeriesDetailModal/SeriesDetailFriendsDrawer.tsx
 import React from 'react';
 import type { SeriesFriendDisplayItem } from '@/types/trackers';
+import { getMediaStatusLabel } from '@/utils/mediaStatusTheme';
 
 export interface SeriesDetailFriendsDrawerProps {
   isOpen: boolean;
@@ -52,15 +53,7 @@ export const SeriesDetailFriendsDrawer: React.FC<SeriesDetailFriendsDrawerProps>
                 {f.name}
               </p>
               <p className="text-xs text-gray-500 capitalize">
-                {f.status === 'watching'
-                  ? 'In visione'
-                  : f.status === 'completed'
-                  ? 'Completata'
-                  : f.status === 'waiting'
-                  ? 'In attesa'
-                  : f.status === 'dropped'
-                  ? 'Abbandonata'
-                  : 'In lista'}
+                {getMediaStatusLabel(f.status, undefined, 'series')}
               </p>
             </div>
           </div>
