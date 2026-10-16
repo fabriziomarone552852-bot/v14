@@ -23,7 +23,6 @@ export const MobileBottomNav: React.FC = () => {
     path === '/settings' ||
     path.startsWith('/settings/') ||
     path === '/archivio' ||
-    path === '/admin' ||
     path === '/tasks' ||
     path === '/events' ||
     path === '/categories' ||

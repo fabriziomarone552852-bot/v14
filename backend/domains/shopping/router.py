@@ -42,6 +42,8 @@ from backend.domains.shopping.schemas.catalog import (
     ShoppingSupplierCreate,
     ShoppingSupplierResponse,
     ShoppingSupplierUpdate,
+    ShoppingProductMergeRequest,
+    ShoppingProductMergeResponse,
 )
 from backend.domains.shopping.schemas.config import ShoppingConfigBundle
 from backend.domains.users.models import User
@@ -262,6 +264,30 @@ def update_product(
     current_user: User = Depends(deps.get_current_app_user),
 ):
     return service.update_product(db, current_user, product_id, product_in)
+
+
+@router.post(
+    "/products/merge",
+    response_model=ShoppingProductMergeResponse,
+    status_code=status.HTTP_200_OK,
+)
+def merge_products(
+    payload: ShoppingProductMergeRequest,
+    db: Session = Depends(deps.get_db),
+    current_user: User = Depends(deps.get_current_app_user),
+):
+    if not current_user.is_superuser:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Solo gli utenti SuperUser possono unire o deduplicare i prodotti del catalogo.",
+        )
+    return service.merge_products(
+        db,
+        current_user,
+        source_product_id=payload.source_product_id,
+        target_product_id=payload.target_product_id,
+    )
+
 
 
 @router.post(

@@ -142,3 +142,30 @@ export async function fetchShoppingProducts(
 
   return (data ?? []).map(normalizeShoppingProductOption);
 }
+
+export interface MergeShoppingProductsPayload {
+  sourceProductId: number;
+  targetProductId: number;
+}
+
+export interface MergeShoppingProductsResponse {
+  source_product_id: number;
+  target_product_id: number;
+  target_product_name: string;
+  moved_batches_count: number;
+  moved_items_count: number;
+  message: string;
+}
+
+export async function mergeShoppingProducts(
+  payload: MergeShoppingProductsPayload
+): Promise<MergeShoppingProductsResponse> {
+  return await apiRequest<MergeShoppingProductsResponse>('/products/merge', {
+    method: 'POST',
+    body: {
+      source_product_id: payload.sourceProductId,
+      target_product_id: payload.targetProductId,
+    },
+  });
+}
+

@@ -117,3 +117,20 @@ class ShoppingSupplierResponse(ORMBaseModel):
     created_at: datetime
     updated_at: Optional[datetime] = None
     deleted_at: Optional[datetime] = None
+
+
+# ------------------------------------------------------------------ Product Merge (Deduplicazione)
+
+class ShoppingProductMergeRequest(StrictBaseModel):
+    source_product_id: int = Field(..., description="ID del prodotto duplicato da eliminare")
+    target_product_id: int = Field(..., description="ID del prodotto principale da mantenere")
+
+
+class ShoppingProductMergeResponse(StrictBaseModel):
+    source_product_id: int
+    target_product_id: int
+    target_product_name: str
+    moved_batches_count: int
+    moved_items_count: int
+    message: str
+

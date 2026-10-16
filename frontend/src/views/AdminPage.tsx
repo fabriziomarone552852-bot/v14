@@ -1,7 +1,8 @@
 // src/views/AdminPage.tsx
 import React, { useEffect, useState, useCallback } from 'react';
 import { useAuth } from '@/context/AuthContext';
-import { Navigate } from 'react-router-dom';
+import { Navigate, Link } from 'react-router-dom';
+import { useIsMobile } from '@/mobile/hooks/useIsMobile';
 
 import type { SystemConfigItem, SystemConfigCodeItem, SystemUserItem } from '@/api/adminApi';
 import { fetchSystemConfigs, fetchSystemCodes, fetchSystemUsers } from '@/api/adminApi';
@@ -10,7 +11,7 @@ import PageLoadingState from '@/components/shared/feedback/PageLoadingState';
 import { LOADING_MESSAGES } from '@/data/loadingMessages';
 
 import { AdminUsersSection } from '@/components/admin/AdminUsersSection';
-import { AdminReceiptQuickEntrySection } from '@/components/admin/AdminReceiptQuickEntrySection';
+import { AdminShoppingHubSection } from '@/components/admin/AdminShoppingHubSection';
 import { AdminConfigSection } from '@/components/admin/AdminConfigSection';
 import { AdminCodesSection } from '@/components/admin/AdminCodesSection';
 import { AdminMaintenanceSection } from '@/components/admin/AdminMaintenanceSection';
@@ -18,11 +19,12 @@ import { AdminSystemHealthSection } from '@/components/admin/AdminSystemHealthSe
 import { AdminFeedbackSection } from '@/components/admin/AdminFeedbackSection';
 import { extractErrorMessage } from '@/utils/errorUtils';
 
-type AdminTab = 'users' | 'receipts' | 'config' | 'codes' | 'maintenance' | 'health' | 'feedback';
+type AdminTab = 'users' | 'shopping' | 'config' | 'codes' | 'maintenance' | 'health' | 'feedback';
 
 const AdminPage: React.FC = () => {
   const { user, isAuthenticated } = useAuth();
   const isSuperUser = Boolean(isAuthenticated && user?.is_superuser);
+  const isMobile = useIsMobile();
 
   const [activeTab, setActiveTab] = useState<AdminTab>('users');
   const [configs, setConfigs] = useState<SystemConfigItem[]>([]);
@@ -33,7 +35,7 @@ const AdminPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
 
   const loadData = useCallback(async () => {
-    if (!isSuperUser) return;
+    if (!isSuperUser || isMobile) return;
     setLoading(true);
     setError(null);
     try {
@@ -60,14 +62,39 @@ const AdminPage: React.FC = () => {
   }, [isSuperUser]);
 
   useEffect(() => {
-    if (isSuperUser) {
+    if (isSuperUser && !isMobile) {
       loadData();
     }
-  }, [isSuperUser, loadData]);
+  }, [isSuperUser, isMobile, loadData]);
 
   // Sicurezza: Reindirizza utenti non superuser
   if (!isSuperUser) {
     return <Navigate to="/" replace />;
+  }
+
+  // Riservato all'uso Desktop: messaggio pulito per schermi mobile
+  if (isMobile) {
+    return (
+      <div className="mx-auto flex min-h-[60vh] max-w-md flex-col items-center justify-center p-6 text-center animate-fadeIn">
+        <div className="rounded-3xl bg-amber-50 border border-amber-200 p-6 shadow-xs space-y-4">
+          <div className="text-4xl">🖥️</div>
+          <h2 className="text-base font-extrabold text-slate-900">
+            Console Riservata all&apos;Uso Desktop
+          </h2>
+          <p className="text-xs text-slate-600 leading-relaxed">
+            Il Pannello di Amministrazione SuperUser (SU) e la gestione dei dati ad alta densità sono ottimizzati e riservati all&apos;accesso da PC o tablet orizzontale.
+          </p>
+          <div className="pt-2">
+            <Link
+              to="/"
+              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs shadow-xs transition cursor-pointer"
+            >
+              <span>Torna all&apos;App</span>
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -104,39 +131,11 @@ const AdminPage: React.FC = () => {
         </div>
       )}
 
-      {/* Selettore Dropdown per schermi piccoli (Mobile / Tablet compatto) */}
-      <div className="md:hidden">
-        <label htmlFor="admin-tab-select" className="sr-only">
-          Seleziona Scheda Amministrazione
-        </label>
-        <div className="relative">
-          <select
-            id="admin-tab-select"
-            value={activeTab}
-            onChange={(e) => setActiveTab(e.target.value as AdminTab)}
-            className="w-full appearance-none rounded-2xl border border-slate-200 bg-white py-3 pl-4 pr-10 text-xs font-bold text-slate-800 shadow-xs focus:border-sky-500 focus:outline-hidden cursor-pointer"
-          >
-            <option value="users">👥 Utenti ({users.length})</option>
-            <option value="receipts">🧾 Scontrini Spesa</option>
-            <option value="config">⚙️ Parametri ({configs.length})</option>
-            <option value="codes">🏷️ Vocabolari ({codes.length})</option>
-            <option value="maintenance">🛠️ Manutenzione DB</option>
-            <option value="health">🔍 Diagnostica</option>
-            <option value="feedback">📨 Feedback</option>
-          </select>
-          <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3 text-slate-400">
-            <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
-            </svg>
-          </div>
-        </div>
-      </div>
-
-      {/* Schede Orizzontali Compatte (Desktop / Tablet) con Scroll Fluido */}
-      <div className="hidden md:flex overflow-x-auto border-b border-slate-200 text-xs font-semibold gap-1 pb-px">
+      {/* Schede Orizzontali Desktop con Scroll Fluido */}
+      <div className="flex overflow-x-auto border-b border-slate-200 text-xs font-semibold gap-1 pb-px">
         {[
           { id: 'users' as AdminTab, label: 'Utenti', icon: '👥', count: users.length, color: 'sky' as const },
-          { id: 'receipts' as AdminTab, label: 'Scontrini Spesa', icon: '🧾', count: undefined, color: 'emerald' as const },
+          { id: 'shopping' as AdminTab, label: 'Spesa', icon: '🛒', count: undefined, color: 'emerald' as const },
           { id: 'config' as AdminTab, label: 'Parametri', icon: '⚙️', count: configs.length, color: 'sky' as const },
           { id: 'codes' as AdminTab, label: 'Vocabolari', icon: '🏷️', count: codes.length, color: 'sky' as const },
           { id: 'maintenance' as AdminTab, label: 'Manutenzione DB', icon: '🛠️', count: undefined, color: 'sky' as const },
@@ -187,7 +186,7 @@ const AdminPage: React.FC = () => {
       ) : (
         <div className="flex-1">
           {activeTab === 'users' && <AdminUsersSection users={users} onRefresh={loadData} />}
-          {activeTab === 'receipts' && <AdminReceiptQuickEntrySection />}
+          {activeTab === 'shopping' && <AdminShoppingHubSection />}
           {activeTab === 'config' && <AdminConfigSection configs={configs} onRefresh={loadData} />}
           {activeTab === 'codes' && <AdminCodesSection codes={codes} onRefresh={loadData} />}
           {activeTab === 'maintenance' && <AdminMaintenanceSection users={users} onRefresh={loadData} />}

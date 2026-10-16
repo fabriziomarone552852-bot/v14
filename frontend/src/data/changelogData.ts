@@ -18,10 +18,13 @@ export const CHANGELOG_HISTORY: ChangelogItem[] = [
     id: 'v15.1.0',
     version: '15.1.0',
     date: 'Ottobre 2026',
-    title: 'Supporto Mobile Trackers & Serie TV con Header Slider e Vista a Pagine',
+    title: 'Hub Amministrazione Spesa Desktop con Data Grid, Unione Duplicati e Supporto Mobile Trackers',
     isLatest: true,
     published: false,
     highlights: [
+      'Hub Amministrazione Spesa (Proposta A): Raggruppate tutte le funzionalità amministrative legate alla spesa sotto un\'unica macro-sezione "Spesa" nella barra superiore con selettore secondario a schede segmentate: Inserimento Rapido Scontrini, Data Grid Revisione Lotti e Unione Prodotti Duplicati.',
+      'Data Grid Desktop Revisione Lotti Spesa: Nuova interfaccia tabellare ad alta densità per la revisione, correzione e modifica inline di date, prodotti, brand, fornitori, quantità e prezzi senza necessità di ricorrere a pgAdmin, con rilevamento anomalie e salvataggio massivo.',
+      'Strumento Unione Prodotti Duplicati: Interfaccia a due colonne per accorpare prodotti con descrizioni o diciture differenti dello stesso articolo, migrando in modo atomico tutti i lotti d\'acquisto e le liste collegate.',
       'Gestione & Editing Registrazioni Scontrini di Sessione: Introdotto il pannello di revisione immediata nella registrazione rapida scontrini, con modifica e cancellazione rapida in memoria e supporto a 3 decimali per le quantità.',
       'Introdotta la nuova vista mobile dedicata per le Serie TV con navigazione swipe touch a due pagine (Libreria e Dashboard/Attività).',
       'Aggiunto lo switcher a scorrimento nell\'Header Mobile per alternare tra Serie TV, Film e Libri con tasto di ricerca e pallino blu "?" per l\'estrazione casuale.',
@@ -29,6 +32,9 @@ export const CHANGELOG_HISTORY: ChangelogItem[] = [
       'Allineati routing e navigazione in AppShell (Desktop e Mobile) con redirect automatico da /trackers a /trackers/serie-tv.'
     ],
     features: [
+      'Hub Amministrazione Spesa (Proposta A): Introdotta la macro-scheda "Spesa" nel pannello Admin con barra secondaria a pillole segmentate (Segmented Tabs) per alternare istantaneamente tra "Inserimento Rapido Scontrini", "Data Grid Revisione Lotti" e "Unione Prodotti Duplicati", mantenendo la barra di navigazione pulita e organizzata per macro-argomenti.',
+      'Admin Shopping Data Grid: Griglia di gestione e modifica inline dei lotti spesa per amministratori. Include filtri rapidi per date, fornitore, brand e ricerca testuale in memoria (RAM), toggle "Solo anomalie" per intercettare prezzi nulli o fuori scala, modifica contestuale con calcolo immediato del prezzo al kg/l e barra fissa per il salvataggio rapido massivo delle modifiche in sospeso.',
+      'Deduplicazione & Fusione Prodotti Spesa: Strumento dedicato per SuperUser per selezionare un prodotto sorgente (duplicato o con refuso) e un prodotto di destinazione ufficiale. Esegue l\'accorpamento transazionale lato backend (endpoint POST /products/merge) riassegnando tutti i lotti d\'acquisto, i collegamenti brand e gli elementi delle liste spesa prima di eliminare il prodotto obsoleto.',
       'Gestione & Editing Registrazioni Scontrini di Sessione: Aggiunta la sezione "Registrazioni della Sessione in Corso" direttamente in fondo alla pagina di immissione rapida scontrini. Consente la visualizzazione immediata dei lotti salvati, la modifica approfondita tramite modale completo (prodotto, brand, prezzo, pesature al banco fino a 3 decimali, fornitore, data) e l\'eliminazione rapida di registrazioni errate con sincronizzazione istantanea in memoria.',
       'Mobile TV Series View: Pagina ottimizzata per smartphone con pillole di stato, banner informativo filtri attivi e griglia locandine a 2 colonne.',
       'Mobile TV Series Search & Filters Fullscreen: Nuova interfaccia di ricerca a tutto schermo richiamabile dalla lente nell\'header con barra superiore fissa: freccia indietro, campo di ricerca e pulsante "X" per azzerare l\'intera ricerca. All\'avvio della ricerca compaiono direttamente sotto le locandine TMDB (o il messaggio di nessun risultato) senza banner intermedi. Toccando il campo di ricerca si riaprono le impostazioni approfondite (sezione "Liste" pulita, Genere, Network, Anno, Stato, Voto e Ordinamento con modali centrali).',
@@ -42,12 +48,14 @@ export const CHANGELOG_HISTORY: ChangelogItem[] = [
       'Mobile Drawer Navigation: Integrata la sezione espandibile Trackers nel menu a scomparsa laterale al posto del vecchio placeholder Free Time.'
     ],
     improvements: [
+      'Flessibilità Modifica Lotti per SuperUser: L\'endpoint di aggiornamento lotti consente ora agli amministratori SuperUser di riassegnare direttamente il prodotto associato al lotto (product_id) senza generare conflitti di vincolo univoco o richiedere interventi manuali sul database.',
       'Mobile TV Series Search Cards Orizzontali: I risultati di ricerca TMDB e per liste personali sono ora visualizzati con card orizzontali compatte dotate di locandina a sinistra con bordo colorato ispessito per lo stato in libreria, anno di uscita pulito (senza badge) posizionato sopra il titolo, titolo con troncatura a massimo 2 righe e tasto rapido "+" per l\'aggiunta immediata.',
       'Mobile Search Button Fisso & Filtri Scrollabili: Il pulsante blu di azione ricerca è ora fissato stabilmente sul fondo dello schermo con safe area Android, lasciando scorrere in modo indipendente l\'area dei filtri tra header e pulsante.',
       'Ricerca per Liste Personali Diretta: Selezionando una lista personale senza digitare testo, vengono caricate e mostrate direttamente le serie presenti nella lista selezionata, con modale centrale di ordinamento ripulito da duplicati.',
       'Ottimizzazione Spazio Mobile Serie TV: Rimossa la barra di ricerca fissa sopra le locandine su mobile, massimizzando l\'area visuale per le copertine della libreria.',
       'Routing AppShell: Reindirizzamento trasparente di /trackers verso /trackers/serie-tv per evitare schermate 404 sia su Desktop che Mobile.',
-      'Supporto Back Gesture Android: Chiusura immediata della ricerca e del modale di estrazione a tutto schermo tramite tasto o gesture Indietro di sistema.'
+      'Supporto Back Gesture Android: Chiusura immediata della ricerca e del modale di estrazione a tutto schermo tramite tasto o gesture Indietro di sistema.',
+      'Separazione Console Admin & Esclusione Mobile: Riservato il pannello di amministrazione SuperUser esclusivamente all\'ambiente Desktop/PC. Rimosso il banner e le rotte amministrative dall\'hub impostazioni mobile, alleggerendo il bundle smartphone ed eliminando il dropdown e le tabelle orizzontali compresse in favore di una schermata informativa dedicata.'
     ],
     fixes: [
       'React Rules of Hooks in Ricerca Serie TV: Corretto l\'ordine di esecuzione degli hook in MobileTVSeriesSearchModal, spostando il controllo di apertura (isOpen) dopo tutti gli hook di stato e memoizzazione per prevenire l\'errore "Rendered more hooks than during the previous render".',
