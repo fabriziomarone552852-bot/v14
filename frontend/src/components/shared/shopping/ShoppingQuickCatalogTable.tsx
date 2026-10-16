@@ -9,18 +9,24 @@ import {
 } from '@/components/shared/utils/Icons';
 import type {
   ShoppingProductOption,
+  ShoppingProductBrandLink,
   ShoppingListItem,
   ShoppingListSummary,
   ConfigOption,
 } from '@/types/shopping';
 import { useShoppingQuickCatalogLogic } from './useShoppingQuickCatalogLogic';
+import { ShoppingQuickCatalogBrandSubRow } from './ShoppingQuickCatalogBrandSubRow';
 
 interface ShoppingQuickCatalogTableProps {
   products: ShoppingProductOption[];
   items: ShoppingListItem[];
   activeList: ShoppingListSummary | null;
   unitOptions: ConfigOption[];
-  onToggleItem: (product: ShoppingProductOption, existingItem: ShoppingListItem | null) => void;
+  onToggleItem: (
+    product: ShoppingProductOption,
+    existingItem: ShoppingListItem | null,
+    targetBrand?: ShoppingProductBrandLink | null
+  ) => void;
   onClose: () => void;
 }
 
@@ -39,6 +45,9 @@ export const ShoppingQuickCatalogTable: React.FC<ShoppingQuickCatalogTableProps>
     sortDirection,
     toggleSortDirection,
     getExistingItem,
+    getExistingItemForBrand,
+    toggleProductExpand,
+    isProductExpanded,
     filteredProducts,
     inListCount,
   } = useShoppingQuickCatalogLogic({
@@ -65,7 +74,7 @@ export const ShoppingQuickCatalogTable: React.FC<ShoppingQuickCatalogTableProps>
                 </span>
               </div>
               <p className="text-[11px] text-gray-500 truncate mt-0.5">
-                Spunta gli articoli per aggiungerli o rimuoverli istantaneamente dalla spesa
+                Spunta gli articoli o espandi per scegliere la marca con l&apos;ultimo prezzo migliore
               </p>
             </div>
           </div>
@@ -127,7 +136,7 @@ export const ShoppingQuickCatalogTable: React.FC<ShoppingQuickCatalogTableProps>
               ▼
             </span>
           </button>
-          <div>Marca</div>
+          <div>Marca / Varianti</div>
           <div>Unità</div>
           <div className="text-right">Ultimo Prezzo</div>
         </div>
@@ -152,73 +161,196 @@ export const ShoppingQuickCatalogTable: React.FC<ShoppingQuickCatalogTableProps>
               const isChecked = Boolean(existingItem);
               const displayName = product.displayName || product.nameNormalized || 'Articolo';
               const unitName = product.defaultUnitCodeName || 'pz';
+              const brandsCount = product.productBrands?.length ?? 0;
+              const hasMultipleBrands = brandsCount > 1;
+              const isExpanded = isProductExpanded(product.id);
+
+              // Singolo brand associato
+              const singleBrand = brandsCount === 1 ? product.productBrands![0] : null;
+              const brandLabel = singleBrand
+                ? singleBrand.brand?.nameNormalized || product.brandName || '-'
+                : product.brandName || '-';
+
+              // Ultimo prezzo visualizzato sulla riga principale
+              const rawLastPrice = singleBrand?.lastPrice ?? product.lastPurchasePrice;
               const lastPrice =
-                product.lastPurchasePrice != null && Number(product.lastPurchasePrice) > 0
-                  ? Number(product.lastPurchasePrice).toLocaleString('it-IT', {
+                rawLastPrice != null && Number(rawLastPrice) > 0
+                  ? Number(rawLastPrice).toLocaleString('it-IT', {
                       style: 'currency',
                       currency: 'EUR',
                     })
                   : null;
 
+              // Prezzo indicativo per multi-brand (se ci sono prezzi registrati)
+              const brandPrices = hasMultipleBrands
+                ? product.productBrands!
+                    .map((pb) => (pb.lastPrice != null ? Number(pb.lastPrice) : null))
+                    .filter((p): p is number => p !== null && p > 0)
+                : [];
+              const minBrandPrice = brandPrices.length > 0 ? Math.min(...brandPrices) : null;
+              const minPriceFormatted = minBrandPrice
+                ? `da ${minBrandPrice.toLocaleString('it-IT', { style: 'currency', currency: 'EUR' })}`
+                : lastPrice;
+
+              const handleMainRowClick = () => {
+                if (hasMultipleBrands) {
+                  toggleProductExpand(product.id);
+                } else if (singleBrand) {
+                  onToggleItem(product, existingItem, singleBrand);
+                } else {
+                  onToggleItem(product, existingItem, null);
+                }
+              };
+
+              const handleCheckboxClick = (e: React.MouseEvent) => {
+                e.stopPropagation();
+                if (existingItem) {
+                  // Se già in lista, rimuovi l'item trovato
+                  onToggleItem(product, existingItem, null);
+                } else if (hasMultipleBrands) {
+                  // Se ha più marchi, espandi per far scegliere la marca
+                  toggleProductExpand(product.id);
+                } else if (singleBrand) {
+                  onToggleItem(product, null, singleBrand);
+                } else {
+                  onToggleItem(product, null, null);
+                }
+              };
+
               return (
-                <div
-                  key={product.id || product.nameNormalized}
-                  onClick={() => onToggleItem(product, existingItem)}
-                  className={`grid grid-cols-[38px_1fr_120px_90px_110px] items-center gap-2 px-3 py-2 transition-colors cursor-pointer text-xs ${
-                    isChecked
-                      ? 'bg-blue-50/60 hover:bg-blue-50/90 font-medium'
-                      : 'hover:bg-slate-50/80 text-gray-700'
-                  }`}
-                >
-                  {/* Checkbox */}
+                <div key={product.id || product.nameNormalized} className="flex flex-col">
+                  {/* Riga Principale Prodotto */}
                   <div
-                    className="flex items-center justify-center"
-                    onClick={(e) => e.stopPropagation()}
+                    onClick={handleMainRowClick}
+                    className={`grid grid-cols-[38px_1fr_120px_90px_110px] items-center gap-2 px-3 py-2 transition-colors cursor-pointer text-xs ${
+                      isChecked
+                        ? 'bg-blue-50/60 hover:bg-blue-50/90 font-medium'
+                        : isExpanded
+                        ? 'bg-slate-50 hover:bg-slate-100/70 text-gray-800'
+                        : 'hover:bg-slate-50/80 text-gray-700'
+                    }`}
                   >
-                    <input
-                      type="checkbox"
-                      checked={isChecked}
-                      onChange={() => onToggleItem(product, existingItem)}
-                      className="w-4 h-4 rounded text-blue-600 border-gray-300 focus:ring-blue-500 focus:ring-offset-0 cursor-pointer transition"
-                    />
-                  </div>
-
-                  {/* Nome Articolo */}
-                  <div className="flex items-center gap-2 min-w-0 pr-2">
-                    <span
-                      className={`truncate ${
-                        isChecked ? 'font-bold text-blue-900' : 'text-gray-800'
-                      }`}
+                    {/* Checkbox */}
+                    <div
+                      className="flex items-center justify-center"
+                      onClick={handleCheckboxClick}
                     >
-                      {displayName}
-                    </span>
-                    {isChecked && (
-                      <span className="shrink-0 text-[10px] font-bold px-1.5 py-0.2 rounded bg-blue-100 text-blue-700 border border-blue-200">
-                        In lista
+                      <input
+                        type="checkbox"
+                        checked={isChecked}
+                        onChange={() => {}}
+                        className="w-4 h-4 rounded text-blue-600 border-gray-300 focus:ring-blue-500 focus:ring-offset-0 cursor-pointer transition"
+                      />
+                    </div>
+
+                    {/* Nome Articolo */}
+                    <div className="flex items-center gap-2 min-w-0 pr-2">
+                      <span
+                        className={`truncate ${
+                          isChecked ? 'font-bold text-blue-900' : 'text-gray-800 font-medium'
+                        }`}
+                      >
+                        {displayName}
                       </span>
-                    )}
+                      {isChecked && (
+                        <span className="shrink-0 text-[10px] font-bold px-1.5 py-0.2 rounded bg-blue-100 text-blue-700 border border-blue-200">
+                          In lista
+                        </span>
+                      )}
+                    </div>
+
+                    {/* Marca / Badge Accordion */}
+                    <div className="truncate text-[11px] text-gray-500">
+                      {hasMultipleBrands ? (
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            toggleProductExpand(product.id);
+                          }}
+                          className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10px] font-bold transition border cursor-pointer ${
+                            isExpanded
+                              ? 'bg-blue-600 text-white border-blue-700 shadow-2xs'
+                              : 'bg-blue-50 text-blue-700 hover:bg-blue-100 border-blue-200/80'
+                          }`}
+                          title="Clicca per visualizzare e scegliere tra le marche censite"
+                        >
+                          <span>{brandsCount} marche</span>
+                          <span className={`text-[9px] transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`}>
+                            ▼
+                          </span>
+                        </button>
+                      ) : (
+                        <span>{brandLabel}</span>
+                      )}
+                    </div>
+
+                    {/* Unità di misura */}
+                    <div className="truncate text-[11px] text-gray-500">
+                      <span className="px-1.5 py-0.5 rounded bg-slate-100 border border-slate-200/80 text-slate-600 text-[10px] font-medium">
+                        {unitName}
+                      </span>
+                    </div>
+
+                    {/* Ultimo Prezzo */}
+                    <div className="text-right text-[11px] text-gray-600 truncate">
+                      {hasMultipleBrands && minPriceFormatted ? (
+                        <span className="font-semibold text-emerald-700" title="Prezzo minimo tra i marchi registrati">
+                          {minPriceFormatted}
+                        </span>
+                      ) : lastPrice ? (
+                        <span className="font-semibold text-emerald-700">{lastPrice}</span>
+                      ) : (
+                        <span className="text-gray-400">-</span>
+                      )}
+                    </div>
                   </div>
 
-                  {/* Marca */}
-                  <div className="truncate text-[11px] text-gray-500">
-                    {product.brandName || '-'}
-                  </div>
+                  {/* 3. Sezione Espansa a Fisarmonica (Accordion Sub-Rows) */}
+                  {hasMultipleBrands && isExpanded && (
+                    <div className="bg-slate-50/70 border-y border-slate-200/80 divide-y divide-slate-100/90 animate-fadeIn">
+                      <div className="px-4 py-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-400 bg-slate-100/70 flex items-center justify-between">
+                        <span>Scegli il marchio con lo storico prezzi:</span>
+                        <span className="normal-case font-normal text-slate-500">
+                          {isChecked ? 'Articolo già presente in lista' : 'Seleziona per inserire in lista'}
+                        </span>
+                      </div>
 
-                  {/* Unità di misura */}
-                  <div className="truncate text-[11px] text-gray-500">
-                    <span className="px-1.5 py-0.5 rounded bg-slate-100 border border-slate-200/80 text-slate-600 text-[10px] font-medium">
-                      {unitName}
-                    </span>
-                  </div>
+                      {/* Opzione 1: Generico senza marchio */}
+                      {(() => {
+                        const genericItem = getExistingItemForBrand(product, null);
+                        return (
+                          <ShoppingQuickCatalogBrandSubRow
+                            key="generic"
+                            product={product}
+                            brandLink={null}
+                            unitName={unitName}
+                            existingItem={genericItem}
+                            onToggle={() => onToggleItem(product, genericItem, null)}
+                          />
+                        );
+                      })()}
 
-                  {/* Ultimo Prezzo */}
-                  <div className="text-right text-[11px] text-gray-600 truncate">
-                    {lastPrice ? (
-                      <span className="font-semibold text-emerald-700">{lastPrice}</span>
-                    ) : (
-                      <span className="text-gray-400">-</span>
-                    )}
-                  </div>
+                      {/* Opzioni 2..N: Ciascun brand collegato */}
+                      {product.productBrands!.map((pb) => {
+                        const brandItem = getExistingItemForBrand(
+                          product,
+                          pb.brandId,
+                          pb.brand?.nameNormalized
+                        );
+                        return (
+                          <ShoppingQuickCatalogBrandSubRow
+                            key={pb.id || pb.brandId}
+                            product={product}
+                            brandLink={pb}
+                            unitName={unitName}
+                            existingItem={brandItem}
+                            onToggle={() => onToggleItem(product, brandItem, pb)}
+                          />
+                        );
+                      })}
+                    </div>
+                  )}
                 </div>
               );
             })

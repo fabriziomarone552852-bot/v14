@@ -42,7 +42,11 @@ interface ShoppingItemsColumnProps {
   userRole?: string;
   isQuickCatalogOpen?: boolean;
   onCloseQuickCatalog?: () => void;
-  onToggleCatalogItem?: (product: ShoppingProductOption, existingItem: ShoppingListItem | null) => void;
+  onToggleCatalogItem?: (
+    product: ShoppingProductOption,
+    existingItem: ShoppingListItem | null,
+    targetBrand?: import('@/types/shopping').ShoppingProductBrandLink | null
+  ) => void;
   onEditList?: (list: ShoppingListSummary) => void;
   onDeleteList?: (list: ShoppingListSummary) => void;
   onToggleCompleteList?: (list: ShoppingListSummary, isCompleted: boolean) => void;

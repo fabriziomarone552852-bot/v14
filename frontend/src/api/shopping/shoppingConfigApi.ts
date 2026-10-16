@@ -36,6 +36,9 @@ export type ShoppingProductBrandApi = {
   brand_id: number;
   notes?: string | null;
   brand?: { id: number; name_normalized: string; type_code: number } | null;
+  last_price?: number | string | null;
+  last_supplier_name?: string | null;
+  last_purchase_date?: string | null;
 };
 
 export type ShoppingProductOptionApi = {
@@ -108,6 +111,9 @@ export function normalizeShoppingProductOption(
             typeCode: Number(pb.brand.type_code ?? 2),
           }
         : null,
+      lastPrice: toNumberOrNull(pb.last_price),
+      lastSupplierName: pb.last_supplier_name ?? null,
+      lastPurchaseDate: pb.last_purchase_date ?? null,
     })),
     defaultUnitId: product.default_unit_id ?? null,
     defaultUnitCodeName:

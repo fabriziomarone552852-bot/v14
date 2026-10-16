@@ -54,6 +54,7 @@ Questo documento serve a tracciare in modo strutturato:
 | **SHOPPING-014** | **Supporto Universale Separatori Decimali (Virgola e Punto) & Regola d'Oro** | `core` / `UI` | 🟢 Completato | 🟢 Completato | 🟢 **Completato** |
 | **SHOPPING-015** | **Calcolo Inverso da Prezzo Unitario nelle Pagine Amministrative** | `admin` / `shopping` | 🟢 Completato | 🟢 Completato | 🟢 **Completato** |
 | **SHOPPING-016** | **Micro Split-Pill Valutazione Brand, Pareggiamento Colonne Data Grid & Snellimento Scontrini** | `shopping` / `admin` | 🟢 Completato | 🟢 Completato | 🟢 **Completato** |
+| **SHOPPING-017** | **Supporto Marche, Prezzi e Storico Acquisti nell'Inserimento Rapido Catalogo Spesa** | `shopping` / `catalog` | 🟢 Completato | 🟢 Completato | 🟢 **Completato** |
 
 | **FEAT-013** | **Archivio Notifiche / Sezione Storico Notifiche** | `notifications` / UI | 🟢 Completato | 🟡 Da Implementare | 🟡 Media |
 

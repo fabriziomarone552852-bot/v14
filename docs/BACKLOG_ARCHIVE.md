@@ -4,6 +4,27 @@ Questo file contiene i task storici che sono stati completati e rimossi dal `BAC
 
 ---
 
+### [SHOPPING-017] Supporto Marche, Prezzi e Storico Acquisti nell'Inserimento Rapido Catalogo Spesa (🟢 Completato)
+
+#### 📋 Descrizione
+Nella vista "Inserimento Rapido Catalogo" per la preparazione della lista della spesa, i prodotti canonici sono ora arricchiti con le relative marche collegate, l'ultimo prezzo d'acquisto pagato, il supermercato/fornitore relativo e l'indicatore di gradimento (👍/👎). Su Desktop viene visualizzata una fisarmonica (accordion) integrata nella riga della tabella; su Mobile viene aperto un modale centrato touch-friendly con backdrop scuro in ossequio alla Regola d'Oro per la Mobile UI. L'utente può aggiungere alla lista la variante specifica di una marca mantenendo intatto lo storico statistico e dei prezzi.
+
+#### ⚙️ Dettagli Implementazione & Funzionalità Raggiunte
+- **Backend & Schemi**:
+  - `_enrich_products_with_last_purchases` in [`backend/domains/shopping/service.py`](file:///c:/Users/user/Documents/PYTHON/VxAme14/backend/domains/shopping/service.py): calcolo ed estrazione dell'ultimo lotto d'acquisto registrato per ciascun prodotto e per ciascuna marca collegata.
+  - Parsing del nome articolo per estrarre la marca tra parentesi (es. *"Pasta (Barilla)"*).
+  - Estensione di `ShoppingProductResponse` e `ShoppingProductBrandResponse` in [`backend/domains/shopping/schemas/catalog.py`](file:///c:/Users/user/Documents/PYTHON/VxAme14/backend/domains/shopping/schemas/catalog.py) con `last_price`, `last_supplier_name`, `last_purchase_date`.
+- **Frontend Desktop**:
+  - [`ShoppingQuickCatalogTable.tsx`](file:///c:/Users/user/Documents/PYTHON/VxAme14/frontend/src/components/shared/shopping/ShoppingQuickCatalogTable.tsx) & [`ShoppingQuickCatalogBrandSubRow.tsx`](file:///c:/Users/user/Documents/PYTHON/VxAme14/frontend/src/components/shared/shopping/ShoppingQuickCatalogBrandSubRow.tsx): visualizzazione ad accordion con badge interattivo `N marche ▾` e prezzo minimo indicativo `da X,XX €`. Espansione con riga generica e righe per ciascuna marca, con checkbox indipendente, badge di gradimento, negozio, data e prezzo.
+- **Frontend Mobile**:
+  - [`MobileQuickCatalogBrandModal.tsx`](file:///c:/Users/user/Documents/PYTHON/VxAme14/frontend/src/mobile/components/shopping/MobileQuickCatalogBrandModal.tsx): modale centrato con backdrop oscurato e opzioni verticali touch-friendly.
+  - [`MobileShoppingQuickCatalog.tsx`](file:///c:/Users/user/Documents/PYTHON/VxAme14/frontend/src/mobile/components/shopping/MobileShoppingQuickCatalog.tsx): visualizzazione badge marche e apertura modale al tocco.
+- **Ricerca & Integrazione Lista Spesa**:
+  - Filtro di ricerca istantaneo in memoria (RAM) in [`useShoppingQuickCatalogLogic.ts`](file:///c:/Users/user/Documents/PYTHON/VxAme14/frontend/src/components/shared/shopping/useShoppingQuickCatalogLogic.ts) esteso ai nomi delle marche collegate.
+  - `handleToggleCatalogItem` in [`useShoppingCoreListLogic.ts`](file:///c:/Users/user/Documents/PYTHON/VxAme14/frontend/src/hooks/shopping/useShoppingCoreListLogic.ts) esteso per supportare l'aggiunta con marca target, impostando `brandId`, `brandName` e `brandNotes`.
+
+---
+
 ### [SHOPPING-016] Micro Split-Pill Valutazione Brand, Pareggiamento Colonne Data Grid & Snellimento Scontrini (🟢 Completato)
 
 #### 📋 Descrizione
