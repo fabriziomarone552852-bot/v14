@@ -231,7 +231,13 @@ class ShoppingListItemResponse(ORMBaseModel):
     @property
     def brand_id(self) -> Optional[int]:
         if self.product and getattr(self.product, "product_brands", None):
-            for pb in self.product.product_brands:
+            if self.name_normalized and "(" in self.name_normalized and ")" in self.name_normalized:
+                candidate = self.name_normalized.split("(")[-1].split(")")[0].strip().lower()
+                for pb in self.product.product_brands:
+                    if getattr(pb, "brand", None) and pb.brand.name_normalized.lower() == candidate:
+                        return pb.brand.id
+            if len(self.product.product_brands) == 1:
+                pb = self.product.product_brands[0]
                 if getattr(pb, "brand", None):
                     return pb.brand.id
         return None
@@ -240,7 +246,13 @@ class ShoppingListItemResponse(ORMBaseModel):
     @property
     def brand_name(self) -> Optional[str]:
         if self.product and getattr(self.product, "product_brands", None):
-            for pb in self.product.product_brands:
+            if self.name_normalized and "(" in self.name_normalized and ")" in self.name_normalized:
+                candidate = self.name_normalized.split("(")[-1].split(")")[0].strip().lower()
+                for pb in self.product.product_brands:
+                    if getattr(pb, "brand", None) and pb.brand.name_normalized.lower() == candidate:
+                        return pb.brand.name_normalized
+            if len(self.product.product_brands) == 1:
+                pb = self.product.product_brands[0]
                 if getattr(pb, "brand", None):
                     return pb.brand.name_normalized
         return None

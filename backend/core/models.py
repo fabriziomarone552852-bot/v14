@@ -121,6 +121,10 @@ def ensure_database_schema_compat() -> None:
             END $$;
             """,
             "CREATE UNIQUE INDEX IF NOT EXISTS uq_shopping_products_name_normalized ON shopping_products(name_normalized);",
+            "ALTER TABLE inventory_batch ADD COLUMN IF NOT EXISTS brand_id BIGINT REFERENCES shopping_suppliers(id) ON DELETE SET NULL;",
+            "CREATE INDEX IF NOT EXISTS ix_inventory_batch_brand_id ON inventory_batch (brand_id);",
+            "UPDATE inventory_batch SET brand_id = 36 WHERE id = 96 AND product_id = 80 AND brand_id IS NULL;",
+            "UPDATE inventory_batch SET brand_id = 38 WHERE id = 97 AND product_id = 80 AND brand_id IS NULL;",
             "ALTER TABLE events ADD COLUMN IF NOT EXISTS google_event_id VARCHAR(255);",
             "CREATE INDEX IF NOT EXISTS ix_events_google_event_id ON events (google_event_id);",
             """

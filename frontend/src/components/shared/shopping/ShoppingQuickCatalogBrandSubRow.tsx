@@ -16,7 +16,7 @@ interface ShoppingQuickCatalogBrandSubRowProps {
 }
 
 export const ShoppingQuickCatalogBrandSubRow: React.FC<ShoppingQuickCatalogBrandSubRowProps> = ({
-  product: _product,
+  product,
   brandLink,
   unitName: _unitName,
   existingItem,
@@ -31,17 +31,19 @@ export const ShoppingQuickCatalogBrandSubRow: React.FC<ShoppingQuickCatalogBrand
 
   const preference = !isGeneric ? parseBrandPreference(brandLink.notes) : null;
 
+  const rawLastPrice = isGeneric ? product.lastPurchasePrice : brandLink?.lastPrice;
   const lastPrice =
-    brandLink?.lastPrice != null && Number(brandLink.lastPrice) > 0
-      ? Number(brandLink.lastPrice).toLocaleString('it-IT', {
+    rawLastPrice != null && Number(rawLastPrice) > 0
+      ? Number(rawLastPrice).toLocaleString('it-IT', {
           style: 'currency',
           currency: 'EUR',
         })
       : null;
 
-  const lastSupplier = brandLink?.lastSupplierName;
-  const lastDateFormatted = brandLink?.lastPurchaseDate
-    ? new Date(brandLink.lastPurchaseDate).toLocaleDateString('it-IT', {
+  const lastSupplier = isGeneric ? product.lastSupplierName : brandLink?.lastSupplierName;
+  const rawDate = isGeneric ? product.lastPurchaseDate : brandLink?.lastPurchaseDate;
+  const lastDateFormatted = rawDate
+    ? new Date(rawDate).toLocaleDateString('it-IT', {
         day: '2-digit',
         month: 'short',
       })

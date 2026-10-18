@@ -1137,6 +1137,7 @@ def add_inventory_batch(
         list_item_id=item_id,
         product_id=target_product_id,
         supplier_id=batch_in.supplier_id,
+        brand_id=resolved_brand_id,
         purchase_date=batch_in.purchase_date,
         expiration_date=batch_in.expiration_date,
         quantity_purchased=batch_in.quantity_purchased,
@@ -1232,10 +1233,12 @@ def create_quick_price_batch(
                     existing_item.updated_at = _now()
                     existing_item.updated_by_user_id = current_user.id
                 else:
+                    db_brand = repo.get_supplier(db, resolved_brand_id) if resolved_brand_id else None
+                    brand_suffix = f" ({db_brand.name_normalized})" if db_brand else ""
                     new_item = ShoppingListItem(
                         shopping_list_id=batch_in.shopping_list_id,
                         product_id=db_product.id,
-                        name_normalized=db_product.name_normalized,
+                        name_normalized=f"{db_product.name_normalized}{brand_suffix}",
                         quantity=rec.quantity_purchased,
                         unit_id=rec.unit_id,
                         is_purchased=True,
@@ -1252,6 +1255,7 @@ def create_quick_price_batch(
             product_id=db_product.id,
             list_item_id=list_item_id,
             supplier_id=resolved_supplier_id,
+            brand_id=resolved_brand_id,
             purchase_date=rec.purchase_date,
             quantity_purchased=rec.quantity_purchased,
             purchase_price=rec.purchase_price,
@@ -1353,6 +1357,7 @@ def update_inventory_batch(
         )
         if db_batch.product and resolved_brand_id:
             repo.get_or_create_product_brand_link(db, db_batch.product.id, resolved_brand_id)
+        db_batch.brand_id = resolved_brand_id
 
     # If list_item_id is None but shopping_list_id is provided, try to find or create list item
     if db_batch.list_item_id is None and update_data.get("shopping_list_id"):
@@ -1493,7 +1498,9 @@ def _get_product_brand_info(
         for pb in product.product_brands:
             if getattr(pb, "brand", None) and pb.brand.name_normalized.lower() == candidate:
                 return pb.brand.id, pb.brand.name_normalized
-    for pb in product.product_brands:
+    # Solo se il prodotto ha un unico brand censito, usalo come fallback naturale
+    if len(product.product_brands) == 1:
+        pb = product.product_brands[0]
         if getattr(pb, "brand", None):
             return pb.brand.id, pb.brand.name_normalized
     return None, None
@@ -1513,10 +1520,14 @@ def list_item_batches(
         unit_price = (b.purchase_price / qty).quantize(D("0.01")) if qty else None
         list_name: Optional[str] = None
         unit_name: Optional[str] = None
-        item_name = b.list_item.name_normalized if b.list_item else None
-        brand_id, brand_name = _get_product_brand_info(b.product, item_name)
-        if brand_id is None and b.list_item:
-            brand_id, brand_name = _get_product_brand_info(b.list_item.product, item_name)
+        if getattr(b, "brand_id", None):
+            brand_id = b.brand_id
+            brand_name = b.brand.name_normalized if getattr(b, "brand", None) else None
+        else:
+            item_name = b.list_item.name_normalized if b.list_item else None
+            brand_id, brand_name = _get_product_brand_info(b.product, item_name)
+            if brand_id is None and b.list_item:
+                brand_id, brand_name = _get_product_brand_info(b.list_item.product, item_name)
 
         notes: Optional[str] = None
         if b.list_item:
@@ -1558,8 +1569,12 @@ def list_all_batches(db: Session, current_user: User) -> list:
         unit_name: Optional[str] = None
         notes: Optional[str] = None
         product_name: str = "Prodotto"
-        item_name = b.list_item.name_normalized if b.list_item else None
-        brand_id, brand_name = _get_product_brand_info(b.product, item_name)
+        if getattr(b, "brand_id", None):
+            brand_id = b.brand_id
+            brand_name = b.brand.name_normalized if getattr(b, "brand", None) else None
+        else:
+            item_name = b.list_item.name_normalized if b.list_item else None
+            brand_id, brand_name = _get_product_brand_info(b.product, item_name)
         if b.product:
             product_name = b.product.name_normalized
         elif b.list_item and b.list_item.name_normalized:
@@ -1671,16 +1686,41 @@ def _enrich_products_with_last_purchases(db: Session, products: List[ShoppingPro
         if pid not in latest_by_product:
             latest_by_product[pid] = b
 
-        item_name = b.list_item.name_normalized.lower() if b.list_item and b.list_item.name_normalized else ""
+        item_name = b.list_item.name_normalized.strip().lower() if b.list_item and b.list_item.name_normalized else ""
         extracted_brand_name = None
         if "(" in item_name and ")" in item_name:
             extracted_brand_name = item_name.split("(")[-1].split(")")[0].strip().lower()
 
+        sup_id = b.supplier_id
+        sup_name = b.supplier.name_normalized.strip().lower() if b.supplier and b.supplier.name_normalized else ""
+
         for p in products:
             if p.id == pid and p.product_brands:
                 for pb in p.product_brands:
-                    b_name = pb.brand.name_normalized.lower() if pb.brand and pb.brand.name_normalized else ""
-                    if (extracted_brand_name and b_name == extracted_brand_name) or (len(p.product_brands) == 1):
+                    b_id = pb.brand_id
+                    b_name = pb.brand.name_normalized.strip().lower() if pb.brand and pb.brand.name_normalized else ""
+
+                    is_match = False
+                    # 0. Match prioritario e diretto sul brand_id del lotto
+                    if getattr(b, "brand_id", None) and b.brand_id == b_id:
+                        is_match = True
+                    # 1. Match diretto su supplier_id del lotto == brand_id del marchio (per insegne/Private Label)
+                    elif sup_id and b_id and sup_id == b_id:
+                        is_match = True
+                    # 2. Match su nome del fornitore del lotto == nome del marchio
+                    elif sup_name and b_name and sup_name == b_name:
+                        is_match = True
+                    # 3. Match su marchio estratto tra parentesi nel nome dell'articolo (es. 'cipolle dorate (coop)')
+                    elif extracted_brand_name and b_name and extracted_brand_name == b_name:
+                        is_match = True
+                    # 4. Match testuale se il nome del brand compare nel nome dell'item
+                    elif b_name and len(b_name) >= 3 and b_name in item_name:
+                        is_match = True
+                    # 5. Se il prodotto ha un unico brand censito, tutti i lotti appartengono a quel brand
+                    elif len(p.product_brands) == 1:
+                        is_match = True
+
+                    if is_match:
                         key = (pid, pb.brand_id)
                         if key not in latest_by_product_brand:
                             latest_by_product_brand[key] = b

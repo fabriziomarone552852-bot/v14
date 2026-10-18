@@ -108,6 +108,33 @@ export const MobileQuickCatalogBrandModal: React.FC<MobileQuickCatalogBrandModal
               <p className="text-[10px] text-gray-400 mt-0.5">
                 Aggiunge l&apos;articolo senza vincolo di produttore
               </p>
+              {product.lastPurchasePrice != null && Number(product.lastPurchasePrice) > 0 && (
+                <div className="flex items-center gap-1.5 text-[10px] text-gray-500 mt-1 truncate">
+                  <span className="font-bold text-emerald-700">
+                    {Number(product.lastPurchasePrice).toLocaleString('it-IT', {
+                      style: 'currency',
+                      currency: 'EUR',
+                    })}
+                  </span>
+                  {product.lastSupplierName && (
+                    <>
+                      <span>•</span>
+                      <span className="text-gray-600 truncate">🏪 {product.lastSupplierName}</span>
+                    </>
+                  )}
+                  {product.lastPurchaseDate && (
+                    <>
+                      <span>•</span>
+                      <span className="text-slate-400 text-[9px]">
+                        {new Date(product.lastPurchaseDate).toLocaleDateString('it-IT', {
+                          day: '2-digit',
+                          month: 'short',
+                        })}
+                      </span>
+                    </>
+                  )}
+                </div>
+              )}
             </div>
 
             <div className="shrink-0 ml-2">

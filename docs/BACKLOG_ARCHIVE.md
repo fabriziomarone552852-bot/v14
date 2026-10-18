@@ -2,6 +2,32 @@
 
 Questo file contiene i task storici che sono stati completati e rimossi dal `BACKLOG.md` principale per mantenere il documento snello.
 
+### [SHOPPING-018] Tracciamento Brand nei Lotti Spesa & Risoluzione Ambiguità Multi-Marca (🟢 Completato)
+
+#### 📋 Descrizione
+Risolta l'anomalia per cui gli articoli con molteplici marchi censiti (es. *'pizza'* associata a *'bufalina'* ed *'emozione'* presso il fornitore *'gustus'*) appiattivano tutte le righe sul primo brand censito sia nella griglia di revisione lotti dell'Admin sia nel catalogo rapido dell'utente standard. La tabella `inventory_batch` è stata estesa con la colonna `brand_id` fisica e le logiche di backend e frontend sono state aggiornate per associare e persistere univocamente il marchio a ciascun acquisto e storico prezzi.
+
+#### ⚙️ Dettagli Implementazione & Funzionalità Raggiunte
+- **Database & Alembic**:
+  - Creata la migrazione idempotente `c2d3e4f5a6b7_add_brand_id_to_inventory_batch.py` per aggiungere `brand_id BIGINT REFERENCES shopping_suppliers(id)` con relativo indice.
+  - Applicata ed allineata la migrazione su produzione NAS (`family-smart`) con `alembic-prod.bat upgrade head`.
+  - Integrata la clausola difensiva `ALTER TABLE inventory_batch ADD COLUMN IF NOT EXISTS brand_id ...` in `ensure_database_schema_compat()` in `backend/core/models.py` per prevenire errori `UndefinedColumn` all'avvio su qualsiasi ambiente o container.
+- **Backend & Schemi**:
+  - `InventoryBatch` in `backend/domains/shopping/models/inventory.py`: aggiunti colonna `brand_id` e relazione `brand`.
+  - `ShoppingSupplier` in `backend/domains/shopping/models/catalog.py`: specificati `foreign_keys` espliciti per disambiguare le relazioni con i lotti.
+  - `InventoryBatchResponse` in `backend/domains/shopping/schemas/inventory.py`: aggiunti `brand_id` e `brand_name`.
+  - `ShoppingListItemResponse` in `backend/domains/shopping/schemas/lists.py`: rimossa l'assegnazione cieca a `product_brands[0]`. Ora estrae la marca tra parentesi nel nome se presente (es. `pizza (emozione)`), altrimenti se c'è un solo brand usa quello, oppure restituisce `None` (generico) se l'articolo è privo di variante di marca.
+  - `service.py`:
+    - `add_inventory_batch` e `create_quick_price_batch` salvano stabilmente `brand_id` sul record `InventoryBatch`.
+    - `update_inventory_batch` consente la modifica e la persistenza del brand direttamente dalla Data Grid Admin.
+    - `_get_product_brand_info` evita l'assegnazione arbitraria del primo brand in caso di prodotti multi-marca.
+    - `list_all_batches` e `list_item_batches` usano direttamente `b.brand_id`.
+    - `_enrich_products_with_last_purchases` associa i lotti al marchio specifico tramite `b.brand_id == pb.brand_id`, consentendo a ciascuna sottomarca di mostrare il proprio prezzo e negozio indipendente.
+- **Allineamento Dati Esistenti**:
+  - Aggiornati i lotti di *'pizza'* nel database di produzione: Lotto 96 ➔ Brand 36 (*bufalina*), Lotto 97 ➔ Brand 38 (*emozione*).
+
+---
+
 ### [TRACKERS-006] Mobile TV Episode Fullscreen Detail, Quotes & Reviews Redesign, Multi-Selection & Action Buttons Alignment (🟢 Completato)
 
 #### 📋 Descrizione
