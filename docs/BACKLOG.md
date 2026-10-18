@@ -31,6 +31,11 @@ Questo documento serve a tracciare in modo strutturato:
 | **TRACKERS-003** | **Homepage Mobile TV Series: Feed Serie "In Corso" ("In Questo Periodo")** | `trackers` / `mobile` | 🟡 Da Valutare | 🔴 Da Valutare | 🟡 Media-Alta |
 | **TRACKERS-005** | **Ottimizzazione Latenza: Aggiornamento Ottimistico Spunta/Rewatch & Citazioni, Audit Notifiche** | `trackers` / `mobile` | 🟢 Supportato | 🔴 Da Implementare | 🟡 **Media-Alta** |
 | **TRACKERS-007** | **Ordinamento Serie nella Sezione Principale (In Visione, Da Iniziare, Pausa, Completate)** | `trackers` / `UI` | N/A | 🔴 Da Implementare | 🟡 **Media-Alta** |
+| **TRACKERS-008** | **Riorganizzazione 3 Pagine Serie TV (Feed In Corso a centro, Uscite a sinistra), Piattaforma per Episodio & Citazioni Personali** | `trackers` / `mobile` | 🟡 Da Strutturare | 🔴 Da Implementare | 🟡 **Media-Alta** |
+| **TRACKERS-009** | **Restyling Seconda Pagina / Dashboard Serie TV Mobile, Banner Orizzontali & Collage Liste** | `trackers` / `mobile` | 🟢 Completato | 🟢 Completato | 🟢 **Completato** |
+| **TRACKERS-010** | **Gestione Serie Abbandonate ("Drop"): Criteri, Azioni & Ripristino** | `trackers` / `mobile` | 🔴 Da Valutare | 🔴 Da Definire | 🟡 **Media-Alta** |
+| **TRACKERS-011** | **Modale Statistiche Serie TV Mobile a Schermo Intero & Scorrimento Continuo** | `trackers` / `mobile` | 🟢 Completato | 🟢 Completato | 🟢 **Completato** |
+| **TRACKERS-012** | **Restyling Catalogo Mobile ("Le tue serie"), 4 Aree Tematiche, Pillole Grigie, Bordi di Stato & Ricerca Dedicata** | `trackers` / `mobile` | 🟢 Completato | 🟢 Completato | 🟢 **Completato** |
 | **FEAT-005** | **Sezione Liste Tematiche & Personalizzate** | `custom_lists` | Ã°ÂŸÂŸÂ¡ Parziale | Ã°ÂŸÂŸÂ¡ Parziale | Ã°ÂŸÂ”Â´ **Massima (Passo Fondamentale)** |
 | **FEAT-006** | **Hub Spesa, Ricettario, Meal Prep & Wishlist Oggetti** | `shopping` / food | ÃƒÂ°Ã…Â¸Ã¢Â€ÂÃ‚Â´ Da Strutturare | ÃƒÂ°Ã…Â¸Ã¢Â€ÂÃ‚Â´ Da Implementare | ÃƒÂ°Ã…Â¸Ã¢Â€ÂÃ‚Â´ **Massima (Passo Fondamentale)** |
 | **FEAT-007** | **Sistema Amicizie & Condivisione Recensioni (Social/Sharing)** | `social` / media | ÃƒÂ°Ã…Â¸Ã…Â¸Ã‚Â¢ Completato | ÃƒÂ°Ã…Â¸Ã…Â¸Ã‚Â¢ Completato | ÃƒÂ°Ã…Â¸Ã…Â¸Ã‚Â¢ **Completato** |
@@ -214,6 +219,13 @@ Nuovo modulo completo per gestire, catalogare e monitorare l'intrattenimento per
   - 📺 **Homepage Mobile TV: Serie in corso ("In Questo Periodo") (TRACKERS-003)**: Nella finestra principale delle Serie TV su mobile, oltre al feed delle prossime uscite, mostrare le serie che l'utente sta guardando in questo periodo (in corso di visione / stato `watching`). Da strutturare e definire UX/UI (es. riga/carosello orizzontale in cima alle uscite, tab dedicato, o sezione espandibile per accedere rapidamente alla puntata successiva da guardare).
   - 🔄 **Sostituzione Pulsante "Reset Filtri" con Freccia (Web Serie TV - UI-003)**: Nella vista Web/Desktop delle Serie TV ([TVSeriesLibrary.tsx](file:///c:/Users/Fabrizio/Desktop/app/smart/v14/frontend/src/components/trackers/TVSeriesLibrary.tsx)), sostituire il pulsante testuale "Reset filtri" con un'icona freccia di ripristino per uniformare l'interfaccia grafica e ridurre l'ingombro visivo.
   - ❌ **Date di Uscita Italiane (Impossibile)**: L'estrazione delle date di uscita regionali (italiane) per gli episodi non è supportata tecnicamente da TMDB, che traccia unicamente la prima data assoluta di messa in onda (first_air_date globale). Si manterrà la data globale poiché integrare API esterne commerciali (Gracenote/JustWatch) ha costi proibitivi per app indipendenti.
+  - 📱 **Riorganizzazione 3 Pagine Serie TV, Piattaforma per Episodio & Citazioni Personali (TRACKERS-008)**:
+    - **Architettura Swipe a 3 Pagine**:
+      - *Pagina 0 (Sinistra)*: Timeline Prossime Uscite (calendario uscite ed episodi passati/futuri).
+      - *Pagina 1 (Centro / Principale)*: Feed degli episodi delle serie che sto guardando in questo periodo ("In Corso").
+      - *Pagina 2 (Destra)*: Dashboard & Attività (Obiettivo annuale, citazioni, 3 highlight affiancate, banner "LE TUE SERIE" e banner "LE TUE LISTE").
+    - **Spostamento Piattaforma ("Dove l'hai guardato?")**: Trasferire il campo selettore piattaforma dalle recensioni della serie alle recensioni dei singoli episodi, permettendo di indicare la piattaforma specifica per ogni visione di puntata.
+    - **Citazioni del Giorno Personali**: Estendere il modulo citazioni per permettere all'utente di aggiungere frasi, citazioni o note personali libere oltre a quelle memorizzate dagli episodi.
 
 #### ÃƒÂ°Ã…Â¸Ã¢Â€ÂÃ¢Â€Âž 4. Analisi Integrazioni Esterne & Sincronizzazione (Goodreads, Fable, TV Time)
 - **FattibilitÃƒÂƒÃ‚Â  Sincronizzazione Piattaforme Esterne**:
@@ -545,6 +557,32 @@ Breve spiegazione di cosa fa la funzionalitÃƒÂƒÃ‚Â  dal punto di vista 
   4. **Completate** (`completed` / verde)
   (e a seguire eventuali serie abbandonate `dropped`).
 - **Stato**: 🔴 Da Iniziare (Frontend React hook / filtro).
+
+### [TRACKERS-008] Riorganizzazione 3 Pagine Mobile Serie TV, Piattaforma per Episodio & Citazioni Personali
+- **Descrizione**:
+  - **Architettura a 3 Pagine Mobile**:
+    - **Pagina 0 (Sinistra)**: Spostamento del calendario e timeline "Prossime uscite" nella pagina laterale sinistra.
+    - **Pagina 1 (Centro / Principale)**: Schermata iniziale / Home con il feed principale dedicato agli episodi attualmente in visione / in corso di visione.
+    - **Pagina 2 (Destra / Dashboard)**: Hub riassuntivo con obiettivo annuale (apertura statistiche al click), citazione del giorno stile agenda, 3 card in evidenza affiancate (ultimo aggiunto, ultimo guardato, ultimo completato) e aree touch per Catalogo e Liste Personali a zero scrollbar.
+  - **Spostamento Campo "Dove l'hai guardato?"**: Spostamento del selettore piattaforma/distributore streaming dalla scheda recensioni della serie intera alla recensione del singolo episodio (dove ha senso effettivo specificare dove è stato guardato quello specifico episodio).
+  - **Citazioni del Giorno Personali**: Espansione del sistema delle citazioni giornaliere per supportare oltre alle citazioni delle serie anche frasi e pensieri personali inseriti liberamente dall'utente.
+- **Stato**: 🔴 Da Iniziare.
+
+### [TRACKERS-010] Gestione Serie Abbandonate ("Drop"): Criteri, Azioni & Ripristino
+- **Obiettivo**: Definire come gestire l'abbandono delle serie TV ("Cimitero delle serie" / stato `dropped`), sia da un punto di vista dell'esperienza utente (UI/UX) sia a livello di logica applicativa e statistiche.
+- **Punti Chiave & Domande Aperte**:
+  1. **Azione Utente Esplicita**:
+     - Aggiungere un comando "Abbandona serie" (o "Sposta nel Cimitero") all'interno del menu delle opzioni (`MobileSeriesOptionsModal`) o nel drawer di gestione dello stato (`MobileWatchActionDrawer` / stato di visione).
+     - Richiedere eventuale data di abbandono (di default la data odierna) o motivo opzionale.
+  2. **Criteri Automatici o Suggerimenti Intelligenti**:
+     - Valutare se proporre un suggerimento automatico (es. "Non guardi questa serie da oltre 6 mesi: vuoi contrassegnarla come abbandonata?").
+     - Evitare comunque cambi di stato arbitrari senza il consenso esplicito dell'utente.
+  3. **Visualizzazione & Ripristino (Revival)**:
+     - Dal modale Statistiche (sezione "Il Cimitero delle Serie") o dal Catalogo filtrato per stato, permettere con un semplice tocco di ripristinare la serie ("Riprendi visione" -> torna nello stato `watching` o `to_watch`).
+  4. **Impatto sui Conteggi & Statistiche**:
+     - Mantenere distinte le serie "Abbandonate" da quelle "In pausa" (`paused`) o "Non iniziate" (`to_watch`).
+     - Le serie abbandonate non contano come completate, ma gli episodi già visti rimangono conteggiati nelle ore totali investite e negli episodi visti.
+- **Stato**: 🔴 Da Definire / Da Valutare (UI Mobile & Backend).
 
 ### [HABITS-001] Recap Mensile: Ripetizioni Multiple
 - **Descrizione**: Sistemare le habits/routines nel recap mensile in modo da mostrare correttamente quante volte sono state fatte le routines con più ripetizioni giornaliere (es. se una routine è da fare 3 volte al giorno e l'utente l'ha fatta 2 volte, mostrare 2/3 nel recap anziché solo se è stata fatta o meno).

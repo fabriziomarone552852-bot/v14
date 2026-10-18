@@ -181,7 +181,7 @@ export const MobileTVSeriesDetailModal: React.FC<MobileTVSeriesDetailModalProps>
             tmdbSeries={tmdbSeries}
             userTracking={userTracking}
             logs={currentEpisode.logs || []}
-            initialView={initialEpisode && initialEpisode.id === currentEpisode.id ? 'reviews' : 'main'}
+            initialView={internalReviewLogId ? 'reviews' : 'main'}
             initialReviewLogId={internalReviewLogId}
           />
         ) : (

@@ -2,6 +2,79 @@
 
 Questo file contiene i task storici che sono stati completati e rimossi dal `BACKLOG.md` principale per mantenere il documento snello.
 
+### [TRACKERS-012] Restyling Catalogo Mobile ("Le tue serie"), 4 Aree Tematiche, Pillole Grigie, Bordi di Stato & Ricerca Dedicata (🟢 Completato)
+
+#### 📋 Descrizione
+Riprogettazione completa e modulare del catalogo delle serie TV su dispositivi mobili (`MobileSeriesCatalogModal`), perfettamente isolato dall'ambiente desktop:
+- **Header "Le tue serie" Pulito**:
+  - Titolo sobrio "Le tue serie" con rimozione totale di contatori numerici e scritte ridondanti.
+  - Freccia indietro (`BackIcon`) a sinistra per chiudere il catalogo.
+  - Tasto lente d'ingrandimento (`SearchIcon`) con indicatore a pallino blu di filtri attivi.
+  - Tasto occhio (`EyeIcon`) con icona dinamica riflettente lo stato di visione selezionato.
+- **Menu Speed-Dial Stato Visione Senza Numeri**:
+  - Comparsa a tendina fluttuante verso il basso (`top-16 right-3`) con backdrop scuro semi-trasparente stile Agenda con il `+`.
+  - 4 opzioni essenziali (*Tutte le serie*, *In corso*, *Serie viste*, *Non viste*) con icone specifiche e prive di cifre numeriche.
+- **Ricerca nel Catalogo Dedicata & Completa**:
+  - Nuovo modale dedicato `MobileSeriesCatalogSearchModal` speculare alla ricerca principale ma circoscritto al catalogo personale in RAM ("Mazzo di Carte").
+  - Supporto a: ricerca testuale (titolo, titolo originale, generi), selettore liste personali, generi della propria libreria, piattaforme/network disponibili, anno di uscita con DatePicker, stato produzione TMDB, voto personale (1-5⭐ / unrated) e ordinamento.
+- **4 Aree Tematiche Distinte con Pillola Centrale Grigia**:
+  - Suddivisione rigorosa delle serie in 4 macro-aree sequenziali:
+    1. *In visione* (🟡 gialli)
+    2. *In lista* (⚪ grigi)
+    3. *In attesa* (🟣 viola)
+    4. *Completate* (🟢 verdi)
+  - Ciascun gruppo è preceduto da una pillola centrale sobria in grigio con il titolo corrispondente (`IN VISIONE`, `IN LISTA`, `IN ATTESA`, `COMPLETATE`).
+  - Ciascun gruppo popola una propria griglia autonoma a 3 colonne (`grid-cols-3 gap-2.5 sm:gap-3`), con righe complete e visualizzazione a scorrimento continuo.
+- **Bordi Colorati di Stato su Ogni Locandina**:
+  - Impiego di `getMediaBorderClass(status, tmdb_status, { isThick: true })` per applicare il bordo colorato coerente: giallo per in visione, grigio per in lista, viola per in attesa, verde per completate, rosso per cancellate/abbandonate.
+  - Tap diretto per aprire il modale dettaglio della serie.
+- **Architettura Modulare (Regola 7.3)**:
+  - Scomposizione in file snelli (<150 righe): `MobileSeriesCatalogHeader.tsx`, `MobileSeriesCatalogEyeMenu.tsx`, `MobileSeriesCatalogGrid.tsx`, `MobileSeriesCatalogSearchModal.tsx`, `MobileSeriesCatalogModal.tsx`.
+
+---
+
+### [TRACKERS-011] Modale Statistiche Serie TV Mobile a Schermo Intero & Scorrimento Continuo (🟢 Completato)
+
+#### 📋 Descrizione
+Progettazione e implementazione del nuovo modale a tutto schermo dedicato alle Statistiche delle Serie TV per smartphone (`MobileSeriesStatsModal`), mantenendo la totale indipendenza e isolamento dai componenti della versione desktop:
+- **Esperienza Mobile Nativa Full-Screen**: Visualizzazione a schermo intero (`100dvh`) montata tramite `createPortal` su `document.body`, animazione `fadeIn` e intercettazione del tasto indietro nativo Android (hardware o gesture) tramite `useBackHandler`.
+- **Freccia di Navigazione Coordinata**: Header fisso superiore con la stessa freccia indietro (`BackIcon` in contenitore touch `w-9 h-9 rounded-xl`) usata nella ricerca Serie TV per massima coerenza visiva.
+- **Scorrimento Verticale Continuo**: Superata la suddivisione a schede orizzontali in favore di una singola pagina a flusso verticale continuo priva di tab. Ciascuna macro-sezione è delimitata da un'intestazione (`MobileStatsSectionHeader`) con titolo maiuscolo, icona, badge e linea orizzontale di inizio sezione (`border-b border-slate-200 pb-2 mb-4`).
+- **Sezione Panoramica Ottimizzata**:
+  - Le prime 4 card highlight organizzate in una griglia 2x2 compatta: *Tempo Totale* (giorni e ore), *Completamento* (% e finite/abbandonate), *Proiezioni Future* (data stimata completamento lista) e *Binge Record* (massimo episodi in un giorno e data).
+  - Box temporale degli ultimi 30 e 365 giorni e tabella serie per stato (Completate, In Visione, In Attesa, Abbandonate).
+  - **👻 Cimitero delle Serie**: Rimossi i vincoli di altezza che causavano tagli di visualizzazione; integrato il componente ufficiale `EmptyState` con emoji 🏆 per mostrare *"Non ci sono serie abbandonate"* (*"Sei un vero completista!"*) in assenza di drop.
+- **Sezione Valutazioni & Voti**:
+  - *Top Generi*: Titolo essenziale, visualizzazione limitata a 4 generi principali in griglia 2x2 ed `EmptyState` in assenza di dati.
+  - *Il Profilo del Critico*: Selettore compatto Serie / Episodi con istogramma di distribuzione voti touch.
+  - *Hall of Fame (Top 10)*: Elenco delle 10 migliori serie votate con stelle e media voto (`EmptyState` per voti assenti).
+- **Sezione Abitudini di Visione**:
+  - *Ultimi 7 Giorni*: Toggle pill slider coordinato `[ Ore | Episodi ]`.
+  - *Andamento Mensile Interattivo*: Selettore anno centrale pulito senza riquadri o bordi (`‹ 2026 ›`); colonne mensili interattive con visualizzazione del conteggio esatto al tocco (tooltip con ore/episodi e barra in risalto); `EmptyState` per anni senza dati.
+  - *Top Network & Piattaforme*: Con `EmptyState` dedicato con icona 📺.
+- **Sezione Rewatch & Fedeltà**:
+  - *Comfort Zone*: Toggle Serie / Episodi con medaglie e badge rewatch, integrato con `EmptyState` (icona 🛋️).
+  - *Il Test del Tempo*: Guilty pleasures con `EmptyState` (icona 🙈).
+  - *Esplorazione vs Nostalgia*: Ciambella gradient e conteggio ore dedicate a nuove serie vs rewatch.
+- **Modularità e Conformità Regola 7.3**: Codice suddiviso nei componenti snelli e strettamente tipizzati (`zero any`): `MobileSeriesStatsModal.tsx`, `MobileStatsSectionHeader.tsx`, `MobileStatsOverviewSection.tsx`, `MobileStatsRatingsSection.tsx`, `MobileStatsHabitsSection.tsx`, `MobileStatsRewatchSection.tsx` ed `index.ts`.
+
+---
+
+### [TRACKERS-009] Restyling Seconda Pagina / Dashboard Serie TV Mobile, Banner Orizzontali & Collage Liste (🟢 Completato)
+
+#### 📋 Descrizione
+Riprogettazione completa della seconda slide dell'esperienza mobile Serie TV (`MobileTVSeriesDashboardSlide`) come hub a zero scrollbar:
+- **Obiettivo Annuale Episodi**: Stile sobrio ed integrato senza nuvoletta blu o involucro pesante, barra sottile ispirata all'agenda homepage con badge centrale sovrapposto `XXX/YYY` ed apertura diretta del modale statistiche (`SeriesStatsModal`) al tocco.
+- **Citazione del Giorno**: Visualizzazione compatta su 2 righe con espansione fluida al click ed indicazione serie/episodio.
+- **3 Card Highlight Affiancate**: "Ultimo aggiunto", "Ultimo guardato", "Ultimo completato" disposte con spaziatura omogenea ed equilibrata sia tra di loro che dai bordi dello schermo (`justify-evenly`), titolo serie in overlay sfumato su massimo 2 righe, badge blu per le icone di stato e disattivazione zoom al passaggio del mouse.
+- **Due Banner Orizzontali Sovrapposti**:
+  - Banner "LE TUE SERIE": 4 locandine delle ultime serie guardate in ordine cronologico decrescente; tocco in qualsiasi punto apre il modale catalogo completo (`MobileSeriesCatalogModal`).
+  - Banner "LE TUE LISTE": fino a 4 liste personali con collage dinamico (0-4 serie) implementato nel componente dedicato `ListCollagePoster`, titolo lista in overlay sfumato con lo stesso stile delle highlight; tocco in qualsiasi punto apre il modale liste personali (`MobileSeriesPersonalListsModal`).
+- **Apertura a Tutto Schermo dalla Timeline**: Al click su una puntata nella timeline uscite si apre direttamente la schermata completa dell'episodio nel modale serie tv, sostituendo il vecchio popup centrato.
+- **Modularità e Conformità Regola 7.3**: Codice suddiviso nei componenti snelli `HighlightCardItem.tsx` (88 righe), `MobileSeriesDashboardBanners.tsx` (172 righe) e `ListCollagePoster.tsx` (163 righe).
+
+---
+
 ### [TRACKERS-006] Mobile TV Episode Fullscreen Detail, Quotes & Reviews Redesign, Multi-Selection & Action Buttons Alignment (🟢 Completato)
 
 #### 📋 Descrizione

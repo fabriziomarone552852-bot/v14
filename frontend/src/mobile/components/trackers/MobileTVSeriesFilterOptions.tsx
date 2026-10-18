@@ -36,6 +36,7 @@ export interface MobileTVSeriesFilterOptionsProps {
   toggleRating: (rating: string) => void;
   handleYearChange: (dateStr: string | null) => void;
   onExecuteSearch: () => void;
+  actionButtonLabel?: string;
 }
 
 export const MobileTVSeriesFilterOptions: React.FC<MobileTVSeriesFilterOptionsProps> = ({
@@ -52,6 +53,7 @@ export const MobileTVSeriesFilterOptions: React.FC<MobileTVSeriesFilterOptionsPr
   toggleRating,
   handleYearChange,
   onExecuteSearch,
+  actionButtonLabel,
 }) => {
   const [isListModalOpen, setIsListModalOpen] = useState(false);
 
@@ -295,11 +297,12 @@ export const MobileTVSeriesFilterOptions: React.FC<MobileTVSeriesFilterOptionsPr
         >
           <SearchIcon className="w-4 h-4 text-white" />
           <span>
-            {filters.listId !== null
-              ? filters.keyword?.trim()
-                ? 'Cerca nella Lista'
-                : 'Mostra Serie della Lista'
-              : 'Cerca su TMDB'}
+            {actionButtonLabel ||
+              (filters.listId !== null
+                ? filters.keyword?.trim()
+                  ? 'Cerca nella Lista'
+                  : 'Mostra Serie della Lista'
+                : 'Cerca su TMDB')}
           </span>
         </button>
       </div>

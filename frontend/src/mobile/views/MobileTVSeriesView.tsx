@@ -4,13 +4,21 @@ import PageLoadingState from '@/components/shared/feedback/PageLoadingState';
 import PageErrorState from '@/components/shared/feedback/PageErrorState';
 import { useTVSeriesPageLogic } from '@/hooks/trackers/useTVSeriesPageLogic';
 import RandomMediaModal from '@/components/trackers/RandomMediaModal';
-import SeriesStatsModal from '@/components/trackers/SeriesStatsModal';
+import { MobileSeriesStatsModal } from '../components/trackers/stats';
 import { MobileTVSeriesDetailModal } from '../components/trackers/detail';
 import MobileTVSeriesSearchModal from '../components/trackers/MobileTVSeriesSearchModal';
 import MobileTVEpisodesTimeline from '../components/trackers/MobileTVEpisodesTimeline';
-import MobileEpisodeDetailModal from '../components/trackers/MobileEpisodeDetailModal';
 import MobileTVSeriesDashboardSlide from '../components/trackers/MobileTVSeriesDashboardSlide';
-import type { TVSeries, UpcomingEpisode } from '@/types/trackers';
+import MobileSeriesCatalogModal from '../components/trackers/MobileSeriesCatalogModal';
+import MobileSeriesPersonalListsModal from '../components/trackers/MobileSeriesPersonalListsModal';
+import { MobileMediaListManagerModal } from '../components/trackers/detail/MobileMediaListManagerModal';
+import type {
+  TVSeries,
+  UpcomingEpisode,
+  TMDBEpisode,
+  SeriesDetailTarget,
+  MediaList,
+} from '@/types/trackers';
 import MobileTVPaginationDots from '../components/trackers/MobileTVPaginationDots';
 import { useTrackerHeader } from '@/context/TrackerHeaderContext';
 import { useTMDBGenres, useTMDBProviders } from '@/hooks/queries/useTrackersQueries';
@@ -22,8 +30,6 @@ export const MobileTVSeriesView: React.FC = () => {
     isError,
     handleRetry,
     goalPercent,
-    goalViewType,
-    setGoalViewType,
     currentEpisodes,
     goal,
     setStatsModalOpen,
@@ -40,8 +46,6 @@ export const MobileTVSeriesView: React.FC = () => {
     detailModalEpisode,
     detailModalReviewLogId,
     myQuotes,
-    isQuoteExpanded,
-    setIsQuoteExpanded,
     filters,
     searchQuery,
     hasActiveFilters,
@@ -62,6 +66,12 @@ export const MobileTVSeriesView: React.FC = () => {
 
   const { data: tmdbGenres = [] } = useTMDBGenres();
   const { data: tmdbProviders = [] } = useTMDBProviders();
+
+  // Modali dedicati per Catalogo e Liste Personali
+  const [isCatalogModalOpen, setIsCatalogModalOpen] = useState(false);
+  const [isPersonalListsModalOpen, setIsPersonalListsModalOpen] = useState(false);
+  const [selectedListForModal, setSelectedListForModal] = useState<MediaList | null>(null);
+  const [isListManagerModalOpen, setIsListManagerModalOpen] = useState(false);
 
   // Apertura ricerca globale TMDB filtrata per Genere
   const handleMobileGenreClick = React.useCallback(
@@ -131,7 +141,6 @@ export const MobileTVSeriesView: React.FC = () => {
 
   // Paginazione a 2 slide (0 = Timeline Uscite, 1 = Dashboard/Attività)
   const [activePageIndex, setActivePageIndex] = useState<0 | 1>(0);
-  const [selectedEpisodeDetail, setSelectedEpisodeDetail] = useState<UpcomingEpisode | null>(null);
 
   // Gesture Touch Swipe
   const [touchStartX, setTouchStartX] = useState<number | null>(null);
@@ -159,6 +168,31 @@ export const MobileTVSeriesView: React.FC = () => {
     } else if (deltaX > 0 && activePageIndex === 1) {
       setActivePageIndex(0);
     }
+  };
+
+  // Apertura a tutto schermo dell'episodio nel modale dettaglio della serie
+  const handleTimelineEpisodeClick = (ep: UpcomingEpisode) => {
+    const match = series?.find((s) => s.tmdb_id === ep.series_tmdb_id);
+    const seriesTarget: SeriesDetailTarget = match || {
+      tmdb_id: ep.series_tmdb_id,
+      title: ep.series_title,
+      poster_path: ep.series_poster_path,
+      backdrop_path: ep.series_backdrop_path,
+    };
+
+    const targetEpisode: TMDBEpisode = {
+      id: ep.episode_id,
+      series_tmdb_id: ep.series_tmdb_id,
+      season_number: ep.season_number,
+      episode_number: ep.episode_number,
+      title: ep.episode_title,
+      overview: ep.episode_overview,
+      air_date: ep.air_date,
+      still_path: ep.episode_still_path,
+      is_watched: ep.is_watched,
+    };
+
+    openSeriesDetail(seriesTarget, 'seasons', targetEpisode);
   };
 
   if (isLoading) {
@@ -202,7 +236,7 @@ export const MobileTVSeriesView: React.FC = () => {
           }`}
         >
           <MobileTVEpisodesTimeline
-            onEpisodeClick={(ep) => setSelectedEpisodeDetail(ep)}
+            onEpisodeClick={handleTimelineEpisodeClick}
             onOpenSeriesDetail={(ep) => {
               const match = series?.find((s) => s.tmdb_id === ep.series_tmdb_id);
               if (match) {
@@ -219,12 +253,10 @@ export const MobileTVSeriesView: React.FC = () => {
         </div>
 
         {/* ===================================================================== */}
-        {/* PAGINA 1: DASHBOARD & ATTIVITÀ (Obiettivo, In Evidenza, Prossimi Ep, Quotes) */}
+        {/* PAGINA 1: DASHBOARD & ATTIVITÀ (Obiettivo, Quotes, 3 Card, Catalogo e Liste) */}
         {/* ===================================================================== */}
         <MobileTVSeriesDashboardSlide
           activePageIndex={activePageIndex}
-          goalViewType={goalViewType}
-          setGoalViewType={setGoalViewType}
           goalPercent={goalPercent}
           currentEpisodes={currentEpisodes}
           goal={goal}
@@ -232,12 +264,15 @@ export const MobileTVSeriesView: React.FC = () => {
           lastAdded={lastAdded}
           lastCompleted={lastCompleted}
           myQuotes={myQuotes}
-          isQuoteExpanded={isQuoteExpanded}
-          setIsQuoteExpanded={setIsQuoteExpanded}
           series={series}
+          myLists={myLists}
           onOpenSeriesDetail={openSeriesDetail}
-          onOpenRandom={() => setRandomModalOpen(true)}
           onOpenStats={() => setStatsModalOpen(true)}
+          onOpenCatalog={() => setIsCatalogModalOpen(true)}
+          onOpenPersonalLists={(list) => {
+            setSelectedListForModal(list || null);
+            setIsPersonalListsModalOpen(true);
+          }}
         />
       </div>
 
@@ -278,9 +313,10 @@ export const MobileTVSeriesView: React.FC = () => {
         />
       )}
 
-      {statsModalOpen && (
-        <SeriesStatsModal onClose={() => setStatsModalOpen(false)} />
-      )}
+      <MobileSeriesStatsModal
+        isOpen={statsModalOpen}
+        onClose={() => setStatsModalOpen(false)}
+      />
 
       <MobileTVSeriesSearchModal
         isOpen={isFilterModalOpen}
@@ -306,23 +342,33 @@ export const MobileTVSeriesView: React.FC = () => {
         onToggleTrack={(tmdbId, isTracked) => handleToggleTrack(tmdbId, isTracked)}
       />
 
-      <MobileEpisodeDetailModal
-        isOpen={Boolean(selectedEpisodeDetail)}
-        onClose={() => setSelectedEpisodeDetail(null)}
-        episode={selectedEpisodeDetail}
-        onOpenSeriesDetail={({ tmdb_id, title, poster_path }) => {
-          const match = series?.find((s) => s.tmdb_id === tmdb_id);
-          if (match) {
-            openSeriesDetail(match);
-          } else {
-            setDetailModalSeries({
-              tmdb_id,
-              title,
-              poster_path,
-            });
-            setDetailModalOpen(true);
-          }
+      {/* 5. MODALE CATALOGO COMPLETO */}
+      <MobileSeriesCatalogModal
+        isOpen={isCatalogModalOpen}
+        onClose={() => setIsCatalogModalOpen(false)}
+        series={series || []}
+        myLists={myLists}
+        onOpenSeriesDetail={openSeriesDetail}
+      />
+
+      {/* 6. MODALE LISTE PERSONALI */}
+      <MobileSeriesPersonalListsModal
+        isOpen={isPersonalListsModalOpen}
+        onClose={() => {
+          setIsPersonalListsModalOpen(false);
+          setSelectedListForModal(null);
         }}
+        myLists={myLists || []}
+        series={series || []}
+        onOpenSeriesDetail={openSeriesDetail}
+        onOpenListManager={() => setIsListManagerModalOpen(true)}
+        initialSelectedList={selectedListForModal}
+      />
+
+      {/* 7. MODALE CREAZIONE / GESTIONE LISTE */}
+      <MobileMediaListManagerModal
+        isOpen={isListManagerModalOpen}
+        onClose={() => setIsListManagerModalOpen(false)}
       />
     </div>
   );
