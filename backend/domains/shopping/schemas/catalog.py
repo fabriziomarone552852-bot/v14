@@ -1,7 +1,8 @@
 """
 Schemas for canonical shopping products, product-brand links and suppliers/brands.
 """
-from datetime import datetime
+from datetime import datetime, date
+from decimal import Decimal
 from typing import List, Optional
 from pydantic import Field, field_validator
 from backend.core.schemas import ORMBaseModel, StrictBaseModel
@@ -31,6 +32,9 @@ class ShoppingProductBrandResponse(ORMBaseModel):
     brand_id: int
     notes: Optional[str] = None
     brand: Optional[ShoppingSupplierSummary] = None
+    last_price: Optional[Decimal] = None
+    last_supplier_name: Optional[str] = None
+    last_purchase_date: Optional[date] = None
     created_at: datetime
     updated_at: Optional[datetime] = None
 
@@ -66,8 +70,12 @@ class ShoppingProductUpdate(StrictBaseModel):
 class ShoppingProductResponse(ORMBaseModel):
     id: int
     name_normalized: str
-    # Lista dei brand associati con le relative note
+    # Lista dei brand associati con le relative note e ultimi prezzi
     product_brands: List[ShoppingProductBrandResponse] = []
+    last_purchase_price: Optional[Decimal] = None
+    last_supplier_id: Optional[int] = None
+    last_supplier_name: Optional[str] = None
+    last_purchase_date: Optional[date] = None
     created_by_user_id: int
     updated_by_user_id: Optional[int] = None
     created_at: datetime

@@ -9,18 +9,24 @@ import {
 } from '@/components/shared/utils/Icons';
 import type {
   ShoppingProductOption,
+  ShoppingProductBrandLink,
   ShoppingListItem,
   ShoppingListSummary,
   ConfigOption,
 } from '@/types/shopping';
 import { useShoppingQuickCatalogLogic } from '@/components/shared/shopping/useShoppingQuickCatalogLogic';
+import { MobileQuickCatalogBrandModal } from './MobileQuickCatalogBrandModal';
 
 interface MobileShoppingQuickCatalogProps {
   products: ShoppingProductOption[];
   items: ShoppingListItem[];
   activeList: ShoppingListSummary | null;
   unitOptions?: ConfigOption[];
-  onToggleItem: (product: ShoppingProductOption, existingItem: ShoppingListItem | null) => void;
+  onToggleItem: (
+    product: ShoppingProductOption,
+    existingItem: ShoppingListItem | null,
+    targetBrand?: ShoppingProductBrandLink | null
+  ) => void;
   onClose: () => void;
 }
 
@@ -37,6 +43,9 @@ export const MobileShoppingQuickCatalog: React.FC<MobileShoppingQuickCatalogProp
     setSearchQuery,
     clearSearch,
     getExistingItem,
+    getExistingItemForBrand,
+    mobileModalProduct,
+    setMobileModalProduct,
     filteredProducts,
     inListCount,
   } = useShoppingQuickCatalogLogic({
@@ -63,7 +72,7 @@ export const MobileShoppingQuickCatalog: React.FC<MobileShoppingQuickCatalogProp
                 </span>
               </div>
               <p className="text-[10px] text-gray-500 truncate">
-                Tocca un articolo per inserirlo o toglierlo
+                Tocca un articolo per inserirlo o confrontare i marchi
               </p>
             </div>
           </div>
@@ -129,18 +138,58 @@ export const MobileShoppingQuickCatalog: React.FC<MobileShoppingQuickCatalogProp
             const isChecked = Boolean(existingItem);
             const displayName = product.displayName || product.nameNormalized || 'Articolo';
             const unitName = product.defaultUnitCodeName || 'pz';
+            const brandsCount = product.productBrands?.length ?? 0;
+            const hasMultipleBrands = brandsCount > 1;
+            const singleBrand = brandsCount === 1 ? product.productBrands![0] : null;
+
+            // Ultimo prezzo per brand singolo o prodotto
+            const rawLastPrice = singleBrand?.lastPrice ?? product.lastPurchasePrice;
             const lastPrice =
-              product.lastPurchasePrice != null && Number(product.lastPurchasePrice) > 0
-                ? Number(product.lastPurchasePrice).toLocaleString('it-IT', {
+              rawLastPrice != null && Number(rawLastPrice) > 0
+                ? Number(rawLastPrice).toLocaleString('it-IT', {
                     style: 'currency',
                     currency: 'EUR',
                   })
                 : null;
 
+            // Prezzo indicativo minimo se ha più marchi
+            const brandPrices = hasMultipleBrands
+              ? product.productBrands!
+                  .map((pb) => (pb.lastPrice != null ? Number(pb.lastPrice) : null))
+                  .filter((p): p is number => p !== null && p > 0)
+              : [];
+            const minBrandPrice = brandPrices.length > 0 ? Math.min(...brandPrices) : null;
+            const minPriceFormatted = minBrandPrice
+              ? `da ${minBrandPrice.toLocaleString('it-IT', { style: 'currency', currency: 'EUR' })}`
+              : lastPrice;
+
+            const handleRowClick = () => {
+              if (hasMultipleBrands) {
+                setMobileModalProduct(product);
+              } else if (singleBrand) {
+                onToggleItem(product, existingItem, singleBrand);
+              } else {
+                onToggleItem(product, existingItem, null);
+              }
+            };
+
+            const handleCheckboxClick = (e: React.MouseEvent) => {
+              e.stopPropagation();
+              if (existingItem) {
+                onToggleItem(product, existingItem, null);
+              } else if (hasMultipleBrands) {
+                setMobileModalProduct(product);
+              } else if (singleBrand) {
+                onToggleItem(product, null, singleBrand);
+              } else {
+                onToggleItem(product, null, null);
+              }
+            };
+
             return (
               <div
                 key={product.id || product.nameNormalized}
-                onClick={() => onToggleItem(product, existingItem)}
+                onClick={handleRowClick}
                 className={`flex items-center justify-between gap-2.5 p-2.5 rounded-xl border transition-all cursor-pointer ${
                   isChecked
                     ? 'bg-blue-50/80 border-blue-300 shadow-2xs'
@@ -150,12 +199,12 @@ export const MobileShoppingQuickCatalog: React.FC<MobileShoppingQuickCatalogProp
                 {/* Checkbox Touch Target */}
                 <div
                   className="flex items-center justify-center shrink-0"
-                  onClick={(e) => e.stopPropagation()}
+                  onClick={handleCheckboxClick}
                 >
                   <input
                     type="checkbox"
                     checked={isChecked}
-                    onChange={() => onToggleItem(product, existingItem)}
+                    onChange={() => {}}
                     className="w-4 h-4 rounded text-blue-600 border-gray-300 focus:ring-blue-500 focus:ring-offset-0 cursor-pointer"
                   />
                 </div>
@@ -177,21 +226,42 @@ export const MobileShoppingQuickCatalog: React.FC<MobileShoppingQuickCatalogProp
                     )}
                   </div>
 
-                  {/* Dettagli secondari (Marca • Unità • Ultimo Prezzo) */}
+                  {/* Dettagli secondari (Marca / Badge Opzioni • Unità • Ultimo Prezzo) */}
                   <div className="flex items-center gap-1.5 text-[10px] text-gray-500 mt-0.5 truncate">
-                    {product.brandName && (
+                    {hasMultipleBrands ? (
+                      <span className="font-semibold text-blue-700 bg-blue-50 px-1.5 py-0.2 rounded border border-blue-200/80">
+                        🏷️ {brandsCount} marche ▾
+                      </span>
+                    ) : singleBrand?.brand?.nameNormalized ? (
+                      <span className="truncate font-medium text-gray-600">
+                        {singleBrand.brand.nameNormalized}
+                      </span>
+                    ) : product.brandName ? (
                       <span className="truncate font-medium text-gray-600">
                         {product.brandName}
                       </span>
-                    )}
-                    {product.brandName && <span>•</span>}
+                    ) : null}
+
+                    <span>•</span>
                     <span className="px-1 py-0.2 rounded bg-slate-100 text-slate-600 font-medium">
                       {unitName}
                     </span>
-                    {lastPrice && (
+
+                    {(minPriceFormatted || lastPrice) && (
                       <>
                         <span>•</span>
-                        <span className="font-semibold text-emerald-700">{lastPrice}</span>
+                        <span className="font-bold text-emerald-700">
+                          {hasMultipleBrands ? minPriceFormatted : lastPrice}
+                        </span>
+                      </>
+                    )}
+
+                    {singleBrand?.lastSupplierName && (
+                      <>
+                        <span>•</span>
+                        <span className="truncate text-slate-500">
+                          🏪 {singleBrand.lastSupplierName}
+                        </span>
                       </>
                     )}
                   </div>
@@ -208,11 +278,20 @@ export const MobileShoppingQuickCatalog: React.FC<MobileShoppingQuickCatalogProp
         <button
           type="button"
           onClick={onClose}
-          className="font-bold text-blue-600 hover:text-blue-700 py-0.5"
+          className="font-bold text-blue-600 hover:text-blue-700 py-0.5 cursor-pointer"
         >
           ✓ Torna alla lista
         </button>
       </div>
+
+      {/* 4. MODALE SELEZIONE MARCHIO TOUCH-FRIENDLY */}
+      <MobileQuickCatalogBrandModal
+        product={mobileModalProduct}
+        isOpen={Boolean(mobileModalProduct)}
+        onClose={() => setMobileModalProduct(null)}
+        getExistingItemForBrand={getExistingItemForBrand}
+        onToggleItem={onToggleItem}
+      />
     </div>
   );
 };

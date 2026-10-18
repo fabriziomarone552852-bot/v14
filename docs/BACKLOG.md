@@ -67,6 +67,9 @@ Questo documento serve a tracciare in modo strutturato:
 | **SHOPPING-016** | **Micro Split-Pill Valutazione Brand, Pareggiamento Colonne Data Grid & Snellimento Scontrini** | `shopping` / `admin` | 🟢 Completato | 🟢 Completato | 🟢 **Completato** |
 | **UI-003** | **Sostituzione Pulsante "Reset Filtri" con Freccia (Serie TV Web)** | `trackers` / `UI` | N/A | 🔴 Da Implementare | 🟢 Bassa |
 | **SHOPPING-005** | **Pannello Laterale Recensioni & Giudizio Marchi in Aggiunta Prodotto** | `shopping` / `UI` | 🔴 Da Strutturare | 🔴 Da Implementare | 🟡 Media-Alta |
+| **SHOPPING-017** | **Supporto Marche, Prezzi e Storico Acquisti nell'Inserimento Rapido Catalogo Spesa** | `shopping` / `catalog` | 🟢 Completato | 🟢 Completato | 🟢 **Completato** |
+| **SHOPPING-018** | **Tracciamento Brand nei Lotti Spesa & Risoluzione Ambiguità Multi-Marca** | `shopping` / `db` | 🟢 Completato | 🟢 Completato | 🟢 **Completato** |
+
 | **FEAT-013** | **Archivio Notifiche / Sezione Storico Notifiche** | `notifications` / UI | 🟢 Completato | 🟡 Da Implementare | 🟡 Media |
 
 *Legenda:*

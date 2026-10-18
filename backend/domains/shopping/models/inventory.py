@@ -58,6 +58,12 @@ class InventoryBatch(Base):
         nullable=True,
     )
 
+    brand_id: Mapped[Optional[int]] = mapped_column(
+        BigInteger,
+        ForeignKey("shopping_suppliers.id"),
+        nullable=True,
+    )
+
     is_on_sale: Mapped[bool] = mapped_column(
         Boolean,
         nullable=False,
@@ -120,7 +126,14 @@ class InventoryBatch(Base):
 
     supplier: Mapped[Optional["ShoppingSupplier"]] = relationship(
         "ShoppingSupplier",
+        foreign_keys=[supplier_id],
         back_populates="inventory_batches",
+    )
+
+    brand: Mapped[Optional["ShoppingSupplier"]] = relationship(
+        "ShoppingSupplier",
+        foreign_keys=[brand_id],
+        lazy="selectin",
     )
 
     purchased_by_user: Mapped[Optional["User"]] = relationship(

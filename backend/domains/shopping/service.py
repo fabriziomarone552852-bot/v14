@@ -6,7 +6,7 @@ from datetime import date, datetime, timezone
 from typing import List, Optional
 
 from fastapi import HTTPException
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, selectinload
 
 from backend.core.seeders import register_seeder
 from backend.domains.shopping import repository as repo
@@ -1137,6 +1137,7 @@ def add_inventory_batch(
         list_item_id=item_id,
         product_id=target_product_id,
         supplier_id=batch_in.supplier_id,
+        brand_id=resolved_brand_id,
         purchase_date=batch_in.purchase_date,
         expiration_date=batch_in.expiration_date,
         quantity_purchased=batch_in.quantity_purchased,
@@ -1232,10 +1233,12 @@ def create_quick_price_batch(
                     existing_item.updated_at = _now()
                     existing_item.updated_by_user_id = current_user.id
                 else:
+                    db_brand = repo.get_supplier(db, resolved_brand_id) if resolved_brand_id else None
+                    brand_suffix = f" ({db_brand.name_normalized})" if db_brand else ""
                     new_item = ShoppingListItem(
                         shopping_list_id=batch_in.shopping_list_id,
                         product_id=db_product.id,
-                        name_normalized=db_product.name_normalized,
+                        name_normalized=f"{db_product.name_normalized}{brand_suffix}",
                         quantity=rec.quantity_purchased,
                         unit_id=rec.unit_id,
                         is_purchased=True,
@@ -1252,6 +1255,7 @@ def create_quick_price_batch(
             product_id=db_product.id,
             list_item_id=list_item_id,
             supplier_id=resolved_supplier_id,
+            brand_id=resolved_brand_id,
             purchase_date=rec.purchase_date,
             quantity_purchased=rec.quantity_purchased,
             purchase_price=rec.purchase_price,
@@ -1353,6 +1357,7 @@ def update_inventory_batch(
         )
         if db_batch.product and resolved_brand_id:
             repo.get_or_create_product_brand_link(db, db_batch.product.id, resolved_brand_id)
+        db_batch.brand_id = resolved_brand_id
 
     # If list_item_id is None but shopping_list_id is provided, try to find or create list item
     if db_batch.list_item_id is None and update_data.get("shopping_list_id"):
@@ -1482,11 +1487,22 @@ def delete_inventory_batch(db: Session, current_user: User, batch_id: int) -> No
             repo.commit(db)
 
 
-def _get_product_brand_info(product: Optional[ShoppingProduct]) -> tuple[Optional[int], Optional[str]]:
-    if product and getattr(product, "product_brands", None):
+def _get_product_brand_info(
+    product: Optional[ShoppingProduct],
+    item_name: Optional[str] = None,
+) -> tuple[Optional[int], Optional[str]]:
+    if not product or not getattr(product, "product_brands", None):
+        return None, None
+    if item_name and "(" in item_name and ")" in item_name:
+        candidate = item_name.split("(")[-1].split(")")[0].strip().lower()
         for pb in product.product_brands:
-            if getattr(pb, "brand", None):
+            if getattr(pb, "brand", None) and pb.brand.name_normalized.lower() == candidate:
                 return pb.brand.id, pb.brand.name_normalized
+    # Solo se il prodotto ha un unico brand censito, usalo come fallback naturale
+    if len(product.product_brands) == 1:
+        pb = product.product_brands[0]
+        if getattr(pb, "brand", None):
+            return pb.brand.id, pb.brand.name_normalized
     return None, None
 
 
@@ -1504,9 +1520,14 @@ def list_item_batches(
         unit_price = (b.purchase_price / qty).quantize(D("0.01")) if qty else None
         list_name: Optional[str] = None
         unit_name: Optional[str] = None
-        brand_id, brand_name = _get_product_brand_info(b.product)
-        if brand_id is None and b.list_item:
-            brand_id, brand_name = _get_product_brand_info(b.list_item.product)
+        if getattr(b, "brand_id", None):
+            brand_id = b.brand_id
+            brand_name = b.brand.name_normalized if getattr(b, "brand", None) else None
+        else:
+            item_name = b.list_item.name_normalized if b.list_item else None
+            brand_id, brand_name = _get_product_brand_info(b.product, item_name)
+            if brand_id is None and b.list_item:
+                brand_id, brand_name = _get_product_brand_info(b.list_item.product, item_name)
 
         notes: Optional[str] = None
         if b.list_item:
@@ -1548,13 +1569,18 @@ def list_all_batches(db: Session, current_user: User) -> list:
         unit_name: Optional[str] = None
         notes: Optional[str] = None
         product_name: str = "Prodotto"
-        brand_id, brand_name = _get_product_brand_info(b.product)
+        if getattr(b, "brand_id", None):
+            brand_id = b.brand_id
+            brand_name = b.brand.name_normalized if getattr(b, "brand", None) else None
+        else:
+            item_name = b.list_item.name_normalized if b.list_item else None
+            brand_id, brand_name = _get_product_brand_info(b.product, item_name)
         if b.product:
             product_name = b.product.name_normalized
         elif b.list_item and b.list_item.name_normalized:
             product_name = b.list_item.name_normalized
             if brand_id is None and b.list_item.product:
-                brand_id, brand_name = _get_product_brand_info(b.list_item.product)
+                brand_id, brand_name = _get_product_brand_info(b.list_item.product, item_name)
 
         shopping_list_id: Optional[int] = None
         unit_id: Optional[int] = None
@@ -1596,7 +1622,6 @@ def list_all_batches(db: Session, current_user: User) -> list:
 
 
 def list_community_prices(
-
     db: Session,
     product_id: int,
     limit: int = 50,
@@ -1609,9 +1634,10 @@ def list_community_prices(
         qty = b.quantity_purchased or D("1")
         unit_price = (b.purchase_price / qty).quantize(D("0.01")) if qty else b.purchase_price
         unit_name: Optional[str] = None
-        brand_id, brand_name = _get_product_brand_info(b.product)
+        item_name = b.list_item.name_normalized if b.list_item else None
+        brand_id, brand_name = _get_product_brand_info(b.product, item_name)
         if brand_id is None and b.list_item:
-            brand_id, brand_name = _get_product_brand_info(b.list_item.product)
+            brand_id, brand_name = _get_product_brand_info(b.list_item.product, item_name)
         if b.list_item and b.list_item.unit:
             unit_name = b.list_item.unit.code_value or b.list_item.unit.code_name
         result.append({
@@ -1631,13 +1657,114 @@ def list_community_prices(
 
 # ------------------------------------------------------------------ Products
 
+def _enrich_products_with_last_purchases(db: Session, products: List[ShoppingProduct]) -> List[ShoppingProduct]:
+    if not products:
+        return products
+
+    product_ids = [p.id for p in products]
+
+    batches = (
+        db.query(InventoryBatch)
+        .options(
+            selectinload(InventoryBatch.supplier),
+            selectinload(InventoryBatch.list_item),
+        )
+        .filter(
+            InventoryBatch.product_id.in_(product_ids),
+            InventoryBatch.deleted_at.is_(None),
+            InventoryBatch.purchase_price > 0,
+        )
+        .order_by(InventoryBatch.purchase_date.desc(), InventoryBatch.id.desc())
+        .all()
+    )
+
+    latest_by_product: dict[int, InventoryBatch] = {}
+    latest_by_product_brand: dict[tuple[int, int], InventoryBatch] = {}
+
+    for b in batches:
+        pid = b.product_id
+        if pid not in latest_by_product:
+            latest_by_product[pid] = b
+
+        item_name = b.list_item.name_normalized.strip().lower() if b.list_item and b.list_item.name_normalized else ""
+        extracted_brand_name = None
+        if "(" in item_name and ")" in item_name:
+            extracted_brand_name = item_name.split("(")[-1].split(")")[0].strip().lower()
+
+        sup_id = b.supplier_id
+        sup_name = b.supplier.name_normalized.strip().lower() if b.supplier and b.supplier.name_normalized else ""
+
+        for p in products:
+            if p.id == pid and p.product_brands:
+                for pb in p.product_brands:
+                    b_id = pb.brand_id
+                    b_name = pb.brand.name_normalized.strip().lower() if pb.brand and pb.brand.name_normalized else ""
+
+                    is_match = False
+                    # 0. Match prioritario e diretto sul brand_id del lotto
+                    if getattr(b, "brand_id", None) and b.brand_id == b_id:
+                        is_match = True
+                    # 1. Match diretto su supplier_id del lotto == brand_id del marchio (per insegne/Private Label)
+                    elif sup_id and b_id and sup_id == b_id:
+                        is_match = True
+                    # 2. Match su nome del fornitore del lotto == nome del marchio
+                    elif sup_name and b_name and sup_name == b_name:
+                        is_match = True
+                    # 3. Match su marchio estratto tra parentesi nel nome dell'articolo (es. 'cipolle dorate (coop)')
+                    elif extracted_brand_name and b_name and extracted_brand_name == b_name:
+                        is_match = True
+                    # 4. Match testuale se il nome del brand compare nel nome dell'item
+                    elif b_name and len(b_name) >= 3 and b_name in item_name:
+                        is_match = True
+                    # 5. Se il prodotto ha un unico brand censito, tutti i lotti appartengono a quel brand
+                    elif len(p.product_brands) == 1:
+                        is_match = True
+
+                    if is_match:
+                        key = (pid, pb.brand_id)
+                        if key not in latest_by_product_brand:
+                            latest_by_product_brand[key] = b
+
+    for p in products:
+        overall_b = latest_by_product.get(p.id)
+        if overall_b:
+            p.last_purchase_price = overall_b.purchase_price
+            p.last_supplier_id = overall_b.supplier_id
+            p.last_supplier_name = overall_b.supplier.name_normalized if overall_b.supplier else None
+            p.last_purchase_date = overall_b.purchase_date
+        else:
+            p.last_purchase_price = None
+            p.last_supplier_id = None
+            p.last_supplier_name = None
+            p.last_purchase_date = None
+
+        if p.product_brands:
+            for pb in p.product_brands:
+                brand_b = latest_by_product_brand.get((p.id, pb.brand_id))
+                if brand_b:
+                    pb.last_price = brand_b.purchase_price
+                    pb.last_supplier_name = brand_b.supplier.name_normalized if brand_b.supplier else None
+                    pb.last_purchase_date = brand_b.purchase_date
+                elif overall_b and len(p.product_brands) == 1:
+                    pb.last_price = overall_b.purchase_price
+                    pb.last_supplier_name = overall_b.supplier.name_normalized if overall_b.supplier else None
+                    pb.last_purchase_date = overall_b.purchase_date
+                else:
+                    pb.last_price = None
+                    pb.last_supplier_name = None
+                    pb.last_purchase_date = None
+
+    return products
+
+
 def list_products(
     db: Session,
     search: Optional[str] = None,
     brand_id: Optional[int] = None,
     limit: Optional[int] = None,
 ) -> List[ShoppingProduct]:
-    return repo.list_products(db, search=search, brand_id=brand_id, limit=limit)
+    products = repo.list_products(db, search=search, brand_id=brand_id, limit=limit)
+    return _enrich_products_with_last_purchases(db, products)
 
 
 def get_product(
@@ -1648,6 +1775,7 @@ def get_product(
     db_product = repo.get_product(db, product_id)
     if not db_product:
         raise HTTPException(status_code=404, detail="Prodotto non trovato")
+    _enrich_products_with_last_purchases(db, [db_product])
     return db_product
 
 

@@ -23,6 +23,19 @@ export interface UseShoppingQuickCatalogLogicReturn {
   toggleSortDirection: () => void;
   /** Verifica se un prodotto del catalogo è già presente nella lista attiva */
   getExistingItem: (product: ShoppingProductOption) => ShoppingListItem | null;
+  /** Verifica se uno specifico brand di un prodotto è già presente nella lista attiva */
+  getExistingItemForBrand: (
+    product: ShoppingProductOption,
+    brandId: number | null,
+    brandName?: string | null
+  ) => ShoppingListItem | null;
+  /** Set degli ID prodotto con accordion espanso su desktop */
+  expandedProductIds: Set<number>;
+  toggleProductExpand: (productId: number) => void;
+  isProductExpanded: (productId: number) => boolean;
+  /** Prodotto selezionato per il modale touch su mobile */
+  mobileModalProduct: ShoppingProductOption | null;
+  setMobileModalProduct: (p: ShoppingProductOption | null) => void;
   /** Elenco dei prodotti filtrati per ricerca testuale e ordinati */
   filteredProducts: ShoppingProductOption[];
   /** Numero di prodotti attualmente inseriti nella lista attiva */
@@ -42,6 +55,8 @@ export const useShoppingQuickCatalogLogic = ({
 }: UseShoppingQuickCatalogLogicProps): UseShoppingQuickCatalogLogicReturn => {
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>(initialSortDirection);
+  const [expandedProductIds, setExpandedProductIds] = useState<Set<number>>(new Set());
+  const [mobileModalProduct, setMobileModalProduct] = useState<ShoppingProductOption | null>(null);
 
   const clearSearch = useCallback(() => {
     setSearchQuery('');
@@ -50,6 +65,23 @@ export const useShoppingQuickCatalogLogic = ({
   const toggleSortDirection = useCallback(() => {
     setSortDirection((prev) => (prev === 'asc' ? 'desc' : 'asc'));
   }, []);
+
+  const toggleProductExpand = useCallback((productId: number) => {
+    setExpandedProductIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(productId)) {
+        next.delete(productId);
+      } else {
+        next.add(productId);
+      }
+      return next;
+    });
+  }, []);
+
+  const isProductExpanded = useCallback(
+    (productId: number) => expandedProductIds.has(productId),
+    [expandedProductIds]
+  );
 
   // 1. Mappa rapida degli item presenti nella lista corrente in RAM (Look-up O(1))
   // Indicizzati sia per ID numerico sia per nome normalizzato (case-insensitive)
@@ -82,7 +114,51 @@ export const useShoppingQuickCatalogLogic = ({
     [itemsInListMap]
   );
 
-  // 3. Filtro e ordinamento alfabetico in memoria locale (Mazzo di Carte nel frontend)
+  // 3. Helper per verificare la presenza di uno specifico Brand (o generico)
+  const getExistingItemForBrand = useCallback(
+    (
+      product: ShoppingProductOption,
+      brandId: number | null,
+      brandName?: string | null
+    ): ShoppingListItem | null => {
+      const pid = product.id;
+      const bNorm = (brandName || '').trim().toLowerCase();
+
+      for (const it of items) {
+        if (it.productId && it.productId === pid) {
+          if (brandId != null) {
+            if (it.brandId === brandId) return it;
+            const itemNorm = (it.nameNormalized || it.productName || '').toLowerCase();
+            if (bNorm && itemNorm.includes(`(${bNorm})`)) return it;
+          } else {
+            // Generico (senza brand specifico)
+            if (!it.brandId && !(it.nameNormalized || '').includes('(')) return it;
+          }
+        }
+      }
+
+      // Fallback per nome normalizzato
+      const prodNorm = (product.nameNormalized || product.displayName || '').trim().toLowerCase();
+      for (const it of items) {
+        const itemNorm = (it.nameNormalized || it.productName || '').toLowerCase();
+        if (brandId != null && bNorm) {
+          if (
+            itemNorm === `${prodNorm} (${bNorm})` ||
+            (itemNorm.startsWith(prodNorm) && itemNorm.includes(`(${bNorm})`))
+          ) {
+            return it;
+          }
+        } else if (brandId == null) {
+          if (itemNorm === prodNorm) return it;
+        }
+      }
+
+      return null;
+    },
+    [items]
+  );
+
+  // 4. Filtro e ordinamento alfabetico in memoria locale (Mazzo di Carte nel frontend)
   const filteredProducts = useMemo<ShoppingProductOption[]>(() => {
     const q = searchQuery.trim().toLowerCase();
     let list = products;
@@ -91,7 +167,10 @@ export const useShoppingQuickCatalogLogic = ({
       list = list.filter((p) => {
         const name = (p.displayName || p.nameNormalized || '').toLowerCase();
         const brand = (p.brandName || '').toLowerCase();
-        return name.includes(q) || brand.includes(q);
+        const matchesSubBrand = p.productBrands?.some((pb) =>
+          (pb.brand?.nameNormalized || '').toLowerCase().includes(q)
+        );
+        return name.includes(q) || brand.includes(q) || Boolean(matchesSubBrand);
       });
     }
 
@@ -103,7 +182,7 @@ export const useShoppingQuickCatalogLogic = ({
     });
   }, [products, searchQuery, sortDirection]);
 
-  // 4. Conteggio istantaneo degli articoli inseriti
+  // 5. Conteggio istantaneo degli articoli inseriti
   const inListCount = useMemo<number>(() => {
     let count = 0;
     for (const p of products) {
@@ -122,6 +201,12 @@ export const useShoppingQuickCatalogLogic = ({
     setSortDirection,
     toggleSortDirection,
     getExistingItem,
+    getExistingItemForBrand,
+    expandedProductIds,
+    toggleProductExpand,
+    isProductExpanded,
+    mobileModalProduct,
+    setMobileModalProduct,
     filteredProducts,
     inListCount,
   };

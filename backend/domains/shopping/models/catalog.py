@@ -221,6 +221,7 @@ class ShoppingSupplier(Base):
 
     inventory_batches: Mapped[List["InventoryBatch"]] = relationship(
         "InventoryBatch",
+        foreign_keys="[InventoryBatch.supplier_id]",
         back_populates="supplier",
         lazy="selectin",
     )

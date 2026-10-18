@@ -9,6 +9,7 @@ import type {
   ConfigOption,
   ShoppingListSummary,
   ShoppingProductOption,
+  ShoppingProductBrandLink,
   ShoppingListItem,
 } from '@/types/shopping';
 
@@ -212,18 +213,27 @@ export function useShoppingCoreListLogic() {
   }, [lists, activeListId, setActiveListId]);
 
   const handleToggleCatalogItem = useCallback(
-    async (product: ShoppingProductOption, existingItem: ShoppingListItem | null) => {
+    async (
+      product: ShoppingProductOption,
+      existingItem: ShoppingListItem | null,
+      targetBrand?: ShoppingProductBrandLink | null
+    ) => {
       if (!activeListId) return;
       if (existingItem) {
         await mutations.deleteItem({ id: existingItem.id, listId: activeListId });
       } else {
         const displayName = (product.displayName || product.nameNormalized || '').trim();
         if (!displayName) return;
+        const brandId = targetBrand ? targetBrand.brandId : (product.brandId ?? undefined);
+        const brandName = targetBrand?.brand?.nameNormalized ?? product.brandName ?? undefined;
+        const brandNotes = targetBrand?.notes ?? undefined;
+
         await mutations.createItem({
           shoppingListId: activeListId,
           productName: displayName,
-          brandId: product.brandId ?? undefined,
-          brandName: product.brandName ?? undefined,
+          brandId: brandId ?? undefined,
+          brandName: brandName ?? undefined,
+          brandNotes: brandNotes ?? undefined,
           unitId: product.defaultUnitId ?? undefined,
           quantity: 1,
         });

@@ -108,6 +108,9 @@ export interface ShoppingProductBrandLink {
     nameNormalized: string;
     typeCode: number;
   } | null;
+  lastPrice?: number | null;
+  lastSupplierName?: string | null;
+  lastPurchaseDate?: string | null;
 }
 
 

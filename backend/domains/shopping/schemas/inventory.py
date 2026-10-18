@@ -172,6 +172,8 @@ class InventoryBatchResponse(ORMBaseModel):
     product_id: int
     list_item_id: Optional[int] = None
     supplier_id: Optional[int] = None
+    brand_id: Optional[int] = None
+    brand_name: Optional[str] = None
 
     purchase_date: date
     expiration_date: Optional[date] = None
