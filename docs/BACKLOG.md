@@ -69,6 +69,7 @@ Questo documento serve a tracciare in modo strutturato:
 | **SHOPPING-005** | **Pannello Laterale Recensioni & Giudizio Marchi in Aggiunta Prodotto** | `shopping` / `UI` | 🔴 Da Strutturare | 🔴 Da Implementare | 🟡 Media-Alta |
 | **SHOPPING-017** | **Supporto Marche, Prezzi e Storico Acquisti nell'Inserimento Rapido Catalogo Spesa** | `shopping` / `catalog` | 🟢 Completato | 🟢 Completato | 🟢 **Completato** |
 | **SHOPPING-018** | **Tracciamento Brand nei Lotti Spesa & Risoluzione Ambiguità Multi-Marca** | `shopping` / `db` | 🟢 Completato | 🟢 Completato | 🟢 **Completato** |
+| **SHOPPING-019** | **Inserimento Nuovo Brand e Nuovo Fornitore dalla Data Grid Lotti (input libero + datalist)** | `admin` / `shopping` | 🟢 Completato | 🟢 Completato | 🟢 **Completato** |
 
 | **FEAT-013** | **Archivio Notifiche / Sezione Storico Notifiche** | `notifications` / UI | 🟢 Completato | 🟡 Da Implementare | 🟡 Media |
 

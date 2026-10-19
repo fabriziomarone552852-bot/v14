@@ -198,24 +198,34 @@ export const AdminShoppingDataGridRow: React.FC<AdminShoppingDataGridRowProps> =
 
       {/* 4. Brand / Produttore */}
       <td className="py-2 px-2 min-w-[220px] w-56">
-        <select
-          value={batch.brandId ?? ''}
-          disabled={disabled}
-          onChange={(e) => {
-            const val = e.target.value ? Number(e.target.value) : null;
-            const matchedBrand = brands.find((b) => b.id === val);
-            onCellChange(batch.id, 'brandId', val);
-            onCellChange(batch.id, 'brandName', matchedBrand?.name ?? null);
-          }}
-          className="w-full px-2.5 py-1 text-xs font-medium border border-slate-200 rounded-lg bg-white/90 outline-none focus:border-sky-500 cursor-pointer"
-        >
-          <option value="">- Nessun Brand -</option>
-          {brands.map((b) => (
-            <option key={b.id} value={b.id}>
-              {b.name}
-            </option>
-          ))}
-        </select>
+        <div className="space-y-0.5">
+          <input
+            type="text"
+            list={`brand-options-${batch.id}`}
+            value={batch.brandName || ''}
+            disabled={disabled}
+            placeholder="Brand / Produttore..."
+            onChange={(e) => {
+              const val = e.target.value;
+              const matched = brands.find(
+                (b) => b.name.toLowerCase() === val.trim().toLowerCase()
+              );
+              onCellChange(batch.id, 'brandName', val);
+              onCellChange(batch.id, 'brandId', matched ? matched.id : null);
+            }}
+            className="w-full px-2 py-1 text-xs font-medium border border-slate-200 rounded-lg bg-white/90 outline-none focus:border-sky-500"
+          />
+          <datalist id={`brand-options-${batch.id}`}>
+            {brands.map((b) => (
+              <option key={b.id} value={b.name} />
+            ))}
+          </datalist>
+          {batch.brandName && !batch.brandId && (
+            <div className="text-[10px] text-emerald-600 font-semibold px-1">
+              ✨ Nuovo brand — verrà creato al salvataggio
+            </div>
+          )}
+        </div>
       </td>
 
       {/* 4b. Valutazione Brand / Prodotto */}
@@ -229,26 +239,38 @@ export const AdminShoppingDataGridRow: React.FC<AdminShoppingDataGridRowProps> =
 
       {/* 5. Supermercato / Fornitore */}
       <td className="py-2 px-2 min-w-[140px]">
-        <select
-          value={batch.supplierId ?? ''}
-          disabled={disabled}
-          onChange={(e) => {
-            const val = e.target.value ? Number(e.target.value) : null;
-            const matchedSup = suppliers.find((s) => s.id === val);
-            onCellChange(batch.id, 'supplierId', val);
-            onCellChange(batch.id, 'supplierName', matchedSup?.name ?? null);
-          }}
-          className={`w-full px-2 py-1 text-xs border rounded-lg bg-white/90 outline-none focus:border-sky-500 cursor-pointer ${
-            !batch.supplierId ? 'border-amber-300 text-amber-800 bg-amber-50/50' : 'border-slate-200'
-          }`}
-        >
-          <option value="">⚠️ Negozio non assegnato</option>
-          {suppliers.map((s) => (
-            <option key={s.id} value={s.id}>
-              {s.name}
-            </option>
-          ))}
-        </select>
+        <div className="space-y-0.5">
+          <input
+            type="text"
+            list={`supplier-options-${batch.id}`}
+            value={batch.supplierName || ''}
+            disabled={disabled}
+            placeholder="⚠️ Negozio non assegnato"
+            onChange={(e) => {
+              const val = e.target.value;
+              const matched = suppliers.find(
+                (s) => s.name.toLowerCase() === val.trim().toLowerCase()
+              );
+              onCellChange(batch.id, 'supplierName', val);
+              onCellChange(batch.id, 'supplierId', matched ? matched.id : null);
+            }}
+            className={`w-full px-2 py-1 text-xs border rounded-lg bg-white/90 outline-none focus:border-sky-500 ${
+              !batch.supplierId && !batch.supplierName
+                ? 'border-amber-300 text-amber-800 bg-amber-50/50'
+                : 'border-slate-200'
+            }`}
+          />
+          <datalist id={`supplier-options-${batch.id}`}>
+            {suppliers.map((s) => (
+              <option key={s.id} value={s.name} />
+            ))}
+          </datalist>
+          {batch.supplierName && !batch.supplierId && (
+            <div className="text-[10px] text-emerald-600 font-semibold px-1">
+              ✨ Nuovo negozio — verrà creato al salvataggio
+            </div>
+          )}
+        </div>
       </td>
 
       {/* 6. Quantità Acquistata */}

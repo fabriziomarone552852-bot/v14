@@ -408,6 +408,23 @@ def list_brands(
 
 
 @router.post(
+    "/brands",
+    response_model=ShoppingSupplierResponse,
+    status_code=status.HTTP_201_CREATED,
+)
+def create_brand(
+    supplier_in: ShoppingSupplierCreate,
+    db: Session = Depends(deps.get_db),
+    current_user: User = Depends(deps.get_current_app_user),
+):
+    """Crea un nuovo brand (type_code=2). Se esiste già come fornitore viene promosso a tipo 3."""
+    from copy import deepcopy
+    brand_in = deepcopy(supplier_in)
+    brand_in.type_code = 2
+    return service.create_supplier(db, current_user, brand_in)
+
+
+@router.post(
     "/suppliers",
     response_model=ShoppingSupplierResponse,
     status_code=status.HTTP_201_CREATED,
