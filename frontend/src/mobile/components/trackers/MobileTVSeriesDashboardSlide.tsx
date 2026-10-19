@@ -4,7 +4,8 @@ import { HighlightCardItem } from './HighlightCardItem';
 import { MobileSeriesDashboardBanners } from './MobileSeriesDashboardBanners';
 
 export interface MobileTVSeriesDashboardSlideProps {
-  activePageIndex: number;
+  activePageIndex?: number;
+  className?: string;
   goalPercent: number;
   currentEpisodes: number;
   goal: number;
@@ -21,7 +22,8 @@ export interface MobileTVSeriesDashboardSlideProps {
 }
 
 export const MobileTVSeriesDashboardSlide: React.FC<MobileTVSeriesDashboardSlideProps> = ({
-  activePageIndex,
+  activePageIndex = 2,
+  className = '',
   goalPercent,
   currentEpisodes,
   goal,
@@ -45,10 +47,8 @@ export const MobileTVSeriesDashboardSlide: React.FC<MobileTVSeriesDashboardSlide
 
   return (
     <div
-      className={`absolute inset-0 w-full h-full flex flex-col justify-between overflow-hidden p-2 gap-2 transition-transform duration-300 ease-out ${
-        activePageIndex === 1
-          ? 'translate-x-0 pointer-events-auto'
-          : 'translate-x-full pointer-events-none'
+      className={`absolute inset-0 w-full h-full flex flex-col justify-between overflow-hidden p-2 gap-2 transition-all duration-300 ease-out ${
+        className || (activePageIndex === 2 ? 'translate-x-0 pointer-events-auto z-10' : 'translate-x-full pointer-events-none z-0')
       }`}
     >
       {/* 1. OBIETTIVO ANNUALE EPISODI (SENZA NUVOLA ATTORNO, SENZA MARGINE, SENZA SFONDO NERO) */}

@@ -1,6 +1,119 @@
 # ðŸ—„ï¸� Backlog Archivio (Task Completati)
 
-Questo file contiene i task storici che sono stati completati e rimossi dal `BACKLOG.md` principale per mantenere il documento snello.
+Questo file contiene lo storico completo e strutturato di tutte le funzionalità e le attività tecniche che sono state **completate con successo** e archiviate, rimosse dal [`BACKLOG.md`](file:///c:/Users/Fabrizio/Desktop/app/smart/v14/docs/BACKLOG.md) principale per mantenerlo focalizzato, snello e immediatamente consultabile.
+
+---
+
+## 📑 Indice Rapido Task Completati
+
+| ID | Attività / Funzionalità | Ambito | Stato Backend | Stato Frontend | Data Completamento |
+| :--- | :--- | :---: | :---: | :---: | :---: |
+| **CORE-001** | Refactoring Globale & Pulizia Architetturale (0 any, 19 domini) | `core` / arch | 🟢 Completato | 🟢 Completato | Ottobre 2026 |
+| **CORE-002** | Refactoring Continuo, Modularità & Cleanup Codice (File <300 righe) | `core` / arch | 🟢 Completato | 🟢 Completato | Ottobre 2026 |
+| **REBRAND-001** | Rebranding App con Nome "Vita" e Nuova Icona Applicazione | `brand` / UI | 🟢 Completato | 🟢 Completato | Ottobre 2026 |
+| **MEDIA-001** | Upload Foto Dispositivo, Caching URL, GIF As-Is & WebP | `media` / storage | 🟢 Completato | 🟢 Completato | Settembre 2026 |
+| **CAL-001** | Sincronizzazione Timezone Google Calendar (+2h fix) & Preselezione Data | `calendar` / mobile | 🟢 Completato | 🟢 Completato | Settembre 2026 |
+| **FEAT-007** | Sistema Amicizie & Condivisione Recensioni (Social/Sharing Network) | `social` / media | 🟢 Completato | 🟢 Completato | Ottobre 2026 |
+| **FEAT-008** | Sistema Segnalazione Errori, Feedback & Bug Report (Telemetria & Admin) | `support` / feedback | 🟢 Completato | 🟢 Completato | Ottobre 2026 |
+| **FEAT-012** | Pagina di Avvio Pinnata / Selezione Landing Page Predefinita | `settings` / UI | 🟢 Completato | 🟢 Completato | Ottobre 2026 |
+| **OFFLINE-001** | Modalità Offline-First & Sincronizzazione Differita (Outbox Sync) | `sync` / mobile | 🟢 Completato | 🟢 Completato | Ottobre 2026 |
+| **TECH-001** | Verifica & Ottimizzazione Bundle APK Android (Code-Splitting) | `build` / APK | N/A | 🟢 Completato | Settembre 2026 |
+| **TECH-002** | Spostamento Tasto Switch in Impostazioni / Danger Zone | `routing` / UI | N/A | 🟢 Completato | Settembre 2026 |
+| **TECH-003** | Persistenza Volume Uploads su Docker NAS | `build` / docker | 🟢 Completato | 🟢 Completato | Ottobre 2026 |
+| **TECH-004** | Reverse Proxy Nginx, Routing API & Crash AppShellLayout (Docker) | `build` / docker | 🟢 Completato | 🟢 Completato | Ottobre 2026 |
+| **TECH-005** | Risoluzione 502 Bad Gateway NAS & Automated Docker Smoke Test | `build` / docker | 🟢 Completato | 🟢 Completato | Ottobre 2026 |
+| **TECH-006** | Allineamento Migrazioni Alembic DB Produzione (NAS) & Fix Login 500 | `build` / db | 🟢 Completato | 🟢 Completato | Ottobre 2026 |
+| **TECH-007** | Configurazione TMDB Produzione NAS & Fix 500 Ricerca Serie | `build` / NAS | 🟢 Completato | 🟢 Completato | Ottobre 2026 |
+| **UI-001** | Selezione Multipla nella Versione Mobile (Spesa e Agenda) | `mobile` / UI | 🟢 Completato | 🟢 Completato | Settembre 2026 |
+| **FEAT-002** | Gestione Inventario Spesa, Inserimento Prezzi & Lotti (`inventory_batches`) | `shopping` | 🟢 Completato | 🟢 Completato | Settembre 2026 |
+| **SEED-001** | Pulizia Dati Seed Prodotti (Disaccoppiamento Brand e Catalogo Asettico) | `shopping` / seed | 🟢 Completato | 🟢 Completato | Ottobre 2026 |
+| **SHOPPING-006** | Ordinamento Intuitivo Unità di Misura Spesa (Canoniche + Alfabetico) | `shopping` / UI | 🟢 Completato | 🟢 Completato | Ottobre 2026 |
+| **SHOPPING-007** | Inserimento Rapido Catalogo & Selezione Multipla Spesa (Sposta/Copia) | `shopping` / UI | 🟢 Completato | 🟢 Completato | Ottobre 2026 |
+| **SHOPPING-008** | Refactoring Catalogo Prodotti, Tabella Ponte N:N con Note & Compattazione | `shopping` / DB | 🟢 Completato | 🟢 Completato | Ottobre 2026 |
+| **SHOPPING-009** | Allineamento "Mazzo di Carte" Cross-Dominio & Rimozione Limiti Catalogo | `core` / shopping | 🟢 Completato | 🟢 Completato | Ottobre 2026 |
+| **SHOPPING-010** | Precisione Quantità e Pesature Spesa a 3 Decimali (NUMERIC 12,3) | `shopping` / DB | 🟢 Completato | 🟢 Completato | Ottobre 2026 |
+| **SHOPPING-011** | Gestione ed Editing Rapido Scontrini della Sessione in Corso | `shopping` / admin | 🟢 Completato | 🟢 Completato | Ottobre 2026 |
+| **SHOPPING-012** | Hub Amministrazione Desktop con Data Grid Spesa, Eventi e Attività | `admin` / shopping | 🟢 Completato | 🟢 Completato | Ottobre 2026 |
+| **SHOPPING-013** | Valutazione & Opinioni sui Marchi dei Prodotti (Opzione C - 👍/👎) | `shopping` / catalog | 🟢 Completato | 🟢 Completato | Ottobre 2026 |
+| **SHOPPING-014** | Supporto Universale Separatori Decimali (Virgola e Punto) & Regola d'Oro | `core` / UI | 🟢 Completato | 🟢 Completato | Ottobre 2026 |
+| **SHOPPING-015** | Calcolo Inverso da Prezzo Unitario nelle Pagine Amministrative | `admin` / shopping | 🟢 Completato | 🟢 Completato | Ottobre 2026 |
+| **SHOPPING-016** | Micro Split-Pill Valutazione Brand, Pareggio Colonne & Snellimento Scontrini | `shopping` / admin | 🟢 Completato | 🟢 Completato | Ottobre 2026 |
+| **SHOPPING-017** | Marche, Prezzi e Storico Acquisti nell'Inserimento Rapido Catalogo Spesa | `shopping` / catalog | 🟢 Completato | 🟢 Completato | Ottobre 2026 |
+| **SHOPPING-018** | Tracciamento Brand nei Lotti Spesa & Risoluzione Ambiguità Multi-Marca | `shopping` / DB | 🟢 Completato | 🟢 Completato | Ottobre 2026 |
+| **TRACKERS-001** | Mobile TV Series Timeline & Restyling Card Episodi | `trackers` / mobile | 🟢 Completato | 🟢 Completato | Settembre 2026 |
+| **TRACKERS-002** | Mobile TV Series Detail Modal, Bottom Drawers & Gestione Liste | `trackers` / mobile | 🟢 Completato | 🟢 Completato | Settembre 2026 |
+| **TRACKERS-003** | Homepage Mobile TV Series: Feed Serie "In Corso" ("Diario Puntate Viste") | `trackers` / mobile | 🟢 Completato | 🟢 Completato | Ottobre 2026 |
+| **TRACKERS-006** | Mobile TV Episode Detail, Recensioni/Citazioni & Action Buttons Style | `trackers` / mobile | 🟢 Completato | 🟢 Completato | Ottobre 2026 |
+| **TRACKERS-008** | Riorganizzazione 3 Pagine Serie TV Circolari, Diario & Gestione Rewatch | `trackers` / mobile | 🟢 Completato | 🟢 Completato | Ottobre 2026 |
+| **TRACKERS-009** | Restyling Seconda Pagina / Dashboard Serie TV Mobile, Banner & Collage | `trackers` / mobile | 🟢 Completato | 🟢 Completato | Ottobre 2026 |
+| **TRACKERS-011** | Modale Statistiche Serie TV Mobile a Schermo Intero & Scorrimento Continuo | `trackers` / mobile | 🟢 Completato | 🟢 Completato | Ottobre 2026 |
+| **TRACKERS-012** | Restyling Catalogo Mobile ("Le tue serie"), 4 Aree Tematiche & Ricerca | `trackers` / mobile | 🟢 Completato | 🟢 Completato | Ottobre 2026 |
+| **TRACKERS-013** | Restyling Modale Liste Personali Mobile ("Le mie liste"), Ordinamento & Tasto "+" | `trackers` / mobile | 🟢 Completato | 🟢 Completato | Ottobre 2026 |
+| **TRACKERS-004** | Analisi Date di Uscita Italiane vs TMDB (Chiuso: non supportato da API TMDB) | `trackers` / API | ❌ Chiuso | ❌ Chiuso | Ottobre 2026 |
+| **FEAT-004 (Completati)** | Liste Multimediali Miste, Ricerca per Lista, Commenti, Notifiche, Chat Effimera | `media` / social | 🟢 Completato | 🟢 Completato | Ottobre 2026 |
+
+---
+
+### [TRACKERS-008] Riorganizzazione 3 Pagine Serie TV Circolari, Diario Puntate Viste, Gestione Rewatch & Rifiniture Mobile (🟢 Completato)
+
+#### 📋 Descrizione
+Riorganizzazione completa della sezione mobile delle Serie TV in 3 schermate a scorrimento circolare continuo e introduzione del Diario Puntate come nuova pagina principale, corredato da supporto avanzato al rewatch e rifiniture UX touch:
+- **Navigazione a 3 Pagine Circolari (Loop Continuo)**:
+  - **Pagina 1 (Centrale / Home all'apertura)**: **Diario Episodi** (`MobileTVSeriesDiarySlide`).
+  - **Pagina 0 (A sinistra del Diario)**: **Prossime Uscite** (`MobileTVEpisodesTimeline` con calendario e uscite).
+  - **Pagina 2 (A destra del Diario)**: **Dashboard, Obiettivo Annuale & Catalogo** (`MobileTVSeriesDashboardSlide`).
+  - Transizioni swipe circolari senza fine corsa (`Timeline -> Diario -> Dashboard -> Timeline`) e barra indicatore inferiore con 3 pallini dinamici (`MobileTVPaginationDots`).
+- **Nuovo Diario Episodi & Pillole Uniformate**:
+  - Vista verticale suddivisa da pillole grigie sobrie (`MobileTVDiarySectionPill`) prive di icone, emoji e contatori, conformi allo stile del catalogo: *"Storico puntate viste"*, *"I prossimi da guardare"*, *"Da riprendere"* (serie ferme da >30 giorni) e *"Nuove serie"*.
+  - **Ordinamento Storico Naturale dal Basso verso l'Alto**: Le puntate viste più di recente compaiono subito sopra l'ancora centrale, mentre risalendo con lo scroll verso l'alto si accede alle visioni progressivamente più remote nel tempo.
+  - **Apertura Istantanea Livellata**: Rimossi scatti e animazioni parassite con posizionamento istantaneo su *"I prossimi da guardare"* via `useLayoutEffect`.
+  - **Tasto Torna a Oggi Circolare**: Tasto flottante circolare blu con freccia dinamica (`TimelineBackToTodayButton`), identico a quello della Timeline uscite.
+  - **Esclusione Episodi Speciali (S00)**: Gli episodi speciali (`season_number <= 0`) vengono rigorosamente esclusi dal calcolo dei prossimi episodi da guardare e dai contatori residui.
+- **Card Episodio Diario Ridisegnata (`MobileTVEpisodeDiaryCard`)**:
+  - Nuova gerarchia delle informazioni: Data in alto, codice & titolo episodio con badge `+ N` senza sfondo, pillola cliccabile della Serie TV al di sotto.
+  - Pieno supporto alle locandine personalizzate dell'utente (`custom_poster_path`) sia nelle card del Diario sia nella schermata Prossime Uscite.
+- **Apertura a "Solo Episodio" da Diario e Prossime Uscite**:
+  - Toccando un episodio da queste due viste, l'episodio viene visualizzato a tutto schermo senza bottom bar delle serie.
+  - Chiudendo con la "X" o con il tasto fisico Indietro di Android, l'utente torna direttamente alla schermata principale di partenza (Diario o Prossime Uscite).
+- **Gestione Completa del Rewatch**:
+  - Dialog touch di conferma al tap su un episodio già visto: scelta tra visione singola dell'episodio o riavvio sequenziale dell'intera serie (`is_rewatching: true`).
+  - Nuova opzione *"Interrompi Rewatch"* nel menu a tre puntini della serie (`MobileSeriesOptionsModal`), visibile solo quando il rewatch è attivo, per arrestare il ciclo e rimuovere la serie dai prossimi da guardare.
+  - Migrazione Alembic difensiva per la colonna `is_rewatching` su `user_series_tracking` applicata sia sull'ambiente di test che sul NAS di produzione.
+- **Ottimizzazione Voti & Recensioni**:
+  - Risolta la duplicazione involontaria dei log quando si clicca su *"Ancora nessun voto / Aggiungilo!"*: se l'episodio o la serie ha già un log salvato nel DB (anche privo di voto numerico), viene aperta la lista delle proprie recensioni (`reviews` / `my_reviews`) per consentire la modifica del log esistente.
+
+---
+
+### [TRACKERS-013] Restyling Modale Liste Personali Mobile ("Le mie liste"), Ordinamento 2 Frecce, Tasto "+", Modale Creazione Lista & Vista Catalogo (🟢 Completato)
+
+#### 📋 Descrizione
+Riprogettazione completa, modulare e responsive del sistema di gestione delle liste personali per le Serie TV su dispositivi mobili (`MobileSeriesPersonalListsModal` e componenti correlati), totalmente indipendente dall'esperienza desktop:
+- **Header Multifunzione Dinamico**:
+  - Titolo contestuale ("Le mie liste" nella vista panoramica, nome della lista selezionata con freccia indietro per tornare alla panoramica quando aperta).
+  - Tasto ordinamento con icona a due frecce (`ArrowsUpDownIcon`) affiancato al tasto di creazione `+` (`PlusIcon` con stile Agenda) per filtrare le liste e le serie per stato di visione (*In visione*, *In lista*, *In attesa*, *Completate*).
+  - Rimozione automatica delle liste vuote se filtrate per uno stato non presente.
+  - Reset automatico del filtro su "Tutte" all'uscita dalla schermata.
+- **Card Orizzontale a Tutta Lunghezza & Collage**:
+  - Ogni lista nella panoramica è una card orizzontale a tutta larghezza con il titolo allineato a sinistra e il carosello orizzontale delle locandine ordinate cronologicamente dall'ultima aggiunta.
+  - Locandine disaccoppiate da click singoli (`pointer-events-none`) per consentire al tap su qualsiasi punto della card di aprire direttamente la lista.
+- **Selezione Multipla con Pressione Prolungata (Long-Press)**:
+  - Nella pagina panoramica di tutte le liste: attivazione selezione multipla tramite pressione prolungata (450ms) su una card.
+  - Se è selezionata 1 sola lista, l'header mostra i tasti Modifica (`PencilSquareIcon` / `EditIcon`) ed Elimina (`TrashIcon`).
+  - Se sono selezionate 2 o più liste, l'header mostra solo il tasto Elimina (`TrashIcon`).
+  - All'interno di una singola lista: pressione prolungata sulle locandine delle serie (con alone blu semi-trasparente `bg-blue-600/30`, anello e spunta) per selezione multipla, mostrando nell'header il tasto Elimina (`TrashIcon`) per rimuovere in blocco le serie selezionate dalla lista.
+- **Modale Creazione & Modifica Lista Touch-Friendly (`MobileSeriesCreateListModal`)**:
+  - Apertura al tocco del tasto `+` o in modalità modifica.
+  - Input nome della lista in alto e barra di ricerca integrata con TMDB e catalogo personale.
+  - Griglia locandine con selezione touch (bordo colorato di stato, alone blu e spunta).
+  - Footer a due colonne: a sinistra il selettore privacy compatto (Privata / Condivisa / Pubblica), a destra il tasto Salva ben visibile.
+- **Navigazione & Gerarchia Z-Index / Back Handler**:
+  - Apertura delle serie dal catalogo della lista con preservazione della schermata: alla chiusura del dettaglio serie con la "X" o tasto Indietro nativo, l'utente torna alla lista corrente e non alla home delle serie.
+  - Elevazione z-index a `z-[10030]` e priorità `useBackHandler` a 28 per `MobileTVSeriesDetailModal`.
+- **Modularità e Conformità Regola 7.3**:
+  - Estrazione completa della logica e dello stato nel custom hook `useMobileSeriesPersonalListsLogic.ts`.
+  - Componenti snelli (<300 righe): `MobileSeriesPersonalListsModal.tsx`, `MobileSeriesListOverviewCard.tsx`, `MobileSeriesCreateListModal.tsx`.
+
+---
 
 ### [SHOPPING-019] Inserimento Nuovo Brand e Nuovo Fornitore dalla Data Grid Lotti (🟢 Completato — Ottobre 2026)
 

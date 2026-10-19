@@ -1,11 +1,20 @@
 // src/mobile/components/trackers/MobileSeriesPersonalListsModal.tsx
-import React, { useState } from 'react';
+import React from 'react';
 import { createPortal } from 'react-dom';
 import type { MediaList, TVSeries } from '@/types/trackers';
-import { CloseIcon, PlusIcon, TvIcon } from '@/components/shared/utils/Icons';
 import { EmptyState } from '@/components/shared/utils/EmptyState';
-import { resolveImageUrl } from '@/utils/imageUtils';
 import { useBackHandler } from '@/utils/backButtonManager';
+import { EditIcon, TrashIcon } from '@/components/shared/utils/Icons';
+import ConfirmDialog from '@/components/shared/dialog/ConfirmDialog';
+import {
+  MobileSeriesCatalogHeader,
+  MobileSeriesCatalogGrid,
+} from './catalog';
+import { MobileSeriesListOverviewCard } from './MobileSeriesListOverviewCard';
+import { MobileSeriesSortFilterModal } from './MobileSeriesSortFilterModal';
+import { MobileSeriesCreateListModal } from './MobileSeriesCreateListModal';
+import { useFadeScrollbar } from '@/hooks/ui/useFadeScrollbar';
+import { useMobileSeriesPersonalListsLogic } from './hooks/useMobileSeriesPersonalListsLogic';
 
 export interface MobileSeriesPersonalListsModalProps {
   isOpen: boolean;
@@ -13,7 +22,7 @@ export interface MobileSeriesPersonalListsModalProps {
   myLists: MediaList[];
   series: TVSeries[];
   onOpenSeriesDetail: (series: TVSeries | Partial<TVSeries>) => void;
-  onOpenListManager: () => void;
+  onOpenListManager?: () => void;
   initialSelectedList?: MediaList | null;
 }
 
@@ -23,25 +32,53 @@ export const MobileSeriesPersonalListsModal: React.FC<MobileSeriesPersonalListsM
   myLists,
   series,
   onOpenSeriesDetail,
-  onOpenListManager,
+  onOpenListManager: _onOpenListManager,
   initialSelectedList,
 }) => {
-  const [selectedList, setSelectedList] = useState<MediaList | null>(initialSelectedList || null);
+  const {
+    selectedList,
+    setSelectedList,
+    statusFilter,
+    setStatusFilter,
+    listSort,
+    setListSort,
+    seriesSort,
+    setSeriesSort,
+    isSortModalOpen,
+    setIsSortModalOpen,
+    isCreateModalOpen,
+    setIsCreateModalOpen,
+    listToEdit,
+    setListToEdit,
+    selectedListIds,
+    toggleListSelection,
+    clearListSelection,
+    selectedSeriesTmdbIds,
+    toggleSeriesSelection,
+    confirmDeleteDialog,
+    openDeleteConfirm,
+    closeDeleteConfirm,
+    executeDelete,
+    openEditSelectedList,
+    handleBack,
+    sortedLists,
+    selectedListSeries,
+    hasActiveSortOrFilter,
+  } = useMobileSeriesPersonalListsLogic({
+    isOpen,
+    onClose,
+    myLists,
+    series,
+    initialSelectedList,
+  });
 
-  React.useEffect(() => {
-    if (isOpen) {
-      setSelectedList(initialSelectedList || null);
-    }
-  }, [isOpen, initialSelectedList]);
+  const { handleScroll, scrollbarClass } = useFadeScrollbar();
 
+  // Gestione back hardware Android con priorità 25
   useBackHandler(
     isOpen,
     () => {
-      if (selectedList) {
-        setSelectedList(null);
-        return true;
-      }
-      onClose();
+      handleBack();
       return true;
     },
     25
@@ -49,198 +86,298 @@ export const MobileSeriesPersonalListsModal: React.FC<MobileSeriesPersonalListsM
 
   if (!isOpen) return null;
 
-  return createPortal(
-    <div className="fixed inset-0 z-[10025] bg-gray-50 flex flex-col h-[100dvh] w-full overflow-hidden pointer-events-auto animate-fadeIn select-none">
-      {/* HEADER SUPERIORE */}
-      <div className="shrink-0 bg-white border-b border-gray-200/90 px-4 pt-3 pb-2.5 flex items-center justify-between shadow-2xs">
-        <div className="flex items-center gap-2.5">
-          {selectedList && (
+  // Header Title dinamico
+  const getHeaderTitle = () => {
+    if (selectedList) {
+      if (selectedSeriesTmdbIds.length > 0) {
+        return `${selectedSeriesTmdbIds.length} selezionat${selectedSeriesTmdbIds.length === 1 ? 'a' : 'e'}`;
+      }
+      return selectedList.name;
+    }
+    if (selectedListIds.length > 0) {
+      return `${selectedListIds.length} selezionat${selectedListIds.length === 1 ? 'a' : 'e'}`;
+    }
+    return 'Le mie liste';
+  };
+
+  // Header Right Actions dinamico
+  const renderHeaderRightActions = () => {
+    // 1. All'interno di una lista specifica
+    if (selectedList) {
+      if (selectedSeriesTmdbIds.length > 0) {
+        return (
+          <div className="flex items-center gap-1 animate-fadeIn">
             <button
               type="button"
-              onClick={() => setSelectedList(null)}
-              className="w-8 h-8 rounded-xl bg-gray-100 text-gray-700 flex items-center justify-center cursor-pointer active:scale-90"
-              aria-label="Torna alle liste"
+              onClick={() => openDeleteConfirm('series')}
+              className="p-2 text-red-600 hover:text-red-700 hover:bg-red-50 rounded-xl active:scale-95 transition-all cursor-pointer flex items-center justify-center"
+              title="Rimuovi serie dalla lista"
+              aria-label="Rimuovi serie dalla lista"
             >
-              <span className="font-bold text-sm">←</span>
+              <TrashIcon className="h-5 w-5" />
             </button>
-          )}
-
-          <div className="w-8 h-8 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center">
-            <span className="text-base leading-none">📁</span>
           </div>
+        );
+      }
 
-          <div>
-            <h2 className="text-sm font-black text-gray-900 leading-tight">
-              {selectedList ? selectedList.name : 'Liste Personali'}
-            </h2>
-            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">
-              {selectedList
-                ? `${selectedList.items?.length || 0} serie salvate`
-                : `${myLists.length} ${myLists.length === 1 ? 'raccolta creata' : 'raccolte create'}`}
-            </p>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-1.5">
-          {!selectedList && (
-            <button
-              type="button"
-              onClick={onOpenListManager}
-              className="px-2.5 py-1.5 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs font-extrabold flex items-center gap-1 cursor-pointer active:scale-95 transition-all shadow-2xs border border-indigo-200/70"
-            >
-              <PlusIcon className="w-3.5 h-3.5" />
-              <span>Nuova</span>
-            </button>
-          )}
-
+      // Nessuna serie selezionata nella lista: mostra ordinamento e crea
+      return (
+        <div className="flex items-center gap-1">
           <button
             type="button"
-            onClick={onClose}
-            className="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-600 flex items-center justify-center transition-colors active:scale-90 cursor-pointer"
-            aria-label="Chiudi modale liste"
+            onClick={() => setIsSortModalOpen(true)}
+            className={`relative w-9 h-9 rounded-xl active:scale-95 transition-all cursor-pointer flex items-center justify-center ${
+              hasActiveSortOrFilter
+                ? 'bg-blue-50 text-blue-600 font-bold'
+                : 'text-gray-700 hover:text-gray-900 hover:bg-gray-100'
+            }`}
+            title="Filtra e ordina"
+            aria-label="Filtra e ordina"
           >
-            <CloseIcon className="w-4 h-4" />
+            <svg
+              className="w-5 h-5 text-gray-800"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={2}
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M3 7.5L7.5 3m0 0L12 7.5M7.5 3v13.5m13.5 0L16.5 21m0 0L12 16.5m4.5 4.5V7.5"
+              />
+            </svg>
+            {hasActiveSortOrFilter && (
+              <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-blue-600 rounded-full border border-white" />
+            )}
           </button>
         </div>
+      );
+    }
+
+    // 2. Nella vista panoramica di tutte le liste
+    if (selectedListIds.length > 0) {
+      return (
+        <div className="flex items-center gap-1 animate-fadeIn">
+          {/* Se è selezionata 1 sola lista, mostra il tasto modifica */}
+          {selectedListIds.length === 1 && (
+            <button
+              type="button"
+              onClick={openEditSelectedList}
+              className="p-2 text-gray-700 hover:text-blue-600 hover:bg-blue-50 rounded-xl active:scale-95 transition-all cursor-pointer flex items-center justify-center"
+              title="Modifica lista"
+              aria-label="Modifica lista"
+            >
+              <EditIcon className="h-5 w-5" />
+            </button>
+          )}
+
+          {/* Tasto elimina lista/liste */}
+          <button
+            type="button"
+            onClick={() => openDeleteConfirm('lists')}
+            className="p-2 text-red-600 hover:text-red-700 hover:bg-red-50 rounded-xl active:scale-95 transition-all cursor-pointer flex items-center justify-center"
+            title="Elimina lista selezionata"
+            aria-label="Elimina lista selezionata"
+          >
+            <TrashIcon className="h-5 w-5" />
+          </button>
+        </div>
+      );
+    }
+
+    // Nessuna lista selezionata: mostra ordina/filtra e crea nuova lista (+)
+    return (
+      <div className="flex items-center gap-1">
+        <button
+          type="button"
+          onClick={() => setIsSortModalOpen(true)}
+          className={`relative w-9 h-9 rounded-xl active:scale-95 transition-all cursor-pointer flex items-center justify-center ${
+            hasActiveSortOrFilter
+              ? 'bg-blue-50 text-blue-600 font-bold'
+              : 'text-gray-700 hover:text-gray-900 hover:bg-gray-100'
+          }`}
+          title="Filtra e ordina"
+          aria-label="Filtra e ordina"
+        >
+          <svg
+            className="w-5 h-5 text-gray-800"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            strokeWidth={2}
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M3 7.5L7.5 3m0 0L12 7.5M7.5 3v13.5m13.5 0L16.5 21m0 0L12 16.5m4.5 4.5V7.5"
+            />
+          </svg>
+          {hasActiveSortOrFilter && (
+            <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-blue-600 rounded-full border border-white" />
+          )}
+        </button>
+
+        <button
+          type="button"
+          onClick={() => {
+            setListToEdit(null);
+            setIsCreateModalOpen(true);
+          }}
+          className="w-9 h-9 rounded-xl text-gray-700 hover:text-gray-900 hover:bg-gray-100 active:scale-95 transition-all focus:outline-none cursor-pointer flex items-center justify-center"
+          title="Crea nuova lista"
+          aria-label="Crea nuova lista"
+        >
+          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+          </svg>
+        </button>
       </div>
+    );
+  };
 
-      {/* CONTENUTO SCROLLABILE */}
-      <div className="flex-1 min-h-0 overflow-y-auto p-3.5 space-y-3 custom-scrollbar">
-        {selectedList ? (
-          /* VISTA DETTAGLIO LISTA SELEZIONATA */
-          <div>
-            {!selectedList.items || selectedList.items.length === 0 ? (
-              <div className="h-64 flex flex-col items-center justify-center">
-                <EmptyState message="Nessuna serie salvata in questa lista." />
-              </div>
+  return createPortal(
+    <div className="fixed inset-0 z-[10025] bg-gray-50 flex flex-col h-[100dvh] w-full overflow-hidden pointer-events-auto animate-fadeIn select-none">
+      {/* 1. HEADER: TITOLO DINAMICO E AZIONI CONDIZIONATE DALLA SELEZIONE */}
+      <MobileSeriesCatalogHeader
+        title={getHeaderTitle()}
+        onBack={handleBack}
+        rightActions={renderHeaderRightActions()}
+      />
+
+      {/* 2. CONTENUTO CENTRALE: DETTAGLIO LISTA (CATALOGO) OPPURE PANORAMICA DELLE LISTE */}
+      {selectedList ? (
+        <MobileSeriesCatalogGrid
+          series={selectedListSeries}
+          onSelectSeries={(item) => {
+            // Non chiudiamo il modale delle liste: la scheda serie si apre sopra (z-[10030])
+            onOpenSeriesDetail(item);
+          }}
+          hasActiveFilters={statusFilter !== 'all'}
+          onResetFilters={() => setStatusFilter('all')}
+          emptyMessage="Nessuna serie presente in questa lista"
+          resetFiltersLabel="Mostra tutte le serie"
+          selectedSeriesTmdbIds={selectedSeriesTmdbIds}
+          onToggleSelectSeries={toggleSeriesSelection}
+        />
+      ) : (
+        /* VISTA ELENCO DI TUTTE LE LISTE */
+        <div
+          onScroll={handleScroll}
+          className={`flex-1 min-h-0 overflow-y-auto p-3 sm:p-3.5 space-y-3 ${scrollbarClass}`}
+        >
+          {sortedLists.length === 0 ? (
+            <div className="h-64 flex flex-col items-center justify-center text-center p-4">
+              {myLists.length === 0 ? (
+                <>
+                  <EmptyState message="Non hai ancora creato nessuna lista personale." />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setListToEdit(null);
+                      setIsCreateModalOpen(true);
+                    }}
+                    className="mt-4 px-4 py-2 bg-blue-600 text-white text-xs font-bold rounded-xl shadow-xs cursor-pointer active:scale-95 transition-all"
+                  >
+                    Crea la tua prima lista
+                  </button>
+                </>
+              ) : (
+                <>
+                  <EmptyState message="Nessuna lista contiene serie corrispondenti allo stato selezionato." />
+                  <button
+                    type="button"
+                    onClick={() => setStatusFilter('all')}
+                    className="mt-4 px-4 py-2 bg-blue-50 text-blue-600 text-xs font-bold rounded-xl shadow-2xs cursor-pointer active:scale-95 transition-all hover:bg-blue-100"
+                  >
+                    Mostra tutte le serie
+                  </button>
+                </>
+              )}
+            </div>
+          ) : (
+            sortedLists.map((list) => (
+              <MobileSeriesListOverviewCard
+                key={list.id}
+                list={list}
+                series={series}
+                activeTab={statusFilter}
+                onSelectList={(targetList) => {
+                  setSelectedList(targetList);
+                }}
+                isSelected={selectedListIds.includes(list.id)}
+                isSelectionActive={selectedListIds.length > 0}
+                onToggleSelect={toggleListSelection}
+              />
+            ))
+          )}
+        </div>
+      )}
+
+      {/* 3. MODALE FILTRO & ORDINAMENTO */}
+      <MobileSeriesSortFilterModal
+        isOpen={isSortModalOpen}
+        onClose={() => setIsSortModalOpen(false)}
+        mode={selectedList ? 'series' : 'lists'}
+        statusFilter={statusFilter}
+        onSelectStatusFilter={(newStatus) => {
+          setStatusFilter(newStatus);
+          setIsSortModalOpen(false);
+        }}
+        sortOption={selectedList ? seriesSort : listSort}
+        onSelectSortOption={(sort) => {
+          if (selectedList) {
+            setSeriesSort(sort);
+          } else {
+            setListSort(sort);
+          }
+          setIsSortModalOpen(false);
+        }}
+      />
+
+      {/* 4. MODALE CREAZIONE / MODIFICA LISTA */}
+      <MobileSeriesCreateListModal
+        isOpen={isCreateModalOpen}
+        onClose={() => {
+          setIsCreateModalOpen(false);
+          setListToEdit(null);
+          clearListSelection();
+        }}
+        series={series}
+        listToEdit={listToEdit}
+      />
+
+      {/* 5. DIALOG CONFERMA ELIMINAZIONE BATCH */}
+      <ConfirmDialog
+        isOpen={confirmDeleteDialog.isOpen}
+        title={
+          confirmDeleteDialog.type === 'lists'
+            ? confirmDeleteDialog.count === 1
+              ? 'Elimina lista'
+              : 'Elimina liste'
+            : confirmDeleteDialog.count === 1
+            ? 'Rimuovi serie'
+            : 'Rimuovi serie'
+        }
+        message={
+          confirmDeleteDialog.type === 'lists' ? (
+            confirmDeleteDialog.count === 1 ? (
+              'Vuoi davvero eliminare questa lista? L\'operazione non potrà essere annullata.'
             ) : (
-              <div className="flex flex-col gap-2">
-                {selectedList.items.map((item) => {
-                  const existing = series.find((s) => s.tmdb_id === item.series_tmdb_id);
-                  const title = existing?.title || item.series?.title || 'Serie TV';
-                  const poster = existing?.custom_poster_path
-                    ? resolveImageUrl(existing.custom_poster_path)
-                    : existing?.poster_path
-                    ? `https://image.tmdb.org/t/p/w200${existing.poster_path}`
-                    : item.series?.poster_path
-                    ? `https://image.tmdb.org/t/p/w200${item.series.poster_path}`
-                    : null;
-
-                  return (
-                    <div
-                      key={item.id}
-                      onClick={() => {
-                        onClose();
-                        if (existing) {
-                          onOpenSeriesDetail(existing);
-                        } else {
-                          onOpenSeriesDetail({
-                            tmdb_id: item.series_tmdb_id ?? undefined,
-                            title,
-                            poster_path: item.series?.poster_path || null,
-                          });
-                        }
-                      }}
-                      className="bg-white rounded-2xl p-2.5 border border-gray-200/90 shadow-2xs flex items-center gap-3 cursor-pointer hover:bg-gray-50 active:scale-[0.99] transition-all"
-                    >
-                      <div className="w-12 h-16 rounded-xl bg-gray-900 shrink-0 overflow-hidden shadow-2xs border border-gray-100 flex items-center justify-center">
-                        {poster ? (
-                          <img
-                            src={poster}
-                            alt=""
-                            className="w-full h-full object-cover"
-                            loading="lazy"
-                          />
-                        ) : (
-                          <TvIcon className="w-5 h-5 text-gray-500 opacity-40" />
-                        )}
-                      </div>
-
-                      <div className="flex-1 min-w-0">
-                        <h4 className="text-xs sm:text-sm font-black text-gray-900 truncate">
-                          {title}
-                        </h4>
-                        {existing?.status && (
-                          <span className="text-[10px] font-bold text-gray-500 capitalize">
-                            {existing.status === 'watching'
-                              ? 'In corso'
-                              : existing.status === 'completed'
-                              ? 'Completata'
-                              : 'Da iniziare'}
-                          </span>
-                        )}
-                      </div>
-
-                      <span className="text-gray-300 text-sm font-bold pr-1">↗</span>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-          </div>
-        ) : (
-          /* VISTA ELENCO DI TUTTE LE LISTE PERSONALI */
-          <div>
-            {myLists.length === 0 ? (
-              <div className="h-64 flex flex-col items-center justify-center text-center">
-                <EmptyState message="Non hai ancora creato nessuna lista personale." />
-                <button
-                  type="button"
-                  onClick={onOpenListManager}
-                  className="mt-4 px-4 py-2 bg-indigo-600 text-white text-xs font-bold rounded-xl shadow-xs cursor-pointer active:scale-95"
-                >
-                  Crea la tua prima lista
-                </button>
-              </div>
-            ) : (
-              <div className="flex flex-col gap-2.5">
-                {myLists.map((list) => {
-                  const count = list.items?.length || 0;
-                  const privacyLabel =
-                    list.visibility === 'private'
-                      ? 'Solo Io'
-                      : list.visibility === 'friends'
-                      ? 'Amici'
-                      : 'Pubblico';
-
-                  return (
-                    <div
-                      key={list.id}
-                      onClick={() => setSelectedList(list)}
-                      className="bg-white rounded-2xl p-3.5 border border-gray-200/90 shadow-2xs flex items-center justify-between cursor-pointer hover:bg-gray-50 active:scale-[0.98] transition-all group"
-                    >
-                      <div className="flex items-center gap-3 min-w-0">
-                        <div className="w-10 h-10 rounded-xl bg-indigo-50 group-hover:bg-indigo-100 text-indigo-600 flex items-center justify-center shrink-0 transition-colors">
-                          <span className="text-lg">📁</span>
-                        </div>
-
-                        <div className="min-w-0">
-                          <h3 className="text-xs sm:text-sm font-black text-gray-900 truncate">
-                            {list.name}
-                          </h3>
-                          <div className="flex items-center gap-2 mt-0.5">
-                            <span className="text-[10px] font-extrabold text-indigo-700 bg-indigo-50 px-1.5 py-0.2 rounded border border-indigo-200/60">
-                              {count} {count === 1 ? 'serie' : 'serie'}
-                            </span>
-                            <span className="text-[10px] font-bold text-gray-400">
-                              {privacyLabel}
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="flex items-center gap-1 shrink-0 text-gray-400 group-hover:text-indigo-600 transition-colors">
-                        <span className="text-xs font-bold">Vedi</span>
-                        <span className="text-sm font-bold">→</span>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-          </div>
-        )}
-      </div>
+              `Vuoi davvero eliminare le ${confirmDeleteDialog.count} liste selezionate? L'operazione non potrà essere annullata.`
+            )
+          ) : confirmDeleteDialog.count === 1 ? (
+            'Vuoi rimuovere questa serie dalla lista?'
+          ) : (
+            `Vuoi rimuovere le ${confirmDeleteDialog.count} serie selezionate da questa lista?`
+          )
+        }
+        confirmText={confirmDeleteDialog.type === 'lists' ? 'Elimina' : 'Rimuovi'}
+        cancelText="Annulla"
+        isDestructive={true}
+        onConfirm={executeDelete}
+        onCancel={closeDeleteConfirm}
+      />
     </div>,
     document.body
   );

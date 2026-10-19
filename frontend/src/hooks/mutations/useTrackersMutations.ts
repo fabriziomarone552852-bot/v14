@@ -34,6 +34,7 @@ export const useTrackersMutations = () => {
       id: number;
       updates: {
         status?: string;
+        is_rewatching?: boolean;
         rating?: number;
         custom_poster_path?: string;
         custom_backdrop_path?: string;
@@ -258,6 +259,31 @@ export const useTrackersMutations = () => {
     },
   });
 
+  const updateListMutation = useMutation({
+    mutationFn: async ({
+      list_id,
+      payload,
+    }: {
+      list_id: number;
+      payload: { name?: string; description?: string; visibility?: string };
+    }) => {
+      const data = await api.patch<MediaList>(`/trackers/lists/${list_id}`, payload);
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['trackers', 'lists'] });
+    },
+  });
+
+  const deleteListMutation = useMutation({
+    mutationFn: async (list_id: number) => {
+      await api.delete<GenericSuccessResponse | void>(`/trackers/lists/${list_id}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['trackers', 'lists'] });
+    },
+  });
+
   const renamePlatformMutation = useMutation({
     mutationFn: async ({ platform_id, name }: { platform_id: number; name: string }) => {
       return await api.patch<GenericSuccessResponse | void>(`/trackers/platforms/${platform_id}`, { name });
@@ -310,6 +336,12 @@ export const useTrackersMutations = () => {
     createList: createListMutation.mutate,
     createListAsync: createListMutation.mutateAsync,
     isCreatingList: createListMutation.isPending,
+    updateList: updateListMutation.mutate,
+    updateListAsync: updateListMutation.mutateAsync,
+    isUpdatingList: updateListMutation.isPending,
+    deleteList: deleteListMutation.mutate,
+    deleteListAsync: deleteListMutation.mutateAsync,
+    isDeletingList: deleteListMutation.isPending,
     addToList: addToListMutation.mutate,
     addToListAsync: addToListMutation.mutateAsync,
     isAddingToList: addToListMutation.isPending,

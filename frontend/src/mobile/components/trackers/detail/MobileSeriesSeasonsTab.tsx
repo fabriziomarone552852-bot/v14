@@ -4,6 +4,7 @@ import { Check, ChevronDown, Film, Star } from 'lucide-react';
 import type { TMDBSeries, UserSeriesTracking, TMDBEpisode } from '@/types/trackers';
 import { EpisodeDetailView } from '@/components/trackers/SeriesDetailModal/EpisodeDetailView';
 import { MobileWatchActionDrawer } from './MobileWatchActionDrawer';
+import MobileRewatchConfirmModal from '../diary/MobileRewatchConfirmModal';
 import {
   useMobileSeriesSeasonsLogic,
   getEpisodeAverageRating,
@@ -34,6 +35,10 @@ export const MobileSeriesSeasonsTab: React.FC<MobileSeriesSeasonsTabProps> = ({
     setExpandedSeason,
     drawerTarget,
     setDrawerTarget,
+    rewatchTarget,
+    setRewatchTarget,
+    handleConfirmSingleWatch,
+    handleConfirmRewatchSeries,
     episodes,
     seasonsMap,
     seasonsList,
@@ -214,6 +219,21 @@ export const MobileSeriesSeasonsTab: React.FC<MobileSeriesSeasonsTabProps> = ({
         onResetWatch={handleDrawerResetWatch}
         onSubWatch={handleDrawerSubWatch}
       />
+
+      {/* Modale conferma rewatch per episodio */}
+      {rewatchTarget && (
+        <MobileRewatchConfirmModal
+          isOpen={true}
+          onClose={() => setRewatchTarget(null)}
+          seriesTitle={tmdbSeries.title}
+          seasonNumber={rewatchTarget.episode.season_number}
+          episodeNumber={rewatchTarget.episode.episode_number}
+          episodeTitle={rewatchTarget.episode.title}
+          currentWatchCount={rewatchTarget.episode.watch_count || 1}
+          onConfirmSingle={handleConfirmSingleWatch}
+          onConfirmRewatchSeries={handleConfirmRewatchSeries}
+        />
+      )}
     </div>
   );
 };

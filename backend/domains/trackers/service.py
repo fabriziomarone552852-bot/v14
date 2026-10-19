@@ -36,10 +36,30 @@ def _sync_series_status(db: Session, user_id: int, tmdb_series_id: int):
 
     if watched_eps == 0:
         tracking.status = "to_watch"
+        tracking.is_rewatching = False
     elif watched_eps < total_eps:
         tracking.status = "watching"
     elif total_eps > 0 and watched_eps >= total_eps:
         tracking.status = "watched"
+        if getattr(tracking, "is_rewatching", False):
+            # Controlla se tutti gli episodi del rewatch sono stati completati
+            min_subquery = (
+                sqlalchemy.select(
+                    TMDBEpisode.id,
+                    sqlalchemy.func.count(UserEpisodeLog.id).label("cnt")
+                )
+                .outerjoin(UserEpisodeLog, (UserEpisodeLog.episode_id == TMDBEpisode.id) & (UserEpisodeLog.user_id == user_id))
+                .where(TMDBEpisode.series_tmdb_id == tmdb_series_id)
+                .group_by(TMDBEpisode.id)
+                .subquery()
+            )
+            min_cnt_stmt = sqlalchemy.select(
+                sqlalchemy.func.min(min_subquery.c.cnt),
+                sqlalchemy.func.max(min_subquery.c.cnt)
+            )
+            min_cnt, max_cnt = db.execute(min_cnt_stmt).one()
+            if min_cnt is not None and max_cnt is not None and min_cnt == max_cnt:
+                tracking.is_rewatching = False
         
     db.commit()
 
@@ -453,6 +473,9 @@ def update_series(db: Session, current_user: User, tmdb_id: int, payload: TVSeri
     if "status" in update_data:
         tracking.status = update_data["status"]
 
+    if "is_rewatching" in update_data:
+        tracking.is_rewatching = update_data["is_rewatching"]
+
     if "custom_poster_path" in update_data:
         tracking.custom_poster_path = update_data["custom_poster_path"]
     if "custom_backdrop_path" in update_data:
@@ -541,6 +564,7 @@ def _build_series_response(tracking: UserSeriesTracking, db=None, current_user=N
         vote_average=s.vote_average,
         last_sync_at=s.last_sync_at,
         status=tracking.status,
+        is_rewatching=getattr(tracking, 'is_rewatching', False) or False,
         custom_poster_path=tracking.custom_poster_path,
         custom_backdrop_path=tracking.custom_backdrop_path,
         added_at=tracking.added_at,
@@ -881,7 +905,7 @@ def get_upcoming_episodes(db: Session, current_user: User, start_date=None, end_
             episode_id=ep.id,
             series_tmdb_id=s.tmdb_id,
             series_title=s.title,
-            series_poster_path=s.poster_path,
+            series_poster_path=custom_poster_path or s.poster_path,
             series_backdrop_path=s.backdrop_path,
             season_number=ep.season_number,
             episode_number=ep.episode_number,
@@ -891,7 +915,7 @@ def get_upcoming_episodes(db: Session, current_user: User, start_date=None, end_
             air_date=ep.air_date,
             is_watched=bool(is_watched)
         )
-        for ep, s, is_watched in results
+        for ep, s, is_watched, custom_poster_path in results
     ]
 
 def get_user_quotes(db: Session, current_user: User) -> List[TVQuoteExtendedResponse]:

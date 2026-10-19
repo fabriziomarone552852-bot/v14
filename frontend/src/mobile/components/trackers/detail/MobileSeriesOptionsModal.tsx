@@ -1,6 +1,6 @@
-// src/mobile/components/trackers/detail/MobileSeriesOptionsModal.tsx
 import React, { useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
+import { RotateCcw } from 'lucide-react';
 import { mediaService } from '@/api/mediaService';
 import { logger } from '@/utils/logger';
 import { PhotoIcon, LoadingIcon, CloseIcon, TrashIcon } from '@/components/shared/utils/Icons';
@@ -12,6 +12,8 @@ export interface MobileSeriesOptionsModalProps {
   hasCustomPoster: boolean;
   onPosterUpdated: (newUrl: string | null) => void;
   isUserTracked: boolean;
+  isRewatching?: boolean;
+  onStopRewatch?: () => void;
 }
 
 export const MobileSeriesOptionsModal: React.FC<MobileSeriesOptionsModalProps> = ({
@@ -20,6 +22,8 @@ export const MobileSeriesOptionsModal: React.FC<MobileSeriesOptionsModalProps> =
   hasCustomPoster,
   onPosterUpdated,
   isUserTracked,
+  isRewatching = false,
+  onStopRewatch,
 }) => {
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -102,6 +106,31 @@ export const MobileSeriesOptionsModal: React.FC<MobileSeriesOptionsModalProps> =
         </div>
 
         <div className="p-3 space-y-2">
+          {/* Opzione: Interrompi Rewatch (visibile solo se isRewatching è attivo) */}
+          {isRewatching && onStopRewatch && (
+            <button
+              type="button"
+              disabled={isUploading}
+              onClick={() => {
+                onStopRewatch();
+                onClose();
+              }}
+              className="w-full p-3.5 flex items-center gap-3.5 rounded-2xl bg-amber-50/70 hover:bg-amber-100/80 border border-amber-200/80 transition-all cursor-pointer active:scale-[0.98] text-left group"
+            >
+              <div className="w-10 h-10 rounded-xl bg-amber-100 text-amber-600 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                <RotateCcw className="w-5 h-5 text-amber-600" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="font-bold text-amber-900 text-sm group-hover:text-amber-800 transition-colors">
+                  Interrompi Rewatch
+                </p>
+                <p className="text-[11px] text-amber-700/80 font-medium">
+                  Rimuove la serie da &quot;I prossimi da guardare&quot;
+                </p>
+              </div>
+            </button>
+          )}
+
           {/* Opzione: Cambia Locandina (apre il selettore immagini nativo di sistema) */}
           <button
             type="button"

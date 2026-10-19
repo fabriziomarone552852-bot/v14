@@ -281,7 +281,7 @@ export const MobileSeriesReviewTab: React.FC<MobileSeriesReviewTabProps> = ({
           ) : (
             <button
               type="button"
-              onClick={openNewReview}
+              onClick={logs.length > 0 ? () => setView('my_reviews') : openNewReview}
               className="w-full flex flex-col items-center justify-center gap-0.5 py-1.5 hover:bg-gray-50 rounded-xl transition-colors cursor-pointer active:scale-98"
             >
               <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">

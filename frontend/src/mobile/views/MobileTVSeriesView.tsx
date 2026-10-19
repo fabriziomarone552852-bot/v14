@@ -9,6 +9,7 @@ import { MobileTVSeriesDetailModal } from '../components/trackers/detail';
 import MobileTVSeriesSearchModal from '../components/trackers/MobileTVSeriesSearchModal';
 import MobileTVEpisodesTimeline from '../components/trackers/MobileTVEpisodesTimeline';
 import MobileTVSeriesDashboardSlide from '../components/trackers/MobileTVSeriesDashboardSlide';
+import MobileTVSeriesDiarySlide from '../components/trackers/MobileTVSeriesDiarySlide';
 import MobileSeriesCatalogModal from '../components/trackers/MobileSeriesCatalogModal';
 import MobileSeriesPersonalListsModal from '../components/trackers/MobileSeriesPersonalListsModal';
 import { MobileMediaListManagerModal } from '../components/trackers/detail/MobileMediaListManagerModal';
@@ -19,6 +20,7 @@ import type {
   SeriesDetailTarget,
   MediaList,
 } from '@/types/trackers';
+import { extractSeriesTmdbId } from '@/types/trackers';
 import MobileTVPaginationDots from '../components/trackers/MobileTVPaginationDots';
 import { useTrackerHeader } from '@/context/TrackerHeaderContext';
 import { useTMDBGenres, useTMDBProviders } from '@/hooks/queries/useTrackersQueries';
@@ -72,6 +74,7 @@ export const MobileTVSeriesView: React.FC = () => {
   const [isPersonalListsModalOpen, setIsPersonalListsModalOpen] = useState(false);
   const [selectedListForModal, setSelectedListForModal] = useState<MediaList | null>(null);
   const [isListManagerModalOpen, setIsListManagerModalOpen] = useState(false);
+  const [isStandaloneEpisode, setIsStandaloneEpisode] = useState(false);
 
   // Apertura ricerca globale TMDB filtrata per Genere
   const handleMobileGenreClick = React.useCallback(
@@ -139,8 +142,23 @@ export const MobileTVSeriesView: React.FC = () => {
     hasActiveFilters: hasActiveFilters || Boolean(searchQuery) || Boolean(debouncedQuery),
   });
 
-  // Paginazione a 2 slide (0 = Timeline Uscite, 1 = Dashboard/Attività)
-  const [activePageIndex, setActivePageIndex] = useState<0 | 1>(0);
+  // Paginazione a 3 slide:
+  // 0 = Timeline Uscite (a sinistra di Pagina 1)
+  // 1 = Diario Episodi (Pagina centrale / Home principale all'apertura)
+  // 2 = Dashboard & Catalogo (a destra di Pagina 1)
+  const [activePageIndex, setActivePageIndex] = useState<0 | 1 | 2>(1);
+
+  // Calcolo classi di posizionamento orizzontale circolare per le 3 slide
+  const getSlideClass = (pageIdx: 0 | 1 | 2) => {
+    const diff = pageIdx - activePageIndex;
+    if (diff === 0) {
+      return 'translate-x-0 pointer-events-auto z-10 opacity-100';
+    }
+    if (diff === 1 || diff === -2) {
+      return 'translate-x-full pointer-events-none z-0 opacity-0';
+    }
+    return '-translate-x-full pointer-events-none z-0 opacity-0';
+  };
 
   // Gesture Touch Swipe
   const [touchStartX, setTouchStartX] = useState<number | null>(null);
@@ -163,15 +181,18 @@ export const MobileTVSeriesView: React.FC = () => {
     // Soglia minima di scorrimento (45px)
     if (Math.abs(deltaX) < 45) return;
 
-    if (deltaX < 0 && activePageIndex === 0) {
-      setActivePageIndex(1);
-    } else if (deltaX > 0 && activePageIndex === 1) {
-      setActivePageIndex(0);
+    if (deltaX < 0) {
+      // Dito verso sinistra -> pagina successiva in loop circolare (0 -> 1 -> 2 -> 0)
+      setActivePageIndex((prev) => ((prev + 1) % 3) as 0 | 1 | 2);
+    } else if (deltaX > 0) {
+      // Dito verso destra -> pagina precedente in loop circolare (0 -> 2 -> 1 -> 0)
+      setActivePageIndex((prev) => ((prev - 1 + 3) % 3) as 0 | 1 | 2);
     }
   };
 
-  // Apertura a tutto schermo dell'episodio nel modale dettaglio della serie
+  // Apertura a tutto schermo dell'episodio nel modale dettaglio della serie (standalone)
   const handleTimelineEpisodeClick = (ep: UpcomingEpisode) => {
+    setIsStandaloneEpisode(true);
     const match = series?.find((s) => s.tmdb_id === ep.series_tmdb_id);
     const seriesTarget: SeriesDetailTarget = match || {
       tmdb_id: ep.series_tmdb_id,
@@ -226,16 +247,13 @@ export const MobileTVSeriesView: React.FC = () => {
       {/* AREA PRINCIPALE DELLE PAGINE CON ANIMAZIONE SLIDE ORIZZONTALE */}
       <div className="flex-1 min-h-0 relative overflow-hidden">
         {/* ===================================================================== */}
-        {/* PAGINA 0: TIMELINE USCITE EPISODI (Oggi, Prossime uscite e Precedenti) */}
+        {/* PAGINA 0: TIMELINE USCITE EPISODI (A sinistra del Diario)             */}
         {/* ===================================================================== */}
         <div
-          className={`absolute inset-0 w-full h-full flex flex-col transition-transform duration-300 ease-out ${
-            activePageIndex === 0
-              ? 'translate-x-0 pointer-events-auto'
-              : '-translate-x-full pointer-events-none'
-          }`}
+          className={`absolute inset-0 w-full h-full flex flex-col transition-all duration-300 ease-out ${getSlideClass(0)}`}
         >
           <MobileTVEpisodesTimeline
+            series={series}
             onEpisodeClick={handleTimelineEpisodeClick}
             onOpenSeriesDetail={(ep) => {
               const match = series?.find((s) => s.tmdb_id === ep.series_tmdb_id);
@@ -253,9 +271,30 @@ export const MobileTVSeriesView: React.FC = () => {
         </div>
 
         {/* ===================================================================== */}
-        {/* PAGINA 1: DASHBOARD & ATTIVITÀ (Obiettivo, Quotes, 3 Card, Catalogo e Liste) */}
+        {/* PAGINA 1: DIARIO EPISODI (Pagina principale centrale all'apertura)    */}
+        {/* ===================================================================== */}
+        <div
+          className={`absolute inset-0 w-full h-full flex flex-col transition-all duration-300 ease-out ${getSlideClass(1)}`}
+        >
+          <MobileTVSeriesDiarySlide
+            series={series}
+            activePageIndex={activePageIndex}
+            onOpenEpisode={(s, ep) => {
+              setIsStandaloneEpisode(true);
+              openSeriesDetail(s, 'seasons', ep);
+            }}
+            onOpenSeriesDetail={(s) => {
+              setIsStandaloneEpisode(false);
+              openSeriesDetail(s);
+            }}
+          />
+        </div>
+
+        {/* ===================================================================== */}
+        {/* PAGINA 2: DASHBOARD & ATTIVITÀ (A destra del Diario)                   */}
         {/* ===================================================================== */}
         <MobileTVSeriesDashboardSlide
+          className={getSlideClass(2)}
           activePageIndex={activePageIndex}
           goalPercent={goalPercent}
           currentEpisodes={currentEpisodes}
@@ -266,7 +305,10 @@ export const MobileTVSeriesView: React.FC = () => {
           myQuotes={myQuotes}
           series={series}
           myLists={myLists}
-          onOpenSeriesDetail={openSeriesDetail}
+          onOpenSeriesDetail={(s) => {
+            setIsStandaloneEpisode(false);
+            openSeriesDetail(s);
+          }}
           onOpenStats={() => setStatsModalOpen(true)}
           onOpenCatalog={() => setIsCatalogModalOpen(true)}
           onOpenPersonalLists={(list) => {
@@ -289,6 +331,7 @@ export const MobileTVSeriesView: React.FC = () => {
         items={series || []}
         onItemClick={(seriesItem) => {
           setRandomModalOpen(false);
+          setIsStandaloneEpisode(false);
           openSeriesDetail(seriesItem as TVSeries);
         }}
         modalTitle="Cosa guardare oggi?"
@@ -300,16 +343,26 @@ export const MobileTVSeriesView: React.FC = () => {
       {detailModalSeries && (
         <MobileTVSeriesDetailModal
           isOpen={detailModalOpen}
-          onClose={() => setDetailModalOpen(false)}
-          series={detailModalSeries}
+          onClose={() => {
+            setDetailModalOpen(false);
+            setIsStandaloneEpisode(false);
+          }}
+          series={
+            (series?.find((s) => s.tmdb_id === extractSeriesTmdbId(detailModalSeries)) as SeriesDetailTarget) ||
+            detailModalSeries
+          }
           initialTab={detailModalTab}
           initialEpisode={detailModalEpisode}
           initialReviewLogId={detailModalReviewLogId}
-          onSelectRecommendation={(rec) => openSeriesDetail(rec)}
+          isStandaloneEpisode={isStandaloneEpisode}
+          onSelectRecommendation={(rec) => {
+            setIsStandaloneEpisode(false);
+            openSeriesDetail(rec);
+          }}
           onToggleTrack={handleToggleTrack}
           onGenreClick={handleMobileGenreClick}
           onPlatformClick={handleMobilePlatformClick}
-          zIndexClass="z-[10020]"
+          zIndexClass="z-[10030]"
         />
       )}
 

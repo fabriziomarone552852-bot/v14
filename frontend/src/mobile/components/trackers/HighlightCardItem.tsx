@@ -69,13 +69,6 @@ export const HighlightCardItem: React.FC<HighlightCardItemProps> = ({
         </div>
       )}
 
-      {/* Titolo serie SOPRA la card con gradiente nero sfumato (max 2 righe) */}
-      <div className="absolute top-0 inset-x-0 bg-gradient-to-b from-black/85 via-black/45 to-transparent pt-1 pb-3.5 px-1 z-10 flex items-center justify-center pointer-events-none">
-        <span className="text-[9.5px] font-black text-white line-clamp-2 w-full text-center leading-tight drop-shadow-sm">
-          {seriesItem?.title || 'Nessuna'}
-        </span>
-      </div>
-
       {/* Icona con sfondo blu in basso a destra */}
       <div className="absolute bottom-1 right-1 z-10 w-5 h-5 rounded-md bg-blue-600 text-white flex items-center justify-center shadow-md border border-white/30">
         {renderIcon()}

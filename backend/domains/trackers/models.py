@@ -141,6 +141,8 @@ class UserSeriesTracking(Base):
     custom_poster_path: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
     custom_backdrop_path: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
     
+    is_rewatching: Mapped[bool] = mapped_column(Boolean, default=False, server_default="0", nullable=False)
+    
     added_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         nullable=False,

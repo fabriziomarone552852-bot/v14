@@ -1,5 +1,38 @@
-# ÃƒÂ°Ã…Â¸Ã¢Â€ÂœÃ…Â’ Backlog FunzionalitÃƒÂƒÃ‚Â  & Roadmap Progetto
+# 📌 Backlog Funzionalità & Roadmap Progetto
 
+Questo documento traccia in modo strutturato e prioritizzato tutte le **funzionalità aperte, in corso e pianificate** per l'applicazione **Vita**.
+
+> 🗄️ **Storico Task Completati**: Tutti i task e i progetti completati con successo sono stati spostati e documentati in dettaglio in [`docs/BACKLOG_ARCHIVE.md`](file:///c:/Users/Fabrizio/Desktop/app/smart/v14/docs/BACKLOG_ARCHIVE.md).
+
+---
+
+## 📊 Matrice di Stato Rapida (Attività in Corso & Future)
+
+| ID | Attività / Funzionalità | Ambito | Stato Backend | Stato Frontend | Priorità |
+| :--- | :--- | :---: | :---: | :---: | :---: |
+| **TRACKERS-005** | Ottimizzazione Latenza: Aggiornamento Ottimistico Spunta/Rewatch & Citazioni, Audit Notifiche | `trackers` / mobile | 🟢 Supportato | 🔴 Da Implementare | 🟡 **Media-Alta** |
+| **TRACKERS-007** | Ordinamento Serie nella Sezione Principale (In Visione, Da Iniziare, Pausa, Completate) | `trackers` / UI | N/A | 🔴 Da Implementare | 🟡 **Media-Alta** |
+| **TRACKERS-010** | Gestione Serie Abbandonate ("Drop"): Criteri, Azioni & Ripristino | `trackers` / mobile | 🔴 Da Valutare | 🔴 Da Definire | 🟡 **Media-Alta** |
+| **UI-003** | Sostituzione Pulsante "Reset Filtri" con Freccia (Serie TV Web Desktop) | `trackers` / UI | N/A | 🔴 Da Implementare | 🟢 **Bassa** |
+| **FEAT-004** | Sezione Media: Estensione a Libri e Film & Funzionalità Evolutive | `media` / ent | 🟡 Parziale | 🟡 Parziale | 🔴 **Massima (Passo Fondamentale)** |
+| **FEAT-015** | Gestione Saghe di Film (TMDB Collections) | `media` / movies | 🔴 Da Implementare | 🔴 Da Implementare | 🟡 **Media** |
+| **FEAT-001** | Liste Spesa: Preferite & Pinnate (`pin_status` desktop & mobile) | `shopping` | 🟢 Completato | 🔴 Da Implementare | 🟡 **Media-Alta** |
+| **SHOPPING-004** | Ricerca & Visualizzazione Prezzi nel Modale Dettaglio Prodotto (per Brand) | `shopping` / UI | 🔴 Da Iniziare | 🔴 Da Iniziare | 🟡 **Media-Alta** |
+| **SHOPPING-005** | Pannello Laterale Recensioni & Giudizio Marchi all'Aggiunta Prodotto | `shopping` / UI | 🔴 Da Strutturare | 🔴 Da Implementare | 🟡 **Media-Alta** |
+| **SEED-002** | Risoluzione Visualizzazione Prodotti Seed Mancanti nelle Liste | `shopping` / seed | 🔴 Da Iniziare | 🔴 Da Iniziare | 🟡 **Media-Alta** |
+| **FEAT-006** | Hub Spesa, Ricettario, Meal Prep & Wishlist Oggetti | `shopping` / food | 🔴 Da Strutturare | 🔴 Da Implementare | 🔴 **Massima (Passo Fondamentale)** |
+| **FEAT-003** | Dashboard Analytics & Storico Prezzi | `analytics` | 🟢 Completato | 🔴 Da Implementare | 🟢 **Bassa** |
+| **CAL-002** | Filtro Categorie Eventi nel Calendario Homepage (Menu Ingranaggio ⚙️) | `calendar` / UI | 🔴 Da Iniziare | 🔴 Da Iniziare | 🟡 **Media-Alta** |
+| **FEAT-011** | Sezione Lavoro & Gestione Turni di Lavoro (Punto da definire con Daniela) | `work` / shifts | 🔴 Da Definire | 🔴 Da Definire | 🟡 **Media-Alta** |
+| **GENERAL-001** | Fix Selezione Orario e Minuti Eventi (`UI-002`) & Controllo Categorie | `calendar` / UI | N/A | 🔴 Da Implementare | 🟡 **Media** |
+| **HABITS-001** | Recap Mensile: Ripetizioni Multiple (conteggio frazionario es. 2/3) | `habits` / UI | 🔴 Da Iniziare | 🔴 Da Iniziare | 🟡 **Media** |
+| **FEAT-005** | Sezione Liste Tematiche & Personalizzate (Posti, Siti, Wishlist, Giochi) | `custom_lists` | 🟡 Parziale | 🟡 Parziale | 🔴 **Massima (Passo Fondamentale)** |
+| **FEAT-013** | Archivio Notifiche / Sezione Storico Notifiche Permanente | `notifications` / UI | 🟢 Completato | 🟡 Da Implementare | 🟡 **Media** |
+| **FEAT-014** | Notifiche per Nuove Liste nei Gruppi Condivisi | `notifications` / social | 🔴 Da Implementare | 🔴 Da Implementare | 🟡 **Media** |
+| **FEAT-009** | Restyling & Rifinitura Grafica Schermate SuperUser (Admin Panel) | `admin` / UI | 🟢 Supportato | 🔴 Da Implementare | 🟡 **Media-Alta** |
+| **FEAT-010** | Database & Sincronizzazione Centralizzata Citazioni Giornaliere (Quotes) | `core` / quotes | 🔴 Da Implementare | 🔴 Da Implementare | 🟡 **Media** |
+| **AI-001** | Studio & Integrazione Intelligenza Artificiale (AI: Voice, Breakdown, Briefing) | `ai` / assistant | 🔴 Da Analizzare | 🔴 Da Analizzare | 🟡 **Media-Alta (Ricerca & Prototipo)** |
+| **HOME-001** | Widget Homepage Rotante (Citazione del Giorno, Oroscopo & Meteo) | `home` / UI | 🔴 Da Iniziare | 🔴 Da Iniziare | 🟡 **Media-Alta** |
 Questo documento serve a tracciare in modo strutturato:
 1. **FunzionalitÃƒÂƒÃ‚Â  implementate nel Backend ma non ancora integrate nel Frontend** (Desktop e/o Mobile).
 2. **AttivitÃƒÂƒÃ‚Â  di Sviluppo Frontend & Ottimizzazione Mobile** (UI/UX, selezione multipla, navigazione).
@@ -486,113 +519,202 @@ Studio di fattibilitÃƒÂƒÃ‚Â , analisi delle architetture e prototipazio
 
 ---
 
-## ÃƒÂ°Ã…Â¸Ã¢Â€ÂœÃ‚Â 7. Guida & Template per Nuovi Inserimenti
-
-Quando viene completata una nuova funzionalitÃƒÂƒÃ‚Â  nel backend o sorge una nuova idea futura, copia e compila il template sottostante:
-
-```markdown
-### [FEAT-XXX] Nome FunzionalitÃƒÂƒÃ‚Â 
-
-#### ÃƒÂ°Ã…Â¸Ã¢Â€ÂœÃ‚Â Descrizione
-Breve spiegazione di cosa fa la funzionalitÃƒÂƒÃ‚Â  dal punto di vista utente.
-
-#### ÃƒÂ¢Ã…Â¡Ã¢Â„Â¢ÃƒÂ¯Ã‚Â¸Ã‚Â Dettagli Implementazione Backend
-- **Dominio**: `backend/domains/...`
-- **Tabelle / Migrazioni**: `...`
-- **Modelli & Schemas**: `...`
-- **Endpoint HTTP**: `POST/GET/PATCH ...`
-- **Regole di Business**: Descrizione di permessi, vincoli o validazioni speciali.
-
-#### ÃƒÂ°Ã…Â¸Ã¢Â€Â™Ã‚Â» Stato Frontend Esistente
-- Tipi o API client giÃƒÂƒÃ‚Â  predisposti.
-
-#### ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Â¨ Cosa Manca da Implementare nel Frontend
-- [ ] Vista Desktop (`frontend/src/views/...` o `components/...`)
-- [ ] Vista Mobile (`frontend/src/mobile/...`)
-- [ ] Stato / Hook / Chiamate API
-
-#### ÃƒÂ°Ã…Â¸Ã¢Â€ÂœÃ‚Â¡ Esempio Chiamata API
-```json
-{
-  "campo": "valore"
-}
-```
-```
-
--   [ x ]   * * A g g i o r n a m e n t o   O t t i m i s t i c o   &   B u g   F i x e s   ( S e t t e m b r e   2 0 2 6 ) * * :   R i s o l t o   c r a s h   ( E r r o r e   5 0 0 )   p e r   l e   s e r i e   o r f a n e ,   c o r r e t t o   l o o p   d e l   s y n c   e n g i n e   s u   e r r o r i   4 0 0   e   a g g i u n t a   l ' i n t e r f a c c i a   o t t i m i s t i c a   ( O p t i m i s t i c   U I )   p e r   l e   S e r i e   T V . 
- 
- 
-
-### FEAT-013: Archivio Notifiche / Sezione Storico Notifiche
-- **Obiettivo**: Creare una sezione dedicata (es. in Archivio o in una pagina apposita) per visualizzare lo storico completo di tutte le notifiche di sistema, inviti e alert, dato che ora le notifiche sono permanenti di default.
-- **UI/UX**: Lista paginata o a scorrimento infinito, filtri per tipologia di notifica (Social, Spesa, Sistema), e raggruppamento per data (Oggi, Ieri, Questa Settimana).
-
-### FEAT-014: Notifiche per Nuove Liste nei Gruppi
-- **Obiettivo**: Ricevere una notifica quando un membro di un gruppo di cui si fa parte crea una nuova lista (es. Media List o una nuova lista all'interno di un gruppo Shopping).
-- **UI/UX**: Alert standard nella barra notifiche con testo "L'utente X ha creato la lista Y nel gruppo Z".
-
-### FEAT-015: Gestione Saghe di Film
-- **Obiettivo**: Raggruppare film appartenenti alla stessa saga o collection (es. MCU, Star Wars, Harry Potter).
-- **UI/UX**: Viste raggruppate per "Saga" nel catalogo Media, possibilitÃ  di tracciare l'intera collection.
-
-
-
-
-
-### [GENERAL-001] Sistemare orario e categorie
-- **Sistemare orario**: Correggere l'input dei minuti che attualmente non si riescono a scrivere bene.
-- **Controllo Categorie**: Sistemare il controllo delle categorie per distinguere e gestire se una categoria ÃƒÂ¨ dedicata solo a tasks, eventi o se ÃƒÂ¨ comune (entrambi).
-
-
-
+## 📺 1. Media & Trackers (Serie TV, Film, Libri)
 
 ### [TRACKERS-005] Ottimizzazione Latenza: Aggiornamento Ottimistico Spunta/Rewatch & Citazioni, Audit Notifiche
 - **Descrizione**:
   - **Aggiornamento Ottimistico Spunta/Rewatch**: Verificare e garantire che al tocco della spunta dell'episodio (o del cambio visualizzazioni rewatch) lo stato visivo si aggiorni istantaneamente nel frontend/React RAM prima dell'esito della chiamata asincrona al backend, eliminando qualsiasi ritardo o latenza percepita.
   - **Aggiornamento Ottimistico Citazioni**: Applicare il salvataggio ottimistico immediato anche all'inserimento, modifica ed eliminazione delle citazioni dell'episodio per una reattività touch istantanea.
   - **Audit Notifiche**: Effettuare un check completo sul flusso delle notifiche generate dal sistema per definire chiaramente dove e quando farle comparire a schermo (evitando sovrapposizioni o disturbo nelle viste mobile).
-- **Stato**: 🔴 Da Iniziare.
+- **Stato**: 🔴 Da Iniziare *(Priorità: Media-Alta)*.
 
-### [TRACKERS-007] Ordinamento Personalizzato Serie TV nella Libreria Principale
-- **Descrizione**: Configurare l'ordinamento predefinito delle serie TV nella sezione principale (Libreria Trackers) prioritizzando lo stato di visione nel seguente ordine:
+### [TRACKERS-007] Ordinamento Serie nella Sezione Principale
+- **Descrizione**: Configurare l'ordinamento predefinito delle serie TV nella libreria principale prioritizzando lo stato di visione nel seguente ordine:
   1. **In Visione** (`watching` / blu / in corso)
   2. **Non ancora iniziate** (`to_watch` / grigio / da iniziare)
   3. **In Pausa** (`paused` / viola)
   4. **Completate** (`completed` / verde)
-  (e a seguire eventuali serie abbandonate `dropped`).
-- **Stato**: 🔴 Da Iniziare (Frontend React hook / filtro).
-
-### [TRACKERS-008] Riorganizzazione 3 Pagine Mobile Serie TV, Piattaforma per Episodio & Citazioni Personali
-- **Descrizione**:
-  - **Architettura a 3 Pagine Mobile**:
-    - **Pagina 0 (Sinistra)**: Spostamento del calendario e timeline "Prossime uscite" nella pagina laterale sinistra.
-    - **Pagina 1 (Centro / Principale)**: Schermata iniziale / Home con il feed principale dedicato agli episodi attualmente in visione / in corso di visione.
-    - **Pagina 2 (Destra / Dashboard)**: Hub riassuntivo con obiettivo annuale (apertura statistiche al click), citazione del giorno stile agenda, 3 card in evidenza affiancate (ultimo aggiunto, ultimo guardato, ultimo completato) e aree touch per Catalogo e Liste Personali a zero scrollbar.
-  - **Spostamento Campo "Dove l'hai guardato?"**: Spostamento del selettore piattaforma/distributore streaming dalla scheda recensioni della serie intera alla recensione del singolo episodio (dove ha senso effettivo specificare dove è stato guardato quello specifico episodio).
-  - **Citazioni del Giorno Personali**: Espansione del sistema delle citazioni giornaliere per supportare oltre alle citazioni delle serie anche frasi e pensieri personali inseriti liberamente dall'utente.
-- **Stato**: 🔴 Da Iniziare.
+  *(e a seguire eventuali serie abbandonate `dropped`)*.
+- **Stato**: 🔴 Da Implementare *(Priorità: Media-Alta)*.
 
 ### [TRACKERS-010] Gestione Serie Abbandonate ("Drop"): Criteri, Azioni & Ripristino
-- **Obiettivo**: Definire come gestire l'abbandono delle serie TV ("Cimitero delle serie" / stato `dropped`), sia da un punto di vista dell'esperienza utente (UI/UX) sia a livello di logica applicativa e statistiche.
+- **Obiettivo**: Definire come gestire l'abbandono delle serie TV ("Cimitero delle serie" / stato `dropped`), sia per l'esperienza utente (UI/UX) sia a livello di logica applicativa e statistiche.
 - **Punti Chiave & Domande Aperte**:
   1. **Azione Utente Esplicita**:
-     - Aggiungere un comando "Abbandona serie" (o "Sposta nel Cimitero") all'interno del menu delle opzioni (`MobileSeriesOptionsModal`) o nel drawer di gestione dello stato (`MobileWatchActionDrawer` / stato di visione).
-     - Richiedere eventuale data di abbandono (di default la data odierna) o motivo opzionale.
+     - Aggiungere un comando "Abbandona serie" (o "Sposta nel Cimitero") nel menu opzioni serie (`MobileSeriesOptionsModal`) o nel drawer di gestione dello stato (`MobileWatchActionDrawer`).
+     - Richiedere eventuale data di abbandono (default odierna) o motivo opzionale.
   2. **Criteri Automatici o Suggerimenti Intelligenti**:
-     - Valutare se proporre un suggerimento automatico (es. "Non guardi questa serie da oltre 6 mesi: vuoi contrassegnarla come abbandonata?").
-     - Evitare comunque cambi di stato arbitrari senza il consenso esplicito dell'utente.
+     - Valutare se proporre un suggerimento automatico (es. *"Non guardi questa serie da oltre 6 mesi: vuoi contrassegnarla come abbandonata?"*), evitando cambi di stato arbitrari senza consenso.
   3. **Visualizzazione & Ripristino (Revival)**:
-     - Dal modale Statistiche (sezione "Il Cimitero delle Serie") o dal Catalogo filtrato per stato, permettere con un semplice tocco di ripristinare la serie ("Riprendi visione" -> torna nello stato `watching` o `to_watch`).
+     - Dal modale Statistiche (sezione "Il Cimitero delle Serie") o dal Catalogo, consentire con un tocco di ripristinare la serie (*"Riprendi visione"* -> torna in `watching` o `to_watch`).
   4. **Impatto sui Conteggi & Statistiche**:
-     - Mantenere distinte le serie "Abbandonate" da quelle "In pausa" (`paused`) o "Non iniziate" (`to_watch`).
-     - Le serie abbandonate non contano come completate, ma gli episodi già visti rimangono conteggiati nelle ore totali investite e negli episodi visti.
-- **Stato**: 🔴 Da Definire / Da Valutare (UI Mobile & Backend).
+     - Mantenere distinte le serie "Abbandonate" da quelle in pausa o non iniziate. Non contano come completate, ma gli episodi già visti restano conteggiati nelle ore e negli episodi totali.
+- **Stato**: 🔴 Da Definire / Da Valutare *(Priorità: Media-Alta)*.
+
+### [UI-003] Sostituzione Pulsante "Reset Filtri" con Freccia (Serie TV Web Desktop)
+- **Descrizione**: Nella vista Desktop Web delle Serie TV ([`TVSeriesLibrary.tsx`](file:///c:/Users/Fabrizio/Desktop/app/smart/v14/frontend/src/components/trackers/TVSeriesLibrary.tsx)), sostituire il pulsante testuale "Reset filtri" con un'icona freccia di ripristino per uniformare l'interfaccia grafica e ridurre l'ingombro visivo.
+- **Stato**: 🔴 Da Implementare *(Priorità: Bassa)*.
+
+### [FEAT-004] Estensione Sezione Media: Libri, Film & Funzionalità Evolutive
+
+#### 1. Sotto-sezione Libri
+- **Dati Tracciati**: Titolo, autore, ISBN/codice, genere, numero totale di pagine, pagine attualmente lette, data di inizio e completamento, copertina/immagine.
+- **Stato Lettura**: `Da leggere`, `In lettura`, `Completato`, `Abbandonato`, `In pausa`.
+- **Dettagli & Valutazione**: Valutazione in stelle (1-5), recensione personale, citazioni/passi preferiti, tag personalizzati.
+- **Integrazioni Esterne**:
+  - **Google Books API**: ricerca gratuita per titolo, autore o ISBN per recuperare copertina, trama e metadati.
+  - **Goodreads Feed RSS**: sincronizzazione monodirezionale in sola lettura leggendo il feed RSS pubblico dell'utente (`to-read`, `currently-reading`, `read`).
+
+#### 2. Sotto-sezione Film & [FEAT-015] Gestione Saghe
+- **Dati Tracciati**: Titolo, regista, anno di uscita, genere, durata, locandina, piattaforma di fruizione (Netflix, Prime Video, Cinema, Apple TV, Disney+).
+- **Stato Visione**: `Watchlist / Da vedere`, `Visto`.
+- **Dettagli & Valutazione**: Data di visione, voto personale, recensione/commento rapido, trailer.
+- **[FEAT-015] Saghe & Collections TMDB**: Sfruttare il campo `belongs_to_collection` di TMDB per raggruppare automaticamente i film appartenenti alla stessa saga (es. MCU, Star Wars, Harry Potter), consentendo di tracciare l'intera collection.
+
+#### 3. Funzionalità Evolutive Media (Roadmap Futura)
+- **Incrocio Liste Amici**: Comparare e incrociare le serie TV salvate tra due o più amici.
+- **Incrocio Liste Miste**: Spostare il componente `SeriesMatchModal` in una futura Homepage Trackers dedicata per incrociare contenuti misti (Serie TV, Film e altre categorie).
+- **Voto Community**: Visualizzare il voto medio della community dell'applicazione accanto o in alternativa al voto TMDB.
+- **Suggerimenti Homepage**: Sezione con raccomandazioni dinamiche basate sugli ultimi titoli completati o guardati di frequente.
+- **Sincronizzazione via CSV/Export**: Importazione ed esportazione catalogo tramite file CSV o JSON per backup o allineamento con app terze.
+
+---
+
+## 🛒 2. Spesa, Dispensa, Ricettario & Marchi
+
+### [FEAT-001] Liste Spesa: Preferite & Pinnate (`pin_status`)
+- **Descrizione**: Possibilità per l'utente di contrassegnare le liste della spesa come **Preferite** (stella/cuore), **Pinnate / Fissate in alto** (puntina) o entrambe.
+- **Backend (🟢 Già Pronto)**: Colonna `shopping_lists.pin_status` (`VARCHAR(2)`, valori `PN`, `FV`, `PF`, `None`) con modelli, schemi e validazioni.
+- **Frontend da Completare (🔴 Da Implementare)**:
+  - **Desktop**: Icone stella/puntina nelle card delle liste, toggle rapido con chiamata API PATCH, ordinamento con liste pinnate in cima, filtro "Solo Preferite".
+  - **Mobile**: Badge visivo nel drawer liste, toggle preferita/pinnata nelle azioni della lista, riorganizzazione dell'ordine di visualizzazione.
+
+### [SHOPPING-004] Ricerca & Visualizzazione Prezzi nel Modale Dettaglio Prodotto (per Brand)
+- **Descrizione**: Aggiunta della barra di ricerca e della griglia/lista di consultazione prezzi all'interno del modale di dettaglio di ciascun prodotto nell'archivio spesa, includendo il raggruppamento dei prodotti prezzati suddivisi per Brand/Marca.
+- **Stato**: 🔴 Da Iniziare *(Desktop & Mobile)*.
+
+### [SHOPPING-005] Finestra Laterale Recensioni & Giudizio Marchi all'Aggiunta Prodotto
+- **Descrizione**: Durante l'inserimento o aggiunta di un nuovo prodotto a una lista spesa, integrare un pannello laterale a comparsa (o drawer su mobile) che visualizzi le recensioni, le valutazioni qualitative (👍/👎) e i giudizi precedentemente espressi per i diversi marchi di quello specifico prodotto, con ultimo prezzo registrato e negozio abituale.
+- **Stato**: 🔴 Da Implementare.
+
+### [SEED-002] Verifica e Risoluzione Prodotti Seed Mancanti nelle Liste
+- **Descrizione**: Indagine e risoluzione del problema per cui alcuni prodotti seed (prodotti di sistema iniziale) non vengono mostrati o risultano nascosti nelle liste e nello storico dell'applicazione.
+- **Stato**: 🔴 Da Iniziare.
+
+### [FEAT-006] Riorganizzazione Hub Spesa, Ricettario, Meal Prep & Wishlist Oggetti
+- **Descrizione**: Evoluzione della sezione Spesa in un ecosistema integrato per la pianificazione alimentare, ricette e acquisti:
+  1. **Ricettario Personale (Cookbook)**: Ricette con foto, tempi, porzioni, categoria, passaggi e ingredienti strutturati; pulsante rapido per aggiungere gli ingredienti mancanti alla lista spesa.
+  2. **Meal Prep & Pianificazione Pasti**: Griglia settimanale suddivisa per fasce (Colazione, Pranzo, Cena, Snack); generatore automatico di lista della spesa sommando gli ingredienti dei pasti pianificati per i giorni scelti.
+  3. **Wishlist Oggetti & Desideri (Non Alimentari)**: Spazio separato dalla spesa quotidiana per salvare oggetti, attrezzi, tecnologia, idee regalo, con prezzo stimato, link allo store e priorità.
+  4. **Dashboard Spesa Riassuntiva**: Box pasti del giorno, widget liste spesa attive con barre di avanzamento, alert prodotti in scadenza.
+- **Stato**: 🔴 Da Strutturare / Da Implementare *(Passo Fondamentale)*.
+
+### [FEAT-003] Dashboard Analytics & Storico Prezzi
+- **Descrizione**: Grafici sull'andamento della spesa mensile, ripartizione per categorie merceologiche, confronto prezzi nel tempo per singolo prodotto e statistiche sui fornitori più convenienti.
+- **Stato**: Backend 🟢 Pronto | Frontend 🔴 Da Implementare.
+
+---
+
+## 📅 3. Calendario, Agenda & Turni di Lavoro
+
+### [CAL-002] Filtro Categorie Eventi nel Calendario Homepage (Menu Ingranaggio ⚙️)
+- **Descrizione**: Integrazione di un menu di filtraggio rapido rappresentato da un'icona ingranaggio ⚙️ nella vista Calendario della Homepage (Desktop e Mobile), per scegliere dinamicamente quali categorie mostrare:
+  - Eventi Agenda Standard.
+  - Eventi & Turni di Lavoro (collegato a `FEAT-011`).
+  - Eventi importati da Google Calendar.
+  - Altre categorie / Tag personalizzati.
+- **Persistenza**: Preferenze salvate in memoria locale dell'utente per mantenere attiva la configurazione scelta.
+- **Stato**: 🔴 Da Iniziare *(Priorità: Media-Alta)*.
+
+### [FEAT-011] Sezione Lavoro & Gestione Turni di Lavoro
+- **Descrizione**: Modulo dedicato alla gestione delle attività lavorative, tracciamento orari e organizzazione turni.
+- **Punti da Definire con Daniela**:
+  - Modello dei turni (turni rotanti, riposi, orari spezzati, reperibilità, straordinari).
+  - Modalità di visualizzazione (vista calendario turni dedicata, badge nei giorni dell'agenda o prospetto mensile).
+  - Calcolo delle ore lavorate e statistiche periodiche.
+- **Stato**: 🔴 Da Definire con Daniela *(Priorità: Media-Alta)*.
+
+### [GENERAL-001] / [UI-002] Fix Selezione Orario e Minuti Eventi & Controllo Categorie
+- **Descrizione**:
+  - Correggere l'input dei minuti nei modali evento che talvolta risulta difficoltoso da digitare.
+  - Sistemare il controllo delle categorie per distinguere chiaramente se una categoria è dedicata solo a task, solo a eventi o se è condivisa/comune.
+- **Stato**: 🔴 Da Implementare *(Priorità: Media)*.
+
+---
+
+## 🏃‍♂️ 4. Abitudini & Benessere (Habits)
 
 ### [HABITS-001] Recap Mensile: Ripetizioni Multiple
-- **Descrizione**: Sistemare le habits/routines nel recap mensile in modo da mostrare correttamente quante volte sono state fatte le routines con più ripetizioni giornaliere (es. se una routine è da fare 3 volte al giorno e l'utente l'ha fatta 2 volte, mostrare 2/3 nel recap anziché solo se è stata fatta o meno).
-- **Stato**: 🔴 Da Iniziare (Modifica aggregazione e UI Recap Mensile).
+- **Descrizione**: Sistemare le habits/routines nel recap mensile in modo da mostrare correttamente il progresso per le routine con più ripetizioni giornaliere (es. se una routine prevede 3 ripetizioni al giorno e l'utente ne ha completate 2, mostrare **`2/3`** nel riepilogo anziché una semplice spunta binaria sì/no).
+- **Stato**: 🔴 Da Iniziare *(Priorità: Media)*.
 
-## 🚀 Progetti Futuri & Ideazione
-- [ ] **Incrocio Liste Miste**: Spostare il tasto e il modale SeriesMatchModal (già completato e funzionante, attualmente conservato nel codice) in una futura Homepage Trackers dedicata per permettere l'incrocio misto tra Serie TV, Film e altre categorie.
+---
 
-- [x] **Refactoring Architetturale Modulare Frontend (Ottobre 2026)**: Smantellamento dei macro-file React nella sezione Trackers (SeriesDetailModal, TVSeriesPage, EpisodeDetailView) e NotificationsSidebar per aderire strettamente alla regola della separazione logica-visiva e ridurre il peso a <= 20KB per file.
+## 📋 5. Liste Tematiche & Personalizzate
+
+### [FEAT-005] Creazione Sezione "Liste" (Liste Tematiche & Personalizzate)
+- **Descrizione**: Modulo per creare e organizzare liste di idee, interessi, mete e desideri, completamente slegate dalla spesa alimentare quotidiana:
+  1. **Posti da Visitare / Luoghi & Viaggi**: Città, musei, ristoranti, mete vacanza, con link Google Maps, note, checklist attrazioni e stato (*Da visitare / Visitato*).
+  2. **Siti da Vedere / Link Utili & Risorse**: Strumenti online, articoli da leggere (*Read it later*), documentazioni, video, con anteprima/favicon automatica e tag tematici.
+  3. **Oggetti da Comprare / Wishlist**: Desideri non alimentari, link allo store, prezzo stimato, priorità e stato (*In lista desideri, In attesa offerta, Ordinato, Acquistato*).
+  4. **Giochi & Videogiochi**: Titoli PC/Console/Boardgame da provare o finire, con piattaforma, genere, ore di gioco e stato (*Da giocare, In corso, Finito, Platinato, Abbandonato*).
+  5. **Liste Generiche & Flessibili**: Liste libere create dall'utente con nome, icona/emoji a scelta, colore e formato (checklist, note o link).
+- **Stato**: 🟡 Parziale *(UI liste serie TV avviata; modulo generale da strutturare - Passo Fondamentale)*.
+
+---
+
+## 🔔 6. Notifiche, Social & Condivisione
+
+### [FEAT-013] Archivio Notifiche / Sezione Storico Notifiche Permanente
+- **Descrizione**: Creare una sezione dedicata (es. in Archivio o pagina apposita) per consultare lo storico completo di tutte le notifiche di sistema, inviti e alert, conformemente alla regola per cui le notifiche non sono effimere ma permanenti.
+- **UI/UX**: Lista a scorrimento, filtri per tipologia (Social, Spesa, Sistema) e raggruppamento per data (Oggi, Ieri, Questa Settimana, Mese).
+- **Stato**: Backend 🟢 Supportato | Frontend 🟡 Da Implementare.
+
+### [FEAT-014] Notifiche per Nuove Liste nei Gruppi Condivisi
+- **Descrizione**: Ricevere una notifica quando un membro di un gruppo di cui si fa parte crea una nuova lista (es. una nuova lista all'interno di un gruppo Shopping o Media).
+- **Stato**: 🔴 Da Implementare.
+
+---
+
+## ⚙️ 7. Amministrazione, Citazioni & Sistema
+
+### [FEAT-009] Restyling & Rifinitura Grafica Schermate SuperUser (Admin Panel)
+- **Descrizione**: Rifinire, armonizzare e modernizzare visivamente tutte le schermate del pannello SuperUser Desktop (`/admin`), adattandole al design system dell'applicazione:
+  - Dashboard Amministrazione (Statistiche e KPI server).
+  - Gestione Utenti, Ruoli e Permessi.
+  - Gestione Database, Pulizia Cache e Diagnostica.
+  - Sezione Feedback, Segnalazioni e Bug Report.
+- **Stato**: Backend 🟢 Supportato | Frontend 🔴 Da Implementare *(Priorità: Media-Alta)*.
+
+### [FEAT-010] Database & Sincronizzazione Centralizzata Citazioni Giornaliere (Quotes)
+- **Descrizione**: Centralizzare le citazioni giornaliere (Quotes) tramite tabella database dedicata nel backend, in modo che tutti gli utenti e dispositivi visualizzino la stessa identica citazione del giorno in modo sincronizzato e consistente.
+- **Stato**: 🔴 Da Implementare *(Priorità: Media)*.
+
+---
+
+## 🤖 8. Ricerca, Studio di Fattibilità & Integrazione AI (Intelligenza Artificiale)
+
+### [AI-001] Assistente Intelligente, Voice-to-Action & Automazioni LLM
+- **Descrizione**: Studio di fattibilità, analisi architetturale e prototipazione per integrare modelli LLM, Speech-to-Text e Structured Outputs all'interno di Vita per trasformare l'app in un assistente proattivo e contestuale.
+- **Architettura Provider**: Supporto modulare per inferenza locale privata (Ollama / Whisper.cpp su NAS Docker) oppure API Cloud ad alte prestazioni (Gemini 2.0 Flash, OpenAI) selezionabili dalle impostazioni.
+- **Casi d'Uso Chiave**:
+  1. **Voice-to-Action**: Registrazione vocale rapida da smartphone e creazione automatica strutturata di task con scadenza o inserimento articoli nella lista spesa corretta.
+  2. **Assistente Personale & Daily Briefing**: Sintesi vocale/testuale del giorno all'apertura dell'app e query in linguaggio naturale sulla propria agenda (*"Quando scade l'assicurazione auto?"*, *"Cosa devo comprare da Leroy Merlin?"*).
+  3. **AI Task Breakdown**: Scomposizione automatica di un macro-obiettivo in sotto-task sequenziali con scadenze suggerite.
+  4. **Correlazioni Benessere (Mood & Habits)**: Analisi periodica che incrocia l'umore (*Mood Entries*) con le abitudini completate per individuare pattern positivi o fattori di stress.
+- **Stato**: 🔴 Da Analizzare / Prototipare *(Priorità: Media-Alta)*.
+
+---
+
+## 🚀 9. Progetti Futuri & Idee di Roadmap
+
+### 9.1 Mobile & Esperienza Utente
+- [ ] **[HOME-001] Widget Homepage Rotante (Citazione, Oroscopo & Meteo)**: Widget rotante in homepage che alterna citazione, oroscopo del giorno e meteo locale, con apertura espansa al click che mostra tutte e tre le informazioni.
+- [ ] **Notifiche Push Native Android (FCM / Local Notifications)**: Avvisi automatici per scadenze di task, eventi di calendario, promemoria serie ed episodi in uscita.
+- [ ] **Scansione Codici a Barre (Barcode Scanner)**: Utilizzo fotocamera smartphone per aggiungere al volo prodotti alla lista spesa o libri tramite ISBN.
+- [ ] **Widget Android**: Widget per la schermata home dello smartphone per spuntare i task rapidi del giorno, la lista spesa e visualizzare la puntata in corso.
+
+### 9.2 Agenda, Task & Pianificazione
+- [ ] **Visualizzazione Vista Gantt / Timeline**: Per progetti complessi con sotto-task gerarchici e scadenze concatenate.
+- [ ] **Integrazione Meteo nella DayPage**: Previsioni meteo contestuali nella vista Giorno basate su coordinate o città configurata.
+- [ ] **Report Settimanale / Mensile PDF**: Esportazione automatica di un documento riassuntivo con impegni svolti, abitudini rispettate, statistiche media consumati e bilancio dell'umore (*Mood Entries*).
