@@ -15,5 +15,9 @@ if "%~1"=="" (
     exit /b 1
 )
 
-alembic %*
+if exist .venv\Scripts\alembic.exe (
+    .venv\Scripts\alembic.exe %*
+) else (
+    uv run alembic %*
+)
 exit /b %ERRORLEVEL%

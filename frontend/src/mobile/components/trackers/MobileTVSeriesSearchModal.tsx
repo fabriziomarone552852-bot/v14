@@ -6,6 +6,7 @@ import { useMediaFilterOptions, type MediaFilterState } from '@/hooks/trackers/u
 import { useBackHandler } from '@/utils/backButtonManager';
 import { MobileTVSeriesSearchResults } from './MobileTVSeriesSearchResults';
 import { MobileTVSeriesFilterOptions } from './MobileTVSeriesFilterOptions';
+import { useFadeScrollbar } from '@/hooks/ui/useFadeScrollbar';
 
 export interface MobileTVSeriesSearchModalProps {
   isOpen: boolean;
@@ -48,6 +49,7 @@ export const MobileTVSeriesSearchModal: React.FC<MobileTVSeriesSearchModalProps>
 }) => {
   const inputRef = useRef<HTMLInputElement>(null);
   const [viewMode, setViewMode] = useState<'filters' | 'results'>(debouncedQuery ? 'results' : 'filters');
+  const { handleScroll, scrollbarClass } = useFadeScrollbar();
 
   // Gestione tasto Back (freccia UI e pulsante hardware Android)
   const handleBack = () => {
@@ -313,7 +315,10 @@ export const MobileTVSeriesSearchModal: React.FC<MobileTVSeriesSearchModalProps>
       {/* 2. CORPO: RISULTATI (SCROLLABILI) OPPURE FILTRI (SCROLLABILI CON TASTO FISSO IN BASSO) */}
       <div className="flex-1 min-h-0 flex flex-col max-w-lg mx-auto w-full overflow-hidden">
         {viewMode === 'results' ? (
-          <div className="flex-1 min-h-0 overflow-y-auto custom-scrollbar p-3">
+          <div
+            onScroll={handleScroll}
+            className={`flex-1 min-h-0 overflow-y-auto p-3 ${scrollbarClass}`}
+          >
             <MobileTVSeriesSearchResults
               isSearching={isSearching}
               results={results}

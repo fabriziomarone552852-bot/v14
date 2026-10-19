@@ -6,6 +6,7 @@ import { CloseIcon, TvIcon, CheckCircleIcon } from '@/components/shared/utils/Ic
 import { resolveImageUrl } from '@/utils/imageUtils';
 import { useTrackersMutations } from '@/hooks/mutations/useTrackersMutations';
 import { useBackHandler } from '@/utils/backButtonManager';
+import { useFadeScrollbar } from '@/hooks/ui/useFadeScrollbar';
 
 export interface MobileEpisodeDetailModalProps {
   isOpen: boolean;
@@ -22,6 +23,7 @@ export const MobileEpisodeDetailModal: React.FC<MobileEpisodeDetailModalProps> =
 }) => {
   const { toggleEpisodeWatched, isTogglingEpisodeWatched } = useTrackersMutations();
   const [isWatched, setIsWatched] = useState<boolean>(false);
+  const { handleScroll, scrollbarClass } = useFadeScrollbar();
 
   useEffect(() => {
     if (episode) {
@@ -147,7 +149,10 @@ export const MobileEpisodeDetailModal: React.FC<MobileEpisodeDetailModalProps> =
         </div>
 
         {/* CONTENUTO SCROLLABILE */}
-        <div className="flex-1 min-h-0 overflow-y-auto p-4 space-y-3.5 custom-scrollbar">
+        <div
+          onScroll={handleScroll}
+          className={`flex-1 min-h-0 overflow-y-auto p-4 space-y-3.5 ${scrollbarClass}`}
+        >
           {/* TITOLO EPISODIO E NOME SERIE */}
           <div>
             <button

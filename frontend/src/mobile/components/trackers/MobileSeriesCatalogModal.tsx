@@ -204,7 +204,6 @@ export const MobileSeriesCatalogModal: React.FC<MobileSeriesCatalogModalProps> =
       <MobileSeriesCatalogGrid
         series={filteredSeries}
         onSelectSeries={(item) => {
-          onClose();
           onOpenSeriesDetail(item);
         }}
         hasActiveFilters={hasActiveFilters || activeTab !== 'all'}

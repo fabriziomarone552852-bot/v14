@@ -36,8 +36,9 @@ export const useMobileSeriesSeasonsLogic = ({
     initialEpisode ? initialEpisode.season_number : null
   );
   const [drawerTarget, setDrawerTarget] = useState<MobileWatchActionTarget | null>(null);
+  const [rewatchTarget, setRewatchTarget] = useState<{ episode: TMDBEpisode } | null>(null);
 
-  const { toggleEpisodeWatched } = useTrackersMutations();
+  const { toggleEpisodeWatched, updateSeries } = useTrackersMutations();
   const { data: extras } = useSeriesExtras(tmdbSeries.tmdb_id);
 
   useEffect(() => {
@@ -168,6 +169,11 @@ export const useMobileSeriesSeasonsLogic = ({
   const handleDrawerAddWatch = useCallback(() => {
     if (!drawerTarget) return;
     if (drawerTarget.type === 'episode') {
+      const ep = episodes.find((e) => e.id === drawerTarget.id);
+      if (ep && userTracking && !userTracking.is_rewatching) {
+        setRewatchTarget({ episode: ep });
+        return;
+      }
       toggleEpisodeWatched({ episode_id: drawerTarget.id, watched: true });
     } else {
       const seasonEpisodes = seasonsMap[drawerTarget.id] || [];
@@ -175,7 +181,23 @@ export const useMobileSeriesSeasonsLogic = ({
         toggleEpisodeWatched({ episode_id: ep.id, watched: true });
       });
     }
-  }, [drawerTarget, seasonsMap, toggleEpisodeWatched]);
+  }, [drawerTarget, episodes, userTracking, seasonsMap, toggleEpisodeWatched]);
+
+  const handleConfirmSingleWatch = useCallback(() => {
+    if (!rewatchTarget) return;
+    toggleEpisodeWatched({ episode_id: rewatchTarget.episode.id, watched: true });
+    setRewatchTarget(null);
+  }, [rewatchTarget, toggleEpisodeWatched]);
+
+  const handleConfirmRewatchSeries = useCallback(() => {
+    if (!rewatchTarget || !userTracking) return;
+    toggleEpisodeWatched({ episode_id: rewatchTarget.episode.id, watched: true });
+    updateSeries({
+      id: userTracking.series_tmdb_id || tmdbSeries.tmdb_id,
+      updates: { is_rewatching: true },
+    });
+    setRewatchTarget(null);
+  }, [rewatchTarget, userTracking, tmdbSeries.tmdb_id, toggleEpisodeWatched, updateSeries]);
 
   const handleDrawerResetWatch = useCallback(() => {
     if (!drawerTarget) return;
@@ -213,6 +235,10 @@ export const useMobileSeriesSeasonsLogic = ({
     setExpandedSeason,
     drawerTarget,
     setDrawerTarget,
+    rewatchTarget,
+    setRewatchTarget,
+    handleConfirmSingleWatch,
+    handleConfirmRewatchSeries,
     episodes,
     seasonsMap,
     seasonsList,

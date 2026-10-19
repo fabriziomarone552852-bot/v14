@@ -34,6 +34,7 @@ export interface MobileTVSeriesDetailModalProps {
   initialTab?: TabType;
   initialEpisode?: TMDBEpisode | null;
   initialReviewLogId?: number;
+  isStandaloneEpisode?: boolean;
   onToggleTrack?: (tmdbId: number, isTracked: boolean) => void;
   onSelectRecommendation?: (series: SeriesRecommendation) => void;
   onGenreClick?: (genre: string) => void;
@@ -48,6 +49,7 @@ export const MobileTVSeriesDetailModal: React.FC<MobileTVSeriesDetailModalProps>
   initialTab = 'overview',
   initialEpisode = null,
   initialReviewLogId,
+  isStandaloneEpisode = false,
   onToggleTrack,
   onSelectRecommendation,
   onGenreClick,
@@ -130,15 +132,19 @@ export const MobileTVSeriesDetailModal: React.FC<MobileTVSeriesDetailModalProps>
         setShowOptionsModal(false);
         return true;
       }
-      // Se c'è un episodio aperto, torna alla lista delle stagioni
+      // Se c'è un episodio aperto, chiude il modale se standalone o torna alla lista delle stagioni
       if (currentEpisode) {
+        if (isStandaloneEpisode) {
+          onClose();
+          return true;
+        }
         setInternalEpisode(null);
         return true;
       }
       onClose();
       return true;
     },
-    15
+    28
   );
 
   if (!isOpen) return null;
@@ -154,7 +160,13 @@ export const MobileTVSeriesDetailModal: React.FC<MobileTVSeriesDetailModalProps>
         <MobileEpisodeDetailBanner
           backdropUrl={episodeBackdropUrl}
           title={episodeTitle}
-          onClose={() => setInternalEpisode(null)}
+          onClose={() => {
+            if (isStandaloneEpisode) {
+              onClose();
+            } else {
+              setInternalEpisode(null);
+            }
+          }}
         />
       ) : (
         <MobileSeriesDetailBanner
@@ -222,19 +234,21 @@ export const MobileTVSeriesDetailModal: React.FC<MobileTVSeriesDetailModalProps>
         )}
       </div>
 
-      {/* 3. BARRA DI NAVIGAZIONE INFERIORE (Ricliccando su serie ritorna alla lista di tutte le serie) */}
-      <MobileSeriesDetailBottomBar
-        activeTab={currentEpisode ? 'seasons' : activeTab}
-        onTabChange={(tab) => {
-          if (tab === 'seasons') {
-            setInternalEpisode(null);
-            setActiveTab('seasons');
-          } else {
-            setInternalEpisode(null);
-            setActiveTab(tab);
-          }
-        }}
-      />
+      {/* 3. BARRA DI NAVIGAZIONE INFERIORE (Nascosta in modalità solo episodio standalone) */}
+      {!isStandaloneEpisode && (
+        <MobileSeriesDetailBottomBar
+          activeTab={currentEpisode ? 'seasons' : activeTab}
+          onTabChange={(tab) => {
+            if (tab === 'seasons') {
+              setInternalEpisode(null);
+              setActiveTab('seasons');
+            } else {
+              setInternalEpisode(null);
+              setActiveTab(tab);
+            }
+          }}
+        />
+      )}
 
       {/* 5. DRAWERS DAL BASSO E MODALI SECONDARI */}
       <MobileSeriesFriendsDrawer
@@ -257,14 +271,28 @@ export const MobileTVSeriesDetailModal: React.FC<MobileTVSeriesDetailModalProps>
         onClose={() => setShowOptionsModal(false)}
         hasCustomPoster={Boolean(userTracking?.custom_poster_path)}
         onPosterUpdated={(url) => {
-          if (tmdbSeries.tmdb_id) {
+          const targetTmdbId = tmdbSeries.tmdb_id || userTracking?.series_tmdb_id;
+          if (targetTmdbId) {
             updateSeries({
-              id: tmdbSeries.tmdb_id,
+              id: targetTmdbId,
               updates: { custom_poster_path: url || undefined },
             });
           }
         }}
         isUserTracked={isUserTracked}
+        isRewatching={Boolean(
+          userTracking?.is_rewatching ||
+          ('is_rewatching' in series && (series as { is_rewatching?: boolean }).is_rewatching)
+        )}
+        onStopRewatch={() => {
+          const targetTmdbId = tmdbSeries.tmdb_id || userTracking?.series_tmdb_id;
+          if (targetTmdbId) {
+            updateSeries({
+              id: targetTmdbId,
+              updates: { is_rewatching: false },
+            });
+          }
+        }}
       />
 
       {isListManagerOpen && (

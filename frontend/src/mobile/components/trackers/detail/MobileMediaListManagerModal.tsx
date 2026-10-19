@@ -6,6 +6,7 @@ import { useMediaLists } from '@/hooks/queries/useTrackersQueries';
 import { useTrackersMutations } from '@/hooks/mutations/useTrackersMutations';
 import { useBackHandler } from '@/utils/backButtonManager';
 import { logger } from '@/utils/logger';
+import { useFadeScrollbar } from '@/hooks/ui/useFadeScrollbar';
 
 export interface MobileMediaListManagerModalProps {
   isOpen: boolean;
@@ -24,6 +25,7 @@ export const MobileMediaListManagerModal: React.FC<MobileMediaListManagerModalPr
   const [isPrivacyDropdownOpen, setIsPrivacyDropdownOpen] = useState(false);
   const [selectedListIds, setSelectedListIds] = useState<number[]>([]);
   const [isSaving, setIsSaving] = useState(false);
+  const { handleScroll, scrollbarClass } = useFadeScrollbar();
 
   const { data: mediaLists = [] } = useMediaLists();
   const { createListAsync, addToListAsync, removeFromListAsync } = useTrackersMutations();
@@ -171,7 +173,10 @@ export const MobileMediaListManagerModal: React.FC<MobileMediaListManagerModalPr
         </div>
 
         {/* Corpo scrollabile */}
-        <div className="flex-1 min-h-0 overflow-y-auto p-4 space-y-4 custom-scrollbar">
+        <div
+          onScroll={handleScroll}
+          className={`flex-1 min-h-0 overflow-y-auto p-4 space-y-4 ${scrollbarClass}`}
+        >
           {/* Sezione Creazione Nuova Lista */}
           <div className="bg-blue-50/60 border border-blue-100 rounded-2xl p-3.5 space-y-3">
             <div className="flex items-center justify-between">

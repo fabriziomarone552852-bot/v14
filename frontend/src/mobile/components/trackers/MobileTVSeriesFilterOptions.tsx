@@ -10,6 +10,7 @@ import {
 import { SelectModalDialog } from '@/components/shared/form/SelectModalDialog';
 import { MobileModalSelect } from '../common/MobileModalSelect';
 import type { MediaFilterState } from '@/hooks/trackers/useMediaFilterOptions';
+import { useFadeScrollbar } from '@/hooks/ui/useFadeScrollbar';
 
 const BookmarkIcon: React.FC<{ className?: string }> = ({ className = 'w-5 h-5' }) => (
   <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -56,6 +57,7 @@ export const MobileTVSeriesFilterOptions: React.FC<MobileTVSeriesFilterOptionsPr
   actionButtonLabel,
 }) => {
   const [isListModalOpen, setIsListModalOpen] = useState(false);
+  const { handleScroll, scrollbarClass } = useFadeScrollbar();
 
   const selectedList = myLists?.find((l) => l.id === filters.listId);
   const selectedListName = selectedList ? selectedList.name : 'Tutte le Serie';
@@ -64,7 +66,10 @@ export const MobileTVSeriesFilterOptions: React.FC<MobileTVSeriesFilterOptionsPr
   return (
     <div className="flex flex-col h-full overflow-hidden animate-fadeIn">
       {/* Area filtri scrollabile */}
-      <div className="flex-1 min-h-0 overflow-y-auto custom-scrollbar p-3 space-y-3.5">
+      <div
+        onScroll={handleScroll}
+        className={`flex-1 min-h-0 overflow-y-auto p-3 space-y-3.5 ${scrollbarClass}`}
+      >
         {/* 1. BARRA PER L'APERTURA DEL MODALE DELLA LISTA */}
       <div className="bg-white border border-gray-200/90 rounded-2xl shadow-2xs overflow-hidden transition-all">
         <button

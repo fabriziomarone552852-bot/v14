@@ -3,7 +3,7 @@ import React, { useRef, useEffect, useState, useMemo, useCallback } from 'react'
 import { useQueryClient } from '@tanstack/react-query';
 import { useUpcomingEpisodes } from '@/hooks/queries/useTrackersQueries';
 import { useTrackersMutations } from '@/hooks/mutations/useTrackersMutations';
-import type { UpcomingEpisode } from '@/types/trackers';
+import type { UpcomingEpisode, TVSeries } from '@/types/trackers';
 import MobileTVEpisodeHorizontalCard from './MobileTVEpisodeHorizontalCard';
 import TimelineLoadingCard from './TimelineLoadingCard';
 import TimelineBackToTodayButton from './TimelineBackToTodayButton';
@@ -11,11 +11,13 @@ import { EmptyState } from '@/components/shared/utils/EmptyState';
 import { TvIcon } from '@/components/shared/utils/Icons';
 
 export interface MobileTVEpisodesTimelineProps {
+  series?: TVSeries[];
   onEpisodeClick: (episode: UpcomingEpisode) => void;
   onOpenSeriesDetail?: (episode: UpcomingEpisode) => void;
 }
 
 export const MobileTVEpisodesTimeline: React.FC<MobileTVEpisodesTimelineProps> = ({
+  series,
   onEpisodeClick,
   onOpenSeriesDetail,
 }) => {
@@ -76,6 +78,18 @@ export const MobileTVEpisodesTimeline: React.FC<MobileTVEpisodesTimelineProps> =
     const d = String(now.getDate()).padStart(2, '0');
     return `${y}-${m}-${d}`;
   }, []);
+
+  // Mappa delle locandine personalizzate per le serie seguite (per TMDB ID)
+  const customPosterMap = useMemo(() => {
+    const map = new Map<number, string>();
+    if (!series) return map;
+    for (const s of series) {
+      if (s.custom_poster_path) {
+        map.set(s.tmdb_id, s.custom_poster_path);
+      }
+    }
+    return map;
+  }, [series]);
 
   // Calcolo intervallo date per la query API basato sugli offset dei mesi
   const { startDateStr, endDateStr } = useMemo(() => {
@@ -394,6 +408,7 @@ export const MobileTVEpisodesTimeline: React.FC<MobileTVEpisodesTimelineProps> =
             >
               <MobileTVEpisodeHorizontalCard
                 episode={ep}
+                customPosterUrl={customPosterMap.get(ep.series_tmdb_id)}
                 onClick={onEpisodeClick}
                 onOpenSeriesDetail={onOpenSeriesDetail}
                 onToggleWatch={handleToggleWatch}

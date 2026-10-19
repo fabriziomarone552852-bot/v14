@@ -162,8 +162,8 @@ def mark_episode_unwatched(db: Session, user_id: int, episode_id: int) -> None:
         db.commit()
 
 
-def get_upcoming_episodes(db: Session, user_id: int, start_date=None, end_date=None) -> List[Tuple[TMDBEpisode, TMDBSeries, bool]]:
-    """Restituisce i prossimi episodi in uscita per le serie seguite dall'utente con lo stato is_watched."""
+def get_upcoming_episodes(db: Session, user_id: int, start_date=None, end_date=None) -> List[Tuple[TMDBEpisode, TMDBSeries, bool, Optional[str]]]:
+    """Restituisce i prossimi episodi in uscita per le serie seguite dall'utente con lo stato is_watched e la locandina personalizzata."""
     from datetime import date
     
     where_clauses = [
@@ -189,7 +189,7 @@ def get_upcoming_episodes(db: Session, user_id: int, start_date=None, end_date=N
     )
 
     stmt = (
-        select(TMDBEpisode, TMDBSeries, watched_subq.label("is_watched"))
+        select(TMDBEpisode, TMDBSeries, watched_subq.label("is_watched"), UserSeriesTracking.custom_poster_path)
         .join(TMDBSeries, TMDBSeries.tmdb_id == TMDBEpisode.series_tmdb_id)
         .join(UserSeriesTracking, UserSeriesTracking.series_tmdb_id == TMDBSeries.tmdb_id)
         .where(*where_clauses)

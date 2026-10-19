@@ -6,6 +6,7 @@ import { resolveImageUrl } from '@/utils/imageUtils';
 
 export interface MobileTVEpisodeHorizontalCardProps {
   episode: UpcomingEpisode;
+  customPosterUrl?: string | null;
   onClick: (episode: UpcomingEpisode) => void;
   onOpenSeriesDetail?: (episode: UpcomingEpisode) => void;
   onToggleWatch?: (episode: UpcomingEpisode) => void;
@@ -14,6 +15,7 @@ export interface MobileTVEpisodeHorizontalCardProps {
 
 export const MobileTVEpisodeHorizontalCard: React.FC<MobileTVEpisodeHorizontalCardProps> = ({
   episode,
+  customPosterUrl,
   onClick,
   onOpenSeriesDetail,
   onToggleWatch,
@@ -29,6 +31,16 @@ export const MobileTVEpisodeHorizontalCard: React.FC<MobileTVEpisodeHorizontalCa
       : rawBackdrop.startsWith('/uploads')
       ? resolveImageUrl(rawBackdrop)
       : `https://image.tmdb.org/t/p/w780${rawBackdrop}`
+    : null;
+
+  // Risoluzione locandina serie (personalizzata o TMDB)
+  const rawPoster = customPosterUrl || episode.series_poster_path;
+  const posterUrl = rawPoster
+    ? rawPoster.startsWith('http') || rawPoster.startsWith('data:')
+      ? rawPoster
+      : rawPoster.startsWith('/uploads')
+      ? resolveImageUrl(rawPoster)
+      : `https://image.tmdb.org/t/p/w200${rawPoster}`
     : null;
 
   // Calcolo data relativa e formattazione
@@ -103,9 +115,9 @@ export const MobileTVEpisodeHorizontalCard: React.FC<MobileTVEpisodeHorizontalCa
             isWatched ? 'grayscale-[60%] opacity-70' : ''
           }`}
         >
-          {episode.series_poster_path ? (
+          {posterUrl ? (
             <img
-              src={`https://image.tmdb.org/t/p/w200${episode.series_poster_path}`}
+              src={posterUrl}
               alt={episode.series_title}
               className="w-full h-full object-cover"
               loading="lazy"

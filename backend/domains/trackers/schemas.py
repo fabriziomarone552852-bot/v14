@@ -35,6 +35,7 @@ class TVSeriesCreate(StrictBaseModel):
 class TVSeriesUpdate(StrictBaseModel):
     """Payload to update an existing tracked TV Series."""
     status: Optional[str] = None
+    is_rewatching: Optional[bool] = None
     rating: Optional[float] = Field(None, ge=1, le=5)
     notes: Optional[str] = None
     custom_poster_path: Optional[str] = None
@@ -159,6 +160,7 @@ class TVSeriesResponse(ORMBaseModel):
     # User Tracking fields
     id: int  # The tracking record ID
     status: str
+    is_rewatching: bool = False
     custom_poster_path: Optional[str] = None
     custom_backdrop_path: Optional[str] = None
     added_at: datetime

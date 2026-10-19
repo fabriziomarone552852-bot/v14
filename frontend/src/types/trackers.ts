@@ -100,6 +100,7 @@ export interface UserSeriesTracking {
   id: number;
   series_tmdb_id: number;
   status: string;
+  is_rewatching?: boolean;
   rating?: number | null;
   created_at: string;
   updated_at?: string | null;
