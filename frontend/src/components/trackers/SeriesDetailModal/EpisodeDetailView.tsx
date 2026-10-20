@@ -54,6 +54,9 @@ export const EpisodeDetailView: React.FC<EpisodeDetailViewProps> = ({
     setReview,
     visibility,
     setVisibility,
+    platform,
+    setPlatform,
+    allPlatforms,
     reviewDate,
     setReviewDate,
     myAverage,
@@ -94,6 +97,9 @@ export const EpisodeDetailView: React.FC<EpisodeDetailViewProps> = ({
         setReview={setReview}
         rating={rating}
         setRating={setRating}
+        platform={platform}
+        setPlatform={setPlatform}
+        allPlatforms={allPlatforms}
         onSave={handleSave}
       />
     );
@@ -107,6 +113,7 @@ export const EpisodeDetailView: React.FC<EpisodeDetailViewProps> = ({
         onBack={() => setView('main')}
         onOpenNewReview={openNewReview}
         onOpenEditReview={openEditReview}
+        onDeleteReview={handleDeleteLog}
         onSelectReview={(log) => {
           setSelectedReview({
             id: log.id,
@@ -118,6 +125,7 @@ export const EpisodeDetailView: React.FC<EpisodeDetailViewProps> = ({
             comments: log.comments || [],
             is_mine: true,
             review_visibility: log.review_visibility,
+            viewing_platform_name: log.viewing_platform_name ?? null,
             original_log: log,
           });
           setView('review_detail');
@@ -186,19 +194,18 @@ export const EpisodeDetailView: React.FC<EpisodeDetailViewProps> = ({
   // 5. Review Detail & Comments View (Condiviso)
   if (view === 'review_detail' && selectedReview) {
     const origLog = selectedReview.original_log;
-    const isUserLog = origLog && 'user_id' in origLog;
 
     return (
       <ReviewDetailCard
         review={selectedReview}
         onBack={() => setView(selectedReview.is_mine ? 'reviews' : 'friend_detail')}
         onEdit={
-          selectedReview.is_mine && isUserLog
+          selectedReview.is_mine && origLog
             ? () => openEditReview(origLog as UserEpisodeLog)
             : undefined
         }
         onDelete={
-          selectedReview.is_mine && isUserLog
+          selectedReview.is_mine && origLog
             ? () => handleDeleteLog((origLog as UserEpisodeLog).id)
             : undefined
         }

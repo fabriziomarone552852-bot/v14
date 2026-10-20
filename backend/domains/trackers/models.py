@@ -189,7 +189,6 @@ class UserSeriesLog(Base):
     notes: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     
     review_visibility: Mapped[str] = mapped_column(String(50), nullable=False, default="friends_only")
-    viewing_platform_id: Mapped[Optional[int]] = mapped_column(Integer, ForeignKey("tv_user_platforms.id", ondelete="SET NULL"), nullable=True)
     
     watched_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
@@ -212,7 +211,6 @@ class UserSeriesLog(Base):
     
     user: Mapped["User"] = relationship("User")
     tmdb_series: Mapped["TMDBSeries"] = relationship("TMDBSeries")
-    viewing_platform: Mapped[Optional["UserTVPlatform"]] = relationship("UserTVPlatform")
 
     def __repr__(self) -> str:
         return f"<UserSeriesLog id={self.id} user={self.user_id} series={self.series_tmdb_id}>"
@@ -233,6 +231,7 @@ class UserEpisodeLog(Base):
     
     # Privacy & Social Sharing (FEAT-007)
     review_visibility: Mapped[str] = mapped_column(String(50), nullable=False, default="friends_only")
+    viewing_platform_id: Mapped[Optional[int]] = mapped_column(Integer, ForeignKey("tv_user_platforms.id", ondelete="SET NULL"), nullable=True)
     
     watched_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
@@ -243,6 +242,7 @@ class UserEpisodeLog(Base):
     # Relationships
     user: Mapped["User"] = relationship("User")
     tmdb_episode: Mapped["TMDBEpisode"] = relationship("TMDBEpisode", back_populates="user_trackings")
+    viewing_platform: Mapped[Optional["UserTVPlatform"]] = relationship("UserTVPlatform")
 
     def __repr__(self) -> str:
         return f"<UserEpisodeLog id={self.id} user={self.user_id} episode={self.episode_id}>"

@@ -502,7 +502,7 @@ def _build_series_response(tracking: UserSeriesTracking, db=None, current_user=N
         from backend.domains.notifications.models import Interaction
         from backend.domains.users.models import User
         
-        stmt = sqlalchemy.select(UserSeriesLog).options(sqlalchemy.orm.joinedload(UserSeriesLog.viewing_platform)).where(
+        stmt = sqlalchemy.select(UserSeriesLog).where(
             UserSeriesLog.user_id == current_user.id,
             UserSeriesLog.series_tmdb_id == tracking.series_tmdb_id
         ).order_by(UserSeriesLog.updated_at.desc())
@@ -538,8 +538,6 @@ def _build_series_response(tracking: UserSeriesTracking, db=None, current_user=N
                 "rating": raw_log.rating,
                 "notes": raw_log.notes,
                 "review_visibility": raw_log.review_visibility,
-                "viewing_platform_id": raw_log.viewing_platform_id,
-                "viewing_platform_name": raw_log.viewing_platform.name if raw_log.viewing_platform else None,
                 "watched_at": raw_log.watched_at,
                 "updated_at": raw_log.updated_at,
                 "comments": comments_list
@@ -610,6 +608,7 @@ def _build_episode_response(tmdb_ep: TMDBEpisode, user_logs: List["UserEpisodeLo
             rating=log.rating,
             notes=log.notes,
             review_visibility=log.review_visibility,
+            viewing_platform_name=log.viewing_platform.name if log.viewing_platform else None,
             watched_at=log.watched_at,
             comments=comments_list
         ))
@@ -764,7 +763,7 @@ def update_episode_notes(db: Session, current_user: User, episode_id: int, notes
     return _build_episode_response(tmdb_ep, user_logs, user_quotes, db=db)
 
 
-def add_episode_log(db: Session, current_user: User, episode_id: int, notes: str | None, review_visibility: str | None = None, rating: int | None = None, watched_at_date: date | None = None) -> TVEpisodeResponse:
+def add_episode_log(db: Session, current_user: User, episode_id: int, notes: str | None, review_visibility: str | None = None, rating: int | None = None, watched_at_date: date | None = None, viewing_platform_name: str | None = None) -> TVEpisodeResponse:
     import sqlalchemy
     from datetime import datetime, timezone
     from backend.domains.trackers.models import UserEpisodeLog, TMDBEpisode, TVQuote
@@ -778,6 +777,10 @@ def add_episode_log(db: Session, current_user: User, episode_id: int, notes: str
     watched_dt = datetime.now(timezone.utc)
     if watched_at_date:
         watched_dt = datetime.combine(watched_at_date, datetime.min.time()).replace(tzinfo=timezone.utc)
+
+    platform_id = None
+    if viewing_platform_name and viewing_platform_name.strip():
+        platform_id = _get_or_create_tv_platform(db, current_user.id, viewing_platform_name)
         
     new_log = UserEpisodeLog(
         user_id=current_user.id,
@@ -785,6 +788,7 @@ def add_episode_log(db: Session, current_user: User, episode_id: int, notes: str
         rating=rating,
         notes=notes,
         review_visibility=review_visibility or "friends_only",
+        viewing_platform_id=platform_id,
         watched_at=watched_dt
     )
     db.add(new_log)
@@ -797,7 +801,7 @@ def add_episode_log(db: Session, current_user: User, episode_id: int, notes: str
     user_quotes = list(db.execute(quotes_stmt).scalars().all())
     return _build_episode_response(tmdb_ep, user_logs, user_quotes, db=db)
 
-def update_episode_log(db: Session, current_user: User, log_id: int, notes: str | None, review_visibility: str | None = None, rating: int | None = None, watched_at_date: date | None = None) -> TVEpisodeResponse:
+def update_episode_log(db: Session, current_user: User, log_id: int, notes: str | None, review_visibility: str | None = None, rating: int | None = None, watched_at_date: date | None = None, viewing_platform_name: str | None = None) -> TVEpisodeResponse:
     import sqlalchemy
     from datetime import datetime, timezone
     from backend.domains.trackers.models import UserEpisodeLog, TMDBEpisode, TVQuote
@@ -814,6 +818,13 @@ def update_episode_log(db: Session, current_user: User, log_id: int, notes: str 
         log.review_visibility = review_visibility
     if watched_at_date:
         log.watched_at = datetime.combine(watched_at_date, datetime.min.time()).replace(tzinfo=timezone.utc)
+
+    # Gestione piattaforma: '' = rimuovi, stringa non vuota = imposta, None = non toccare
+    if viewing_platform_name is not None:
+        if viewing_platform_name.strip():
+            log.viewing_platform_id = _get_or_create_tv_platform(db, current_user.id, viewing_platform_name)
+        else:
+            log.viewing_platform_id = None
         
     db.commit()
     
@@ -1091,10 +1102,6 @@ def add_series_log(db, current_user, tmdb_id, payload):
     import sqlalchemy
     from backend.domains.trackers.models import UserSeriesLog
     from datetime import datetime, timezone
-    
-    platform_id = payload.viewing_platform_id
-    if getattr(payload, "viewing_platform_name", None):
-        platform_id = _get_or_create_tv_platform(db, current_user.id, payload.viewing_platform_name)
         
     # Ensure tracking exists
     tracking = repository.get_user_series_tracking(db, tmdb_id, current_user.id)
@@ -1108,7 +1115,6 @@ def add_series_log(db, current_user, tmdb_id, payload):
         rating=payload.rating,
         notes=payload.notes,
         review_visibility=payload.review_visibility or "friends_only",
-        viewing_platform_id=platform_id,
         updated_at=payload.watched_at or datetime.now(timezone.utc)
     )
     db.add(log)
@@ -1134,12 +1140,6 @@ def update_series_log(db, current_user, log_id, payload):
         log.notes = payload.notes
     if getattr(payload, "review_visibility", None) is not None:
         log.review_visibility = payload.review_visibility
-        
-    platform_id = payload.viewing_platform_id
-    if getattr(payload, "viewing_platform_name", None):
-        platform_id = _get_or_create_tv_platform(db, current_user.id, payload.viewing_platform_name)
-    if platform_id is not None or getattr(payload, "viewing_platform_name", None) == "":
-        log.viewing_platform_id = platform_id if platform_id else None
         
     if getattr(payload, "watched_at", None) is not None:
         log.updated_at = payload.watched_at
@@ -1334,14 +1334,18 @@ def get_full_stats(db: Session, current_user: User):
     )
     
     # --- Platform Distribution ---
-    from backend.domains.trackers.models import UserSeriesLog, UserTVPlatform
+    from backend.domains.trackers.models import UserEpisodeLog, UserTVPlatform
     import sqlalchemy
-    series_logs_stmt = sqlalchemy.select(UserSeriesLog).options(sqlalchemy.orm.joinedload(UserSeriesLog.viewing_platform)).where(UserSeriesLog.user_id == current_user.id)
-    series_logs = list(db.execute(series_logs_stmt).scalars().all())
-    
+    episode_logs_stmt = (
+        sqlalchemy.select(UserEpisodeLog)
+        .options(sqlalchemy.orm.joinedload(UserEpisodeLog.viewing_platform))
+        .where(UserEpisodeLog.user_id == current_user.id)
+    )
+    episode_logs_for_platform = list(db.execute(episode_logs_stmt).scalars().all())
+
     platform_counts = defaultdict(int)
     total_platforms = 0
-    for log in series_logs:
+    for log in episode_logs_for_platform:
         if log.viewing_platform and log.viewing_platform.name:
             platform = log.viewing_platform.name.strip()
             if platform:
@@ -1411,14 +1415,19 @@ def get_full_stats(db: Session, current_user: User):
             ))
             
     # --- Ratings & Satisfaction ---
+    # series_logs serve solo per i rating (viewing_platform non è più su UserSeriesLog)
+    from backend.domains.trackers.models import UserSeriesLog as _UserSeriesLog
+    series_logs_stmt = sqlalchemy.select(_UserSeriesLog).where(_UserSeriesLog.user_id == current_user.id)
+    series_logs = list(db.execute(series_logs_stmt).scalars().all())
+
     satisfaction_index = []
-    
+
     series_rating_counts = {r / 2.0: 0 for r in range(1, 11)}
     episode_rating_counts = {r / 2.0: 0 for r in range(1, 11)}
-        
+
     genre_ratings = defaultdict(list)
     top_series_list = []
-    
+
     for log in series_logs:
         s = series_map.get(log.series_tmdb_id)
         if not s: continue

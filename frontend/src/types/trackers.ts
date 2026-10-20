@@ -34,6 +34,7 @@ export interface UserEpisodeLog {
   notes?: string;
   review_visibility?: string;
   rating?: number;
+  viewing_platform_name?: string | null;
   comments?: ReviewComment[];
 }
 
@@ -90,7 +91,6 @@ export interface UserSeriesLog {
   rating?: number | null;
   notes?: string | null;
   review_visibility: string;
-  viewing_platform_name?: string | null;
   watched_at: string;
   updated_at?: string | null;
   comments: ReviewComment[];
@@ -172,7 +172,6 @@ export interface FriendSeriesLog {
   review_visibility: string;
   updated_at: string;
   watched_at?: string | null;
-  viewing_platform_name?: string | null;
   comments: ReviewComment[];
 }
 
@@ -185,6 +184,7 @@ export interface FriendEpisodeLog {
   notes?: string | null;
   review_visibility: string;
   watched_at: string;
+  viewing_platform_name?: string | null;
   comments: ReviewComment[];
 }
 
@@ -347,7 +347,6 @@ export interface SeriesLogMutationPayload {
   notes?: string;
   review_visibility?: string;
   watched_at?: string;
-  viewing_platform_name?: string | null;
 }
 
 export type AnyReviewLog = UserSeriesLog | UserEpisodeLog | FriendSeriesLog | FriendEpisodeLog;

@@ -9,7 +9,7 @@ import type {
   SeriesQuote,
 } from '@/types/trackers';
 import { useTrackersMutations } from '@/hooks/mutations/useTrackersMutations';
-import { useFriendsSeriesReviews, useTVPlatforms } from '@/hooks/queries/useTrackersQueries';
+import { useFriendsSeriesReviews } from '@/hooks/queries/useTrackersQueries';
 import { useNotifications } from '@/hooks/useNotifications';
 import { useAuth } from '@/context/AuthContext';
 import { useCommentMentions } from '../shared/useCommentMentions';
@@ -41,25 +41,9 @@ export const useSeriesReviewTabLogic = ({
 
   const { addSeriesLog, updateSeriesLog, deleteSeriesLog } = useTrackersMutations();
   const { data: friendsLogsData = [] } = useFriendsSeriesReviews(tmdbSeries.tmdb_id);
-  const { data: dbPlatforms = [] } = useTVPlatforms();
   const { createInteraction } = useNotifications();
 
   const commentMentions = useCommentMentions();
-
-  const allPlatforms = useMemo(() => {
-    const defaultPlatforms = [
-      'Netflix',
-      'Prime Video',
-      'Disney+',
-      'Apple TV+',
-      'Sky / NOW',
-      'Paramount+',
-      'Pirati 🏴‍☠️',
-      'DVD / Blu-Ray',
-      'TV (In chiaro)',
-    ];
-    return Array.from(new Set([...defaultPlatforms, ...dbPlatforms.map((p) => p.name)]));
-  }, [dbPlatforms]);
 
   const SERIES_QUOTES = useMemo(() => {
     if (!tmdbSeries.episodes) return [];
@@ -87,7 +71,6 @@ export const useSeriesReviewTabLogic = ({
         rating: (log.rating || 0) / 2,
         notes: log.notes || '',
         review_visibility: log.review_visibility || 'friends_only',
-        viewing_platform_name: log.viewing_platform_name,
         watched_at: log.watched_at || new Date().toISOString(),
         updated_at: log.updated_at || new Date().toISOString(),
         comments: log.comments || [],
@@ -115,7 +98,6 @@ export const useSeriesReviewTabLogic = ({
           comments: myLog.comments || [],
           is_mine: true,
           review_visibility: myLog.review_visibility,
-          viewing_platform_name: myLog.viewing_platform_name,
           original_log: myLog,
         });
         setView('review_detail');
@@ -135,7 +117,6 @@ export const useSeriesReviewTabLogic = ({
           comments: friendLog.comments || [],
           is_mine: false,
           review_visibility: friendLog.review_visibility,
-          viewing_platform_name: friendLog.viewing_platform_name,
           original_log: friendLog,
         });
         setView('review_detail');
@@ -171,7 +152,6 @@ export const useSeriesReviewTabLogic = ({
   const [visibility, setVisibility] = useState<string>(
     userTracking?.review_visibility || 'friends_only'
   );
-  const [platform, setPlatform] = useState<string>('');
   const [isDropdownOpen, setIsDropdownOpen] = useState<boolean>(false);
   const [isDatePickerOpen, setIsDatePickerOpen] = useState<boolean>(false);
   const [reviewDate, setReviewDate] = useState<string>(() => {
@@ -223,7 +203,6 @@ export const useSeriesReviewTabLogic = ({
     setRating(0);
     setReview('');
     setVisibility('friends_only');
-    setPlatform('');
     const d = new Date();
     setReviewDate(
       `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(
@@ -238,7 +217,6 @@ export const useSeriesReviewTabLogic = ({
     setRating(log.rating || 0);
     setReview(log.notes || '');
     setVisibility(log.review_visibility || 'friends_only');
-    setPlatform(log.viewing_platform_name || '');
     setReviewDate(log.updated_at ? log.updated_at.split('T')[0] : '');
     setView('form');
   }, []);
@@ -270,7 +248,6 @@ export const useSeriesReviewTabLogic = ({
           rating: rating > 0 ? Math.round(rating * 2) : null,
           notes: review,
           review_visibility: visibility,
-          viewing_platform_name: platform || null,
           watched_at: reviewDate,
         },
       });
@@ -281,7 +258,6 @@ export const useSeriesReviewTabLogic = ({
           rating: rating > 0 ? Math.round(rating * 2) : null,
           notes: review,
           review_visibility: visibility,
-          viewing_platform_name: platform || null,
           watched_at: reviewDate,
         },
       });
@@ -293,7 +269,6 @@ export const useSeriesReviewTabLogic = ({
     rating,
     review,
     visibility,
-    platform,
     reviewDate,
     addSeriesLog,
     tmdbSeries.tmdb_id,
@@ -325,8 +300,6 @@ export const useSeriesReviewTabLogic = ({
     setReview,
     visibility,
     setVisibility,
-    platform,
-    setPlatform,
     reviewDate,
     setReviewDate,
     isDropdownOpen,
@@ -337,7 +310,6 @@ export const useSeriesReviewTabLogic = ({
     confirmDeleteLog,
     executeDeleteLog,
     cancelDeleteLog,
-    allPlatforms,
     SERIES_QUOTES,
     logs,
     friendsLogsData,

@@ -219,6 +219,7 @@ class EpisodeLogCreate(BaseModel):
     notes: str | None = None
     review_visibility: str | None = "friends_only"
     watched_at: date | None = None
+    viewing_platform_name: str | None = None
 
 @router.post("/episodes/{episode_id}/logs", response_model=TVEpisodeResponse, status_code=status.HTTP_201_CREATED)
 def add_episode_log(
@@ -227,7 +228,7 @@ def add_episode_log(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_app_user),
 ):
-    return service.add_episode_log(db, current_user, episode_id, payload.notes, payload.review_visibility, payload.rating, payload.watched_at)
+    return service.add_episode_log(db, current_user, episode_id, payload.notes, payload.review_visibility, payload.rating, payload.watched_at, payload.viewing_platform_name)
 
 @router.patch("/episodes/logs/{log_id}", response_model=TVEpisodeResponse)
 def update_episode_log(
@@ -236,7 +237,7 @@ def update_episode_log(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_app_user),
 ):
-    return service.update_episode_log(db, current_user, log_id, payload.notes, payload.review_visibility, payload.rating, payload.watched_at)
+    return service.update_episode_log(db, current_user, log_id, payload.notes, payload.review_visibility, payload.rating, payload.watched_at, payload.viewing_platform_name)
 
 @router.delete("/episodes/logs/{log_id}", response_model=TVEpisodeResponse)
 def delete_episode_log(

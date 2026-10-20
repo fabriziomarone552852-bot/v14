@@ -119,7 +119,7 @@ export const MobileReviewDetailView: React.FC<MobileReviewDetailViewProps> = ({
                     })}
                   </span>
                   {review.viewing_platform_name && (
-                    <span className="text-[9px] font-bold text-blue-600 bg-blue-50 border border-blue-200/60 px-1.5 py-0.5 rounded-md leading-none">
+                    <span className="text-[9px] font-bold text-slate-600 bg-slate-50 border border-slate-200/80 px-1.5 py-0.5 rounded-md leading-none">
                       {review.viewing_platform_name}
                     </span>
                   )}

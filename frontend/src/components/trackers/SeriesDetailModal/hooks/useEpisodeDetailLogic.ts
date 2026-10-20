@@ -6,7 +6,7 @@ import type {
   UserEpisodeLog,
   UnifiedReviewData,
 } from '@/types/trackers';
-import { useFriendsEpisodeReviews } from '@/hooks/queries/useTrackersQueries';
+import { useFriendsEpisodeReviews, useTVPlatforms } from '@/hooks/queries/useTrackersQueries';
 import { useTrackersMutations } from '@/hooks/mutations/useTrackersMutations';
 import { useNotifications } from '@/hooks/useNotifications';
 import { useConfirm } from '@/context/ConfirmContext';
@@ -43,6 +43,7 @@ export const useEpisodeDetailLogic = ({
 
   const { user } = useAuth();
   const { data: friendsLogsData = [] } = useFriendsEpisodeReviews(episode.id);
+  const { data: dbPlatforms = [] } = useTVPlatforms();
   const { createInteraction } = useNotifications();
   const { confirm } = useConfirm();
   const queryClient = useQueryClient();
@@ -130,6 +131,7 @@ export const useEpisodeDetailLogic = ({
   const [rating, setRating] = useState<number>(0);
   const [review, setReview] = useState<string>('');
   const [visibility, setVisibility] = useState<string>('friends_only');
+  const [platform, setPlatform] = useState<string>('');
   const [isDropdownOpen, setIsDropdownOpen] = useState<boolean>(false);
   const [isDatePickerOpen, setIsDatePickerOpen] = useState<boolean>(false);
   const [reviewDate, setReviewDate] = useState<string>(() => {
@@ -139,6 +141,21 @@ export const useEpisodeDetailLogic = ({
     const dd = String(d.getDate()).padStart(2, '0');
     return `${yyyy}-${mm}-${dd}`;
   });
+
+  const allPlatforms = useMemo(() => {
+    const defaultPlatforms = [
+      'Netflix',
+      'Prime Video',
+      'Disney+',
+      'Apple TV+',
+      'Sky / NOW',
+      'Paramount+',
+      'Pirati 🏴‍☠️',
+      'DVD / Blu-Ray',
+      'TV (In chiaro)',
+    ];
+    return Array.from(new Set([...defaultPlatforms, ...dbPlatforms.map((p) => p.name)]));
+  }, [dbPlatforms]);
 
   const myAverage = useMemo(() => {
     const ratedLogs = logs.filter((l) => typeof l.rating === 'number');
@@ -186,6 +203,7 @@ export const useEpisodeDetailLogic = ({
     setRating(0);
     setReview('');
     setVisibility('friends_only');
+    setPlatform('');
     const d = new Date();
     setReviewDate(
       `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(
@@ -200,6 +218,7 @@ export const useEpisodeDetailLogic = ({
     setRating((log.rating || 0) / 2);
     setReview(log.notes || '');
     setVisibility(log.review_visibility || 'friends_only');
+    setPlatform(log.viewing_platform_name || '');
     setReviewDate(log.watched_at ? log.watched_at.split('T')[0] : '');
     setView('form');
   }, []);
@@ -229,6 +248,7 @@ export const useEpisodeDetailLogic = ({
           rating: Math.round(rating * 2),
           notes: review,
           review_visibility: visibility,
+          viewing_platform_name: platform || null,
           watched_at: reviewDate,
         },
       });
@@ -239,12 +259,13 @@ export const useEpisodeDetailLogic = ({
           rating: Math.round(rating * 2),
           notes: review,
           review_visibility: visibility,
+          viewing_platform_name: platform || null,
           watched_at: reviewDate,
         },
       });
     }
     setView('reviews');
-  }, [editingLogId, updateEpisodeLog, rating, review, visibility, reviewDate, addEpisodeLog, episode.id]);
+  }, [editingLogId, updateEpisodeLog, rating, review, visibility, platform, reviewDate, addEpisodeLog, episode.id]);
 
   const handleToggleWatched = useCallback(() => {
     const isWatched = logs.length > 0;
@@ -295,6 +316,9 @@ export const useEpisodeDetailLogic = ({
     setReview,
     visibility,
     setVisibility,
+    platform,
+    setPlatform,
+    allPlatforms,
     reviewDate,
     setReviewDate,
     isDropdownOpen,

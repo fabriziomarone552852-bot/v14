@@ -41,15 +41,12 @@ export const SeriesReviewTab: React.FC<SeriesReviewTabProps> = ({
     setReview,
     visibility,
     setVisibility,
-    platform,
-    setPlatform,
     reviewDate,
     setReviewDate,
     isDeleteDialogOpen,
     confirmDeleteLog,
     executeDeleteLog,
     cancelDeleteLog,
-    allPlatforms,
     SERIES_QUOTES,
     logs,
     friendsLogsData,
@@ -74,9 +71,6 @@ export const SeriesReviewTab: React.FC<SeriesReviewTabProps> = ({
       <SeriesReviewForm
         editingLogId={editingLogId}
         onBack={() => setView('my_reviews')}
-        platform={platform}
-        setPlatform={setPlatform}
-        allPlatforms={allPlatforms}
         reviewDate={reviewDate}
         setReviewDate={setReviewDate}
         visibility={visibility}
@@ -110,7 +104,6 @@ export const SeriesReviewTab: React.FC<SeriesReviewTabProps> = ({
             comments: log.comments || [],
             is_mine: true,
             review_visibility: log.review_visibility,
-            viewing_platform_name: log.viewing_platform_name,
             original_log: log,
           });
           setView('review_detail');
@@ -171,7 +164,6 @@ export const SeriesReviewTab: React.FC<SeriesReviewTabProps> = ({
             comments: log.comments || [],
             is_mine: false,
             review_visibility: log.review_visibility,
-            viewing_platform_name: log.viewing_platform_name,
             original_log: log,
           });
           setView('review_detail');

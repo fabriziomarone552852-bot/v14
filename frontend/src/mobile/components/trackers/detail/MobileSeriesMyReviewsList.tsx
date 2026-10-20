@@ -226,11 +226,6 @@ export const MobileSeriesMyReviewsList: React.FC<MobileSeriesMyReviewsListProps>
                           visibility={log.review_visibility || 'public'}
                           className="w-3 h-3 text-gray-400"
                         />
-                        {log.viewing_platform_name && (
-                          <span className="text-[9px] font-bold text-blue-600 bg-blue-50 border border-blue-200/60 px-1.5 py-0.5 rounded-md leading-none">
-                            {log.viewing_platform_name}
-                          </span>
-                        )}
                       </div>
                     </div>
                   </div>

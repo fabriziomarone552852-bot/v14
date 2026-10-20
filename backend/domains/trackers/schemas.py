@@ -77,6 +77,7 @@ class EpisodeLogResponse(ORMBaseModel):
     rating: Optional[float] = None
     notes: Optional[str] = None
     review_visibility: str
+    viewing_platform_name: Optional[str] = None  # Mappato dalla relazione viewing_platform
     watched_at: datetime
     comments: List[dict] = Field(default_factory=list)
 
@@ -98,7 +99,6 @@ class TVEpisodeResponse(ORMBaseModel):
     watch_count: int
     logs: List[EpisodeLogResponse] = Field(default_factory=list)
     quotes: List[TVQuoteResponse] = Field(default_factory=list)
-    quotes: List[TVQuoteResponse] = Field(default_factory=list)
 
 
 
@@ -112,16 +112,12 @@ class UserSeriesLogCreate(BaseModel):
     rating: Optional[float] = None
     notes: Optional[str] = None
     review_visibility: Optional[str] = "friends_only"
-    viewing_platform_id: Optional[int] = None
-    viewing_platform_name: Optional[str] = None  # To allow auto-creation
     watched_at: Optional[datetime] = None
 
 class UserSeriesLogUpdate(BaseModel):
     rating: Optional[float] = None
     notes: Optional[str] = None
     review_visibility: Optional[str] = None
-    viewing_platform_id: Optional[int] = None
-    viewing_platform_name: Optional[str] = None
     watched_at: Optional[datetime] = None
 
 class UserSeriesLogResponse(ORMBaseModel):
@@ -131,8 +127,6 @@ class UserSeriesLogResponse(ORMBaseModel):
     rating: Optional[float] = None
     notes: Optional[str] = None
     review_visibility: str
-    viewing_platform_id: Optional[int] = None
-    viewing_platform_name: Optional[str] = None  # We'll map this from the relation
     watched_at: datetime
     updated_at: Optional[datetime] = None
     comments: List[dict] = Field(default_factory=list)

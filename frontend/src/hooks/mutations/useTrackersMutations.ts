@@ -162,7 +162,7 @@ export const useTrackersMutations = () => {
       payload,
     }: {
       episode_id: number;
-      payload: { rating?: number | null; notes?: string; review_visibility?: string; watched_at?: string };
+      payload: { rating?: number | null; notes?: string; review_visibility?: string; watched_at?: string; viewing_platform_name?: string | null };
     }) => {
       const data = await api.post<UserEpisodeLog>(`/trackers/episodes/${episode_id}/logs`, payload);
       return data;
@@ -178,7 +178,7 @@ export const useTrackersMutations = () => {
       payload,
     }: {
       log_id: number;
-      payload: { rating?: number | null; notes?: string; review_visibility?: string; watched_at?: string };
+      payload: { rating?: number | null; notes?: string; review_visibility?: string; watched_at?: string; viewing_platform_name?: string | null };
     }) => {
       const data = await api.patch<UserEpisodeLog>(`/trackers/episodes/logs/${log_id}`, payload);
       return data;

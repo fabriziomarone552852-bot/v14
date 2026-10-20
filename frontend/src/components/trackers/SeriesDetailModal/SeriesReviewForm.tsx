@@ -1,15 +1,11 @@
 import React, { useState } from 'react';
 import { StarRating } from './StarRating';
 import { DatePicker } from '@/components/shared/utils/DatePicker/DatePicker';
-import { AddButton } from '@/components/shared/utils/AddButton';
 import { ReviewVisibilityIcon } from './shared/ReviewVisibilityBadge';
 
 interface SeriesReviewFormProps {
   editingLogId: number | null;
   onBack: () => void;
-  platform: string;
-  setPlatform: (p: string) => void;
-  allPlatforms: string[];
   reviewDate: string;
   setReviewDate: (d: string) => void;
   visibility: string;
@@ -24,9 +20,6 @@ interface SeriesReviewFormProps {
 export const SeriesReviewForm: React.FC<SeriesReviewFormProps> = ({
   editingLogId,
   onBack,
-  platform,
-  setPlatform,
-  allPlatforms,
   reviewDate,
   setReviewDate,
   visibility,
@@ -38,9 +31,6 @@ export const SeriesReviewForm: React.FC<SeriesReviewFormProps> = ({
   onSave,
 }) => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const [isPlatformDropdownOpen, setIsPlatformDropdownOpen] = useState(false);
-  const [isAddingPlatform, setIsAddingPlatform] = useState(false);
-  const [newPlatformName, setNewPlatformName] = useState('');
   const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
 
   return (
@@ -62,94 +52,6 @@ export const SeriesReviewForm: React.FC<SeriesReviewFormProps> = ({
         </div>
 
         <div className="flex items-center gap-2">
-          {/* Platform selector */}
-          <div className="relative" style={{ width: '170px' }}>
-            {!isAddingPlatform ? (
-              <div
-                onClick={() => setIsPlatformDropdownOpen(!isPlatformDropdownOpen)}
-                className="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm bg-white cursor-pointer flex justify-between items-center hover:border-blue-500 transition-colors shadow-sm"
-              >
-                <span className="text-gray-700 font-medium truncate">
-                  {platform || 'Piattaforma...'}
-                </span>
-                <svg
-                  className={`w-4 h-4 text-gray-400 transition-transform ${isPlatformDropdownOpen ? 'rotate-180' : ''}`}
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                </svg>
-              </div>
-            ) : (
-              <div className="w-full px-2 py-1.5 border border-blue-500 rounded-xl bg-white flex items-center shadow-sm">
-                <input
-                  autoFocus
-                  type="text"
-                  value={newPlatformName}
-                  onChange={(e) => setNewPlatformName(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') {
-                      e.preventDefault();
-                      if (newPlatformName.trim()) {
-                        setPlatform(newPlatformName.trim());
-                        setIsAddingPlatform(false);
-                      }
-                    } else if (e.key === 'Escape') {
-                      setIsAddingPlatform(false);
-                    }
-                  }}
-                  onBlur={() => {
-                    if (newPlatformName.trim()) setPlatform(newPlatformName.trim());
-                    setIsAddingPlatform(false);
-                  }}
-                  className="flex-1 outline-none text-sm px-1 w-full min-w-0"
-                  placeholder="Nome..."
-                />
-              </div>
-            )}
-
-            {isPlatformDropdownOpen && (
-              <>
-                <div className="fixed inset-0 z-40" onClick={() => setIsPlatformDropdownOpen(false)} />
-                <div className="absolute z-50 w-full bg-white border border-gray-100 rounded-xl shadow-xl py-1 mt-1 top-full max-h-48 overflow-y-auto animate-fadeIn custom-scrollbar flex flex-col">
-                  {allPlatforms.map((p) => (
-                    <div
-                      key={p}
-                      onClick={() => {
-                        setPlatform(p);
-                        setIsPlatformDropdownOpen(false);
-                      }}
-                      className={`px-3 py-2 text-sm cursor-pointer flex items-center justify-between transition-colors shrink-0 ${
-                        platform === p
-                          ? 'bg-blue-50 text-blue-900 font-bold'
-                          : 'hover:bg-gray-50 text-gray-700'
-                      }`}
-                    >
-                      <span className="truncate">{p}</span>
-                      {platform === p && (
-                        <svg className="w-4 h-4 text-blue-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                        </svg>
-                      )}
-                    </div>
-                  ))}
-                  <div className="border-t border-gray-100 pt-1.5 mt-1 space-y-1 pb-1 px-1 shrink-0">
-                    <AddButton
-                      label="Nuova Piattaforma"
-                      compact={true}
-                      onClick={() => {
-                        setIsPlatformDropdownOpen(false);
-                        setIsAddingPlatform(true);
-                        setNewPlatformName('');
-                      }}
-                    />
-                  </div>
-                </div>
-              </>
-            )}
-          </div>
-
           {/* Date Picker */}
           <div className="relative">
             <DatePicker

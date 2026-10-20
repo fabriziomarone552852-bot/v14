@@ -38,11 +38,8 @@ export const MobileSeriesReviewTab: React.FC<MobileSeriesReviewTabProps> = ({
     setReview,
     visibility,
     setVisibility,
-    platform,
-    setPlatform,
     reviewDate,
     setReviewDate,
-    allPlatforms,
     SERIES_QUOTES,
     logs,
     friendsLogsData,
@@ -69,9 +66,6 @@ export const MobileSeriesReviewTab: React.FC<MobileSeriesReviewTabProps> = ({
         <MobileSeriesReviewForm
           editingLogId={editingLogId}
           onBack={() => setView(logs.length > 0 ? 'my_reviews' : 'main')}
-          platform={platform}
-          setPlatform={setPlatform}
-          allPlatforms={allPlatforms}
           reviewDate={reviewDate}
           setReviewDate={setReviewDate}
           visibility={visibility}
@@ -107,7 +101,6 @@ export const MobileSeriesReviewTab: React.FC<MobileSeriesReviewTabProps> = ({
             comments: log.comments || [],
             is_mine: true,
             review_visibility: log.review_visibility,
-            viewing_platform_name: log.viewing_platform_name,
             original_log: log,
           });
           setView('review_detail');
@@ -168,7 +161,6 @@ export const MobileSeriesReviewTab: React.FC<MobileSeriesReviewTabProps> = ({
               comments: log.comments || [],
               is_mine: false,
               review_visibility: log.review_visibility,
-              viewing_platform_name: log.viewing_platform_name,
               original_log: log,
             });
             setView('review_detail');

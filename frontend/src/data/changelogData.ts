@@ -1,4 +1,4 @@
-// src/data/changelogData.ts
+﻿// src/data/changelogData.ts
 
 export interface ChangelogItem {
   id: string;
@@ -47,7 +47,10 @@ export const CHANGELOG_HISTORY: ChangelogItem[] = [
       'Navigazione & Z-Index Gerarchico Mobile: Elevato z-index dei modali serie e integrata priorità useBackHandler per garantire ritorni precisi alla schermata sottostante senza chiusure accidentali.',
       'Scrollbar a Dissolvenza (useFadeScrollbar): Scrollbar a scomparsa dinamica su tutte le griglie e modali del tracker serie, visibili solo durante il tocco attivo.',
       'Dashboard Serie TV Mobile a Zero Scrollbar: Banner orizzontali "LE TUE SERIE" e "LE TUE LISTE", citazione del giorno compatta e card highlight affiancate con spaziatura equilibrata.',
-      'Nomi Propri Stagioni & Fallback: Rilevamento automatico e recupero titoli specifici delle stagioni da TMDB (italiano -> inglese -> Stagione N) e identificazione della Stagione 0 come "Episodi Speciali".'
+      'Nomi Propri Stagioni & Fallback: Rilevamento automatico e recupero titoli specifici delle stagioni da TMDB (italiano -> inglese -> Stagione N) e identificazione della Stagione 0 come "Episodi Speciali".',
+      'UI Recensioni Episodi Desktop: Selettore piattaforma spostato nella riga header (stessa riga di datepicker e privacy); TrashIcon aggiunta in ogni riga recensione con confirm dialog; tasti modifica/elimina ora visibili nella vista dettaglio della propria recensione.',
+      'UI Recensioni Episodi Mobile: Modale piattaforma redesignata con flusso AddButton -> input -> lista -> Aggiungi; badge piattaforma tra Tu e le stelle nella card; placeholder corretto; badge colore slate/neutro uniformato.',
+      'Antiduplicati Piattaforme: Ricerca live durante la digitazione con avviso ambra Simili gia salvate / Gia presente! e selezione rapida piattaforma esistente (Web e Mobile).'
     ],
     fixes: [
       'Tracciamento Brand nei Lotti Spesa: Aggiunta colonna brand_id alla tabella inventory_batch con persistenza esplicita del marchio, risolvendo l\'appiattimento arbitrario sul primo brand per articoli multi-marca.',
@@ -58,7 +61,12 @@ export const CHANGELOG_HISTORY: ChangelogItem[] = [
       'Endpoint Obiettivi Annuali: Restituzione HTTP 200 con valore null anziché 404 quando nessun obiettivo annuale è configurato.',
       'Preservazione Card durante Caricamento Storico: Implementato keepPreviousData in useUpcomingEpisodes per prevenire schermate bianche temporanee durante lo scroll in alto.',
       'Allineamento "Mazzo di Carte" Cross-Dominio: Rimossi i limiti forzati di default negli endpoint /products, /suppliers, /brands, /events, /interactions e /feedback/reports.',
-      'Precisione Quantità a 3 Decimali: Migrazione NUMERIC(12,3) applicata su test e produzione per preservare quantità inferiori all\'unità e pesature al banco senza troncamenti.'
+      'Precisione Quantità a 3 Decimali: Migrazione NUMERIC(12,3) applicata su test e produzione per preservare quantità inferiori all\'unità e pesature al banco senza troncamenti.',
+      'Piattaforma di visione spostata dalle recensioni delle serie alle recensioni dei singoli episodi, per maggiore granularità: ora è possibile registrare su quale piattaforma si è visto ogni singolo episodio (es. Netflix per la prima visione, Prime Video per il rewatch).',
+      'Fix viewing_platform_name nella vista dettaglio recensione episodio: il badge piattaforma ora appare correttamente tra Tu e il rating sia su Web che su Mobile.',
+      'Fix tasti Modifica/Elimina nella vista La tua recensione (Web): semplificata la condizione di visibilita, ora sempre visibili per la propria recensione.',
+      'Fix apostrofo triplo nel placeholder mobile (Dove l apostrofo hai guardato?): corretto bug da escaping errato PowerShell.',
+      'Fix HTTP 500 su /trackers/series/full-stats: corretta NameError series_logs e lettura distribuzione piattaforme da UserEpisodeLog.'
     ]
   },
   {

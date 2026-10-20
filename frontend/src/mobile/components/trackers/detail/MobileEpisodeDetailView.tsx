@@ -58,6 +58,9 @@ export const MobileEpisodeDetailView: React.FC<MobileEpisodeDetailViewProps> = (
     setReview,
     visibility,
     setVisibility,
+    platform,
+    setPlatform,
+    allPlatforms,
     reviewDate,
     setReviewDate,
     myAverage,
@@ -134,6 +137,9 @@ export const MobileEpisodeDetailView: React.FC<MobileEpisodeDetailViewProps> = (
           setReview={setReview}
           rating={rating}
           setRating={setRating}
+          platform={platform}
+          setPlatform={setPlatform}
+          allPlatforms={allPlatforms}
           onSave={handleSave}
         />
       </div>
@@ -162,6 +168,7 @@ export const MobileEpisodeDetailView: React.FC<MobileEpisodeDetailViewProps> = (
               comments: log.comments || [],
               is_mine: true,
               review_visibility: log.review_visibility,
+              viewing_platform_name: log.viewing_platform_name ?? null,
               original_log: log,
             });
             setView('review_detail');

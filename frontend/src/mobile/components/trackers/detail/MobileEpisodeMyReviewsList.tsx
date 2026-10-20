@@ -204,30 +204,41 @@ export const MobileEpisodeMyReviewsList: React.FC<MobileEpisodeMyReviewsListProp
                       : 'bg-white border border-gray-200/90 active:bg-gray-50/70'
                   }`}
                 >
-                  <div className="flex items-start justify-between gap-2">
-                    {/* Valutazione a stelline, data e visibilità */}
-                    <div className="flex items-center gap-3 flex-wrap">
-                      <div className="flex items-center">
-                        {log.rating ? (
-                          <StarRating value={log.rating / 2} hideNumber readonly iconClassName="w-4 h-4" />
-                        ) : (
-                          <span className="text-gray-400 text-xs font-semibold">Nessun voto</span>
-                        )}
-                      </div>
-                      <div className="text-[11px] text-gray-500 font-semibold flex items-center gap-1.5">
-                        <span>
-                          {new Date(log.watched_at).toLocaleDateString('it-IT', {
-                            day: 'numeric',
-                            month: 'short',
-                            year: 'numeric',
-                          })}
+                  {/* Riga superiore: "Tu" a sinistra | badge piattaforma al centro | rating a destra */}
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="text-[11px] font-black text-gray-700">Tu</span>
+                      {log.viewing_platform_name && (
+                        <span className="px-2 py-0.5 bg-slate-50 text-slate-600 rounded-lg font-bold text-[10px] border border-slate-200 flex items-center gap-1 shadow-sm">
+                          <svg className="w-3 h-3 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                          </svg>
+                          {log.viewing_platform_name}
                         </span>
-                        <ReviewVisibilityIcon
-                          visibility={log.review_visibility || 'public'}
-                          className="w-3 h-3 text-gray-400"
-                        />
-                      </div>
+                      )}
                     </div>
+                    <div className="flex items-center">
+                      {log.rating ? (
+                        <StarRating value={log.rating / 2} hideNumber readonly iconClassName="w-4 h-4" />
+                      ) : (
+                        <span className="text-gray-400 text-xs font-semibold">Nessun voto</span>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Data + visibilità */}
+                  <div className="text-[11px] text-gray-500 font-semibold flex items-center gap-1.5">
+                    <span>
+                      {new Date(log.watched_at).toLocaleDateString('it-IT', {
+                        day: 'numeric',
+                        month: 'short',
+                        year: 'numeric',
+                      })}
+                    </span>
+                    <ReviewVisibilityIcon
+                      visibility={log.review_visibility || 'public'}
+                      className="w-3 h-3 text-gray-400"
+                    />
                   </div>
 
                   {/* Testo / Note della recensione */}
@@ -239,7 +250,7 @@ export const MobileEpisodeMyReviewsList: React.FC<MobileEpisodeMyReviewsListProp
 
                   {/* Indicatore commenti */}
                   {log.comments && log.comments.length > 0 && (
-                    <div className="pt-2 border-t border-gray-100 flex items-center justify-between text-[11px] text-blue-600 font-bold">
+                    <div className="pt-2 border-t border-gray-100 flex items-center justify-between text-[11px] text-gray-800 font-bold">
                       <span>
                         {log.comments.length} {log.comments.length === 1 ? 'commento' : 'commenti'}
                       </span>
