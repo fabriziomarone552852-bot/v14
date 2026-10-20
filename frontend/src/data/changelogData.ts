@@ -22,58 +22,24 @@ export const CHANGELOG_HISTORY: ChangelogItem[] = [
     isLatest: true,
     published: false,
     highlights: [
-      'Serie TV Mobile: Diario Puntate, Navigazione a 3 Pagine Circolari & Rewatch: Nuova schermata centrale "Diario Puntate" con storico visioni dal basso verso l\'alto, ancoraggio automatico sui prossimi da guardare e pillole sobrie; carosello circolare continuo (0: Timeline Uscite, 1: Diario, 2: Dashboard); gestione completa del rewatch con dialog di conferma e opzione "Interrompi rewatch".',
-      'Serie TV Mobile: Modale Statistiche a Tutto Schermo & Catalogo Tematico: Modale statistiche nativo full-screen a scorrimento verticale continuo con sezioni Panoramica, Voti, Abitudini e Rewatch; catalogo mobile "Le tue serie" a 4 aree tematiche (In visione, In lista, In attesa, Completate) con bordi colorati di stato e ricerca dedicata in RAM.',
-      'Serie TV Mobile: Scheda Episodio Full-Screen, Recensioni & Gestione Liste: Dettaglio episodio a tutto schermo con backdrop still, voti e cassetto visioni; form recensioni zero-scroll con textarea ad altezza dinamica; riprogettato il modale "Le mie liste" con selezione multipla touch, card collage e creazione rapida.',
-      'Spesa: Marche, Prezzi Storici e Valutazione Brand (👍/👎): Inserimento Rapido Catalogo con visualizzazione marche collegate, ultimo prezzo/fornitore registrato e gradimento; micro split-pill [👍|👎] con note personalizzate; tracciamento fisico brand_id nei lotti d\'acquisto per risolvere ambiguità multi-marca.',
-      'Hub Amministrazione Desktop: Data Grid Spesa, Eventi e Attività: Console unificata per SuperUser con tabelle ad alta densità per la modifica in linea massiva di scontrini/lotti spesa, appuntamenti calendario e task senza ricorrere a pgAdmin; strumento di deduplicazione e unione prodotti spesa.',
-      'Campi Decimali Universali & Precisione a 3 Cifre: Accettazione trasparente sia di virgola che di punto su Web e Mobile in tutti i campi numerici; calcolo inverso da prezzo unitario nelle griglie admin; estensione delle pesature e quantità a 3 decimali (NUMERIC 12,3).',
-      'Refactoring Architetturale Modulare Frontend: Scomposizione dei macro-componenti Trackers e Spesa in componenti snelli e custom hooks dedicati (<300 righe) nel pieno rispetto degli standard di qualità e strict TypeScript.'
+      'Serie TV Mobile: Diario Puntate, Navigazione a 3 Pagine Circolari & Rewatch: Nuova schermata centrale "Diario Puntate" con storico visioni dal basso verso l\'alto e carosello circolare a 3 schermate (Timeline Uscite, Diario, Dashboard); gestione del rewatch con dialog touch di conferma e opzione "Interrompi rewatch".',
+      'Serie TV Mobile: Modale Statistiche a Tutto Schermo & Catalogo Tematico: Modale statistiche nativo full-screen a scorrimento verticale continuo con sezioni Panoramica, Voti, Abitudini e Rewatch; catalogo mobile "Le tue serie" a 4 aree tematiche (In visione, In lista, In attesa, Completate) con bordi colorati di stato e ricerca avanzata in RAM.',
+      'Serie TV Mobile: Scheda Episodio Full-Screen, Recensioni & Gestione Liste: Dettaglio episodio a tutto schermo con backdrop still HD e cassetto visioni; form recensioni touch con textarea ad altezza dinamica; riprogettato il modale "Le mie liste" con selezione multipla touch, card collage e creazione rapida.',
+      'Spesa: Marche, Prezzi Storici e Valutazione Brand (👍/👎): Inserimento Rapido Catalogo con sottomarche collegate, ultimo prezzo/fornitore registrato e gradimento qualitativo; micro split-pill [👍|👎] con note permanenti; tracciamento fisico brand_id nei lotti d\'acquisto per eliminare ambiguità multi-marca.',
+      'Hub Amministrazione Desktop: Data Grid Spesa, Eventi e Attività: Console unificata per SuperUser con tabelle ad alta densità per la modifica in linea massiva di scontrini/lotti spesa, appuntamenti calendario e task; strumento di deduplicazione e unione prodotti duplicati.',
+      'Campi Decimali Universali & Precisione a 3 Cifre: Accettazione trasparente di virgola e punto su Web e Mobile in tutti i campi numerici decimali; calcolo inverso da prezzo unitario nelle griglie admin; estensione delle pesature e quantità a 3 decimali (NUMERIC 12,3).'
     ],
     features: [
-      'Mobile TV Series Diario & Carousel: Nuova slide centrale Diario con storico puntate, sezioni "I prossimi da guardare", "Da riprendere" e "Nuove serie", escludendo gli episodi speciali (S00); navigazione swipe a 3 pagine circolari senza fine corsa.',
-      'Mobile TV Series Statistiche Fullscreen: Modale a schermo intero (MobileSeriesStatsModal) con gesture back native, istogramma voti, abitudini di visione settimanali/mensili e sezione comfort zone/rewatch.',
+      'Mobile TV Series Diario & Carousel: Nuova slide centrale Diario con storico puntate, sezioni "I prossimi da guardare", "Da riprendere" e "Nuove serie", escludendo gli episodi speciali (S00); navigazione swipe a 3 pagine circolari continue.',
+      'Mobile TV Series Statistiche Fullscreen: Modale a schermo intero (MobileSeriesStatsModal) con gesture back native, istogramma voti, abitudini di visione e riepilogo rewatch.',
       'Mobile TV Series Catalogo & Ricerca Dedicata: Riprogettazione del catalogo a 4 aree tematiche con pillole grigie sobrie e nuovo modale di ricerca avanzata con filtri applicati localmente in RAM.',
       'Mobile TV Series Liste Personali Avanzate: Riprogettazione di "Le mie liste" con card collage dinamiche (ListCollagePoster), selezione multipla con long-press, ordinamento a due frecce e cancellazione batch.',
       'Mobile TV Series Dettaglio Episodio & Recensioni: Vista episodio a tutto schermo con still backdrop; nuova schermata "Nuova/Modifica Recensione" ancorata a pieno schermo con textarea adattiva e selettore piattaforma touch.',
       'Inserimento Rapido Catalogo Spesa con Marche e Prezzi: Selezione sottomarche con accordion su Desktop e modale centrato su Mobile, con storico ultimo acquisto, negozio e preferenza.',
       'Valutazione Brand Intelligente: Sistema di gradimento marchio permanente a 1 tap [👍|👎] con commenti qualitativi, integrato nei modali spesa e con badge/alert visivi per marchi sconsigliati.',
       'Data Grid Amministrazione Eventi & Task: Console tabellare per SuperUser con filtri e modifica inline per date, categorie, priorità, stati e riassegnazione cross-utente con salvataggio massivo.',
-      'Hub Amministrazione Spesa & Unione Prodotti: Riorganizzazione sotto scheda unificata "Spesa" con tabs segmentate (Scontrini, Data Grid Lotti, Unione Prodotti Duplicati).',
-      'Inserimento Rapido Catalogo con Selezione Marchi & Prezzo Storico: Integrata l\'espansione ad accordion nella tabella Desktop e il modale centrato con backdrop su Mobile per selezionare la specifica marca collegata a un articolo del catalogo spesa. Ciascuna sottomarca riporta l\'ultimo prezzo d\'acquisto registrato negli scontrini, il negozio di riferimento, la data e l\'indicatore di preferenza, permettendo l\'inserimento sia dell\'articolo generico che della specifica variante di marca.',
-      'Valutazione Intelligente Marchio per Prodotto (Opzione C): Permette agli utenti standard di salvare un\'opinione permanente su uno specifico marchio per un determinato articolo (es. Farina Barilla: 👍 Buona da ricomprare; Farina Granoro: 👎 Non ricomprare). Il componente dedicato BrandPreferenceRatingControl offre pulsanti rapidi a pillola e salvataggio immediato nel backend. I suggerimenti nell\'autocomplete mostrano badge colorati dedicati e le righe della lista evidenziano i marchi sconsigliati con alert rosso per evitare acquisti sgraditi al supermercato.',
-      'Data Grid Amministrazione Eventi Agenda: Console tabellare per SuperUser con filtri per utente, categoria, intervallo date (Oggi, 7gg, Mese, Anno, Personalizzato), tipologia (tutto il giorno / con orario) e ricerca testuale in RAM. Permette la modifica in linea di titoli, date/ore inizio e fine con rilevamento automatico date incoerenti, riassegnazione utente, categoria e cancellazione rapida, con salvataggio massivo in un click.',
-      'Data Grid Amministrazione Attività / Tasks: Console tabellare per SuperUser con filtri per utente, categoria, priorità (Alta, Media, Bassa), stato (da fare / completati), date e ricerca rapida. Permette la modifica in linea di scadenze, stato di completamento, priorità e riassegnazione utente con evidenziazione automatica dei task scaduti e salvataggio massivo in memoria.',
-      'Nuovi Endpoint Amministrativi Backend: Introdotti in router.py gli endpoint protetti GET/PATCH/DELETE per /admin/events e /admin/tasks, nonché /admin/categories per gestire e riassegnare entità e categorie cross-utente senza vincoli o limitazioni di ownership standard.',
-      'Hub Amministrazione Spesa (Proposta A): Introdotta la macro-scheda "Spesa" nel pannello Admin con barra secondaria a pillole segmentate (Segmented Tabs) per alternare istantaneamente tra "Inserimento Rapido Scontrini", "Data Grid Revisione Lotti" e "Unione Prodotti Duplicati", mantenendo la barra di navigazione pulita e organizzata per macro-argomenti.',
-      'Admin Shopping Data Grid: Griglia di gestione e modifica inline dei lotti spesa per amministratori. Include filtri rapidi per date, fornitore, brand e ricerca testuale in memoria (RAM), toggle "Solo anomalie" per intercettare prezzi nulli o fuori scala, modifica contestuale con calcolo immediato del prezzo al kg/l e barra fissa per il salvataggio rapido massivo delle modifiche in sospeso.',
-      'Creazione Nuovo Brand e Nuovo Fornitore dalla Data Grid Lotti: Nella Data Grid Revisione Lotti Spesa, i campi Brand e Fornitore ora supportano la digitazione libera con completamento automatico (input + datalist). Se il nome non corrisponde ad alcun elemento in archivio, una mini-etichetta verde segnala che il nuovo elemento verrà creato al salvataggio. Al click su Salva, il sistema crea automaticamente il nuovo brand (POST /brands) o il nuovo fornitore (POST /suppliers) prima di aggiornare il lotto, aggiornando istantaneamente il mazzo di carte in RAM. Implementazione simmetrica identica al campo Prodotto già in uso.',
-      'Deduplicazione & Fusione Prodotti Spesa: Strumento dedicato per SuperUser per selezionare un prodotto sorgente (duplicato o con refuso) e un prodotto di destinazione ufficiale. Esegue l\'accorpamento transazionale lato backend (endpoint POST /products/merge) riassegnando tutti i lotti d\'acquisto, i collegamenti brand e gli elementi delle liste spesa prima di eliminare il prodotto obsoleto.',
-      'Snellimento Scontrini & Sincronizzazione Catalogo: Rimossa la tabella ridondante di editing sessione in calce all\'immissione rapida scontrini, focalizzando l\'interfaccia sull\'immissione continua. Integrata la colonna di valutazione brand a micro split-pill che sincronizza in background le preferenze verso il catalogo permanente shopping_product_brands.',
-      'Mobile Episode Review Form & Quotes Restyling: Nuova schermata di inserimento/modifica recensione episodio per smartphone con intestazione snella, stelline di voto centrate orizzontalmente in alto sotto la barra, textarea adattabile ad espansione automatica e barra inferiore fissa contenente a sinistra il selettore della data e il selettore privacy a modale centrale (Solo io, Amici, Pubblico) e a destra il pulsante di salvataggio. Nella pagina episodio il pulsante Citazioni mostra un pill badge circolare con il conteggio, stato vuoto basato su EmptyState ufficiale, AddButton in calce e comandi di modifica/eliminazione contestuali.',
-      'Mobile Episode Detail View & Banner a Tutto Schermo: Nuovi componenti dedicati MobileEpisodeDetailBanner e MobileEpisodeDetailView indipendenti dal desktop. Il banner superiore mostra lo still dell\'episodio in alta risoluzione con gradiente di contrasto, titolo dell\'episodio e pulsante di chiusura. La vista include l\'intestazione "STAGIONE X - EPISODIO X | Data" con freccia indietro, pallino visto interattivo con supporto a visioni multiple (X1, X2...) e cassetto rewatch dal basso, blocco trama a tutta larghezza con accesso alle citazioni, e sezione voti con TMDB, Amici e Il Tuo Voto. Dalla barra di navigazione inferiore, ricliccare su "Serie" riporta istantaneamente all\'elenco completo delle stagioni.',
-      'Mobile Series Seasons Tab & Rewatch Action Drawer: Nuova scheda Stagioni ed Episodi autonoma per smartphone. Il titolo della stagione è compatto a sinistra con contatore visti, la media voti calcolata dalle recensioni utente (media delle medie per la stagione) compare a destra di fianco al pallino/spunta. Negli episodi, aggiunta la miniatura fotografica still 16:9 a sinistra, rimosso il chevron di apertura, e trasformato il tocco del pallino visto in un elegante cassetto inferiore con opzioni "Aggiungi una visione" (+1), "Segna come non visto" (azzera) e "Togli una visione" (-1, visibile solo se visto più di una volta).',
-      'Scrollbar Invisibili su Mobile Series Detail Modal: Rese invisibili le barre di scorrimento verticali in tutte le schede e cassetti secondari del modale dettaglio serie per garantire una UI pulita e moderna.',
-      'Mobile Series Detail Bottom Bar con Icone: Sostituito lo slider testuale superiore nel modale serie TV con una barra fissa in fondo allo schermo con safe-area e 3 pulsanti touch-friendly con icone tematiche (Info per Panoramica in blu, Layers per Stagioni in indaco, Star per Recensioni in ambra stile Review Mesi/Anni).',
-      'Mobile Series Overview Tab Dedicata: Nuova gerarchia fluida sotto al banner fotografico: box "Dove guardarlo?" con tasto rapido catalogo stile webpage e distributori streaming, blocco "Trama" con sinossi pulita senza titolo duplicato, "Cast Principale" con foto profilo circolari a scorrimento orizzontale, e "Consigliati" con card panoramiche 16:9 a scorrimento orizzontale.',
-      'Mobile TV Series Detail Modal & Banner Immersivo: Nuovo modale a tutto schermo dedicato per smartphone con banner fotografico backdrop nitido senza blur, pills dei generi multilinea in alto a sinistra con stile webpage, pulsante opzioni a tre puntini (...) per cambiare la locandina con il selettore immagini nativo del dispositivo, pulsante di chiusura X, titolo in grassetto nel margine inferiore e bottoni circolari riassuntivi sotto la X per Amici (solo se presente almeno un amico) e Liste.',
-      'Mobile Bottom Drawers per Amici e Liste: Cassetti scorrevoli dal basso animati (slideUp) in stile Note Agenda. Il drawer Amici mostra l\'elenco con avatar, bordo colorato dello stato ed etichetta testuale; il drawer Liste mostra le liste personalizzate che contengono la serie corrente con pulsante AddButton in calce per aggiunta rapida o creazione di una nuova lista.',
-      'Mobile Media List Manager Modal & Selezione Multipla: Modale dedicato per smartphone con supporto completo alla selezione multipla delle liste tramite checkbox circolari touch, tasto Salva blu inferiore con sincronizzazione batch, e restyling della creazione lista con pulsante Annulla a destra e selettore privacy stile Webpage con menu a discesa contestuale e icone dedicate (Solo Io, Amici, Pubblico).',
-      'Sezione Dove Guardarlo & Gestione Catalogo: Posizionata subito sotto il banner con il titolo "Dove guardarlo?" allineato orizzontalmente al pulsante quadrato di aggiunta/rimozione catalogo (in stile webpage, con tocco singolo pulito senza pressione prolungata) e le pills interattive dei distributori streaming.',
-      'Mobile TV Episodes Timeline: Nuova schermata iniziale per smartphone con le uscite recenti e future degli episodi delle serie seguite (-2 mesi / +3 mesi), con posizionamento automatico su "Oggi", ordinamento delle uscite future verso il basso e passate verso l\'alto, e pulsante fluttuante "Torna a Oggi".',
-      'Mobile TV Episode Card Orizzontale Ridisegnata: Nuovo layout gerarchico a 3 livelli con locandina a sinistra: data di uscita in alto (blu brillante per gli episodi da guardare e grigio per i visti, con "Oggi" o "Domani" puliti senza giorno/mese o data standard), codice e nome formattati come "SXX EXX | NNNNNN" in nero marcato (senza testo barrato), e nome della serie cerchiato a pillola cliccabile per aprire la scheda della serie. A destra, cerchio interattivo per segnare l\'episodio come visto (blu con spunta bianca e card grigiata) o non visto con aggiornamento ottimistico istantaneo.',
-      'Mobile Episode Detail Modal: Modale dedicato per smartphone con hero image still dell\'episodio, sinossi/trama completa, data di trasmissione estesa, pulsante interattivo per segnare come "Visto" con feedback immediato e link rapido alla scheda serie completa.',
-      'Backend Upcoming Episodes Enhancement: Arricchito l\'endpoint `/trackers/series/upcoming` con still path dell\'episodio, backdrop della serie, sinossi dell\'episodio e calcolo in tempo reale di `is_watched` senza duplicazioni relazionali.',
-      'Mobile TV Series View: Pagina ottimizzata per smartphone con pillole di stato, banner informativo filtri attivi e griglia locandine a 2 colonne.',
-      'Mobile TV Series Search & Filters Fullscreen: Nuova interfaccia di ricerca a tutto schermo richiamabile dalla lente nell\'header con barra superiore fissa: freccia indietro, campo di ricerca e pulsante "X" per azzerare l\'intera ricerca. All\'avvio della ricerca compaiono direttamente sotto le locandine TMDB (o il messaggio di nessun risultato) senza banner intermedi. Toccando il campo di ricerca si riaprono le impostazioni approfondite (sezione "Liste" pulita, Genere, Network, Anno, Stato, Voto e Ordinamento con modali centrali).',
-      'Mobile TV Slider Header: Segmented switcher orizzontale nell\'header mobile per Serie TV, Film e Libri coerente con il selettore periodi dell\'agenda con badge di notifica per filtri attivi.',
-      'Header Trackers Mobile Actions: Rimosso il tasto "+" speed dial e inseriti la lente di ricerca e il pulsante circolare blu "?" per l\'estrazione casuale.',
-      'Modale Estrazione Casuale Fullscreen: Schermata a tutto schermo su mobile con sfondo chiaro smerigliato (frosted glass) con locandine rotanti ben visibili, animazione di estrazione e pulsante "Mostra in dettaglio". Versione Web ripristinata con BaseModal.',
-      'Icona Ciak Aperto Film: Grafica vettoriale per la sezione Film con ciak aperto inclinato, perno laterale e strisce diagonali alternate.',
-      'EmptyState Modale Estrazione: Integrato il componente ufficiale EmptyState con emoji 😢 quando la libreria è vuota, sia su Desktop che Mobile.',
-      'Mobile TV Bottom Sliding: Paginazione touch orizzontale con indicatori dots tra Timeline Uscite (o Libreria) e Dashboard con obiettivo annuale, prossimi episodi e citazione del giorno.',
-      'Mobile Trackers Placeholder: Viste informative dedicate per Film e Libri per consentire una navigazione fluida e priva di errori 404 tra tutte le voci dello slider Trackers.',
-      'Mobile Drawer Navigation: Integrata la sezione espandibile Trackers nel menu a scomparsa laterale al posto del vecchio placeholder Free Time.'
+      'Hub Amministrazione Spesa & Unione Prodotti: Riorganizzazione sotto scheda unificata "Spesa" con tabs segmentate (Scontrini, Data Grid Lotti, Unione Prodotti Duplicati con accorpamento transazionale).',
+      'Creazione Rapida Brand e Fornitori da Data Grid Lotti: Supporto input libero con datalist nei campi Brand e Fornitore; creazione automatica e aggiornamento istantaneo del mazzo di carte in RAM al salvataggio.'
     ],
     improvements: [
       'Campi Decimali Universali (decimalUtils): Rimossi gli input type="number" nativi in favore di type="text" con inputMode="decimal", accettando sia virgola che punto senza blocchi browser.',
@@ -81,26 +47,17 @@ export const CHANGELOG_HISTORY: ChangelogItem[] = [
       'Navigazione & Z-Index Gerarchico Mobile: Elevato z-index dei modali serie e integrata priorità useBackHandler per garantire ritorni precisi alla schermata sottostante senza chiusure accidentali.',
       'Scrollbar a Dissolvenza (useFadeScrollbar): Scrollbar a scomparsa dinamica su tutte le griglie e modali del tracker serie, visibili solo durante il tocco attivo.',
       'Dashboard Serie TV Mobile a Zero Scrollbar: Banner orizzontali "LE TUE SERIE" e "LE TUE LISTE", citazione del giorno compatta e card highlight affiancate con spaziatura equilibrata.',
-      'Nomi Propri Stagioni & Fallback: Rilevamento automatico e recupero titoli specifici delle stagioni da TMDB (italiano -> inglese -> Stagione N) e identificazione della Stagione 0 come "Episodi Speciali".',
-      'UI Recensioni Episodi Desktop: Selettore piattaforma spostato nella riga header (stessa riga di datepicker e privacy); TrashIcon aggiunta in ogni riga recensione con confirm dialog; tasti modifica/elimina ora visibili nella vista dettaglio della propria recensione.',
-      'UI Recensioni Episodi Mobile: Modale piattaforma redesignata con flusso AddButton -> input -> lista -> Aggiungi; badge piattaforma tra Tu e le stelle nella card; placeholder corretto; badge colore slate/neutro uniformato.',
-      'Antiduplicati Piattaforme: Ricerca live durante la digitazione con avviso ambra Simili gia salvate / Gia presente! e selezione rapida piattaforma esistente (Web e Mobile).'
+      'Refactoring Architetturale Modulare Frontend: Scomposizione dei macro-componenti Trackers e Spesa in componenti snelli e custom hooks dedicati (<300 righe) nel rispetto del principio DRY e strict TypeScript.'
     ],
     fixes: [
       'Tracciamento Brand nei Lotti Spesa: Aggiunta colonna brand_id alla tabella inventory_batch con persistenza esplicita del marchio, risolvendo l\'appiattimento arbitrario sul primo brand per articoli multi-marca.',
-      'Stagioni Collassate di Default su Mobile: Corretto il comportamento di apertura nel modale serie; tutte le stagioni restano chiuse/collassate di default all\'ingresso.',
+      'Stagioni Collassate di Default su Mobile: Corretto il comportamento di apertura nel modale serie; tutte le stagioni restano chiuse di default all\'ingresso.',
       'Z-Index Modale Liste & ConfirmDialog: Risolto il posizionamento dei modali secondari dietro alla scheda serie su desktop (z-[10050]) e incrementato z-index di ConfirmDialog a z-[10090] su mobile.',
       'React Rules of Hooks & Re-Render Loop: Risolto errore ordine hook in MobileTVSeriesSearchModal e stabilizzata la navigazione in TrackerHeaderProvider eliminando i loop di render.',
       'Configurazione TMDB Produzione NAS: Configurate chiavi API in ambiente di produzione NAS, risolvendo l\'errore HTTP 500 nella ricerca serie e recupero provider.',
-      'Endpoint Obiettivi Annuali: Restituzione HTTP 200 con valore null anziché 404 quando nessun obiettivo annuale è configurato.',
-      'Preservazione Card durante Caricamento Storico: Implementato keepPreviousData in useUpcomingEpisodes per prevenire schermate bianche temporanee durante lo scroll in alto.',
       'Allineamento "Mazzo di Carte" Cross-Dominio: Rimossi i limiti forzati di default negli endpoint /products, /suppliers, /brands, /events, /interactions e /feedback/reports.',
       'Precisione Quantità a 3 Decimali: Migrazione NUMERIC(12,3) applicata su test e produzione per preservare quantità inferiori all\'unità e pesature al banco senza troncamenti.',
-      'Piattaforma di visione spostata dalle recensioni delle serie alle recensioni dei singoli episodi, per maggiore granularità: ora è possibile registrare su quale piattaforma si è visto ogni singolo episodio (es. Netflix per la prima visione, Prime Video per il rewatch).',
-      'Fix viewing_platform_name nella vista dettaglio recensione episodio: il badge piattaforma ora appare correttamente tra Tu e il rating sia su Web che su Mobile.',
-      'Fix tasti Modifica/Elimina nella vista La tua recensione (Web): semplificata la condizione di visibilita, ora sempre visibili per la propria recensione.',
-      'Fix apostrofo triplo nel placeholder mobile (Dove l apostrofo hai guardato?): corretto bug da escaping errato PowerShell.',
-      'Fix HTTP 500 su /trackers/series/full-stats: corretta NameError series_logs e lettura distribuzione piattaforme da UserEpisodeLog.'
+      'Piattaforma di Visione per Episodio: Trasferito il campo piattaforma dalle recensioni della serie alle recensioni dei singoli episodi per una granularità di visione completa anche nei rewatch.'
     ]
   },
   {
@@ -217,7 +174,6 @@ export const CHANGELOG_HISTORY: ChangelogItem[] = [
     features: [],
     improvements: [],
     fixes: [
-      'Risolto bug di visualizzazione delle serie aggiunte (dati non venivano mostrati).',
       'Aggiunto il flag -v in deploy_nas.sh e configurato il volume in docker-compose.yml per preservare i file multimediali.',
     ],
   },
@@ -252,7 +208,6 @@ export const CHANGELOG_HISTORY: ChangelogItem[] = [
       'useShoppingItemMutations.ts: corretta tipizzazione Promise<unknown>[] → Promise<void>[].',
     ],
     fixes: [
-      'Risolto bug di visualizzazione delle serie aggiunte (dati non venivano mostrati).',
       'Rimossi cast ridondanti nel pannello della gerarchia task (TaskFamilyPanel) e nell\'archivio recensioni annuali.',
       'TailscaleGate.tsx: sostituiti 5 console.log/console.error diretti con il logger centralizzato (silenziato in produzione).',
       'HabitsPageModals.tsx: eliminata funzione wrapper handleSaveHabitDefault() inutile (restituiva la stessa funzione ricevuta).',
@@ -305,7 +260,6 @@ export const CHANGELOG_HISTORY: ChangelogItem[] = [
       'Inclusi gli ID di lista e di unità di misura nei payload di risposta delle API dello storico prezzi.',
     ],
     fixes: [
-      'Risolto bug di visualizzazione delle serie aggiunte (dati non venivano mostrati).',
       'Aggiunto il blocco di sicurezza backend (HTTP 403 Forbidden) per tentativi non autorizzati di modifica/eliminazione da parte dei lettori.',
     ],
   },
@@ -326,7 +280,6 @@ export const CHANGELOG_HISTORY: ChangelogItem[] = [
       'Migliorata la gestione delle note, dell\'unità di misura e della lista di destinazione nelle rilevazioni di prezzo trasversali.',
     ],
     fixes: [
-      'Risolto bug di visualizzazione delle serie aggiunte (dati non venivano mostrati).',
       'Corretto un disallineamento nei payload delle modali di modifica prezzo che causava la ricalcolazione errata del prezzo unitario nel database backend.',
     ],
   },
@@ -346,7 +299,6 @@ export const CHANGELOG_HISTORY: ChangelogItem[] = [
       'Estesa la visibilità e il diritto di modifica dell\'icona matita nei dettagli del prezzo sia su Web Desktop che su Mobile per le rilevazioni non SEED.',
     ],
     fixes: [
-      'Risolto bug di visualizzazione delle serie aggiunte (dati non venivano mostrati).',
       'Risolto un blocco di permessi che impediva agli utenti standard di salvare le modifiche ai prezzi salvati nello storico in ambiente di produzione.',
     ],
   },
@@ -379,7 +331,6 @@ export const CHANGELOG_HISTORY: ChangelogItem[] = [
       'Aggiunto il controllo di sicurezza sul backend FastAPI (errori 403 Forbidden) per bloccare tentativi di modifica/cancellazione dei dati SEED o dei lotti altrui da parte di utenti standard.',
     ],
     fixes: [
-      'Risolto bug di visualizzazione delle serie aggiunte (dati non venivano mostrati).',
       'Corretto l\'algoritmo di identificazione dei dati SEED per consentire la piena modifica ed eliminazione di tutti i prezzi e lotti inseriti dagli utenti.',
       'Risolto il problema di condivisione indebita dei prezzi non associati a liste tra utenti non dello stesso gruppo.',
       'Nascosti i tasti di modifica ed eliminazione sui prezzi inseriti da altri utenti se non si è l\'autore o SuperUser.',
@@ -400,7 +351,6 @@ export const CHANGELOG_HISTORY: ChangelogItem[] = [
       'Garantita la disponibilità automatica dei prodotti e dello storico prezzi iniziale anche nel database di produzione e per tutti i nuovi utenti che si collegano online.',
     ],
     fixes: [
-      'Risolto bug di visualizzazione delle serie aggiunte (dati non venivano mostrati).',
       'Risolta l\'assenza dei prodotti seed per gli utenti non-admin nella versione online dovuta alla mancata esecuzione automatica del popolamento iniziale sul database PostgreSQL di produzione.',
     ],
   },
@@ -440,7 +390,6 @@ export const CHANGELOG_HISTORY: ChangelogItem[] = [
       'Riorganizzato il badge del ruolo (Owner, Admin, Editor) nella lista gruppi spesa desktop, posizionandolo sopra il conteggio delle liste aperte su due righe.',
     ],
     fixes: [
-      'Risolto bug di visualizzazione delle serie aggiunte (dati non venivano mostrati).',
       'Risolto l\'errore "Lotto/Acquisto non trovato" durante la modifica o eliminazione di prezzi registrati da inserimento rapido o senza lista (sostituite le inner join con outerjoin in repo.get_batch).',
       'Integrato il DatePicker dell\'applicazione e la select standard dei negozi (`ShoppingSupplierSelect`) con caricamento automatico nel modale di modifica del prezzo (`ShoppingEditBatchModal`).',
       'Risolto il problema della schermata nera con "{"detail":"Not Found"}" al cambio scheda Chrome/focus finestra: aggiunta la gestione del bypass HTML per le rotte React Router in Vite dev proxy e Nginx.',
@@ -459,7 +408,6 @@ export const CHANGELOG_HISTORY: ChangelogItem[] = [
       'Introdotto .dockerignore nella radice del progetto per escludere file d\'archivio (.tar), venv e dipendenze dal contesto inviato a Docker Desktop.',
     ],
     fixes: [
-      'Risolto bug di visualizzazione delle serie aggiunte (dati non venivano mostrati).',
       'Risolto il crash del demone Docker Desktop (500 Internal Server Error per dockerDesktopLinuxEngine) causato dal caricamento di oltre 4.5 GB di contesto durante il secondo deploy.',
     ],
   },
@@ -473,7 +421,6 @@ export const CHANGELOG_HISTORY: ChangelogItem[] = [
       'Eliminata la doppia applicazione del fuso orario (+2h) su Google Calendar allineando la trasmissione al formato nativo di Google API v3.',
     ],
     fixes: [
-      'Risolto bug di visualizzazione delle serie aggiunte (dati non venivano mostrati).',
       'Rimossa la combinazione conflittuale dell\'offset UTC (+02:00) con la proprietà timeZone nei payload per Google Calendar, risolvendo definitivamente lo slittamento di 2 ore nell\'orario degli impegni.',
     ],
   },
@@ -519,7 +466,6 @@ export const CHANGELOG_HISTORY: ChangelogItem[] = [
       'Gestione bidirezionale accurata del fuso orario del calendario Google con allineamento agli orari locali.',
     ],
     fixes: [
-      'Risolto bug di visualizzazione delle serie aggiunte (dati non venivano mostrati).',
       'Prevenzione dei link rotti causati da immagini esterne cancellate o modificate sul web.',
       'Corretto l\'orario degli eventi inviati a Google Calendar (risolto l\'offset di +2 ore).',
       'La creazione di un evento dalla DayPage Mobile imposta automaticamente la data del giorno visualizzato anziché quella odierna.',
@@ -557,7 +503,6 @@ export const CHANGELOG_HISTORY: ChangelogItem[] = [
       'Supporto a rotte backend con e senza trailing slash per prevenire errori di routing HTTP.',
     ],
     fixes: [
-      'Risolto bug di visualizzazione delle serie aggiunte (dati non venivano mostrati).',
       'Risolto il problema di propagazione dell\'evento click sul cerchietto di spunta rapida che causava l\'apertura involontaria del modale di dettaglio.',
       'Risolta la distorsione del prezzo più basso e del prezzo medio in Spesa quando venivano registrati articoli senza indicazione di prezzo.',
       'Risolto errore `TypeError: Cannot read properties of undefined (reading \'localeCompare\')` all\'apertura del modale storico di Routine e Abitudini.',
@@ -589,7 +534,6 @@ export const CHANGELOG_HISTORY: ChangelogItem[] = [
       'Puntini di espansione (•••) perfettamente allineati tra DayPage e HomePage.',
     ],
     fixes: [
-      'Risolto bug di visualizzazione delle serie aggiunte (dati non venivano mostrati).',
       'Risolto il bug sui dispositivi touch che causava il doppio toggle istantaneo del popover nel calendario mensile.',
       'Migliorata la gestione del long press a 500ms per la navigazione alla pagina del giorno senza interferire con lo swipe.',
       'Soppresso il click accidentale al termine di gesti di trascinamento e scorrimento.',
@@ -616,7 +560,6 @@ export const CHANGELOG_HISTORY: ChangelogItem[] = [
       'Ottimizzazione delle animazioni e delle transizioni tra schermate.',
     ],
     fixes: [
-      'Risolto bug di visualizzazione delle serie aggiunte (dati non venivano mostrati).',
       'Corretta la visualizzazione degli eventi a cavallo di più giorni nella vista mensile.',
       'Risolti problemi minori di memorizzazione dello stato dei filtri.',
     ],
@@ -642,7 +585,6 @@ export const CHANGELOG_HISTORY: ChangelogItem[] = [
       'Refactoring del backend FastAPI con schemi Pydantic rigorosi.',
     ],
     fixes: [
-      'Risolto bug di visualizzazione delle serie aggiunte (dati non venivano mostrati).',
       'Risolti errori di rendering nelle griglie calendario ad alta densità.',
       'Migliorata la persistenza dei token di autenticazione.',
     ],
