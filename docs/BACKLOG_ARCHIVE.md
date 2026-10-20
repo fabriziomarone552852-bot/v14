@@ -40,6 +40,8 @@ Questo file contiene lo storico completo e strutturato di tutte le funzionalità
 | **SHOPPING-016** | Micro Split-Pill Valutazione Brand, Pareggio Colonne & Snellimento Scontrini | `shopping` / admin | 🟢 Completato | 🟢 Completato | Ottobre 2026 |
 | **SHOPPING-017** | Marche, Prezzi e Storico Acquisti nell'Inserimento Rapido Catalogo Spesa | `shopping` / catalog | 🟢 Completato | 🟢 Completato | Ottobre 2026 |
 | **SHOPPING-018** | Tracciamento Brand nei Lotti Spesa & Risoluzione Ambiguità Multi-Marca | `shopping` / DB | 🟢 Completato | 🟢 Completato | Ottobre 2026 |
+| **SEED-002** | Snapshot & Dump Completo Seeds CSV (7 file, N:N Brand, Precisione Decimali) | `admin` / seeds | 🟢 Completato | 🟢 Completato | Ottobre 2026 |
+| **BACKUP-001** | Backup & Restore Generale Database su NAS Storage (40 tabelle, JSON.GZ) | `admin` / backup | 🟢 Completato | 🟢 Completato | Ottobre 2026 |
 | **TRACKERS-001** | Mobile TV Series Timeline & Restyling Card Episodi | `trackers` / mobile | 🟢 Completato | 🟢 Completato | Settembre 2026 |
 | **TRACKERS-002** | Mobile TV Series Detail Modal, Bottom Drawers & Gestione Liste | `trackers` / mobile | 🟢 Completato | 🟢 Completato | Settembre 2026 |
 | **TRACKERS-003** | Homepage Mobile TV Series: Feed Serie "In Corso" ("Diario Puntate Viste") | `trackers` / mobile | 🟢 Completato | 🟢 Completato | Ottobre 2026 |
@@ -978,3 +980,44 @@ Sistema integrato di connessione tra utenti (Amicizie) per la condivisione socia
    - Commenti e risposte alle recensioni con thread conversazionale.
    - Sistema di menzioni `@username` nei commenti con autocompletamento in tempo reale, bolle stile chat e notifiche mirate.
    - Nuova Inbox Notifiche che unifica messaggistica effimera, richieste di amicizia, inviti ai gruppi spesa e notifiche di sistema.
+
+
+---
+
+### [SEED-002] Snapshot & Dump Completo Seeds CSV (🟢 Completato - Ottobre 2026)
+
+#### 📋 Descrizione
+Rigenerazione integrale e pulita di tutti i file CSV di seed in `backend/seeds/` a partire dallo stato reale del database, completa di archiviazione automatica snapshot sul NAS e download pacchetto ZIP.
+
+#### ⚙️ Dettagli Implementazione & Risultati
+1. **7 File CSV Gestiti**:
+   - `config.csv`, `config_codes.csv`, `user_categories.csv`, `shopping_suppliers.csv`, `shopping_products.csv`, `inventory_batch.csv`.
+   - Introdotto il 7° file `shopping_product_brands.csv` per mappare le relazioni N:N tra prodotti e marchi e le relative note di gradimento (`ShoppingProductBrand.notes`).
+2. **Precisione Decimali Rigorosa**:
+   - Prezzi a 2 cifre decimali contabili con virgola (`_format_price`).
+   - Quantità e pesature fino a 3 decimali (`_format_quantity`), preservando il millesimo (`NUMERIC(12, 3)`).
+3. **Triplice Destinazione**:
+   - Sovrascrittura pulita dei file operativi in `backend/seeds/`.
+   - Creazione di una cartella di sicurezza snapshot sul NAS (`/app/backups/csv/snapshot_TIMESTAMP/`).
+   - Download istantaneo dello ZIP per l'utente/admin.
+
+---
+
+### [BACKUP-001] Backup & Restore Generale Database su NAS Storage (🟢 Completato - Ottobre 2026)
+
+#### 📋 Descrizione
+Sistema enterprise di backup completo e ripristino per tutte le 40 tabelle dell'applicazione direttamente sul filesystem del NAS.
+
+#### ⚙️ Dettagli Implementazione & Risultati
+1. **Dump JSON Compresso (`.json.gz`)**:
+   - Estrazione ordinata secondo l'ordine topologico di SQLAlchemy di tutte le 40 tabelle.
+   - Ispezione difensiva a caldo delle colonne fisiche reali del database per prevenire errori 500 in caso di migrazioni intermedie.
+   - Salvataggio nella cartella dedicata del NAS (`/app/backups/database`).
+2. **Ripristino Atomico & Transazionale**:
+   - Svuotamento a cascata controllato in ordine inverso di Foreign Key.
+   - Reinserimento a blocchi e commit finale protetto da rollback.
+   - Esecuzione automatica di `sync_all_table_sequences(db)` al termine del restore.
+3. **Interfaccia Admin Protetta (`AdminDatabaseBackupsCard.tsx`)**:
+   - Elenco cronologico backup con dimensione, record e note.
+   - Download locale e rimozione file.
+   - Modale di sicurezza ad alta visibilità con obbligo di digitare `RIPRISTINA` per autorizzare il restore.

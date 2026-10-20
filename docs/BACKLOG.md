@@ -19,7 +19,6 @@ Questo documento traccia in modo strutturato, prioritizzato e costantemente aggi
 | **FEAT-001** | Liste Spesa: Preferite & Pinnate (`pin_status` desktop & mobile) | `shopping` | 🟢 Completato | 🔴 Da Implementare | 🟡 **Media-Alta** |
 | **SHOPPING-004** | Ricerca & Visualizzazione Prezzi nel Modale Dettaglio Prodotto (per Brand) | `shopping` / UI | 🔴 Da Iniziare | 🔴 Da Iniziare | 🟡 **Media-Alta** |
 | **SHOPPING-005** | Pannello Laterale Recensioni & Giudizio Marchi all'Aggiunta Prodotto | `shopping` / UI | 🔴 Da Strutturare | 🔴 Da Implementare | 🟡 **Media-Alta** |
-| **SEED-002** | Risoluzione Visualizzazione Prodotti Seed Mancanti nelle Liste | `shopping` / seed | 🔴 Da Iniziare | 🔴 Da Iniziare | 🟡 **Media-Alta** |
 | **FEAT-006** | Hub Spesa, Ricettario, Meal Prep & Wishlist Oggetti | `shopping` / food | 🔴 Da Strutturare | 🔴 Da Implementare | 🔴 **Massima (Passo Fondamentale)** |
 | **FEAT-003** | Dashboard Analytics & Storico Prezzi | `analytics` | 🟢 Completato | 🔴 Da Implementare | 🟢 **Bassa** |
 | **CAL-002** | Filtro Categorie Eventi nel Calendario Homepage (Menu Ingranaggio ⚙️) | `calendar` / UI | 🔴 Da Iniziare | 🔴 Da Iniziare | 🟡 **Media-Alta** |
@@ -122,10 +121,6 @@ Questo documento traccia in modo strutturato, prioritizzato e costantemente aggi
 ### [SHOPPING-005] Finestra Laterale Recensioni & Giudizio Marchi all'Aggiunta Prodotto
 - **Descrizione**: Durante l'inserimento o aggiunta di un nuovo prodotto a una lista spesa, integrare un pannello laterale a comparsa (o drawer su mobile) che visualizzi le recensioni, le valutazioni qualitative (👍/👎) e i giudizi precedentemente espressi per i diversi marchi di quello specifico prodotto, con ultimo prezzo registrato e negozio abituale.
 - **Stato**: 🔴 Da Implementare *(Priorità: Media-Alta)*.
-
-### [SEED-002] Verifica e Risoluzione Prodotti Seed Mancanti nelle Liste
-- **Descrizione**: Indagine e risoluzione del problema per cui alcuni prodotti seed (prodotti di sistema iniziale) non vengono mostrati o risultano nascosti nelle liste e nello storico dell'applicazione.
-- **Stato**: 🔴 Da Iniziare.
 
 ### [FEAT-006] Riorganizzazione Hub Spesa, Ricettario, Meal Prep & Wishlist Oggetti
 - **Descrizione**: Evoluzione della sezione Spesa in un ecosistema integrato per la pianificazione alimentare, ricette e acquisti:
