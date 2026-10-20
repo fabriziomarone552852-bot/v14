@@ -2,6 +2,7 @@
 import React from 'react';
 import type { SystemUserItem } from '@/api/adminApi';
 import { useAdminMaintenanceLogic } from './useAdminMaintenanceLogic';
+import { AdminDatabaseBackupsCard } from './maintenance/AdminDatabaseBackupsCard';
 
 interface AdminMaintenanceSectionProps {
   users: SystemUserItem[];
@@ -15,6 +16,9 @@ export const AdminMaintenanceSection: React.FC<AdminMaintenanceSectionProps> = (
   const {
     runningSync,
     runningSeed,
+    runningDump,
+    downloadingZip,
+    dumpResult,
     loadingOrphans,
     loadOrphanedGroups,
     orphanedGroups,
@@ -24,8 +28,25 @@ export const AdminMaintenanceSection: React.FC<AdminMaintenanceSectionProps> = (
     message,
     syncedTables,
     activeUsers,
+    backups,
+    loadingBackups,
+    creatingBackup,
+    restoringFile,
+    deletingBackup,
+    restoreConfirmText,
+    setRestoreConfirmText,
+    targetRestoreFile,
+    setTargetRestoreFile,
+    restoreResult,
+    loadBackups,
+    handleCreateDatabaseBackup,
+    handleDeleteBackup,
+    handleDownloadBackup,
+    handleExecuteRestore,
     handleSyncSequences,
     handleReseedShopping,
+    handleDumpSeeds,
+    handleDownloadSeedsZip,
     handleTransferOwnership,
   } = useAdminMaintenanceLogic({ users, onRefresh });
 
@@ -114,6 +135,78 @@ export const AdminMaintenanceSection: React.FC<AdminMaintenanceSectionProps> = (
             </p>
           </div>
         </div>
+
+        {/* CARD 3: Snapshot & Rigenerazione Completa Seeds CSV */}
+        <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-xs space-y-4 md:col-span-2">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div className="flex items-start gap-3">
+              <div className="rounded-2xl bg-emerald-50 p-2.5 text-xl text-emerald-600">💾</div>
+              <div>
+                <h4 className="text-sm font-bold text-slate-900">Snapshot & Dump Seeds Completo (*.csv)</h4>
+                <p className="text-xs text-slate-500 mt-0.5">
+                  Estrae lo stato reale di tutti i cataloghi, negozi, legami brand, lotti/prezzi, categorie e codici dal DB, ricreando da zero i 7 file CSV in <code className="text-slate-700 font-mono">backend/seeds</code> e archiviandoli sul NAS.
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2 shrink-0">
+              <button
+                type="button"
+                onClick={handleDownloadSeedsZip}
+                disabled={downloadingZip || runningDump}
+                className="py-2.5 px-3.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold transition disabled:opacity-50 cursor-pointer shadow-xs flex items-center gap-1.5"
+                title="Scarica tutti i file CSV attuali in un archivio compresso .zip"
+              >
+                {downloadingZip ? 'Download...' : '📦 Scarica ZIP Seeds'}
+              </button>
+
+              <button
+                type="button"
+                onClick={handleDumpSeeds}
+                disabled={runningDump}
+                className="py-2.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition disabled:opacity-50 cursor-pointer shadow-xs flex items-center gap-2"
+              >
+                {runningDump ? 'Estrazione e scrittura in corso...' : '📸 Rigenera Tutti i File di Seed da DB'}
+              </button>
+            </div>
+          </div>
+
+          {dumpResult && (
+            <div className="p-4 bg-emerald-50/70 rounded-2xl border border-emerald-200/80 text-xs text-emerald-950 space-y-2">
+              <div className="flex items-center justify-between font-bold">
+                <span>✅ Ultimo Snapshot Seeds: {dumpResult.timestamp}</span>
+                <span className="font-mono text-[11px] text-emerald-800">Archiviato in: {dumpResult.snapshot_dir}</span>
+              </div>
+              <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-7 gap-2 pt-1 font-mono text-[11px]">
+                {Object.entries(dumpResult.counts).map(([entity, count]) => (
+                  <div key={entity} className="bg-white/80 p-2 rounded-xl border border-emerald-100 flex flex-col items-center">
+                    <span className="text-slate-500 text-[10px] uppercase truncate w-full text-center" title={entity}>{entity}</span>
+                    <span className="text-emerald-700 font-extrabold text-sm">{count}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* CARD 4: Backup & Restore Generale Database su NAS */}
+        <AdminDatabaseBackupsCard
+          backups={backups}
+          loadingBackups={loadingBackups}
+          creatingBackup={creatingBackup}
+          restoringFile={restoringFile}
+          deletingBackup={deletingBackup}
+          restoreConfirmText={restoreConfirmText}
+          setRestoreConfirmText={setRestoreConfirmText}
+          targetRestoreFile={targetRestoreFile}
+          setTargetRestoreFile={setTargetRestoreFile}
+          restoreResult={restoreResult}
+          onRefreshBackups={loadBackups}
+          onCreateBackup={handleCreateDatabaseBackup}
+          onDeleteBackup={handleDeleteBackup}
+          onDownloadBackup={handleDownloadBackup}
+          onExecuteRestore={handleExecuteRestore}
+        />
       </div>
 
       {/* SEZIONE GRUPPI SPESA ORFANI */}

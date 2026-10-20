@@ -39,6 +39,8 @@ export const CHANGELOG_HISTORY: ChangelogItem[] = [
       'Valutazione Brand Intelligente: Sistema di gradimento marchio permanente a 1 tap [👍|👎] con commenti qualitativi, integrato nei modali spesa e con badge/alert visivi per marchi sconsigliati.',
       'Data Grid Amministrazione Eventi & Task: Console tabellare per SuperUser con filtri e modifica inline per date, categorie, priorità, stati e riassegnazione cross-utente con salvataggio massivo.',
       'Hub Amministrazione Spesa & Unione Prodotti: Riorganizzazione sotto scheda unificata "Spesa" con tabs segmentate (Scontrini, Data Grid Lotti, Unione Prodotti Duplicati con accorpamento transazionale).',
+      'Snapshot & Dump Seeds Completo (*.csv): Strumento di esportazione integrale dal DB dello stato reale di 7 file CSV (inclusa la tabella ponte prodotti-brand shopping_product_brands), con archiviazione automatica snapshot sul NAS e download immediato archivio ZIP.',
+      'Backup & Restore Generale Database su NAS: Modulo completo di sicurezza per il salvataggio compresso (.json.gz) dell\'intero patrimonio dati (40 tabelle); storico backup su disco NAS con note opzionali, download locale, eliminazione e procedura di ripristino atomico protetta con riallineamento sequenze.',
       'Creazione Rapida Brand e Fornitori da Data Grid Lotti: Supporto input libero con datalist nei campi Brand e Fornitore; creazione automatica e aggiornamento istantaneo del mazzo di carte in RAM al salvataggio.'
     ],
     improvements: [

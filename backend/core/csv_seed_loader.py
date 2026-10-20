@@ -221,6 +221,36 @@ def load_seed_shopping_products() -> List[Dict[str, Any]]:
     return products
 
 
+def load_seed_shopping_product_brands() -> List[Dict[str, Any]]:
+    """
+    Carica i legami N:N tra prodotti e marchi e le relative note da shopping_product_brands.csv.
+    Campi: id, product_id, brand_id, notes, created_at, updated_at.
+    """
+    rows = _read_csv("shopping_product_brands.csv")
+    links: List[Dict[str, Any]] = []
+    for r in rows:
+        lid = _parse_int(r.get("id"))
+        pid = _parse_int(r.get("product_id"))
+        bid = _parse_int(r.get("brand_id"))
+        if not pid or not bid:
+            continue
+
+        notes_val = r.get("notes", "").strip()
+        created_at = _parse_datetime(r.get("created_at")) or datetime.now(timezone.utc)
+        updated_at = _parse_datetime(r.get("updated_at")) or created_at
+
+        links.append({
+            "id": lid,
+            "product_id": pid,
+            "brand_id": bid,
+            "notes": notes_val if notes_val and notes_val.upper() != "NULL" else None,
+            "created_at": created_at,
+            "updated_at": updated_at,
+        })
+    return links
+
+
+
 def load_seed_inventory_batches() -> List[Dict[str, Any]]:
     """
     Carica i lotti d'acquisto e prezzi storici da inventory_batch.csv.

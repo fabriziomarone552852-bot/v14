@@ -26,6 +26,7 @@ def import_all_models() -> None:
     import backend.domains.shopping.models  # noqa: F401
     import backend.domains.system_boot.models  # noqa: F401
     import backend.domains.tasks.models  # noqa: F401
+    import backend.domains.trackers.models  # noqa: F401
     import backend.domains.users.models  # noqa: F401
     import backend.domains.yearly_entries.models  # noqa: F401
     import backend.domains.social.models  # noqa: F401
@@ -166,6 +167,9 @@ def ensure_database_schema_compat() -> None:
             "CREATE INDEX IF NOT EXISTS ix_feedback_reports_user_id ON feedback_reports(user_id);",
             "CREATE INDEX IF NOT EXISTS ix_feedback_reports_status ON feedback_reports(status);",
             "CREATE INDEX IF NOT EXISTS ix_feedback_reports_created_at ON feedback_reports(created_at DESC);",
+            "ALTER TABLE tv_user_episode_logs ADD COLUMN IF NOT EXISTS viewing_platform_id INTEGER REFERENCES tv_user_platforms(id) ON DELETE SET NULL;",
+            "CREATE INDEX IF NOT EXISTS ix_tv_user_episode_logs_viewing_platform_id ON tv_user_episode_logs(viewing_platform_id);",
+            "ALTER TABLE user_series_tracking ADD COLUMN IF NOT EXISTS is_rewatching BOOLEAN NOT NULL DEFAULT FALSE;",
         ]
 
         for stmt in statements:

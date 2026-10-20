@@ -1,36 +1,179 @@
-id;name_normalized;brand_id;created_by_user_id;updated_by_user_id;created_at;updated_at;deleted_at;brand_id2
-1;patate;coop;1;NULL;26/08/2026 19:00;NULL;NULL;1
-2;cipolle dorate;coop;1;NULL;26/08/2026 19:00;NULL;NULL;1
+﻿id;name_normalized;brand_id;created_by_user_id;updated_by_user_id;created_at;updated_at;deleted_at;brand_id2
+1;patate;novelle;1;NULL;26/08/2026 19:00;NULL;NULL;98
+2;cipolle dorate;dorate;1;NULL;26/08/2026 19:00;NULL;NULL;65
 3;tonno 65 g;rio mare;1;NULL;26/08/2026 19:00;NULL;NULL;7
 4;salsa di soia suzi wan 143 ml;coop;1;NULL;26/08/2026 19:00;NULL;NULL;1
 5;salsa teriyaki kikkoma 150 ml;coop;1;NULL;26/08/2026 19:00;NULL;NULL;1
 6;tonno 104 g;coop;1;NULL;26/08/2026 19:00;NULL;NULL;1
 7;pesce spada affumicato;coop;1;NULL;26/08/2026 19:00;NULL;NULL;1
-8;mozzarelle santa lucia;galbani;1;NULL;26/08/2026 19:00;NULL;NULL;8
+8;mozzarella santa lucia;galbani;1;NULL;26/08/2026 19:00;NULL;NULL;8
 9;yogurt activia misto frutta;danone;1;NULL;26/08/2026 19:00;NULL;NULL;9
 10;falafel mini;coop;1;NULL;26/08/2026 19:00;NULL;NULL;1
-11;salmone filetti surg 250 g;;1;NULL;26/08/2026 19:00;NULL;NULL;5
-12;orata filetti surg 380 g;;1;NULL;26/08/2026 19:00;NULL;NULL;5
-13;tonno filetti surg 250 g;;1;NULL;26/08/2026 19:00;NULL;NULL;5
-14;yogurt land 8x125 g;;1;NULL;26/08/2026 19:00;NULL;NULL;5
-15;insalata con ravanelli ;;1;NULL;26/08/2026 19:00;NULL;NULL;5
-16;prosciutto crudo 100 g;;1;NULL;26/08/2026 19:00;NULL;NULL;5
-17;salmone aff norvegia 150 g;;1;NULL;26/08/2026 19:00;NULL;NULL;5
-18;limone succo 200 ml;;1;NULL;26/08/2026 19:00;NULL;NULL;5
-19;pesche polpa gialla 1 kg;;1;NULL;26/08/2026 19:00;NULL;NULL;5
-20;pomodoro piccadilly 1 kg;;1;NULL;26/08/2026 19:00;NULL;NULL;5
-21;banane 1 kg;;1;NULL;26/08/2026 19:00;NULL;NULL;5
-22;uova grandi 6 pz;;1;NULL;26/08/2026 19:00;NULL;NULL;5
-23;mozzarella agerola 1 kg;;1;NULL;26/08/2026 19:00;NULL;NULL;2
-24;nodini stornarella 1 kg;;1;NULL;26/08/2026 19:00;NULL;NULL;2
-25;fesa di tacchino aequilibrium aia;;1;NULL;26/08/2026 19:00;NULL;NULL;10
-26;mastrolindo 930 ml;;1;NULL;26/08/2026 19:00;NULL;NULL;12
-27;sgrassatore chanteclair 600 ml;;1;NULL;26/08/2026 19:00;NULL;NULL;13
-28;sgrassatore chanteclair ric 600 ml;;1;NULL;26/08/2026 19:00;NULL;NULL;13
-29;carta igienica regina;;1;NULL;26/08/2026 19:00;NULL;NULL;15
-30;kinder crispy x 5;;1;NULL;26/08/2026 19:00;NULL;NULL;16
-31;wc net brilliant;;1;NULL;26/08/2026 19:00;NULL;NULL;17
-32;sapone liquido milmil 2 l;;1;NULL;26/08/2026 19:00;NULL;NULL;18
-33;ricotta montrone 125 g;;1;NULL;26/08/2026 19:00;NULL;NULL;19
-34;prosciutto aff praga beretta;;1;NULL;26/08/2026 19:00;NULL;NULL;20
-35;mozzarella aff montrone;;1;NULL;26/08/2026 19:00;NULL;NULL;19
+11;salmone filetti surg 250 g;eurospin;1;NULL;26/08/2026 19:00;NULL;NULL;5
+12;orata filetti surg 380 g;eurospin;1;NULL;26/08/2026 19:00;NULL;NULL;5
+13;tonno filetti surg 250 g;eurospin;1;NULL;26/08/2026 19:00;NULL;NULL;5
+14;yogurt land 8x125 g;eurospin;1;NULL;26/08/2026 19:00;NULL;NULL;5
+15;insalata con ravanelli;eurospin;1;NULL;26/08/2026 19:00;NULL;NULL;5
+16;prosciutto crudo 100 g;eurospin;1;NULL;26/08/2026 19:00;NULL;NULL;5
+17;salmone aff norvegia 150 g;norvegia;1;NULL;26/08/2026 19:00;NULL;NULL;30
+18;limone succo 200 ml;eurospin;1;NULL;26/08/2026 19:00;NULL;NULL;5
+19;pesche polpa gialla 1 kg;famila;1;NULL;26/08/2026 19:00;NULL;NULL;6
+20;pomodoro piccadilly 1 kg;piccadilly;1;NULL;26/08/2026 19:00;NULL;NULL;66
+21;banane 1 kg;ciquita;1;NULL;26/08/2026 19:00;NULL;NULL;71
+22;uova grandi 6 pz;avicola del sole;1;NULL;26/08/2026 19:00;NULL;NULL;42
+23;mozzarella agerola 1 kg;agerola;1;NULL;26/08/2026 19:00;NULL;NULL;24
+24;nodini stornarella 1 kg;stornarella;1;NULL;26/08/2026 19:00;NULL;NULL;25
+25;fesa di tacchino aequilibrium aia;sds;1;NULL;26/08/2026 19:00;NULL;NULL;34
+26;mastrolindo 930 ml;mastrolindo;1;NULL;26/08/2026 19:00;NULL;NULL;12
+27;sgrassatore chanteclair 600 ml;chanteclair;1;NULL;26/08/2026 19:00;NULL;NULL;13
+28;sgrassatore chanteclair ric 600 ml;chanteclair;1;NULL;26/08/2026 19:00;NULL;NULL;13
+29;carta igienica regina;regina;1;NULL;26/08/2026 19:00;NULL;NULL;15
+30;kinder crispy x 5;ferrero;1;NULL;26/08/2026 19:00;NULL;NULL;16
+31;wc net brilliant;wc net;1;NULL;26/08/2026 19:00;NULL;NULL;17
+32;sapone liquido milmil 2 l;milmil;1;NULL;26/08/2026 19:00;NULL;NULL;18
+33;ricotta montrone 125 g;montrone;1;NULL;26/08/2026 19:00;NULL;NULL;19
+34;prosciutto aff praga beretta;beretta;1;NULL;26/08/2026 19:00;NULL;NULL;20
+35;mozzarella aff montrone;montrone;1;NULL;26/08/2026 19:00;NULL;NULL;19
+36;latte;;3;3;01/09/2026 22:33;01/09/2026 22:33;NULL;NULL
+37;pelati;;3;3;01/09/2026 22:34;01/09/2026 22:34;NULL;NULL
+38;limone;coop;3;3;01/09/2026 22:34;01/09/2026 22:34;NULL;1
+39;farina;;3;3;01/09/2026 22:36;01/09/2026 22:36;NULL;NULL
+40;coca cola;;2;2;12/09/2026 08:17;12/09/2026 08:17;NULL;NULL
+41;pepsi twist;pepsi;2;2;15/09/2026 15:00;15/09/2026 15:00;NULL;21
+42;succo ananas;md;2;2;15/09/2026 15:00;15/09/2026 15:00;NULL;3
+43;spinaci;eurospin;2;2;15/09/2026 15:00;15/09/2026 15:00;NULL;5
+44;mazzancolle & branzino;md;2;2;15/09/2026 15:00;15/09/2026 15:00;NULL;3
+45;filetti branzino alla regina;md;2;2;15/09/2026 15:00;15/09/2026 15:00;NULL;3
+46;polpo & patate;md;2;2;15/09/2026 15:00;15/09/2026 15:00;NULL;3
+47;orata fresca;coop;2;2;15/09/2026 15:00;15/09/2026 15:00;NULL;1
+48;ace gentile;;5;5;19/09/2026 18:07;19/09/2026 18:07;NULL;NULL
+49;ace candeggina;;5;5;19/09/2026 18:07;19/09/2026 18:07;NULL;NULL
+50;neo sauber deodorante rosso;;5;5;19/09/2026 18:09;19/09/2026 18:09;NULL;NULL
+51;nodini;stornarella;1;1;15/10/2026 16:07;15/10/2026 16:07;NULL;25
+52;ricotta di pecora;savino;1;1;15/10/2026 16:07;15/10/2026 16:07;NULL;26
+53;arrosto di tacchino;fiorucci;1;1;15/10/2026 16:07;15/10/2026 16:07;NULL;27
+54;salame ungherese;famila;1;1;15/10/2026 16:07;15/10/2026 16:07;NULL;6
+55;panini integrali;panificio caruso;1;1;15/10/2026 16:07;15/10/2026 16:07;NULL;29
+56;provola affumicata;eurospin;1;1;15/10/2026 16:26;15/10/2026 16:26;NULL;5
+57;salsiccia suino;eurospin;1;1;15/10/2026 16:26;15/10/2026 16:26;NULL;5
+58;roastbeef a fette;eurospin;1;1;15/10/2026 16:26;15/10/2026 16:26;NULL;5
+59;fettine pizzaiola;eurospin;1;1;15/10/2026 16:26;15/10/2026 16:26;NULL;5
+60;fusi di pollo;eurospin;1;1;15/10/2026 16:26;15/10/2026 16:26;NULL;5
+61;piselli barattolo;eurospin;1;1;15/10/2026 16:26;15/10/2026 16:26;NULL;5
+62;cachi;eurospin;1;1;15/10/2026 16:26;15/10/2026 16:26;NULL;5
+63;uva bianca;bianca;1;1;15/10/2026 16:26;15/10/2026 16:26;NULL;64
+64;melanzane;coop;1;1;15/10/2026 16:26;15/10/2026 16:26;NULL;1
+65;tacchino con olive;eurospin;1;1;15/10/2026 16:26;15/10/2026 16:26;NULL;5
+66;prosciutto crudo;eurospin;1;1;15/10/2026 16:26;15/10/2026 16:26;NULL;5
+67;salmone affumicato;eurospin;1;1;15/10/2026 16:26;15/10/2026 16:26;NULL;5
+68;arachidi ricoperte chili;eurospin;1;1;15/10/2026 17:57;15/10/2026 17:57;NULL;5
+69;pasta;de cecco;1;1;15/10/2026 17:57;15/10/2026 17:57;NULL;73
+70;pesto basilico;eurospin;1;1;15/10/2026 17:57;15/10/2026 17:57;NULL;5
+71;pasta trafilata bronzo;eurospin;1;1;15/10/2026 17:57;15/10/2026 17:57;NULL;5
+72;fette biscottate malto-orzo;mulino bianco;1;1;15/10/2026 18:05;15/10/2026 18:05;NULL;31
+73;yogurt bianco;fage;1;1;15/10/2026 18:05;15/10/2026 18:05;NULL;32
+74;tacquolina;renzini;1;1;15/10/2026 18:05;15/10/2026 18:05;NULL;33
+75;prosciutto aff praga;beretta;1;1;15/10/2026 18:05;15/10/2026 18:05;NULL;20
+76;confettura fichi limoni bio;mielizia;1;1;15/10/2026 18:05;15/10/2026 18:05;NULL;35
+77;mix allegro;famila;1;1;15/10/2026 18:05;15/10/2026 18:05;NULL;6
+78;orata filetti surgelati;eurospin;1;1;16/10/2026 15:01;16/10/2026 15:01;NULL;5
+79;mozzarella;galbani;1;1;16/10/2026 17:21;16/10/2026 17:21;NULL;8
+80;pizza;tartufata;1;1;16/10/2026 17:32;16/10/2026 17:32;NULL;81
+81;uova medie 6 pz;avicola del sole;1;1;19/10/2026 15:43;19/10/2026 15:43;NULL;42
+82;mortadella;villani;1;1;19/10/2026 15:43;19/10/2026 15:43;NULL;28
+83;passata pomodoro;rosso gargano;1;1;19/10/2026 15:43;19/10/2026 15:43;NULL;43
+84;mozzarella affumicata;eurospin;1;1;19/10/2026 15:45;19/10/2026 15:45;NULL;5
+85;ace candeggina 3 l;ace;1;1;19/10/2026 15:56;19/10/2026 15:56;NULL;44
+86;scottex fazzoletti;tempo;1;1;19/10/2026 15:56;19/10/2026 15:56;NULL;85
+87;ace gentile 2.3 l;ace;1;1;19/10/2026 15:56;19/10/2026 15:56;NULL;44
+88;svelto piatti 1.7 l;svelto;1;1;19/10/2026 15:56;19/10/2026 15:56;NULL;47
+89;detergente intimo;neutromed;1;1;19/10/2026 15:56;19/10/2026 15:56;NULL;48
+90;deodorante active vapor;sauber;1;1;19/10/2026 15:56;19/10/2026 15:56;NULL;49
+91;bagno schiuma avena e aloe;roberts;1;1;19/10/2026 15:56;19/10/2026 15:56;NULL;50
+92;mele;golden;1;1;19/10/2026 16:28;19/10/2026 16:28;NULL;77
+93;fagioli borlotti;red kidney;1;1;19/10/2026 16:28;19/10/2026 16:28;NULL;68
+94;pesto radicchio speck;eurospin;1;1;19/10/2026 16:28;19/10/2026 16:28;NULL;5
+95;fagioli red kidney;red kidney;1;1;19/10/2026 16:28;19/10/2026 16:28;NULL;68
+96;lenticchie;eurospin;1;1;19/10/2026 16:28;19/10/2026 16:28;NULL;5
+97;succo ace;eurospin;1;1;19/10/2026 16:28;19/10/2026 16:28;NULL;5
+98;funghi champignon;eurospin;1;1;19/10/2026 16:28;19/10/2026 16:28;NULL;5
+99;fettine coscia suino;eurospin;1;1;19/10/2026 16:28;19/10/2026 16:28;NULL;5
+100;burgher melanzane;eurospin;1;1;19/10/2026 16:28;19/10/2026 16:28;NULL;5
+101;petto pollo fette;eurospin;1;1;19/10/2026 16:28;19/10/2026 16:28;NULL;5
+102;taralli;treccine;1;1;19/10/2026 16:28;19/10/2026 16:28;NULL;55
+103;aglio;eurospin;1;1;19/10/2026 16:28;19/10/2026 16:28;NULL;5
+104;peperoni;coop;1;1;19/10/2026 16:28;19/10/2026 16:28;NULL;1
+105;yogurt senza lattosio 8 x 120 g;eurospin;1;1;19/10/2026 16:28;19/10/2026 16:28;NULL;5
+106;pere;conference;1;1;19/10/2026 16:28;19/10/2026 16:28;NULL;59
+107;uva;bianca;1;1;19/10/2026 16:28;19/10/2026 16:28;NULL;64
+108;patatine;classiche;1;1;19/10/2026 16:28;19/10/2026 16:28;NULL;63
+109;cipolle;bianche;1;1;19/10/2026 16:31;19/10/2026 16:31;NULL;57
+110;mais;famila;1;1;19/10/2026 16:59;19/10/2026 16:59;NULL;6
+111;pomodoro;;1;1;19/10/2026 17:39;19/10/2026 17:39;NULL;NULL
+112;pomodori;insalataro;1;1;19/10/2026 17:41;19/10/2026 17:41;NULL;100
+113;fagioli;borlotti;1;1;19/10/2026 17:56;19/10/2026 17:56;NULL;67
+114;piselli;;1;1;19/10/2026 18:03;19/10/2026 18:03;NULL;NULL
+115;panini;morbidoni;1;1;20/10/2026 08:30;20/10/2026 08:30;NULL;87
+116;cioccolata tavoletta;fondente;1;1;20/10/2026 08:41;20/10/2026 08:41;NULL;72
+117;orecchiette;de cecco;1;1;20/10/2026 08:41;20/10/2026 08:41;NULL;73
+118;fette biscottate;mulino bianco;1;1;20/10/2026 08:41;20/10/2026 08:41;NULL;31
+119;farina 00;coop;1;1;20/10/2026 08:56;20/10/2026 08:56;NULL;1
+120;farina 1;coop;1;1;20/10/2026 08:56;20/10/2026 08:56;NULL;1
+121;farina 0;casillo;1;1;20/10/2026 08:56;20/10/2026 08:56;NULL;74
+122;farina 0 manitoba;coop;1;1;20/10/2026 08:56;20/10/2026 08:56;NULL;1
+123;pane arabo;coop;1;1;20/10/2026 08:56;20/10/2026 08:56;NULL;1
+124;lime;coop;1;1;20/10/2026 08:56;20/10/2026 08:56;NULL;1
+125;salsa di soia;eurospin;1;1;20/10/2026 08:56;20/10/2026 08:56;NULL;5
+126;salsa teriyaki;eurospin;1;1;20/10/2026 08:56;20/10/2026 08:56;NULL;5
+127;susine;coop;1;1;20/10/2026 08:56;20/10/2026 08:56;NULL;1
+128;finocchi;coop;1;1;20/10/2026 08:56;20/10/2026 08:56;NULL;1
+129;carote;coop;1;1;20/10/2026 08:56;20/10/2026 08:56;NULL;1
+130;lattuga;iceberg;1;1;20/10/2026 08:56;20/10/2026 08:56;NULL;79
+131;grana padano;soresina;1;1;20/10/2026 09:12;20/10/2026 09:12;NULL;82
+132;mazzancolle e branzino;md;1;1;20/10/2026 09:17;20/10/2026 09:17;NULL;3
+133;branzino alla regina;md;1;1;20/10/2026 09:17;20/10/2026 09:17;NULL;3
+134;polpo e patate;md;1;1;20/10/2026 09:17;20/10/2026 09:17;NULL;3
+135;deo sauber care;sauber;1;1;20/10/2026 09:19;20/10/2026 09:19;NULL;49
+136;amuchina 1 l;amuchina;1;1;20/10/2026 09:19;20/10/2026 09:19;NULL;84
+137;primo sale;montrone;1;1;20/10/2026 09:26;20/10/2026 09:26;NULL;19
+138;spray multisuperfice;strabilia;1;1;20/10/2026 09:32;20/10/2026 09:32;NULL;86
+139;succo cocco;stammibene;1;1;20/10/2026 11:20;20/10/2026 11:20;NULL;89
+140;muslei cioccolato;vitalis;1;1;20/10/2026 11:20;20/10/2026 11:20;NULL;90
+141;confettura fragola bio;mielizia;1;1;20/10/2026 11:20;20/10/2026 11:20;NULL;35
+142;rucola busta;eurospin;1;1;20/10/2026 11:20;20/10/2026 11:20;NULL;5
+143;roastbeef all inglese;lenti;1;1;20/10/2026 11:20;20/10/2026 11:20;NULL;92
+144;contorno verde surgelato;eurospin;1;1;20/10/2026 11:42;20/10/2026 11:42;NULL;5
+145;mix soffritto surgelato;eurospin;1;1;20/10/2026 11:42;20/10/2026 11:42;NULL;5
+146;contorno misto surgelato;eurospin;1;1;20/10/2026 11:42;20/10/2026 11:42;NULL;5
+147;vaschetta gelato;eurospin;1;1;20/10/2026 11:42;20/10/2026 11:42;NULL;5
+148;succo frutti di bosco;eurospin;1;1;20/10/2026 11:42;20/10/2026 11:42;NULL;5
+149;ceci;eurospin;1;1;20/10/2026 11:42;20/10/2026 11:42;NULL;5
+150;crema spalmabile nocciola;eurospin;1;1;20/10/2026 11:42;20/10/2026 11:42;NULL;5
+151;noci;eurospin;1;1;20/10/2026 11:42;20/10/2026 11:42;NULL;5
+152;filone integrale;eurospin;1;1;20/10/2026 11:42;20/10/2026 11:42;NULL;5
+153;pasta integrale;eurospin;1;1;20/10/2026 11:42;20/10/2026 11:42;NULL;5
+154;fourre biscotti;cacao;1;1;20/10/2026 11:42;20/10/2026 11:42;NULL;99
+155;choco wafer;cioccolato;1;1;20/10/2026 11:42;20/10/2026 11:42;NULL;96
+156;wafers;nocciola;1;1;20/10/2026 11:42;20/10/2026 11:42;NULL;97
+157;yogurt frutta;eurospin;1;1;20/10/2026 11:42;20/10/2026 11:42;NULL;5
+158;acqua demineralizzata;eurospin;1;1;20/10/2026 11:42;20/10/2026 11:42;NULL;5
+159;cimette di rapa surgelate;eurospin;1;1;20/10/2026 12:13;20/10/2026 12:13;NULL;5
+160;tranci pesce spada surgelato;eurospin;1;1;20/10/2026 12:13;20/10/2026 12:13;NULL;5
+161;biete surgelate;eurospin;1;1;20/10/2026 12:13;20/10/2026 12:13;NULL;5
+162;broccoli surgelati;eurospin;1;1;20/10/2026 12:13;20/10/2026 12:13;NULL;5
+163;cavolfiore surgelato;eurospin;1;1;20/10/2026 12:13;20/10/2026 12:13;NULL;5
+164;coni gelato 6 pz;eurospin;1;1;20/10/2026 12:13;20/10/2026 12:13;NULL;5
+165;coni tornado 4 pz;eurospin;1;1;20/10/2026 12:13;20/10/2026 12:13;NULL;5
+166;macinato misto;eurospin;1;1;20/10/2026 12:13;20/10/2026 12:13;NULL;5
+167;tagliata bovino;eurospin;1;1;20/10/2026 12:13;20/10/2026 12:13;NULL;5
+168;succo tropicale;eurospin;1;1;20/10/2026 12:13;20/10/2026 12:13;NULL;5
+169;benessere mix;eurospin;1;1;20/10/2026 12:13;20/10/2026 12:13;NULL;5
+170;sacchetti gelo 25 pz;eurospin;1;1;20/10/2026 12:13;20/10/2026 12:13;NULL;5
+171;alluminio rotolo;eurospin;1;1;20/10/2026 12:13;20/10/2026 12:13;NULL;5
+172;carta forno;eurospin;1;1;20/10/2026 12:13;20/10/2026 12:13;NULL;5
+173;pellicola rotolo;eurospin;1;1;20/10/2026 12:13;20/10/2026 12:13;NULL;5
+174;crackers integrali;eurospin;1;1;20/10/2026 12:13;20/10/2026 12:13;NULL;5
+175;burgher broccoli;eurospin;1;1;20/10/2026 12:13;20/10/2026 12:13;NULL;5
+176;radicchio;eurospin;1;1;20/10/2026 12:13;20/10/2026 12:13;NULL;5
+177;fesa di tacchino;sds;1;1;20/10/2026 14:34;20/10/2026 14:34;NULL;34
+178;mozzarelle santa lucia;galbani;1;NULL;26/08/2026 19:00;NULL;NULL;8
