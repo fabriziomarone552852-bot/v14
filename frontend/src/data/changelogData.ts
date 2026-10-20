@@ -1,4 +1,4 @@
-﻿// src/data/changelogData.ts
+// src/data/changelogData.ts
 
 export interface ChangelogItem {
   id: string;
@@ -57,7 +57,8 @@ export const CHANGELOG_HISTORY: ChangelogItem[] = [
       'Configurazione TMDB Produzione NAS: Configurate chiavi API in ambiente di produzione NAS, risolvendo l\'errore HTTP 500 nella ricerca serie e recupero provider.',
       'Allineamento "Mazzo di Carte" Cross-Dominio: Rimossi i limiti forzati di default negli endpoint /products, /suppliers, /brands, /events, /interactions e /feedback/reports.',
       'Precisione Quantità a 3 Decimali: Migrazione NUMERIC(12,3) applicata su test e produzione per preservare quantità inferiori all\'unità e pesature al banco senza troncamenti.',
-      'Piattaforma di Visione per Episodio: Trasferito il campo piattaforma dalle recensioni della serie alle recensioni dei singoli episodi per una granularità di visione completa anche nei rewatch.'
+      'Piattaforma di Visione per Episodio: Trasferito il campo piattaforma dalle recensioni della serie alle recensioni dei singoli episodi per una granularità di visione completa anche nei rewatch.',
+      'Backend Crash POST /shopping/products/{id}/brands: Corretto TypeError \"refresh() missing 1 required positional argument: obj\" in service.py (link_product_brand) — la chiamata repo.refresh(link) ora passa correttamente il db come primo argomento: repo.refresh(db, link). Tutti i tentativi di associazione prodotto-brand restituivano HTTP 500.'
     ]
   },
   {

@@ -1863,7 +1863,7 @@ def link_product_brand(
         db.add(link)
 
     repo.commit(db)
-    repo.refresh(link)
+    repo.refresh(db, link)
     return link
 
 
