@@ -64,6 +64,14 @@ export async function fetchShoppingBrands(
   return (data ?? []).map(normalizeShoppingSupplierOption);
 }
 
+export async function createShoppingBrand(name: string): Promise<ShoppingSupplierOption> {
+  const data = await apiRequest<ShoppingSupplierOptionApi>('/brands', {
+    method: 'POST',
+    body: { name },
+  });
+  return normalizeShoppingSupplierOption(data);
+}
+
 export async function createShoppingSupplier(
   payload: ShoppingSupplierCreatePayload
 ): Promise<ShoppingSupplierOption> {

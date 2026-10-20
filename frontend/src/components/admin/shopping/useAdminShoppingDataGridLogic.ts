@@ -17,6 +17,8 @@ import {
 import {
   fetchShoppingSuppliers,
   fetchShoppingBrands,
+  createShoppingBrand,
+  createShoppingSupplier,
 } from '@/api/shopping/shoppingSuppliersApi';
 import { extractErrorMessage } from '@/utils/errorUtils';
 
@@ -333,11 +335,31 @@ export const useAdminShoppingDataGridLogic = (): UseAdminShoppingDataGridLogicRe
       const original = batches.find((b) => b.id === batchId);
       if (!original) return;
 
-      const effective = getEffectiveBatch(original);
+      let effective = getEffectiveBatch(original);
 
       setSaving(true);
       setMessage(null);
       try {
+        // --- Crea brand al volo se è un nome libero senza ID (stesso metodo del campo Prodotto) ---
+        if (effective.brandName && !effective.brandId) {
+          const newBrand = await createShoppingBrand(effective.brandName);
+          setBrands((prev) => {
+            const alreadyPresent = prev.some((b) => b.id === newBrand.id);
+            return alreadyPresent ? prev : [...prev, newBrand];
+          });
+          effective = { ...effective, brandId: newBrand.id, brandName: newBrand.name };
+        }
+
+        // --- Crea supplier al volo se è un nome libero senza ID ---
+        if (effective.supplierName && !effective.supplierId) {
+          const newSupplier = await createShoppingSupplier({ name: effective.supplierName, typeCode: 1 });
+          setSuppliers((prev) => {
+            const alreadyPresent = prev.some((s) => s.id === newSupplier.id);
+            return alreadyPresent ? prev : [...prev, newSupplier];
+          });
+          effective = { ...effective, supplierId: newSupplier.id, supplierName: newSupplier.name };
+        }
+
         await updateInventoryBatch(batchId, {
           purchasePrice: effective.purchasePrice,
           purchaseDate: effective.purchaseDate,
@@ -399,9 +421,29 @@ export const useAdminShoppingDataGridLogic = (): UseAdminShoppingDataGridLogicRe
     for (const batchId of dirtyIds) {
       const original = batches.find((b) => b.id === batchId);
       if (!original) continue;
-      const effective = getEffectiveBatch(original);
+      let effective = getEffectiveBatch(original);
 
       try {
+        // --- Crea brand al volo se è un nome libero senza ID ---
+        if (effective.brandName && !effective.brandId) {
+          const newBrand = await createShoppingBrand(effective.brandName);
+          setBrands((prev) => {
+            const alreadyPresent = prev.some((b) => b.id === newBrand.id);
+            return alreadyPresent ? prev : [...prev, newBrand];
+          });
+          effective = { ...effective, brandId: newBrand.id, brandName: newBrand.name };
+        }
+
+        // --- Crea supplier al volo se è un nome libero senza ID ---
+        if (effective.supplierName && !effective.supplierId) {
+          const newSupplier = await createShoppingSupplier({ name: effective.supplierName, typeCode: 1 });
+          setSuppliers((prev) => {
+            const alreadyPresent = prev.some((s) => s.id === newSupplier.id);
+            return alreadyPresent ? prev : [...prev, newSupplier];
+          });
+          effective = { ...effective, supplierId: newSupplier.id, supplierName: newSupplier.name };
+        }
+
         await updateInventoryBatch(batchId, {
           purchasePrice: effective.purchasePrice,
           purchaseDate: effective.purchaseDate,

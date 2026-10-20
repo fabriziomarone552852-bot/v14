@@ -115,6 +115,29 @@ Riprogettazione completa, modulare e responsive del sistema di gestione delle li
 
 ---
 
+### [SHOPPING-019] Inserimento Nuovo Brand e Nuovo Fornitore dalla Data Grid Lotti (🟢 Completato — Ottobre 2026)
+
+#### 📋 Descrizione
+Nella Data Grid Revisione Lotti Spesa (sezione Admin), i campi **Brand** e **Fornitore** ora supportano la digitazione libera con completamento automatico tramite `<input type="text" list=datalist>`, identica al campo Prodotto già esistente. Se il nome digitato non corrisponde ad alcun elemento in archivio, una mini-etichetta verde avvisa che il nuovo elemento verrà creato al salvataggio. Al click su Salva Row (o Salva Tutte), il sistema crea prima il nuovo brand o il nuovo fornitore via API e aggiorna istantaneamente il mazzo di carte in RAM, poi aggiorna il lotto con l'ID appena ottenuto. Implementazione simmetrica per entrambi brand e supplier.
+
+#### ⚙️ Dettagli Implementazione
+
+- **Backend — `POST /brands`** (`backend/domains/shopping/router.py`):
+  - Nuovo endpoint che chiama `service.create_supplier` con `type_code=2` (brand), usando `deepcopy` del payload per sovrascrivere il type_code. Gestisce la deduplicazione/promozione automatica già nel service esistente (es. se un brand esiste già come supplier → `type_code=3`).
+
+- **Frontend API** (`frontend/src/api/shopping/shoppingSuppliersApi.ts`):
+  - Aggiunta funzione `createShoppingBrand(name: string)` che fa `POST /api/shopping/brands` con body `{ name }`.
+
+- **Frontend Logic Hook** (`frontend/src/components/admin/shopping/useAdminShoppingDataGridLogic.ts`):
+  - `handleSaveRow`: prima di `updateInventoryBatch`, se `effective.brandName && !effective.brandId` → crea brand → aggiorna `setBrands` in RAM → aggiorna `effective` con nuovo ID. Stessa logica per supplier (`typeCode: 1`).
+  - `handleSaveAllPending`: stessa logica inserita nel loop `for (const batchId of dirtyIds)`.
+
+- **Frontend Row** (`frontend/src/components/admin/shopping/AdminShoppingDataGridRow.tsx`):
+  - Campo **Brand** (cella 4): `<select value={brandId}>` sostituito con `<input type="text" list="brand-options-{id}">` + `<datalist>`. onChange: match case-insensitive → imposta `brandId` (esistente) o `null` (nuovo). Mini-label verde `✨ Nuovo brand — verrà creato al salvataggio` quando `brandName && !brandId`.
+  - Campo **Supplier** (cella 5): stesso pattern. Warning arancione solo se `!supplierId && !supplierName` (campo completamente vuoto).
+
+---
+
 ### [SHOPPING-018] Tracciamento Brand nei Lotti Spesa & Risoluzione Ambiguità Multi-Marca (🟢 Completato)
 
 #### 📋 Descrizione
