@@ -25,8 +25,9 @@ from backend.domains.notifications.models import Interaction
 
 
 def seed_default_shopping_suppliers_for_user(db: Session, user_id: int) -> None:
-    """Popola tutti i negozi e marchi da shopping_suppliers.csv associandoli all'utente."""
+    """Popola tutti i negozi e marchi da shopping_suppliers.csv associandoli all'utente in modo sicuro e senza collisioni di ID."""
     from backend.domains.config import repository as config_repo
+    from backend.core.sequence_sync import sync_table_id_sequence
 
     supplier_status_code = config_repo.get_config_code(db, "supplier_status", "active")
     default_status_id = supplier_status_code.id if supplier_status_code else 1
@@ -36,50 +37,96 @@ def seed_default_shopping_suppliers_for_user(db: Session, user_id: int) -> None:
     existing_names = {s.name_normalized for s in existing_suppliers}
 
     suppliers_data = load_seed_shopping_suppliers()
+    max_supp_id = max(
+        max(existing_ids, default=0),
+        max((s["id"] for s in suppliers_data if s.get("id")), default=0),
+    )
+
     for item in suppliers_data:
         normalized = item["name_normalized"]
         if normalized in existing_names:
             continue
 
+        target_id = item["id"] if item.get("id") and item["id"] not in existing_ids else None
+        if target_id is None:
+            max_supp_id += 1
+            target_id = max_supp_id
+
+        existing_ids.add(target_id)
         supplier_kwargs = {
+            "id": target_id,
             "name_normalized": normalized,
             "type_code": item.get("type_code") or 1,
             "status_id": default_status_id,
             "created_by_user_id": user_id,
             "created_at": item.get("created_at") or _now(),
         }
-        if item["id"] not in existing_ids:
-            supplier_kwargs["id"] = item["id"]
-            existing_ids.add(item["id"])
 
         obj = ShoppingSupplier(**supplier_kwargs)
         db.add(obj)
         existing_names.add(normalized)
     db.flush()
+    sync_table_id_sequence(db, "shopping_suppliers")
 
 
 def seed_default_shopping_products_for_user(db: Session, user_id: int) -> None:
     """Popola i prodotti da shopping_products.csv come catalogo canonico senza brand.
     I legami prodotto-brand vengono creati nella tabella ponte shopping_product_brands.
     """
-    all_suppliers = db.query(ShoppingSupplier).all()
+    from backend.core.sequence_sync import sync_table_id_sequence
+
+    all_suppliers = db.query(ShoppingSupplier.id, ShoppingSupplier.name_normalized).all()
     suppliers_by_name = {s.name_normalized: s.id for s in all_suppliers}
     suppliers_by_id = {s.id for s in all_suppliers}
+
+    seed_suppliers = load_seed_shopping_suppliers()
+    seed_supp_name_map = {ss["id"]: ss["name_normalized"] for ss in seed_suppliers}
 
     existing_products = db.query(ShoppingProduct.id, ShoppingProduct.name_normalized).all()
     existing_ids = {p.id for p in existing_products}
     existing_names = {p.name_normalized for p in existing_products}
 
     products_data = load_seed_shopping_products()
+    seed_prod_name_map = {sp["id"]: sp["name_normalized"] for sp in products_data}
+
+    max_prod_id = max(
+        max(existing_ids, default=0),
+        max((p["id"] for p in products_data if p.get("id")), default=0),
+    )
+
+    existing_links = db.query(ShoppingProductBrand).all()
+    links_by_pair = {(link.product_id, link.brand_id): link for link in existing_links}
+
+    def _ensure_link(p_id: int, b_id: int, notes_val: Optional[str] = None, c_at=None, u_at=None):
+        if (p_id, b_id) in links_by_pair:
+            link = links_by_pair[(p_id, b_id)]
+            if notes_val and not link.notes:
+                link.notes = notes_val
+            return link
+        new_link = ShoppingProductBrand(
+            product_id=p_id,
+            brand_id=b_id,
+            notes=notes_val,
+            created_at=c_at or _now(),
+            updated_at=u_at or _now(),
+        )
+        db.add(new_link)
+        links_by_pair[(p_id, b_id)] = new_link
+        return new_link
+
     for item in products_data:
         normalized = item["name_normalized"]
 
-        # Risolvi brand (per la tabella ponte)
-        brand_id = item.get("brand_id")
-        if not brand_id and item.get("brand_name_text"):
+        # Risolvi brand (per la tabella ponte) mappando per nome
+        brand_id = None
+        if item.get("brand_name_text"):
             brand_id = suppliers_by_name.get(item["brand_name_text"])
-        if brand_id and brand_id not in suppliers_by_id:
-            brand_id = None
+        if not brand_id and item.get("brand_id"):
+            supp_name = seed_supp_name_map.get(item["brand_id"])
+            if supp_name:
+                brand_id = suppliers_by_name.get(supp_name)
+            if not brand_id and item["brand_id"] in suppliers_by_id:
+                brand_id = item["brand_id"]
 
         if normalized in existing_names:
             # Prodotto già esistente: assicura comunque il legame ponte se c'è un brand
@@ -88,26 +135,21 @@ def seed_default_shopping_products_for_user(db: Session, user_id: int) -> None:
                     ShoppingProduct.name_normalized == normalized
                 ).first()
                 if existing_prod:
-                    existing_link = db.query(ShoppingProductBrand).filter(
-                        ShoppingProductBrand.product_id == existing_prod.id,
-                        ShoppingProductBrand.brand_id == brand_id,
-                    ).first()
-                    if not existing_link:
-                        db.add(ShoppingProductBrand(
-                            product_id=existing_prod.id,
-                            brand_id=brand_id,
-                        ))
+                    _ensure_link(existing_prod.id, brand_id)
             continue
 
-        # Crea il prodotto canonico (senza brand_id)
+        target_id = item["id"] if item.get("id") and item["id"] not in existing_ids else None
+        if target_id is None:
+            max_prod_id += 1
+            target_id = max_prod_id
+
+        existing_ids.add(target_id)
         product_kwargs = {
+            "id": target_id,
             "name_normalized": normalized,
             "created_by_user_id": user_id,
             "created_at": item.get("created_at") or _now(),
         }
-        if item["id"] not in existing_ids:
-            product_kwargs["id"] = item["id"]
-            existing_ids.add(item["id"])
 
         obj = ShoppingProduct(**product_kwargs)
         db.add(obj)
@@ -116,44 +158,45 @@ def seed_default_shopping_products_for_user(db: Session, user_id: int) -> None:
 
         # Crea il legame ponte se c'è un brand
         if brand_id:
-            existing_link = db.query(ShoppingProductBrand).filter(
-                ShoppingProductBrand.product_id == obj.id,
-                ShoppingProductBrand.brand_id == brand_id,
-            ).first()
-            if not existing_link:
-                db.add(ShoppingProductBrand(
-                    product_id=obj.id,
-                    brand_id=brand_id,
-                ))
+            _ensure_link(obj.id, brand_id)
 
     # Carica inoltre i legami N:N e note esplicite da shopping_product_brands.csv se presente
     brands_links_data = load_seed_shopping_product_brands()
+    updated_products = db.query(ShoppingProduct.id, ShoppingProduct.name_normalized).all()
+    products_by_name = {p.name_normalized: p.id for p in updated_products}
+    products_by_id = {p.id for p in updated_products}
+
     for b_item in brands_links_data:
-        p_id = b_item["product_id"]
-        b_id = b_item["brand_id"]
-        notes_val = b_item.get("notes")
-        existing_link = db.query(ShoppingProductBrand).filter(
-            ShoppingProductBrand.product_id == p_id,
-            ShoppingProductBrand.brand_id == b_id,
-        ).first()
-        if existing_link:
-            if notes_val and not existing_link.notes:
-                existing_link.notes = notes_val
-        else:
-            db.add(ShoppingProductBrand(
-                product_id=p_id,
-                brand_id=b_id,
-                notes=notes_val,
-                created_at=b_item.get("created_at") or _now(),
-                updated_at=b_item.get("updated_at") or _now(),
-            ))
+        p_name = seed_prod_name_map.get(b_item["product_id"])
+        target_p_id = products_by_name.get(p_name) if p_name else None
+        if not target_p_id and b_item["product_id"] in products_by_id:
+            target_p_id = b_item["product_id"]
+
+        b_name = seed_supp_name_map.get(b_item["brand_id"])
+        target_b_id = suppliers_by_name.get(b_name) if b_name else None
+        if not target_b_id and b_item["brand_id"] in suppliers_by_id:
+            target_b_id = b_item["brand_id"]
+
+        if not target_p_id or not target_b_id:
+            continue
+
+        _ensure_link(
+            target_p_id,
+            target_b_id,
+            notes_val=b_item.get("notes"),
+            c_at=b_item.get("created_at"),
+            u_at=b_item.get("updated_at"),
+        )
 
     db.flush()
-
+    sync_table_id_sequence(db, "shopping_products")
+    sync_table_id_sequence(db, "shopping_product_brands")
 
 
 def seed_default_inventory_batches_for_user(db: Session, user_id: int) -> None:
     """Popola i lotti di spesa e lo storico prezzi da inventory_batch.csv."""
+    from backend.core.sequence_sync import sync_table_id_sequence
+
     all_products = db.query(ShoppingProduct.id, ShoppingProduct.name_normalized).all()
     products_by_name = {p.name_normalized: p.id for p in all_products}
     products_by_id = {p.id for p in all_products}
@@ -167,18 +210,24 @@ def seed_default_inventory_batches_for_user(db: Session, user_id: int) -> None:
 
     seed_products = load_seed_shopping_products()
     seed_prod_name_map = {sp["id"]: sp["name_normalized"] for sp in seed_products}
-    
+
+    # Query su tutti i record (inclusi soft-deleted) per evitare collisioni su PK
     existing_batches = db.query(
         InventoryBatch.id,
         InventoryBatch.product_id,
         InventoryBatch.purchase_date,
-        InventoryBatch.purchase_price
-    ).filter(InventoryBatch.deleted_at.is_(None)).all()
-    
+        InventoryBatch.purchase_price,
+    ).all()
+
     existing_ids = {b.id for b in existing_batches}
     existing_keys = {(b.product_id, b.purchase_date, b.purchase_price) for b in existing_batches}
 
     batches_data = load_seed_inventory_batches()
+    max_batch_id = max(
+        max(existing_ids, default=0),
+        max((b["id"] for b in batches_data if b.get("id")), default=0),
+    )
+
     for item in batches_data:
         csv_prod_id = item["product_id"]
         prod_name = seed_prod_name_map.get(csv_prod_id)
@@ -201,7 +250,14 @@ def seed_default_inventory_batches_for_user(db: Session, user_id: int) -> None:
         if key in existing_keys:
             continue
 
+        target_batch_id = item["id"] if item.get("id") and item["id"] not in existing_ids else None
+        if target_batch_id is None:
+            max_batch_id += 1
+            target_batch_id = max_batch_id
+
+        existing_ids.add(target_batch_id)
         batch_kwargs = {
+            "id": target_batch_id,
             "product_id": target_prod_id,
             "list_item_id": item.get("list_item_id"),
             "purchase_date": item["purchase_date"],
@@ -215,14 +271,11 @@ def seed_default_inventory_batches_for_user(db: Session, user_id: int) -> None:
             "created_at": item.get("created_at") or item["purchase_date"],
             "updated_at": item.get("updated_at") or item["purchase_date"],
         }
-        if item["id"] not in existing_ids:
-            batch_kwargs["id"] = item["id"]
-            existing_ids.add(item["id"])
-
         obj = InventoryBatch(**batch_kwargs)
         db.add(obj)
         existing_keys.add(key)
     db.flush()
+    sync_table_id_sequence(db, "inventory_batch")
 from backend.domains.shopping.schemas.catalog import (
     ShoppingProductCreate,
     ShoppingProductUpdate,

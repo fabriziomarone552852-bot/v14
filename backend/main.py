@@ -69,6 +69,9 @@ def ensure_shopping_seed_data() -> None:
                 seed_default_inventory_batches_for_user(db, admin_user.id)
                 sync_all_table_sequences(db)
                 db.commit()
+        except Exception:
+            db.rollback()
+            raise
         finally:
             db.close()
     except Exception as exc:
