@@ -1,4 +1,4 @@
-# 🗄️� Backlog Archivio (Task Completati)
+# 🗄️ Backlog Archivio (Task Completati)
 
 Questo file contiene lo storico completo e strutturato di tutte le funzionalità e le attività tecniche che sono state **completate con successo** e archiviate, rimosse dal [`BACKLOG.md`](file:///c:/Users/Fabrizio/Desktop/app/smart/v14/docs/BACKLOG.md) principale per mantenerlo focalizzato, snello e immediatamente consultabile.
 
@@ -8,6 +8,43 @@ Questo file contiene lo storico completo e strutturato di tutte le funzionalità
 
 | ID | Attività / Funzionalità | Ambito | Stato Backend | Stato Frontend | Data Completamento |
 | :--- | :--- | :---: | :---: | :---: | :---: |
+| **TRACKERS-015** | Visualizzazione Media Voto Personale per Singolo Episodio in Stelle (Web Desktop) | `trackers` / UI | 🟢 Completato | 🟢 Completato | Ottobre 2026 |
+| **TRACKERS-014** | Sincronizzazione Bidirezionale Serie TV con Bingers (Import/Export CSV/ZIP, Multi-Recensioni, Scala Voti) | `trackers` / sync | 🟢 Completato | 🟢 Completato | Ottobre 2026 |
+| **NOTIF-001** | Notifiche su Mobile: Entry Point, Bottom Sheet, Navigazione Diretta & Loading Overlay | `notifications` / mobile | 🟢 Supportato | 🟢 Completato | Ottobre 2026 |
+| **TRACKERS-005** | Ottimizzazione Latenza: Aggiornamento Ottimistico Spunta/Rewatch & Citazioni, Audit Notifiche | `trackers` / UI | 🟢 Completato | 🟢 Completato | Ottobre 2026 |
+| **TRACKERS-010** | Gestione Serie Abbandonate ("Drop"): Criteri, Azioni & Ripristino | `trackers` / UI | 🟢 Completato | 🟢 Completato | Ottobre 2026 |
+| **TRACKERS-007** | Ordinamento & 4 Aree Tematiche Serie TV Web Desktop (Griglie Separate) | `trackers` / UI | 🟢 Completato | 🟢 Completato | Ottobre 2026 |
+| **UI-003** | Sostituzione Pulsante "Reset Filtri" con Freccia (Serie TV Web Desktop) | `trackers` / UI | 🟢 Completato | 🟢 Completato | Ottobre 2026 |
+| **TRACKERS-008** | Riorganizzazione 3 Pagine Serie TV Circolari, Diario Puntate Viste, Gestione Rewatch & Mobile | `trackers` / mobile | 🟢 Completato | 🟢 Completato | Ottobre 2026 |
+| **TRACKERS-013** | Restyling Modale Liste Personali Mobile ("Le mie liste"), Ordinamento 2 Frecce & Tasto "+" | `trackers` / mobile | 🟢 Completato | 🟢 Completato | Ottobre 2026 |
+| **SHOPPING-019** | Inserimento Nuovo Brand e Nuovo Fornitore dalla Data Grid Lotti | `shopping` / admin | 🟢 Completato | 🟢 Completato | Ottobre 2026 |
+| **SHOPPING-018** | Tracciamento Brand nei Lotti Spesa & Risoluzione Ambiguità Multi-Marca | `shopping` / DB | 🟢 Completato | 🟢 Completato | Ottobre 2026 |
+| **TRACKERS-012** | Restyling Catalogo Mobile ("Le tue serie"), 4 Aree Tematiche & Ricerca Dedicata | `trackers` / mobile | 🟢 Completato | 🟢 Completato | Ottobre 2026 |
+| **TRACKERS-011** | Modale Statistiche Serie TV Mobile a Schermo Intero & Scorrimento Continuo | `trackers` / mobile | 🟢 Completato | 🟢 Completato | Ottobre 2026 |
+| **TRACKERS-009** | Restyling Seconda Pagina / Dashboard Serie TV Mobile, Banner Orizzontali & Collage Liste | `trackers` / mobile | 🟢 Completato | 🟢 Completato | Ottobre 2026 |
+| **TRACKERS-006** | Mobile TV Episode Fullscreen Detail, Quotes & Reviews Redesign, Action Buttons | `trackers` / mobile | 🟢 Completato | 🟢 Completato | Ottobre 2026 |
+| **TRACKERS-004** | Analisi Date di Uscita Italiane vs TMDB (Chiuso: non supportato da API TMDB) | `trackers` / API | ❌ Chiuso | ❌ Chiuso | Ottobre 2026 |
+| **TRACKERS-002** | Mobile TV Series Detail Modal, Bottom Drawers & Gestione Liste | `trackers` / mobile | 🟢 Completato | 🟢 Completato | Settembre 2026 |
+| **TRACKERS-001** | Mobile TV Series Timeline & Restyling Card Episodi | `trackers` / mobile | 🟢 Completato | 🟢 Completato | Settembre 2026 |
+| **FEAT-004 (Serie)**| Modulo Serie TV Completo (Catalogo, TMDB, Liste, Diario, Statistiche, Amici) | `media` / social | 🟢 Completato | 🟢 Completato | Ottobre 2026 |
+| **FEAT-012** | Pagina di Avvio Pinnata / Selezione Landing Page Predefinita | `settings` / UI | 🟢 Completato | 🟢 Completato | Ottobre 2026 |
+| **TECH-001** | Controllo & Ottimizzazione Bundle APK Android (Code-Splitting) | `build` / APK | 🟢 Completato | 🟢 Completato | Settembre 2026 |
+| **SHOPPING-017** | Marche, Prezzi e Storico Acquisti nell'Inserimento Rapido Catalogo Spesa | `shopping` / catalog | 🟢 Completato | 🟢 Completato | Ottobre 2026 |
+| **SHOPPING-016** | Micro Split-Pill Valutazione Brand, Pareggiamento Colonne Data Grid & Snellimento Scontrini | `shopping` / admin | 🟢 Completato | 🟢 Completato | Ottobre 2026 |
+| **SHOPPING-015** | Calcolo Inverso da Prezzo Unitario nelle Pagine Amministrative | `admin` / shopping | 🟢 Completato | 🟢 Completato | Ottobre 2026 |
+| **SHOPPING-014** | Supporto Universale Separatori Decimali (Virgola e Punto) & Regola d'Oro | `core` / UI | 🟢 Completato | 🟢 Completato | Ottobre 2026 |
+| **SHOPPING-013** | Valutazione & Opinioni sui Marchi dei Prodotti (Opzione C - 👍/👎) | `shopping` / catalog | 🟢 Completato | 🟢 Completato | Ottobre 2026 |
+| **SHOPPING-012** | Hub Amministrazione Desktop con Data Grid Spesa, Eventi e Attività | `admin` / shopping | 🟢 Completato | 🟢 Completato | Ottobre 2026 |
+| **SHOPPING-011** | Gestione ed Editing Rapido Scontrini della Sessione in Corso | `shopping` / admin | 🟢 Completato | 🟢 Completato | Ottobre 2026 |
+| **SHOPPING-010** | Precisione Quantità e Pesature Spesa a 3 Decimali (NUMERIC 12,3) | `shopping` / DB | 🟢 Completato | 🟢 Completato | Ottobre 2026 |
+| **SHOPPING-009** | Allineamento "Mazzo di Carte" Cross-Dominio & Rimozione Limiti Catalogo | `core` / shopping | 🟢 Completato | 🟢 Completato | Ottobre 2026 |
+| **SHOPPING-008** | Refactoring Catalogo Prodotti, Tabella Ponte N:N con Note & Compattazione DB | `shopping` / DB | 🟢 Completato | 🟢 Completato | Ottobre 2026 |
+| **SHOPPING-007** | Inserimento Rapido Catalogo & Selezione Multipla Spesa (Sposta/Copia/Elimina) | `shopping` / UI | 🟢 Completato | 🟢 Completato | Ottobre 2026 |
+| **SHOPPING-006** | Ordinamento Intuitivo Unità di Misura Spesa (Canoniche + Alfabetico Comune) | `shopping` / UI | 🟢 Completato | 🟢 Completato | Ottobre 2026 |
+| **FEAT-002** | Gestione Inventario Spesa, Inserimento Prezzi & Lotti (`inventory_batches`) | `shopping` | 🟢 Completato | 🟢 Completato | Settembre 2026 |
+| **SEED-001** | Pulizia Dati Seed Prodotti (Disaccoppiamento Brand e Catalogo Asettico) | `shopping` / seed | 🟢 Completato | 🟢 Completato | Ottobre 2026 |
+| **SEED-002** | Snapshot & Dump Completo Seeds CSV (7 file, N:N Brand, Precisione Decimali) | `admin` / seeds | 🟢 Completato | 🟢 Completato | Ottobre 2026 |
+| **BACKUP-001** | Backup & Restore Generale Database su NAS Storage (40 tabelle, JSON.GZ) | `admin` / backup | 🟢 Completato | 🟢 Completato | Ottobre 2026 |
 | **CORE-001** | Refactoring Globale & Pulizia Architetturale (0 any, 19 domini) | `core` / arch | 🟢 Completato | 🟢 Completato | Ottobre 2026 |
 | **CORE-002** | Refactoring Continuo, Modularità & Cleanup Codice (File <300 righe) | `core` / arch | 🟢 Completato | 🟢 Completato | Ottobre 2026 |
 | **REBRAND-001** | Rebranding App con Nome "Vita" e Nuova Icona Applicazione | `brand` / UI | 🟢 Completato | 🟢 Completato | Ottobre 2026 |
@@ -15,56 +52,63 @@ Questo file contiene lo storico completo e strutturato di tutte le funzionalità
 | **CAL-001** | Sincronizzazione Timezone Google Calendar (+2h fix) & Preselezione Data | `calendar` / mobile | 🟢 Completato | 🟢 Completato | Settembre 2026 |
 | **FEAT-007** | Sistema Amicizie & Condivisione Recensioni (Social/Sharing Network) | `social` / media | 🟢 Completato | 🟢 Completato | Ottobre 2026 |
 | **FEAT-008** | Sistema Segnalazione Errori, Feedback & Bug Report (Telemetria & Admin) | `support` / feedback | 🟢 Completato | 🟢 Completato | Ottobre 2026 |
-| **FEAT-012** | Pagina di Avvio Pinnata / Selezione Landing Page Predefinita | `settings` / UI | 🟢 Completato | 🟢 Completato | Ottobre 2026 |
 | **OFFLINE-001** | Modalità Offline-First & Sincronizzazione Differita (Outbox Sync) | `sync` / mobile | 🟢 Completato | 🟢 Completato | Ottobre 2026 |
-| **TECH-001** | Verifica & Ottimizzazione Bundle APK Android (Code-Splitting) | `build` / APK | N/A | 🟢 Completato | Settembre 2026 |
-| **TECH-002** | Spostamento Tasto Switch in Impostazioni / Danger Zone | `routing` / UI | N/A | 🟢 Completato | Settembre 2026 |
+| **UI-001** | Selezione Multipla nella Versione Mobile (Spesa e Agenda) | `mobile` / UI | 🟢 Completato | 🟢 Completato | Settembre 2026 |
+| **TECH-002** | Spostamento Tasto Switch in Impostazioni / Danger Zone | `routing` / UI | 🟢 Completato | 🟢 Completato | Settembre 2026 |
 | **TECH-003** | Persistenza Volume Uploads su Docker NAS | `build` / docker | 🟢 Completato | 🟢 Completato | Ottobre 2026 |
 | **TECH-004** | Reverse Proxy Nginx, Routing API & Crash AppShellLayout (Docker) | `build` / docker | 🟢 Completato | 🟢 Completato | Ottobre 2026 |
 | **TECH-005** | Risoluzione 502 Bad Gateway NAS & Automated Docker Smoke Test | `build` / docker | 🟢 Completato | 🟢 Completato | Ottobre 2026 |
 | **TECH-006** | Allineamento Migrazioni Alembic DB Produzione (NAS) & Fix Login 500 | `build` / db | 🟢 Completato | 🟢 Completato | Ottobre 2026 |
 | **TECH-007** | Configurazione TMDB Produzione NAS & Fix 500 Ricerca Serie | `build` / NAS | 🟢 Completato | 🟢 Completato | Ottobre 2026 |
-| **UI-001** | Selezione Multipla nella Versione Mobile (Spesa e Agenda) | `mobile` / UI | 🟢 Completato | 🟢 Completato | Settembre 2026 |
-| **FEAT-002** | Gestione Inventario Spesa, Inserimento Prezzi & Lotti (`inventory_batches`) | `shopping` | 🟢 Completato | 🟢 Completato | Settembre 2026 |
-| **SEED-001** | Pulizia Dati Seed Prodotti (Disaccoppiamento Brand e Catalogo Asettico) | `shopping` / seed | 🟢 Completato | 🟢 Completato | Ottobre 2026 |
-| **SHOPPING-006** | Ordinamento Intuitivo Unità di Misura Spesa (Canoniche + Alfabetico) | `shopping` / UI | 🟢 Completato | 🟢 Completato | Ottobre 2026 |
-| **SHOPPING-007** | Inserimento Rapido Catalogo & Selezione Multipla Spesa (Sposta/Copia) | `shopping` / UI | 🟢 Completato | 🟢 Completato | Ottobre 2026 |
-| **SHOPPING-008** | Refactoring Catalogo Prodotti, Tabella Ponte N:N con Note & Compattazione | `shopping` / DB | 🟢 Completato | 🟢 Completato | Ottobre 2026 |
-| **SHOPPING-009** | Allineamento "Mazzo di Carte" Cross-Dominio & Rimozione Limiti Catalogo | `core` / shopping | 🟢 Completato | 🟢 Completato | Ottobre 2026 |
-| **SHOPPING-010** | Precisione Quantità e Pesature Spesa a 3 Decimali (NUMERIC 12,3) | `shopping` / DB | 🟢 Completato | 🟢 Completato | Ottobre 2026 |
-| **TRACKERS-005** | Ottimizzazione Latenza: Aggiornamento Ottimistico Spunta/Rewatch & Citazioni, Audit Notifiche | `trackers` / mobile & UI | 🟢 Completato | 🟢 Completato | Ottobre 2026 |
-| **SHOPPING-011** | Gestione ed Editing Rapido Scontrini della Sessione in Corso | `shopping` / admin | 🟢 Completato | 🟢 Completato | Ottobre 2026 |
-| **SHOPPING-012** | Hub Amministrazione Desktop con Data Grid Spesa, Eventi e Attività | `admin` / shopping | 🟢 Completato | 🟢 Completato | Ottobre 2026 |
-| **SHOPPING-013** | Valutazione & Opinioni sui Marchi dei Prodotti (Opzione C - 👍/👎) | `shopping` / catalog | 🟢 Completato | 🟢 Completato | Ottobre 2026 |
-| **SHOPPING-014** | Supporto Universale Separatori Decimali (Virgola e Punto) & Regola d'Oro | `core` / UI | 🟢 Completato | 🟢 Completato | Ottobre 2026 |
-| **SHOPPING-015** | Calcolo Inverso da Prezzo Unitario nelle Pagine Amministrative | `admin` / shopping | 🟢 Completato | 🟢 Completato | Ottobre 2026 |
-| **SHOPPING-016** | Micro Split-Pill Valutazione Brand, Pareggio Colonne & Snellimento Scontrini | `shopping` / admin | 🟢 Completato | 🟢 Completato | Ottobre 2026 |
-| **SHOPPING-017** | Marche, Prezzi e Storico Acquisti nell'Inserimento Rapido Catalogo Spesa | `shopping` / catalog | 🟢 Completato | 🟢 Completato | Ottobre 2026 |
-| **SHOPPING-018** | Tracciamento Brand nei Lotti Spesa & Risoluzione Ambiguità Multi-Marca | `shopping` / DB | 🟢 Completato | 🟢 Completato | Ottobre 2026 |
-| **SEED-002** | Snapshot & Dump Completo Seeds CSV (7 file, N:N Brand, Precisione Decimali) | `admin` / seeds | 🟢 Completato | 🟢 Completato | Ottobre 2026 |
-| **BACKUP-001** | Backup & Restore Generale Database su NAS Storage (40 tabelle, JSON.GZ) | `admin` / backup | 🟢 Completato | 🟢 Completato | Ottobre 2026 |
-| **TRACKERS-001** | Mobile TV Series Timeline & Restyling Card Episodi | `trackers` / mobile | 🟢 Completato | 🟢 Completato | Settembre 2026 |
-| **TRACKERS-002** | Mobile TV Series Detail Modal, Bottom Drawers & Gestione Liste | `trackers` / mobile | 🟢 Completato | 🟢 Completato | Settembre 2026 |
-| **TRACKERS-003** | Homepage Mobile TV Series: Feed Serie "In Corso" ("Diario Puntate Viste") | `trackers` / mobile | 🟢 Completato | 🟢 Completato | Ottobre 2026 |
-| **TRACKERS-006** | Mobile TV Episode Detail, Recensioni/Citazioni & Action Buttons Style | `trackers` / mobile | 🟢 Completato | 🟢 Completato | Ottobre 2026 |
-| **TRACKERS-008** | Riorganizzazione 3 Pagine Serie TV Circolari, Diario & Gestione Rewatch | `trackers` / mobile | 🟢 Completato | 🟢 Completato | Ottobre 2026 |
-| **TRACKERS-009** | Restyling Seconda Pagina / Dashboard Serie TV Mobile, Banner & Collage | `trackers` / mobile | 🟢 Completato | 🟢 Completato | Ottobre 2026 |
-| **TRACKERS-011** | Modale Statistiche Serie TV Mobile a Schermo Intero & Scorrimento Continuo | `trackers` / mobile | 🟢 Completato | 🟢 Completato | Ottobre 2026 |
-| **TRACKERS-012** | Restyling Catalogo Mobile ("Le tue serie"), 4 Aree Tematiche & Ricerca | `trackers` / mobile | 🟢 Completato | 🟢 Completato | Ottobre 2026 |
-| **TRACKERS-013** | Restyling Modale Liste Personali Mobile ("Le mie liste"), Ordinamento & Tasto "+" | `trackers` / mobile | 🟢 Completato | 🟢 Completato | Ottobre 2026 |
-| **TRACKERS-004** | Analisi Date di Uscita Italiane vs TMDB (Chiuso: non supportato da API TMDB) | `trackers` / API | ❌ Chiuso | ❌ Chiuso | Ottobre 2026 |
-| **FEAT-004 (Completati)** | Liste Multimediali Miste, Ricerca per Lista, Commenti, Notifiche, Chat Effimera | `media` / social | 🟢 Completato | 🟢 Completato | Ottobre 2026 |
-| **TRACKERS-007** | Ordinamento & 4 Aree Tematiche Serie TV Web Desktop (Griglie Separate) | `trackers` / UI | N/A | 🟢 Completato | Ottobre 2026 |
-| **UI-003** | Sostituzione Pulsante "Reset Filtri" con Freccia (Serie TV Web Desktop) | `trackers` / UI | N/A | 🟢 Completato | Ottobre 2026 |
-| **TRACKERS-010** | Gestione Serie Abbandonate ("Drop"): Criteri, Azioni & Ripristino | `trackers` / UI & mobile | 🟢 Completato | 🟢 Completato | Ottobre 2026 |
-| **NOTIF-001** | Notifiche su Mobile: Entry Point, Bottom Sheet, Navigazione Diretta & Loading Overlay | `notifications` / mobile | 🟢 Supportato | 🟢 Completato | Ottobre 2026 |
+
+---
+
+## 📺 1. Media & Trackers (Serie TV)
+
+### [TRACKERS-015] Visualizzazione Media Voto Personale per Singolo Episodio in Stelle (Serie TV Web Desktop) (🟢 Completato)
+
+#### 📋 Descrizione & Obiettivo
+Nella vista di dettaglio della serie (`SeriesDetailModal`) su Web/Desktop, all'interno della scheda "Stagioni ed Episodi" (`SeasonsTab.tsx`), è stata introdotta la visualizzazione grafica in stelle (`StarRating`) della media dei voti personali dell'utente per ciascun singolo episodio valutato:
+- **Posizionamento & Layout Coordinato**:
+  - Le stelle sono mostrate sulla destra di ciascun episodio prima dell'icona a freccia `(>)`, esattamente nella stessa posizione orizzontale in cui viene mostrata la media dei voti della stagione nella testata.
+  - La freccia di destra è racchiusa in un contenitore a larghezza fissa (`w-5 flex items-center justify-center`), pareggiando con precisione al pixel i 20px della freccia della stagione e garantendo un allineamento visivo perfetto.
+- **Calcolo della Media Personale & Arrotondamento**:
+  - Calcolato tramite l'helper centralizzato `getEpisodePersonalRating` in `ratingUtils.ts` partendo dai log personali dell'episodio (`ep.logs` con `rating > 0`), convertendo la scala 1-10 in 0.5-5.0 stelle e arrotondando a mezze stelle.
+  - In presenza di visioni multiple (rewatch) con voti diversi, viene calcolata la media complessiva delle valutazioni personali.
+- **Tooltip Informativo**: Hover con tooltip contestuale che indica chiaramente il voto (es. `"Voto personale: 4.5"` per un voto singolo, oppure `"Media voto personale: 4.5 (2 valutazioni)"` per episodi rivisti e valutati più volte).
+- **Refactoring & DRY**:
+  - Centralizzazione della logica di calcolo dei rating degli episodi in `frontend/src/utils/ratingUtils.ts`, condivisa sia dal modulo desktop che da quello mobile (`useMobileSeriesSeasonsLogic.ts`).
+  - Estrazione del componente `RewatchControls` all'esterno del corpo del componente per prevenire allocazioni inutili a ogni render.
+
+---
+
+### [TRACKERS-014] Sincronizzazione Bidirezionale Serie TV con Bingers (Import/Export CSV/ZIP, Multi-Recensioni & Calibrazione Scala Voti) (🟢 Completato)
+
+#### 📋 Descrizione & Obiettivo
+Implementazione del sistema di sincronizzazione bidirezionale completa tra **Vita** e **Bingers** (applicazione di tracking serie TV), integrato nella sezione **Impostazioni ➔ Sincronizzazione** (`IntegrationsSection.tsx` su Desktop e `MobileSyncSettingsSection.tsx` su Mobile) con il medesimo design system e feedback visivo di Google Calendar:
+- **Importazione Flessibile (File Multipli & ZIP)**:
+  - Supporta l'upload drag & drop o tramite selettore di singoli file CSV (`library.csv`, `watches.csv`, `ratings.csv`, `lists.csv`) o direttamente dell'archivio `.zip` esportato da Bingers.
+  - Sincronizzazione automatica da TMDB: per le serie presenti nel file ma non ancora censite nel catalogo locale di Vita, il backend effettua il fetch asincrono automatico da TMDB popolando serie, stagioni ed episodi.
+  - Mappatura completa dello stato serie (`watching`, `to_watch`, `dropped`, `completed`), conservazione di preferiti (`favorite: yes/no`), e preservazione accurata della data originale di aggiunta (`added_at`) e completamento.
+  - Creazione e popolamento automatico delle liste tematiche personalizzate presenti in `lists.csv`.
+- **Supporto Multi-Recensione & Rewatch**:
+  - Se un episodio o una serie ha già una recensione o visione registrata in Vita, l'importazione crea una seconda recensione/visione separata nel diario dell'episodio e nelle statistiche rewatch senza sovrascrivere o scartare dati preesistenti.
+  - Piena idempotenza: successivi re-import dello stesso file riconoscono la recensione già acquisita ed evitano duplicati.
+- **Calibrazione Trasparente Scala Voti (1-5 vs 1-10)**:
+  - Vita archivia le valutazioni nel DB su scala 1-10 (ogni punto = mezza stella, per cui `10 = 5.0 stelle`), mentre Bingers utilizza la scala 1-5.
+  - In fase di import, i voti vengono moltiplicati per 2 (`rating_val * 2`), garantendo che 5 stelle piene su Bingers vengano mostrate come 5 stelle piene anche nel frontend di Vita.
+  - In fase di export, il valore viene diviso per 2 (`rating / 2`), generando CSV conformi allo standard di Bingers.
+- **Esportazione a 1-Click**: Generazione immediata di un archivio compresso `.zip` contenente i 4 file standard CSV con download diretto.
+- **Frontend & Mobile UI**:
+  - Hook unificato `useBingersSync.ts` con gestione file, stato di caricamento e toast di reportistica con conteggio serie, episodi, voti e liste importate.
+  - Componenti `BingersSyncCard.tsx` (Desktop) e `MobileBingersSyncCard.tsx` (Mobile) integrati perfettamente nelle impostazioni.
 
 ---
 
 ### [NOTIF-001] Notifiche su Mobile: Entry Point, Bottom Sheet, Navigazione Diretta & Loading Overlay (🟢 Completato)
 
 #### 📋 Descrizione & Obiettivo
-Integrazione completa e nativa dell'inbox notifiche, richieste di amicizia e messaggi effimeri nell'applicazione mobile smartphone (precedentemente accessibile solo su Web Desktop via `NotificationsSidebar`):
+Integrazione completa e nativa dell'inbox notifiche, richieste di amicizia e messaggi effimeri nell'applicazione mobile smartphone:
 - **Entry Point & Indicatori Visivi**:
   - Pallino rosso con animazione pulsante (`animate-ping`) sull'icona a menu hamburger dell'header mobile (`MobileHeader.tsx`) in presenza di notifiche o messaggi non letti.
   - Nel menu laterale (`MobileDrawerFooter.tsx`), ripartizione dello spazio inferiore a 5 colonne: 4 colonne dedicate alle Impostazioni e 1 colonna per la Campanella Notifiche (`BellIcon`). In presenza di elementi non letti, il pulsante della campanella diventa rosso pulsante (`bg-red-600 animate-pulse text-white`).
@@ -73,10 +117,9 @@ Integrazione completa e nativa dell'inbox notifiche, richieste di amicizia e mes
   - Pull bar superiore touch, backdrop oscurato con sfocatura (`backdrop-blur-xs`), chiusura rapida al tap o con tasto "Indietro" nativo di Android (`useBackHandler`, priorità 9).
   - Schede segmentate per "Notifiche" (inviti ai gruppi spesa, richieste di amicizia con azioni rapide di accettazione/rifiuto, notifiche social) e "Messaggi Effimeri" (lista amici con messaggi con logica burn-after-reading).
 - **Navigazione Diretta & Loading Feedback Contestuale**:
-  - Al tap su notifiche di recensioni o commenti alle serie TV, eliminati tutti i salti visivi e le transizioni a cascata (pagina catalogo -> serie -> episodio -> recensione); sincronizzazione sincrona dello stato modale fin dal primo render e apertura diretta della recensione specifica.
-  - Overlay di caricamento immediato nel foglio notifiche con messaggi contestuali (*"Apertura recensione..."*, *"Apertura gruppo spesa..."*) ed eleganza visiva nello stato di attesa all'interno del modale serie/episodio.
-- **Centralizzazione Architettura (`useNotificationsInbox.ts`)**:
-  - Hook condiviso riutilizzato sia da `NotificationsSidebar.tsx` (Desktop) che da `MobileNotificationsSheet.tsx` (Mobile), snellendo il codice e garantendo perfetta coerenza di stato, filtri e conteggi.
+  - Al tap su notifiche di recensioni o commenti alle serie TV, eliminati tutti i salti visivi intermedi; sincronizzazione sincrona dello stato modale e apertura diretta della recensione specifica.
+  - Overlay di caricamento immediato nel foglio notifiche con messaggi contestuali (*"Apertura recensione..."*, *"Apertura gruppo spesa..."*).
+- **Centralizzazione Architettura (`useNotificationsInbox.ts`)**: Hook condiviso riutilizzato sia da `NotificationsSidebar.tsx` (Desktop) che da `MobileNotificationsSheet.tsx` (Mobile), snellendo il codice e garantendo coerenza di stato e conteggi.
 
 ---
 
@@ -86,15 +129,13 @@ Integrazione completa e nativa dell'inbox notifiche, richieste di amicizia e mes
 Rifinitura profonda della reattività, fluidità e comunicazione visiva nei moduli Serie TV e Trackers:
 - **Aggiornamento Ottimistico Spunta & Rewatch (0ms di latenza visiva)**:
   - Introdotto `onMutate`, `onError` e `onSettled` in `toggleEpisodeWatchedMutation` all'interno di `useTrackersMutations.ts`.
-  - Al tocco della spunta dell'episodio o al cambio di visualizzazioni rewatch, lo stato visivo in RAM e nella cache TanStack Query (`['trackers', 'series', 'detail']` e `['trackers', 'series']`) si aggiorna istantaneamente prima dell'esito della chiamata asincrona al server, eliminando qualsiasi latenza percepita.
-  - Sincronizzazione simultanea dello stato ottimistico sia nel catalogo Desktop/Mobile (`SeasonsTab.tsx`, `useMobileSeriesSeasonsLogic.ts`) sia nelle schede a tutto schermo (`EpisodeMainOverview.tsx`, `MobileEpisodeDetailView.tsx`) e nel Diario/Timeline.
-- **Aggiornamento Ottimistico Citazioni dell'Episodio**:
-  - Rese ottimistiche le mutazioni `addQuoteMutation`, `updateQuoteMutation` e `deleteQuoteMutation` per aggiornare in tempo reale la lista citazioni e il badge sul fumetto dell'episodio a 0ms.
-  - Gestione di uno stato locale reattivo in `useEpisodeDetailLogic.ts` con feedback immediato all'inserimento, modifica ed eliminazione.
+  - Al tocco della spunta dell'episodio o al cambio di visualizzazioni rewatch, lo stato visivo in RAM e nella cache TanStack Query si aggiorna istantaneamente prima dell'esito della chiamata asincrona al server, eliminando qualsiasi latenza percepita.
+  - Sincronizzazione simultanea dello stato ottimistico sia nel catalogo Desktop/Mobile sia nelle schede a tutto schermo e nel Diario/Timeline.
+- **Aggiornamento Ottimistico Citazioni dell'Episodio**: Mutazioni ottimistiche per inserimento, modifica ed eliminazione citazioni con aggiornamento istantaneo del badge numerico sul fumetto dell'episodio a 0ms.
 - **Audit Notifiche Mobile & Componente `TrackerToast`**:
-  - Rimossi tutti i vecchi `alert()` bloccanti di sistema (`window.alert`) dai moduli serie TV e trackers (es. *"Aggiungi prima la serie alla tua libreria"* o errori di upload locandina).
-  - Introdotto il componente in-app [`TrackerToast.tsx`](file:///c:/Users/Fabrizio/Desktop/app/smart/v14/frontend/src/components/trackers/TrackerToast.tsx) con helper globale `showTrackerToast(message, type)` montato sia in `AppShellLayout.tsx` (Desktop) che in `MobileAppShell.tsx` (Mobile).
-  - Posizionamento calibrato in alto (`top-16`, centrato) con `z-[10070]` e auto-scomparsa a 2.5s per non coprire mai la barra di navigazione, i pulsanti touch di azione o la gesture back su smartphone.
+  - Rimossi tutti i vecchi `alert()` bloccanti di sistema (`window.alert`) dai moduli serie TV e trackers.
+  - Introdotto il componente in-app `TrackerToast.tsx` con helper globale `showTrackerToast(message, type)` montato sia in `AppShellLayout.tsx` (Desktop) che in `MobileAppShell.tsx` (Mobile).
+  - Posizionamento calibrato in alto (`top-16`, centrato) con `z-[10070]` e auto-scomparsa a 2.5s per non coprire mai la barra di navigazione o i pulsanti di azione touch.
 
 ---
 
@@ -103,1003 +144,409 @@ Rifinitura profonda della reattività, fluidità e comunicazione visiva nei modu
 #### 📋 Descrizione
 Implementata la gestione completa dell'abbandono e ripristino delle serie TV ("Drop" / Cimitero Serie) sia su smartphone che su desktop:
 - **Mobile (Menu 3 Puntini)**: Nel modale di dettaglio serie (`MobileSeriesOptionsModal`), aggiunta l'opzione touch *"Abbandona Serie"* (con icona `Ban` e stile rosso) che imposta lo stato a `dropped` ed esclude immediatamente la serie da *"I prossimi da guardare"*, *"Da riprendere"* e *"Nuove serie"*. Se la serie è già abbandonata, compare l'opzione *"Riprendi Serie"* (con icona `RotateCcw` e stile verde smeraldo) che ripristina la serie in stato `watching` (se ha episodi già visti) o `to_watch`.
-- **Web / Desktop (Header Modale Dettaglio)**: Aggiunto un pulsante con effetto glass posizionato a sinistra della "X" di chiusura (`SeriesDetailHeader`). All'hover assume colore rosso (*"Abbandona"*); se la serie è abbandonata, si trasforma nel pulsante *"Riprendi"*.
+- **Web / Desktop (Header Modale Dettaglio)**: Pulsante con effetto glass posizionato a sinistra della "X" di chiusura (`SeriesDetailHeader`). All'hover assume colore rosso (*"Abbandona"*); se la serie è abbandonata, si trasforma nel pulsante *"Riprendi"*.
 - **Catalogo Mobile & Web**:
-  - Le serie abbandonate presentano un **bordo spesso rosso** (`border-[2.5px] border-red-500` su mobile, `border-[3px] border-red-500` su desktop).
-  - Vengono posizionate rigorosamente in coda al catalogo, subito dopo le serie completate:
-    - **Su Mobile**: accompagnate da una pillola dedicata grigia `"ABBANDONATE"`.
-    - **Su Desktop**: disposte su riga separata in coda alle completate senza pillola testuale.
-- **Aggiornamento Istantaneo in RAM**: Allineamento immediato della cache TanStack Query alla mutazione dello stato (`updateSeriesMutation`).
+  - Bordo spesso rosso (`border-[2.5px] border-red-500` su mobile, `border-[3px] border-red-500` su desktop).
+  - Posizionate in coda al catalogo subito dopo le serie completate: su mobile accompagnate da pillola grigia `"ABBANDONATE"`, su desktop disposte su riga separata.
+- **Aggiornamento Istantaneo in RAM**: Allineamento immediato della cache TanStack Query alla mutazione dello stato.
 
 ---
 
 ### [TRACKERS-007] Ordinamento & 4 Aree Tematiche Serie TV Web Desktop (Griglie Separate) (🟢 Completato)
 
 #### 📋 Descrizione
-Riorganizzazione completa della libreria principale Serie TV Web Desktop ([`TVSeriesLibrary.tsx`](file:///c:/Users/Fabrizio/Desktop/app/smart/v14/frontend/src/components/trackers/TVSeriesLibrary.tsx)), adottando il criterio di suddivisione del catalogo mobile senza toccare alcun componente mobile:
+Riorganizzazione completa della libreria principale Serie TV Web Desktop (`TVSeriesLibrary.tsx`), adottando il criterio di suddivisione del catalogo mobile:
 - **Componente Dedicato `TVSeriesCatalogSections.tsx`**: Raggruppamento e ordinamento rigoroso delle serie personali nelle 4 macro-aree canoniche:
   1. *In Visione* (`watching` / bordi gialli)
   2. *In Lista* (`to_watch`, `dropped`, `on_hold`, `untracked` / bordi grigi)
   3. *In Attesa* (`waiting` / bordi viola)
   4. *Completate* (`completed` / bordi verdi)
-- **A Capo a Fine Categoria**: Ciascun gruppo popola una propria griglia a 5 colonne responsive desktop; quando terminano le serie di uno stato, la riga non si mescola e si va rigorosamente a capo lasciando vuoto lo spazio residuo a destra.
-- **Estetica Pulita**: Nessuna pillola o badge testuale, per un design minimale e sobrio.
-- **Allineamento Filtri RAM**: Sincronizzazione con i filtri rapidi in alto (occhietti *Visti, In Corso, Tutti, Non Visti*) tramite `normalizeMediaStatus` in [`useFilteredTVSeries.ts`](file:///c:/Users/Fabrizio/Desktop/app/smart/v14/frontend/src/hooks/trackers/useFilteredTVSeries.ts).
+- **A Capo a Fine Categoria**: Ciascun gruppo popola una propria griglia a 5 colonne responsive desktop; quando terminano le serie di uno stato, la riga non si mescola e va a capo lasciando vuoto lo spazio residuo a destra.
+- **Estetica Pulita & Allineamento Filtri RAM**: Nessuna pillola testuale invasiva, sincronizzazione perfetta con i filtri rapidi in alto (occhietti) tramite `normalizeMediaStatus` in `useFilteredTVSeries.ts`.
 
 ---
 
 ### [UI-003] Sostituzione Pulsante "Reset Filtri" con Freccia (Serie TV Web Desktop) (🟢 Completato)
 
 #### 📋 Descrizione
-Nel modale di ricerca approfondita Serie TV desktop ([`MediaFilterModal.tsx`](file:///c:/Users/Fabrizio/Desktop/app/smart/v14/frontend/src/components/trackers/MediaFilterModal.tsx)), sostituito il vecchio pulsante testuale "Reset Filtri" con l'icona circolare di ripristino (`RotateCcw` da `lucide-react`):
+Nel modale di ricerca approfondita Serie TV desktop (`MediaFilterModal.tsx`), sostituito il pulsante testuale "Reset Filtri" con l'icona circolare di ripristino (`RotateCcw` da `lucide-react`):
 - Visibile solo in presenza di filtri attivi nell'header del modale (`hasActiveFilters`).
 - Dotato di tooltip `title="Ripristina tutti i filtri"` e animazione `active:scale-90`.
 - Allineato e proporzionato con il pulsante di chiusura `X` del `BaseModal`.
 
 ---
 
-### [TRACKERS-008] Riorganizzazione 3 Pagine Serie TV Circolari, Diario Puntate Viste, Gestione Rewatch & Rifiniture Mobile (🟢 Completato)
+### [TRACKERS-008] Riorganizzazione 3 Pagine Serie TV Circolari, Diario Puntate Viste, Gestione Rewatch & Mobile (🟢 Completato)
 
 #### 📋 Descrizione
-Riorganizzazione completa della sezione mobile delle Serie TV in 3 schermate a scorrimento circolare continuo e introduzione del Diario Puntate come nuova pagina principale, corredato da supporto avanzato al rewatch e rifiniture UX touch:
+Riorganizzazione completa della sezione mobile Serie TV in 3 schermate a scorrimento circolare continuo e introduzione del Diario Puntate come pagina principale:
 - **Navigazione a 3 Pagine Circolari (Loop Continuo)**:
   - **Pagina 1 (Centrale / Home all'apertura)**: **Diario Episodi** (`MobileTVSeriesDiarySlide`).
   - **Pagina 0 (A sinistra del Diario)**: **Prossime Uscite** (`MobileTVEpisodesTimeline` con calendario e uscite).
   - **Pagina 2 (A destra del Diario)**: **Dashboard, Obiettivo Annuale & Catalogo** (`MobileTVSeriesDashboardSlide`).
-  - Transizioni swipe circolari senza fine corsa (`Timeline -> Diario -> Dashboard -> Timeline`) e barra indicatore inferiore con 3 pallini dinamici (`MobileTVPaginationDots`).
+  - Transizioni swipe circolari senza fine corsa e barra indicatore inferiore con 3 pallini dinamici (`MobileTVPaginationDots`).
 - **Nuovo Diario Episodi & Pillole Uniformate**:
-  - Vista verticale suddivisa da pillole grigie sobrie (`MobileTVDiarySectionPill`) prive di icone, emoji e contatori, conformi allo stile del catalogo: *"Storico puntate viste"*, *"I prossimi da guardare"*, *"Da riprendere"* (serie ferme da >30 giorni) e *"Nuove serie"*.
-  - **Ordinamento Storico Naturale dal Basso verso l'Alto**: Le puntate viste più di recente compaiono subito sopra l'ancora centrale, mentre risalendo con lo scroll verso l'alto si accede alle visioni progressivamente più remote nel tempo.
-  - **Apertura Istantanea Livellata**: Rimossi scatti e animazioni parassite con posizionamento istantaneo su *"I prossimi da guardare"* via `useLayoutEffect`.
-  - **Tasto Torna a Oggi Circolare**: Tasto flottante circolare blu con freccia dinamica (`TimelineBackToTodayButton`), identico a quello della Timeline uscite.
+  - Vista verticale suddivisa da pillole grigie sobrie (`MobileTVDiarySectionPill`): *"Storico puntate viste"*, *"I prossimi da guardare"*, *"Da riprendere"* (serie ferme da >30 giorni) e *"Nuove serie"*.
+  - **Ordinamento Storico Naturale**: Puntate viste più di recente posizionate subito sopra l'ancora centrale; risalendo con lo scroll verso l'alto si accede alle visioni più remote.
+  - **Tasto Torna a Oggi Circolare**: Tasto flottante circolare blu con freccia dinamica (`TimelineBackToTodayButton`).
   - **Esclusione Episodi Speciali (S00)**: Gli episodi speciali (`season_number <= 0`) vengono rigorosamente esclusi dal calcolo dei prossimi episodi da guardare e dai contatori residui.
-- **Card Episodio Diario Ridisegnata (`MobileTVEpisodeDiaryCard`)**:
-  - Nuova gerarchia delle informazioni: Data in alto, codice & titolo episodio con badge `+ N` senza sfondo, pillola cliccabile della Serie TV al di sotto.
-  - Pieno supporto alle locandine personalizzate dell'utente (`custom_poster_path`) sia nelle card del Diario sia nella schermata Prossime Uscite.
-- **Apertura a "Solo Episodio" da Diario e Prossime Uscite**:
-  - Toccando un episodio da queste due viste, l'episodio viene visualizzato a tutto schermo senza bottom bar delle serie.
-  - Chiudendo con la "X" o con il tasto fisico Indietro di Android, l'utente torna direttamente alla schermata principale di partenza (Diario o Prossime Uscite).
-- **Gestione Completa del Rewatch**:
-  - Dialog touch di conferma al tap su un episodio già visto: scelta tra visione singola dell'episodio o riavvio sequenziale dell'intera serie (`is_rewatching: true`).
-  - Nuova opzione *"Interrompi Rewatch"* nel menu a tre puntini della serie (`MobileSeriesOptionsModal`), visibile solo quando il rewatch è attivo, per arrestare il ciclo e rimuovere la serie dai prossimi da guardare.
-  - Migrazione Alembic difensiva per la colonna `is_rewatching` su `user_series_tracking` applicata sia sull'ambiente di test che sul NAS di produzione.
-- **Ottimizzazione Voti & Recensioni**:
-  - Risolta la duplicazione involontaria dei log quando si clicca su *"Ancora nessun voto / Aggiungilo!"*: se l'episodio o la serie ha già un log salvato nel DB (anche privo di voto numerico), viene aperta la lista delle proprie recensioni (`reviews` / `my_reviews`) per consentire la modifica del log esistente.
+- **Card Episodio Diario Ridisegnata (`MobileTVEpisodeDiaryCard`)**: Nuova gerarchia con data in alto, codice & titolo episodio con badge `+ N` senza sfondo, pillola cliccabile della serie TV al di sotto e supporto alle locandine personalizzate (`custom_poster_path`).
+- **Apertura a "Solo Episodio" da Diario e Prossime Uscite**: Visualizzazione a schermo intero senza bottom bar delle serie e ritorno diretto alla schermata di partenza alla chiusura.
+- **Gestione Completa del Rewatch**: Dialog touch di conferma al tap su un episodio già visto con scelta tra visione singola o riavvio sequenziale dell'intera serie (`is_rewatching: true`); opzione *"Interrompi Rewatch"* nel menu a tre puntini della serie.
 
 ---
 
-### [TRACKERS-013] Restyling Modale Liste Personali Mobile ("Le mie liste"), Ordinamento 2 Frecce, Tasto "+", Modale Creazione Lista & Vista Catalogo (🟢 Completato)
+### [TRACKERS-013] Restyling Modale Liste Personali Mobile ("Le mie liste"), Ordinamento 2 Frecce & Tasto "+" (🟢 Completato)
 
 #### 📋 Descrizione
-Riprogettazione completa, modulare e responsive del sistema di gestione delle liste personali per le Serie TV su dispositivi mobili (`MobileSeriesPersonalListsModal` e componenti correlati), totalmente indipendente dall'esperienza desktop:
-- **Header Multifunzione Dinamico**:
-  - Titolo contestuale ("Le mie liste" nella vista panoramica, nome della lista selezionata con freccia indietro per tornare alla panoramica quando aperta).
-  - Tasto ordinamento con icona a due frecce (`ArrowsUpDownIcon`) affiancato al tasto di creazione `+` (`PlusIcon` con stile Agenda) per filtrare le liste e le serie per stato di visione (*In visione*, *In lista*, *In attesa*, *Completate*).
-  - Rimozione automatica delle liste vuote se filtrate per uno stato non presente.
-  - Reset automatico del filtro su "Tutte" all'uscita dalla schermata.
-- **Card Orizzontale a Tutta Lunghezza & Collage**:
-  - Ogni lista nella panoramica è una card orizzontale a tutta larghezza con il titolo allineato a sinistra e il carosello orizzontale delle locandine ordinate cronologicamente dall'ultima aggiunta.
-  - Locandine disaccoppiate da click singoli (`pointer-events-none`) per consentire al tap su qualsiasi punto della card di aprire direttamente la lista.
-- **Selezione Multipla con Pressione Prolungata (Long-Press)**:
-  - Nella pagina panoramica di tutte le liste: attivazione selezione multipla tramite pressione prolungata (450ms) su una card.
-  - Se è selezionata 1 sola lista, l'header mostra i tasti Modifica (`PencilSquareIcon` / `EditIcon`) ed Elimina (`TrashIcon`).
-  - Se sono selezionate 2 o più liste, l'header mostra solo il tasto Elimina (`TrashIcon`).
-  - All'interno di una singola lista: pressione prolungata sulle locandine delle serie (con alone blu semi-trasparente `bg-blue-600/30`, anello e spunta) per selezione multipla, mostrando nell'header il tasto Elimina (`TrashIcon`) per rimuovere in blocco le serie selezionate dalla lista.
-- **Modale Creazione & Modifica Lista Touch-Friendly (`MobileSeriesCreateListModal`)**:
-  - Apertura al tocco del tasto `+` o in modalità modifica.
-  - Input nome della lista in alto e barra di ricerca integrata con TMDB e catalogo personale.
-  - Griglia locandine con selezione touch (bordo colorato di stato, alone blu e spunta).
-  - Footer a due colonne: a sinistra il selettore privacy compatto (Privata / Condivisa / Pubblica), a destra il tasto Salva ben visibile.
-- **Navigazione & Gerarchia Z-Index / Back Handler**:
-  - Apertura delle serie dal catalogo della lista con preservazione della schermata: alla chiusura del dettaglio serie con la "X" o tasto Indietro nativo, l'utente torna alla lista corrente e non alla home delle serie.
-  - Elevazione z-index a `z-[10030]` e priorità `useBackHandler` a 28 per `MobileTVSeriesDetailModal`.
-- **Modularità e Conformità Regola 7.3**:
-  - Estrazione completa della logica e dello stato nel custom hook `useMobileSeriesPersonalListsLogic.ts`.
-  - Componenti snelli (<300 righe): `MobileSeriesPersonalListsModal.tsx`, `MobileSeriesListOverviewCard.tsx`, `MobileSeriesCreateListModal.tsx`.
+Riprogettazione completa, modulare e responsive del sistema di gestione delle liste personali per le Serie TV su smartphone:
+- **Header Multifunzione Dinamico**: Titolo contestuale ("Le mie liste" nella vista panoramica, nome della lista selezionata con freccia indietro quando aperta); tasto ordinamento a due frecce (`ArrowsUpDownIcon`) e tasto creazione `+` (`PlusIcon` stile Agenda) per filtrare per stato di visione (*In visione*, *In lista*, *In attesa*, *Completate*).
+- **Card Orizzontale a Tutta Lunghezza & Collage**: Ogni lista nella panoramica è una card orizzontale a tutta larghezza con titolo e carosello orizzontale delle locandine ordinate cronologicamente.
+- **Selezione Multipla con Long-Press (450ms)**: Selezione massiva di liste per eliminazione o modifica singola, e selezione multipla delle serie all'interno di una lista per rimozione in blocco.
+- **Modale Creazione & Modifica Lista Touch-Friendly (`MobileSeriesCreateListModal`)**: Ricerca integrata con TMDB e catalogo personale, griglia locandine con selezione touch e selettore privacy compatto (Privata / Condivisa / Pubblica).
+- **Architettura Modulare**: Estrazione dello stato in `useMobileSeriesPersonalListsLogic.ts` e scomposizione in componenti snelli (<300 righe).
 
 ---
 
-### [SHOPPING-019] Inserimento Nuovo Brand e Nuovo Fornitore dalla Data Grid Lotti (🟢 Completato — Ottobre 2026)
+### [TRACKERS-012] Restyling Catalogo Mobile ("Le tue serie"), 4 Aree Tematiche & Ricerca Dedicata (🟢 Completato)
 
 #### 📋 Descrizione
-Nella Data Grid Revisione Lotti Spesa (sezione Admin), i campi **Brand** e **Fornitore** ora supportano la digitazione libera con completamento automatico tramite `<input type="text" list=datalist>`, identica al campo Prodotto già esistente. Se il nome digitato non corrisponde ad alcun elemento in archivio, una mini-etichetta verde avvisa che il nuovo elemento verrà creato al salvataggio. Al click su Salva Row (o Salva Tutte), il sistema crea prima il nuovo brand o il nuovo fornitore via API e aggiorna istantaneamente il mazzo di carte in RAM, poi aggiorna il lotto con l'ID appena ottenuto. Implementazione simmetrica per entrambi brand e supplier.
-
-#### ⚙️ Dettagli Implementazione
-
-- **Backend — `POST /brands`** (`backend/domains/shopping/router.py`):
-  - Nuovo endpoint che chiama `service.create_supplier` con `type_code=2` (brand), usando `deepcopy` del payload per sovrascrivere il type_code. Gestisce la deduplicazione/promozione automatica già nel service esistente (es. se un brand esiste già come supplier → `type_code=3`).
-
-- **Frontend API** (`frontend/src/api/shopping/shoppingSuppliersApi.ts`):
-  - Aggiunta funzione `createShoppingBrand(name: string)` che fa `POST /api/shopping/brands` con body `{ name }`.
-
-- **Frontend Logic Hook** (`frontend/src/components/admin/shopping/useAdminShoppingDataGridLogic.ts`):
-  - `handleSaveRow`: prima di `updateInventoryBatch`, se `effective.brandName && !effective.brandId` → crea brand → aggiorna `setBrands` in RAM → aggiorna `effective` con nuovo ID. Stessa logica per supplier (`typeCode: 1`).
-  - `handleSaveAllPending`: stessa logica inserita nel loop `for (const batchId of dirtyIds)`.
-
-- **Frontend Row** (`frontend/src/components/admin/shopping/AdminShoppingDataGridRow.tsx`):
-  - Campo **Brand** (cella 4): `<select value={brandId}>` sostituito con `<input type="text" list="brand-options-{id}">` + `<datalist>`. onChange: match case-insensitive → imposta `brandId` (esistente) o `null` (nuovo). Mini-label verde `✨ Nuovo brand — verrà creato al salvataggio` quando `brandName && !brandId`.
-  - Campo **Supplier** (cella 5): stesso pattern. Warning arancione solo se `!supplierId && !supplierName` (campo completamente vuoto).
-
----
-
-### [SHOPPING-018] Tracciamento Brand nei Lotti Spesa & Risoluzione Ambiguità Multi-Marca (🟢 Completato)
-
-#### 📋 Descrizione
-Risolta l'anomalia per cui gli articoli con molteplici marchi censiti (es. *'pizza'* associata a *'bufalina'* ed *'emozione'* presso il fornitore *'gustus'*) appiattivano tutte le righe sul primo brand censito sia nella griglia di revisione lotti dell'Admin sia nel catalogo rapido dell'utente standard. La tabella `inventory_batch` è stata estesa con la colonna `brand_id` fisica e le logiche di backend e frontend sono state aggiornate per associare e persistere univocamente il marchio a ciascun acquisto e storico prezzi.
-
-#### ⚙️ Dettagli Implementazione & Funzionalità Raggiunte
-- **Database & Alembic**:
-  - Creata la migrazione idempotente `c2d3e4f5a6b7_add_brand_id_to_inventory_batch.py` per aggiungere `brand_id BIGINT REFERENCES shopping_suppliers(id)` con relativo indice.
-  - Applicata ed allineata la migrazione su produzione NAS (`family-smart`) con `alembic-prod.bat upgrade head`.
-  - Integrata la clausola difensiva `ALTER TABLE inventory_batch ADD COLUMN IF NOT EXISTS brand_id ...` in `ensure_database_schema_compat()` in `backend/core/models.py` per prevenire errori `UndefinedColumn` all'avvio su qualsiasi ambiente o container.
-- **Backend & Schemi**:
-  - `InventoryBatch` in `backend/domains/shopping/models/inventory.py`: aggiunti colonna `brand_id` e relazione `brand`.
-  - `ShoppingSupplier` in `backend/domains/shopping/models/catalog.py`: specificati `foreign_keys` espliciti per disambiguare le relazioni con i lotti.
-  - `InventoryBatchResponse` in `backend/domains/shopping/schemas/inventory.py`: aggiunti `brand_id` e `brand_name`.
-  - `ShoppingListItemResponse` in `backend/domains/shopping/schemas/lists.py`: rimossa l'assegnazione cieca a `product_brands[0]`. Ora estrae la marca tra parentesi nel nome se presente (es. `pizza (emozione)`), altrimenti se c'è un solo brand usa quello, oppure restituisce `None` (generico) se l'articolo è privo di variante di marca.
-  - `service.py`:
-    - `add_inventory_batch` e `create_quick_price_batch` salvano stabilmente `brand_id` sul record `InventoryBatch`.
-    - `update_inventory_batch` consente la modifica e la persistenza del brand direttamente dalla Data Grid Admin.
-    - `_get_product_brand_info` evita l'assegnazione arbitraria del primo brand in caso di prodotti multi-marca.
-    - `list_all_batches` e `list_item_batches` usano direttamente `b.brand_id`.
-    - `_enrich_products_with_last_purchases` associa i lotti al marchio specifico tramite `b.brand_id == pb.brand_id`, consentendo a ciascuna sottomarca di mostrare il proprio prezzo e negozio indipendente.
-- **Allineamento Dati Esistenti**:
-  - Aggiornati i lotti di *'pizza'* nel database di produzione: Lotto 96 ➔ Brand 36 (*bufalina*), Lotto 97 ➔ Brand 38 (*emozione*).
-
----
-
-### [TRACKERS-012] Restyling Catalogo Mobile ("Le tue serie"), 4 Aree Tematiche, Pillole Grigie, Bordi di Stato & Ricerca Dedicata (🟢 Completato)
-
-#### 📋 Descrizione
-Riprogettazione completa e modulare del catalogo delle serie TV su dispositivi mobili (`MobileSeriesCatalogModal`), perfettamente isolato dall'ambiente desktop:
-- **Header "Le tue serie" Pulito**:
-  - Titolo sobrio "Le tue serie" con rimozione totale di contatori numerici e scritte ridondanti.
-  - Freccia indietro (`BackIcon`) a sinistra per chiudere il catalogo.
-  - Tasto lente d'ingrandimento (`SearchIcon`) con indicatore a pallino blu di filtri attivi.
-  - Tasto occhio (`EyeIcon`) con icona dinamica riflettente lo stato di visione selezionato.
-- **Menu Speed-Dial Stato Visione Senza Numeri**:
-  - Comparsa a tendina fluttuante verso il basso (`top-16 right-3`) con backdrop scuro semi-trasparente stile Agenda con il `+`.
-  - 4 opzioni essenziali (*Tutte le serie*, *In corso*, *Serie viste*, *Non viste*) con icone specifiche e prive di cifre numeriche.
-- **Ricerca nel Catalogo Dedicata & Completa**:
-  - Nuovo modale dedicato `MobileSeriesCatalogSearchModal` speculare alla ricerca principale ma circoscritto al catalogo personale in RAM ("Mazzo di Carte").
-  - Supporto a: ricerca testuale (titolo, titolo originale, generi), selettore liste personali, generi della propria libreria, piattaforme/network disponibili, anno di uscita con DatePicker, stato produzione TMDB, voto personale (1-5⭐ / unrated) e ordinamento.
-- **4 Aree Tematiche Distinte con Pillola Centrale Grigia**:
-  - Suddivisione rigorosa delle serie in 4 macro-aree sequenziali:
-    1. *In visione* (🟡 gialli)
-    2. *In lista* (⚪ grigi)
-    3. *In attesa* (🟣 viola)
-    4. *Completate* (🟢 verdi)
-  - Ciascun gruppo è preceduto da una pillola centrale sobria in grigio con il titolo corrispondente (`IN VISIONE`, `IN LISTA`, `IN ATTESA`, `COMPLETATE`).
-  - Ciascun gruppo popola una propria griglia autonoma a 3 colonne (`grid-cols-3 gap-2.5 sm:gap-3`), con righe complete e visualizzazione a scorrimento continuo.
-- **Bordi Colorati di Stato su Ogni Locandina**:
-  - Impiego di `getMediaBorderClass(status, tmdb_status, { isThick: true })` per applicare il bordo colorato coerente: giallo per in visione, grigio per in lista, viola per in attesa, verde per completate, rosso per cancellate/abbandonate.
-  - Tap diretto per aprire il modale dettaglio della serie.
-- **Architettura Modulare (Regola 7.3)**:
-  - Scomposizione in file snelli (<150 righe): `MobileSeriesCatalogHeader.tsx`, `MobileSeriesCatalogEyeMenu.tsx`, `MobileSeriesCatalogGrid.tsx`, `MobileSeriesCatalogSearchModal.tsx`, `MobileSeriesCatalogModal.tsx`.
+Riprogettazione completa del catalogo Serie TV su smartphone (`MobileSeriesCatalogModal`):
+- **Header Pulito**: Titolo sobrio "Le tue serie" senza contatori numerici ridondanti; freccia indietro (`BackIcon`), lente di ricerca (`SearchIcon`) con pallino blu filtri attivi e icona occhio (`EyeIcon`) riflettente lo stato selezionato.
+- **Menu Speed-Dial Stato Visione**: Tendina fluttuante con 4 opzioni essenziali (*Tutte le serie*, *In corso*, *Serie viste*, *Non viste*) con icone specifiche.
+- **Ricerca nel Catalogo Dedicata & Completa**: Modale `MobileSeriesCatalogSearchModal` circoscritto al catalogo personale in RAM con filtri su titolo, liste personali, generi, piattaforme, anno di uscita con DatePicker, stato produzione TMDB e voto personale.
+- **4 Aree Tematiche con Pillole Grigie**: Suddivisione in 4 griglie autonome a 3 colonne (*In visione*, *In lista*, *In attesa*, *Completate*) precedute da pillola sobria centrale in grigio e bordi colorati di stato sulle locandine.
 
 ---
 
 ### [TRACKERS-011] Modale Statistiche Serie TV Mobile a Schermo Intero & Scorrimento Continuo (🟢 Completato)
 
 #### 📋 Descrizione
-Progettazione e implementazione del nuovo modale a tutto schermo dedicato alle Statistiche delle Serie TV per smartphone (`MobileSeriesStatsModal`), mantenendo la totale indipendenza e isolamento dai componenti della versione desktop:
-- **Esperienza Mobile Nativa Full-Screen**: Visualizzazione a schermo intero (`100dvh`) montata tramite `createPortal` su `document.body`, animazione `fadeIn` e intercettazione del tasto indietro nativo Android (hardware o gesture) tramite `useBackHandler`.
-- **Freccia di Navigazione Coordinata**: Header fisso superiore con la stessa freccia indietro (`BackIcon` in contenitore touch `w-9 h-9 rounded-xl`) usata nella ricerca Serie TV per massima coerenza visiva.
-- **Scorrimento Verticale Continuo**: Superata la suddivisione a schede orizzontali in favore di una singola pagina a flusso verticale continuo priva di tab. Ciascuna macro-sezione è delimitata da un'intestazione (`MobileStatsSectionHeader`) con titolo maiuscolo, icona, badge e linea orizzontale di inizio sezione (`border-b border-slate-200 pb-2 mb-4`).
-- **Sezione Panoramica Ottimizzata**:
-  - Le prime 4 card highlight organizzate in una griglia 2x2 compatta: *Tempo Totale* (giorni e ore), *Completamento* (% e finite/abbandonate), *Proiezioni Future* (data stimata completamento lista) e *Binge Record* (massimo episodi in un giorno e data).
-  - Box temporale degli ultimi 30 e 365 giorni e tabella serie per stato (Completate, In Visione, In Attesa, Abbandonate).
-  - **👻 Cimitero delle Serie**: Rimossi i vincoli di altezza che causavano tagli di visualizzazione; integrato il componente ufficiale `EmptyState` con emoji 🏆 per mostrare *"Non ci sono serie abbandonate"* (*"Sei un vero completista!"*) in assenza di drop.
-- **Sezione Valutazioni & Voti**:
-  - *Top Generi*: Titolo essenziale, visualizzazione limitata a 4 generi principali in griglia 2x2 ed `EmptyState` in assenza di dati.
-  - *Il Profilo del Critico*: Selettore compatto Serie / Episodi con istogramma di distribuzione voti touch.
-  - *Hall of Fame (Top 10)*: Elenco delle 10 migliori serie votate con stelle e media voto (`EmptyState` per voti assenti).
-- **Sezione Abitudini di Visione**:
-  - *Ultimi 7 Giorni*: Toggle pill slider coordinato `[ Ore | Episodi ]`.
-  - *Andamento Mensile Interattivo*: Selettore anno centrale pulito senza riquadri o bordi (`‹ 2026 ›`); colonne mensili interattive con visualizzazione del conteggio esatto al tocco (tooltip con ore/episodi e barra in risalto); `EmptyState` per anni senza dati.
-  - *Top Network & Piattaforme*: Con `EmptyState` dedicato con icona 📺.
-- **Sezione Rewatch & Fedeltà**:
-  - *Comfort Zone*: Toggle Serie / Episodi con medaglie e badge rewatch, integrato con `EmptyState` (icona 🛋️).
-  - *Il Test del Tempo*: Guilty pleasures con `EmptyState` (icona 🙈).
-  - *Esplorazione vs Nostalgia*: Ciambella gradient e conteggio ore dedicate a nuove serie vs rewatch.
-- **Modularità e Conformità Regola 7.3**: Codice suddiviso nei componenti snelli e strettamente tipizzati (`zero any`): `MobileSeriesStatsModal.tsx`, `MobileStatsSectionHeader.tsx`, `MobileStatsOverviewSection.tsx`, `MobileStatsRatingsSection.tsx`, `MobileStatsHabitsSection.tsx`, `MobileStatsRewatchSection.tsx` ed `index.ts`.
+Nuovo modale a tutto schermo dedicato alle Statistiche Serie TV per smartphone (`MobileSeriesStatsModal`):
+- **Esperienza Mobile Nativa Full-Screen**: Visualizzazione a schermo intero montata tramite `createPortal` su `document.body`, animazione fade-in e gestione tasto back Android via `useBackHandler`.
+- **Scorrimento Verticale Continuo**: Superata la suddivisione a schede orizzontali in favore di una singola pagina a flusso verticale continuo con sezioni delimitate da intestazioni coerenti (`MobileStatsSectionHeader`).
+- **Sezioni Integrate**:
+  - *Panoramica*: Griglia 2x2 compatta con Tempo Totale, Completamento %, Proiezioni Future e Binge Record; box temporale ultimi 30 e 365 giorni; Cimitero delle Serie con EmptyState.
+  - *Valutazioni & Voti*: Top generi (griglia 2x2), Profilo del Critico (istogramma di distribuzione voti) e Hall of Fame (Top 10 serie con stelle e media voto).
+  - *Abitudini di Visione*: Ultimi 7 giorni (toggle Ore/Episodi), andamento mensile interattivo con selettore anno pulito (`‹ 2026 ›`) e top network/piattaforme.
+  - *Rewatch & Fedeltà*: Comfort zone (medaglie rewatch), Guilty pleasures e ciambella Esplorazione vs Nostalgia.
 
 ---
 
-### [TRACKERS-009] Restyling Seconda Pagina / Dashboard Serie TV Mobile, Banner Orizzontali & Collage Liste (🟢 Completato)
+### [TRACKERS-009] Restyling Seconda Pagina / Dashboard Serie TV Mobile, Banner & Collage Liste (🟢 Completato)
 
 #### 📋 Descrizione
 Riprogettazione completa della seconda slide dell'esperienza mobile Serie TV (`MobileTVSeriesDashboardSlide`) come hub a zero scrollbar:
-- **Obiettivo Annuale Episodi**: Stile sobrio ed integrato senza nuvoletta blu o involucro pesante, barra sottile ispirata all'agenda homepage con badge centrale sovrapposto `XXX/YYY` ed apertura diretta del modale statistiche (`SeriesStatsModal`) al tocco.
-- **Citazione del Giorno**: Visualizzazione compatta su 2 righe con espansione fluida al click ed indicazione serie/episodio.
-- **3 Card Highlight Affiancate**: "Ultimo aggiunto", "Ultimo guardato", "Ultimo completato" disposte con spaziatura omogenea ed equilibrata sia tra di loro che dai bordi dello schermo (`justify-evenly`), titolo serie in overlay sfumato su massimo 2 righe, badge blu per le icone di stato e disattivazione zoom al passaggio del mouse.
+- **Obiettivo Annuale Episodi**: Barra sottile ispirata all'agenda homepage con badge centrale sovrapposto `XXX/YYY` ed apertura diretta del modale statistiche al tocco.
+- **Citazione del Giorno**: Visualizzazione compatta su 2 righe con espansione fluida al click.
+- **3 Card Highlight Affiancate**: "Ultimo aggiunto", "Ultimo guardato", "Ultimo completato" disposte con spaziatura omogenea (`justify-evenly`) e titolo serie in overlay sfumato.
 - **Due Banner Orizzontali Sovrapposti**:
-  - Banner "LE TUE SERIE": 4 locandine delle ultime serie guardate in ordine cronologico decrescente; tocco in qualsiasi punto apre il modale catalogo completo (`MobileSeriesCatalogModal`).
-  - Banner "LE TUE LISTE": fino a 4 liste personali con collage dinamico (0-4 serie) implementato nel componente dedicato `ListCollagePoster`, titolo lista in overlay sfumato con lo stesso stile delle highlight; tocco in qualsiasi punto apre il modale liste personali (`MobileSeriesPersonalListsModal`).
-- **Apertura a Tutto Schermo dalla Timeline**: Al click su una puntata nella timeline uscite si apre direttamente la schermata completa dell'episodio nel modale serie tv, sostituendo il vecchio popup centrato.
-- **Modularità e Conformità Regola 7.3**: Codice suddiviso nei componenti snelli `HighlightCardItem.tsx` (88 righe), `MobileSeriesDashboardBanners.tsx` (172 righe) e `ListCollagePoster.tsx` (163 righe).
+  - Banner "LE TUE SERIE": 4 locandine delle ultime serie guardate con apertura del catalogo completo al tap.
+  - Banner "LE TUE LISTE": fino a 4 liste personali con collage dinamico (0-4 serie) implementato nel componente dedicato `ListCollagePoster`.
 
 ---
 
-### [TRACKERS-006] Mobile TV Episode Fullscreen Detail, Quotes & Reviews Redesign, Multi-Selection & Action Buttons Alignment (🟢 Completato)
+### [TRACKERS-006] Mobile TV Episode Fullscreen Detail, Quotes & Reviews Redesign (🟢 Completato)
 
 #### 📋 Descrizione
-Riprogettazione completa dell'esperienza mobile per il singolo episodio della serie TV (`MobileEpisodeDetailView`) e per la scheda recensioni dell'intera serie (`MobileSeriesReviewTab`), con visualizzazione a tutto schermo, banner still dell'episodio, gestione visioni multiple (rewatch) e navigazione di ritorno alla stagione; restyling della gestione citazioni e recensioni con schermata dedicata "Nuova/Modifica Recensione", selezione multipla con pressione prolungata (long-press), box voti unificato per serie ed episodi, selettore piattaforma con flusso semplificato e allineamento stilistico dei tasti azione rispetto a `MobileTaskDetailModal` ed eventi.
-
-#### 🎯 Funzionalità Implementate
-- **Dettaglio Episodio Mobile a Tutto Schermo**:
-  - Banner superiore con foto backdrop/still dell'episodio, gradiente di contrasto per la leggibilità del titolo e pulsante di chiusura `X` che riporta direttamente alla lista delle stagioni/episodi.
-  - Sotto-intestazione codice/data (`STAGIONE X - EPISODIO X | Data`) con pallino visto interattivo (supporto a visualizzazioni multiple `X1`, `X2`... e drawer rewatch).
-  - Trama dell'episodio a tutta larghezza e sezione voti (TMDB, Amici e Il Tuo Voto).
-  - Dalla bottom bar fissa, cliccando nuovamente su "Serie" l'utente chiude la vista dell'episodio e torna istantaneamente all'elenco stagioni.
-- **Rinnovamento Citazioni Episodio & Serie**:
-  - Badge a pallino con conteggio numerico delle citazioni salvate per l'episodio al posto del testo grezzo `(X)`.
-  - Rimossa la dicitura ridondante "tocca per aprire episodio" nella lista citazioni serie in `MobileSeriesReviewTab`.
-  - Stato vuoto ripulito e integrato con il componente standard `EmptyState`.
-  - Pulsante "Aggiungi citazione" in stile `AddButton` posizionato in calce sopra la bottom bar, con apertura di textarea rapida sopra di sé ed auto-salvataggio.
-- **Box Voti Unificato a Tutto Tondo (Serie ed Episodio)**:
-  - Invece di un box isolato per il voto personale, un contenitore unico racchiude armoniosamente TMDB e Amici in alto con separatore verticale, e "Il Tuo Voto" in basso con stelle centrate o prompt "Aggiungilo!".
-- **Schermata Dedicata "Nuova / Modifica Recensione" & Zero Scorrimento**:
-  - Componenti autonomi `MobileEpisodeReviewForm.tsx` e `MobileSeriesReviewForm.tsx` con stelline centrate orizzontalmente in alto sotto la barra.
-  - Ancoraggio a schermo intero `absolute inset-0 z-20 overflow-hidden` che impedisce qualsiasi scorrimento della pagina o del contenitore sottostante.
-  - Textarea a ingombro adattativo (`flex-1 min-h-[40px]`): su schermi piccoli o con tastiera aperta si riduce dinamicamente senza spingere i comandi fuori schermo; su schermi alti si espande per occupare tutto lo spazio disponibile.
-  - Barra inferiore fissa a 4 colonne con: Colonna 1 (Calendario a modale centrale overlay), Colonna 2 (Privacy a modale centrale `SelectModalDialog`), Colonne 3 e 4 (Pulsante Salva in risalto blu), perfettamente a filo con la barra di navigazione inferiore.
-- **Selettore Piattaforma di Visione Semplificato**:
-  - Riga orizzontale compatta con `TvIcon` blu e dicitura "Dove l'hai guardato?" posizionata accanto al pulsante menu a discesa della piattaforma.
-  - Modale centrale `SelectModalDialog` con selezione con un clic, pulsante "+ Nuova Piattaforma" che si trasforma direttamente in input di testo (senza tasti inline aggiungi/annulla) e tasto fisso "Aggiungi" in calce per confermare la scelta. Scrollbar visibile completamente rimossa.
-- **Selezione Multipla & Azioni Header (Citazioni & Recensioni Serie ed Episodio)**:
-  - Selezione attivata tramite pressione prolungata (long-press ~400ms) sia per le citazioni che per le recensioni personali della serie e dell'episodio.
-  - Tasti azione collocati nell'header a destra del titolo: se 1 elemento selezionato mostra Modifica ed Elimina, se più di 1 elemento selezionato mostra solo Elimina batch con popup di conferma `useConfirm`.
-  - Chiusura automatica o deselezione batch al termine dell'operazione.
-- **Uniformità Tasti Azione con `MobileTaskDetailModal` & `MobileEventDetailModal`**:
-  - Icone ufficiali `EditIcon` e `TrashIcon` (`h-5 w-5`) da `@/components/shared/utils/Icons`.
-  - Contenitore `flex items-center gap-1`.
-  - Stile nativo senza riquadri a riposo: `p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-colors cursor-pointer` per Modifica e `p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-xl transition-colors cursor-pointer` per Elimina.
-  - Uniformato in `MobileEpisodeQuotesSection.tsx`, `MobileEpisodeMyReviewsList.tsx`, `MobileSeriesMyReviewsList.tsx` e `MobileReviewDetailView.tsx`.
-- **Barra Inferiore Serie TV Uniforme in Blu**:
-  - Sostituito lo stato attivo giallo/ambra del pulsante Recensioni (stella) con lo stile blu coordinato a tutte le altre schede.
-- **Ricerca Serie Mobile con Tasto Catalogo Blu e Spunta Bianca**:
-  - Nei risultati di ricerca TMDB, le serie già presenti nel catalogo mostrano un pulsante blu con spunta bianca che consente la rimozione con conferma, mentre le altre mostrano il pulsante `+` per l'aggiunta rapida.
+Riprogettazione dell'esperienza mobile per il singolo episodio della serie TV (`MobileEpisodeDetailView`) e per la scheda recensioni dell'intera serie:
+- **Dettaglio Episodio a Tutto Schermo**: Banner superiore con still backdrop HD, gradiente di contrasto, sotto-intestazione codice/data con pallino visto interattivo, cassetto rewatch e trama a tutta larghezza.
+- **Rinnovamento Citazioni Episodio & Serie**: Badge a pallino con conteggio numerico delle citazioni salvate per l'episodio ed empty state pulito.
+- **Box Voti Unificato**: Contenitore armonioso che racchiude TMDB, Amici e "Il Tuo Voto" con stelle centrate.
+- **Schermata Dedicata "Nuova/Modifica Recensione"**: Ancorata a pieno schermo con textarea ad altezza dinamica adattiva e barra inferiore fissa a 4 colonne (Calendario, Privacy e Salva).
+- **Selettore Piattaforma di Visione Semplificato**: Modale centrale `SelectModalDialog` con selezione rapida a un tocco e pulsante touch per aggiungere nuove piattaforme al volo.
 
 ---
 
-### [TRACKERS-004] Date di Uscita Italiane vs TMDB (Air Dates) - 🔴 Chiuso / Archiviato
-- **Esito**: Indagine completata. L'estrazione delle date di uscita regionali (italiane) per gli episodi singoli non è supportata tecnicamente dalle API gratuite di TMDB (che traccia solo la first_air_date globale assoluta). L'integrazione di API esterne proprietarie (es. Gracenote) ha costi proibitivi. L'app mantiene la data globale ufficiale fornita da TMDB.
+### [TRACKERS-004] Date di Uscita Italiane vs TMDB (Air Dates) (❌ Chiuso / Archiviato)
+
+#### 📋 Descrizione
+Studio sull'allineamento delle date di uscita italiane per gli episodi delle serie TV rispetto alle date fornite da TMDB.
+- **Esito**: Chiuso e archiviato senza implementazione in quanto l'API TMDB non supporta in modo nativo e affidabile le date di trasmissione italiane per gli episodi televisivi (fornisce unicamente la data di prima trasmissione nel paese di origine).
 
 ---
 
 ### [TRACKERS-002] Mobile TV Series Detail Modal, Bottom Drawers & Gestione Liste (🟢 Completato)
 
 #### 📋 Descrizione
-Sviluppo completo dell'esperienza mobile a schermo intero per la scheda di dettaglio delle Serie TV (`MobileTVSeriesDetailModal`), con banner fotografico nitido senza blur, menu opzioni tre puntini (...) per cambio locandina nativo, bottom drawers in stile agenda per Amici e Liste, navigazione fluida verso la ricerca globale TMDB al tocco di generi o provider streaming, modale di gestione liste con selezione multipla touch-friendly e allineamento z-index dei sub-modali su Web e Mobile.
-
-#### 🎯 Funzionalità Implementate
-- **Mobile TV Series Detail Modal a Tutto Schermo**:
-  - Banner fotografico hero con backdrop nitido (senza effetto blur).
-  - Pills dei generi multilinea in alto a sinistra stilizzate come su Desktop Web.
-  - Pulsante opzioni tre puntini (...) in alto a destra con menu per cambiare la locandina tramite il selettore immagini nativo del dispositivo (o ripristinare quella predefinita).
-  - Icona di stato colorata circolare posta prima del titolo della serie nel margine inferiore del banner.
-  - Tasti circolari per Amici (visibile solo se almeno un amico ha la serie in catalogo) e Liste posizionati verticalmente a destra sotto la 'X'.
-- **Sezione "Dove guardarlo?" e Aggiunta a Catalogo**:
-  - Posizionata subito sotto il banner con titolo a sinistra allineato orizzontalmente al pulsante quadrato di aggiunta/rimozione catalogo (a tocco singolo pulito, senza pressione prolungata).
-  - Pills interattive dei distributori streaming (`flatrate`). Toccando una pillola o un genere, si apre direttamente la ricerca globale TMDB pre-filtrata per quel genere/piattaforma.
-- **Bottom Drawers in Stile Agenda Note**:
-  - Drawer Amici con avatar, bordo colorato dello stato (in visione, completata, ecc.) ed etichetta testuale.
-  - Drawer Liste personali con elenco delle liste che contengono la serie e pulsante `AddButton` in calce per aprire il gestore liste.
-- **Mobile Media List Manager Modal & Selezione Multipla**:
-  - Selezione multipla con checkbox circolari touch-friendly (`selectedListIds`), con pre-selezione automatica delle liste in cui la serie è già inserita.
-  - Form "Nuova Lista" con pulsante "Annulla" spostato a destra e selettore privacy stile Webpage con menu a discesa contestuale e icone (Solo Io, Amici, Pubblico).
-  - Tasto principale "Salva" in blu in calce che applica in batch tutte le modifiche (creazione nuova lista, aggiunte e rimozioni) con stato di caricamento.
-- **Allineamento Z-Index & Idempotenza Backend**:
-  - Elevato lo z-index di `ConfirmDialog` a `z-[10090]` e dei sub-modali Web (`MediaListManagerModal`, `ListDetailModal`, `SeriesImageModal`) a `z-[10050]`, risolvendo il problema dei modali nascosti dietro la scheda principale.
-  - Introdotto controllo di idempotenza in `add_item_to_media_list` nel backend per prevenire duplicati della stessa serie all'interno di una lista.
-- **Navigazione Inferiore con Icone & Scheda Panoramica Mobile**:
-  - Sostituito lo slider testuale superiore con una barra fissa in fondo allo schermo con safe-area e 3 pulsanti touch-friendly con icone tematiche (Info per Panoramica, Layers per Stagioni, Star per Recensioni stile Review Mesi/Anni).
-  - Nuova scheda Panoramica fluida: blocco "Dove guardarlo?" con distributori streaming, "Trama" con sinossi pulita senza titolo serie duplicato, "Cast Principale" con foto profilo circolari a scorrimento orizzontale, e "Consigliati" con card 16:9 orizzontali.
-  - Scrollbar verticali rese invisibili in tutte le schede e cassetti secondari del modale dettaglio serie per garantire una UI pulita e moderna.
-- **Scheda Stagioni ed Episodi Mobile & Rewatch Action Drawer**:
-  - Titoli stagione allineati a sinistra con font compatto e contatore visti.
-  - Miniature still 16:9 degli episodi per identificazione immediata a colpo d'occhio.
-  - Media voti recensioni dell'utente (scala 5 stelle con mezzi voti `roundToHalfStar`) a fianco al pallino visto per i singoli episodi e per l'intera stagione (media delle medie).
-  - Rimozione completa della freccia/chevron di apertura per gli episodi.
-  - Apertura con tutte le stagioni chiuse/collassate di default all'accesso del modale.
-  - Tocco sul pallino già visto trasformato in un cassetto inferiore (Drawer) con opzioni "Aggiungi una visione" (+1), "Segna come non visto" (azzera) e "Togli una visione" (-1, se visto più di una volta).
-- **Nomi Propri delle Stagioni & Fallback Intelligente**:
-  - Backend `get_tmdb_series_extras` arricchito per rilevare i nomi generici delle stagioni ("Stagione N") in italiano e recuperare automaticamente da TMDB in lingua inglese il titolo/sottotitolo proprio (es. American Horror Story: "Murder House", "Asylum", "Coven", ecc.).
-  - Gerarchia di fallback: nome italiano -> nome inglese -> "Stagione N", integrata dinamicamente sia su Mobile che su Webpage desktop (`SeasonsTab`).
-- **Allineamento Stagione 0 come "Episodi Speciali"**:
-  - La stagione 0 viene ora identificata e visualizzata uniformemente come "Episodi Speciali" (e non più "Stagione 0") sia su Webpage desktop (`SeasonsTab`, `EpisodeMainOverview`) che su Mobile (`MobileSeriesSeasonsTab`, `MobileWatchActionDrawer`, `MobileEpisodeDetailModal`).
-- **Modularizzazione & Qualità del Codice (Regola 7.3)**:
-  - Rifattorizzazione di `MobileSeriesSeasonsTab.tsx` con estrazione del custom hook `useMobileSeriesSeasonsLogic.ts` e del componente atomico `MobileEpisodeItem.tsx`, riducendo le dimensioni a sole 215 righe nel pieno rispetto degli standard di pulizia e zero `any`.
+Implementazione del modale di dettaglio per le serie TV su smartphone con drawer a comparsa dal basso, selettore stagioni touch-friendly, gestione privacy e collegamenti rapidi alle liste multimediali.
 
 ---
 
 ### [TRACKERS-001] Mobile TV Series Timeline & Restyling Card Episodi (🟢 Completato)
 
 #### 📋 Descrizione
-Progettazione, sviluppo e rifinitura completa dell'esperienza mobile per le Serie TV, sostituendo la visualizzazione predefinita con una Timeline dinamica delle uscite ancorata a "Oggi", scroll infinito bidirezionale (passato e futuro) con card di caricamento compatte, e restyling della card orizzontale dell'episodio.
-
-#### 🎯 Funzionalità Implementate
-- **Navigazione Mobile Swipe a Due Pagine**: Slider touch orizzontale con indicatori dots tra Timeline Uscite Episodi (Pagina 0) e Dashboard/Attività con obiettivi e citazioni (Pagina 1).
-- **Timeline Continua Uscite Episodi**:
-  - Calcolo dinamico della finestra temporale (-2 mesi / +2 mesi all'avvio, con espansione automatica fino a 12 mesi per riempire la vista se le uscite future sono poche).
-  - Ancoraggio visivo e scroll automatico iniziale sul primo episodio in uscita oggi o sul prossimo futuro.
-  - Tasto circolare fluttuante "Torna a oggi" centrato in basso con freccia dinamica (in alto o in basso) in base alla direzione di scorrimento.
-  - Caricamenti dinamici discreti sopra (storico passato) e sotto (uscite future) senza schermate bianche o lampeggi.
-  - Barra di scorrimento reattiva a scomparsa (`.fade-scrollbar`) visibile solo durante il tocco attivo.
-- **Restyling Card Orizzontale Episodio**:
-  - Locandina poster verticale a sinistra con angoli arrotondati.
-  - Colonna informativa centrale allineata a sinistra:
-    - Data di uscita in alto: evidenziata in blu brillante (`text-blue-600`) per gli episodi da guardare e grigio per i visti; mostra unicamente `OGGI` o `DOMANI` (senza giorno/mese) oppure la data formattata (`22 ott`).
-    - Codice e nome episodio in mezzo: formattato come `SXX EXX | NNNNNN` in nero marcato, senza testo barrato anche per gli episodi visti.
-    - Nome serie in basso: pillola sagomata cerchiata con bordo (`rounded-full border border-gray-400 bg-white/70`), cliccabile con `e.stopPropagation()` per aprire direttamente la scheda di dettaglio della serie.
-  - Pallino interattivo a destra: centrato verticalmente sul margine destro, diventa blu brillante con spunta bianca se l'episodio è visto (con l'intera card desaturata a toni di grigio) e cerchio neutro da toccare se non visto, supportato da optimistic updates a 0ms di latenza.
-- **Sincronizzazione Titoli Episodi Backend**: Helper intelligente `sync_tmdb_episodes_for_seasons` che rileva i titoli generici ("Episodio X", "Episode X", "TBA") e recupera automaticamente il titolo reale in lingua originale da TMDB.
-- **Rifattorizzazione Architetturale (Regola 7.3)**: Estratto `MobileTVSeriesDashboardSlide.tsx` per mantenere `MobileTVSeriesView.tsx` snello (< 280 righe).
+Prima versione della schermata Timeline Uscite Serie TV su smartphone con layout verticale a giorni, card compatte per gli episodi in uscita, badge numerici e tasto flottante "Torna a Oggi".
 
 ---
 
-### [FEAT-012] Pagina di Avvio Pinnata / Selezione Landing Page Predefinita (🟢 Completato)
+### [FEAT-004 (Serie TV)] Modulo Serie TV Completo (Catalogo, TMDB, Liste, Diario, Statistiche & Social) (🟢 Completato)
 
 #### 📋 Descrizione
-Possibilità per l'utente di scegliere e fissare (pinnare) nelle impostazioni personali quale pagina/sezione dell'applicazione deve essere aperta per prima al login o al lancio dell'app (es. Homepage Agenda, Spesa / Shopping, Vista Giorno, Liste Tematiche, Sezione Media, ecc.).
-
-#### 🎯 Funzionalità Implementate
-- **Personalizzazione Esperienza d'Uso**: Scelta della landing page nelle impostazioni profilo utente (`default_startup_page`), persistita a database e in local cache per navigazione immediata.
-- **Routing Intelligente**: Reindirizzamento trasparente all'accesso al root `/` sia su Desktop Web che Mobile App (Capacitor/Android).
-- **Tasto Pin Rapido**: Icona puntina integrabile nelle intestazioni per impostare al volo la vista corrente come predefinita.
+Rilascio dell'intera infrastruttura del modulo Serie TV all'interno del macro-dominio Media:
+- **Integrazione TMDB & Ricerca**: Ricerca globale, arricchimento metadati (cast, locandine, stagioni, episodi, generi, piattaforme JustWatch) e sincronizzazione asincrona.
+- **Liste Multimediali & Filtri Avanzati**: Tabelle ponte per liste personali, incrocio liste, estrazione casuale titoli e filtri in memoria RAM.
+- **Social & Condivisione Recensioni**: Valutazioni in stelle, commenti ai thread con menzioni `@amico`, notifiche con deep-linking diretto e messaggi effimeri.
+- **Refactoring Architetturale Strict**: Separazione rigorosa tra UI e hook di logica, eliminazione completa di qualsiasi tipo `any` e file snelli (<300 righe).
 
 ---
 
-### [TECH-001] Controllo & Ottimizzazione Bundle APK Android (Code-Splitting) (🟢 Completato)
+## 🛒 2. Spesa, Prodotti, Marchi & Amministrazione
+
+### [SHOPPING-019] Inserimento Nuovo Brand e Nuovo Fornitore dalla Data Grid Lotti (🟢 Completato)
 
 #### 📋 Descrizione
-Verifica e ottimizzazione del processo di compilazione dell'APK eseguito da `build_apk.ps1`, separando i chunk desktop e mobile per ridurre l'impronta di memoria e la dimensione del pacchetto finale installato su dispositivi Android.
+Nella Data Grid Revisione Lotti Spesa (sezione Admin), i campi **Brand** e **Fornitore** supportano la digitazione libera con completamento automatico tramite `<input type="text" list=datalist>`:
+- Se il nome digitato non corrisponde ad alcun elemento in archivio, una mini-etichetta verde avvisa che il nuovo elemento verrà creato al salvataggio.
+- Al click su Salva Row (o Salva Tutte), il sistema crea prima il nuovo brand o il nuovo fornitore via API `POST /api/shopping/brands` con deduplicazione/promozione automatica nel backend e aggiorna istantaneamente il mazzo di carte in RAM, poi aggiorna il lotto con l'ID appena ottenuto.
 
 ---
 
-### [SHOPPING-017] Supporto Marche, Prezzi e Storico Acquisti nell'Inserimento Rapido Catalogo Spesa (🟢 Completato)
+### [SHOPPING-018] Tracciamento Brand nei Lotti Spesa & Risoluzione Ambiguità Multi-Marca (🟢 Completato)
 
 #### 📋 Descrizione
-Nella vista "Inserimento Rapido Catalogo" per la preparazione della lista della spesa, i prodotti canonici sono ora arricchiti con le relative marche collegate, l'ultimo prezzo d'acquisto pagato, il supermercato/fornitore relativo e l'indicatore di gradimento (👍/👎). Su Desktop viene visualizzata una fisarmonica (accordion) integrata nella riga della tabella; su Mobile viene aperto un modale centrato touch-friendly con backdrop scuro in ossequio alla Regola d'Oro per la Mobile UI. L'utente può aggiungere alla lista la variante specifica di una marca mantenendo intatto lo storico statistico e dei prezzi.
+Risolta l'anomalia per cui gli articoli con molteplici marchi censiti (es. *'pizza'* associata a *'bufalina'* ed *'emozione'* presso il fornitore *'gustus'*) appiattivano tutte le righe sul primo brand censito:
+- **Database & Alembic**: Aggiunta la colonna `brand_id BIGINT REFERENCES shopping_suppliers(id)` con relativo indice nella tabella `inventory_batch`.
+- **Backend & Schemi**: DTO e query aggiornate per associare univocamente il marchio a ciascun acquisto e storico prezzi, consentendo a ciascuna sottomarca di mostrare il proprio prezzo e negozio indipendente.
 
-#### ⚙️ Dettagli Implementazione & Funzionalità Raggiunte
-- **Backend & Schemi**:
-  - `_enrich_products_with_last_purchases` in [`backend/domains/shopping/service.py`](file:///c:/Users/user/Documents/PYTHON/VxAme14/backend/domains/shopping/service.py): calcolo ed estrazione dell'ultimo lotto d'acquisto registrato per ciascun prodotto e per ciascuna marca collegata.
-  - Parsing del nome articolo per estrarre la marca tra parentesi (es. *"Pasta (Barilla)"*).
-  - Estensione di `ShoppingProductResponse` e `ShoppingProductBrandResponse` in [`backend/domains/shopping/schemas/catalog.py`](file:///c:/Users/user/Documents/PYTHON/VxAme14/backend/domains/shopping/schemas/catalog.py) con `last_price`, `last_supplier_name`, `last_purchase_date`.
-- **Frontend Desktop**:
-  - [`ShoppingQuickCatalogTable.tsx`](file:///c:/Users/user/Documents/PYTHON/VxAme14/frontend/src/components/shared/shopping/ShoppingQuickCatalogTable.tsx) & [`ShoppingQuickCatalogBrandSubRow.tsx`](file:///c:/Users/user/Documents/PYTHON/VxAme14/frontend/src/components/shared/shopping/ShoppingQuickCatalogBrandSubRow.tsx): visualizzazione ad accordion con badge interattivo `N marche ▾` e prezzo minimo indicativo `da X,XX €`. Espansione con riga generica e righe per ciascuna marca, con checkbox indipendente, badge di gradimento, negozio, data e prezzo.
-- **Frontend Mobile**:
-  - [`MobileQuickCatalogBrandModal.tsx`](file:///c:/Users/user/Documents/PYTHON/VxAme14/frontend/src/mobile/components/shopping/MobileQuickCatalogBrandModal.tsx): modale centrato con backdrop oscurato e opzioni verticali touch-friendly.
-  - [`MobileShoppingQuickCatalog.tsx`](file:///c:/Users/user/Documents/PYTHON/VxAme14/frontend/src/mobile/components/shopping/MobileShoppingQuickCatalog.tsx): visualizzazione badge marche e apertura modale al tocco.
-- **Ricerca & Integrazione Lista Spesa**:
-  - Filtro di ricerca istantaneo in memoria (RAM) in [`useShoppingQuickCatalogLogic.ts`](file:///c:/Users/user/Documents/PYTHON/VxAme14/frontend/src/components/shared/shopping/useShoppingQuickCatalogLogic.ts) esteso ai nomi delle marche collegate.
-  - `handleToggleCatalogItem` in [`useShoppingCoreListLogic.ts`](file:///c:/Users/user/Documents/PYTHON/VxAme14/frontend/src/hooks/shopping/useShoppingCoreListLogic.ts) esteso per supportare l'aggiunta con marca target, impostando `brandId`, `brandName` e `brandNotes`.
+---
+
+### [SHOPPING-017] Marche, Prezzi e Storico Acquisti nell'Inserimento Rapido Catalogo Spesa (🟢 Completato)
+
+#### 📋 Descrizione
+Nell'inserimento rapido dal catalogo tabellare della spesa, aggiunta la visualizzazione delle sottomarche collegate a ciascun prodotto, con indicazione dell'ultimo prezzo e negozio registrato, e possibilità di selezionare direttamente la marca desiderata con un tocco.
 
 ---
 
 ### [SHOPPING-016] Micro Split-Pill Valutazione Brand, Pareggiamento Colonne Data Grid & Snellimento Scontrini (🟢 Completato)
 
 #### 📋 Descrizione
-Evoluzione dell'esperienza di valutazione marchi nelle griglie amministrative ad alta densità: sostituzione del campo testuale `Note` con una micro-colonna di valutazione compatta e reattiva, pareggiamento geometrico delle colonne Prodotto e Brand nella Data Grid Revisione Lotti, riduzione della colonna Prodotto e rimozione della sezione inferiore ridondante nella pagina Inserimento Rapido Scontrini.
-
-#### ⚙️ Dettagli Implementazione & Funzionalità Raggiunte
-- **Componente Atomico [`BrandPreferenceSplitPill.tsx`](file:///c:/Users/user/Documents/PYTHON/VxAme14/frontend/src/components/shared/shopping/BrandPreferenceSplitPill.tsx)**:
-  - Formato micro split-pill `[ 👍 | 👎 ]` (~56-64 px) con singolo tocco toggle on/off:
-    - Click su `👍`: assegna valutazione positiva (memorizza nel DB l'etichetta descrittiva `"👍 Consigliato"`). Secondo click disattiva a neutro (`NULL`).
-    - Click su `👎`: assegna valutazione negativa (memorizza nel DB `"👎 Da evitare"`). Secondo click disattiva a neutro (`NULL`).
-  - **Doppio Click con Popover Note**: Aprendo un micro-editor al doppio click, consente l'immissione o rettifica al volo di una nota testuale personalizzata (es. *"ottima qualità bio"*).
-  - **Indicatore Visivo & Tooltip**: Mostra l'icona 💬 quando è presente un commento testuale e tooltip descrittivo nativo al passaggio del mouse.
-- **Data Grid Revisione Lotti Spesa ([`AdminShoppingDataGridSection`](file:///c:/Users/user/Documents/PYTHON/VxAme14/frontend/src/components/admin/shopping/AdminShoppingDataGridSection.tsx) / [`AdminShoppingDataGridRow`](file:///c:/Users/user/Documents/PYTHON/VxAme14/frontend/src/components/admin/shopping/AdminShoppingDataGridRow.tsx))**:
-  - Pareggiata la larghezza delle colonne Prodotto e Brand alla stessa identica misura (`min-w-[220px] w-56`).
-  - Inserita la colonna `Val.` (`w-20`) tra Brand e Punto Vendita.
-  - Sincronizzazione automatica al salvataggio (singolo o massivo) verso la tabella permanente di catalogo `shopping_product_brands`.
-- **Inserimento Rapido Scontrini ([`AdminReceiptQuickEntrySection`](file:///c:/Users/user/Documents/PYTHON/VxAme14/frontend/src/components/admin/AdminReceiptQuickEntrySection.tsx) / [`AdminReceiptQuickEntryRow`](file:///c:/Users/user/Documents/PYTHON/VxAme14/frontend/src/components/admin/AdminReceiptQuickEntryRow.tsx))**:
-  - Ridotta la colonna Nome Prodotto a `w-48` / `min-w-[170px]` per fare spazio alla nuova colonna `Val.` senza generare overflow orizzontale.
-  - Pre-caricamento automatico della preferenza da catalogo in RAM quando si seleziona una combinazione Prodotto-Brand già recensita.
-  - Rimossa la sezione inferiore di editing sessione lotti (`AdminReceiptSessionBatchesSection`), rendendo l'interfaccia leggera e al 100% focalizzata sull'immissione veloce continua.
+Rifiniture visive e funzionali nelle interfacce amministrative e catalogo spesa:
+- Micro split-pill `[ 👍 | 👎 ]` per esprimere pareri qualitativi rapidi sui singoli marchi con visualizzazione compatta e tooltip.
+- Pareggiamento delle larghezze delle colonne nella Data Grid Lotti per evitare disallineamenti durante lo scroll orizzontale.
+- Snellimento della vista scontrini per visualizzare i totali di spesa della sessione in corso in modo più compatto e pulito.
 
 ---
 
 ### [SHOPPING-015] Calcolo Inverso da Prezzo Unitario nelle Pagine Amministrative (🟢 Completato)
 
 #### 📋 Descrizione
-Implementata la modalità di calcolo inverso del dato mancante (quantità o prezzo totale) tramite doppio click sul campo del prezzo per unità di misura nelle viste amministrative riservate (`AdminReceiptQuickEntryRow` e `AdminShoppingDataGridRow`). Se entrambi i dati canonici sono già presenti, la modifica del prezzo unitario resta tassativamente disabilitata per proteggere l'integrità dei dati immessi.
-
-#### ⚙️ Dettagli Implementazione & Funzionalità Raggiunte
-- **Condizione di Blocco Rigorosa**:
-  - Quando sia la Quantità che il Prezzo Totale sono presenti e maggiori di zero, la cella del Prezzo Unitario è in sola lettura: il doppio click è disabilitato e non apre alcun campo di input.
-- **Sblocco Condizionale su Dato Mancante**:
-  - Se manca la Quantità (vuota o zero) e il Prezzo Totale è noto: doppio click sul prezzo unitario consente di inserire il valore al kg/lt; alla conferma (`Invio` o `Blur`), il sistema calcola e compila istantaneamente la Quantità $\text{Quantità} = \frac{\text{Prezzo Totale}}{\text{Prezzo Unitario}}$ (fino a 3 cifre decimali).
-  - Se manca il Prezzo Totale (vuoto o zero) e la Quantità è nota: doppio click consente di inserire il prezzo unitario; alla conferma, calcola e compila istantaneamente $\text{Prezzo Totale} = \text{Quantità} \times \text{Prezzo Unitario}$ (a 2 decimali).
-  - Tasto `Esc` per annullare senza modificare.
+Nelle tabelle e form di inserimento spesa, implementata la funzionalità di calcolo inverso: inserendo il prezzo unitario e il prezzo totale viene calcolata automaticamente la quantità, oppure inserendo quantità e totale viene calcolato il prezzo unitario, con protezione anti-sovrascrittura quando entrambi i campi sono già valorizzati.
 
 ---
 
 ### [SHOPPING-014] Supporto Universale Separatori Decimali (Virgola e Punto) & Regola d'Oro (🟢 Completato)
 
 #### 📋 Descrizione
-Risolto il problema per cui i campi numerici con `<input type="number">` sui browser con locale italiano (`it-IT`) scartavano il tasto del punto (`.`) dal tastierino numerico o dalla tastiera standard. Codificata e applicata la nuova Regola d'Oro generale che impone su tutta l'applicazione (Web e Mobile) l'accettazione universale di virgola e punto.
-
-#### ⚙️ Dettagli Implementazione & Funzionalità Raggiunte
-- **Modulo Centralizzato [`decimalUtils.ts`](file:///c:/Users/user/Documents/PYTHON/VxAme14/frontend/src/utils/decimalUtils.ts)**:
-  - `sanitizeDecimalString(val)`: consente solo cifre, virgola e punto, prevenendo doppi separatori consecutivi (es. `12..5` o `12,,5`) durante la battitura.
-  - `parseDecimalValue(val, defaultValue)`: converte in modo sicuro qualsiasi stringa con `,` o `.` in float JavaScript (`number`).
-- **Standard Architetturale Regola d'Oro 5 Codificata in `AGENTS.md` e `GEMINI.md`**:
-  - Divieto di usare `<input type="number">` standard.
-  - Adozione obbligatoria di `type="text" inputMode="decimal"`.
-- **Applicazione nelle Griglie Amministrative**:
-  - Aggiornati i campi di quantità e prezzo in `AdminShoppingDataGridRow.tsx`, `AdminReceiptQuickEntryRow.tsx`, `useAdminReceiptQuickEntryLogic.ts` e `ShoppingQuantityInput.tsx`.
+Risolto il problema del blocco del tasto punto (`.`) sui browser in lingua italiana:
+- Rimozione sistematica di `<input type="number">` da tutti i campi numerici decimali dell'applicazione in favore di `<input type="text" inputMode="decimal">`.
+- Creazione e impiego centralizzato degli helper `sanitizeDecimalString` e `parseDecimalValue` in `decimalUtils.ts` per accettare indistintamente virgola e punto sia da tastiera fisica che da tastierino virtuale mobile.
 
 ---
 
-### [SHOPPING-013] Valutazione & Opinioni sui Marchi dei Prodotti (Opzione C) (🟢 Completato)
+### [SHOPPING-013] Valutazione & Opinioni sui Marchi dei Prodotti (Opzione C - 👍/👎) (🟢 Completato)
 
 #### 📋 Descrizione
-Introdotto un sistema completo per consentire agli utenti di registrare un gradimento permanente (👍 Gradito / 👎 Da evitare / ⚪ Neutro + commento memorizzabile) per la combinazione Prodotto + Marchio (es. Farina Barilla: 👍 Buona; Farina Granoro: 👎 Non ricomprare). La preferenza viene memorizzata nel catalogo e mostrata con badge e alert visivi per prevenire acquisti sgraditi.
-
-#### ⚙️ Dettagli Implementazione & Funzionalità Raggiunte
-- **Backend & Database**:
-  - Estesa la persistenza del mapping Brand-Prodotto con campi per il rating (`rating`: `'like' | 'dislike' | 'neutral'`) e `rating_notes`.
-  - Nuovi endpoint protetti nel router shopping per la lettura e il salvataggio atomico delle preferenze marchio.
-- **Frontend & Integrazione UI**:
-  - Creato il componente [`BrandPreferenceRatingControl.tsx`](file:///c:/Users/user/Documents/PYTHON/VxAme14/frontend/src/components/shared/shopping/BrandPreferenceRatingControl.tsx).
-  - Integrato nei modali di creazione/modifica articolo (`ShoppingItemModal.tsx`, `MobileShoppingItemForm.tsx`).
-  - Badge di avviso colorato nell'autocomplete dei marchi e alert rosso marcato nelle righe della lista della spesa desktop e mobile quando un marchio è contrassegnato come sconsigliato.
+Sistema per esprimere e consultare opinioni qualitative sui marchi dei prodotti del catalogo spesa:
+- Selettore a due stati (pollice in su / pollice in giù) con possibilità di inserire note di testo permanenti su pregi, difetti o resa del prodotto.
+- Memorizzazione nella tabella ponte `shopping_product_brands` ed evidenziazione visiva con badge di avvertimento nei modali di selezione prodotto per evitare l'acquisto di marchi sconsigliati.
 
 ---
 
 ### [SHOPPING-012] Hub Amministrazione Desktop con Data Grid Spesa, Eventi e Attività (🟢 Completato)
 
 #### 📋 Descrizione
-Potenziamento della console amministrativa per superuser: raggruppamento delle funzionalità shopping sotto una macro-scheda "Spesa" con tabs segmentate (Inserimento Scontrini, Data Grid Revisione Lotti, Unione Prodotti Duplicati) ed estensione dello schema Data Grid ad alta densità anche per Eventi e Attività/Task senza ricorrere a pgAdmin.
-
-#### ⚙️ Dettagli Implementazione & Funzionalità Raggiunte
-- **Hub Amministrazione Spesa (Proposta A)**: macro-scheda con selettore a pillole segmentate.
-- **Data Grid Revisione Lotti Spesa**: modifica inline, calcolo istantaneo prezzo unitario, filtri date, brand, fornitori, anomalie e salvataggio massivo in memoria.
-- **Strumento Unione Prodotti Duplicati**: interfaccia a 2 colonne per migrare lotti d'acquisto e liste ed eliminare duplicati.
-- **Data Grid Eventi & Attività**: gestione tabellare ad alta densità con correzione inline date, riassegnazione cross-utente e filtri RAM.
+Console unificata per SuperUser (`/admin`) con tabelle ad alta densità informativa per la modifica massiva in linea di scontrini, lotti di magazzino spesa, eventi di calendario e task dell'agenda, completa di filtri rapidi e salvataggio batch.
 
 ---
 
 ### [SHOPPING-011] Gestione ed Editing Rapido Scontrini della Sessione in Corso (🟢 Completato)
 
 #### 📋 Descrizione
-Introduzione di un pannello di controllo ed editing immediato nella pagina di registrazione rapida scontrini riservata all'amministratore/superuser (`AdminReceiptQuickEntrySection`), consentendo di visualizzare, modificare qualsiasi campo o eliminare all'istante le righe appena registrate durante la sessione senza dover navigare nell'Archivio Prezzi.
-
-#### ⚙️ Dettagli Implementazione & Funzionalità Raggiunte
-- **Custom Hook `useAdminReceiptSessionBatches`**:
-  - Mantiene lo stato in memoria RAM dei lotti registrati nella sessione attiva (`sessionBatches`).
-  - Carica automaticamente all'apertura i lotti inseriti nella giornata odierna (`loadTodayBatches`) per preservare la continuità anche in caso di refresh della pagina.
-  - Al salvataggio di uno scontrino (`createQuickPriceBatch`), i record restituiti dal server vengono catturati e aggiunti istantaneamente in cima alla lista.
-  - Fornisce funzioni per il salvataggio modifiche (`updateInventoryBatch`) e la cancellazione con conferma (`deleteInventoryBatch`), sincronizzando transparentemente sia lo stato locale in RAM che il ricaricamento dei cataloghi/autocompletamento.
-- **Componente Visivo `AdminReceiptSessionBatchesSection`**:
-  - Posizionato direttamente sotto al modulo di inserimento scontrino.
-  - Mostra il riepilogo conteggio articoli e totale monetario speso nella sessione (`€`).
-  - Tabella completa con colonne Data, Prodotto, Brand (badge), Supermercato/Negozio (badge), Quantità con formattazione dinamica fino a 3 decimali (es. `0,104 kg` o `1 pz`), Prezzo Totale e Prezzo Unitario.
-  - Azioni rapide per riga: pulsante ✏️ (Modifica) che apre il modale completo e pulsante 🗑️ (Elimina) con alert di conferma.
-  - Stato vuoto elegante con placeholder esplicativo in assenza di registrazioni.
-- **Supporto Eliminazione in `ShoppingEditBatchModal`**:
-  - Aggiunto il pulsante 🗑️ Elimina Registrazione nei footer sia desktop (`BaseModal`) che mobile (`MobileBaseModal`) quando la prop `onDelete` è fornita.
+Interfaccia di consultazione e modifica rapida per gli scontrini e le sessioni di acquisto appena registrate, consentendo di correggere prezzi, negozi o quantità senza dover riaprire singolarmente ciascun lotto nell'archivio storico.
 
 ---
 
 ### [SHOPPING-010] Precisione Quantità e Pesature Spesa a 3 Decimali (NUMERIC 12,3) (🟢 Completato)
 
 #### 📋 Descrizione
-Estensione della precisione numerica delle quantità acquistate nel modulo Shopping per gestire correttamente valori inferiori all'unità e pesature al banco (es. `0,104 kg` / `104 grammi`), risolvendo il troncamento forzato al primo decimale (`0,1`).
-
-#### ⚙️ Dettagli Implementazione & Funzionalità Raggiunte
-- **Database & Migrazione Alembic Idempotente**:
-  - Creata la migrazione `b1c2d3e4f5a6_alter_quantity_columns_to_numeric_12_3.py`.
-  - Aggiornate le colonne `inventory_batch.quantity_purchased` e `shopping_list_items.quantity` da `NUMERIC(12, 2)` a `NUMERIC(12, 3)`.
-  - Eseguita con successo la migrazione sia sul database di collaudo locale `test-smart` (`alembic-test.bat upgrade head`) sia sul database di produzione reale del NAS `family-smart` (`alembic-prod.bat upgrade head`).
-- **Modelli SQLAlchemy & Schemi Pydantic**:
-  - Allineati `backend/domains/shopping/models/inventory.py` e `backend/domains/shopping/models/lists.py`.
-  - Aggiornati gli schemi Pydantic (`InventoryBatchBase`, `QuickPriceRecordCreate`, `InventoryBatchUpdate`, `ShoppingListItemCreate`, `ShoppingListItemUpdate`) impostando `decimal_places=3`.
-  - Separato il validatore di troncamento: `_truncate_quantity` preserva 3 cifre decimali (`0.001`), mantenendo `_truncate_2_decimals` rigorosamente a 2 cifre (`0.01`) per i prezzi monetari.
-- **Frontend & Arrotondamenti Stepper**:
-  - Aggiornato `ShoppingQuantityInput.tsx` per calcolare gli step e gli arrotondamenti su base millesimale (`Math.round(nextNum * 1000) / 1000`), evitando artefatti di floating point in JavaScript.
+Aggiornamento dello schema database e dei DTO per supportare quantità e pesature a tre cifre decimali (`NUMERIC(12, 3)`), garantendo la corretta registrazione di acquisti al banco o pesature di precisione (es. 0,250 kg di affettato o 1,125 kg di frutta) senza arrotondamenti arbitrari.
 
 ---
 
 ### [SHOPPING-009] Allineamento "Mazzo di Carte" Cross-Dominio & Rimozione Limiti Catalogo (🟢 Completato)
 
 #### 📋 Descrizione
-Eliminazione dei limiti forzati di default imposti dal backend (`limit=20`, `limit=50`, `limit=100`) su catalogo shopping, eventi, interazioni/notifiche e feedback, riallineando l'intera applicazione al principio architetturale aureo "Mazzo di Carte" (dati scaricati integralmente in RAM del client, filtri e logica interattiva gestiti in React).
+Rimossi i limiti forzati di default (es. `limit=50`) dagli endpoint di lettura catalogo shopping, fornitori, marchi, eventi e feedback, consentendo al frontend di caricare l'intero archivio in memoria RAM all'avvio e svolgere ricerche, filtri e ordinamenti istantanei a latenza zero.
 
-#### ⚙️ Dettagli Implementazione & Funzionalità Raggiunte
-- **Catalogo Shopping (`/products`, `/suppliers`, `/brands`)**:
-  - Rimosso il `limit=20` predefinito negli endpoint backend del catalogo shopping.
-  - Risolta l'anomalia per cui nell'inserimento rapido scontrini alcuni prodotti già registrati non venivano rilevati nell'autocompletamento o comparivano solo i primi 20 in ordine alfabetico.
-- **Agenda & Eventi (`/events`)**:
-  - Resi opzionali `limit` e `offset` nel router, service e repository di `events`.
-  - Il frontend riceve l'intero archivio eventi per consentire visualizzazione annuale, filtri per categoria e ricerche storiche senza troncamenti a 100 impegni.
-- **Notifiche & Interazioni (`/interactions`)**:
-  - Reso opzionale `limit` nell'endpoint `/interactions` per garantire che tutte le notifiche di sistema restino permanenti e storicizzate nella sidebar senza autodistruggersi o scomparire oltre la 50esima.
-- **Segnalazioni Feedback (`/feedback/reports`, `/feedback/reports/me`)**:
-  - Resi opzionali `limit` e `offset` nel router e service, e rimosso l'hardcoding `limit: 100` in `feedbackApi.ts`.
+---
+
+### [SHOPPING-008] Refactoring Catalogo Prodotti, Tabella Ponte N:N con Note & Compattazione DB (🟢 Completato)
+
+#### 📋 Descrizione
+Disaccoppiamento strutturale tra prodotti generici e marchi/produttori tramite l'introduzione della tabella ponte `shopping_product_brands`, dotata di note personalizzate e recensioni, consentendo la corretta associazione di molteplici brand a un singolo articolo del catalogo.
+
+---
+
+### [SHOPPING-007] Inserimento Rapido Catalogo & Selezione Multipla Spesa (Sposta/Copia/Elimina) (🟢 Completato)
+
+#### 📋 Descrizione
+- **Catalogo A-Z Rapido**: Accesso discreto (doppio click su desktop o long-press su icona borsa su mobile) alla vista tabellare A-Z per aggiungere o rimuovere al volo articoli dalla lista della spesa con semplici checkbox.
+- **Selezione Multipla**: Modalità di selezione batch attiva sia su desktop che su smartphone per spostare, copiare o eliminare in blocco articoli tra liste diverse, con protezione automatica dello storico delle liste già completate.
+
+---
+
+### [SHOPPING-006] Ordinamento Intuitivo Unità di Misura Spesa (Canoniche + Alfabetico Comune) (🟢 Completato)
+
+#### 📋 Descrizione
+Riorganizzazione dei menu di selezione dell'unità di misura nella spesa: posizionamento in cima delle unità canoniche più utilizzate (`pz`, `kg`, `g`, `l`, `confezione`) separate da un divisore visivo, seguite dall'elenco completo in ordine alfabetico.
+
+---
+
+### [FEAT-002] Gestione Inventario Spesa, Inserimento Prezzi & Lotti (`inventory_batches`) (🟢 Completato)
+
+#### 📋 Descrizione
+Introduzione del tracciamento dei lotti di acquisto nella spesa (`inventory_batch`) con supporto a data di acquisto, data di scadenza, prezzo unitario, prezzo totale, sconti/offerte, negozio e quantità residua.
+
+---
+
+### [SEED-001] Pulizia Dati Seed Prodotti (Disaccoppiamento Brand e Catalogo Asettico) (🟢 Completato)
+
+#### 📋 Descrizione
+Bonifica del database iniziale di seed: rimozione delle denominazioni di marca inserite impropriamente nel nome del prodotto (es. *"Pasta Barilla"* trasformata in prodotto *"Pasta"* con fornitore/marca associata *"Barilla"*), ripristinando un catalogo neutro e modulare.
+
+---
+
+### [SEED-002] Snapshot & Dump Completo Seeds CSV (🟢 Completato)
+
+#### 📋 Descrizione
+Strumento di esportazione integrale dal database dello stato reale di 7 file CSV (inclusa la tabella ponte `shopping_product_brands`), con archiviazione automatica snapshot sul NAS e generazione di archivio ZIP scaricabile.
+
+---
+
+### [BACKUP-001] Backup & Restore Generale Database su NAS Storage (40 tabelle, JSON.GZ) (🟢 Completato)
+
+#### 📋 Descrizione
+Modulo completo di sicurezza per il backup compresso (`.json.gz`) dell'intero patrimonio dati dell'applicazione (40 tabelle) memorizzato sul filesystem del NAS, con interfaccia amministrativa protetta (`AdminDatabaseBackupsCard.tsx`), ripristino atomico transazionale e riallineamento delle sequenze PostgreSQL.
+
+---
+
+## 🛠️ 3. Core, Infrastruttura, Brand & Mobile UI
+
+### [CORE-001] Refactoring Globale & Pulizia Architetturale (0 any, 19 domini) (🟢 Completato)
+
+#### 📋 Descrizione
+Intervento strutturale di refactoring trasversale su Backend e Frontend: azzeramento completo del debito tecnico, tipizzazione strict a zero `any` in tutto il frontend, collaudo dei 19 domini FastAPI/SQLAlchemy e conformità alle regole architetturali ("Mazzo di Carte", gestione piuma e modularità).
+
+---
+
+### [CORE-002] Refactoring Continuo, Modularità & Cleanup Codice (File <300 righe) (🟢 Completato)
+
+#### 📋 Descrizione
+Attività continuativa di scomposizione dei macro-file React (`SeriesDetailModal`, `EpisodeDetailView`, `SeriesReviewTab`, `AdminFeedbackSection`, `useMobileDayLogic`) in componenti visivi snelli (<300 righe) e custom hook dedicati per la separazione tra logica e rendering.
+
+---
+
+### [REBRAND-001] Rebranding App con Nome "Vita" e Nuova Icona Applicazione (🟢 Completato)
+
+#### 📋 Descrizione
+Rebranding ufficiale dell'applicazione: cambio del nome in "Vita", aggiornamento del logo con l'identità visiva V-Leaf, aggiornamento di tutte le favicon SVG, manifest PWA, configurazioni Capacitor Android e testi di interfaccia.
+
+---
+
+### [MEDIA-001] Upload Foto Dispositivo, Caching URL, GIF As-Is & WebP (🟢 Completato)
+
+#### 📋 Descrizione
+Sistema centralizzato per la gestione dei media visivi dell'applicazione: caricamento da dispositivo o fotocamera, download e caching automatico da link URL web, supporto intatto a GIF animate e conversione automatica WebP a 960px per foto statiche con serving statico montato su `/uploads`.
+
+---
+
+### [CAL-001] Sincronizzazione Timezone Google Calendar (+2h fix) & Preselezione Data (🟢 Completato)
+
+#### 📋 Descrizione
+- Risolto lo sfasamento orario di 2 ore nella sincronizzazione con Google Calendar causato dall'errata combinazione di offset UTC con il parametro `timeZone`.
+- Pre-selezione automatica del giorno visualizzato corrente durante la creazione di eventi nella DayPage Mobile.
+
+---
+
+### [FEAT-007] Sistema Amicizie & Condivisione Recensioni (Social/Sharing Network) (🟢 Completato)
+
+#### 📋 Descrizione
+Sistema di connessione tra utenti con gestione richieste di amicizia, livelli di privacy granulari (Privato, Amici, Pubblico), condivisione di recensioni con medie voti ricalcolate, thread di discussione e menzioni `@username` con autocompletamento in tempo reale.
+
+---
+
+### [FEAT-008] Sistema Segnalazione Errori, Feedback & Bug Report (Telemetria & Admin) (🟢 Completato)
+
+#### 📋 Descrizione
+Sistema integrato end-to-end per la segnalazione di anomalie da parte degli utenti con raccolta automatica del contesto tecnico e telemetria (errori API recenti, versione app, route, user agent), upload screenshot e pannello di gestione dedicato per SuperUser in `/admin`.
+
+---
+
+### [FEAT-012] Pagina di Avvio Pinnata / Selezione Landing Page Predefinita (🟢 Completato)
+
+#### 📋 Descrizione
+Possibilità per ciascun utente di scegliere nelle Impostazioni quale schermata dell'applicazione visualizzare automaticamente all'avvio (es. Homepage, Agenda Giorno, Spesa, Serie TV).
+
+---
+
+### [OFFLINE-001] Modalità Offline-First & Sincronizzazione Differita (Outbox Sync) (🟢 Completato)
+
+#### 📋 Descrizione
+Persistenza locale su IndexedDB (`@tanstack/react-query-persist-client` e `idb-keyval`) e coda Outbox per registrare mutazioni (task, note, spesa) in assenza di rete, con sincronizzazione trasparente al ripristino della connettività.
+
+---
+
+### [UI-001] Selezione Multipla nella Versione Mobile (Spesa e Agenda) (🟢 Completato)
+
+#### 📋 Descrizione
+Modalità di selezione multipla con long-press e barra azioni contestuale su smartphone per eseguire operazioni massive su articoli della spesa, impegni di calendario e task.
+
+---
+
+### [TECH-001] Controllo & Ottimizzazione Bundle APK Android (Code-Splitting) (🟢 Completato)
+
+#### 📋 Descrizione
+Isolamento dei moduli e componenti desktop dalla build mobile Capacitor (`npm run build:mobile`), con riduzione drastica del bundle iniziale dell'APK e ottimizzazione dei tempi di avvio su smartphone.
+
+---
+
+### [TECH-002] Spostamento Tasto Switch in Impostazioni / Danger Zone (🟢 Completato)
+
+#### 📋 Descrizione
+Spostamento dei comandi di commutazione manuale tra modalità Desktop e Mobile dalle aree operative di lavoro alla sezione Danger Zone delle impostazioni, per evitare cambi di vista accidentali.
+
+---
+
+### [TECH-003] Persistenza Volume Uploads su Docker NAS (🟢 Completato)
+
+#### 📋 Descrizione
+Mappatura permanente della cartella `/app/uploads` del backend sul volume fisico del server NAS (`/share/CACHEDEV1_DATA/Container/uploads`) per preservare le immagini caricate dagli utenti attraverso gli aggiornamenti dei container Docker.
+
+---
+
+### [TECH-004] Reverse Proxy Nginx, Routing API & Crash AppShellLayout (Docker) (🟢 Completato)
+
+#### 📋 Descrizione
+Allineamento delle route del reverse proxy in `nginx.conf` (aggiunte interazioni, social, trackers, feedback) e introduzione di controlli difensivi anti-fallback HTML per prevenire crash nei container Docker di produzione.
+
+---
+
+### [TECH-005] Risoluzione 502 Bad Gateway NAS & Automated Docker Smoke Test (🟢 Completato)
+
+#### 📋 Descrizione
+Risolto il crash in avvio del backend FastAPI dovuto a import mancanti nel modulo trackers e integrato uno smoke test automatico in `deploy_build_pc.ps1` per bloccare il rilascio in caso di anomalie di avvio.
+
+---
+
+### [TECH-006] Allineamento Migrazioni Alembic DB Produzione (NAS) & Fix Login 500 (🟢 Completato)
+
+#### 📋 Descrizione
+Bonifica delle migrazioni Alembic storiche con clausole difensive `IF NOT EXISTS` e allineamento dello schema PostgreSQL del NAS alla versione HEAD, risolvendo errori 500 in fase di autenticazione.
 
 ---
 
 ### [TECH-007] Configurazione TMDB Produzione NAS & Fix 500 Ricerca Serie (🟢 Completato)
 
 #### 📋 Descrizione
-Diagnosi e risoluzione dell'errore HTTP `500 (Internal Server Error)` restituito dalle chiamate API verso TheMovieDatabase (`/series/search`, `/tmdb/genres`, `/tmdb/providers`) dopo il deployment sul NAS QNAP, e bonifica del falso errore 404 per gli obiettivi annuali serie TV non ancora configurati.
-
-#### ⚙️ Dettagli Implementazione & Funzionalità Raggiunte
-- **Root Cause Analysis (Causa dell'HTTP 500)**:
-  - In ambiente locale di test (`test.bat`), `APP_ENV=test` caricava `backend/.env.test` dove `TMDB_API_KEY` e `TMDB_READ_ACCESS_TOKEN` erano presenti e valorizzati.
-  - In produzione sul NAS (`APP_ENV=prod`), il container Docker veniva avviato senza le variabili d'ambiente di TMDB, e `backend/.env.prod` ne era privo.
-  - La funzione `get_tmdb_headers()` in `backend/domains/trackers/service.py` sollevava un'eccezione HTTP 500 (`TMDB API non configurata (Token mancante)`) bloccando qualsiasi ricerca o catalogo serie TV.
-- **Configurazione e Deployment NAS**:
-  - Inserite le credenziali `TMDB_API_KEY` e `TMDB_READ_ACCESS_TOKEN` in `backend/.env.prod`, `backend/.env.prod.foggia` e `backend/.env.prod.vieste`.
-  - Aggiornato `deploy_nas.sh` includendo le variabili `-e TMDB_API_KEY` e `-e TMDB_READ_ACCESS_TOKEN` nel comando `docker run` per il container `backend`.
-  - Documentati i parametri e le variabili in `docs/DEPLOYMENT_NAS_QNAP.md`.
-- **Pulizia Log Endpoint Obiettivi Annuali**:
-  - Modificato l'endpoint `/users/me/yearly-goals/{tracker_type}` in `backend/domains/users/router.py` affinché restituisca `200 OK` con valore `null` anziché `404 Not Found` quando non esiste ancora un record per l'anno in corso, eliminando i messaggi d'errore rossi nella console del browser.
-
----
-
-### [TECH-006] Allineamento Migrazioni Alembic DB Produzione (NAS) & Fix Login 500 (✅ Completato)
-
-#### 📋 Descrizione
-Diagnosi e risoluzione dell'errore HTTP `500 (Internal Server Error)` restituito dalla rotta `/auth/login` dopo il deployment sul NAS QNAP, e bonifica strutturale delle migrazioni Alembic per garantire idempotenza e allineamento trasparente tra ambiente di sviluppo e produzione.
-
-#### ⚙️ Dettagli Implementazione & Funzionalità Raggiunte
-- **Root Cause Analysis (Causa dell'HTTP 500 al login)**:
-  - Il database di produzione sul NAS (`family-smart` su PostgreSQL) era fermo alla revisione Alembic `a282ff0494d6`.
-  - Il modello SQLAlchemy `User` referenziava colonne aggiunte in migrazioni successive (`profile_picture_url`, `default_startup_page`, `module_preferences` introdotte in `189c36cbe774`).
-  - Durante l'accesso (`/auth/login`), la query `users_repo.get_by_username()` generava l'eccezione `UndefinedColumn: column users.profile_picture_url does not exist`, provocando il fallimento con status 500.
-- **Idempotenza delle Migrazioni Alembic Storiche**:
-  - Rese completamente resilienti e idempotenti le migrazioni che fallivano in caso di indici o tabelle già preesistenti (`IF NOT EXISTS` / `if_exists=True`):
-    - `a007ba13ba83`: rimosso drop accidentale di `shopping_product_brands`.
-    - `1a169030e611`, `49954307e44a`, `17c037efa957`, `c9e47583cd2f`, `3a87b89f56d8`, `02fe1ea0d62c`, `c8a6d18e94b6`: applicato `if_exists=True` su `drop_index` di `ix_feedback_reports_created_at`.
-    - `4f099aed880c`: creata tabella `tv_user_series_logs` con `CREATE TABLE IF NOT EXISTS`.
-    - `n3o4p5q6r7s8`: creata tabella `shopping_product_brands` e indice univoco con clausole `IF NOT EXISTS`.
-    - `9887b53d6bfe`: resa idempotente la tabella `tv_user_platforms`.
-    - `z9y8x7w6v5u4`: rese idempotenti le tabelle `series_match_sessions` e `series_match_participants`.
-- **Esecuzione Upgrade Produzione (`alembic-prod.bat`)**:
-  - Aggiornato `alembic-prod.bat` per puntare direttamente all'endpoint accessibile da rete locale (`192.168.11.20:5432/family-smart`).
-  - Eseguito `alembic upgrade head`, portando il database `family-smart` alla versione di testa `z9y8x7w6v5u4`.
-- **Verifica**:
-  - Chiamata endpoint `/auth/login` verificata con successo via HTTP (restituisce 401 per credenziali errate anziché 500 con eccezione database).
-
----
-
-### [TECH-005] Risoluzione 502 Bad Gateway NAS & Automated Docker Smoke Test (✅ Completato)
-
-#### 📋 Descrizione
-Diagnosi e risoluzione dell'errore HTTP `502 (Bad Gateway)` restituito dal container Nginx (`vxame14_frontend`) su tutte le chiamate API (`/users/me`, `/categories`, ecc.) dopo il deployment sul NAS QNAP.
-
-#### ⚙️ Dettagli Implementazione & Funzionalità Raggiunte
-- **Root Cause Analysis (Causa del crash)**:
-  - Il container `backend` sul NAS andava in continuo crash loop all'avvio a causa di un'eccezione Python `NameError: name 'date' is not defined` nella firma della funzione `add_episode_log` all'interno di `backend/domains/trackers/service.py`.
-  - Poiché il backend crashava in frazioni di secondo, la porta 8000 non veniva mai aperta (`TcpTestSucceeded: False`). Di conseguenza, Nginx su porta 8181 non riusciva a contattare il backend proxy e restituiva `502 Bad Gateway`.
-- **Correzione Python (`backend/domains/trackers/service.py`)**:
-  - Aggiunto `from __future__ import annotations` e importato esplicitamente `date` da `datetime` (`from datetime import date, datetime, timezone`).
-  - Bonificati e riallineati gli import deprecati in `backend/services/analytics_prices.py` e convertito `backend/add_col.py` in codifica UTF-8 pulita priva di byte nulli.
-- **Automated Docker Smoke Test in `deploy_build_pc.ps1`**:
-  - Introdotto uno step automatico `1.1 Smoke test avvio Backend nel container` che esegue un test di avvio di `backend.main` nel container Docker appena compilato (`docker run --rm ... python -c "import backend.main"`).
-  - Se il backend presenta anche un solo errore di import o di sintassi, il processo di build su Windows si arresta all'istante con un errore bloccante, impedendo l'esportazione di file `.tar` corrotti verso il NAS.
-- **Health Check Automatico in `deploy_nas.sh`**:
-  - Aggiunta una verifica dello stato del container backend dopo il comando alembic (`docker ps --filter "name=backend" --filter "status=running"`): se il container non è attivo, stampa immediatamente gli ultimi 30 log d'errore a terminale.
-
----
-
-### [TECH-004] Reverse Proxy Nginx, Routing API & Crash AppShellLayout in Docker (✅ Completato)
-
-#### 📋 Descrizione
-Risoluzione del crash `TypeError: t.filter is not a function at K (AppShellLayout-....js)` verificatosi durante l'esecuzione dell'applicazione via container Docker (immagine web server Nginx).
-
-#### ⚙️ Dettagli Implementazione & Funzionalità Raggiunte
-- **Configurazione Nginx Reverse Proxy (`frontend/nginx.conf`)**:
-  - Inserite le route API mancanti nel pattern regex del blocco proxy verso `backend:8000`: `/interactions`, `/social`, `/trackers`, `/feedback`, `/planning`.
-  - In precedenza, la mancanza di `/interactions` e `/social` causava il fallback automatico di Nginx su `index.html` (comportamento Single Page Application), restituendo il markup HTML con codice 200 anziché il JSON degli elenchi.
-- **Scudo Anti-Fallback SPA in `frontend/src/api/apiService.ts`**:
-  - Aggiunto controllo preventivo che rileva se un endpoint API risponde con `Content-Type: text/html` o con un markup che inizia per `<!DOCTYPE`. In tal caso viene sollevata un'eccezione esplicita, impedendo che stringhe HTML contaminino lo stato o la cache di TanStack Query.
-- **Validazione Difensiva Array (`useNotifications.ts`, `useSocial.ts`, `NotificationsSidebar.tsx`)**:
-  - Tutte le query e i selettori verificano rigorosamente la natura di array dei dati (`Array.isArray(data) ? data : []`) prima di invocare `.filter()`, `.map()` o `.sort()`, garantendo resilienza totale a livello di interfaccia.
-
----
-
-### [SHOPPING-008] Refactoring Catalogo Prodotti, Tabella Ponte Brand N:N con Note & Compattazione DB (✅ Completato)
-
-#### 📋 Descrizione
-Disaccoppiamento del modello catalogo prodotti (shopping_products) per renderlo asettico e privo di duplicazioni (un solo record per tipo prodotto, es. una sola 'farina'). Creazione della tabella ponte molti-a-molti shopping_product_brands tra prodotti e marchi/fornitori con supporto a note e commenti qualitativi persistenti nel tempo (es. 'ottimo', 'da evitare'), con compattazione del database e integrazione UI desktop e mobile.
-
-#### ⚙️ Dettagli Implementazione & Funzionalità Raggiunte
-- **Catalogo Canonico Puro (shopping_products)**: Rimosso il campo rand_id e la relazione 1-a-1 diretta con i fornitori; applicato vincolo di unicità UNIQUE su 
-ame_normalized (uq_shopping_products_name_normalized).
-- **Tabella Ponte N:N (shopping_product_brands)**: Creata con i campi id, product_id (FK CASCADE), rand_id (FK CASCADE), 
-otes (TEXT), created_at, updated_at e vincolo UNIQUE (product_id, brand_id).
-- **Compattazione & Deduplicazione Automatica DB**: Procedura SQL transazionale eseguita all'avvio (ensure_database_schema_compat) e via migrazione Alembic (
-3o4p5q6r7s8) che riassegna le chiavi esterne di liste e lotti/acquisti al record prodotto canonico ed elimina i record duplicati orfani.
-- **Repository, Service & API REST**:
-  - POST /shopping/products/{product_id}/brands: endpoint per associare o aggiornare le note del brand.
-  - DELETE /shopping/products/{product_id}/brands/{brand_id}: endpoint per dissociare il brand.
-  - Ricerca, filtri e seeder aggiornati per popolare e utilizzare la tabella ponte.
-- **Frontend & UI/UX (Desktop & Mobile)**:
-  - **Autocomplete Prodotti**: L'utente visualizza un catalogo pulito senza duplicati.
-  - **Form Inserimento / Modifica Articolo** (ShoppingItemModal.tsx e MobileShoppingItemForm.tsx): Box interattivo 💡 Note e marchi già provati che mostra i brand già recensiti con le relative note storiche; cliccando su un badge viene selezionato direttamente quel brand.
-  - **Dropdown Brand** (ShoppingBrandAutocomplete.tsx): Mostra il badge *Consigliato* e le note qualitative associate sotto ciascun marchio.
-
----
-
-
-### [FEAT-002] Gestione Avanzata Inventario, Prezzi Rapidi & Lotti Spesa (✅ Completato)
-
-#### 📋� Descrizione
-Modulo completo per l'inserimento rapido dei prezzi a catalogo, tracciamento storico prezzi (SEED & utente), modifica ed eliminazione rilevazioni personali e selezione/creazione supermercati.
-
-#### ⚙️� Dettagli Implementazione & Funzionalità  Raggiunte
-- **Autocomplete Spesa Mobile**: Suggerimenti in tempo reale nella barra di aggiunta rapida della spesa su mobile.
-- **Visualizzazione Prezzi SEED**: Rettificata la visibilità  dei prezzi SEED e di catalogo nello storico prezzi dei prodotti per tutti gli utenti.
-- **Conversione Decimale Prezzi**: Auto-conversione al volo della virgola `,` in punto `.` nei campi prezzo su mobile e desktop.
-- **Modifica ed Eliminazione Rilevazioni**: Modale dedicato `ShoppingEditBatchModal` ed icona cestino affiancata alla matita nello storico prezzi.
-- **DatePicker & Menu Negozi Standard**: Integrato il `DatePicker` dell'applicazione ed il componente `ShoppingSupplierSelect` (con auto-fetch dei negozi) nel modale di modifica del prezzo.
-- **Portal Overlay ed Eliminazione Scrollbar**: Renderizzato `ShoppingSupplierSelect` tramite React Portal su `document.body` (`usePortal=true`) con posizionamento sincrono per evitare che la lista estenda l'altezza dei modali causando la comparsa della scrollbar laterale.
-- **Centratura Overlay su Mobile**: Configurati `DatePicker` (`overlay={isMobile}`) e `ShoppingSupplierSelect` (`asModal={isMobile}`) per aprirsi come finestre modali modellate al centro dello schermo su dispositivi mobile.
-- **Inserimento Rapido Prezzi Desktop & Mobile**: Modale espanso `max-w-5xl` senza scrollbar orizzontale, campo quantità  fino a 3+ cifre, pulsante `+` nel titolo colonna Negozio e menu a tendina "Associa a Lista Spesa (Opzionale)" in alto con visualizzazione del nome del gruppo (es. `👥 Famiglia`).
-- **Layout Modale a 2 Finestre Affiancate (`sidePanel`)**: Riprogettate le modali di modifica articolo acquistato e rilevazione prezzo in 2 finestre affiancate (stile albero delle task): pannello sinistro per *Dettagli Acquisto* (Prezzo Unitario, Prezzo Totale, Valuta, Negozio, Data Acquisto, Offerta) e pannello principale per *Proprietà  Prodotto* (Nome, Marca, Lista, Quantità , Unità  di Misura, Note).
-- **Simmetria Visiva Quantità  & Unità **: Allineati simmetricamente i campi Quantità  e Unità  di Misura con etichette visive superiori uniformi.
-- **Modifica Completa nello Storico Prezzi Archivi**: Estesa la modale a 2 finestre alla modifica dello Storico Prezzi (`ShoppingEditBatchModal`), consentendo la modifica contestuale sia del prezzo che dei dettagli prodotto (Nome, Marca, Lista, Quantità , Unità , Note).
-- **Protezione Dati SEED & Permessi Batch**: I dati del primo inserimento (lotti SEED `id <= 41`) non mostrano i tasti di modifica/eliminazione agli utenti standard (visibili solo a SuperUser). I lotti non associati a liste (`list_item_id is None`) creati da un utente sono visibili unicamente dall'autore e dagli Admin, impedendo l'accesso e la modifica ad altri utenti fuori dal gruppo.
-- **Persistenza Salvataggio Prezzi & Batch Utente**: Risolto un disallineamento nell'invio del prezzo totale di acquisto al backend ed estesa la gestione di `update_inventory_batch` in `service.py` per collegare/creare l'elemento di lista e persistere note, unità  e lista selezionata anche per i rilevamenti prezzo nati senza `list_item_id`.
-- **Pre-selezione Lista & Gestione Ruoli Gruppo nello Storico Prezzi**: Inclusi `shopping_list_id` e `unit_id` nella risposta API e pre-selezionata la lista nel modale di modifica. Applicata la verifica dei ruoli del gruppo (`owner`, `admin`, `editor`, `reader`): per gli utenti con ruolo Lettore (`reader`), i tasti di modifica/eliminazione vengono nascosti (sola visualizzazione) e bloccati con risposta HTTP 403 Forbidden dal server backend.
-- **Fix Z-Index Negozio Mobile**: Modale di selezione e creazione negozio portati a `z-[20000]` per sovrapporsi correttamente alla modale rapida mobile.
-- **Invarianza Case-Insensitive Gruppi**: Invito membri nei gruppi spesa reso totalmente case-insensitive lato backend.
-- **[SHOPPING-006] Ordinamento Intuitivo Unità  di Misura Spesa (✅ Completato)**: Riorganizzato l'elenco delle unità  di misura (`ShoppingUnitSelect`) nei form di inserimento/modifica articolo e archivio prezzi. Mantenuti invariati in testa i primi 3 gruppi canonici (Pesi/Masse, Liquidi/Volumi, Lunghezze) seguiti da una linea di confine divisoria e da tutte le altre unità  (imballaggi, contenitori, porzioni) raggruppate in stretto ordine alfabetico con ordinamento dinamico per eventuali nuove unità  inserite a sistema.
-
----
-
-### [UI-001] Selezione Multipla nella Versione Mobile (✅ Completato)
-
-#### 📋� Descrizione
-Modalità  di selezione multipla (*Multi-Select Mode*) integrata e attiva nell'interfaccia mobile per consentire operazioni massive rapide con touch / tap prolungato e barra azioni contestuali.
-
-#### 🎯 Ambiti di Applicazione Integrati
-1. **🛒 Spesa Mobile (`MobileShoppingView`)**:
-   - Selezione multipla di articoli per completamento in blocco, eliminazione, archiviazione o spostamento liste/gruppi.
-2. **📋… Agenda, Task & Eventi Mobile (`MobileHomeView`, `MobileDayView`)**:
-   - Selezione multipla e azioni batch per task, eventi di calendario e log abitudini/routine.
-
-#### 🛠️� Dettagli Tecnici Raggiunti
-- **Contesto Globale Mobile**: Gestito tramite [`MobileSelectionContext.tsx`](file:///c:/Users/Fabrizio/Desktop/app/smart/v14/frontend/src/mobile/context/MobileSelectionContext.tsx).
-- **Trigger & UI**: Long press e pulsanti dedicati nell'header mobile ([`MobileHeader.tsx`](file:///c:/Users/Fabrizio/Desktop/app/smart/v14/frontend/src/mobile/components/MobileHeader.tsx)), checkbox rotondi e action bar contestuale.
-
----
-
-### [OFFLINE-001] Modalità  Offline-First con Caching Locale & Sincronizzazione Differita (Outbox Queue) (✅ Completato)
-
-#### 📋� Descrizione
-Consentire l'utilizzo completo dell'applicazione (lettura, inserimento, modifica ed eliminazione di task, note, liste spesa, abitudini ed eventi) anche quando lo smartphone è offline o non ha ancora stabilito il tunnel Tailscale VPN. Al ripristino della connettività , tutte le modifiche accumulate in locale vengono inviate automaticamente e in modo trasparente al backend (*Sync Queue / Outbox Pattern*).
-
-#### 🎯 Obiettivi & Casi d'Uso Chiave Raggiunti
-1. **Disponibilità  Immediata (Zero Latenza)**:
-   - All'apertura dell'app, i dati (agenda, spesa, note, abitudini) vengono caricati istantaneamente dallo storage locale (IndexedDB), senza attendere la risposta di rete.
-2. **Modifiche Offline Senza Blocchi**:
-   - Spunta articoli al supermercato (anche in zone senza copertura cellulare).
-   - Creazione rapida di task, appunti o cambio stato abitudini durante spostamenti offline.
-3. **Sincronizzazione Differita Automatica**:
-   - Rilevamento automatico dello stato online/offline (`navigator.onLine` e ping Tailscale).
-   - Svuotamento sequenziale della coda delle mutazioni verso il backend al ripristino del collegamento.
-
-#### 🛠️� Dettagli Architetturali & Tecnologici Implementati
-- **1. Storage Locale Persistente**:
-  - Persistenza della cache API tramite **TanStack Query Persist** (`@tanstack/react-query-persist-client`) con driver **IndexedDB** (`idb-keyval`) in [`indexedDbPersister.ts`](file:///c:/Users/Fabrizio/Desktop/app/smart/v14/frontend/src/offline/indexedDbPersister.ts).
-  - Retention locale a 7 giorni (`gcTime: 7d`) per navigazione offline prolungata.
-- **2. Coda delle Mutazioni (Outbox Pattern)**:
-  - Modulo [`outboxStore.ts`](file:///c:/Users/Fabrizio/Desktop/app/smart/v14/frontend/src/offline/outboxStore.ts) (Zustand + IndexedDB) per registrare operazioni mutative in assenza di rete.
-  - Intercettazione trasparente in [`api/client.ts`](file:///c:/Users/Fabrizio/Desktop/app/smart/v14/frontend/src/api/client.ts) con risposta ottimistica positiva.
-- **3. Sync Engine Sequenziale**:
-  - Modulo [`syncEngine.ts`](file:///c:/Users/Fabrizio/Desktop/app/smart/v14/frontend/src/offline/syncEngine.ts) con svuotamento FIFO e gestione retry/backoff.
-- **4. UI & Indicatori di Stato**:
-  - Modale di ispezione e forzatura sincronizzazione manuale [`OfflineQueueModal.tsx`](file:///c:/Users/Fabrizio/Desktop/app/smart/v14/frontend/src/components/shared/offline/OfflineQueueModal.tsx).
-
----
-
-### [TECH-002] Spostamento Tasto Switch "Vista Mobile / Vista Desktop" (✅ Completato)
-
-#### 📋� Descrizione
-I pulsanti di commutazione manuale tra modalità  Desktop e Mobile sono stati rimossi dalle aree principali di lavoro e spostati nelle rispettive sezioni di impostazione avanzate:
-1. **Desktop**: Spostato in **Impostazioni > Zona Pericolo** ([`DangerZoneSection.tsx`](file:///c:/Users/Fabrizio/Desktop/app/smart/v14/frontend/src/components/settings/DangerZoneSection.tsx)).
-2. **Mobile Web**: Spostato in **Impostazioni**, posizionato subito prima di *"Esci dal profilo"* ([`MobileSettingsView.tsx`](file:///c:/Users/Fabrizio/Desktop/app/smart/v14/frontend/src/mobile/views/MobileSettingsView.tsx)) e nascosto automaticamente sull'app nativa Capacitor.
-
----
-
-### [TECH-003] Persistenza Volume Uploads su Docker NAS (✅ Completato)
-
-#### 📋� Descrizione
-Aggiunta del flag per i volumi Docker in `deploy_nas.sh` e `docker-compose.yml` per mappare la cartella `/app/uploads` del backend su una cartella fisica del NAS (`/share/CACHEDEV1_DATA/Container/uploads`). Questo previene la perdita permanente delle immagini caricate dagli utenti (e altre risorse multimediali) ogni volta che il container viene aggiornato o riavviato tramite il processo di build automatizzato.
-
----
-
-### [CORE-001] Refactoring Globale & Pulizia Architetturale (✅ Completato)
-
-#### 📋� Descrizione
-Intervento strutturale di refactoring trasversale su Backend e Frontend completato con successo: debito tecnico azzerato, flussi di dati standardizzati, 0 `any` nel Frontend e 19 domini collaudati nel Backend.
-
-#### 🛠️� Risultati Raggiunti
-
-1. **Backend (Python / FastAPI / SQLAlchemy)**:
-   - ✅ **Tutti i 19 domini architetturali** aderiscono ai pattern standardizzati (models, schemas, repository, service, router) e sono collaudati al 100%.
-   - ✅ Gestione centralizzata delle eccezioni, date UTC e validazioni Pydantic v2.
-   - ✅ Database e storico migrazioni Alembic allineati e certificati.
-
-2. **Frontend (React 19 / TypeScript / Vite)**:
-   - ✅ **Zero `any` in tutto il progetto**: tipizzazione strict su tutti i moduli, DTO e modali.
-   - ✅ **Snellimento e Scomposizione Modulare**: Scomposti e snelliti tutti i file di grandi dimensioni (`AdminFeedbackSection`, `FeedbackModal`, `MobileFeedbackModal`, `useMobileDayLogic`, `MobileDayView`, `useShoppingItemsColumn`, `useYearEntries`) in sotto-hook e componenti grafici dedicati (riduzione fino al 90% delle righe, rispetto assoluto del principio DRY).
-   - ✅ **Code-Splitting APK & Lazy Loading**: isolamento completo dei file desktop dalla build mobile (`npm run build:mobile`), con riduzione dell'82% del bundle iniziale.
-   - ✅ **Regola del "Mazzo di Carte" applicata**: logica di filtraggio, ricerca in RAM e calcolo sotto-task gestita interamente nel frontend con reattività  a 0 ms.
-   - ✅ **Correzione Rotazione Citazioni**: mazzo di 50 citazioni integrato in RAM offline, risolto il blocco su Seneca.
-
----
-
-### [MEDIA-001] Upload Foto Dispositivo, Caching URL, GIF As-Is & WebP (✅ Completato)
-
-#### 📋� Descrizione
-Sistema centralizzato per la gestione dei media visivi dell'applicazione (Routine, Countdown, ecc.): salvataggio su disco anziché su database (per azzerare l'impatto sul DB), upload da dispositivo (PC o smartphone), caching automatico da link URL web, supporto nativo a GIF animate (as-is) e conversione WebP a 960px per foto statiche.
-
-#### 🛠️� Risultati Raggiunti
-1. **Backend FastAPI**:
-   - ✅ Nuovo dominio `backend/domains/media/` con endpoint `POST /media/upload` (multipart) e `POST /media/fetch-url` (download asincrono con `httpx`).
-   - ✅ Pipeline intelligente con `Pillow`: le GIF animate vengono preservate byte-for-byte con loop e fotogrammi intatti; le foto statiche (JPG, PNG) vengono ridimensionate proporzionalmente a max 960px e convertite in `.webp` (~30-50 KB).
-   - ✅ Serving statico sicuro montato su `/uploads` con persistenza garantita su cartella del server.
-2. **Frontend Desktop & Mobile**:
-   - ✅ Pulsante compatto con icona foto nei form di Routine e Countdown (Desktop e Mobile) per upload immediato da dispositivo o fotocamera.
-   - ✅ Download e caching trasparente su blur quando viene incollato un link web esterno.
-   - ✅ Utility `resolveImageUrl` per gestire in modo trasparente URL relativi `/uploads/...` sia su Web sia su Mobile (Capacitor/Tailscale).
-
----
-
-### [CAL-001] Sincronizzazione Timezone Google Calendar & Preselezione Data Mobile DayPage (✅ Completato)
-
-#### 📋� Descrizione
-Risolti due problemi critici di sincronizzazione e usabilità  relativi al modulo Calendario ed Eventi:
-1. **Sfasamento Orario Google Calendar (+2h)**: Risolto il problema per cui la sincronizzazione con Google Calendar alterava l'orario di inizio e fine evento di +2 ore rispetto all'orario salvato nell'app (dovuto all'interpretazione UTC dell'API v3 di Google per payload privi di `timeZone`).
-2. **Pre-selezione Data Corrente su Mobile DayPage**: Cliccando su "Nuovo Evento" dal menu veloce (+) in Mobile DayView mentre si osserva un giorno specifico (es. 20/09), il form di creazione ora si apre pre-impostato su quel giorno anziché forzare la data odierna.
-
-#### 🛠️� Risultati Raggiunti
-1. **Backend (`backend/domains/google_calendar/service.py`)**:
-   - ✅ Rilevamento automatico e fallback resiliente del fuso orario del calendario Google (`get_calendar_timezone`, default `Europe/Rome`).
-   - ✅ Formattazione ISO naive locale con associazione esplicita del parametro `"timeZone": time_zone` sia su `start` che su `end` nel payload evento, evitando doppi offset e conversioni arbitrarie verso UTC.
-   - ✅ Parsing bidirezionale accurato (`_parse_google_datetime`) sia per timestamp ISO con offset esplicito (+02:00) sia per timestamp UTC (`Z`), convertendoli nel corretto orario locale prima del salvataggio nel database locale.
-2. **Frontend (`frontend/src/mobile/hooks/useMobileHeaderLogic.ts`)**:
-   - ✅ `handleNewEvent` integrato con `DayContext` (`useDayOptional`), passando la data visualizzata corrente a `openEventForm(null, dateStr)` in rotta `/giorno`.
-
----
-
-### [FEAT-008] Sistema di Segnalazione Errori, Feedback & Bug Report (✅ Completato)
-
-#### 📋� Descrizione
-Un sistema integrato end-to-end che consente agli utenti dell'applicazione (sia da Desktop sia da Smartphone Android) di inviare segnalazioni su bug riscontrati, problemi di layout, anomalie o proporre suggerimenti. Il sistema include la raccolta automatica del contesto tecnico (versione app, piattaforma, route corrente, stacktrace ed eventuali errori API recenti) per azzerare lo sforzo dell'utente e facilitare la risoluzione immediata da parte degli sviluppatori e amministratori.
-
-#### 🛠️� Risultati Raggiunti
-
-1. **Backend FastAPI (`backend/domains/feedback/`)**:
-   - ✅ Modello SQLAlchemy `FeedbackReport` con campi: `report_type` (`bug`, `visual`, `feature_request`, `other`), `severity` (`low`, `medium`, `high`, `critical`), `status` (`new`, `in_progress`, `resolved`, `dismissed`), `app_version`, `platform`, `current_route`, `error_context` (JSON), `screenshot_url` e `admin_notes`.
-   - ✅ DTO Pydantic v2 strict con validazioni e relazioni utente eager-loaded (`user_username`, `user_email`).
-   - ✅ Endpoint REST completi: `POST /feedback/reports` (creazione segnalazione), `GET /feedback/reports` (elenco completo con filtri riservato a SuperUser), `GET /feedback/reports/{id}`, `PATCH /feedback/reports/{id}` (modifica stato/note admin), `DELETE /feedback/reports/{id}` e `GET /feedback/my-reports`.
-   - ✅ Migrazione Alembic `m2n3o4p5q6r7_add_feedback_reports_table.py` e allineamento idempotente in `ensure_database_schema_compat()`.
-
-2. **Frontend Desktop & Mobile**:
-   - ✅ **Telemetria in RAM (`telemetry.ts`)**: buffer circolare per gli ultimi 15 errori API e crash applicativi, con helper `getDiagnosticContext()` che raccoglie versione app, piattaforma, route, risoluzione schermo e user agent.
-   - ✅ **Intercettore Axios**: registrazione automatica degli errori HTTP nel buffer di telemetria.
-   - ✅ **Modale Universale `FeedbackModal.tsx`**: modale responsive per inviare segnalazioni categorizzate, con selettore di gravità , upload screenshot (formato WebP ottimizzato via endpoint `/media/upload`), e toggle/ispettore per il contesto diagnostico.
-   - ✅ **Integrazione nei 4 Punti Chiave**:
-     - *Changelog Modal & Mobile Changelog*: pulsante footer per segnalare anomalie sulla versione installata.
-     - *Impostazioni Utente & Mobile Settings*: voce dedicata per invio rapido di feedback e segnalazioni.
-     - *Error Boundary (`AppErrorBoundary.tsx`)*: cattura dei crash React con registrazione automatica dello stacktrace e tasto rapido di segnalazione precompilata.
-     - *Schermate di Errore (`PageErrorState.tsx`)*: pulsante per inviare segnalazione direttamente dalla schermata di errore.
-
-3. **Pannello Amministratore (`/admin`)**:
-   - ✅ Nuova scheda **"Feedback & Bug Report"** in `AdminPage.tsx` con KPI (totale, nuove da gestire, in lavorazione, risolte), filtri per stato/gravità /tipologia e ricerca full-text.
-   - ✅ Modale di ispezione e gestione: visualizzatore screenshot ad alta risoluzione con zoom fullscreen, ispettore del contesto tecnico JSON, dropdown per cambio stato e textarea per salvare note interne di risoluzione.
-
----
-
-#### [REBRAND-001] Rebranding App con Nome "Vita" e Cambio Icona (✅ Completato)
-- **Descrizione**: Rebranding dell'applicazione con la nuova denominazione "Vita" e sostituzione dell'icona applicativa (sia per la versione Web/Favicon che per l'APK Android nativo con Capacitor).
-- **Stato**: 🟢 Completato.
-
-#### [TRACKERS-003] Fix Visualizzazione Serie & Restyling Modale (Settembre 2026)
-- **Descrizione**: Risolto il bug di visualizzazione causato dall'errata lettura delle properties piatte (invece che nested) e implementati accorgimenti al modale SeriesDetailModal.
-- **Da completare (Feedback Utente)**: Rimuovere riga verticale colonna sinistra, unire tutto, ridurre testo trama/titolo, spostare serie consigliate a destra e farle card piccole, limitare scorrimento orizzontale cast, aggiunta liste personalizzate e tasto incrocio amici.
-- **Stato**: 🟢 Completato.
-
-
-### [TRACKERS-001] Integrazione Backend per Recensioni, Commenti e Notifiche
-
-#### à°Å¸â€œÂ� Descrizione
-Implementare il salvataggio reale dei commenti e delle recensioni degli amici, rimuovendo i mock data, e collegare la creazione di un commento alle notifiche dell'inbox con deep-linking diretto. Cliccando la notifica, l'app dovràƒÂ  aprire automaticamente la serie e visualizzare il commento specifico.
-
-#### à¢Å¡â„¢à¯Â¸Â� Dettagli Implementazione Backend
-- **Tabelle / Migrazioni**: La tabella per i commenti esiste giàƒÂ  (Interactions).
-- **Endpoint HTTP**:
-  - GET /trackers/series/{tmdb_id}/friends-reviews (Restituisce i log degli amici con i commenti associati)
-  - GET /trackers/episodes/{episode_id}/friends-reviews (Idem per singoli episodi)
-  - POST /interactions (Usato per creare il commento: interaction_type = "SERIES_REVIEW_COMMENT", 
-eference_id = log_id)
-
-#### à°Å¸â€™Â» Cosa Manca da Implementare nel Frontend
-- [ ] **Data Fetching**: Sostituire MOCK_FRIENDS_SERIES_LOGS e MOCK_FRIENDS_LOGS in SeriesReviewTab.tsx e EpisodeDetailView.tsx con query React Query verso i nuovi endpoint.
-- [ ] **Creazione Commento**: Legare la textarea dei commenti alla mutazione per chiamare POST /interactions.
-- [ ] **Routing Notifiche (Deep-linking)**:
-  - Aggiornare handleNotificationClick in NotificationsSidebar.tsx per supportare il tipo SERIES_REVIEW_COMMENT.
-  - Fare in modo che navighi a /trackers/series?open_review={reference_id}&tmdb_id={serie_id}.
-  - Modificare TVSeriesPage e le modali (SeriesDetailModal, EpisodeDetailView) per leggere questi parametri dall'URL e aprire automaticamente i tab corretti al caricamento.
-
-- **Stato**: 🟢 Completato (Settembre 2026)
-### FIX: Ottimizzazione UI e Bugfix Dettaglio Serie (Settembre 2026)
-- **Stato**: ?? Completato
-- **Dettagli**: 
-  - Risolto bug per cui le citazioni degli episodi svanivano al ricaricamento a causa di un mancato collegamento nella query globale del backend.
-  - Fix per il rendering a 5 stelle della media voti nelle stagioni e nelle recensioni degli amici, che non convertiva il nuovo rating 1-10 del database.
-  - Implementato un indicatore visivo persistente (pallino rosso) sul bottone per le citazioni dell'episodio se ce ne sono di salvate.
-  - Inseriti comandi rapidi di "Modifica" ed "Elimina" recensione direttamente nell'intestazione del popup di lettura dei commenti della propria recensione, uniformati con le icone dell'app.
-
-### [TRACKERS-001] Fix TMDB Ratings for trackers
-- **Stato**: Completato (Aggiunta colonna vote_average al backend e integrata nel frontend)
-
-### [TRACKERS-002] Fix friends status display in Series/Episode header
-- **Stato**: Completato (Risolto con Outer Join su backend e aggiunta skeleton)
-
-### [FEAT-007-EXT] Miglioramenti Sistema Social & Notifiche (Thread, Deep-Linking, UI)
-
-#### ?? Descrizione
-Perfezionamento del sistema di notifiche e interazioni sociali introdotto in FEAT-007, con un focus specifico sulle recensioni di Serie TV ed Episodi.
-
-#### ?? Dettagli Implementazione
-- **Sistema 1 (Iscrizione al Thread)**: Quando un utente partecipa a una discussione (commentando una recensione propria o altrui), riceve una notifica automatica ad ogni nuovo commento aggiunto al thread da altri utenti.
-- **Deep-Linking Avanzato**: Cliccando su una notifica di un commento o di un thread, l'app ora supporta il routing profondo. Viene aperta la modale della serie corretta, selezionata la tab giusta e caricato direttamente il dettaglio della recensione commentata pronto per rispondere.
-- **Prevenzione Notifiche Superflue**: L'autore di una recensione non riceve notifiche quando è lui stesso ad aggiungere un commento alla propria recensione.
-- **Ripristino UI Commenti**: Sistemata l'etichetta visiva ("X commenti") nelle liste delle recensioni (sia proprie che degli amici) che era sparita durante il precedente refactoring.
-
-#### ? Esito
-**Stato**: ?? Completato (Settembre 2026)
-
-### [FEAT-004] Sotto-task Sezione Media Completati (🟢 Completato)
-
-- 📚 **Liste Multimediali Personalizzate**: Creazione di sottoliste miste (es. "MCU", "Da vedere con la ragazza") in cui inserire film, serie o libri. (*UI di gestione liste completata*). Comportamento Homepage vs Sezioni gestito.
-- 🔎 **Ricerca per Lista**: Aggiunta la possibilità di filtrare o cercare elementi in base all'appartenenza a specifiche liste.
-- 💬 **Commenti alle Recensioni & Menzioni**: Sistema per commentare le singole recensioni (tue, amici o pubbliche) con thread visuali a comparsa (chat bubble) e autocompletamento @menzioni.
-- 🔔 **Sistema di Notifiche Avanzato**: Sistema per avvisare l'utente alla ricezione di inviti, commenti o menzioni dirette (@X) nei thread, con deep-linking diretto al commento in questione.
-- 💬 **Messaggistica Istantanea ed Effimera**: Integrazione di messaggi effimeri diretta tra amici.
-- 📡 **Rimozione Dati Mock & Integrazione API**: Sostituzione dei Dati Mock con fetch reali dal Database e logica TMDB / React Query per tutte le sezioni.
-- 🎨 **UI Schermata di Dettaglio Completata**: Design del modale di dettaglio della singola serie completato e rifinito (gestione cast, layout colonne, header integrato, status badge, e pannello liste).
-
-### [FEAT-004] Sotto-task Sezione Media Completati (Ottobre 2026)
-- 📡 **Rimozione Dati Mock & Integrazione API (Completato)**: Sostituzione dei Dati Mock (obiettivo annuale, citazioni, serie recenti, carousel prossime uscite, e Integrazione completa Liste Multimediali e MediaListManagerModal) con fetch reali dal Database e logica TMDB / React Query.
-- 📊 **Statistiche, Piattaforme & Analytics Completati**: Dashboard abitudini completata con switch dinamico Ore/Episodi. Obiettivi annuali modificabili inline con input nativo. Top 10 Hall of Fame rifinita con raggruppamento per serie, aggregazione media dei voti e arrotondamenti precisi tramite StarRating visivo. Gestione piattaforme di visione ottimizzata con AddButton compatto e merging dei default DB.
-- 🎨 **UI Schermata di Dettaglio Completata**: Il design del modale di dettaglio della singola serie è stato completato e rifinito (gestione cast, layout colonne, header integrato, status badge in overlay, e pannello liste).
-- 🤝 **Stato Visione Amici (Completato)**: Agli amici verrà mostrato se una serie la sta guardando un altro amico tramite la sua foto profilo con un bordo colorato associato allo stato di visione.
-
-
-### [SHOPPING-007] Inserimento Rapido Catalogo & Selezione Multipla Spesa (Sposta / Copia / Elimina) (🟢 Completato)
-
-#### 📋 Descrizione
-Implementazione completa su Web-App (Desktop) e Smartphone (Mobile) di due funzionalità cardine del modulo Shopping & Spesa:
-1. **Inserimento Rapido da Catalogo Tabellare A-Z**: selezione rapida degli articoli frequenti del catalogo senza aprire form modali, con aggiunta/rimozione immediata e reattiva tramite checkbox quadrate.
-2. **Selezione Multipla con Spostamento, Copia e Cancellazione Massiva**: gestione in blocco degli articoli con toolbar contestuale (Web) e header di selezione (Mobile), supporto per trasferimento verso altre liste, clonazione preservata da liste chiuse e protezione dello storico.
-
-#### ⚙️ Dettagli Implementazione & Funzionalità Raggiunte
-- **Trigger Invisibili & Zero Impatto Visivo**:
-  - **Desktop (Web-App)**: Doppio click discreto (`onDoubleClick`) sul box del titolo *"Shopping & Spesa"* nell'header della pagina.
-  - **Smartphone (Mobile)**: Pressione prolungata (*Long-press* ~450ms con vibrazione aptica) sull'icona della borsa blu nel selettore in alto della lista attiva.
-  - Entrambi i trigger passano automaticamente alla lista di default (*"Senza lista"*) se la lista attiva corrente è differente.
-- **Vista Tabellare A-Z & Checkbox Reattive**:
-  - Ordinamento alfabetico A-Z dei prodotti del catalogo con separatori di lettere.
-  - Barra di ricerca istantanea A-Z per nome o marca.
-  - Checkbox quadrate reattive per inserimento/rimozione al volo dell'articolo dalla lista spesa con stato ottimistico.
-  - Pulsante *"Fatto"* / *"Chiudi"* per ritornare alla vista standard della lista.
-- **Selezione Multipla & Spostamento Rapido**:
-  - Selezione multipla attivabile tramite click (Desktop) o Long-press (Mobile) sulla riga dell'articolo.
-  - Checkbox quadrate dedicate a sinistra in modalità selezione per evitare interferenze con la funzione "Acquistato" (segna come comprato).
-  - Checkbox master *"Seleziona tutti / Deseleziona tutti"* con gestione stato indeterminato (tri-state).
-  - Pulsante **Sposta in...** (icona freccia blu `ForwardIcon`): apre il modale dedicato per trasferire gli articoli selezionati in un'altra lista aperta.
-- **Copia Rapida & Protezione Liste Chiuse**:
-  - Pulsante **Copia in...** (icona lista verde `TaskListIcon`): clona gli articoli selezionati creando nuovi record nella lista di destinazione prescelta (impostati come *da acquistare*).
-  - **Protezione Liste Chiuse (`isCompleted: true`)**: quando si selezionano articoli da una lista completata/chiusa, i pulsanti *Sposta* ed *Elimina* vengono nascosti/disabilitati per preservare lo storico. Rimane attivo e pienamente fruibile il pulsante *Copia in...*.
-- **Modale Scelta Lista Destinazione (`ShoppingMoveOrCopyModal.tsx`)**:
-  - Ricerca integrata per nome lista o gruppo.
-  - Suddivisione visiva tra *Liste Personali* e *Liste Condivise di Gruppo*.
-  - Esclusione automatica delle liste chiuse come destinazione di sposta/copia.
-- **Integrazione Completa Frontend Mobile**:
-  - Esteso `MobileSelectionContext` con handler `onMove` e `onCopy`.
-  - Aggiornato `MobileSelectionHeader` con icone dedicate per Sposta, Copia, Seleziona Tutto ed Elimina.
-  - Collegato `MobileShoppingModalsContainer` con `ShoppingMoveOrCopyModal`.
-
-#### 🏁 Esito
-**Stato**: 🟢 Completato (Ottobre 2026)
-
-### Task completati in data odierna (Serie TV)
-| **SEED-001** | **Pulizia Dati Seed Prodotti (Disaccoppiamento Brand e Catalogo Asettico)** | shopping / seed | 🟢 Completato | 🟢 Completato | 🟢 **Completato** |
-| **SHOPPING-005** | **Note e Recensioni Prodotti/Brand nel Catalogo (Tabella Ponte N:N con Note)** | shopping | 🟢 Completato | 🟢 Completato | 🟢 **Completato** |
-| **SHOPPING-008** | **Refactoring Catalogo Prodotti, Tabella Ponte N:N con Note & Compattazione DB** | shopping / DB | 🟢 Completato | 🟢 Completato | 🟢 **Completato** |
-| **SHOPPING-006** | **Ordinamento Intuitivo Unità di Misura Spesa (Canoniche + Alfabetico Comune con Divisore)** | `shopping` / UI | 🟢 Completato | 🟢 Completato | 🟢 **Completato** |
-| **SHOPPING-007** | **Inserimento Rapido Catalogo & Selezione Multipla Spesa (Sposta / Copia)** | `shopping` / UI | 🟢 Completato | 🟢 Completato | 🟢 **Completato** |
-  - 🟢 **Completato**: Integrazione **barra di ricerca TMDB inline** direttamente nella grid principale, rimuovendo il modale popup. Digitando si deve aprire un elenco a comparsa per l'aggiunta rapida.
-  - 🟢 **Completato**: **Ricerca per Genere e Piattaforma da Badge**: Cliccando sul badge di un genere (nella card o nel dettaglio serie) l'app filtreràƒÂƒà‚Â /cercheràƒÂƒà‚Â  automaticamente altre serie in lista appartenenti allo stesso genere.
-  - 🟢 **Completato**: **Ricerca Globale Modale Filtri**: Aggiunto toggle per usare l'endpoint Discover di TMDB e cercare globalmente per Generi e Piattaforme.
-
-- **[FEAT-004] Serie TV - Estrazione Casuale**: Aggiunta opzione per estrarre serie non viste o tutta la lista. (Completato)
-- **[FEAT-004] Serie TV - Disponibilità Piattaforme Streaming**: Integrata la visualizzazione accurata delle piattaforme (Netflix, Prime Video, ecc.). (Completato)
-
-### [FEAT-004] Sotto-task Sezione Media Completati (Ottobre 2026)
-- 🟢 **Refactoring Architetturale Modulare Frontend (Serie TV e Inbox) Completato**: Smantellamento dei macro-file React nella sezione Trackers (SeriesDetailModal, TVSeriesPage, EpisodeDetailView) e NotificationsSidebar per aderire strettamente alla regola della separazione logica-visiva e ridurre il peso a <= 20KB per file. La libreria Serie TV ora rispetta alla lettera gli standard.
-
----
-
-### [CORE-002] Refactoring Continuo, Modularità & Cleanup Codice (🟢 Completato - Ottobre 2026)
-
-#### 📋 Descrizione
-Attività continuativa di ottimizzazione e refactoring architetturale per mantenere la codebase snella, modulare e facilmente manutenibile, applicando le 5 Regole d'Oro architetturali ("Mazzo di Carte", "Peso Piuma", "Memoria Strategica", "Zero Tolleranza any", "Suddivisione e Riduzione Peso file").
-
-#### ⚙️ Dettagli Implementazione & Risultati
-1. **Zero Tolleranza Any (Strict TypeScript 100%)**:
-   - Eliminazione completa e definitiva di tutti i tipi `any` residui in tutto il frontend (inclusi `EpisodeDetailView.tsx`, `SeriesReviewTab.tsx`, `SeriesReviewForm.tsx`).
-   - Standardizzazione con interfacce e DTO rigorosi; compilazione `npm run build` (`tsc -b && vite build`) a 0 errori e 0 warning.
-2. **Scomposizione Macro-Componenti e Riduzione Peso**:
-   - **`SeriesReviewTab.tsx`**: Incapsulamento delle 11 variabili di stato form in `SeriesReviewForm.tsx` (con emissione dell'evento `onSave`) e della logica menzioni/commenti in `SeriesReviewDetail.tsx`. Il file genitore opera ora come puro router/orchestratore.
-   - **`AdminReceiptQuickEntrySection.tsx`**: Scorporata la logica complessa di rendering riga, autocompletamenti e rimozione nel nuovo componente `AdminReceiptQuickEntryRow.tsx`, snellendo il componente padre di oltre 150 righe.
-   - **`EpisodeDetailView.tsx`**: Applicata la stessa simmetria di SeriesReviewTab. Estratte oltre 20 variabili di stato e prop-drilling: `EpisodeDetailForm.tsx` gestisce autonomamente il proprio form e `EpisodeReviewDetail.tsx` incapsula interamente la logica dei commenti e dell'autocompletamento delle menzioni `@amico`.
-
----
-
-### [FEAT-007] Sistema di Amicizie & Condivisione Recensioni (Social & Sharing Network) (🟢 Completato - Ottobre 2026)
-
-#### 📋 Descrizione
-Sistema integrato di connessione tra utenti (Amicizie) per la condivisione sociale di contenuti personali, recensioni e valutazioni multimediali.
-
-#### ⚙️ Dettagli Implementazione & Risultati
-1. **Architettura Relazioni & Amicizie**:
-   - Ricerca utenti, invio richieste di amicizia, gestione stati (`pending`, `accepted`, `rejected`, `blocked`) e lista amici attiva con avatar personalizzati o fallback.
-   - Livelli di privacy e visibilità granulari: `Privato` (Solo io), `Amici` (Solo Amici), `Pubblico`.
-2. **Condivisione Recensioni & Interazioni Sociali**:
-   - Recensioni degli amici visibili sia a livello di Serie TV che di singolo Episodio, con medie voti ricalcolate in tempo reale.
-   - Commenti e risposte alle recensioni con thread conversazionale.
-   - Sistema di menzioni `@username` nei commenti con autocompletamento in tempo reale, bolle stile chat e notifiche mirate.
-   - Nuova Inbox Notifiche che unifica messaggistica effimera, richieste di amicizia, inviti ai gruppi spesa e notifiche di sistema.
-
-
----
-
-### [SEED-002] Snapshot & Dump Completo Seeds CSV (🟢 Completato - Ottobre 2026)
-
-#### 📋 Descrizione
-Rigenerazione integrale e pulita di tutti i file CSV di seed in `backend/seeds/` a partire dallo stato reale del database, completa di archiviazione automatica snapshot sul NAS e download pacchetto ZIP.
-
-#### ⚙️ Dettagli Implementazione & Risultati
-1. **7 File CSV Gestiti**:
-   - `config.csv`, `config_codes.csv`, `user_categories.csv`, `shopping_suppliers.csv`, `shopping_products.csv`, `inventory_batch.csv`.
-   - Introdotto il 7° file `shopping_product_brands.csv` per mappare le relazioni N:N tra prodotti e marchi e le relative note di gradimento (`ShoppingProductBrand.notes`).
-2. **Precisione Decimali Rigorosa**:
-   - Prezzi a 2 cifre decimali contabili con virgola (`_format_price`).
-   - Quantità e pesature fino a 3 decimali (`_format_quantity`), preservando il millesimo (`NUMERIC(12, 3)`).
-3. **Triplice Destinazione**:
-   - Sovrascrittura pulita dei file operativi in `backend/seeds/`.
-   - Creazione di una cartella di sicurezza snapshot sul NAS (`/app/backups/csv/snapshot_TIMESTAMP/`).
-   - Download istantaneo dello ZIP per l'utente/admin.
-
----
-
-### [BACKUP-001] Backup & Restore Generale Database su NAS Storage (🟢 Completato - Ottobre 2026)
-
-#### 📋 Descrizione
-Sistema enterprise di backup completo e ripristino per tutte le 40 tabelle dell'applicazione direttamente sul filesystem del NAS.
-
-#### ⚙️ Dettagli Implementazione & Risultati
-1. **Dump JSON Compresso (`.json.gz`)**:
-   - Estrazione ordinata secondo l'ordine topologico di SQLAlchemy di tutte le 40 tabelle.
-   - Ispezione difensiva a caldo delle colonne fisiche reali del database per prevenire errori 500 in caso di migrazioni intermedie.
-   - Salvataggio nella cartella dedicata del NAS (`/app/backups/database`).
-2. **Ripristino Atomico & Transazionale**:
-   - Svuotamento a cascata controllato in ordine inverso di Foreign Key.
-   - Reinserimento a blocchi e commit finale protetto da rollback.
-   - Esecuzione automatica di `sync_all_table_sequences(db)` al termine del restore.
-3. **Interfaccia Admin Protetta (`AdminDatabaseBackupsCard.tsx`)**:
-   - Elenco cronologico backup con dimensione, record e note.
-   - Download locale e rimozione file.
-   - Modale di sicurezza ad alta visibilità con obbligo di digitare `RIPRISTINA` per autorizzare il restore.
+Configurazione delle variabili d'ambiente per le chiavi API TMDB sul server NAS di produzione, risolvendo l'errore HTTP 500 nella ricerca e consultazione delle serie TV.

@@ -22,6 +22,48 @@ export const calculateSeriesRating = (s: TVSeries): number => {
   return 0;
 };
 
+/**
+ * Arrotonda un punteggio (in scala 0-5) a mezze stelle (0, 0.5, 1, ..., 5).
+ */
+export const roundRatingToHalfStar = (val: number): number => {
+  const intPart = Math.floor(val);
+  const frac = val - intPart;
+  if (frac < 0.25) return intPart;
+  if (frac > 0.75) return intPart + 1;
+  return intPart + 0.5;
+};
+
+export interface EpisodePersonalRating {
+  rating: number; // Valore in scala 0.5 - 5.0
+  count: number;  // Numero di log/visioni con voto
+}
+
+/**
+ * Calcola la media dei voti personali dell'utente per un singolo episodio (scala 0.5 - 5.0)
+ * e restituisce sia il voto medio arrotondato a mezze stelle che il conteggio delle recensioni valutate.
+ * Nel DB i rating dei log sono memorizzati su scala 1-10.
+ */
+export const getEpisodePersonalRating = (ep: { logs?: { rating?: number | null }[] }): EpisodePersonalRating | null => {
+  const ratedLogs = (ep.logs || []).filter(
+    (l): l is typeof l & { rating: number } => typeof l.rating === 'number' && l.rating > 0
+  );
+  if (ratedLogs.length === 0) return null;
+  const sumStars = ratedLogs.reduce((acc, l) => acc + l.rating / 2, 0);
+  const avgStars = sumStars / ratedLogs.length;
+  return {
+    rating: roundRatingToHalfStar(avgStars),
+    count: ratedLogs.length,
+  };
+};
+
+/**
+ * Calcola il voto medio personale dell'episodio restituendo direttamente il numero (o null).
+ */
+export const getEpisodeAverageRating = (ep: { logs?: { rating?: number | null }[] }): number | null => {
+  const res = getEpisodePersonalRating(ep);
+  return res ? res.rating : null;
+};
+
 export interface BaseFriendReviewInput {
   friend_id: string | number;
   friend_name: string;

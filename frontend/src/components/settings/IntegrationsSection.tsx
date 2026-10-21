@@ -2,6 +2,7 @@
 import React from 'react';
 import { CalendarIcon, CheckCircleIcon, LoadingIcon } from '@/components/shared/utils/Icons';
 import { useGoogleCalendarIntegration } from '@/hooks/useGoogleCalendarIntegration';
+import { BingersSyncCard } from './BingersSyncCard';
 
 export const IntegrationsSection: React.FC = () => {
   const {
@@ -155,6 +156,9 @@ export const IntegrationsSection: React.FC = () => {
           </div>
         )}
       </div>
+
+      {/* Card Bingers & Portabilità Trackers */}
+      <BingersSyncCard />
     </div>
   );
 };

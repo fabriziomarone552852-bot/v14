@@ -5,6 +5,7 @@ import { StarRating } from './StarRating';
 import { useTrackersMutations } from '@/hooks/mutations/useTrackersMutations';
 import { useSeriesExtras } from '@/hooks/queries/useTrackersQueries';
 import { showTrackerToast } from '@/components/trackers/TrackerToast';
+import { getEpisodePersonalRating, roundRatingToHalfStar } from '@/utils/ratingUtils';
 
 interface SeasonsTabProps {
   tmdbSeries: TMDBSeries;
@@ -13,6 +14,59 @@ interface SeasonsTabProps {
   initialReviewLogId?: number;
   isLoading?: boolean;
 }
+
+interface RewatchControlsProps {
+  count: number;
+  onAdd: (e: React.MouseEvent) => void;
+  onSub: (e: React.MouseEvent) => void;
+  onToggle: (e: React.MouseEvent) => void;
+}
+
+// Componente per i controlli Rewatch che preserva lo spazio fisso
+const RewatchControls: React.FC<RewatchControlsProps> = ({ 
+  count, 
+  onAdd, 
+  onSub, 
+  onToggle 
+}) => {
+  const isWatched = count > 0;
+  return (
+    <div className="relative flex items-center justify-center gap-1 w-[104px] shrink-0" onClick={e => e.stopPropagation()}>
+      <button 
+        className={`w-8 h-8 rounded-full bg-gray-50 text-gray-500 hover:bg-red-50 hover:text-red-600 font-bold text-xs flex items-center justify-center transition-all duration-300 shadow-sm border border-transparent hover:border-red-200 opacity-0 group-hover:opacity-100 pointer-events-none group-hover:pointer-events-auto ${!isWatched ? 'invisible' : ''}`}
+        onClick={onSub}
+        title="Rimuovi una visione"
+      >
+        -1
+      </button>
+
+      <div 
+        className={`w-8 h-8 shrink-0 rounded-full border-2 flex items-center justify-center cursor-pointer transition-colors ${
+          isWatched 
+            ? 'bg-blue-500 border-blue-500 text-white shadow-md' 
+            : 'border-gray-300 text-transparent hover:border-blue-400'
+        }`}
+        onClick={onToggle}
+      >
+        {count > 1 ? (
+          <span className="text-[12px] font-extrabold leading-none tracking-tighter">X{count}</span>
+        ) : (
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+          </svg>
+        )}
+      </div>
+
+      <button 
+        className={`w-8 h-8 rounded-full bg-blue-50 text-blue-600 hover:bg-blue-100 font-bold text-xs flex items-center justify-center transition-all duration-300 shadow-sm border border-transparent hover:border-blue-200 opacity-0 group-hover:opacity-100 pointer-events-none group-hover:pointer-events-auto ${!isWatched ? 'invisible' : ''}`}
+        onClick={onAdd}
+        title="Aggiungi visione"
+      >
+        +1
+      </button>
+    </div>
+  );
+};
 
 export const SeasonsTab: React.FC<SeasonsTabProps> = ({ tmdbSeries, initialEpisode, initialReviewLogId, isLoading, userTracking }) => {
   const [selectedEpisode, setSelectedEpisode] = useState<TMDBEpisode | null>(initialEpisode || null);
@@ -105,14 +159,6 @@ export const SeasonsTab: React.FC<SeasonsTabProps> = ({ tmdbSeries, initialEpiso
     }
   };
 
-  const roundRating = (val: number): number => {
-    const intPart = Math.floor(val);
-    const frac = val - intPart;
-    if (frac < 0.25) return intPart;
-    if (frac > 0.75) return intPart + 1;
-    return intPart + 0.5;
-  };
-
   if (selectedEpisode) {
     // Find latest episode data from tmdbSeries.episodes
     const latestEpisodeData = tmdbSeries.episodes?.find(ep => ep.id === selectedEpisode.id) || selectedEpisode;
@@ -171,60 +217,8 @@ export const SeasonsTab: React.FC<SeasonsTabProps> = ({ tmdbSeries, initialEpiso
   const seasonsList = Object.keys(seasonsMap).map(Number).sort((a,b) => a-b);
 
 
-  // Componente per i controlli Rewatch che preserva lo spazio fisso
-  const RewatchControls = ({ 
-    count, 
-    onAdd, 
-    onSub, 
-    onToggle 
-  }: { 
-    count: number, 
-    onAdd: (e: React.MouseEvent) => void, 
-    onSub: (e: React.MouseEvent) => void, 
-    onToggle: (e: React.MouseEvent) => void 
-  }) => {
-    const isWatched = count > 0;
-    return (
-      <div className="relative flex items-center justify-center gap-1 w-[104px] shrink-0" onClick={e => e.stopPropagation()}>
-        <button 
-          className={`w-8 h-8 rounded-full bg-gray-50 text-gray-500 hover:bg-red-50 hover:text-red-600 font-bold text-xs flex items-center justify-center transition-all duration-300 shadow-sm border border-transparent hover:border-red-200 opacity-0 group-hover:opacity-100 pointer-events-none group-hover:pointer-events-auto ${!isWatched ? 'invisible' : ''}`}
-          onClick={onSub}
-          title="Rimuovi una visione"
-        >
-          -1
-        </button>
-
-        <div 
-          className={`w-8 h-8 shrink-0 rounded-full border-2 flex items-center justify-center cursor-pointer transition-colors ${
-            isWatched 
-              ? 'bg-blue-500 border-blue-500 text-white shadow-md' 
-              : 'border-gray-300 text-transparent hover:border-blue-400'
-          }`}
-          onClick={onToggle}
-        >
-          {count > 1 ? (
-            <span className="text-[12px] font-extrabold leading-none tracking-tighter">X{count}</span>
-          ) : (
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-            </svg>
-          )}
-        </div>
-
-        <button 
-          className={`w-8 h-8 rounded-full bg-blue-50 text-blue-600 hover:bg-blue-100 font-bold text-xs flex items-center justify-center transition-all duration-300 shadow-sm border border-transparent hover:border-blue-200 opacity-0 group-hover:opacity-100 pointer-events-none group-hover:pointer-events-auto ${!isWatched ? 'invisible' : ''}`}
-          onClick={onAdd}
-          title="Aggiungi visione"
-        >
-          +1
-        </button>
-      </div>
-    );
-  };
-
   return (
     <div className="flex flex-col gap-4 animate-fadeIn">
-      
       {seasonsList.map(seasonNumber => {
         const seasonEpisodes = seasonsMap[seasonNumber];
         const isExpanded = expandedSeason === seasonNumber;
@@ -243,24 +237,21 @@ export const SeasonsTab: React.FC<SeasonsTabProps> = ({ tmdbSeries, initialEpiso
           seasonMinWatchCount = 0;
         }
 
-        // Media Voti
+        // Media Voti Stagione
         let totalSeasonRating = 0;
         let ratedEpisodesCount = 0;
 
         seasonEpisodes.forEach(ep => {
-          const ratedLogs = (ep.logs || []).filter((l): l is typeof l & { rating: number } => typeof l.rating === 'number');
-          if (ratedLogs.length > 0) {
-            const epAverage = ratedLogs.reduce((sum, r) => sum + r.rating, 0) / ratedLogs.length;
-            totalSeasonRating += epAverage;
+          const epData = getEpisodePersonalRating(ep);
+          if (epData) {
+            totalSeasonRating += epData.rating;
             ratedEpisodesCount++;
           }
         });
 
-        let averageRating: string | null = null;
-        if (ratedEpisodesCount > 0) {
-          const rawAverage = (totalSeasonRating / ratedEpisodesCount) / 2;
-          averageRating = roundRating(rawAverage).toString();
-        }
+        const seasonAverageRating = ratedEpisodesCount > 0 
+          ? roundRatingToHalfStar(totalSeasonRating / ratedEpisodesCount) 
+          : null;
 
         return (
           <div key={seasonNumber} className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
@@ -284,15 +275,17 @@ export const SeasonsTab: React.FC<SeasonsTabProps> = ({ tmdbSeries, initialEpiso
                 </span>
               </div>
               
-              <div className="flex items-center gap-4">
-                {averageRating && (
+              <div className="flex items-center gap-4 shrink-0">
+                {seasonAverageRating !== null && (
                   <div title={`Media basata su ${ratedEpisodesCount} episodi valutati`}>
-                    <StarRating value={parseFloat(averageRating)} hideNumber={true} readonly iconClassName="w-4 h-4" />
+                    <StarRating value={seasonAverageRating} hideNumber={true} readonly iconClassName="w-4 h-4" />
                   </div>
                 )}
-                <svg className={`w-5 h-5 text-gray-400 transition-transform ${isExpanded ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                </svg>
+                <div className="w-5 flex items-center justify-center">
+                  <svg className={`w-5 h-5 text-gray-400 transition-transform ${isExpanded ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </div>
               </div>
             </div>
 
@@ -301,6 +294,7 @@ export const SeasonsTab: React.FC<SeasonsTabProps> = ({ tmdbSeries, initialEpiso
               <div className="border-t border-gray-100 bg-gray-50/50">
                 {seasonEpisodes.map(ep => {
                   const watchCount = ep.watch_count || 0;
+                  const epData = getEpisodePersonalRating(ep);
 
                   return (
                     <div 
@@ -308,8 +302,7 @@ export const SeasonsTab: React.FC<SeasonsTabProps> = ({ tmdbSeries, initialEpiso
                       className="flex items-center justify-between px-4 py-3 border-b border-gray-100 last:border-b-0 hover:bg-gray-100 cursor-pointer group transition-colors"
                       onClick={() => setSelectedEpisode(ep)}
                     >
-                      <div className="flex items-center gap-2">
-                        
+                      <div className="flex items-center gap-2 min-w-0">
                         <RewatchControls 
                           count={watchCount} 
                           onToggle={(e) => handleToggleEpisode(e, ep.id, watchCount)}
@@ -317,17 +310,24 @@ export const SeasonsTab: React.FC<SeasonsTabProps> = ({ tmdbSeries, initialEpiso
                           onSub={(e) => handleWatchCountChange(e, ep.id, -1)}
                         />
 
-                        <div className="flex flex-col ml-1">
-                          <span className="font-bold text-gray-800">
+                        <div className="flex flex-col ml-1 min-w-0">
+                          <span className="font-bold text-gray-800 truncate">
                             {ep.episode_number}. {ep.title || `Episodio ${ep.episode_number}`}
                           </span>
                         </div>
                       </div>
 
-                      <div className="flex items-center gap-3">
-                        <svg className="w-4 h-4 text-gray-300 group-hover:text-blue-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                        </svg>
+                      <div className="flex items-center gap-4 shrink-0">
+                        {epData !== null && (
+                          <div title={epData.count > 1 ? `Media voto personale: ${epData.rating.toFixed(1)} (${epData.count} valutazioni)` : `Voto personale: ${epData.rating.toFixed(1)}`}>
+                            <StarRating value={epData.rating} hideNumber={true} readonly iconClassName="w-4 h-4" />
+                          </div>
+                        )}
+                        <div className="w-5 flex items-center justify-center">
+                          <svg className="w-4 h-4 text-gray-300 group-hover:text-blue-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                          </svg>
+                        </div>
                       </div>
 
                     </div>

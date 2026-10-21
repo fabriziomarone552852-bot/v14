@@ -2,31 +2,32 @@
 
 Questo documento traccia in modo strutturato, prioritizzato e costantemente aggiornato tutte le **funzionalità aperte, in corso e pianificate** per l'applicazione **Vita**.
 
-> 🗄️ **Storico Task Completati**: Tutti i task e i progetti completati con successo sono stati spostati e documentati in dettaglio in [`docs/BACKLOG_ARCHIVE.md`](file:///c:/Users/Fabrizio/Desktop/app/smart/v14/docs/BACKLOG_ARCHIVE.md). Il presente file contiene unicamente le attività da svolgere per mantenere massima la chiarezza e la leggibilità.
+> 🗄️ **Storico Task Completati**: Tutte le attività completate con successo sono state archiviate e documentate in dettaglio in [`docs/BACKLOG_ARCHIVE.md`](file:///c:/Users/Fabrizio/Desktop/app/smart/v14/docs/BACKLOG_ARCHIVE.md). Il presente file contiene unicamente le attività aperte o future per garantire massima leggibilità e chiarezza operativa.
 
 ---
 
-## 📊 Matrice di Stato Rapida (Attività in Corso & Future)
+## 📊 Matrice di Stato Rapida (Attività Aperte & Future)
 
 | ID | Attività / Funzionalità | Ambito | Stato Backend | Stato Frontend | Priorità |
 | :--- | :--- | :---: | :---: | :---: | :---: |
-| **FEAT-004** | Sezione Media: Estensione a Libri e Film & Funzionalità Evolutive | `media` / ent | 🟡 Parziale | 🟡 Parziale | 🔴 **Massima (Passo Fondamentale)** |
+| **FEAT-004** | Sezione Media: Estensione a Libri e Film & Funzionalità Evolutive | `media` / books & movies | 🟡 Parziale | 🟡 Parziale | 🔴 **Massima (Passo Fondamentale)** |
 | **FEAT-015** | Gestione Saghe di Film (TMDB Collections) | `media` / movies | 🔴 Da Implementare | 🔴 Da Implementare | 🟡 **Media** |
-| **FEAT-001** | Liste Spesa: Preferite & Pinnate (`pin_status` desktop & mobile) | `shopping` | 🟢 Completato | 🔴 Da Implementare | 🟡 **Media-Alta** |
-| **SHOPPING-004** | Ricerca & Visualizzazione Prezzi nel Modale Dettaglio Prodotto (per Brand) | `shopping` / UI | 🔴 Da Iniziare | 🔴 Da Iniziare | 🟡 **Media-Alta** |
+| **FEAT-001** | Liste Spesa: Preferite & Pinnate (`pin_status` desktop & mobile) | `shopping` / lists | 🟢 Completato | 🔴 Da Implementare | 🟡 **Media-Alta** |
+| **SHOPPING-004** | Ricerca & Consultazione Prezzi nel Modale Dettaglio Prodotto (per Brand) | `shopping` / UI | 🔴 Da Iniziare | 🔴 Da Iniziare | 🟡 **Media-Alta** |
 | **SHOPPING-005** | Pannello Laterale Recensioni & Giudizio Marchi all'Aggiunta Prodotto | `shopping` / UI | 🔴 Da Strutturare | 🔴 Da Implementare | 🟡 **Media-Alta** |
-| **FEAT-006** | Hub Spesa, Ricettario, Meal Prep & Wishlist Oggetti | `shopping` / food | 🔴 Da Strutturare | 🔴 Da Implementare | 🔴 **Massima (Passo Fondamentale)** |
-| **FEAT-003** | Dashboard Analytics & Storico Prezzi | `analytics` | 🟢 Completato | 🔴 Da Implementare | 🟢 **Bassa** |
+| **SHOPPING-020** | Sistema Shopping Page: Voti Prodotti & Flusso "Lista fatta da papà" | `shopping` / UX | 🔴 Da Iniziare | 🔴 Da Iniziare | 🟡 **Media-Alta** |
+| **FEAT-006** | Hub Spesa, Ricettario, Meal Prep & Wishlist Desideri | `shopping` / food | 🔴 Da Strutturare | 🔴 Da Implementare | 🔴 **Massima (Passo Fondamentale)** |
+| **FEAT-003** | Dashboard Analytics & Storico Prezzi Spesa | `analytics` / shopping | 🟢 Completato | 🔴 Da Implementare | 🟢 **Bassa** |
 | **CAL-002** | Filtro Categorie Eventi nel Calendario Homepage (Menu Ingranaggio ⚙️) | `calendar` / UI | 🔴 Da Iniziare | 🔴 Da Iniziare | 🟡 **Media-Alta** |
 | **FEAT-011** | Sezione Lavoro & Gestione Turni di Lavoro (Punto da definire con Daniela) | `work` / shifts | 🔴 Da Definire | 🔴 Da Definire | 🟡 **Media-Alta** |
-| **GENERAL-001** | Fix Selezione Orario e Minuti Eventi (`UI-002`) & Controllo Categorie | `calendar` / UI | N/A | 🔴 Da Implementare | 🟡 **Media** |
+| **GENERAL-001** | Fix Selezione Orario e Minuti Eventi & Controllo Categorie Task vs Eventi | `calendar` / UI | N/A | 🔴 Da Implementare | 🟡 **Media** |
 | **HABITS-001** | Recap Mensile: Ripetizioni Multiple (conteggio frazionario es. 2/3) | `habits` / UI | 🔴 Da Iniziare | 🔴 Da Iniziare | 🟡 **Media** |
 | **FEAT-005** | Sezione Liste Tematiche & Personalizzate (Posti, Siti, Wishlist, Giochi) | `custom_lists` | 🟡 Parziale | 🟡 Parziale | 🔴 **Massima (Passo Fondamentale)** |
 | **FEAT-013** | Archivio Notifiche / Sezione Storico Notifiche Permanente | `notifications` / UI | 🟢 Completato | 🟡 Da Implementare | 🟡 **Media** |
 | **FEAT-014** | Notifiche per Nuove Liste nei Gruppi Condivisi | `notifications` / social | 🔴 Da Implementare | 🔴 Da Implementare | 🟡 **Media** |
 | **FEAT-009** | Restyling & Rifinitura Grafica Schermate SuperUser (Admin Panel) | `admin` / UI | 🟢 Supportato | 🔴 Da Implementare | 🟡 **Media-Alta** |
-| **FEAT-010** | Database & Sincronizzazione Centralizzata Citazioni Giornaliere (Quotes) | `core` / quotes | 🔴 Da Implementare | 🔴 Da Implementare | 🟡 **Media** |
-| **AI-001** | Studio & Integrazione Intelligenza Artificiale (AI: Voice, Breakdown, Briefing) | `ai` / assistant | 🔴 Da Analizzare | 🔴 Da Analizzare | 🟡 **Media-Alta (Ricerca)** |
+| **FEAT-010** | Database & Sincronizzazione Centralizzata Quotes (Citazioni del Giorno) | `core` / quotes | 🔴 Da Implementare | 🔴 Da Implementare | 🟡 **Media** |
+| **AI-001** | Studio & Integrazione Intelligenza Artificiale (Voice, Breakdown, Briefing) | `ai` / assistant | 🔴 Da Analizzare | 🔴 Da Analizzare | 🟡 **Media-Alta (Ricerca)** |
 | **HOME-001** | Widget Homepage Rotante (Citazione del Giorno, Oroscopo & Meteo) | `home` / UI | 🔴 Da Iniziare | 🔴 Da Iniziare | 🟡 **Media-Alta** |
 
 *Legenda Stati:*
@@ -36,9 +37,10 @@ Questo documento traccia in modo strutturato, prioritizzato e costantemente aggi
 
 ---
 
-## 📺 1. Media & Trackers (Serie TV, Film, Libri)
+## 📺 1. Media & Trackers (Film, Libri, Saghe)
 
 ### [FEAT-004] Estensione Sezione Media: Libri, Film & Funzionalità Evolutive
+*(Nota: Il modulo Serie TV è stato completato e archiviato con successo in `BACKLOG_ARCHIVE.md`).*
 
 #### 1. Sotto-sezione Libri
 - **Dati Tracciati**: Titolo, autore, ISBN/codice, genere, numero totale di pagine, pagine attualmente lette, data di inizio e completamento, copertina/immagine.
@@ -52,14 +54,13 @@ Questo documento traccia in modo strutturato, prioritizzato e costantemente aggi
 - **Dati Tracciati**: Titolo, regista, anno di uscita, genere, durata, locandina, piattaforma di fruizione (Netflix, Prime Video, Cinema, Apple TV, Disney+).
 - **Stato Visione**: `Watchlist / Da vedere`, `Visto`.
 - **Dettagli & Valutazione**: Data di visione, voto personale, recensione/commento rapido, trailer.
-- **[FEAT-015] Saghe & Collections TMDB**: Sfruttare il campo `belongs_to_collection` di TMDB per raggruppare automaticamente i film appartenenti alla stessa saga (es. MCU, Star Wars, Harry Potter), consentendo di tracciare l'intera saga.
+- **[FEAT-015] Saghe & Collections TMDB**: Sfruttare il campo `belongs_to_collection` di TMDB per raggruppare automaticamente i film appartenenti alla stessa saga (es. MCU, Star Wars, Harry Potter), consentendo di tracciare l'intera saga con barra di progresso e ordinamento cronologico.
 
 #### 3. Funzionalità Evolutive Media (Roadmap Futura)
-- **Incrocio Liste Amici**: Comparare e incrociare le serie TV e i film salvati tra due o più amici.
-- **Incrocio Liste Miste**: Spostare il componente `SeriesMatchModal` in una futura Homepage Trackers dedicata per incrociare contenuti misti.
-- **Voto Community**: Visualizzare il voto medio della community dell'applicazione accanto o in alternativa al voto TMDB.
+- **Incrocio Liste Amici**: Comparare e incrociare serie TV e film salvati tra due o più amici per decidere cosa guardare insieme.
+- **Incrocio Liste Miste**: Trasferire il componente `SeriesMatchModal` in una futura Homepage Trackers unificata per supportare contenuti eterogenei.
+- **Voto Community**: Visualizzare il voto medio espresso dalla community dell'applicazione accanto o in alternativa al voto TMDB.
 - **Suggerimenti Homepage**: Sezione con raccomandazioni dinamiche basate sugli ultimi titoli completati o guardati di frequente.
-- **Sincronizzazione via CSV/Export**: Importazione ed esportazione catalogo tramite file CSV o JSON per backup o allineamento con app terze.
 
 ---
 
@@ -68,26 +69,31 @@ Questo documento traccia in modo strutturato, prioritizzato e costantemente aggi
 ### [FEAT-001] Liste Spesa: Preferite & Pinnate (`pin_status`)
 - **Descrizione**: Possibilità per l'utente di contrassegnare le liste della spesa come **Preferite** (stella/cuore), **Pinnate / Fissate in alto** (puntina) o entrambe.
 - **Backend (🟢 Già Pronto)**:
-  - Migrazione DB: `add_pin_status_and_is_default_to_shopping_lists.py`.
-  - Tabella & Colonna: `shopping_lists.pin_status` (`VARCHAR(2)`, valori `PN`, `FV`, `PF`, `None`).
+  - Migrazione DB presente: `shopping_lists.pin_status` (`VARCHAR(2)`, valori `PN`, `FV`, `PF`, `None`).
   - DTO Pydantic: `ShoppingListCreate`, `ShoppingListUpdate`, `ShoppingListResponse`.
-  - Endpoint: `PATCH /api/v1/shopping/lists/{list_id}` con body `{ "pin_status": "FV" }`.
-- **Frontend da Completare (🔴 Da Implementare)**:
-  - **Desktop**: Icone stella/puntina nelle card delle liste, toggle rapido con chiamata API PATCH, ordinamento con liste pinnate in cima, filtro "Solo Preferite".
-  - **Mobile**: Badge visivo nel drawer liste, toggle preferita/pinnata nelle azioni della lista, riorganizzazione dell'ordine di visualizzazione.
+  - Endpoint operativo: `PATCH /api/v1/shopping/lists/{list_id}` con body `{ "pin_status": "..." }`.
+- **Frontend da Implementare (🔴 Da Sviluppare)**:
+  - **Desktop**: Icone stella/puntina nelle card delle liste, toggle rapido con chiamata API PATCH, ordinamento con liste pinnate in cima, filtro rapido "Solo Preferite".
+  - **Mobile**: Badge visivo nel drawer liste, toggle preferita/pinnata nelle azioni della lista, riorganizzazione automatica dell'ordine di visualizzazione.
 
 ### [SHOPPING-004] Ricerca & Visualizzazione Prezzi nel Modale Dettaglio Prodotto (per Brand)
-- **Descrizione**: Aggiunta della barra di ricerca e della griglia/lista di consultazione prezzi all'interno del modale di dettaglio di ciascun prodotto nell'archivio spesa, includendo il raggruppamento dei prodotti prezzati suddivisi per Brand/Marca.
-- **Stato**: 🔴 Da Iniziare *(Desktop & Mobile)*.
+- **Descrizione**: Aggiunta della barra di ricerca e della griglia/lista di consultazione prezzi all'interno del modale di dettaglio di ciascun prodotto nell'archivio spesa, includendo il raggruppamento dei prezzi registrati suddivisi per Brand/Marca.
+- **Stato**: 🔴 Da Iniziare *(Desktop & Mobile — Priorità: Media-Alta)*.
 
-### [SHOPPING-005] Finestra Laterale Recensioni & Giudizio Marchi all'Aggiunta Prodotto
-- **Descrizione**: Durante l'inserimento o aggiunta di un nuovo prodotto a una lista spesa, integrare un pannello laterale a comparsa (o drawer su mobile) che visualizzi le recensioni, le valutazioni qualitative (👍/👎) e i giudizi precedentemente espressi per i diversi marchi di quello specifico prodotto, con ultimo prezzo registrato e negozio abituale.
-- **Stato**: 🔴 Da Implementare *(Priorità: Media-Alta)*.
+### [SHOPPING-005] Pannello Laterale Recensioni & Giudizio Marchi all'Aggiunta Prodotto
+- **Descrizione**: Durante l'inserimento o aggiunta rapida di un nuovo prodotto a una lista della spesa, integrare un pannello laterale a comparsa (o drawer su smartphone) che mostri le recensioni, le valutazioni qualitative (👍/👎) e i giudizi precedentemente espressi per i diversi marchi di quello specifico articolo, con indicazione dell'ultimo prezzo registrato e del negozio abituale.
+- **Stato**: 🔴 Da Strutturare / Implementare *(Priorità: Media-Alta)*.
 
-### [FEAT-006] Riorganizzazione Hub Spesa, Ricettario, Meal Prep & Wishlist Oggetti
+### [SHOPPING-020] Sistema Shopping Page: Voti dei Prodotti & "Lista fatta da papà"
+- **Descrizione**: Evoluzione dell'esperienza d'uso della pagina Shopping per ottimizzare la gestione quotidiana della spesa familiare:
+  1. **Voti & Valutazioni dei Prodotti**: Visualizzazione e gestione rapida dei voti e delle note qualitative dei prodotti direttamente all'interno delle liste della spesa e nei selettori di aggiunta, rendendo immediata la scelta del marchio migliore.
+  2. **Flusso "Lista fatta da papà"**: Integrazione di una vista, filtro o flusso dedicato per importare e visualizzare agilmente appunti o liste esterne (visualizzazione semplificata per consultazione in mobilità, e selezione prioritaria dei prodotti abituali).
+- **Stato**: 🔴 Da Iniziare *(Desktop & Mobile — Priorità: Media-Alta)*.
+
+### [FEAT-006] Hub Spesa, Ricettario, Meal Prep & Wishlist Oggetti
 - **Descrizione**: Evoluzione della sezione Spesa in un ecosistema integrato per la pianificazione alimentare, ricette e acquisti:
-  1. **Ricettario Personale (Cookbook)**: Ricette con foto, tempi, porzioni, categoria, passaggi e ingredienti strutturati; pulsante rapido per aggiungere gli ingredienti mancanti alla lista spesa.
-  2. **Meal Prep & Pianificazione Pasti**: Griglia settimanale suddivisa per fasce (Colazione, Pranzo, Cena, Snack); generatore automatico di lista della spesa sommando gli ingredienti dei pasti pianificati per i giorni scelti.
+  1. **Ricettario Personale (Cookbook)**: Ricette con foto, tempi, porzioni, categoria, passaggi e ingredienti strutturati; pulsante rapido per aggiungere gli ingredienti mancanti alla lista della spesa attiva.
+  2. **Meal Prep & Pianificazione Pasti**: Griglia settimanale suddivisa per fasce (Colazione, Pranzo, Cena, Snack); generatore automatico di lista spesa sommando gli ingredienti dei pasti pianificati per i giorni scelti.
   3. **Wishlist Oggetti & Desideri (Non Alimentari)**: Spazio separato dalla spesa quotidiana per salvare oggetti, attrezzi, tecnologia, idee regalo, con prezzo stimato, link allo store e priorità.
   4. **Dashboard Spesa Riassuntiva**: Box pasti del giorno, widget liste spesa attive con barre di avanzamento, alert prodotti in scadenza.
 - **Stato**: 🔴 Da Strutturare / Da Implementare *(Passo Fondamentale)*.
@@ -142,20 +148,20 @@ Questo documento traccia in modo strutturato, prioritizzato e costantemente aggi
   3. **Oggetti da Comprare / Wishlist**: Desideri non alimentari, link allo store, prezzo stimato, priorità e stato (*In lista desideri, In attesa offerta, Ordinato, Acquistato*).
   4. **Giochi & Videogiochi**: Titoli PC/Console/Boardgame da provare o finire, con piattaforma, genere, ore di gioco e stato (*Da giocare, In corso, Finito, Platinato, Abbandonato*).
   5. **Liste Generiche & Flessibili**: Liste libere create dall'utente con nome, icona/emoji a scelta, colore e formato (checklist, note o link).
-- **Stato**: 🟡 Parziale *(UI liste serie TV completata; modulo generale da strutturare - Passo Fondamentale)*.
+- **Stato**: 🟡 Parziale *(Modulo generale da strutturare e collegare alla navigazione — Passo Fondamentale)*.
 
 ---
 
 ## 🔔 6. Notifiche, Social & Condivisione
 
 ### [FEAT-013] Archivio Notifiche / Sezione Storico Notifiche Permanente
-- **Descrizione**: Creare una sezione dedicata (es. in Archivio o pagina apposita) per consultare lo storico completo di tutte le notifiche di sistema, inviti e alert, conformemente alla regola per cui le notifiche non sono effimere ma permanenti.
+- **Descrizione**: Creare una schermata dedicata (in Impostazioni o in pagina apposita) per consultare lo storico completo di tutte le notifiche di sistema, inviti e alert, conformemente alla regola per cui le notifiche non sono effimere ma permanenti.
 - **UI/UX**: Lista a scorrimento, filtri per tipologia (Social, Spesa, Sistema) e raggruppamento per data (Oggi, Ieri, Questa Settimana, Mese).
 - **Stato**: Backend 🟢 Supportato | Frontend 🟡 Da Implementare *(Priorità: Media)*.
 
 ### [FEAT-014] Notifiche per Nuove Liste nei Gruppi Condivisi
 - **Descrizione**: Ricevere una notifica quando un membro di un gruppo di cui si fa parte crea una nuova lista (es. una nuova lista all'interno di un gruppo Shopping o Media).
-- **Stato**: 🔴 Da Implementare.
+- **Stato**: 🔴 Da Implementare *(Priorità: Media)*.
 
 ---
 
@@ -179,7 +185,7 @@ Questo documento traccia in modo strutturato, prioritizzato e costantemente aggi
 
 ### [AI-001] Assistente Intelligente, Voice-to-Action & Automazioni LLM
 - **Descrizione**: Studio di fattibilità, analisi architetturale e prototipazione per integrare modelli LLM, Speech-to-Text e Structured Outputs all'interno di Vita per trasformare l'app in un assistente proattivo e contestuale.
-- **Architettura Provider**: Supporto modulare per inferenza locale privata (Ollama / Whisper.cpp su NAS Docker) oppure API Cloud ad alte prestazioni (Gemini 2.0 Flash, OpenAI) selezionabili dalle impostazioni.
+- **Architettura Provider**: Supporto modulare per inferenza locale privata (Ollama / Whisper.cpp su NAS Docker) oppure API Cloud ad alte prestazioni (Gemini Flash, OpenAI) selezionabili dalle impostazioni.
 - **Casi d'Uso Chiave**:
   1. **Voice-to-Action**: Registrazione vocale rapida da smartphone e creazione automatica strutturata di task con scadenza o inserimento articoli nella lista spesa corretta.
   2. **Assistente Personale & Daily Briefing**: Sintesi vocale/testuale del giorno all'apertura dell'app e query in linguaggio naturale sulla propria agenda (*"Quando scade l'assicurazione auto?"*, *"Cosa devo comprare da Leroy Merlin?"*).

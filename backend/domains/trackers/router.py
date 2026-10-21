@@ -4,9 +4,13 @@ API router for the Trackers domain (TV Series).
 from typing import List, Optional
 from datetime import date
 
-from fastapi import APIRouter, Depends, Query, status, BackgroundTasks
+from fastapi import APIRouter, Depends, Query, status, BackgroundTasks, UploadFile, File
+from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 from pydantic import BaseModel
+from datetime import datetime, timezone
+
+from backend.domains.trackers import bingers_sync
 
 from backend.core.deps import get_db, get_current_app_user
 from backend.domains.trackers import repository
@@ -588,3 +592,33 @@ def get_match_results(
 ):
     """Calcola i risultati dell'incrocio liste (disponibile solo se completato)."""
     return service.calculate_match_results(db, current_user.id, session_id)
+
+
+# --- Bingers Sync (Import / Export) ---
+
+@router.post("/sync/bingers/import")
+async def import_bingers_data(
+    files: List[UploadFile] = File(...),
+    current_user: User = Depends(get_current_app_user),
+    db: Session = Depends(get_db),
+):
+    """Importa archivio ZIP o file CSV da Bingers per sincronizzare serie, episodi visti, voti e liste."""
+    return await bingers_sync.process_bingers_import(db, current_user, files)
+
+
+@router.get("/sync/bingers/export")
+def export_bingers_data(
+    current_user: User = Depends(get_current_app_user),
+    db: Session = Depends(get_db),
+):
+    """Esporta i dati di tracking dell'utente in formato compatibile Bingers (ZIP contenente i 4 file CSV)."""
+    zip_buffer = bingers_sync.generate_bingers_export_archive(db, current_user)
+    timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
+    filename = f"vita_trackers_export_{timestamp}.zip"
+
+    return StreamingResponse(
+        zip_buffer,
+        media_type="application/zip",
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'}
+    )
+

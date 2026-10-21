@@ -2,6 +2,7 @@
 import React from 'react';
 import { Calendar, RefreshCw, CheckCircle2, AlertCircle, Loader2 } from 'lucide-react';
 import type { useGoogleCalendarIntegration } from '@/hooks/useGoogleCalendarIntegration';
+import { MobileBingersSyncCard } from './MobileBingersSyncCard';
 
 export interface MobileSyncSettingsSectionProps {
   googleSync: ReturnType<typeof useGoogleCalendarIntegration>;
@@ -138,6 +139,9 @@ export const MobileSyncSettingsSection: React.FC<MobileSyncSettingsSectionProps>
           </div>
         )}
       </div>
+
+      {/* Card Bingers & Trackers */}
+      <MobileBingersSyncCard />
     </div>
   );
 };

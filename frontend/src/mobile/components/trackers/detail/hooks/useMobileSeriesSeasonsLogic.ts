@@ -6,26 +6,19 @@ import { useSeriesExtras } from '@/hooks/queries/useTrackersQueries';
 import type { MobileWatchActionTarget } from '../MobileWatchActionDrawer';
 import { showTrackerToast } from '@/components/trackers/TrackerToast';
 
+import {
+  roundRatingToHalfStar,
+  getEpisodeAverageRating,
+} from '@/utils/ratingUtils';
+
 export interface UseMobileSeriesSeasonsLogicProps {
   tmdbSeries: TMDBSeries;
   userTracking: UserSeriesTracking | null;
   initialEpisode?: TMDBEpisode | null;
 }
 
-export const roundToHalfStar = (val: number): number => {
-  return Math.round(val * 2) / 2;
-};
-
-export const getEpisodeAverageRating = (ep: TMDBEpisode): number | null => {
-  const ratedLogs = (ep.logs || []).filter(
-    (l): l is typeof l & { rating: number } => typeof l.rating === 'number' && l.rating > 0
-  );
-  if (ratedLogs.length === 0) return null;
-  // In DB il rating è memorizzato su scala 1-10; convertiamo a scala 0.5 - 5.0 stelle
-  const sumStars = ratedLogs.reduce((acc, l) => acc + l.rating / 2, 0);
-  const avgStars = sumStars / ratedLogs.length;
-  return roundToHalfStar(avgStars);
-};
+export const roundToHalfStar = roundRatingToHalfStar;
+export { getEpisodeAverageRating };
 
 export const useMobileSeriesSeasonsLogic = ({
   tmdbSeries,
