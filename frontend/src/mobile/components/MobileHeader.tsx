@@ -14,10 +14,12 @@ import { useTrackerHeader } from '@/context/TrackerHeaderContext';
 
 interface MobileHeaderProps {
   onOpenDrawer: () => void;
+  hasUnread?: boolean;
 }
 
 export const MobileHeader: React.FC<MobileHeaderProps> = ({
   onOpenDrawer,
+  hasUnread = false,
 }) => {
   const {
     path,
@@ -106,11 +108,17 @@ export const MobileHeader: React.FC<MobileHeaderProps> = ({
                 <button
                   type="button"
                   onClick={onOpenDrawer}
-                  className="w-9 h-9 rounded-xl text-gray-700 hover:text-gray-900 hover:bg-gray-100 active:scale-95 transition-all focus:outline-none cursor-pointer flex items-center justify-center"
+                  className="w-9 h-9 rounded-xl text-gray-700 hover:text-gray-900 hover:bg-gray-100 active:scale-95 transition-all focus:outline-none cursor-pointer flex items-center justify-center relative"
                   aria-label="Apri menu laterale"
                   title="Menu principale"
                 >
                   <MenuBarsIcon className="w-6 h-6 text-gray-800" />
+                  {hasUnread && (
+                    <span className="absolute top-1.5 right-1.5 flex h-2.5 w-2.5">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-red-500 ring-2 ring-white"></span>
+                    </span>
+                  )}
                 </button>
               )}
             </div>

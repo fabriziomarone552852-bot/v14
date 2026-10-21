@@ -4,6 +4,7 @@ import type { TMDBSeries, UserSeriesTracking, TMDBEpisode } from '@/types/tracke
 import { useTrackersMutations } from '@/hooks/mutations/useTrackersMutations';
 import { useSeriesExtras } from '@/hooks/queries/useTrackersQueries';
 import type { MobileWatchActionTarget } from '../MobileWatchActionDrawer';
+import { showTrackerToast } from '@/components/trackers/TrackerToast';
 
 export interface UseMobileSeriesSeasonsLogicProps {
   tmdbSeries: TMDBSeries;
@@ -89,10 +90,10 @@ export const useMobileSeriesSeasonsLogic = ({
       .sort((a, b) => a - b);
   }, [seasonsMap]);
 
-  // Se l'utente non ha la serie a catalogo, avviso
+  // Se l'utente non ha la serie a catalogo, avviso non bloccante
   const requireTracking = useCallback(() => {
     if (!userTracking) {
-      alert('Aggiungi prima la serie alla tua libreria.');
+      showTrackerToast('Aggiungi prima la serie alla tua libreria', 'warning');
       return false;
     }
     return true;

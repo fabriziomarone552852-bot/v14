@@ -120,27 +120,31 @@ export const MobileSeriesCatalogGrid: React.FC<MobileSeriesCatalogGridProps> = (
   onToggleSelectSeries,
 }) => {
   const { handleScroll, scrollbarClass } = useFadeScrollbar();
-  // Raggruppamento delle serie nelle 4 aree canoniche richieste:
+  // Raggruppamento delle serie nelle aree canoniche richieste:
   // 1. In visione (gialli)
   // 2. In lista (grigi)
   // 3. In attesa (viola)
   // 4. Completate (verdi)
+  // 5. Abbandonate (rossi, in coda con pillola dedicata)
   const sections: CatalogSection[] = useMemo(() => {
     const inVisione: TVSeries[] = [];
     const inLista: TVSeries[] = [];
     const inAttesa: TVSeries[] = [];
     const completate: TVSeries[] = [];
+    const abbandonate: TVSeries[] = [];
 
     series.forEach((item) => {
       const st = normalizeMediaStatus(item.status, item.tmdb_status);
-      if (st === 'watching') {
+      if (st === 'dropped') {
+        abbandonate.push(item);
+      } else if (st === 'watching') {
         inVisione.push(item);
       } else if (st === 'waiting') {
         inAttesa.push(item);
       } else if (st === 'completed') {
         completate.push(item);
       } else {
-        // 'to_watch', 'dropped', 'on_hold', 'untracked' confluiscono in lista
+        // 'to_watch', 'on_hold', 'untracked' confluiscono in lista
         inLista.push(item);
       }
     });
@@ -150,6 +154,7 @@ export const MobileSeriesCatalogGrid: React.FC<MobileSeriesCatalogGridProps> = (
       { id: 'in_lista', title: 'In lista', items: inLista },
       { id: 'in_attesa', title: 'In attesa', items: inAttesa },
       { id: 'completate', title: 'Completate', items: completate },
+      { id: 'abbandonate', title: 'Abbandonate', items: abbandonate },
     ];
   }, [series]);
 

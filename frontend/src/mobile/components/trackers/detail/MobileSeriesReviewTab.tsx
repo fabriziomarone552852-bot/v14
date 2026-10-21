@@ -171,7 +171,16 @@ export const MobileSeriesReviewTab: React.FC<MobileSeriesReviewTabProps> = ({
   }
 
   // 5. Review Detail & Comments View (Mobile Nativo)
-  if (view === 'review_detail' && selectedReview) {
+  if (view === 'review_detail') {
+    if (!selectedReview) {
+      return (
+        <div className="flex-1 flex flex-col items-center justify-center p-12 gap-3 text-gray-500 min-h-[300px]">
+          <div className="w-8 h-8 border-3 border-blue-500 border-t-transparent rounded-full animate-spin" />
+          <span className="text-xs font-bold text-gray-500">Apertura recensione...</span>
+        </div>
+      );
+    }
+
     const origLog = selectedReview.original_log;
     const isUserLog = origLog && 'user_id' in origLog;
 

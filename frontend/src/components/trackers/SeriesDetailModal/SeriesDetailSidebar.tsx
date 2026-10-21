@@ -2,6 +2,7 @@
 import React from 'react';
 import type { UserSeriesTracking } from '@/types/trackers';
 import type { TabType } from './hooks/useSeriesDetailModalLogic';
+import { showTrackerToast } from '@/components/trackers/TrackerToast';
 
 interface SeriesDetailSidebarProps {
   posterUrl: string;
@@ -47,7 +48,7 @@ export const SeriesDetailSidebar: React.FC<SeriesDetailSidebarProps> = ({
           if (userTracking) {
             onOpenImageModal();
           } else {
-            alert('Aggiungi prima la serie alla tua libreria per personalizzare la locandina.');
+            showTrackerToast('Aggiungi prima la serie alla tua libreria per personalizzare la locandina', 'warning');
           }
         }}
       >

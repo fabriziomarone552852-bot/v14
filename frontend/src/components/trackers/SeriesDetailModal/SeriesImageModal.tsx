@@ -3,6 +3,7 @@ import BaseModal from '@/components/shared/dialog/BaseModal';
 import { PhotoIcon, LoadingIcon } from '@/components/shared/utils/Icons';
 import { mediaService } from '@/api/mediaService';
 import { logger } from '@/utils/logger';
+import { showTrackerToast } from '@/components/trackers/TrackerToast';
 
 interface SeriesImageModalProps {
   isOpen: boolean;
@@ -39,7 +40,7 @@ export const SeriesImageModal: React.FC<SeriesImageModalProps> = ({
       setImageUrl(res.url);
     } catch (error) {
       logger.error('Errore durante il caricamento foto per la serie:', error);
-      alert("Errore durante il caricamento.");
+      showTrackerToast('Errore durante il caricamento della foto. Riprova.', 'warning');
     } finally {
       setIsUploading(false);
       if (fileInputRef.current) {

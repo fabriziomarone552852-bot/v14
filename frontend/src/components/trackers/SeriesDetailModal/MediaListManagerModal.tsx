@@ -5,6 +5,7 @@ import { CloseIcon } from '@/components/shared/utils/Icons';
 import { useMediaLists } from '@/hooks/queries/useTrackersQueries';
 import { useTrackersMutations } from '@/hooks/mutations/useTrackersMutations';
 import type { MediaList, MediaListItem } from '@/types/trackers';
+import { showTrackerToast } from '@/components/trackers/TrackerToast';
 
 interface MediaListManagerModalProps {
   isOpen: boolean;
@@ -38,7 +39,7 @@ export const MediaListManagerModal: React.FC<MediaListManagerModalProps> = ({
   const handleSave = () => {
     if (selectedListId === 'new') {
       if (!newListName.trim()) {
-        alert("Inserisci un nome per la lista.");
+        showTrackerToast("Inserisci un nome per la lista", "warning");
         return;
       }
       createList({

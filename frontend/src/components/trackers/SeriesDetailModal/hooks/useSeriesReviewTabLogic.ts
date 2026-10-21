@@ -35,7 +35,7 @@ export const useSeriesReviewTabLogic = ({
 }: UseSeriesReviewTabLogicProps) => {
   const queryClient = useQueryClient();
   const { user } = useAuth();
-  const [view, setView] = useState<SeriesReviewViewState>('main');
+  const [view, setView] = useState<SeriesReviewViewState>(initialReviewLogId ? 'review_detail' : 'main');
   const [selectedFriendId, setSelectedFriendId] = useState<string | null>(null);
   const [selectedReview, setSelectedReview] = useState<UnifiedReviewData | null>(null);
 
@@ -84,7 +84,7 @@ export const useSeriesReviewTabLogic = ({
     if (
       initialReviewLogId &&
       (logs.length > 0 || friendsLogsData.length > 0) &&
-      view !== 'review_detail'
+      !selectedReview
     ) {
       const myLog = logs.find((l) => l.id === initialReviewLogId);
       if (myLog) {

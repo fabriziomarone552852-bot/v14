@@ -11,6 +11,7 @@ import { getMediaBorderClass } from '@/utils/mediaStatusTheme';
 import { SelectModalDialog } from '@/components/shared/form/SelectModalDialog';
 import { logger } from '@/utils/logger';
 import { useFadeScrollbar } from '@/hooks/ui/useFadeScrollbar';
+import { showTrackerToast } from '@/components/trackers/TrackerToast';
 
 export interface MobileSeriesCreateListModalProps {
   isOpen: boolean;
@@ -235,10 +236,11 @@ export const MobileSeriesCreateListModal: React.FC<MobileSeriesCreateListModalPr
         }
       }
 
+      showTrackerToast('Lista salvata con successo', 'success');
       onClose();
     } catch (err) {
       logger.error('Errore durante il salvataggio della lista:', err);
-      alert('Si è verificato un errore durante il salvataggio della lista.');
+      showTrackerToast('Si è verificato un errore durante il salvataggio della lista.', 'warning');
     } finally {
       setIsSaving(false);
     }

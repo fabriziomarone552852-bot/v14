@@ -14,6 +14,7 @@ import {
 import { useTrackersMutations } from '@/hooks/mutations/useTrackersMutations';
 import { useBackHandler } from '@/utils/backButtonManager';
 import { resolveImageUrl } from '@/utils/imageUtils';
+import { LoadingIcon } from '@/components/shared/utils/Icons';
 import { MobileSeriesReviewTab } from './MobileSeriesReviewTab';
 import { MobileMediaListManagerModal } from './MobileMediaListManagerModal';
 import { ListDetailModal } from '@/components/trackers/SeriesDetailModal/ListDetailModal';
@@ -149,6 +150,22 @@ export const MobileTVSeriesDetailModal: React.FC<MobileTVSeriesDetailModalProps>
 
   if (!isOpen) return null;
 
+  // Schermata di caricamento dedicata per apertura diretta da notifica prima che i dati dell'episodio siano pronti
+  if (initialReviewLogId && currentEpisode && !currentEpisode.title) {
+    return createPortal(
+      <div
+        className={`fixed inset-0 ${
+          zIndexClass || 'z-[10020]'
+        } bg-gray-50 flex flex-col items-center justify-center gap-3.5 p-6 select-none animate-fadeIn`}
+      >
+        <LoadingIcon className="w-10 h-10 text-blue-600 animate-spin -ml-0 mr-0" />
+        <p className="text-sm font-bold text-gray-800 tracking-tight">Apertura recensione...</p>
+        <p className="text-xs text-gray-500 font-medium">Caricamento commenti in corso...</p>
+      </div>,
+      document.body
+    );
+  }
+
   const content = (
     <div
       className={`fixed inset-0 ${
@@ -193,7 +210,7 @@ export const MobileTVSeriesDetailModal: React.FC<MobileTVSeriesDetailModalProps>
             tmdbSeries={tmdbSeries}
             userTracking={userTracking}
             logs={currentEpisode.logs || []}
-            initialView={internalReviewLogId ? 'reviews' : 'main'}
+            initialView={internalReviewLogId ? 'review_detail' : 'main'}
             initialReviewLogId={internalReviewLogId}
           />
         ) : (
@@ -290,6 +307,29 @@ export const MobileTVSeriesDetailModal: React.FC<MobileTVSeriesDetailModalProps>
             updateSeries({
               id: targetTmdbId,
               updates: { is_rewatching: false },
+            });
+          }
+        }}
+        isAbandoned={userTracking?.status === 'dropped'}
+        onAbandonSeries={() => {
+          const targetTmdbId = tmdbSeries.tmdb_id || userTracking?.series_tmdb_id;
+          if (targetTmdbId) {
+            updateSeries({
+              id: targetTmdbId,
+              updates: { status: 'dropped', is_rewatching: false },
+            });
+          }
+        }}
+        onResumeSeries={() => {
+          const targetTmdbId = tmdbSeries.tmdb_id || userTracking?.series_tmdb_id;
+          const hasWatched = Boolean(
+            tmdbSeries.episodes?.some((ep) => ep.is_watched || (ep.watch_count ?? 0) > 0)
+          );
+          const targetStatus = hasWatched ? 'watching' : 'to_watch';
+          if (targetTmdbId) {
+            updateSeries({
+              id: targetTmdbId,
+              updates: { status: targetStatus },
             });
           }
         }}

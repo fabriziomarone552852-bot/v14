@@ -1,4 +1,5 @@
 import React from 'react';
+import { RotateCcw } from 'lucide-react';
 import { ArchiveFilterSearchInput } from '@/components/archive/common';
 import type { TVSeries, MediaList } from '@/types/trackers';
 import DatePicker from '@/components/shared/utils/DatePicker/DatePicker';
@@ -93,9 +94,11 @@ export const MediaFilterModal: React.FC<MediaFilterModalProps> = ({
     <button
       type="button"
       onClick={onReset}
-      className="text-xs font-bold text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg px-2 py-1 transition-colors"
+      title="Ripristina tutti i filtri"
+      aria-label="Ripristina filtri"
+      className="p-1.5 rounded-lg text-red-500 hover:text-red-700 hover:bg-red-50 transition-all active:scale-90 cursor-pointer"
     >
-      Reset Filtri
+      <RotateCcw className="w-4 h-4" />
     </button>
   ) : undefined;
 

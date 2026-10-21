@@ -11,17 +11,18 @@ export const useSeriesUrlParams = (
   const [searchParams, setSearchParams] = useSearchParams();
 
   useEffect(() => {
-    if (series && series.length > 0 && !detailModalOpen) {
-      const tmdbIdParam = searchParams.get('tmdb_id');
-      const openReview = searchParams.get('open_review') === 'true';
-      const openEpisode = searchParams.get('open_episode');
-      const openReviewLogId = searchParams.get('open_review_log_id');
-      
-      if (tmdbIdParam) {
-        const targetSeries = series.find(s => String(s.tmdb_id) === tmdbIdParam);
-        if (targetSeries) {
+    const tmdbIdParam = searchParams.get('tmdb_id');
+    if (!tmdbIdParam) return;
+
+    if (series && series.length > 0) {
+      const targetSeries = series.find(s => String(s.tmdb_id) === tmdbIdParam);
+      if (targetSeries) {
+        const openReview = searchParams.get('open_review') === 'true';
+        const openEpisode = searchParams.get('open_episode');
+        const openReviewLogId = searchParams.get('open_review_log_id');
+        
+        if (!detailModalOpen) {
           if (openEpisode) {
-            // Seleziona episodio
             const epId = Number(openEpisode);
             const foundEp = targetSeries.episodes?.find(e => e.id === epId);
             openSeriesDetail(targetSeries, 'seasons', foundEp, openReviewLogId ? Number(openReviewLogId) : undefined);
@@ -30,9 +31,9 @@ export const useSeriesUrlParams = (
           } else {
             openSeriesDetail(targetSeries);
           }
-          // Clean up URL params after opening
-          setSearchParams({});
         }
+        // Clean up URL params after consuming
+        setSearchParams({}, { replace: true });
       }
     }
   }, [series, searchParams, detailModalOpen, openSeriesDetail, setSearchParams]);

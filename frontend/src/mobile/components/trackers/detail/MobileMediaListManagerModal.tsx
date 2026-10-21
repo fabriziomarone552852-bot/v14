@@ -7,6 +7,7 @@ import { useTrackersMutations } from '@/hooks/mutations/useTrackersMutations';
 import { useBackHandler } from '@/utils/backButtonManager';
 import { logger } from '@/utils/logger';
 import { useFadeScrollbar } from '@/hooks/ui/useFadeScrollbar';
+import { showTrackerToast } from '@/components/trackers/TrackerToast';
 
 export interface MobileMediaListManagerModalProps {
   isOpen: boolean;
@@ -109,10 +110,11 @@ export const MobileMediaListManagerModal: React.FC<MobileMediaListManagerModalPr
       setNewListName('');
       setIsCreatingSectionOpen(false);
       setIsPrivacyDropdownOpen(false);
+      showTrackerToast('Liste aggiornate con successo', 'success');
       onClose();
     } catch (error) {
       logger.error('Errore durante il salvataggio delle liste:', error);
-      alert('Si è verificato un errore durante il salvataggio.');
+      showTrackerToast('Si è verificato un errore durante il salvataggio.', 'warning');
     } finally {
       setIsSaving(false);
     }

@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import type { TVSeries, MediaList } from '@/types/trackers';
 import type { MediaFilterState } from '@/components/trackers/MediaFilterModal';
 import { calculateSeriesRating } from '@/utils/ratingUtils';
+import { normalizeMediaStatus } from '@/utils/mediaStatusTheme';
 
 export const useFilteredTVSeries = (
   series: TVSeries[] | undefined,
@@ -11,11 +12,12 @@ export const useFilteredTVSeries = (
 ) => {
   return useMemo(() => {
     let displaySeries = (series || []).filter(s => {
-      // 1. Tab Attiva (Stato Personale)
+      // 1. Tab Attiva (Stato Personale Normalizzato)
       if (activeTab !== 'all') {
-        if (activeTab === 'watching' && s.status !== 'watching') return false;
-        if (activeTab === 'to_watch' && s.status !== 'to_watch') return false;
-        if (activeTab === 'watched' && s.status !== 'watched' && s.status !== 'completed') return false;
+        const norm = normalizeMediaStatus(s.status, s.tmdb_status);
+        if (activeTab === 'watching' && norm !== 'watching') return false;
+        if (activeTab === 'to_watch' && !['to_watch', 'dropped', 'on_hold', 'untracked'].includes(norm)) return false;
+        if (activeTab === 'watched' && norm !== 'completed' && norm !== 'waiting') return false;
       }
 
       // 2. Keyword

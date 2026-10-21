@@ -99,6 +99,33 @@ export const SeriesDetailModal: React.FC<SeriesDetailModalProps> = ({
     onToggleTrack,
   });
 
+  const isUserTracked = Boolean(userTracking);
+  const isAbandoned = userTracking?.status === 'dropped';
+
+  const handleAbandon = () => {
+    const targetTmdbId = tmdbSeries.tmdb_id || userTracking?.series_tmdb_id;
+    if (targetTmdbId) {
+      updateSeries({
+        id: targetTmdbId,
+        updates: { status: 'dropped', is_rewatching: false },
+      });
+    }
+  };
+
+  const handleResume = () => {
+    const targetTmdbId = tmdbSeries.tmdb_id || userTracking?.series_tmdb_id;
+    const hasWatched = Boolean(
+      tmdbSeries.episodes?.some((ep) => ep.is_watched || (ep.watch_count ?? 0) > 0)
+    );
+    const targetStatus = hasWatched ? 'watching' : 'to_watch';
+    if (targetTmdbId) {
+      updateSeries({
+        id: targetTmdbId,
+        updates: { status: targetStatus },
+      });
+    }
+  };
+
   return (
     <BaseModal
       isOpen={isOpen}
@@ -113,6 +140,10 @@ export const SeriesDetailModal: React.FC<SeriesDetailModalProps> = ({
         <SeriesDetailHeader
           backdropUrl={backdropUrl}
           onClose={onClose}
+          isUserTracked={isUserTracked}
+          isAbandoned={isAbandoned}
+          onAbandon={handleAbandon}
+          onResume={handleResume}
           genres={genres}
           onGenreClick={onGenreClick}
           providersData={providersData}

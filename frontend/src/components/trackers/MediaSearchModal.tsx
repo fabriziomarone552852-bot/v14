@@ -4,6 +4,7 @@ import BaseModal from '@/components/shared/dialog/BaseModal';
 import { api } from '@/api/apiService';
 import { TvIcon, SearchIcon, LoadingIcon } from '@/components/shared/utils/Icons';
 import type { GenericSuccessResponse } from '@/types/trackers';
+import { showTrackerToast } from '@/components/trackers/TrackerToast';
 
 interface SearchResultItem {
   id: number | string;
@@ -59,12 +60,13 @@ export const MediaSearchModal: React.FC<MediaSearchModalProps> = ({ isOpen, onCl
       // Modifica ottimistica olografica: la disabilitiamo per i tipi generici per ora per evitare crash, 
       // si aggiornerà al refetch
       onClose(); // Chiudi la modale immediatamente per UX fluida
+      showTrackerToast('Serie aggiunta alla libreria', 'success');
       return {};
     },
     onError: (err: unknown) => {
       console.error("Error adding media:", err);
       const apiErr = err as { response?: { data?: { detail?: string } } };
-      alert(apiErr.response?.data?.detail || "Errore durante l'aggiunta.");
+      showTrackerToast(apiErr.response?.data?.detail || "Errore durante l'aggiunta", 'warning');
     },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ['trackers', mediaType] });

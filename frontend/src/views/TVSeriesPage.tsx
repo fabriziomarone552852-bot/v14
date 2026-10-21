@@ -12,7 +12,8 @@ import RandomMediaModal from '@/components/trackers/RandomMediaModal';
 import SeriesStatsModal from '@/components/trackers/SeriesStatsModal';
 import { SeriesDetailModal } from '@/components/trackers/SeriesDetailModal';
 import { MediaFilterModal } from '@/components/trackers/MediaFilterModal';
-import type { TVSeries } from '@/types/trackers';
+import type { TVSeries, SeriesDetailTarget } from '@/types/trackers';
+import { extractSeriesTmdbId } from '@/types/trackers';
 import { useTVSeriesPageLogic } from '@/hooks/trackers/useTVSeriesPageLogic';
 
 const TVSeriesPage: React.FC = () => {
@@ -167,7 +168,10 @@ const TVSeriesPage: React.FC = () => {
         <SeriesDetailModal
           isOpen={detailModalOpen}
           onClose={() => setDetailModalOpen(false)}
-          series={detailModalSeries}
+          series={
+            (series?.find((s) => s.tmdb_id === extractSeriesTmdbId(detailModalSeries)) as SeriesDetailTarget) ||
+            detailModalSeries
+          }
           initialTab={detailModalTab}
           initialEpisode={detailModalEpisode}
           initialReviewLogId={detailModalReviewLogId}

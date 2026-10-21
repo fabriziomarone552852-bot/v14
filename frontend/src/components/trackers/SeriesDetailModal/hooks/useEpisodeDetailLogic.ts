@@ -5,6 +5,7 @@ import type {
   TMDBSeries,
   UserEpisodeLog,
   UnifiedReviewData,
+  SeriesQuote,
 } from '@/types/trackers';
 import { useFriendsEpisodeReviews, useTVPlatforms } from '@/hooks/queries/useTrackersQueries';
 import { useTrackersMutations } from '@/hooks/mutations/useTrackersMutations';
@@ -12,6 +13,7 @@ import { useNotifications } from '@/hooks/useNotifications';
 import { useConfirm } from '@/context/ConfirmContext';
 import { useAuth } from '@/context/AuthContext';
 import { useCommentMentions } from '../shared/useCommentMentions';
+import { showTrackerToast } from '@/components/trackers/TrackerToast';
 
 export type EpisodeViewState =
   | 'main'
@@ -65,7 +67,7 @@ export const useEpisodeDetailLogic = ({
     if (
       initialReviewLogId &&
       (logs.length > 0 || friendsLogsData.length > 0) &&
-      view !== 'review_detail'
+      !selectedReview
     ) {
       const myLog = logs.find((l) => l.id === initialReviewLogId);
       if (myLog) {
@@ -89,7 +91,7 @@ export const useEpisodeDetailLogic = ({
       if (friendLog) {
         setSelectedReview({
           id: friendLog.id,
-          author_id: friendLog.friend_id,
+          author_id: String(friendLog.friend_id),
           author_name: friendLog.friend_name,
           author_avatar: friendLog.friend_avatar,
           rating: (friendLog.rating || 0) / 2,
@@ -103,7 +105,7 @@ export const useEpisodeDetailLogic = ({
         setView('review_detail');
       }
     }
-  }, [initialReviewLogId, logs, friendsLogsData, user, view]);
+  }, [initialReviewLogId, logs, friendsLogsData, user, selectedReview]);
 
   // Sync selected review with fresh comments
   useEffect(() => {
@@ -267,25 +269,61 @@ export const useEpisodeDetailLogic = ({
     setView('reviews');
   }, [editingLogId, updateEpisodeLog, rating, review, visibility, platform, reviewDate, addEpisodeLog, episode.id]);
 
+  // Stato Ottimistico Locale per Watch Count e Citazioni (0ms di latenza visiva)
+  const serverWatchCount = episode.watch_count ?? (logs.length > 0 ? logs.length : 0);
+  const [optimisticWatchCount, setOptimisticWatchCount] = useState<number>(serverWatchCount);
+  const [localQuotes, setLocalQuotes] = useState<SeriesQuote[]>(episode.quotes || []);
+
+  useEffect(() => {
+    const count = episode.watch_count ?? (logs.length > 0 ? logs.length : 0);
+    setOptimisticWatchCount(count);
+  }, [episode.watch_count, logs.length]);
+
+  useEffect(() => {
+    if (episode.quotes) {
+      setLocalQuotes(episode.quotes);
+    }
+  }, [episode.quotes]);
+
   const handleToggleWatched = useCallback(() => {
-    const isWatched = logs.length > 0;
-    toggleEpisodeWatched({ episode_id: episode.id, watched: !isWatched });
-  }, [logs.length, toggleEpisodeWatched, episode.id]);
+    const isCurrentlyWatched = optimisticWatchCount > 0;
+    const nextWatched = !isCurrentlyWatched;
+    setOptimisticWatchCount(nextWatched ? Math.max(1, optimisticWatchCount + 1) : 0);
+    toggleEpisodeWatched({ episode_id: episode.id, watched: nextWatched });
+  }, [optimisticWatchCount, toggleEpisodeWatched, episode.id]);
 
   const handleSaveQuote = useCallback(
     (text: string, quoteId?: number | null) => {
       if (quoteId) {
+        setLocalQuotes((prev) =>
+          prev.map((q) => (q.id === quoteId ? { ...q, quote_text: text } : q))
+        );
         updateQuote({ quote_id: quoteId, payload: { quote_text: text } });
+        showTrackerToast('Citazione modificata con successo', 'success');
       } else {
+        const tempQuote: SeriesQuote = {
+          id: Date.now(),
+          episode_id: episode.id,
+          quote_text: text,
+          created_at: new Date().toISOString(),
+          series_title: tmdbSeries?.title || '',
+          season_number: episode.season_number,
+          episode_number: episode.episode_number,
+          series_poster_path: tmdbSeries?.poster_path || null,
+        };
+        setLocalQuotes((prev) => [tempQuote, ...prev]);
         addQuote({ episode_id: episode.id, quote_text: text });
+        showTrackerToast('Citazione salvata con successo', 'success');
       }
     },
-    [addQuote, episode.id, updateQuote]
+    [addQuote, episode.id, updateQuote, user?.id]
   );
 
   const handleDeleteQuote = useCallback(
     (quoteId: number) => {
+      setLocalQuotes((prev) => prev.filter((q) => q.id !== quoteId));
       deleteQuote(quoteId);
+      showTrackerToast('Citazione eliminata', 'info');
     },
     [deleteQuote]
   );
@@ -300,6 +338,7 @@ export const useEpisodeDetailLogic = ({
     });
     commentMentions.resetComment();
     queryClient.invalidateQueries({ queryKey: ['trackers'] });
+    showTrackerToast('Commento inviato con successo', 'success');
   }, [commentMentions, createInteraction, queryClient, selectedReview]);
 
   return {
@@ -337,6 +376,9 @@ export const useEpisodeDetailLogic = ({
     handleToggleWatched,
     handleSaveQuote,
     handleDeleteQuote,
+    optimisticWatchCount,
+    isWatched: optimisticWatchCount > 0,
+    quotes: localQuotes,
     commentMentions,
     handleSendComment,
   };

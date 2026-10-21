@@ -142,6 +142,13 @@ Quando l'utente scrive **"fine"** (o frasi equivalenti come *"abbiamo finito"*, 
        - `parseDecimalValue(val, defaultValue)`: converte in modo sicuro e trasparente qualsiasi stringa contenente sia `,` che `.` in un float JavaScript standard (`number`) per i calcoli in RAM o per l'invio via API al database.
      - Nei componenti con editing in linea (es. Data Grid), mantenere uno stato locale di stringa per consentire all'utente di digitare senza interruzioni anche cifre intermedie (es. `1,` o `1.`) senza che l'input venga cancellato o riformattato prematuramente prima che la digitazione sia conclusa.
 
+6. **Regola d'Oro dell'Aggiornamento Ottimistico (0ms Latency & Optimistic UI)**:
+   - Per tutte le interazioni dell'utente ad alta frequenza o risposta immediata (es. spunte completato/visto di episodi o task, contatori rewatch, cambio ordinamento, citazioni, note rapide, rating, pin/unpin):
+     - **Aggiornamento Istantaneo in RAM (0ms)**: Al tocco/click, lo stato locale visivo e la cache di React Query (`onMutate`) DEVONO aggiornarsi istantaneamente prima ancora che la richiesta di rete al server venga completata. L'interfaccia non deve MAI attendere il ciclo HTTP per mostrare il cambio di stato.
+     - **Rollback Sicuro in caso di Errore**: Nel callback `onError`, ripristinare sempre lo snapshot precedente salvato prima della mutazione (`context.previousData`) e mostrare un toast discreto e non invasivo all'utente.
+     - **Riconciliazione Silenziosa**: Nel callback `onSettled`, invalidare le query interessate (`invalidateQueries`) per allineare silenziosamente i dati con la verità del server/NAS.
+     - **Nessun Blocco Modale Nativo**: Vietato l'uso di `alert()` o `confirm()` nativi del browser durante le azioni rapide: utilizzare sempre toast leggeri auto-scomparenti o feedback visivo integrato.
+
 ---
 
 ## 📐 7. Standard di Qualità del Codice & TypeScript Rigido

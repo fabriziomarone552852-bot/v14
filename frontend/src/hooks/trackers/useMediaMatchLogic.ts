@@ -4,6 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useMediaLists } from '@/hooks/queries/useTrackersQueries';
 import { useSocial } from '@/hooks/useSocial';
 import { useAuth } from '@/context/AuthContext';
+import { showTrackerToast } from '@/components/trackers/TrackerToast';
 
 export interface MatchSessionParticipant {
   user_id: number;
@@ -104,7 +105,7 @@ export const useMediaMatchLogic = ({ isOpen, domain = 'series' }: UseMediaMatchL
 
   const handleCreate = () => {
     if (selectedFriends.length === 0) {
-      alert('Seleziona almeno un amico.');
+      showTrackerToast('Seleziona almeno un amico', 'warning');
       return;
     }
     createSessionMutation.mutate({

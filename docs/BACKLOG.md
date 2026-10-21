@@ -10,10 +10,6 @@ Questo documento traccia in modo strutturato, prioritizzato e costantemente aggi
 
 | ID | Attività / Funzionalità | Ambito | Stato Backend | Stato Frontend | Priorità |
 | :--- | :--- | :---: | :---: | :---: | :---: |
-| **TRACKERS-005** | Ottimizzazione Latenza: Aggiornamento Ottimistico Spunta/Rewatch & Citazioni, Audit Notifiche | `trackers` / mobile | 🟢 Supportato | 🔴 Da Implementare | 🟡 **Media-Alta** |
-| **TRACKERS-007** | Ordinamento Serie nella Sezione Principale (In Visione, Da Iniziare, Pausa, Completate) | `trackers` / UI | N/A | 🔴 Da Implementare | 🟡 **Media-Alta** |
-| **TRACKERS-010** | Gestione Serie Abbandonate ("Drop"): Criteri, Azioni & Ripristino | `trackers` / mobile | 🔴 Da Valutare | 🔴 Da Definire | 🟡 **Media-Alta** |
-| **UI-003** | Sostituzione Pulsante "Reset Filtri" con Freccia (Serie TV Web Desktop) | `trackers` / UI | N/A | 🔴 Da Implementare | 🟢 **Bassa** |
 | **FEAT-004** | Sezione Media: Estensione a Libri e Film & Funzionalità Evolutive | `media` / ent | 🟡 Parziale | 🟡 Parziale | 🔴 **Massima (Passo Fondamentale)** |
 | **FEAT-015** | Gestione Saghe di Film (TMDB Collections) | `media` / movies | 🔴 Da Implementare | 🔴 Da Implementare | 🟡 **Media** |
 | **FEAT-001** | Liste Spesa: Preferite & Pinnate (`pin_status` desktop & mobile) | `shopping` | 🟢 Completato | 🔴 Da Implementare | 🟡 **Media-Alta** |
@@ -42,40 +38,6 @@ Questo documento traccia in modo strutturato, prioritizzato e costantemente aggi
 ---
 
 ## 📺 1. Media & Trackers (Serie TV, Film, Libri)
-
-### [TRACKERS-005] Ottimizzazione Latenza: Aggiornamento Ottimistico Spunta/Rewatch & Citazioni, Audit Notifiche
-- **Descrizione**:
-  - **Aggiornamento Ottimistico Spunta/Rewatch**: Verificare e garantire che al tocco della spunta dell'episodio (o del cambio visualizzazioni rewatch) lo stato visivo si aggiorni istantaneamente nel frontend/React RAM prima dell'esito della chiamata asincrona al backend, eliminando qualsiasi latenza percepita.
-  - **Aggiornamento Ottimistico Citazioni**: Applicare il salvataggio ottimistico immediato anche all'inserimento, modifica ed eliminazione delle citazioni dell'episodio per una reattività touch istantanea.
-  - **Audit Notifiche**: Effettuare un check completo sul flusso delle notifiche generate dal sistema per definire chiaramente dove e quando farle comparire a schermo (evitando sovrapposizioni nelle viste mobile).
-- **Stato**: 🔴 Da Iniziare *(Priorità: Media-Alta)*.
-
-### [TRACKERS-007] Ordinamento Serie nella Sezione Principale
-- **Descrizione**: Configurare l'ordinamento predefinito delle serie TV nella libreria principale prioritizzando lo stato di visione nel seguente ordine:
-  1. **In Visione** (`watching` / blu / in corso)
-  2. **Non ancora iniziate** (`to_watch` / grigio / da iniziare)
-  3. **In Pausa** (`paused` / viola)
-  4. **Completate** (`completed` / verde)
-  *(a seguire eventuali serie abbandonate `dropped`)*.
-- **Stato**: 🔴 Da Implementare *(Priorità: Media-Alta)*.
-
-### [TRACKERS-010] Gestione Serie Abbandonate ("Drop"): Criteri, Azioni & Ripristino
-- **Obiettivo**: Definire come gestire l'abbandono delle serie TV ("Cimitero delle serie" / stato `dropped`), sia per l'esperienza utente (UI/UX) sia a livello di statistiche e logiche.
-- **Punti Chiave & Domande Aperte**:
-  1. **Azione Utente Esplicita**:
-     - Aggiungere un comando "Abbandona serie" (o "Sposta nel Cimitero") nel menu opzioni serie (`MobileSeriesOptionsModal`) o nel drawer di gestione stato (`MobileWatchActionDrawer`).
-     - Richiedere eventuale data di abbandono (default odierna) o motivo opzionale.
-  2. **Criteri Automatici o Suggerimenti Intelligenti**:
-     - Valutare se proporre un suggerimento automatico (es. *"Non guardi questa serie da oltre 6 mesi: vuoi contrassegnarla come abbandonata?"*), evitando cambi di stato arbitrari senza consenso.
-  3. **Visualizzazione & Ripristino (Revival)**:
-     - Dal modale Statistiche (sezione "Il Cimitero delle Serie") o dal Catalogo, consentire con un tocco di ripristinare la serie (*"Riprendi visione"* -> torna in `watching` o `to_watch`).
-  4. **Impatto sui Conteggi & Statistiche**:
-     - Mantenere distinte le serie "Abbandonate" da quelle in pausa o non iniziate. Non contano come completate, ma gli episodi già visti restano conteggiati nelle ore e negli episodi totali.
-- **Stato**: 🔴 Da Definire / Da Valutare *(Priorità: Media-Alta)*.
-
-### [UI-003] Sostituzione Pulsante "Reset Filtri" con Freccia (Serie TV Web Desktop)
-- **Descrizione**: Nella vista Desktop Web delle Serie TV ([`TVSeriesLibrary.tsx`](file:///c:/Users/Fabrizio/Desktop/app/smart/v14/frontend/src/components/trackers/TVSeriesLibrary.tsx)), sostituire il pulsante testuale "Reset filtri" con un'icona freccia di ripristino per uniformare l'interfaccia grafica e ridurre l'ingombro visivo.
-- **Stato**: 🔴 Da Implementare *(Priorità: Bassa)*.
 
 ### [FEAT-004] Estensione Sezione Media: Libri, Film & Funzionalità Evolutive
 

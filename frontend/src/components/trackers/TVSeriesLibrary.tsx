@@ -2,7 +2,7 @@ import React from 'react';
 import { EyeIcon, EyePlayIcon, EyeHalfOpenIcon, EyeClosedIcon, LoadingIcon, TvIcon } from '@/components/shared/utils/Icons';
 import { EmptyState } from '@/components/shared/utils/EmptyState';
 import { TMDBSeriesCard } from './TMDBSeriesCard';
-import { MediaCard } from './MediaCard';
+import { TVSeriesCatalogSections } from './TVSeriesCatalogSections';
 import type { TVSeries, TMDBSeriesSearchResult, TMDBPaginatedSearch } from '@/types/trackers';
 import type { MediaFilterState as SeriesFilterState } from './MediaFilterModal';
 import type { TabType } from './SeriesDetailModal/SeriesDetailModal';
@@ -94,14 +94,14 @@ export const TVSeriesLibrary: React.FC<TVSeriesLibraryProps> = ({
 
        {/* GRIGLIA LOCANDINE */}
        <div 
-         className="relative flex-1 min-h-0 -mr-2"
+         className="relative flex-1 min-h-0 -ml-3 -mr-2"
          style={{ 
            WebkitMaskImage: 'linear-gradient(to bottom, transparent 0px, black 60px, black calc(100% - 40px), transparent 100%)', 
            maskImage: 'linear-gradient(to bottom, transparent 0px, black 60px, black calc(100% - 40px), transparent 100%)' 
          }}
        >
          <div 
-           className="absolute inset-0 overflow-y-auto modal-scrollbar pr-4 pb-8 pt-[120px] sm:pt-[80px] grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-x-4 gap-y-6 content-start"
+           className="absolute inset-0 overflow-y-auto modal-scrollbar pl-3 pr-4 pb-8 pt-[120px] sm:pt-[80px]"
          >
             {debouncedQuery || (filters.globalSearch && (filters.genre !== 'all' || filters.network !== 'all' || filters.year !== 'all')) ? (() => {
               const isLoading = debouncedQuery ? isSearchLoading : isDiscoverLoading;
@@ -109,7 +109,7 @@ export const TVSeriesLibrary: React.FC<TVSeriesLibraryProps> = ({
               
               if (isLoading) {
                 return (
-                  <div className="col-span-full h-40 flex flex-col items-center justify-center gap-3 text-blue-500">
+                  <div className="h-40 flex flex-col items-center justify-center gap-3 text-blue-500">
                     <LoadingIcon className="w-8 h-8 animate-spin" />
                     <p className="text-sm font-medium">Ricerca in corso...</p>
                   </div>
@@ -118,7 +118,7 @@ export const TVSeriesLibrary: React.FC<TVSeriesLibraryProps> = ({
               
               if (!results || results.length === 0) {
                 return (
-                  <div className="col-span-full h-40">
+                  <div className="h-40 flex items-center justify-center">
                      <EmptyState 
                        message={debouncedQuery ? `Nessun risultato trovato per "${debouncedQuery}"` : `Nessun risultato trovato`} 
                        icon={<TvIcon className="w-12 h-12 opacity-20" />} 
@@ -127,42 +127,39 @@ export const TVSeriesLibrary: React.FC<TVSeriesLibraryProps> = ({
                 );
               }
               
-              return results.map((res: TMDBSeriesSearchResult) => {
-                  const existingSeries = series?.find(s => s.tmdb_id === res.id);
-                  return (
-                    <TMDBSeriesCard 
-                      key={res.id} 
-                      result={res} 
-                      existingSeries={existingSeries}
-                      onCardClick={(mockSeries) => {
-                        setDetailModalSeries(mockSeries);
-                        setDetailModalTab('overview');
-                        setDetailModalOpen(true);
-                      }}
-                      onAddClick={(tmdbId, e) => handleAdd(tmdbId, e)}
-                    />
-                  );
-                });
-              })()
+              return (
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-x-4 gap-y-6 content-start">
+                  {results.map((res: TMDBSeriesSearchResult) => {
+                    const existingSeries = series?.find(s => s.tmdb_id === res.id);
+                    return (
+                      <TMDBSeriesCard 
+                        key={res.id} 
+                        result={res} 
+                        existingSeries={existingSeries}
+                        onCardClick={(mockSeries) => {
+                          setDetailModalSeries(mockSeries);
+                          setDetailModalTab('overview');
+                          setDetailModalOpen(true);
+                        }}
+                        onAddClick={(tmdbId, e) => handleAdd(tmdbId, e)}
+                      />
+                    );
+                  })}
+                </div>
+              );
+            })()
              : displaySeries.length === 0 ? (
-              <div className="col-span-full h-40">
+              <div className="h-40 flex items-center justify-center">
                  <EmptyState 
                    message="Nessuna serie trovata." 
                    icon={<TvIcon className="w-12 h-12 opacity-20" />} 
                  />
               </div>
             ) : (
-              displaySeries.map(s => (
-                <MediaCard
-                  key={s.id}
-                  title={s.title}
-                  posterPath={s.poster_path}
-                  customPosterPath={s.custom_poster_path}
-                  status={s.status}
-                  externalStatus={s.tmdb_status}
-                  onClick={() => openSeriesDetail(s)}
-                />
-              ))
+              <TVSeriesCatalogSections
+                series={displaySeries}
+                openSeriesDetail={openSeriesDetail}
+              />
             )}
          </div>
        </div>

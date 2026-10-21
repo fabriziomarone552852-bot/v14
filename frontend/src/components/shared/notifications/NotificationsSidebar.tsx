@@ -1,143 +1,39 @@
-import React, { useState, useEffect } from 'react';
-import { useNotifications } from '@/hooks/useNotifications';
-import { useSocial } from '@/hooks/useSocial';
-import { useAuth } from '@/context/AuthContext';
+import React, { useState } from 'react';
 import { BellIcon, CloseIcon } from '@/components/shared/utils/Icons';
 import { NotificationsTab } from './NotificationsTab';
 import { MessagesTab } from './MessagesTab';
-import { useNavigate } from 'react-router-dom';
-import type { NotificationResponse } from '@/types/notifications';
-import type { FriendshipResponse } from '@/types/social';
-import type { MessageFriend } from './MessagesTab';
+import { useNotificationsInbox } from '@/hooks/useNotificationsInbox';
 
 export const NotificationsSidebar: React.FC = () => {
-  const { unreadNotifications, allNotifications, readInteraction, createInteraction } = useNotifications();
-  const { friends, pendingRequests, acceptRequest, removeFriendship } = useSocial();
-  const { user } = useAuth();
-  const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState<'notifiche' | 'messaggi'>('notifiche');
-  
-  const [isSearching, setIsSearching] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedFriendId, setSelectedFriendId] = useState<number | null>(null);
-  const [messageText, setMessageText] = useState('');
-  const [retainedMessages, setRetainedMessages] = useState<NotificationResponse[]>([]);
-  
-  // Difesa contro risposte anomale: garantisce che i dati siano sempre array prima di eseguire filter/sort
-  const safeAllNotifications = Array.isArray(allNotifications) ? allNotifications : [];
-  const safeUnreadNotifications = Array.isArray(unreadNotifications) ? unreadNotifications : [];
-  const safeFriends = Array.isArray(friends) ? friends : [];
-  const safePendingRequests = Array.isArray(pendingRequests) ? pendingRequests : [];
 
-  // Separazione Notifiche regolari da Messaggi Effimeri, ordinate dalla più recente
-  const regularNotifications = safeAllNotifications
-    .filter(n => n.interaction_type !== 'EPHEMERAL_MSG')
-    .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
-  
-  // Uniamo i messaggi effimeri correnti con quelli appena letti (trattenuti in UI fino alla chiusura)
-  const ephemeralMessages = [
-    ...safeAllNotifications.filter(n => n.interaction_type === 'EPHEMERAL_MSG'),
-    ...retainedMessages
-  ]
-    .filter((v, i, a) => a.findIndex(t => (t.id === v.id)) === i) // unique by id
-    .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
-  
-  const unreadRegularCount = safeUnreadNotifications.filter(n => n.interaction_type !== 'EPHEMERAL_MSG').length;
-  const unreadEphemeralCount = safeUnreadNotifications.filter(n => n.interaction_type === 'EPHEMERAL_MSG').length;
-  
-  const hasUnreadNotifiche = unreadRegularCount > 0 || safePendingRequests.length > 0;
-  const hasUnreadMessaggi = unreadEphemeralCount > 0;
-  const hasUnread = hasUnreadNotifiche || hasUnreadMessaggi;
-
-  useEffect(() => {
-    // Quando la sidebar è aperta e siamo sulla tab 'messaggi', consideriamo TUTTI i messaggi effimeri visibili come "letti"
-    if (isOpen && activeTab === 'messaggi') {
-      const unreadEphemerals = safeAllNotifications.filter(n => n.interaction_type === 'EPHEMERAL_MSG' && !n.read_at);
-      if (unreadEphemerals.length > 0) {
-        // Li salviamo localmente così restano visibili finché non chiude la sidebar
-        setRetainedMessages(prev => {
-          const newRetained = [...prev];
-          unreadEphemerals.forEach(m => {
-            if (!newRetained.find(rm => rm.id === m.id)) {
-              newRetained.push({ ...m, read_at: new Date().toISOString() });
-            }
-          });
-          return newRetained;
-        });
-        
-        // E li bruciamo sul server istantaneamente
-        unreadEphemerals.forEach(m => {
-          readInteraction.mutate(m.id);
-        });
-      }
-    }
-  }, [isOpen, activeTab, allNotifications, readInteraction]);
-
-  const handleClose = () => {
-    setIsOpen(false);
-    setRetainedMessages([]);
-    setSelectedFriendId(null);
-  };
-
-  const handleNotificationClick = (interaction: NotificationResponse) => {
-    if (!interaction.read_at) {
-      readInteraction.mutate(interaction.id);
-    }
-    if (interaction.interaction_type === 'SHOPPING_GROUP_INVITE') {
-      navigate(`/shopping?openGroup=${interaction.reference_id}`);
-      handleClose();
-    } else if (interaction.interaction_type === 'SERIES_REVIEW_COMMENT' || interaction.interaction_type === 'SERIES_REVIEW_COMMENT_THREAD' || interaction.interaction_type === 'SERIES_REVIEW_MENTION') {
-      navigate(`/trackers/serie-tv?tmdb_id=${interaction.series_tmdb_id}&open_review=true&open_review_log_id=${interaction.reference_id}`);
-      handleClose();
-    } else if (interaction.interaction_type === 'EPISODE_REVIEW_COMMENT' || interaction.interaction_type === 'EPISODE_REVIEW_COMMENT_THREAD' || interaction.interaction_type === 'EPISODE_REVIEW_MENTION') {
-      navigate(`/trackers/serie-tv?tmdb_id=${interaction.series_tmdb_id}&open_episode=${interaction.episode_id}&open_review_log_id=${interaction.reference_id}`);
-      handleClose();
-    }
-  };
-
-  const getFriendUser = (friendship: FriendshipResponse) => {
-    return friendship.requester_id === user?.id ? friendship.addressee : friendship.requester;
-  };
-
-  // Creiamo la lista validFriends e aggiungiamo un flag se hanno messaggi effimeri pendenti
-  let validFriends = safeFriends
-    .map(f => {
-      const friendUser = getFriendUser(f);
-      if (!friendUser) return null;
-      // Trova eventuali messaggi effimeri da questo amico
-      const friendMessages = ephemeralMessages.filter(m => m.author_id === friendUser.id);
-      return { ...friendUser, friendMessages };
-    })
-    .filter((f): f is MessageFriend => f != null)
-    .filter(f => f.username.toLowerCase().includes(searchQuery.toLowerCase()));
-
-  // Ordinamento: amici con messaggi in sospeso in cima (dal più recente), poi ordine alfabetico
-  validFriends.sort((a, b) => {
-    const aHasMsg = a.friendMessages.length > 0;
-    const bHasMsg = b.friendMessages.length > 0;
-    if (aHasMsg && !bHasMsg) return -1;
-    if (!aHasMsg && bHasMsg) return 1;
-    // Se entrambi hanno messaggi, ordina per il più recente
-    if (aHasMsg && bHasMsg) {
-      const aDate = new Date(a.friendMessages[0].created_at).getTime();
-      const bDate = new Date(b.friendMessages[0].created_at).getTime();
-      return bDate - aDate;
-    }
-    // Altrimenti ordine alfabetico
-    return a.username.localeCompare(b.username);
+  const {
+    activeTab,
+    setActiveTab,
+    isSearching,
+    setIsSearching,
+    searchQuery,
+    setSearchQuery,
+    selectedFriendId,
+    setSelectedFriendId,
+    messageText,
+    setMessageText,
+    regularNotifications,
+    hasUnreadNotifiche,
+    hasUnreadMessaggi,
+    hasUnread,
+    validFriends,
+    friends,
+    pendingRequests,
+    acceptRequest,
+    removeFriendship,
+    handleNotificationClick,
+    handleSendMessage,
+    handleClose,
+  } = useNotificationsInbox({
+    isOpen,
+    onClose: () => setIsOpen(false),
   });
-
-  const handleSendMessage = (friendId: number) => {
-    if (!messageText.trim()) return;
-    createInteraction.mutate({
-      interaction_type: 'EPHEMERAL_MSG',
-      recipient_id: friendId,
-      content: messageText.trim()
-    });
-    setMessageText('');
-    setSelectedFriendId(null);
-  };
 
   return (
     <>
@@ -160,7 +56,7 @@ export const NotificationsSidebar: React.FC = () => {
             <BellIcon className="w-5 h-5 text-blue-600" />
             Inbox
           </h2>
-          <button onClick={() => handleClose()} className="text-gray-400 hover:text-red-500 transition-colors">
+          <button onClick={handleClose} className="text-gray-400 hover:text-red-500 transition-colors">
             <CloseIcon />
           </button>
         </div>
@@ -187,35 +83,37 @@ export const NotificationsSidebar: React.FC = () => {
         
         <div className="flex-1 p-4 overflow-y-auto custom-scrollbar flex flex-col">
           {activeTab === 'notifiche' && (
-<NotificationsTab 
+            <NotificationsTab 
               regularNotifications={regularNotifications}
               pendingRequests={pendingRequests}
               handleNotificationClick={handleNotificationClick}
               acceptRequest={acceptRequest}
               removeFriendship={removeFriendship}
-              
             />
-)}
+          )}
 
           {activeTab === 'messaggi' && (
-<MessagesTab 
-              validFriends={validFriends} friends={friends} isSearching={isSearching} setIsSearching={setIsSearching} searchQuery={searchQuery} setSearchQuery={setSearchQuery}
-              
+            <MessagesTab 
+              validFriends={validFriends}
+              friends={friends}
+              isSearching={isSearching}
+              setIsSearching={setIsSearching}
+              searchQuery={searchQuery}
+              setSearchQuery={setSearchQuery}
               selectedFriendId={selectedFriendId}
               setSelectedFriendId={setSelectedFriendId}
               messageText={messageText}
               setMessageText={setMessageText}
               handleSendMessage={handleSendMessage}
-              
             />
-)}
+          )}
         </div>
       </div>
 
       {isOpen && (
         <div 
           className="fixed inset-0 bg-black/20 backdrop-blur-sm z-[90] transition-opacity" 
-          onClick={() => handleClose()}
+          onClick={handleClose}
         ></div>
       )}
     </>

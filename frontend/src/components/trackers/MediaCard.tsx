@@ -31,7 +31,7 @@ export const MediaCard: React.FC<MediaCardProps> = ({
       : null;
 
   return (
-    <div className="flex flex-col group cursor-pointer w-full relative" onClick={onClick}>
+    <div className="flex flex-col group cursor-pointer w-full relative z-0 hover:z-20" onClick={onClick}>
        <div className={`relative aspect-[2/3] w-full rounded-lg overflow-hidden bg-gray-100 shadow-sm border-[3px] transition-all duration-300 group-hover:scale-105 ${borderColor}`}>
           {finalPoster ? (
             <img src={finalPoster} alt={title} className="w-full h-full object-cover" />

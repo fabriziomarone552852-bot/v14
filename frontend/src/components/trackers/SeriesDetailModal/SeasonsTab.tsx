@@ -4,6 +4,7 @@ import { EpisodeDetailView } from './EpisodeDetailView';
 import { StarRating } from './StarRating';
 import { useTrackersMutations } from '@/hooks/mutations/useTrackersMutations';
 import { useSeriesExtras } from '@/hooks/queries/useTrackersQueries';
+import { showTrackerToast } from '@/components/trackers/TrackerToast';
 
 interface SeasonsTabProps {
   tmdbSeries: TMDBSeries;
@@ -50,7 +51,7 @@ export const SeasonsTab: React.FC<SeasonsTabProps> = ({ tmdbSeries, initialEpiso
   const requireTracking = (e?: React.MouseEvent) => {
     if (e) e.stopPropagation();
     if (!userTracking) {
-      alert("Aggiungi prima la serie alla tua libreria.");
+      showTrackerToast("Aggiungi prima la serie alla tua libreria", "warning");
       return false;
     }
     return true;

@@ -74,7 +74,15 @@ export const MobileTVSeriesView: React.FC = () => {
   const [isPersonalListsModalOpen, setIsPersonalListsModalOpen] = useState(false);
   const [selectedListForModal, setSelectedListForModal] = useState<MediaList | null>(null);
   const [isListManagerModalOpen, setIsListManagerModalOpen] = useState(false);
-  const [isStandaloneEpisode, setIsStandaloneEpisode] = useState(false);
+  const [isStandaloneEpisode, setIsStandaloneEpisode] = useState(() => {
+    return Boolean(new URLSearchParams(window.location.search).get('open_episode'));
+  });
+
+  React.useEffect(() => {
+    if (detailModalEpisode && detailModalReviewLogId) {
+      setIsStandaloneEpisode(true);
+    }
+  }, [detailModalEpisode, detailModalReviewLogId]);
 
   // Apertura ricerca globale TMDB filtrata per Genere
   const handleMobileGenreClick = React.useCallback(
@@ -217,7 +225,16 @@ export const MobileTVSeriesView: React.FC = () => {
   };
 
   if (isLoading) {
-    return <PageLoadingState messages={['Caricamento Serie TV...']} />;
+    const isOpeningReview = Boolean(new URLSearchParams(window.location.search).get('open_review_log_id'));
+    return (
+      <PageLoadingState
+        messages={
+          isOpeningReview
+            ? ['Apertura recensione...', 'Recupero commenti in corso...']
+            : ['Caricamento Serie TV...']
+        }
+      />
+    );
   }
 
   if (isError) {

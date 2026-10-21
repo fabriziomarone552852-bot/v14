@@ -1,5 +1,5 @@
-// src/hooks/trackers/useTVSeriesPageLogic.ts
 import { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { useQueryClient, useQuery, useMutation } from '@tanstack/react-query';
 import { api } from '@/api/apiService';
 import { userGoalsApi } from '@/api/userGoalsApi';
@@ -20,12 +20,34 @@ import { useSeriesUrlParams } from './useSeriesUrlParams';
 export const useTVSeriesPageLogic = () => {
   const { confirm } = useConfirm();
   const queryClient = useQueryClient();
+  const [searchParams] = useSearchParams();
 
-  const [detailModalOpen, setDetailModalOpen] = useState(false);
-  const [detailModalSeries, setDetailModalSeries] = useState<SeriesDetailTarget | null>(null);
-  const [detailModalTab, setDetailModalTab] = useState<TabType>('overview');
-  const [detailModalEpisode, setDetailModalEpisode] = useState<TMDBEpisode | undefined>(undefined);
-  const [detailModalReviewLogId, setDetailModalReviewLogId] = useState<number | undefined>(undefined);
+  const tmdbIdParam = searchParams.get('tmdb_id');
+  const openReviewParam = searchParams.get('open_review') === 'true';
+  const openEpisodeParam = searchParams.get('open_episode');
+  const openReviewLogIdParam = searchParams.get('open_review_log_id');
+
+  const [detailModalOpen, setDetailModalOpen] = useState(() => Boolean(tmdbIdParam));
+  const [detailModalSeries, setDetailModalSeries] = useState<SeriesDetailTarget | null>(() => {
+    return tmdbIdParam ? { tmdb_id: Number(tmdbIdParam) } : null;
+  });
+  const [detailModalTab, setDetailModalTab] = useState<TabType>(() => {
+    if (openReviewParam) return 'review';
+    if (openEpisodeParam) return 'seasons';
+    return 'overview';
+  });
+  const [detailModalEpisode, setDetailModalEpisode] = useState<TMDBEpisode | undefined>(() => {
+    if (!openEpisodeParam) return undefined;
+    return {
+      id: Number(openEpisodeParam),
+      series_tmdb_id: Number(tmdbIdParam || 0),
+      season_number: 0,
+      episode_number: 0,
+    } as TMDBEpisode;
+  });
+  const [detailModalReviewLogId, setDetailModalReviewLogId] = useState<number | undefined>(() => {
+    return openReviewLogIdParam ? Number(openReviewLogIdParam) : undefined;
+  });
 
   const openSeriesDetail = (
     seriesItem: SeriesDetailTarget,

@@ -1,10 +1,11 @@
 import React, { useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { RotateCcw } from 'lucide-react';
+import { RotateCcw, Ban } from 'lucide-react';
 import { mediaService } from '@/api/mediaService';
 import { logger } from '@/utils/logger';
 import { PhotoIcon, LoadingIcon, CloseIcon, TrashIcon } from '@/components/shared/utils/Icons';
 import { useBackHandler } from '@/utils/backButtonManager';
+import { showTrackerToast } from '@/components/trackers/TrackerToast';
 
 export interface MobileSeriesOptionsModalProps {
   isOpen: boolean;
@@ -14,6 +15,9 @@ export interface MobileSeriesOptionsModalProps {
   isUserTracked: boolean;
   isRewatching?: boolean;
   onStopRewatch?: () => void;
+  isAbandoned?: boolean;
+  onAbandonSeries?: () => void;
+  onResumeSeries?: () => void;
 }
 
 export const MobileSeriesOptionsModal: React.FC<MobileSeriesOptionsModalProps> = ({
@@ -24,6 +28,9 @@ export const MobileSeriesOptionsModal: React.FC<MobileSeriesOptionsModalProps> =
   isUserTracked,
   isRewatching = false,
   onStopRewatch,
+  isAbandoned = false,
+  onAbandonSeries,
+  onResumeSeries,
 }) => {
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -34,7 +41,7 @@ export const MobileSeriesOptionsModal: React.FC<MobileSeriesOptionsModalProps> =
 
   const handleSelectSystemImage = () => {
     if (!isUserTracked) {
-      alert('Aggiungi prima la serie alla tua libreria per personalizzare la locandina.');
+      showTrackerToast('Aggiungi prima la serie alla tua libreria per personalizzare la locandina', 'warning');
       return;
     }
     fileInputRef.current?.click();
@@ -48,10 +55,11 @@ export const MobileSeriesOptionsModal: React.FC<MobileSeriesOptionsModalProps> =
       setIsUploading(true);
       const res = await mediaService.uploadImage(file, 'trackers');
       onPosterUpdated(res.url);
+      showTrackerToast('Locandina aggiornata con successo', 'success');
       onClose();
     } catch (error) {
       logger.error('Errore durante il caricamento della locandina:', error);
-      alert('Errore durante il caricamento della foto. Riprova.');
+      showTrackerToast('Errore durante il caricamento della foto. Riprova.', 'warning');
     } finally {
       setIsUploading(false);
       if (fileInputRef.current) {
@@ -115,16 +123,16 @@ export const MobileSeriesOptionsModal: React.FC<MobileSeriesOptionsModalProps> =
                 onStopRewatch();
                 onClose();
               }}
-              className="w-full p-3.5 flex items-center gap-3.5 rounded-2xl bg-amber-50/70 hover:bg-amber-100/80 border border-amber-200/80 transition-all cursor-pointer active:scale-[0.98] text-left group"
+              className="w-full p-3.5 flex items-center gap-3.5 rounded-2xl bg-gray-50 hover:bg-blue-50/70 border border-gray-100 hover:border-blue-200 transition-all cursor-pointer active:scale-[0.98] text-left group"
             >
-              <div className="w-10 h-10 rounded-xl bg-amber-100 text-amber-600 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
-                <RotateCcw className="w-5 h-5 text-amber-600" />
+              <div className="w-10 h-10 rounded-xl bg-gray-100 text-gray-600 group-hover:bg-blue-100 group-hover:text-blue-600 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                <RotateCcw className="w-5 h-5" />
               </div>
               <div className="flex-1 min-w-0">
-                <p className="font-bold text-amber-900 text-sm group-hover:text-amber-800 transition-colors">
+                <p className="font-bold text-gray-900 text-sm group-hover:text-blue-600 transition-colors">
                   Interrompi Rewatch
                 </p>
-                <p className="text-[11px] text-amber-700/80 font-medium">
+                <p className="text-[11px] text-gray-500 font-medium">
                   Rimuove la serie da &quot;I prossimi da guardare&quot;
                 </p>
               </div>
@@ -138,7 +146,7 @@ export const MobileSeriesOptionsModal: React.FC<MobileSeriesOptionsModalProps> =
             onClick={handleSelectSystemImage}
             className="w-full p-3.5 flex items-center gap-3.5 rounded-2xl bg-gray-50 hover:bg-blue-50/70 border border-gray-100 hover:border-blue-200 transition-all cursor-pointer active:scale-[0.98] text-left group"
           >
-            <div className="w-10 h-10 rounded-xl bg-blue-100 text-blue-600 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+            <div className="w-10 h-10 rounded-xl bg-gray-100 text-gray-600 group-hover:bg-blue-100 group-hover:text-blue-600 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
               {isUploading ? (
                 <LoadingIcon className="w-5 h-5 animate-spin text-blue-600" />
               ) : (
@@ -161,17 +169,67 @@ export const MobileSeriesOptionsModal: React.FC<MobileSeriesOptionsModalProps> =
               type="button"
               disabled={isUploading}
               onClick={handleResetPoster}
-              className="w-full p-3.5 flex items-center gap-3.5 rounded-2xl bg-red-50/60 hover:bg-red-50 border border-red-100 transition-all cursor-pointer active:scale-[0.98] text-left group"
+              className="w-full p-3.5 flex items-center gap-3.5 rounded-2xl bg-gray-50 hover:bg-blue-50/70 border border-gray-100 hover:border-blue-200 transition-all cursor-pointer active:scale-[0.98] text-left group"
             >
-              <div className="w-10 h-10 rounded-xl bg-red-100 text-red-600 flex items-center justify-center shrink-0">
+              <div className="w-10 h-10 rounded-xl bg-gray-100 text-gray-600 group-hover:bg-blue-100 group-hover:text-blue-600 flex items-center justify-center shrink-0 transition-colors">
                 <TrashIcon className="w-5 h-5" />
               </div>
               <div className="flex-1 min-w-0">
-                <p className="font-bold text-red-700 text-sm">
+                <p className="font-bold text-gray-900 text-sm group-hover:text-blue-600 transition-colors">
                   Ripristina Locandina
                 </p>
-                <p className="text-[11px] text-red-500 font-medium">
+                <p className="text-[11px] text-gray-500 font-medium">
                   Ritorna alla copertina originale TMDB
+                </p>
+              </div>
+            </button>
+          )}
+
+          {/* Opzione: Abbandona Serie (visibile solo se tracciata e non ancora abbandonata) */}
+          {isUserTracked && !isAbandoned && onAbandonSeries && (
+            <button
+              type="button"
+              disabled={isUploading}
+              onClick={() => {
+                onAbandonSeries();
+                onClose();
+              }}
+              className="w-full p-3.5 flex items-center gap-3.5 rounded-2xl bg-gray-50 hover:bg-blue-50/70 border border-gray-100 hover:border-blue-200 transition-all cursor-pointer active:scale-[0.98] text-left group"
+            >
+              <div className="w-10 h-10 rounded-xl bg-gray-100 text-gray-600 group-hover:bg-blue-100 group-hover:text-blue-600 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                <Ban className="w-5 h-5" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="font-bold text-gray-900 text-sm group-hover:text-blue-600 transition-colors">
+                  Abbandona Serie
+                </p>
+                <p className="text-[11px] text-gray-500 font-medium">
+                  Rimuove la serie da &quot;I prossimi da guardare&quot;
+                </p>
+              </div>
+            </button>
+          )}
+
+          {/* Opzione: Riprendi Serie (visibile solo se tracciata e abbandonata) */}
+          {isUserTracked && isAbandoned && onResumeSeries && (
+            <button
+              type="button"
+              disabled={isUploading}
+              onClick={() => {
+                onResumeSeries();
+                onClose();
+              }}
+              className="w-full p-3.5 flex items-center gap-3.5 rounded-2xl bg-gray-50 hover:bg-blue-50/70 border border-gray-100 hover:border-blue-200 transition-all cursor-pointer active:scale-[0.98] text-left group"
+            >
+              <div className="w-10 h-10 rounded-xl bg-gray-100 text-gray-600 group-hover:bg-blue-100 group-hover:text-blue-600 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                <RotateCcw className="w-5 h-5" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="font-bold text-gray-900 text-sm group-hover:text-blue-600 transition-colors">
+                  Riprendi Serie
+                </p>
+                <p className="text-[11px] text-gray-500 font-medium">
+                  Riattiva la visione della serie nel catalogo
                 </p>
               </div>
             </button>

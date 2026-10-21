@@ -6,6 +6,7 @@ import { StarRating } from './StarRating';
 interface EpisodeMainOverviewProps {
   episode: TMDBEpisode;
   logs: UserEpisodeLog[];
+  isWatched?: boolean;
   onBack: () => void;
   handleToggleWatched: () => void;
   imagePlaceholder: string;
@@ -21,6 +22,7 @@ interface EpisodeMainOverviewProps {
 export const EpisodeMainOverview: React.FC<EpisodeMainOverviewProps> = ({
   episode,
   logs,
+  isWatched: isWatchedProp,
   onBack,
   handleToggleWatched,
   imagePlaceholder,
@@ -32,6 +34,8 @@ export const EpisodeMainOverview: React.FC<EpisodeMainOverviewProps> = ({
   onOpenFriendsReviews,
   onOpenMyReviews,
 }) => {
+  const isWatched = isWatchedProp !== undefined ? isWatchedProp : logs.length > 0;
+
   return (
     <div className="flex flex-col h-full animate-fadeIn">
       {/* Intestazione */}
@@ -75,13 +79,13 @@ export const EpisodeMainOverview: React.FC<EpisodeMainOverviewProps> = ({
         <button
           onClick={handleToggleWatched}
           className={`w-8 h-8 rounded-full flex items-center justify-center hover:scale-110 transition-all shadow-sm cursor-pointer ${
-            logs.length > 0
+            isWatched
               ? 'bg-blue-500 text-white shadow-md'
               : 'border-2 border-gray-300 text-transparent hover:border-blue-400'
           }`}
-          title={logs.length > 0 ? 'Segna come non visto' : 'Segna come visto'}
+          title={isWatched ? 'Segna come non visto' : 'Segna come visto'}
         >
-          {logs.length > 0 ? (
+          {isWatched ? (
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
             </svg>

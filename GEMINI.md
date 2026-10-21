@@ -29,6 +29,7 @@ Fare sempre riferimento a:
   - Allegati e file: **esclusivamente URL testuali**, mai blob o binari nel database.
   - Memoria: dati caldi in RAM, dati storici/freddi caricati su richiesta (Lazy Loading).
   - **Mobile UI & Selettori Centrali**: Su mobile vietati i dropdown/popover inline; usare sempre un piccolo modale centrato a finestra (`SelectModalDialog` / `MobileModalSelect`) con backdrop scuro, righe touch-friendly e chiusura automatica al tap.
+  - **Aggiornamento Ottimistico (0ms Latency & Optimistic UI)**: Tasti e toggle frequenti (spunte visto/completato, contatori, citazioni, rating, preferiti) devono aggiornare la UI e la cache TanStack Query istantaneamente in RAM (`onMutate`) a 0ms, con rollback automatico in `onError` e invalidazione silenziosa in `onSettled`. Mai attendere la risposta di rete per mostrare il feedback visivo e mai usare `alert()` nativi.
   - **Campi Decimali Universali (Virgola & Punto)**: In qualsiasi input con decimali (prezzi, quantità, pesi) su Web e Mobile, vietato l'uso di `<input type="number">` (che blocca il tasto punto nei browser in italiano). Usare sempre `type="text" inputMode="decimal"` con `@/utils/decimalUtils` (`sanitizeDecimalString` e `parseDecimalValue`), accettando sempre sia `,` che `.`.
 - **Standard Qualità Codice (TypeScript Strict & Clean)**:
   - **Zero any**: vietato l'uso di `any`; tipizzare sempre con `interface`/`type` espliciti.

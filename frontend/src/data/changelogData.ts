@@ -1,4 +1,4 @@
-﻿// src/data/changelogData.ts
+// src/data/changelogData.ts
 
 export interface ChangelogItem {
   id: string;
@@ -22,6 +22,8 @@ export const CHANGELOG_HISTORY: ChangelogItem[] = [
     isLatest: true,
     published: false,
     highlights: [
+      'Notifiche & Inbox su Mobile (NOTIF-001): Indicatore a pallino rosso sull\'icona ad hamburger dell\'header mobile in caso di novità, pulsante campanella dedicato a 5 colonne nel footer del drawer con colore rosso pulsante e apertura del Bottom Sheet touch-friendly a scorrimento dal basso con supporto completo al tasto fisico "Indietro" di Android.',
+      'Serie TV: Aggiornamento Ottimistico Spunta/Rewatch & Citazioni (TRACKERS-005): Eliminata qualsiasi latenza percepita al tocco del pallino visto, delle visualizzazioni rewatch e all\'inserimento/eliminazione citazioni con aggiornamento istantaneo a 0ms in RAM e TanStack Query cache; nuovo sistema toast in-app (TrackerToast) per avvisi ed errori non bloccanti.',
       'Serie TV Mobile: Diario Puntate, Navigazione a 3 Pagine Circolari & Rewatch: Nuova schermata centrale "Diario Puntate" con storico visioni dal basso verso l\'alto e carosello circolare a 3 schermate (Timeline Uscite, Diario, Dashboard); gestione del rewatch con dialog touch di conferma e opzione "Interrompi rewatch".',
       'Serie TV Mobile: Modale Statistiche a Tutto Schermo & Catalogo Tematico: Modale statistiche nativo full-screen a scorrimento verticale continuo con sezioni Panoramica, Voti, Abitudini e Rewatch; catalogo mobile "Le tue serie" a 4 aree tematiche (In visione, In lista, In attesa, Completate) con bordi colorati di stato e ricerca avanzata in RAM.',
       'Serie TV Mobile: Scheda Episodio Full-Screen, Recensioni & Gestione Liste: Dettaglio episodio a tutto schermo con backdrop still HD e cassetto visioni; form recensioni touch con textarea ad altezza dinamica; riprogettato il modale "Le mie liste" con selezione multipla touch, card collage e creazione rapida.',
@@ -30,6 +32,10 @@ export const CHANGELOG_HISTORY: ChangelogItem[] = [
       'Campi Decimali Universali & Precisione a 3 Cifre: Accettazione trasparente di virgola e punto su Web e Mobile in tutti i campi numerici decimali; calcolo inverso da prezzo unitario nelle griglie admin; estensione delle pesature e quantità a 3 decimali (NUMERIC 12,3).'
     ],
     features: [
+      'Notifiche & Bottom Sheet Inbox Mobile (NOTIF-001): Integrazione di MobileNotificationsSheet con schede segmentate per Notifiche (inviti spesa, richieste di amicizia con azioni rapide e notifiche social) e Messaggi Effimeri (amici e messaggi con autodistruzione); apertura rapida dal footer del menu laterale e pallino rosso reattivo sull\'hamburger.',
+      'Navigazione Diretta Recensioni da Notifica Mobile: Risolta la navigazione a cascata al tocco di notifiche di recensioni/commenti serie TV, aprendo istantaneamente il dettaglio della recensione senza passaggi intermedi; integrato overlay animato di caricamento contestuale ("Apertura recensione...", "Reindirizzamento in corso...") per una transizione fluida e reattiva.',
+      'Gestione Serie Abbandonate ("Drop") & Ripristino (TRACKERS-010): Aggiunta opzione "Abbandona Serie" / "Riprendi Serie" nel menu a tre puntini mobile e pulsante ad effetto glass con hover rosso nel dettaglio serie Web/Desktop; esclusione istantanea da "I prossimi da guardare", bordo rosso di stato e collocazione in coda al catalogo dopo i completati (con pillola "Abbandonate" su mobile e flusso continuo su desktop).',
+      'Catalogo Serie TV Web Desktop a 4 Sezioni: Riorganizzazione della libreria principale desktop (TVSeriesLibrary) con suddivisione e ordinamento prioritario delle serie in 4 macro-aree tematiche (In visione, In lista, In attesa, Completate) con bordi di stato coordinati.',
       'Mobile TV Series Diario & Carousel: Nuova slide centrale Diario con storico puntate, sezioni "I prossimi da guardare", "Da riprendere" e "Nuove serie", escludendo gli episodi speciali (S00); navigazione swipe a 3 pagine circolari continue.',
       'Mobile TV Series Statistiche Fullscreen: Modale a schermo intero (MobileSeriesStatsModal) con gesture back native, istogramma voti, abitudini di visione e riepilogo rewatch.',
       'Mobile TV Series Catalogo & Ricerca Dedicata: Riprogettazione del catalogo a 4 aree tematiche con pillole grigie sobrie e nuovo modale di ricerca avanzata con filtri applicati localmente in RAM.',
@@ -42,6 +48,11 @@ export const CHANGELOG_HISTORY: ChangelogItem[] = [
       'Creazione Rapida Brand e Fornitori da Data Grid Lotti: Supporto input libero con datalist nei campi Brand e Fornitore; creazione automatica e aggiornamento istantaneo del mazzo di carte in RAM al salvataggio.'
     ],
     improvements: [
+      'Centralizzazione Architettura Notifiche (useNotificationsInbox): Estratto hook centralizzato condiviso per la gestione sincronizzata dello stato notifiche, calcolo conteggi non letti e burn-after-reading sia per Desktop (NotificationsSidebar) che per Mobile (MobileNotificationsSheet), riducendo la complessità del codice e azzerando le duplicazioni.',
+      'Aggiornamento Ottimistico Reattivo Episodi & Citazioni (TRACKERS-005): Sincronizzazione immediata in TanStack Query cache (onMutate/onError/onSettled) per toggle puntata, conteggi rewatch e citazioni memorabili; la UI si colora istantaneamente a 0ms senza attendere la risposta asincrona del server.',
+      'Audit Notifiche Mobile & TrackerToast (TRACKERS-005): Eliminati tutti gli alert bloccanti di sistema (window.alert) nei moduli serie TV e trackers; integrato TrackerToast discreto a scomparsa automatica (2.5s) con z-index protetto (z-[10070]) posizionato per non intralciare la navigazione o i pulsanti touch.',
+      'Icona Freccia Ripristino Filtri Serie TV (Desktop): Sostituito il pulsante testuale "Reset Filtri" con un\'icona freccia circolare di ripristino (RotateCcw) nel modale di ricerca approfondita per maggiore eleganza e uniformità grafica.',
+      'Allineamento Filtro Stato Serie TV Desktop: Normalizzazione dello stato visione tramite normalizeMediaStatus in useFilteredTVSeries, garantendo coerenza totale tra tabs rapide (occhietti) e sezioni tematiche del catalogo.',
       'Campi Decimali Universali (decimalUtils): Rimossi gli input type="number" nativi in favore di type="text" con inputMode="decimal", accettando sia virgola che punto senza blocchi browser.',
       'Calcolo Inverso Prezzo Unitario Admin: Doppio click sul prezzo unitario per ricavare la quantità o il prezzo totale mancante, con blocco di sicurezza se entrambi i dati sono presenti.',
       'Navigazione & Z-Index Gerarchico Mobile: Elevato z-index dei modali serie e integrata priorità useBackHandler per garantire ritorni precisi alla schermata sottostante senza chiusure accidentali.',
@@ -57,7 +68,8 @@ export const CHANGELOG_HISTORY: ChangelogItem[] = [
       'Configurazione TMDB Produzione NAS: Configurate chiavi API in ambiente di produzione NAS, risolvendo l\'errore HTTP 500 nella ricerca serie e recupero provider.',
       'Allineamento "Mazzo di Carte" Cross-Dominio: Rimossi i limiti forzati di default negli endpoint /products, /suppliers, /brands, /events, /interactions e /feedback/reports.',
       'Precisione Quantità a 3 Decimali: Migrazione NUMERIC(12,3) applicata su test e produzione per preservare quantità inferiori all\'unità e pesature al banco senza troncamenti.',
-      'Piattaforma di Visione per Episodio: Trasferito il campo piattaforma dalle recensioni della serie alle recensioni dei singoli episodi per una granularità di visione completa anche nei rewatch.'
+      'Piattaforma di Visione per Episodio: Trasferito il campo piattaforma dalle recensioni della serie alle recensioni dei singoli episodi per una granularità di visione completa anche nei rewatch.',
+      'Anti-Clipping Bordo Sinistro e Z-Index Locandine Catalogo Desktop: Aggiunto margine e padding orizzontale compensato al contenitore scorrevole (TVSeriesLibrary) ed elevato z-index a hover (z-20) su MediaCard e TMDBSeriesCard, impedendo che l\'ingrandimento al passaggio del mouse (scale-105) venga tagliato dal bordo sinistro o coperto dalle card adiacenti.'
     ]
   },
   {

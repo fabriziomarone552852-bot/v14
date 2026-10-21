@@ -32,6 +32,7 @@ Questo file contiene lo storico completo e strutturato di tutte le funzionalità
 | **SHOPPING-008** | Refactoring Catalogo Prodotti, Tabella Ponte N:N con Note & Compattazione | `shopping` / DB | 🟢 Completato | 🟢 Completato | Ottobre 2026 |
 | **SHOPPING-009** | Allineamento "Mazzo di Carte" Cross-Dominio & Rimozione Limiti Catalogo | `core` / shopping | 🟢 Completato | 🟢 Completato | Ottobre 2026 |
 | **SHOPPING-010** | Precisione Quantità e Pesature Spesa a 3 Decimali (NUMERIC 12,3) | `shopping` / DB | 🟢 Completato | 🟢 Completato | Ottobre 2026 |
+| **TRACKERS-005** | Ottimizzazione Latenza: Aggiornamento Ottimistico Spunta/Rewatch & Citazioni, Audit Notifiche | `trackers` / mobile & UI | 🟢 Completato | 🟢 Completato | Ottobre 2026 |
 | **SHOPPING-011** | Gestione ed Editing Rapido Scontrini della Sessione in Corso | `shopping` / admin | 🟢 Completato | 🟢 Completato | Ottobre 2026 |
 | **SHOPPING-012** | Hub Amministrazione Desktop con Data Grid Spesa, Eventi e Attività | `admin` / shopping | 🟢 Completato | 🟢 Completato | Ottobre 2026 |
 | **SHOPPING-013** | Valutazione & Opinioni sui Marchi dei Prodotti (Opzione C - 👍/👎) | `shopping` / catalog | 🟢 Completato | 🟢 Completato | Ottobre 2026 |
@@ -51,6 +52,87 @@ Questo file contiene lo storico completo e strutturato di tutte le funzionalità
 | **TRACKERS-013** | Restyling Modale Liste Personali Mobile ("Le mie liste"), Ordinamento & Tasto "+" | `trackers` / mobile | 🟢 Completato | 🟢 Completato | Ottobre 2026 |
 | **TRACKERS-004** | Analisi Date di Uscita Italiane vs TMDB (Chiuso: non supportato da API TMDB) | `trackers` / API | ❌ Chiuso | ❌ Chiuso | Ottobre 2026 |
 | **FEAT-004 (Completati)** | Liste Multimediali Miste, Ricerca per Lista, Commenti, Notifiche, Chat Effimera | `media` / social | 🟢 Completato | 🟢 Completato | Ottobre 2026 |
+| **TRACKERS-007** | Ordinamento & 4 Aree Tematiche Serie TV Web Desktop (Griglie Separate) | `trackers` / UI | N/A | 🟢 Completato | Ottobre 2026 |
+| **UI-003** | Sostituzione Pulsante "Reset Filtri" con Freccia (Serie TV Web Desktop) | `trackers` / UI | N/A | 🟢 Completato | Ottobre 2026 |
+| **TRACKERS-010** | Gestione Serie Abbandonate ("Drop"): Criteri, Azioni & Ripristino | `trackers` / UI & mobile | 🟢 Completato | 🟢 Completato | Ottobre 2026 |
+| **NOTIF-001** | Notifiche su Mobile: Entry Point, Bottom Sheet, Navigazione Diretta & Loading Overlay | `notifications` / mobile | 🟢 Supportato | 🟢 Completato | Ottobre 2026 |
+
+---
+
+### [NOTIF-001] Notifiche su Mobile: Entry Point, Bottom Sheet, Navigazione Diretta & Loading Overlay (🟢 Completato)
+
+#### 📋 Descrizione & Obiettivo
+Integrazione completa e nativa dell'inbox notifiche, richieste di amicizia e messaggi effimeri nell'applicazione mobile smartphone (precedentemente accessibile solo su Web Desktop via `NotificationsSidebar`):
+- **Entry Point & Indicatori Visivi**:
+  - Pallino rosso con animazione pulsante (`animate-ping`) sull'icona a menu hamburger dell'header mobile (`MobileHeader.tsx`) in presenza di notifiche o messaggi non letti.
+  - Nel menu laterale (`MobileDrawerFooter.tsx`), ripartizione dello spazio inferiore a 5 colonne: 4 colonne dedicate alle Impostazioni e 1 colonna per la Campanella Notifiche (`BellIcon`). In presenza di elementi non letti, il pulsante della campanella diventa rosso pulsante (`bg-red-600 animate-pulse text-white`).
+- **Pannello Bottom Sheet Touch-Friendly (`MobileNotificationsSheet.tsx`)**:
+  - Apertura fluida dal basso verso l'alto (`animate-slideUp`) con chiusura contestuale del menu laterale e visualizzazione sopra la pagina corrente.
+  - Pull bar superiore touch, backdrop oscurato con sfocatura (`backdrop-blur-xs`), chiusura rapida al tap o con tasto "Indietro" nativo di Android (`useBackHandler`, priorità 9).
+  - Schede segmentate per "Notifiche" (inviti ai gruppi spesa, richieste di amicizia con azioni rapide di accettazione/rifiuto, notifiche social) e "Messaggi Effimeri" (lista amici con messaggi con logica burn-after-reading).
+- **Navigazione Diretta & Loading Feedback Contestuale**:
+  - Al tap su notifiche di recensioni o commenti alle serie TV, eliminati tutti i salti visivi e le transizioni a cascata (pagina catalogo -> serie -> episodio -> recensione); sincronizzazione sincrona dello stato modale fin dal primo render e apertura diretta della recensione specifica.
+  - Overlay di caricamento immediato nel foglio notifiche con messaggi contestuali (*"Apertura recensione..."*, *"Apertura gruppo spesa..."*) ed eleganza visiva nello stato di attesa all'interno del modale serie/episodio.
+- **Centralizzazione Architettura (`useNotificationsInbox.ts`)**:
+  - Hook condiviso riutilizzato sia da `NotificationsSidebar.tsx` (Desktop) che da `MobileNotificationsSheet.tsx` (Mobile), snellendo il codice e garantendo perfetta coerenza di stato, filtri e conteggi.
+
+---
+
+### [TRACKERS-005] Ottimizzazione Latenza: Aggiornamento Ottimistico Spunta/Rewatch & Citazioni, Audit Notifiche (🟢 Completato)
+
+#### 📋 Descrizione & Obiettivo
+Rifinitura profonda della reattività, fluidità e comunicazione visiva nei moduli Serie TV e Trackers:
+- **Aggiornamento Ottimistico Spunta & Rewatch (0ms di latenza visiva)**:
+  - Introdotto `onMutate`, `onError` e `onSettled` in `toggleEpisodeWatchedMutation` all'interno di `useTrackersMutations.ts`.
+  - Al tocco della spunta dell'episodio o al cambio di visualizzazioni rewatch, lo stato visivo in RAM e nella cache TanStack Query (`['trackers', 'series', 'detail']` e `['trackers', 'series']`) si aggiorna istantaneamente prima dell'esito della chiamata asincrona al server, eliminando qualsiasi latenza percepita.
+  - Sincronizzazione simultanea dello stato ottimistico sia nel catalogo Desktop/Mobile (`SeasonsTab.tsx`, `useMobileSeriesSeasonsLogic.ts`) sia nelle schede a tutto schermo (`EpisodeMainOverview.tsx`, `MobileEpisodeDetailView.tsx`) e nel Diario/Timeline.
+- **Aggiornamento Ottimistico Citazioni dell'Episodio**:
+  - Rese ottimistiche le mutazioni `addQuoteMutation`, `updateQuoteMutation` e `deleteQuoteMutation` per aggiornare in tempo reale la lista citazioni e il badge sul fumetto dell'episodio a 0ms.
+  - Gestione di uno stato locale reattivo in `useEpisodeDetailLogic.ts` con feedback immediato all'inserimento, modifica ed eliminazione.
+- **Audit Notifiche Mobile & Componente `TrackerToast`**:
+  - Rimossi tutti i vecchi `alert()` bloccanti di sistema (`window.alert`) dai moduli serie TV e trackers (es. *"Aggiungi prima la serie alla tua libreria"* o errori di upload locandina).
+  - Introdotto il componente in-app [`TrackerToast.tsx`](file:///c:/Users/Fabrizio/Desktop/app/smart/v14/frontend/src/components/trackers/TrackerToast.tsx) con helper globale `showTrackerToast(message, type)` montato sia in `AppShellLayout.tsx` (Desktop) che in `MobileAppShell.tsx` (Mobile).
+  - Posizionamento calibrato in alto (`top-16`, centrato) con `z-[10070]` e auto-scomparsa a 2.5s per non coprire mai la barra di navigazione, i pulsanti touch di azione o la gesture back su smartphone.
+
+---
+
+### [TRACKERS-010] Gestione Serie Abbandonate ("Drop"): Criteri, Azioni & Ripristino (🟢 Completato)
+
+#### 📋 Descrizione
+Implementata la gestione completa dell'abbandono e ripristino delle serie TV ("Drop" / Cimitero Serie) sia su smartphone che su desktop:
+- **Mobile (Menu 3 Puntini)**: Nel modale di dettaglio serie (`MobileSeriesOptionsModal`), aggiunta l'opzione touch *"Abbandona Serie"* (con icona `Ban` e stile rosso) che imposta lo stato a `dropped` ed esclude immediatamente la serie da *"I prossimi da guardare"*, *"Da riprendere"* e *"Nuove serie"*. Se la serie è già abbandonata, compare l'opzione *"Riprendi Serie"* (con icona `RotateCcw` e stile verde smeraldo) che ripristina la serie in stato `watching` (se ha episodi già visti) o `to_watch`.
+- **Web / Desktop (Header Modale Dettaglio)**: Aggiunto un pulsante con effetto glass posizionato a sinistra della "X" di chiusura (`SeriesDetailHeader`). All'hover assume colore rosso (*"Abbandona"*); se la serie è abbandonata, si trasforma nel pulsante *"Riprendi"*.
+- **Catalogo Mobile & Web**:
+  - Le serie abbandonate presentano un **bordo spesso rosso** (`border-[2.5px] border-red-500` su mobile, `border-[3px] border-red-500` su desktop).
+  - Vengono posizionate rigorosamente in coda al catalogo, subito dopo le serie completate:
+    - **Su Mobile**: accompagnate da una pillola dedicata grigia `"ABBANDONATE"`.
+    - **Su Desktop**: disposte su riga separata in coda alle completate senza pillola testuale.
+- **Aggiornamento Istantaneo in RAM**: Allineamento immediato della cache TanStack Query alla mutazione dello stato (`updateSeriesMutation`).
+
+---
+
+### [TRACKERS-007] Ordinamento & 4 Aree Tematiche Serie TV Web Desktop (Griglie Separate) (🟢 Completato)
+
+#### 📋 Descrizione
+Riorganizzazione completa della libreria principale Serie TV Web Desktop ([`TVSeriesLibrary.tsx`](file:///c:/Users/Fabrizio/Desktop/app/smart/v14/frontend/src/components/trackers/TVSeriesLibrary.tsx)), adottando il criterio di suddivisione del catalogo mobile senza toccare alcun componente mobile:
+- **Componente Dedicato `TVSeriesCatalogSections.tsx`**: Raggruppamento e ordinamento rigoroso delle serie personali nelle 4 macro-aree canoniche:
+  1. *In Visione* (`watching` / bordi gialli)
+  2. *In Lista* (`to_watch`, `dropped`, `on_hold`, `untracked` / bordi grigi)
+  3. *In Attesa* (`waiting` / bordi viola)
+  4. *Completate* (`completed` / bordi verdi)
+- **A Capo a Fine Categoria**: Ciascun gruppo popola una propria griglia a 5 colonne responsive desktop; quando terminano le serie di uno stato, la riga non si mescola e si va rigorosamente a capo lasciando vuoto lo spazio residuo a destra.
+- **Estetica Pulita**: Nessuna pillola o badge testuale, per un design minimale e sobrio.
+- **Allineamento Filtri RAM**: Sincronizzazione con i filtri rapidi in alto (occhietti *Visti, In Corso, Tutti, Non Visti*) tramite `normalizeMediaStatus` in [`useFilteredTVSeries.ts`](file:///c:/Users/Fabrizio/Desktop/app/smart/v14/frontend/src/hooks/trackers/useFilteredTVSeries.ts).
+
+---
+
+### [UI-003] Sostituzione Pulsante "Reset Filtri" con Freccia (Serie TV Web Desktop) (🟢 Completato)
+
+#### 📋 Descrizione
+Nel modale di ricerca approfondita Serie TV desktop ([`MediaFilterModal.tsx`](file:///c:/Users/Fabrizio/Desktop/app/smart/v14/frontend/src/components/trackers/MediaFilterModal.tsx)), sostituito il vecchio pulsante testuale "Reset Filtri" con l'icona circolare di ripristino (`RotateCcw` da `lucide-react`):
+- Visibile solo in presenza di filtri attivi nell'header del modale (`hasActiveFilters`).
+- Dotato di tooltip `title="Ripristina tutti i filtri"` e animazione `active:scale-90`.
+- Allineato e proporzionato con il pulsante di chiusura `X` del `BaseModal`.
 
 ---
 

@@ -17,7 +17,7 @@ export const TMDBSeriesCard: React.FC<TMDBSeriesCardProps> = ({
 }) => {
   return (
     <div 
-      className="flex flex-col group cursor-pointer w-full relative" 
+      className="flex flex-col group cursor-pointer w-full relative z-0 hover:z-20" 
       onClick={() => {
         const mockSeries = {
           tmdb_series: {

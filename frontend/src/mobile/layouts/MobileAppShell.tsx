@@ -7,6 +7,9 @@ import { initCapacitorBackButton } from '@/utils/backButtonManager';
 
 import { MobileSelectionProvider } from '../context/MobileSelectionContext';
 import { TrackerHeaderProvider } from '@/context/TrackerHeaderContext';
+import { TrackerToast } from '@/components/trackers/TrackerToast';
+import { MobileNotificationsSheet } from '../components/notifications/MobileNotificationsSheet';
+import { useNotificationsInbox } from '@/hooks/useNotificationsInbox';
 
 const ARCHIVE_PATHS = [
   '/tasks',
@@ -23,6 +26,8 @@ const ARCHIVE_PATHS = [
 
 export const MobileAppShell: React.FC = () => {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
+  const { hasUnread } = useNotificationsInbox();
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -55,12 +60,15 @@ export const MobileAppShell: React.FC = () => {
           {/* 1. HEADER MOBILE (Stile Google Calendar con Hamburger, Selettore 4 viste & Impostazioni) */}
           <MobileHeader
             onOpenDrawer={() => setIsDrawerOpen(true)}
+            hasUnread={hasUnread}
           />
 
           {/* 2. MENU LATERALE A SCOMPARSA (Drawer) */}
           <MobileDrawer
             isOpen={isDrawerOpen}
             onClose={() => setIsDrawerOpen(false)}
+            hasUnread={hasUnread}
+            onOpenNotifications={() => setIsNotificationsOpen(true)}
           />
 
           {/* 3. MAIN CONTENT AREA (Occupa tutto lo spazio residuo senza scrollbar esterne) */}
@@ -68,6 +76,14 @@ export const MobileAppShell: React.FC = () => {
             <Outlet />
           </main>
 
+          {/* 4. CASSETTO NOTIFICHE E MESSAGGI TOUCH-FRIENDLY (Apertura dal basso) */}
+          <MobileNotificationsSheet
+            isOpen={isNotificationsOpen}
+            onClose={() => setIsNotificationsOpen(false)}
+          />
+
+          {/* Notifiche / Avvisi Tracker in-app non bloccanti */}
+          <TrackerToast />
         </div>
       </TrackerHeaderProvider>
     </MobileSelectionProvider>

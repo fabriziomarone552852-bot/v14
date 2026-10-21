@@ -23,6 +23,7 @@ import {
   MobileWatchActionDrawer,
   type MobileWatchActionTarget,
 } from './MobileWatchActionDrawer';
+import { showTrackerToast } from '@/components/trackers/TrackerToast';
 
 export interface MobileEpisodeDetailViewProps {
   episode: TMDBEpisode;
@@ -71,8 +72,12 @@ export const MobileEpisodeDetailView: React.FC<MobileEpisodeDetailViewProps> = (
     openEditReview,
     handleDeleteLog,
     handleSave,
+    handleToggleWatched,
     handleSaveQuote,
     handleDeleteQuote,
+    optimisticWatchCount,
+    isWatched,
+    quotes,
     commentMentions,
     handleSendComment,
   } = useEpisodeDetailLogic({
@@ -83,19 +88,17 @@ export const MobileEpisodeDetailView: React.FC<MobileEpisodeDetailViewProps> = (
     initialReviewLogId,
   });
 
-  const quotes = episode.quotes || [];
-  const watchCount = episode.watch_count || 0;
-  const isWatched = watchCount > 0;
+  const watchCount = optimisticWatchCount;
 
   // Gestione tocco pallino visto / rewatch
   const handleCircleClick = (e: React.MouseEvent) => {
     e.stopPropagation();
     if (!userTracking) {
-      alert('Aggiungi prima la serie alla tua libreria.');
+      showTrackerToast('Aggiungi prima la serie alla tua libreria', 'warning');
       return;
     }
     if (watchCount === 0) {
-      toggleEpisodeWatched({ episode_id: episode.id, watched: true });
+      handleToggleWatched();
     } else {
       setDrawerTarget({
         type: 'episode',
@@ -240,7 +243,16 @@ export const MobileEpisodeDetailView: React.FC<MobileEpisodeDetailViewProps> = (
   }
 
   // 5. Review Detail & Comments View (Dedicato Mobile)
-  if (view === 'review_detail' && selectedReview) {
+  if (view === 'review_detail') {
+    if (!selectedReview) {
+      return (
+        <div className="flex-1 flex flex-col items-center justify-center p-12 gap-3 text-gray-500 min-h-[300px]">
+          <div className="w-8 h-8 border-3 border-blue-500 border-t-transparent rounded-full animate-spin" />
+          <span className="text-xs font-bold text-gray-500">Apertura recensione...</span>
+        </div>
+      );
+    }
+
     const origLog = selectedReview.original_log;
     const isUserLog = origLog && 'user_id' in origLog;
 

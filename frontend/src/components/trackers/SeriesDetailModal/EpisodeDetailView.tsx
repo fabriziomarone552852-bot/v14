@@ -71,6 +71,8 @@ export const EpisodeDetailView: React.FC<EpisodeDetailViewProps> = ({
     handleToggleWatched,
     handleSaveQuote,
     handleDeleteQuote,
+    isWatched,
+    quotes,
     commentMentions,
     handleSendComment,
   } = useEpisodeDetailLogic({
@@ -80,8 +82,6 @@ export const EpisodeDetailView: React.FC<EpisodeDetailViewProps> = ({
     initialView,
     initialReviewLogId,
   });
-
-  const quotes = episode.quotes || [];
 
   // 1. Form View (Nuova o Modifica Recensione Episodio)
   if (view === 'form') {
@@ -242,6 +242,7 @@ export const EpisodeDetailView: React.FC<EpisodeDetailViewProps> = ({
     <EpisodeMainOverview
       episode={episode}
       logs={logs}
+      isWatched={isWatched}
       onBack={onBack}
       handleToggleWatched={handleToggleWatched}
       imagePlaceholder={imagePlaceholder}

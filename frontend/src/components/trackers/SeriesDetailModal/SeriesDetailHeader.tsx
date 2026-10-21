@@ -1,5 +1,6 @@
 // src/components/trackers/SeriesDetailModal/SeriesDetailHeader.tsx
 import React from 'react';
+import { Ban, RotateCcw } from 'lucide-react';
 import type { MediaList, SeriesFriendDisplayItem } from '@/types/trackers';
 import type { TMDBProvidersResponse } from './hooks/useSeriesDetailModalLogic';
 import { SeriesDetailListsBar } from './SeriesDetailListsBar';
@@ -7,6 +8,10 @@ import { SeriesDetailListsBar } from './SeriesDetailListsBar';
 interface SeriesDetailHeaderProps {
   backdropUrl: string;
   onClose: () => void;
+  isUserTracked?: boolean;
+  isAbandoned?: boolean;
+  onAbandon?: () => void;
+  onResume?: () => void;
   genres: string[];
   onGenreClick?: (genre: string) => void;
   providersData?: TMDBProvidersResponse | null;
@@ -23,6 +28,10 @@ interface SeriesDetailHeaderProps {
 export const SeriesDetailHeader: React.FC<SeriesDetailHeaderProps> = ({
   backdropUrl,
   onClose,
+  isUserTracked = false,
+  isAbandoned = false,
+  onAbandon,
+  onResume,
   genres,
   onGenreClick,
   providersData,
@@ -43,16 +52,41 @@ export const SeriesDetailHeader: React.FC<SeriesDetailHeaderProps> = ({
         className="w-full h-full object-cover opacity-50 blur-sm scale-105"
       />
 
-      {/* Tasto Chiudi in alto a destra */}
-      <button
-        onClick={onClose}
-        className="absolute top-4 right-4 p-2 bg-black/30 hover:bg-black/50 backdrop-blur-md rounded-full text-white transition-colors z-20 cursor-pointer"
-        title="Chiudi"
-      >
-        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-        </svg>
-      </button>
+      {/* AZIONI IN ALTO A DESTRA: TASTO ABBANDONA / RIPRENDI E TASTO CHIUDI */}
+      <div className="absolute top-4 right-4 flex items-center gap-2.5 z-20">
+        {isUserTracked && (
+          <button
+            type="button"
+            onClick={isAbandoned ? onResume : onAbandon}
+            className="px-3.5 py-1.5 rounded-full text-xs font-bold backdrop-blur-md transition-all duration-200 cursor-pointer border border-white/20 bg-black/30 text-white shadow-lg flex items-center gap-1.5 active:scale-95 select-none hover:bg-red-600/80 hover:border-red-500"
+            title={isAbandoned ? 'Riprendi serie' : 'Abbandona serie'}
+          >
+            {isAbandoned ? (
+              <>
+                <RotateCcw className="w-3.5 h-3.5 text-white" />
+                <span>Riprendi</span>
+              </>
+            ) : (
+              <>
+                <Ban className="w-3.5 h-3.5 text-white" />
+                <span>Abbandona</span>
+              </>
+            )}
+          </button>
+        )}
+
+        {/* Tasto Chiudi */}
+        <button
+          type="button"
+          onClick={onClose}
+          className="p-2 bg-black/30 hover:bg-black/50 backdrop-blur-md rounded-full text-white transition-colors cursor-pointer border border-white/10"
+          title="Chiudi"
+        >
+          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
 
       {/* BADGES IN ALTO A SINISTRA (Generi e Piattaforme) */}
       <div className="absolute top-4 left-6 flex flex-col gap-3 max-w-xl z-20">

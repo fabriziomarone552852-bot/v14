@@ -11,9 +11,16 @@ import {
 export interface MobileDrawerProps {
   isOpen: boolean;
   onClose: () => void;
+  hasUnread?: boolean;
+  onOpenNotifications?: () => void;
 }
 
-export const MobileDrawer: React.FC<MobileDrawerProps> = ({ isOpen, onClose }) => {
+export const MobileDrawer: React.FC<MobileDrawerProps> = ({
+  isOpen,
+  onClose,
+  hasUnread = false,
+  onOpenNotifications,
+}) => {
   useBackHandler(isOpen, onClose, 8);
   const location = useLocation();
   const { user } = useAuth();
@@ -65,7 +72,12 @@ export const MobileDrawer: React.FC<MobileDrawerProps> = ({ isOpen, onClose }) =
           onClose={onClose}
           isSuperuser={user?.is_superuser}
         />
-        <MobileDrawerFooter isActive={isActive} onClose={onClose} />
+        <MobileDrawerFooter
+          isActive={isActive}
+          onClose={onClose}
+          hasUnread={hasUnread}
+          onOpenNotifications={onOpenNotifications}
+        />
       </div>
     </div>
   );
