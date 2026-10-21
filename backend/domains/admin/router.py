@@ -426,6 +426,162 @@ def reseed_shopping_data_by_admin(
     return {"message": "Seed prodotti spesa, negozi e lotti completato con successo!"}
 
 
+@router.post("/maintenance/dump-seeds")
+def dump_seeds_by_admin(
+    db: Session = Depends(deps.get_db),
+    current_user: User = Depends(deps.require_superuser),
+):
+    """Rigenera tutti i 7 file CSV di seed estraendo lo stato reale e attuale del DB."""
+    from backend.core.seed_exporter import dump_all_seeds_from_db
+
+    try:
+        result = dump_all_seeds_from_db(db)
+        return {
+            "status": "success",
+            "message": "File di seed CSV rigenerati e archiviati con successo!",
+            "data": result,
+        }
+    except Exception as exc:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Errore durante la generazione dei file di seed: {exc}",
+        )
+
+
+@router.get("/maintenance/download-seeds-zip")
+def download_seeds_zip_by_admin(
+    db: Session = Depends(deps.get_db),
+    current_user: User = Depends(deps.require_superuser),
+):
+    """Genera e scarica direttamente un archivio ZIP contenente tutti i file di seed attuali."""
+    from fastapi.responses import StreamingResponse
+    from backend.core.seed_exporter import create_seeds_zip_in_memory
+
+    try:
+        zip_buf = create_seeds_zip_in_memory(db)
+        timestamp_str = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
+        filename = f"seeds_snapshot_{timestamp_str}.zip"
+
+        return StreamingResponse(
+            zip_buf,
+            media_type="application/zip",
+            headers={"Content-Disposition": f"attachment; filename={filename}"},
+        )
+    except Exception as exc:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Errore durante la creazione del pacchetto ZIP dei seed: {exc}",
+        )
+
+
+# ---------------------------------------------------------------------------
+# BACKUP & RESTORE GENERALE DATABASE SU NAS
+# ---------------------------------------------------------------------------
+
+class CreateBackupPayload(BaseModel):
+    note: Optional[str] = None
+
+
+class RestoreBackupPayload(BaseModel):
+    filename: str
+
+
+@router.post("/maintenance/database-backup")
+def trigger_database_backup(
+    payload: Optional[CreateBackupPayload] = None,
+    db: Session = Depends(deps.get_db),
+    current_user: User = Depends(deps.require_superuser),
+):
+    """Crea un backup completo e compresso (.json.gz) dell'intero database nella cartella NAS."""
+    from backend.core.backup_manager import create_full_database_backup
+
+    try:
+        note = payload.note if payload else None
+        res = create_full_database_backup(db, note=note)
+        return {
+            "status": "success",
+            "message": f"Backup creato con successo: {res['filename']} ({res['size_kb']} KB, {res['total_records']} record)",
+            "data": res,
+        }
+    except Exception as exc:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Errore durante la creazione del backup del database: {exc}",
+        )
+
+
+@router.get("/maintenance/database-backups")
+def get_database_backups(
+    current_user: User = Depends(deps.require_superuser),
+):
+    """Restituisce l'elenco cronologico di tutti i file di backup presenti sul NAS."""
+    from backend.core.backup_manager import list_database_backups
+
+    try:
+        backups = list_database_backups()
+        return backups
+    except Exception as exc:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Errore lettura archivio backup: {exc}",
+        )
+
+
+@router.get("/maintenance/database-backups/{filename}/download")
+def download_database_backup(
+    filename: str,
+    current_user: User = Depends(deps.require_superuser),
+):
+    """Scarica sul PC un file di backup .json.gz presente sul NAS."""
+    from fastapi.responses import FileResponse
+    from backend.core.backup_manager import BACKUPS_SYSTEM_DIR
+
+    file_path = BACKUPS_SYSTEM_DIR / filename
+    if not file_path.is_file() or not filename.endswith(".json.gz"):
+        raise HTTPException(status_code=404, detail="File di backup non trovato")
+
+    return FileResponse(
+        path=str(file_path),
+        media_type="application/gzip",
+        filename=filename,
+    )
+
+
+@router.delete("/maintenance/database-backups/{filename}")
+def remove_database_backup(
+    filename: str,
+    current_user: User = Depends(deps.require_superuser),
+):
+    """Elimina definitivamente un file di backup dalla cartella del NAS."""
+    from backend.core.backup_manager import delete_database_backup
+
+    success = delete_database_backup(filename)
+    if not success:
+        raise HTTPException(status_code=404, detail="File non trovato o eliminazione non consentita")
+    return {"message": f"Backup {filename} rimosso con successo dal NAS."}
+
+
+@router.post("/maintenance/database-restore")
+def trigger_database_restore(
+    payload: RestoreBackupPayload,
+    db: Session = Depends(deps.get_db),
+    current_user: User = Depends(deps.require_superuser),
+):
+    """Ripristina integralmente il database dal file di backup selezionato."""
+    from backend.core.backup_manager import restore_full_database_backup
+
+    try:
+        res = restore_full_database_backup(db, payload.filename)
+        return res
+    except Exception as exc:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Errore durante il ripristino del database: {exc}",
+        )
+
+
+
+
 # ---------------------------------------------------------------------------
 # SCHEMAS DATA GRID: EVENTI & ATTIVITÀ
 # ---------------------------------------------------------------------------

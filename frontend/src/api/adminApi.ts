@@ -175,6 +175,103 @@ export async function seedShoppingDataAdmin(): Promise<{ message: string }> {
   return res.data;
 }
 
+export interface DumpSeedsResult {
+  status: string;
+  message: string;
+  data: {
+    timestamp: string;
+    counts: Record<string, number>;
+    seeds_dir: string;
+    snapshot_dir: string;
+    zip_filename: string;
+  };
+}
+
+export async function dumpSeedsAdmin(): Promise<DumpSeedsResult> {
+  const res = await apiClient.post<DumpSeedsResult>('/admin/maintenance/dump-seeds');
+  return res.data;
+}
+
+export async function downloadSeedsZipAdmin(): Promise<void> {
+  const res = await apiClient.get('/admin/maintenance/download-seeds-zip', {
+    responseType: 'blob',
+  });
+  const url = window.URL.createObjectURL(new Blob([res.data]));
+  const link = document.createElement('a');
+  link.href = url;
+  link.setAttribute('download', `seeds_snapshot_${new Date().toISOString().slice(0, 10)}.zip`);
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  window.URL.revokeObjectURL(url);
+}
+
+export interface DatabaseBackupItem {
+  filename: string;
+  created_at: string;
+  size_kb: number;
+  total_records?: number | null;
+  note?: string | null;
+}
+
+export interface DatabaseRestoreResult {
+  status: string;
+  message: string;
+  restored_tables_count: number;
+  total_restored_records: number;
+  synced_sequences_count: number;
+  restored_counts: Record<string, number>;
+}
+
+export async function fetchDatabaseBackupsAdmin(): Promise<DatabaseBackupItem[]> {
+  const res = await apiClient.get<DatabaseBackupItem[]>('/admin/maintenance/database-backups');
+  return res.data;
+}
+
+export async function createDatabaseBackupAdmin(note?: string): Promise<{
+  status: string;
+  message: string;
+  data: {
+    filename: string;
+    path: string;
+    created_at: string;
+    size_kb: number;
+    total_records: number;
+    table_counts: Record<string, number>;
+  };
+}> {
+  const res = await apiClient.post('/admin/maintenance/database-backup', { note });
+  return res.data;
+}
+
+export async function deleteDatabaseBackupAdmin(filename: string): Promise<{ message: string }> {
+  const res = await apiClient.delete(`/admin/maintenance/database-backups/${filename}`);
+  return res.data;
+}
+
+export async function downloadDatabaseBackupAdmin(filename: string): Promise<void> {
+  const res = await apiClient.get(`/admin/maintenance/database-backups/${filename}/download`, {
+    responseType: 'blob',
+  });
+  const url = window.URL.createObjectURL(new Blob([res.data]));
+  const link = document.createElement('a');
+  link.href = url;
+  link.setAttribute('download', filename);
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  window.URL.revokeObjectURL(url);
+}
+
+export async function restoreDatabaseBackupAdmin(filename: string): Promise<DatabaseRestoreResult> {
+  const res = await apiClient.post<DatabaseRestoreResult>('/admin/maintenance/database-restore', {
+    filename,
+  });
+  return res.data;
+}
+
+
+
 export async function syncSequencesAdmin(): Promise<{
   status: string;
   message: string;

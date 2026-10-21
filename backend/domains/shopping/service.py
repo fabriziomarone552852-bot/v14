@@ -15,6 +15,7 @@ from backend.domains.shopping.models.catalog import ShoppingProduct, ShoppingPro
 from backend.core.csv_seed_loader import (
     load_seed_shopping_suppliers,
     load_seed_shopping_products,
+    load_seed_shopping_product_brands,
     load_seed_inventory_batches,
 )
 from backend.domains.shopping.models.groups import ShoppingGroup, ShoppingGroupMember
@@ -124,6 +125,28 @@ def seed_default_shopping_products_for_user(db: Session, user_id: int) -> None:
                     product_id=obj.id,
                     brand_id=brand_id,
                 ))
+
+    # Carica inoltre i legami N:N e note esplicite da shopping_product_brands.csv se presente
+    brands_links_data = load_seed_shopping_product_brands()
+    for b_item in brands_links_data:
+        p_id = b_item["product_id"]
+        b_id = b_item["brand_id"]
+        notes_val = b_item.get("notes")
+        existing_link = db.query(ShoppingProductBrand).filter(
+            ShoppingProductBrand.product_id == p_id,
+            ShoppingProductBrand.brand_id == b_id,
+        ).first()
+        if existing_link:
+            if notes_val and not existing_link.notes:
+                existing_link.notes = notes_val
+        else:
+            db.add(ShoppingProductBrand(
+                product_id=p_id,
+                brand_id=b_id,
+                notes=notes_val,
+                created_at=b_item.get("created_at") or _now(),
+                updated_at=b_item.get("updated_at") or _now(),
+            ))
 
     db.flush()
 
@@ -1863,7 +1886,7 @@ def link_product_brand(
         db.add(link)
 
     repo.commit(db)
-    repo.refresh(link)
+    repo.refresh(db, link)
     return link
 
 

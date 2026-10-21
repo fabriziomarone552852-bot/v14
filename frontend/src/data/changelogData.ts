@@ -45,6 +45,8 @@ export const CHANGELOG_HISTORY: ChangelogItem[] = [
       'Valutazione Brand Intelligente: Sistema di gradimento marchio permanente a 1 tap [👍|👎] con commenti qualitativi, integrato nei modali spesa e con badge/alert visivi per marchi sconsigliati.',
       'Data Grid Amministrazione Eventi & Task: Console tabellare per SuperUser con filtri e modifica inline per date, categorie, priorità, stati e riassegnazione cross-utente con salvataggio massivo.',
       'Hub Amministrazione Spesa & Unione Prodotti: Riorganizzazione sotto scheda unificata "Spesa" con tabs segmentate (Scontrini, Data Grid Lotti, Unione Prodotti Duplicati con accorpamento transazionale).',
+      'Snapshot & Dump Seeds Completo (*.csv): Strumento di esportazione integrale dal DB dello stato reale di 7 file CSV (inclusa la tabella ponte prodotti-brand shopping_product_brands), con archiviazione automatica snapshot sul NAS e download immediato archivio ZIP.',
+      'Backup & Restore Generale Database su NAS: Modulo completo di sicurezza per il salvataggio compresso (.json.gz) dell\'intero patrimonio dati (40 tabelle); storico backup su disco NAS con note opzionali, download locale, eliminazione e procedura di ripristino atomico protetta con riallineamento sequenze.',
       'Creazione Rapida Brand e Fornitori da Data Grid Lotti: Supporto input libero con datalist nei campi Brand e Fornitore; creazione automatica e aggiornamento istantaneo del mazzo di carte in RAM al salvataggio.'
     ],
     improvements: [
@@ -68,7 +70,8 @@ export const CHANGELOG_HISTORY: ChangelogItem[] = [
       'Configurazione TMDB Produzione NAS: Configurate chiavi API in ambiente di produzione NAS, risolvendo l\'errore HTTP 500 nella ricerca serie e recupero provider.',
       'Allineamento "Mazzo di Carte" Cross-Dominio: Rimossi i limiti forzati di default negli endpoint /products, /suppliers, /brands, /events, /interactions e /feedback/reports.',
       'Precisione Quantità a 3 Decimali: Migrazione NUMERIC(12,3) applicata su test e produzione per preservare quantità inferiori all\'unità e pesature al banco senza troncamenti.',
-      'Piattaforma di Visione per Episodio: Trasferito il campo piattaforma dalle recensioni della serie alle recensioni dei singoli episodi per una granularità di visione completa anche nei rewatch.',
+      'Piattaforma di Visione per Episodio: Trasferito il campo piattaforma dalle recensioni della serie alle recensioni dei singoli episodi per una granularità di visione completa anche nei rewatch.'
+      'Backend Crash POST /shopping/products/{id}/brands: Corretto TypeError \"refresh() missing 1 required positional argument: obj\" in service.py (link_product_brand) — la chiamata repo.refresh(link) ora passa correttamente il db come primo argomento: repo.refresh(db, link). Tutti i tentativi di associazione prodotto-brand restituivano HTTP 500.'
       'Anti-Clipping Bordo Sinistro e Z-Index Locandine Catalogo Desktop: Aggiunto margine e padding orizzontale compensato al contenitore scorrevole (TVSeriesLibrary) ed elevato z-index a hover (z-20) su MediaCard e TMDBSeriesCard, impedendo che l\'ingrandimento al passaggio del mouse (scale-105) venga tagliato dal bordo sinistro o coperto dalle card adiacenti.'
     ]
   },
