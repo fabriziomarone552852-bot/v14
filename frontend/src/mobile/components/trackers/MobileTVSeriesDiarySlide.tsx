@@ -35,8 +35,17 @@ export const MobileTVSeriesDiarySlide: React.FC<MobileTVSeriesDiarySlideProps> =
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const anchorRef = useRef<HTMLDivElement>(null);
   const hasCenteredInitially = useRef<boolean>(false);
+  const hasUserScrolled = useRef<boolean>(false);
   const [showBackToNext, setShowBackToNext] = useState<boolean>(false);
   const [isAnchorBelow, setIsAnchorBelow] = useState<boolean>(true);
+
+  // Allineamento dell'ancora a filo dell'header
+  const alignToAnchor = React.useCallback(() => {
+    if (hasUserScrolled.current) return;
+    if (anchorRef.current && scrollContainerRef.current) {
+      scrollContainerRef.current.scrollTop = anchorRef.current.offsetTop;
+    }
+  }, []);
 
   // Ancoraggio iniziale istantaneo a "I prossimi da guardare" senza animazioni né salti a vista
   useLayoutEffect(() => {
@@ -44,11 +53,24 @@ export const MobileTVSeriesDiarySlide: React.FC<MobileTVSeriesDiarySlideProps> =
     if (hasCenteredInitially.current) return;
     if (!series) return;
 
-    if (anchorRef.current && scrollContainerRef.current) {
-      scrollContainerRef.current.scrollTop = anchorRef.current.offsetTop;
+    alignToAnchor();
+
+    // Check asincroni per garantire l'allineamento perfetto dopo il rendering completo di font, immagini e WebView Android
+    const frameId = requestAnimationFrame(() => {
+      alignToAnchor();
+    });
+    const t1 = setTimeout(alignToAnchor, 60);
+    const t2 = setTimeout(() => {
+      alignToAnchor();
       hasCenteredInitially.current = true;
-    }
-  }, [activePageIndex, series, nextToWatch.length, watchedHistory.length]);
+    }, 200);
+
+    return () => {
+      cancelAnimationFrame(frameId);
+      clearTimeout(t1);
+      clearTimeout(t2);
+    };
+  }, [activePageIndex, series, nextToWatch.length, watchedHistory.length, alignToAnchor]);
 
   // Monitoraggio dello scroll per mostrare il pulsante "Torna ai prossimi" se si è nello storico o troppo in basso
   const handleScroll = () => {
@@ -87,6 +109,12 @@ export const MobileTVSeriesDiarySlide: React.FC<MobileTVSeriesDiarySlideProps> =
       <div
         ref={scrollContainerRef}
         onScroll={handleScroll}
+        onTouchStart={() => {
+          hasUserScrolled.current = true;
+        }}
+        onWheel={() => {
+          hasUserScrolled.current = true;
+        }}
         className="flex-1 min-h-0 overflow-y-auto px-3.5 pt-2 pb-24 scrollbar-none [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] select-none"
       >
         {/* ================================================================= */}
@@ -113,9 +141,12 @@ export const MobileTVSeriesDiarySlide: React.FC<MobileTVSeriesDiarySlideProps> =
         )}
 
         {/* ================================================================= */}
-        {/* 2. ANCORA INIZIALE: I PROSSIMI DA GUARDARE                        */}
+        {/* 2. AREA PRINCIPALE: ANCORA INIZIALE E SEZIONI DA GUARDARE         */}
+        {/* Il min-h-full garantisce che quest'area sia alta almeno quanto    */}
+        {/* l'intero viewport, permettendo all'ancora di posizionarsi         */}
+        {/* sempre in cima a filo dell'header sia su PC che su smartphone.    */}
         {/* ================================================================= */}
-        <div ref={anchorRef} className="pt-1">
+        <div ref={anchorRef} className="min-h-full flex flex-col pt-1">
           <MobileTVDiarySectionPill title="I prossimi da guardare" />
 
           {nextToWatch.length === 0 ? (
@@ -140,51 +171,51 @@ export const MobileTVSeriesDiarySlide: React.FC<MobileTVSeriesDiarySlideProps> =
               ))}
             </div>
           )}
+
+          {/* ================================================================= */}
+          {/* 3. SEZIONE: DA RIPRENDERE (Ferme da oltre 30 giorni)              */}
+          {/* ================================================================= */}
+          {onHold.length > 0 && (
+            <div className="pt-4">
+              <MobileTVDiarySectionPill title="Da riprendere" />
+              <div className="flex flex-col gap-2">
+                {onHold.map((item) => (
+                  <MobileTVEpisodeDiaryCard
+                    key={`onhold-${item.series.id}-${item.episode.id}`}
+                    series={item.series}
+                    episode={item.episode}
+                    remainingCount={item.remainingAfter}
+                    onClick={handleEpisodeCardClick}
+                    onOpenSeriesDetail={() => onOpenSeriesDetail(item.series)}
+                    onToggleWatch={handleToggleWatch}
+                  />
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* ================================================================= */}
+          {/* 4. SEZIONE: NUOVE SERIE (Non ancora iniziate)                    */}
+          {/* ================================================================= */}
+          {unstarted.length > 0 && (
+            <div className="pt-4">
+              <MobileTVDiarySectionPill title="Nuove serie" />
+              <div className="flex flex-col gap-2">
+                {unstarted.map((item) => (
+                  <MobileTVEpisodeDiaryCard
+                    key={`unstarted-${item.series.id}-${item.episode.id}`}
+                    series={item.series}
+                    episode={item.episode}
+                    remainingCount={item.remainingAfter}
+                    onClick={handleEpisodeCardClick}
+                    onOpenSeriesDetail={() => onOpenSeriesDetail(item.series)}
+                    onToggleWatch={handleToggleWatch}
+                  />
+                ))}
+              </div>
+            </div>
+          )}
         </div>
-
-        {/* ================================================================= */}
-        {/* 3. SEZIONE: DA RIPRENDERE (Ferme da oltre 30 giorni)              */}
-        {/* ================================================================= */}
-        {onHold.length > 0 && (
-          <div className="pt-4">
-            <MobileTVDiarySectionPill title="Da riprendere" />
-            <div className="flex flex-col gap-2">
-              {onHold.map((item) => (
-                <MobileTVEpisodeDiaryCard
-                  key={`onhold-${item.series.id}-${item.episode.id}`}
-                  series={item.series}
-                  episode={item.episode}
-                  remainingCount={item.remainingAfter}
-                  onClick={handleEpisodeCardClick}
-                  onOpenSeriesDetail={() => onOpenSeriesDetail(item.series)}
-                  onToggleWatch={handleToggleWatch}
-                />
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* ================================================================= */}
-        {/* 4. SEZIONE: NUOVE SERIE (Non ancora iniziate)                    */}
-        {/* ================================================================= */}
-        {unstarted.length > 0 && (
-          <div className="pt-4">
-            <MobileTVDiarySectionPill title="Nuove serie" />
-            <div className="flex flex-col gap-2">
-              {unstarted.map((item) => (
-                <MobileTVEpisodeDiaryCard
-                  key={`unstarted-${item.series.id}-${item.episode.id}`}
-                  series={item.series}
-                  episode={item.episode}
-                  remainingCount={item.remainingAfter}
-                  onClick={handleEpisodeCardClick}
-                  onOpenSeriesDetail={() => onOpenSeriesDetail(item.series)}
-                  onToggleWatch={handleToggleWatch}
-                />
-              ))}
-            </div>
-          </div>
-        )}
       </div>
 
       {/* Tasto tondo blu con freccia "Torna ai prossimi" identico a quello in prossime uscite */}

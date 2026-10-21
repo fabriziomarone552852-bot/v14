@@ -50,16 +50,33 @@ export async function checkAppUpdate(ignoreDismissed = false): Promise<VersionCh
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 6000);
 
-    const response = await fetch(url, {
-      signal: controller.signal,
-      headers: {
-        'Cache-Control': 'no-cache',
-        'Pragma': 'no-cache'
+    let response: Response | null = null;
+    try {
+      response = await fetch(url, {
+        signal: controller.signal,
+        headers: {
+          'Cache-Control': 'no-cache',
+          'Pragma': 'no-cache',
+        },
+      });
+    } catch {
+      // Fallback: se la chiamata diretta a /version.json fallisce per rete o policy, tenta tramite endpoint /system/version
+      try {
+        const fallbackUrl = `${baseUrl}/system/version?t=${Date.now()}`;
+        response = await fetch(fallbackUrl, {
+          signal: controller.signal,
+          headers: {
+            'Cache-Control': 'no-cache',
+            'Pragma': 'no-cache',
+          },
+        });
+      } catch {
+        response = null;
       }
-    });
+    }
     clearTimeout(timeoutId);
 
-    if (!response.ok) {
+    if (!response || !response.ok) {
       return null;
     }
 

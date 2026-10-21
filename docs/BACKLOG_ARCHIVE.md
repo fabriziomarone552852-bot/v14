@@ -8,6 +8,9 @@ Questo file contiene lo storico completo e strutturato di tutte le funzionalità
 
 | ID | Attività / Funzionalità | Ambito | Stato Backend | Stato Frontend | Data Completamento |
 | :--- | :--- | :---: | :---: | :---: | :---: |
+| **TRACKERS-018** | Controllo Esecuzione Ricerca TMDB Mobile (Bozza Locale `draftFilters`, Avvio Esplicito su Invio o Tasto) | `trackers` / mobile | 🟢 Supportato | 🟢 Completato | Ottobre 2026 |
+| **TRACKERS-017** | Icone Freccia Ripristino nei Modali di Ricerca Mobile (Catalogo & Ricerca Approfondita, `RotateCcw`) | `trackers` / mobile | 🟢 Supportato | 🟢 Completato | Ottobre 2026 |
+| **TRACKERS-016** | Fix Ancoraggio Diario Mobile Serie TV (`min-h-full` Sezioni Inferiori & Stabilizzazione Asincrona Scroll) | `trackers` / mobile | 🟢 Supportato | 🟢 Completato | Ottobre 2026 |
 | **TECH-008** | Risoluzione Errore 500 Aggiunta Serie TV (Pulizia Colonne Legacy DB & Robustezza Migrazioni Alembic) | `trackers` / DB | 🟢 Completato | 🟢 Completato | Ottobre 2026 |
 | **TRACKERS-015** | Visualizzazione Media Voto Personale per Singolo Episodio in Stelle (Web Desktop) | `trackers` / UI | 🟢 Completato | 🟢 Completato | Ottobre 2026 |
 | **TRACKERS-014** | Sincronizzazione Bidirezionale Serie TV con Bingers (Import/Export CSV/ZIP, Multi-Recensioni, Scala Voti) | `trackers` / sync | 🟢 Completato | 🟢 Completato | Ottobre 2026 |
@@ -65,6 +68,44 @@ Questo file contiene lo storico completo e strutturato di tutte le funzionalità
 ---
 
 ## 📺 1. Media & Trackers (Serie TV)
+
+### [TRACKERS-018] Controllo Esecuzione Ricerca TMDB Mobile (Bozza Locale `draftFilters`, Avvio Esplicito su Invio o Tasto) (🟢 Completato)
+
+#### 📋 Descrizione & Obiettivo
+Nella schermata di ricerca approfondita mobile (`MobileTVSeriesSearchModal.tsx`), la modifica delle opzioni di filtro (come piattaforma/network, genere, stato o anno) innescava prematuramente la query di ricerca TMDB e la commutazione istantanea alla vista risultati (`viewMode = 'results'`), impedendo all'utente di selezionare più criteri contemporaneamente in serenità:
+- **Bozza Locale Filtri (`draftFilters`)**:
+  - Tutte le selezioni di piattaforma, categoria, anno e ordinamento nel modale rimangono isolate in uno stato locale senza ricaricare la pagina né sollecitare inutilmente le API remote prima dell'invio.
+- **Avvio Esplicito della Ricerca**:
+  - La ricerca globale su TMDB (o all'interno di una lista) si avvia esclusivamente alla pressione del tasto **Invio** sulla tastiera o al tap sul pulsante fisso inferiore **"Cerca su TMDB"**.
+- **Navigazione & Modifica Veloce**:
+  - Dalla schermata risultati, il tap sulla barra di ricerca o la pressione del tasto Indietro/gesture hardware consente di tornare istantaneamente alla vista filtri mantenendo memorizzate le selezioni precedenti.
+
+---
+
+### [TRACKERS-017] Icone Freccia Ripristino nei Modali di Ricerca Mobile (Catalogo & Ricerca Approfondita, `RotateCcw`) (🟢 Completato)
+
+#### 📋 Descrizione & Obiettivo
+Unificazione visiva ed ergonomica dei controlli di azzeramento filtri e ricerca nella versione mobile:
+- **Sostituzione Testo "Azzera" e Crocette**:
+  - Nel modale di ricerca catalogo personale (`MobileSeriesCatalogSearchModal.tsx`) e nel modale di ricerca approfondita (`MobileTVSeriesSearchModal.tsx`), il tasto testuale "Azzera" e la "X" generica sono stati sostituiti con l'icona della freccia tonda `RotateCcw` di `lucide-react`.
+  - Stile e dimensioni allineati al componente del modale desktop ([`MediaFilterModal.tsx`](file:///c:/Users/Fabrizio/Desktop/app/smart/v14/frontend/src/components/trackers/MediaFilterModal.tsx)), con evidenziazione attiva rossa/accento al tocco.
+- **Pulizia Rapida Testo**:
+  - Aggiunto un pulsante compatto e discreto interno al campo di testo della barra di ricerca per cancellare velocemente la parola chiave digitata senza cancellare gli altri filtri impostati.
+
+---
+
+### [TRACKERS-016] Fix Ancoraggio Diario Mobile Serie TV (`min-h-full` Sezioni Inferiori & Stabilizzazione Asincrona Scroll) (🟢 Completato)
+
+#### 📋 Descrizione & Obiettivo
+Risoluzione del bug di posizionamento verticale della vista centrale "Diario" su smartphone Android reali:
+- **Causa Tecnica Identificata**:
+  - Su dispositivi con viewport verticale lungo (850–950px), in presenza di pochi elementi sotto l'ancora (es. solo 1-2 puntate da continuare), l'altezza complessiva scrollabile era inferiore all'offset dell'ancora (`scrollHeight - clientHeight < offsetTop`). Il container si bloccava a fondo corsa, lasciando l'ancora in basso sul footer e mostrando a schermo per l'80% lo storico del diario sopra.
+- **Risoluzione Strutturale**:
+  - Assegnata l'altezza minima `min-h-full` all'intero wrapper che include *"I prossimi da guardare"*, *"Da riprendere"* e *"Nuove serie"*, assicurando che da questo punto in giù l'altezza sia pari ad almeno il 100% del viewport visibile. L'ancora può così raggiungere in ogni circostanza la coordinata iniziale (`scrollTop = offsetTop`), collocandosi **perfettamente a filo dell'header**.
+  - Stabilizzazione con `requestAnimationFrame` e timeout asincroni per garantire l'ancoraggio anche in presenza di ritardi di rendering dei font, immagini o WebView di Android.
+  - Intercettazione del tocco utente (`onTouchStart`/`onWheel`) per cedere istantaneamente il controllo manuale dello scorrimento.
+
+---
 
 ### [TRACKERS-015] Visualizzazione Media Voto Personale per Singolo Episodio in Stelle (Serie TV Web Desktop) (🟢 Completato)
 

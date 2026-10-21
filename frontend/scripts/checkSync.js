@@ -30,17 +30,29 @@ try {
   const pkg = readJsonSafely(pkgPath);
   const currentVersion = pkg.version;
 
-  // Controllo changelogData.ts
+  // Controllo changelogData.ts o moduli in changelogs/
   const changelogContent = fs.readFileSync(changelogPath, 'utf8');
-  const versionMatch = changelogContent.match(/version:\s*['"]([^'"]+)['"]/);
+  let versionMatch = changelogContent.match(/version:\s*['"]([^'"]+)['"]/);
+  let resolvedChangelogFile = 'changelogData.ts';
+
   if (!versionMatch) {
-    console.error('❌ [ERRORE VERSIONING] Impossibile estrarre la versione da changelogData.ts!');
+    const major = currentVersion.split('.')[0];
+    const majorChangelogPath = path.join(frontendDir, `src/data/changelogs/v${major}.ts`);
+    if (fs.existsSync(majorChangelogPath)) {
+      const majorContent = fs.readFileSync(majorChangelogPath, 'utf8');
+      versionMatch = majorContent.match(/version:\s*['"]([^'"]+)['"]/);
+      resolvedChangelogFile = `changelogs/v${major}.ts`;
+    }
+  }
+
+  if (!versionMatch) {
+    console.error('❌ [ERRORE VERSIONING] Impossibile estrarre la versione da changelogData.ts o dai moduli changelogs/!');
     hasErrors = true;
   } else if (versionMatch[1] !== currentVersion) {
-    console.error(`❌ [ERRORE VERSIONING] Disallineamento versione! package.json è v${currentVersion}, mentre changelogData.ts è v${versionMatch[1]}!`);
+    console.error(`❌ [ERRORE VERSIONING] Disallineamento versione! package.json è v${currentVersion}, mentre ${resolvedChangelogFile} è v${versionMatch[1]}!`);
     hasErrors = true;
   } else {
-    console.log(`✅ [VERSIONING] Allineato: package.json e changelogData.ts concordano su v${currentVersion}`);
+    console.log(`✅ [VERSIONING] Allineato: package.json e ${resolvedChangelogFile} concordano su v${currentVersion}`);
   }
 
   // Controllo public/version.json

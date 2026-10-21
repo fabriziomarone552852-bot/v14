@@ -9,21 +9,24 @@ Questo file definisce le istruzioni e le convenzioni operative obbligatorie per 
 Ogni volta che vengono apportate modifiche, nuove funzionalità o bug fix rilevanti:
 
 ### A. Controllo dello Stato di Pubblicazione (`published`)
-L'assistente deve controllare la prima voce in cima a `CHANGELOG_HISTORY` in `frontend/src/data/changelogData.ts`.
-> ⚠️ **Controllo Live su Disco Obbligatorio**: Prima di modificare `package.json` o `changelogData.ts`, l'assistente deve **rileggere TASSATIVAMENTE il file reale su disco** (`view_file`). Non fidarsi MAI della memoria pregressa della conversazione, poiché l'utente potrebbe aver eseguito uno script di build o deploy (`deploy_build_pc.ps1` o `build_apk.ps1`) che ha marcato la versione come pubblicata (`published: true`).
+Il changelog è suddiviso per Major version all'interno della cartella `frontend/src/data/changelogs/v<MAJOR>.ts` (es. `v15.ts`, `v14.ts`), aggregate centralmente da `frontend/src/data/changelogData.ts`.
+L'assistente deve controllare la prima voce in cima alla major corrente in `frontend/src/data/changelogs/v<MAJOR>.ts`.
+> ⚠️ **Controllo Live su Disco Obbligatorio**: Prima di modificare `package.json` o il file del changelog, l'assistente deve **rileggere TASSATIVAMENTE il file reale su disco** (`view_file`). Non fidarsi MAI della memoria pregressa della conversazione, poiché l'utente potrebbe aver eseguito uno script di build o deploy (`deploy_build_pc.ps1` o `build_apk.ps1`) che ha marcato la versione come pubblicata (`published: true`).
 
 1. **Se `published: false` (Versione ancora in sviluppo / non ancora rilasciata)**:
    - **NON creare un nuovo numero di versione** e **NON modificare `package.json`**.
-   - **Unisci/aggiungi** semplicemente i nuovi punti salienti (`highlights`, `features`, `improvements`, `fixes`) all'interno della voce draft esistente in cima a `CHANGELOG_HISTORY`.
+   - **Unisci/aggiungi** semplicemente i nuovi punti salienti (`highlights`, `features`, `improvements`, `fixes`) all'interno della voce draft esistente in cima a `frontend/src/data/changelogs/v<MAJOR>.ts`.
    - Questo permette a **più chat o sessioni contemporanee** di accumulare modifiche nella stessa versione senza frammentare i numeri.
 
 2. **Se `published: true` (L'ultima versione è già stata rilasciata/pubblicata)**:
    - Determina l'incremento di versione (`MAJOR.MINOR.PATCH`):
-     - **PATCH** (`14.0.X`): Correzioni di bug, fix di layout (UI/UX), piccoli aggiustamenti e refactoring minori invisibili all'utente.
-     - **MINOR** (`14.X.0`): Nuove funzionalità aggiunte a *sezioni già esistenti*, nuovi componenti, nuove viste secondarie o aggiunte importanti ma retrocompatibili all'interno di moduli attuali.
+     - **PATCH** (`15.1.X`): Correzioni di bug, fix di layout (UI/UX), piccoli aggiustamenti e refactoring minori invisibili all'utente.
+     - **MINOR** (`15.X.0`): Nuove funzionalità aggiunte a *sezioni già esistenti*, nuovi componenti, nuove viste secondarie o aggiunte importanti ma retrocompatibili all'interno di moduli attuali.
      - **MAJOR** (`X.0.0`): **Intere nuove MACRO-SEZIONI o moduli portanti** (es. l'aggiunta del modulo Shopping, della sezione Media/Serie TV, ecc. definiti come "Passo Fondamentale" nel Backlog), grandi riscritture architetturali o breaking changes. Se si introduce un intero nuovo dominio nell'app, è SEMPRE Major.
    - Aggiorna `"version": "X.Y.Z"` in `frontend/package.json`.
-   - Inserisci in cima a `CHANGELOG_HISTORY` in `frontend/src/data/changelogData.ts` la nuova voce con `published: false`, data e dettagli:
+   - Se l'incremento è PATCH o MINOR, inserisci la nuova voce con `published: false` in cima a `frontend/src/data/changelogs/v<MAJOR>.ts`.
+   - Se l'incremento è MAJOR (es. v16.0.0), crea il nuovo file `frontend/src/data/changelogs/v<NUOVA_MAJOR>.ts`, esporta `CHANGELOG_V<NUOVA_MAJOR>` e importalo in cima a `frontend/src/data/changelogData.ts`.
+   - Struttura della nuova voce:
    ```typescript
    {
      id: 'vX.Y.Z',

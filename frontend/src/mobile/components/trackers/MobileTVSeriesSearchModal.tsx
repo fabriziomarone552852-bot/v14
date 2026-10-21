@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { createPortal } from 'react-dom';
+import { RotateCcw } from 'lucide-react';
 import type { TVSeries, MediaList, TMDBPaginatedSearch, TMDBSeriesSearchResult } from '@/types/trackers';
 import { SearchIcon, CloseIcon, BackIcon } from '@/components/shared/utils/Icons';
 import { useMediaFilterOptions, type MediaFilterState } from '@/hooks/trackers/useMediaFilterOptions';
@@ -48,13 +49,48 @@ export const MobileTVSeriesSearchModal: React.FC<MobileTVSeriesSearchModalProps>
   onToggleTrack,
 }) => {
   const inputRef = useRef<HTMLInputElement>(null);
+  const prevIsOpenRef = useRef(false);
   const [viewMode, setViewMode] = useState<'filters' | 'results'>(debouncedQuery ? 'results' : 'filters');
+  const [draftFilters, setDraftFilters] = useState<MediaFilterState>(filters);
   const { handleScroll, scrollbarClass } = useFadeScrollbar();
+
+  // All'apertura del modale (passaggio da chiuso ad aperto)
+  useEffect(() => {
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    if (isOpen && !prevIsOpenRef.current) {
+      setDraftFilters(filters);
+      if (!filters.globalSearch) {
+        onFilterChange({ ...filters, globalSearch: true });
+      }
+
+      // Se aperto da link esterno con categoria esplicita o query già presente, mostra i risultati
+      const hasInitialCategory =
+        Boolean(debouncedQuery) ||
+        (filters.genre && filters.genre !== 'all') ||
+        (filters.network && filters.network !== 'all');
+
+      if (hasInitialCategory) {
+        setViewMode('results');
+      } else {
+        setViewMode('filters');
+        timer = setTimeout(() => {
+          inputRef.current?.focus();
+        }, 150);
+      }
+    }
+    prevIsOpenRef.current = isOpen;
+
+    return () => {
+      if (timer) {
+        clearTimeout(timer);
+      }
+    };
+  }, [isOpen, debouncedQuery, filters, onFilterChange]);
 
   // Gestione tasto Back (freccia UI e pulsante hardware Android)
   const handleBack = () => {
-    if (viewMode === 'filters' && (debouncedQuery || filters.genre !== 'all' || filters.network !== 'all')) {
-      setViewMode('results');
+    if (viewMode === 'results') {
+      setViewMode('filters');
       return;
     }
     // Chiudi ricerca e torna alla libreria normale
@@ -72,27 +108,7 @@ export const MobileTVSeriesSearchModal: React.FC<MobileTVSeriesSearchModalProps>
     30
   );
 
-  // All'apertura del modale, posiziona lo stato e il focus
-  useEffect(() => {
-    if (!isOpen) return;
-
-    if (!filters.globalSearch) {
-      onFilterChange({ ...filters, globalSearch: true });
-    }
-
-    const hasCategoryFilter = (filters.genre && filters.genre !== 'all') || (filters.network && filters.network !== 'all');
-    if (debouncedQuery || hasCategoryFilter) {
-      setViewMode('results');
-      return undefined;
-    } else {
-      setViewMode('filters');
-      const timer = setTimeout(() => {
-        inputRef.current?.focus();
-      }, 150);
-      return () => clearTimeout(timer);
-    }
-  }, [isOpen, filters.genre, filters.network]);
-
+  // Opzioni e mutazioni locali agganciate a draftFilters
   const {
     availableGenres,
     availableNetworks,
@@ -106,17 +122,19 @@ export const MobileTVSeriesSearchModal: React.FC<MobileTVSeriesSearchModalProps>
     handleYearChange,
   } = useMediaFilterOptions({
     series,
-    filters: { ...filters, globalSearch: true },
-    onFilterChange: (newFilters) => onFilterChange({ ...newFilters, globalSearch: true }),
+    filters: { ...draftFilters, globalSearch: true },
+    onFilterChange: (newFilters) => {
+      setDraftFilters({ ...newFilters, globalSearch: true });
+    },
   });
 
-  // Esecuzione immediata ricerca globale TMDB
+  // Esecuzione ricerca: avviene SOLO premendo Invio oppure cliccando "Cerca su TMDB"
   const handleExecuteSearch = (queryOverride?: string) => {
-    const clean = (queryOverride !== undefined ? queryOverride : (filters.keyword || '')).trim();
+    const clean = (queryOverride !== undefined ? queryOverride : (draftFilters.keyword || '')).trim();
     inputRef.current?.blur();
     setDebouncedQuery(clean);
     onFilterChange({
-      ...filters,
+      ...draftFilters,
       keyword: clean,
       globalSearch: true,
     });
@@ -131,7 +149,17 @@ export const MobileTVSeriesSearchModal: React.FC<MobileTVSeriesSearchModalProps>
   const handleClearAll = () => {
     onReset();
     setDebouncedQuery('');
-    handleKeywordChange('');
+    setDraftFilters({
+      keyword: '',
+      genre: 'all',
+      network: 'all',
+      ratings: [],
+      tmdbStatus: 'all',
+      year: 'all',
+      sortBy: 'date_added_desc',
+      listId: null,
+      globalSearch: true,
+    });
     setViewMode('filters');
     inputRef.current?.focus();
   };
@@ -234,17 +262,31 @@ export const MobileTVSeriesSearchModal: React.FC<MobileTVSeriesSearchModalProps>
       ? searchResults?.results
       : discoverData?.results;
 
+  const hasActiveDraftFilters = useMemo(() => {
+    return (
+      Boolean(draftFilters.keyword?.trim()) ||
+      draftFilters.genre !== 'all' ||
+      draftFilters.network !== 'all' ||
+      (draftFilters.ratings && draftFilters.ratings.length > 0) ||
+      draftFilters.tmdbStatus !== 'all' ||
+      draftFilters.year !== 'all' ||
+      draftFilters.sortBy !== 'date_added_desc' ||
+      draftFilters.listId !== null
+    );
+  }, [draftFilters]);
+
+  const currentFilterSource = viewMode === 'filters' ? draftFilters : filters;
   const activeFilterLabel = useMemo(() => {
-    if (filters.genre && filters.genre !== 'all') {
-      const g = availableGenres.find((x) => x.value === filters.genre);
+    if (currentFilterSource.genre && currentFilterSource.genre !== 'all') {
+      const g = availableGenres.find((x) => x.value === currentFilterSource.genre);
       return g ? `Genere: ${g.label}` : 'Filtro Genere';
     }
-    if (filters.network && filters.network !== 'all') {
-      const n = availableNetworks.find((x) => x.value === filters.network);
+    if (currentFilterSource.network && currentFilterSource.network !== 'all') {
+      const n = availableNetworks.find((x) => x.value === currentFilterSource.network);
       return n ? `Piattaforma: ${n.label}` : 'Filtro Piattaforma';
     }
     return null;
-  }, [filters.genre, filters.network, availableGenres, availableNetworks]);
+  }, [currentFilterSource.genre, currentFilterSource.network, availableGenres, availableNetworks]);
 
   const emptyMessage =
     filters.listId !== null
@@ -276,7 +318,7 @@ export const MobileTVSeriesSearchModal: React.FC<MobileTVSeriesSearchModalProps>
             <input
               ref={inputRef}
               type="text"
-              value={filters.keyword || ''}
+              value={draftFilters.keyword || ''}
               onChange={(e) => handleKeywordChange(e.target.value)}
               onClick={() => {
                 if (viewMode === 'results') {
@@ -295,19 +337,34 @@ export const MobileTVSeriesSearchModal: React.FC<MobileTVSeriesSearchModalProps>
                 }
               }}
               placeholder={activeFilterLabel ? `${activeFilterLabel}...` : 'Cerca su TMDB e premi Invio...'}
-              className="w-full pl-9 pr-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs text-gray-900 placeholder-gray-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all font-medium shadow-2xs"
+              className="w-full pl-9 pr-8 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs text-gray-900 placeholder-gray-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all font-medium shadow-2xs"
             />
+            {draftFilters.keyword && (
+              <button
+                type="button"
+                onClick={() => handleKeywordChange('')}
+                className="absolute right-2.5 p-1 text-gray-400 hover:text-gray-600 active:scale-90 transition-all cursor-pointer"
+                title="Cancella testo"
+                aria-label="Cancella testo"
+              >
+                <CloseIcon className="w-3.5 h-3.5 text-gray-400" />
+              </button>
+            )}
           </div>
 
-          {/* Pulsante 'X' per azzerare tutta la ricerca */}
+          {/* Pulsante freccia tonda per ripristinare tutta la ricerca (identico a webpage MediaFilterModal) */}
           <button
             type="button"
             onClick={handleClearAll}
-            className="w-9 h-9 rounded-xl border border-gray-200 bg-white text-gray-600 hover:text-gray-900 hover:bg-gray-100 active:scale-95 transition-all flex items-center justify-center shrink-0 cursor-pointer shadow-2xs"
-            title="Azzera tutta la ricerca"
-            aria-label="Azzera ricerca"
+            className={`w-9 h-9 rounded-xl border active:scale-90 transition-all flex items-center justify-center shrink-0 cursor-pointer shadow-2xs ${
+              hasActiveDraftFilters || hasActiveFilters || Boolean(draftFilters.keyword) || Boolean(debouncedQuery)
+                ? 'border-red-200/80 bg-red-50/60 text-red-500 hover:text-red-700 hover:bg-red-50'
+                : 'border-gray-200 bg-white text-gray-400 hover:text-gray-600 hover:bg-gray-50'
+            }`}
+            title="Ripristina tutta la ricerca"
+            aria-label="Ripristina ricerca"
           >
-            <CloseIcon className="w-5 h-5 text-gray-700" />
+            <RotateCcw className="w-5 h-5 stroke-[2.2]" />
           </button>
         </div>
       </div>
@@ -331,8 +388,8 @@ export const MobileTVSeriesSearchModal: React.FC<MobileTVSeriesSearchModalProps>
           </div>
         ) : (
           <MobileTVSeriesFilterOptions
-            filters={filters}
-            hasActiveFilters={hasActiveFilters}
+            filters={draftFilters}
+            hasActiveFilters={hasActiveDraftFilters}
             myLists={myLists}
             availableGenres={availableGenres}
             availableNetworks={availableNetworks}

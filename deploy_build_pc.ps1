@@ -4,13 +4,25 @@ Write-Host "  Avvio Build Docker per NAS QNAP (Vita VxAme14)   " -ForegroundColo
 Write-Host "===========================================================" -ForegroundColor Cyan
 
 # 0. Auto-finalizzazione dello stato changelog (se in sviluppo/bozza)
-$changelogPath = Join-Path (Get-Location) "frontend\src\data\changelogData.ts"
-if (Test-Path $changelogPath) {
-    $clContent = Get-Content $changelogPath -Raw -Encoding UTF8
+$frontendDir = Join-Path (Get-Location) "frontend"
+$pkgPath = Join-Path $frontendDir "package.json"
+$major = 15
+if (Test-Path $pkgPath) {
+    try {
+        $pkg = Get-Content $pkgPath -Raw | ConvertFrom-Json
+        if ($pkg.version -match '^(\d+)') { $major = $matches[1] }
+    } catch {}
+}
+$targetChangelog = Join-Path $frontendDir "src\data\changelogs\v$major.ts"
+if (!(Test-Path $targetChangelog)) {
+    $targetChangelog = Join-Path $frontendDir "src\data\changelogData.ts"
+}
+if (Test-Path $targetChangelog) {
+    $clContent = Get-Content $targetChangelog -Raw -Encoding UTF8
     if ($clContent -match 'published:\s*false') {
-        Write-Host "Marcatura versione changelog come pubblicata (published: true)..." -ForegroundColor Cyan
+        Write-Host "Marcatura versione changelog in $(Split-Path $targetChangelog -Leaf) come pubblicata (published: true)..." -ForegroundColor Cyan
         $clContent = $clContent -replace 'published:\s*false', 'published: true'
-        Set-Content -Path $changelogPath -Value $clContent -Encoding UTF8
+        [System.IO.File]::WriteAllText($targetChangelog, $clContent, [System.Text.UTF8Encoding]::new($false))
     }
 }
 

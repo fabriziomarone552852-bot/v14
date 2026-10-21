@@ -8,7 +8,7 @@ Questo documento definisce la procedura standard e automatica per l'aggiornament
 
 La versione e lo storico sono gestiti centralmente in:
 1. `frontend/package.json` -> chiave `"version": "X.Y.Z"`
-2. `frontend/src/data/changelogData.ts` -> array `CHANGELOG_HISTORY`
+2. `frontend/src/data/changelogs/v<MAJOR>.ts` (es. `v15.ts`, `v14.ts`, `v13.ts`) -> suddivisi per Major version e aggregati centralmente in `frontend/src/data/changelogData.ts` nell'array `CHANGELOG_HISTORY`.
 
 Ogni voce di `CHANGELOG_HISTORY` possiede una proprietà booleana fondamentale:
 - **`published: false`**: La versione è attualmente **in sviluppo / bozza** (non ancora rilasciata con un build APK o deploy sul server).

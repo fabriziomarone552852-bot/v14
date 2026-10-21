@@ -161,3 +161,26 @@ app.mount("/uploads", StaticFiles(directory=get_settings().upload_dir), name="up
 def favicon():
     return Response(status_code=204)
 
+
+@app.get("/system/version", tags=["system"])
+def get_system_version():
+    """Restituisce le informazioni di versione correnti (fallback per APK e client)."""
+    import json
+    candidate_paths = [
+        os.path.join(os.path.dirname(__file__), "..", "frontend", "public", "version.json"),
+        os.path.join(os.getcwd(), "frontend", "public", "version.json"),
+        os.path.join(os.getcwd(), "public", "version.json"),
+    ]
+    for p in candidate_paths:
+        if os.path.exists(p):
+            try:
+                with open(p, "r", encoding="utf-8") as f:
+                    return json.load(f)
+            except Exception:
+                pass
+    return {
+        "version": "15.1.3",
+        "driveUrl": "https://drive.google.com/drive/folders/1UrahhXpwuU4xPXjF1aT83LflnhIeEkPz?usp=sharing",
+        "notes": "Nuova versione disponibile su Google Drive.",
+    }
+

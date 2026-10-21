@@ -25,13 +25,18 @@ if (Test-Path $packageJsonPath) {
 }
 
 # Auto-finalizzazione dello stato changelog (se in sviluppo/bozza)
-$changelogPath = Join-Path $frontendDir "src\data\changelogData.ts"
-if (Test-Path $changelogPath) {
-    $clContent = Get-Content $changelogPath -Raw -Encoding UTF8
+$major = 15
+if ($appVersion -match '^(\d+)') { $major = $matches[1] }
+$targetChangelog = Join-Path $frontendDir "src\data\changelogs\v$major.ts"
+if (!(Test-Path $targetChangelog)) {
+    $targetChangelog = Join-Path $frontendDir "src\data\changelogData.ts"
+}
+if (Test-Path $targetChangelog) {
+    $clContent = Get-Content $targetChangelog -Raw -Encoding UTF8
     if ($clContent -match 'published:\s*false') {
-        Write-Host "Marcatura versione v$appVersion come pubblicata (published: true)..." -ForegroundColor Cyan
+        Write-Host "Marcatura versione v$appVersion come pubblicata in $(Split-Path $targetChangelog -Leaf) (published: true)..." -ForegroundColor Cyan
         $clContent = $clContent -replace 'published:\s*false', 'published: true'
-        [System.IO.File]::WriteAllText($changelogPath, $clContent, [System.Text.UTF8Encoding]::new($false))
+        [System.IO.File]::WriteAllText($targetChangelog, $clContent, [System.Text.UTF8Encoding]::new($false))
     }
 }
 
