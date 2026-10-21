@@ -15,12 +15,27 @@ export interface ChangelogItem {
 
 export const CHANGELOG_HISTORY: ChangelogItem[] = [
   {
+    id: 'v15.1.1',
+    version: '15.1.1',
+    date: 'Ottobre 2026',
+    title: 'Fix Database Tracking Serie TV & Robustezza Migrazioni',
+    isLatest: true,
+    published: false,
+    highlights: [
+      'Risolto errore 500 nell\'aggiunta di nuove serie TV: rimossa la colonna legacy NOT NULL orfana dalla tabella del database e allineato lo schema PostgreSQL di produzione sul NAS (TECH-006).',
+    ],
+    fixes: [
+      'Risolto errore 500 (Internal Server Error) durante l\'aggiunta di serie alla propria libreria, causato da un vincolo di non-nullabilità su un campo dismesso della tabella user_series_tracking.',
+      'Migliorata l\'idempotenza delle migrazioni Alembic per prevenire fallimenti su colonne o vincoli già presenti (b3c4d5e6f7a8) e creata migrazione c4d5e6f7a8b9.',
+    ],
+  },
+  {
     id: 'v15.1.0',
     version: '15.1.0',
     date: 'Ottobre 2026',
     title: 'Sincronizzazione Bingers, Esperienza Mobile Serie TV Evoluta & Hub Amministrazione Spesa',
-    isLatest: true,
-    published: false,
+    isLatest: false,
+    published: true,
     highlights: [
       'Sincronizzazione Bidirezionale Serie TV con Bingers (TRACKERS-014): Importazione ed esportazione completa di libreria, puntate viste, voti, recensioni e liste tematiche tra Vita e file CSV/ZIP di Bingers, con fetch automatico asincrono da TMDB e calibrazione trasparente della scala voti (1-5 vs 1-10).',
       'Esperienza Mobile Serie TV Evoluta: Nuova schermata centrale "Diario Puntate" con storico visioni naturale, navigazione swipe a 3 pagine circolari continue, modale statistiche nativo full-screen, catalogo a 4 aree tematiche con bordi di stato e supporto avanzato al rewatch.',

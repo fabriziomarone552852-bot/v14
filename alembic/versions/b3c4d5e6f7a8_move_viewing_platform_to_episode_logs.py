@@ -16,25 +16,41 @@ depends_on = None
 
 
 def upgrade() -> None:
-    # 1. Aggiunge viewing_platform_id a tv_user_episode_logs
-    op.add_column(
-        'tv_user_episode_logs',
-        sa.Column('viewing_platform_id', sa.Integer(), nullable=True)
-    )
-    op.create_foreign_key(
-        'fk_episode_log_platform',
-        'tv_user_episode_logs',
-        'tv_user_platforms',
-        ['viewing_platform_id'],
-        ['id'],
-        ondelete='SET NULL'
-    )
-    op.create_index(
-        'ix_tv_user_episode_logs_viewing_platform_id',
-        'tv_user_episode_logs',
-        ['viewing_platform_id'],
-        unique=False
-    )
+    # 1. Aggiunge viewing_platform_id a tv_user_episode_logs (idempotente)
+    bind = op.get_bind()
+    inspector = sa.inspect(bind)
+    episode_cols = [c['name'] for c in inspector.get_columns('tv_user_episode_logs')]
+    if 'viewing_platform_id' not in episode_cols:
+        op.add_column(
+            'tv_user_episode_logs',
+            sa.Column('viewing_platform_id', sa.Integer(), nullable=True)
+        )
+    existing_fks = [fk.get('name') for fk in inspector.get_foreign_keys('tv_user_episode_logs')]
+    if 'fk_episode_log_platform' not in existing_fks:
+        has_platform_fk = any('viewing_platform_id' in fk.get('constrained_columns', []) for fk in inspector.get_foreign_keys('tv_user_episode_logs'))
+        if not has_platform_fk:
+            try:
+                op.create_foreign_key(
+                    'fk_episode_log_platform',
+                    'tv_user_episode_logs',
+                    'tv_user_platforms',
+                    ['viewing_platform_id'],
+                    ['id'],
+                    ondelete='SET NULL'
+                )
+            except Exception:
+                pass
+    existing_indexes = [idx.get('name') for idx in inspector.get_indexes('tv_user_episode_logs')]
+    if 'ix_tv_user_episode_logs_viewing_platform_id' not in existing_indexes:
+        try:
+            op.create_index(
+                'ix_tv_user_episode_logs_viewing_platform_id',
+                'tv_user_episode_logs',
+                ['viewing_platform_id'],
+                unique=False
+            )
+        except Exception:
+            pass
 
     # 2. Rimuove viewing_platform_id da tv_user_series_logs (idempotente)
     bind = op.get_bind()

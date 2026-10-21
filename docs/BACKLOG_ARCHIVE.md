@@ -8,6 +8,7 @@ Questo file contiene lo storico completo e strutturato di tutte le funzionalità
 
 | ID | Attività / Funzionalità | Ambito | Stato Backend | Stato Frontend | Data Completamento |
 | :--- | :--- | :---: | :---: | :---: | :---: |
+| **TECH-008** | Risoluzione Errore 500 Aggiunta Serie TV (Pulizia Colonne Legacy DB & Robustezza Migrazioni Alembic) | `trackers` / DB | 🟢 Completato | 🟢 Completato | Ottobre 2026 |
 | **TRACKERS-015** | Visualizzazione Media Voto Personale per Singolo Episodio in Stelle (Web Desktop) | `trackers` / UI | 🟢 Completato | 🟢 Completato | Ottobre 2026 |
 | **TRACKERS-014** | Sincronizzazione Bidirezionale Serie TV con Bingers (Import/Export CSV/ZIP, Multi-Recensioni, Scala Voti) | `trackers` / sync | 🟢 Completato | 🟢 Completato | Ottobre 2026 |
 | **NOTIF-001** | Notifiche su Mobile: Entry Point, Bottom Sheet, Navigazione Diretta & Loading Overlay | `notifications` / mobile | 🟢 Supportato | 🟢 Completato | Ottobre 2026 |
@@ -550,3 +551,12 @@ Bonifica delle migrazioni Alembic storiche con clausole difensive `IF NOT EXISTS
 
 #### 📋 Descrizione
 Configurazione delle variabili d'ambiente per le chiavi API TMDB sul server NAS di produzione, risolvendo l'errore HTTP 500 nella ricerca e consultazione delle serie TV.
+
+---
+
+### [TECH-008] Risoluzione Errore 500 Aggiunta Serie TV & Idempotenza Migrazioni (🟢 Completato)
+
+#### 📋 Descrizione
+1. **Risoluzione Errore 500 (`NotNullViolation`)**: Rimozione delle colonne obsolete (`review_visibility`, `rating`, `notes`) dalla tabella `user_series_tracking` tramite la nuova migrazione Alembic `c4d5e6f7a8b9_drop_legacy_columns_from_user_series_tracking.py`, applicata con successo sia su `test-smart` sia su `family-smart` (NAS produzione). La presenza del vincolo `NOT NULL` senza valore di default sulla colonna orfana `review_visibility` bloccava l'inserimento delle nuove serie da parte del frontend (`POST /trackers/series`).
+2. **Idempotenza Migrazioni**: Refactoring difensivo della migrazione `b3c4d5e6f7a8_move_viewing_platform_to_episode_logs.py` con ispezione runtime preventiva delle colonne, foreign key e indici per evitare crash `DuplicateColumn` su ambienti parzialmente applicati.
+
