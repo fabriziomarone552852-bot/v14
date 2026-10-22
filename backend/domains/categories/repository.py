@@ -17,9 +17,10 @@ def get_user_category_by_name(
     genre: Optional[int] = None,
 ) -> Optional[UserCategory]:
     """Recupera una categoria utente per nome normalizzato, opzionalmente filtrata per genre."""
+    norm = " ".join(name.strip().lower().split())
     q = db.query(UserCategory).filter(
         UserCategory.user_id == user_id,
-        UserCategory.category_name == name,
+        UserCategory.category_name == norm,
     )
     if genre is not None:
         q = q.filter(UserCategory.genre == genre)

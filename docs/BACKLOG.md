@@ -20,8 +20,7 @@ Questo documento traccia in modo strutturato, prioritizzato e costantemente aggi
 | **FEAT-003** | Dashboard Analytics & Storico Prezzi Spesa | `analytics` / shopping | 🟢 Completato | 🔴 Da Implementare | 🟢 **Bassa** |
 | **CAL-002** | Filtro Categorie Eventi nel Calendario Homepage (Menu Ingranaggio ⚙️) | `calendar` / UI | 🔴 Da Iniziare | 🔴 Da Iniziare | 🟡 **Media-Alta** |
 | **FEAT-011** | Sezione Lavoro & Gestione Turni di Lavoro (Punto da definire con Daniela) | `work` / shifts | 🔴 Da Definire | 🔴 Da Definire | 🟡 **Media-Alta** |
-| **GENERAL-001** | Fix Selezione Orario e Minuti Eventi & Controllo Categorie Task vs Eventi | `calendar` / UI | N/A | 🔴 Da Implementare | 🟡 **Media** |
-| **HABITS-001** | Recap Mensile: Ripetizioni Multiple (conteggio frazionario es. 2/3) | `habits` / UI | 🔴 Da Iniziare | 🔴 Da Iniziare | 🟡 **Media** |
+| **AUTH-001** | Sistemazione Finestre e Messaggi di Errore al Login | `auth` / UI | 🟢 Supportato | 🔴 Da Implementare | 🟡 **Media** |
 | **FEAT-005** | Sezione Liste Tematiche & Personalizzate (Posti, Siti, Wishlist, Giochi) | `custom_lists` | 🟡 Parziale | 🟡 Parziale | 🔴 **Massima (Passo Fondamentale)** |
 | **FEAT-013** | Archivio Notifiche / Sezione Storico Notifiche Permanente | `notifications` / UI | 🟢 Completato | 🟡 Da Implementare | 🟡 **Media** |
 | **FEAT-014** | Notifiche per Nuove Liste nei Gruppi Condivisi | `notifications` / social | 🔴 Da Implementare | 🔴 Da Implementare | 🟡 **Media** |
@@ -123,23 +122,9 @@ Questo documento traccia in modo strutturato, prioritizzato e costantemente aggi
   - Calcolo delle ore lavorate e statistiche periodiche.
 - **Stato**: 🔴 Da Definire con Daniela *(Priorità: Media-Alta)*.
 
-### [GENERAL-001] / [UI-002] Fix Selezione Orario e Minuti Eventi & Controllo Categorie
-- **Descrizione**:
-  - Correggere l'input dei minuti nei modali evento che talvolta risulta difficoltoso da digitare.
-  - Sistemare il controllo delle categorie per distinguere chiaramente se una categoria è dedicata solo a task, solo a eventi o se è condivisa/comune.
-- **Stato**: 🔴 Da Implementare *(Priorità: Media)*.
-
 ---
 
-## 🏃‍♂️ 4. Abitudini & Benessere (Habits)
-
-### [HABITS-001] Recap Mensile: Ripetizioni Multiple
-- **Descrizione**: Sistemare le habits/routines nel recap mensile in modo da mostrare correttamente il progresso per le routine con più ripetizioni giornaliere (es. se una routine prevede 3 ripetizioni al giorno e l'utente ne ha completate 2, mostrare **`2/3`** nel riepilogo anziché una semplice spunta binaria sì/no).
-- **Stato**: 🔴 Da Iniziare *(Priorità: Media)*.
-
----
-
-## 📋 5. Liste Tematiche & Personalizzate
+## 📋 4. Liste Tematiche & Personalizzate
 
 ### [FEAT-005] Creazione Sezione "Liste" (Liste Tematiche & Personalizzate)
 - **Descrizione**: Modulo per creare e organizzare liste di idee, interessi, mete e desideri, completamente slegate dalla spesa alimentare quotidiana:
@@ -152,7 +137,7 @@ Questo documento traccia in modo strutturato, prioritizzato e costantemente aggi
 
 ---
 
-## 🔔 6. Notifiche, Social & Condivisione
+## 🔔 5. Notifiche, Social & Condivisione
 
 ### [FEAT-013] Archivio Notifiche / Sezione Storico Notifiche Permanente
 - **Descrizione**: Creare una schermata dedicata (in Impostazioni o in pagina apposita) per consultare lo storico completo di tutte le notifiche di sistema, inviti e alert, conformemente alla regola per cui le notifiche non sono effimere ma permanenti.
@@ -165,7 +150,7 @@ Questo documento traccia in modo strutturato, prioritizzato e costantemente aggi
 
 ---
 
-## ⚙️ 7. Amministrazione, Citazioni & Sistema
+## ⚙️ 6. Amministrazione, Citazioni & Sistema
 
 ### [FEAT-009] Restyling & Rifinitura Grafica Schermate SuperUser (Admin Panel)
 - **Descrizione**: Rifinire, armonizzare e modernizzare visivamente tutte le schermate del pannello SuperUser Desktop (`/admin`), adattandole al design system dell'applicazione:
@@ -179,9 +164,13 @@ Questo documento traccia in modo strutturato, prioritizzato e costantemente aggi
 - **Descrizione**: Centralizzare le citazioni giornaliere (Quotes) tramite tabella database dedicata nel backend, in modo che tutti gli utenti e dispositivi visualizzino la stessa identica citazione del giorno in modo sincronizzato e consistente.
 - **Stato**: 🔴 Da Implementare *(Priorità: Media)*.
 
+### [AUTH-001] Sistemazione Finestre e Messaggi di Errore al Login
+- **Descrizione**: Revisione grafica e funzionale dei modali/alert di errore nella schermata di Login (gestione credenziali errate, utente bloccato, sessione scaduta, errori di connessione al server), garantendo chiarezza visiva e un feedback pulito e non invasivo all'utente.
+- **Stato**: Backend 🟢 Supportato | Frontend 🔴 Da Implementare *(Priorità: Media)*.
+
 ---
 
-## 🤖 8. Ricerca, Studio di Fattibilità & Integrazione AI (Intelligenza Artificiale)
+## 🤖 7. Ricerca, Studio di Fattibilità & Integrazione AI (Intelligenza Artificiale)
 
 ### [AI-001] Assistente Intelligente, Voice-to-Action & Automazioni LLM
 - **Descrizione**: Studio di fattibilità, analisi architetturale e prototipazione per integrare modelli LLM, Speech-to-Text e Structured Outputs all'interno di Vita per trasformare l'app in un assistente proattivo e contestuale.
@@ -195,7 +184,7 @@ Questo documento traccia in modo strutturato, prioritizzato e costantemente aggi
 
 ---
 
-## 🚀 9. Progetti Futuri & Idee di Roadmap
+## 🚀 8. Progetti Futuri & Idee di Roadmap
 
 ### 9.1 Mobile & Esperienza Utente
 - [ ] **[HOME-001] Widget Homepage Rotante (Citazione, Oroscopo & Meteo)**: Widget rotante in homepage che alterna citazione, oroscopo del giorno e meteo locale, con apertura espansa al click che mostra tutte e tre le informazioni.

@@ -38,7 +38,7 @@ export const YearReviewHabitsRecap: React.FC<YearReviewHabitsRecapProps> = ({
                 <span className="text-xs font-bold text-gray-900 truncate">{habit.titolo}</span>
               </div>
               <span className="text-[10.5px] font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full border border-blue-100 shrink-0">
-                {completedDays}/{activeDays} gg
+                {completedDays}/{activeDays}
               </span>
             </div>
 

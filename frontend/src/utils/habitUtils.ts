@@ -93,8 +93,8 @@ export const getActivePeriod = (periods: HabitPeriod[] | undefined, targetDateSt
  * 3. ESTRATTORE SICURO DEI LOG
  */
 export const getLogForDate = (logs: HabitLog[] | undefined, targetDateStr: string): number => {
-  // 🪄 SOSTITUITO || CON ??
-  const log = (logs ?? []).find(l => l.data_riferimento === targetDateStr);
+  const targetPrefix = targetDateStr.substring(0, 10);
+  const log = (logs ?? []).find(l => (l.data_riferimento || '').substring(0, 10) === targetPrefix);
   return log ? log.count : 0;
 };
 
@@ -211,4 +211,32 @@ export const getActivePeriodToSuspend = (
   }
 
   return null;
+};
+
+/**
+ * 8. STATO PROGRESSO GIORNALIERO (Recap Mensile & Statistiche)
+ */
+export interface HabitDayProgress {
+  count: number;
+  target: number;
+  isCompleted: boolean;
+  isPartial: boolean;
+}
+
+export const calculateHabitDayProgress = (
+  habit: Habit,
+  dateStr: string
+): HabitDayProgress => {
+  const period = getActivePeriod(habit.periods, dateStr);
+  const target = period?.target || 1;
+  const count = getLogForDate(habit.logs, dateStr);
+  const isCompleted = count >= target && target > 0;
+  const isPartial = count > 0 && count < target;
+
+  return {
+    count,
+    target,
+    isCompleted,
+    isPartial,
+  };
 };

@@ -15,13 +15,21 @@ const TimeInput: React.FC<TimeInputProps> = ({ value, onChange, disabled = false
   const handleHourChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value.replace(/\D/g, '');
     if (val && parseInt(val, 10) > 23) return;
-    onChange(val ? `${val}:${orario.minuti || '00'}` : (orario.minuti ? `00:${orario.minuti}` : ''));
+    if (val) {
+      onChange(orario.minuti ? `${val}:${orario.minuti}` : `${val}:`);
+    } else {
+      onChange(orario.minuti ? `:${orario.minuti}` : '');
+    }
   };
 
   const handleMinuteChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value.replace(/\D/g, '');
     if (val && parseInt(val, 10) > 59) return;
-    onChange(val ? `${orario.ore || '00'}:${val}` : (orario.ore ? `${orario.ore}:00` : ''));
+    if (val) {
+      onChange(`${orario.ore || '00'}:${val}`);
+    } else {
+      onChange(orario.ore ? `${orario.ore}:` : '');
+    }
   };
 
   return (

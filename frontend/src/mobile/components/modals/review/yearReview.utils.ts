@@ -5,6 +5,7 @@ import type { Habit } from '@/types/habits';
 import type { TrackerItem } from '@/types/monthlyentries';
 import { MOOD_NAMES, SPHERE_NAMES } from '@/utils/monthlyEntriesUtils';
 import { getTrackerColor, TRACKER_CODES } from '@/utils/trackerConstants';
+import { isHabitScheduledForDay } from '@/utils/habitUtils';
 
 export const YEAR_REVIEW_QUESTIONS: { code: YearlyType; text: string }[] = [
   { code: 'Q1', text: "1. Quali sono stati gli eventi più significativi di quest'anno?" },
@@ -85,23 +86,24 @@ export const getHabitActiveDaysInYear = (habit: Habit, year: number): number => 
   const effectiveEnd = year === today.getFullYear() ? (endOfYear > today ? today : endOfYear) : endOfYear;
   if (effectiveEnd < startOfYear) return 0;
 
-  if (!habit.periods || habit.periods.length === 0) {
-    const diffTime = effectiveEnd.getTime() - startOfYear.getTime();
-    return Math.max(0, Math.floor(diffTime / (1000 * 60 * 60 * 24)) + 1);
-  }
-
   let count = 0;
   const cur = new Date(startOfYear);
   cur.setHours(0, 0, 0, 0);
 
   while (cur <= effectiveEnd) {
     const dStr = format(cur, 'yyyy-MM-dd');
-    const isActive = habit.periods.some((p) => {
-      const start = p.data_inizio ? p.data_inizio.split('T')[0] : '1970-01-01';
-      const end = p.data_fine ? p.data_fine.split('T')[0] : '9999-12-31';
-      return start <= dStr && end >= dStr;
-    });
-    if (isActive) count++;
+    const inPeriod =
+      !habit.periods || habit.periods.length === 0
+        ? true
+        : habit.periods.some((p) => {
+            const start = p.data_inizio ? p.data_inizio.split('T')[0] : '1970-01-01';
+            const end = p.data_fine ? p.data_fine.split('T')[0] : '9999-12-31';
+            return start <= dStr && end >= dStr;
+          });
+    const hasLog = (habit.logs || []).some(
+      (l) => (l.data_riferimento || '').substring(0, 10) === dStr && l.count > 0
+    );
+    if ((inPeriod && isHabitScheduledForDay(habit, dStr)) || hasLog) count++;
     cur.setDate(cur.getDate() + 1);
   }
 

@@ -5,7 +5,7 @@ import DatePicker from '@/components/shared/utils/DatePicker/DatePicker';
 import TimeInput from '@/components/shared/utils/TimeInput';
 import ImagePositionModal from '@/components/shared/dialog/ImagePositionModal';
 import { TargetIcon, PhotoIcon, LoadingIcon } from '@/components/shared/utils/Icons';
-import { pad } from '@/utils/dateUtils';
+import { pad, formatTimeToServer } from '@/utils/dateUtils';
 import { DEFAULT_COVER_IMAGE } from '@/utils/constants';
 import { resolveImageUrl } from '@/utils/imageUtils';
 import BaseModal from '@/components/shared/dialog/BaseModal';
@@ -74,7 +74,7 @@ const CountdownNewModal: React.FC<CountdownNewModalProps> = ({ isOpen, onClose, 
     setIsSaving(true);
 
     try {
-      const timeToUse = timeStr || '00:00';
+      const timeToUse = formatTimeToServer(timeStr) || '00:00';
       const localDate = new Date(`${dateStr}T${timeToUse}:00`);
       const finalIso = localDate.toISOString();
 

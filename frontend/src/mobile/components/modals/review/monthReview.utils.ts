@@ -2,6 +2,11 @@
 import { format } from 'date-fns';
 import type { MonthlyType } from '@/types/monthlyentries';
 import type { Habit } from '@/types/habits';
+import {
+  calculateHabitDayProgress,
+  isHabitScheduledForDay,
+  type HabitDayProgress,
+} from '@/utils/habitUtils';
 
 export const REVIEW_QUESTIONS: { code: MonthlyType; text: string }[] = [
   { code: 'Q1', text: '1. Quali sono stati gli eventi più significativi di questo mese?' },
@@ -38,6 +43,7 @@ export interface ActiveHabitInMonth {
   activeDayNumbers: number[];
   completedDays: number;
   logDates: Set<number>;
+  dayProgressMap: Record<number, HabitDayProgress>;
 }
 
 export function getActiveHabitsInMonth(habits: Habit[], monthDate: Date): ActiveHabitInMonth[] {
@@ -55,27 +61,28 @@ export function getActiveHabitsInMonth(habits: Habit[], monthDate: Date): Active
   return habits
     .map((habit) => {
       const activeDayNumbers: number[] = [];
-      if (!habit.periods || habit.periods.length === 0) {
-        const cur = new Date(startOfMonth);
-        while (cur <= effectiveEnd) {
+      const cur = new Date(startOfMonth);
+      cur.setHours(0, 0, 0, 0);
+
+      while (cur <= effectiveEnd) {
+        const dStr = format(cur, 'yyyy-MM-dd');
+        const inPeriod =
+          !habit.periods || habit.periods.length === 0
+            ? true
+            : habit.periods.some((p) => {
+                const start = p.data_inizio ? p.data_inizio.split('T')[0] : '1970-01-01';
+                const end = p.data_fine ? p.data_fine.split('T')[0] : '9999-12-31';
+                return start <= dStr && end >= dStr;
+              });
+
+        const hasLog = (habit.logs || []).some(
+          (l) => (l.data_riferimento || '').substring(0, 10) === dStr && l.count > 0
+        );
+
+        if ((inPeriod && isHabitScheduledForDay(habit, dStr)) || hasLog) {
           activeDayNumbers.push(cur.getDate());
-          cur.setDate(cur.getDate() + 1);
         }
-      } else {
-        const cur = new Date(startOfMonth);
-        cur.setHours(0, 0, 0, 0);
-        while (cur <= effectiveEnd) {
-          const dStr = format(cur, 'yyyy-MM-dd');
-          const isActive = habit.periods.some((p) => {
-            const start = p.data_inizio ? p.data_inizio.split('T')[0] : '1970-01-01';
-            const end = p.data_fine ? p.data_fine.split('T')[0] : '9999-12-31';
-            return start <= dStr && end >= dStr;
-          });
-          if (isActive) {
-            activeDayNumbers.push(cur.getDate());
-          }
-          cur.setDate(cur.getDate() + 1);
-        }
+        cur.setDate(cur.getDate() + 1);
       }
 
       const currentMonthPrefix = `${monthDate.getFullYear()}-${String(monthDate.getMonth() + 1).padStart(2, '0')}`;
@@ -84,7 +91,15 @@ export function getActiveHabitsInMonth(habits: Habit[], monthDate: Date): Active
           .filter((log) => log.count > 0 && log.data_riferimento.startsWith(currentMonthPrefix))
           .map((log) => parseInt(log.data_riferimento.split('-')[2], 10))
       );
-      const completedDays = logDates.size;
+
+      const dayProgressMap: Record<number, HabitDayProgress> = {};
+      const daysInMonth = endOfMonth.getDate();
+      for (let d = 1; d <= daysInMonth; d++) {
+        const dStr = `${monthDate.getFullYear()}-${String(monthDate.getMonth() + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+        dayProgressMap[d] = calculateHabitDayProgress(habit, dStr);
+      }
+
+      const completedDays = activeDayNumbers.filter((d) => dayProgressMap[d]?.isCompleted).length;
       const activeDays = activeDayNumbers.length;
 
       return {
@@ -93,6 +108,7 @@ export function getActiveHabitsInMonth(habits: Habit[], monthDate: Date): Active
         activeDayNumbers,
         completedDays,
         logDates,
+        dayProgressMap,
       };
     })
     .filter((h) => h.activeDays > 0);

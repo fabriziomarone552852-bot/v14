@@ -1,7 +1,7 @@
 // src/mobile/hooks/useMobileCountdownFormLogic.ts
 import { useState, useEffect } from 'react';
 import type { CountdownItem } from '@/components/day/CountdownWidget';
-import { pad } from '@/utils/dateUtils';
+import { pad, formatTimeToServer } from '@/utils/dateUtils';
 import { DEFAULT_COVER_IMAGE } from '@/utils/constants';
 import { logger } from '@/utils/logger';
 
@@ -61,7 +61,7 @@ export const useMobileCountdownFormLogic = ({
     setIsSaving(true);
 
     try {
-      const timeToUse = timeStr || '00:00';
+      const timeToUse = formatTimeToServer(timeStr) || '00:00';
       const localDate = new Date(`${dateStr}T${timeToUse}:00`);
       const finalIso = localDate.toISOString();
 

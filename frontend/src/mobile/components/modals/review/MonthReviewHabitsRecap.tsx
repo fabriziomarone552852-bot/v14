@@ -14,7 +14,7 @@ export const MonthReviewHabitsRecap: React.FC<MonthReviewHabitsRecapProps> = ({
 }) => {
   return (
     <div className="flex-1 min-h-0 overflow-y-auto custom-scrollbar p-3 pb-[max(env(safe-area-inset-bottom,0px),20px)] space-y-2.5">
-      {activeHabitsInMonth.map(({ habit, activeDays, activeDayNumbers, completedDays, logDates }) => {
+      {activeHabitsInMonth.map(({ habit, activeDays, activeDayNumbers, completedDays, dayProgressMap }) => {
         return (
           <div
             key={habit.id}
@@ -26,37 +26,43 @@ export const MonthReviewHabitsRecap: React.FC<MonthReviewHabitsRecapProps> = ({
                 <span className="truncate">{habit.titolo}</span>
               </span>
               <span className="text-[10px] font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full border border-blue-100 shrink-0">
-                {completedDays}/{activeDays} gg
+                {completedDays}/{activeDays}
               </span>
             </div>
 
-            {/* Griglia giorni: Tutti i giorni del mese mantengono la posizione precisa, i giorni non attivi sono invisibili */}
+            {/* Griglia giorni: Tutti i giorni del mese, evidenziando giorni attivi e completamenti */}
             <div className="flex gap-0.5 items-center w-full justify-between pt-0.5">
               {allMonthDays.map((day) => {
                 const isActive = activeDayNumbers.includes(day);
-                const done = logDates.has(day);
+                const progress = dayProgressMap?.[day];
+                const isCompleted = progress?.isCompleted ?? false;
+                const isPartial = progress?.isPartial ?? false;
+                const count = progress?.count ?? 0;
+                const target = progress?.target ?? 1;
 
-                if (!isActive) {
-                  return (
-                    <div
-                      key={`d-${day}`}
-                      className="flex-1 min-w-0 aspect-square max-h-6 invisible pointer-events-none"
-                      aria-hidden="true"
-                    />
-                  );
+                let bgClass = 'bg-gray-100/80 text-gray-300 font-medium';
+                let titleText = `Giorno ${day} - Non programmata`;
+
+                if (isCompleted) {
+                  bgClass = 'bg-green-500 text-white font-bold shadow-2xs';
+                  titleText = `Giorno ${day}${target > 1 ? ` ✓ (${count}/${target})` : ' ✓'}`;
+                } else if (isPartial) {
+                  bgClass = 'bg-amber-500 text-white font-black shadow-2xs';
+                  titleText = `Giorno ${day} - Parziale: ${count}/${target}`;
+                } else if (isActive) {
+                  bgClass = 'bg-gray-200 text-gray-500 font-bold';
+                  titleText = `Giorno ${day}${target > 1 ? ` (0/${target})` : ''}`;
                 }
 
                 return (
                   <div
                     key={`d-${day}`}
-                    className={`flex-1 min-w-0 aspect-square max-h-6 rounded-[3px] flex items-center justify-center text-[7.5px] font-bold transition-colors ${
-                      done
-                        ? 'bg-green-500 text-white shadow-2xs'
-                        : 'bg-gray-200/70 text-gray-400'
-                    }`}
-                    title={`Giorno ${day}${done ? ' ✓' : ''}`}
+                    className={`flex-1 min-w-0 aspect-square max-h-6 rounded-[3px] flex items-center justify-center transition-colors ${
+                      isPartial ? 'text-[5.5px] leading-none tracking-tighter' : 'text-[7.5px]'
+                    } ${bgClass}`}
+                    title={titleText}
                   >
-                    {day}
+                    {isPartial ? `${count}/${target}` : day}
                   </div>
                 );
               })}

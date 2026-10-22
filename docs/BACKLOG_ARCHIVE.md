@@ -8,6 +8,8 @@ Questo file contiene lo storico completo e strutturato di tutte le funzionalità
 
 | ID | Attività / Funzionalità | Ambito | Stato Backend | Stato Frontend | Data Completamento |
 | :--- | :--- | :---: | :---: | :---: | :---: |
+| **HABITS-001** | Recap Mensile: Ripetizioni Multiple (Frazione `Y/X`), Cadenze & Rimozione "gg" | `habits` / UI | 🟢 Completato | 🟢 Completato | Ottobre 2026 |
+| **GENERAL-001** | Fix Selezione Orario e Minuti Eventi/Countdown & Unificazione Categorie a "Comune" | `calendar` / UI | 🟢 Completato | 🟢 Completato | Ottobre 2026 |
 | **TRACKERS-018** | Controllo Esecuzione Ricerca TMDB Mobile (Bozza Locale `draftFilters`, Avvio Esplicito su Invio o Tasto) | `trackers` / mobile | 🟢 Supportato | 🟢 Completato | Ottobre 2026 |
 | **TRACKERS-017** | Icone Freccia Ripristino nei Modali di Ricerca Mobile (Catalogo & Ricerca Approfondita, `RotateCcw`) | `trackers` / mobile | 🟢 Supportato | 🟢 Completato | Ottobre 2026 |
 | **TRACKERS-016** | Fix Ancoraggio Diario Mobile Serie TV (`min-h-full` Sezioni Inferiori & Stabilizzazione Asincrona Scroll) | `trackers` / mobile | 🟢 Supportato | 🟢 Completato | Ottobre 2026 |
@@ -600,4 +602,22 @@ Configurazione delle variabili d'ambiente per le chiavi API TMDB sul server NAS 
 #### 📋 Descrizione
 1. **Risoluzione Errore 500 (`NotNullViolation`)**: Rimozione delle colonne obsolete (`review_visibility`, `rating`, `notes`) dalla tabella `user_series_tracking` tramite la nuova migrazione Alembic `c4d5e6f7a8b9_drop_legacy_columns_from_user_series_tracking.py`, applicata con successo sia su `test-smart` sia su `family-smart` (NAS produzione). La presenza del vincolo `NOT NULL` senza valore di default sulla colonna orfana `review_visibility` bloccava l'inserimento delle nuove serie da parte del frontend (`POST /trackers/series`).
 2. **Idempotenza Migrazioni**: Refactoring difensivo della migrazione `b3c4d5e6f7a8_move_viewing_platform_to_episode_logs.py` con ispezione runtime preventiva delle colonne, foreign key e indici per evitare crash `DuplicateColumn` su ambienti parzialmente applicati.
+
+---
+
+### [GENERAL-001] Fix Selezione Orario e Minuti Eventi/Countdown & Unificazione Categorie (🟢 Completato)
+
+#### 📋 Descrizione
+1. **Digitazione Minuti Flessibile**: Risolto il blocco nella digitazione dei minuti nei modali Evento e Countdown (Desktop e Mobile): consentito lo spazio vuoto senza ripristino forzato a `:00` e normalizzazione automatica al salvataggio (es. `10:` interpretato come `10:00`).
+2. **Promozione Intelligente Categorie**: Implementata la promozione trasparente delle categorie a tipo "Comune" (genre 3) quando una categoria già esistente per i Task viene ricreata/assegnata agli Eventi (o viceversa), azzerando gli errori 400 di duplicato.
+
+---
+
+### [HABITS-001] Recap Mensile: Ripetizioni Multiple & Cadenze Non Giornaliere (🟢 Completato)
+
+#### 📋 Descrizione
+1. **Progresso Frazionario Y/X**: Per routine e abitudini con ripetizioni multiple giornaliere (`target > 1`), i completamenti parziali ($0 < Y < X$) vengono mostrati nei quadratini in colore ambra con la frazione visibile (es. `2/3`), mentre i completati ($Y \ge X$) risaltano in verde.
+2. **Cadenze Non Giornaliere & Resa Visiva**: Visualizzazione di tutti i giorni del mese, distinguendo con grigio chiaro/tenue i giorni non programmati e con grigio più marcato i giorni attivi ma non completati.
+3. **Pulizia Badge**: Rimozione del suffisso `"gg"` dai badge di conteggio completati/attivi (es. `13/18`).
+
 

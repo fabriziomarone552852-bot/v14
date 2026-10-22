@@ -3,6 +3,7 @@ import type { Habit } from '@/types/habits';
 import { Pagination } from '@/components/shared/utils/Pagination';
 import { EmptyState } from '@/components/shared/utils/EmptyState';
 import { format } from 'date-fns';
+import { isHabitScheduledForDay } from '@/utils/habitUtils';
 
 interface YearReviewHabitsPanelProps {
   habits: Habit[];
@@ -37,24 +38,25 @@ const getHabitActiveDaysInYear = (habit: Habit, yr: number): number => {
   today.setHours(23, 59, 59, 999);
 
   const effectiveEnd = yr === today.getFullYear() ? (endOfYear > today ? today : endOfYear) : endOfYear;
-
-  if (!habit.periods || habit.periods.length === 0) {
-    if (yr > today.getFullYear()) return 0;
-    const diffTime = effectiveEnd.getTime() - startOfYear.getTime();
-    return Math.max(0, Math.floor(diffTime / (1000 * 60 * 60 * 24)) + 1);
-  }
+  if (effectiveEnd < startOfYear) return 0;
 
   let count = 0;
   const cur = new Date(startOfYear);
   cur.setHours(0, 0, 0, 0);
   while (cur <= effectiveEnd) {
     const dStr = format(cur, 'yyyy-MM-dd');
-    const isActive = habit.periods.some((p) => {
-      const start = p.data_inizio ? p.data_inizio.split('T')[0] : '1970-01-01';
-      const end = p.data_fine ? p.data_fine.split('T')[0] : '9999-12-31';
-      return start <= dStr && end >= dStr;
-    });
-    if (isActive) count++;
+    const inPeriod =
+      !habit.periods || habit.periods.length === 0
+        ? true
+        : habit.periods.some((p) => {
+            const start = p.data_inizio ? p.data_inizio.split('T')[0] : '1970-01-01';
+            const end = p.data_fine ? p.data_fine.split('T')[0] : '9999-12-31';
+            return start <= dStr && end >= dStr;
+          });
+    const hasLog = (habit.logs || []).some(
+      (l) => (l.data_riferimento || '').substring(0, 10) === dStr && l.count > 0
+    );
+    if ((inPeriod && isHabitScheduledForDay(habit, dStr)) || hasLog) count++;
     cur.setDate(cur.getDate() + 1);
   }
   return count;
@@ -113,7 +115,7 @@ export const YearReviewHabitsPanel: React.FC<YearReviewHabitsPanelProps> = ({ ha
                   {habit.tipo === 'R' ? '🔁' : '⭐'} {habit.titolo}
                 </span>
                 <span className="text-xs font-semibold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full border border-blue-100">
-                  {completedDays}/{activeDays} gg
+                  {completedDays}/{activeDays}
                 </span>
               </div>
               <div className="w-full bg-gray-200 rounded-full h-2">

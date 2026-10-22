@@ -2,6 +2,11 @@ import React, { useState, useMemo } from 'react';
 import { format } from 'date-fns';
 import { Pagination } from '@/components/shared/utils/Pagination';
 import type { Habit } from '@/types/habits';
+import {
+  calculateHabitDayProgress,
+  isHabitScheduledForDay,
+  type HabitDayProgress,
+} from '@/utils/habitUtils';
 
 const HABITS_PER_PAGE = 3;
 
@@ -28,36 +33,38 @@ export const ReviewHabitsPanel: React.FC<ReviewHabitsPanelProps> = ({ habits, ye
     return habits
       .map((habit) => {
         const activeDayNumbers: number[] = [];
-        if (!habit.periods || habit.periods.length === 0) {
-          const cur = new Date(startOfMonth);
-          while (cur <= effectiveEnd) {
+        const cur = new Date(startOfMonth);
+        cur.setHours(0, 0, 0, 0);
+
+        while (cur <= effectiveEnd) {
+          const dStr = format(cur, 'yyyy-MM-dd');
+          const inPeriod =
+            !habit.periods || habit.periods.length === 0
+              ? true
+              : habit.periods.some((p) => {
+                  const start = p.data_inizio ? p.data_inizio.split('T')[0] : '1970-01-01';
+                  const end = p.data_fine ? p.data_fine.split('T')[0] : '9999-12-31';
+                  return start <= dStr && end >= dStr;
+                });
+
+          const hasLog = (habit.logs || []).some(
+            (l) => (l.data_riferimento || '').substring(0, 10) === dStr && l.count > 0
+          );
+
+          if ((inPeriod && isHabitScheduledForDay(habit, dStr)) || hasLog) {
             activeDayNumbers.push(cur.getDate());
-            cur.setDate(cur.getDate() + 1);
           }
-        } else {
-          const cur = new Date(startOfMonth);
-          cur.setHours(0, 0, 0, 0);
-          while (cur <= effectiveEnd) {
-            const dStr = format(cur, 'yyyy-MM-dd');
-            const isActive = habit.periods.some((p) => {
-              const start = p.data_inizio ? p.data_inizio.split('T')[0] : '1970-01-01';
-              const end = p.data_fine ? p.data_fine.split('T')[0] : '9999-12-31';
-              return start <= dStr && end >= dStr;
-            });
-            if (isActive) {
-              activeDayNumbers.push(cur.getDate());
-            }
-            cur.setDate(cur.getDate() + 1);
-          }
+          cur.setDate(cur.getDate() + 1);
         }
 
-        const currentMonthPrefix = `${year}-${String(month).padStart(2, '0')}`;
-        const logDates = new Set(
-          habit.logs
-            .filter((log) => log.count > 0 && log.data_riferimento.startsWith(currentMonthPrefix))
-            .map((log) => parseInt(log.data_riferimento.split('-')[2], 10))
-        );
-        const completedDays = logDates.size;
+        const dayProgressMap: Record<number, HabitDayProgress> = {};
+        const daysInMonth = new Date(year, month, 0).getDate();
+        for (let d = 1; d <= daysInMonth; d++) {
+          const dStr = `${year}-${String(month).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+          dayProgressMap[d] = calculateHabitDayProgress(habit, dStr);
+        }
+
+        const completedDays = activeDayNumbers.filter((d) => dayProgressMap[d]?.isCompleted).length;
         const activeDays = activeDayNumbers.length;
 
         return {
@@ -65,7 +72,7 @@ export const ReviewHabitsPanel: React.FC<ReviewHabitsPanelProps> = ({ habits, ye
           activeDays,
           activeDayNumbers,
           completedDays,
-          logDates,
+          dayProgressMap,
         };
       })
       .filter((h) => h.activeDays > 0);
@@ -91,82 +98,64 @@ export const ReviewHabitsPanel: React.FC<ReviewHabitsPanelProps> = ({ habits, ye
   return (
     <div className="flex flex-col h-full overflow-hidden">
       <div className="flex-1 min-h-0 grid grid-rows-3 gap-4">
-        {pageHabits.map(({ habit, activeDays, activeDayNumbers, logDates, completedDays }) => (
-          <div key={habit.id} className="flex flex-col gap-2 bg-gray-50 rounded-xl p-4 border border-gray-200 min-h-0 justify-between">
-            <div className="flex items-center justify-between shrink-0">
-              <span className="text-sm font-bold text-gray-800">
-                {habit.tipo === 'R' ? '🔁' : '⭐'} {habit.titolo}
-              </span>
-              <span className="text-xs font-semibold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full">
-                {completedDays}/{activeDays} gg
-              </span>
-            </div>
-            {/* Griglia giorni — 2 righe con giorni non attivi invisibili per mantenere l'allineamento perfetto */}
-            <div className="flex flex-col gap-1.5 flex-1 justify-center">
-              <div className="flex gap-1 justify-center flex-wrap">
-                {row1.map((day) => {
-                  const isActive = activeDayNumbers.includes(day);
-                  const done = logDates.has(day);
+        {pageHabits.map(({ habit, activeDays, activeDayNumbers, dayProgressMap, completedDays }) => {
+          const renderDayBox = (day: number) => {
+            const isActive = activeDayNumbers.includes(day);
+            const progress = dayProgressMap[day];
+            const isCompleted = progress?.isCompleted;
+            const isPartial = progress?.isPartial;
+            const count = progress?.count ?? 0;
+            const target = progress?.target ?? 1;
 
-                  if (!isActive) {
-                    return (
-                      <div
-                        key={day}
-                        className="w-9 h-9 rounded-lg invisible pointer-events-none"
-                        aria-hidden="true"
-                      />
-                    );
-                  }
+            let bgClass = 'bg-gray-100/80 text-gray-300 font-normal';
+            let titleText = `${day}/${month}/${year} - Non programmata`;
 
-                  return (
-                    <div
-                      key={day}
-                      className={`w-9 h-9 rounded-lg flex items-center justify-center text-xs font-bold transition-colors ${
-                        done
-                          ? 'bg-green-500 text-white shadow-sm'
-                          : 'bg-gray-200/70 text-gray-400'
-                      }`}
-                      title={`${day}/${month}/${year}${done ? ' ✓' : ''}`}
-                    >
-                      {day}
-                    </div>
-                  );
-                })}
+            if (isCompleted) {
+              bgClass = 'bg-green-500 text-white font-bold shadow-sm';
+              titleText = `${day}/${month}/${year}${target > 1 ? ` ✓ (${count}/${target})` : ' ✓'}`;
+            } else if (isPartial) {
+              bgClass = 'bg-amber-500 text-white font-black shadow-sm';
+              titleText = `${day}/${month}/${year} - Parziale: ${count}/${target}`;
+            } else if (isActive) {
+              bgClass = 'bg-gray-200 text-gray-600 font-bold';
+              titleText = `${day}/${month}/${year}${target > 1 ? ` (0/${target})` : ''}`;
+            }
+
+            return (
+              <div
+                key={day}
+                className={`w-9 h-9 rounded-lg flex items-center justify-center transition-colors ${
+                  isPartial ? 'text-[10.5px] leading-none tracking-tight' : 'text-xs'
+                } ${bgClass}`}
+                title={titleText}
+              >
+                {isPartial ? `${count}/${target}` : day}
               </div>
+            );
+          };
 
-              <div className="flex gap-1 justify-center flex-wrap">
-                {row2.map((day) => {
-                  const isActive = activeDayNumbers.includes(day);
-                  const done = logDates.has(day);
-
-                  if (!isActive) {
-                    return (
-                      <div
-                        key={day}
-                        className="w-9 h-9 rounded-lg invisible pointer-events-none"
-                        aria-hidden="true"
-                      />
-                    );
-                  }
-
-                  return (
-                    <div
-                      key={day}
-                      className={`w-9 h-9 rounded-lg flex items-center justify-center text-xs font-bold transition-colors ${
-                        done
-                          ? 'bg-green-500 text-white shadow-sm'
-                          : 'bg-gray-200/70 text-gray-400'
-                      }`}
-                      title={`${day}/${month}/${year}${done ? ' ✓' : ''}`}
-                    >
-                      {day}
-                    </div>
-                  );
-                })}
+          return (
+            <div key={habit.id} className="flex flex-col gap-2 bg-gray-50 rounded-xl p-4 border border-gray-200 min-h-0 justify-between">
+              <div className="flex items-center justify-between shrink-0">
+                <span className="text-sm font-bold text-gray-800">
+                  {habit.tipo === 'R' ? '🔁' : '⭐'} {habit.titolo}
+                </span>
+                <span className="text-xs font-semibold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full">
+                  {completedDays}/{activeDays}
+                </span>
+              </div>
+              {/* Griglia giorni — 2 righe con giorni non attivi invisibili per mantenere l'allineamento perfetto */}
+              <div className="flex flex-col gap-1.5 flex-1 justify-center">
+                <div className="flex gap-1 justify-center flex-wrap">
+                  {row1.map(renderDayBox)}
+                </div>
+                <div className="flex gap-1 justify-center flex-wrap">
+                  {row2.map(renderDayBox)}
+                </div>
               </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
       {/* Paginazione */}

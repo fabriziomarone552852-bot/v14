@@ -120,10 +120,24 @@ export const formatToItalianShortDate = (isoString?: string | null): string => {
   }
 };
 
-export const formatTimeToServer = (oraStr?: string): string | null => {
-  if (!oraStr || !oraStr.includes(':')) return null;
-  
-  const [hStr, mStr] = oraStr.split(':');
+export const formatTimeToServer = (oraStr?: string | null): string | null => {
+  if (!oraStr) return null;
+  const trimmed = oraStr.trim();
+  if (!trimmed || trimmed === ':') return null;
+
+  let hStr = '';
+  let mStr = '';
+  if (trimmed.includes(':')) {
+    const parts = trimmed.split(':');
+    hStr = parts[0] || '';
+    mStr = parts[1] || '';
+  } else {
+    hStr = trimmed;
+    mStr = '00';
+  }
+
+  if (!hStr && !mStr) return null;
+
   const h = parseInt(hStr || '0', 10);
   const m = parseInt(mStr || '0', 10);
 
@@ -131,7 +145,6 @@ export const formatTimeToServer = (oraStr?: string): string | null => {
     return null; 
   }
   return `${pad(h)}:${pad(m)}`;
-
 };
 
 /**

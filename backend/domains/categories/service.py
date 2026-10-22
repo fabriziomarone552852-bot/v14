@@ -9,7 +9,7 @@ from sqlalchemy.orm import Session
 
 from backend.domains.categories import repository as repo
 from backend.domains.categories import schemas
-from backend.domains.categories.models import UserCategory
+from backend.domains.categories.models import CategoryGenre, UserCategory
 from backend.domains.users.models import User
 
 
@@ -42,16 +42,28 @@ def create_category(
 ) -> schemas.CategoryResponse:
     # TAG (5) e MOOD (4) sono indipendenti: controllano duplicati solo dentro il loro genre.
     # TASKS (1), EVENTS (2), COMMON (3) condividono lo stesso namespace.
-    if data.genre in (5, 4):
+    if data.genre in (CategoryGenre.TAG, CategoryGenre.MOOD):
         # Cerca duplicati solo nello stesso genre
         existing = repo.get_user_category_by_name(db, data.category_name, current_user.id, genre=data.genre)
     else:
         # Per genre 1/2/3: cerca se il nome esiste già tra 1, 2 o 3
         existing = repo.get_user_category_by_name(db, data.category_name, current_user.id)
         # Ignora match con genre 4 o 5 (sono indipendenti)
-        if existing and existing.genre in (4, 5):
+        if existing and existing.genre in (CategoryGenre.MOOD, CategoryGenre.TAG):
             existing = None
     if existing:
+        # Se la categoria esiste già come TASKS e viene richiesta per EVENTS o COMMON,
+        # oppure esiste come EVENTS e viene richiesta per TASKS o COMMON:
+        # promuoviamo automaticamente la categoria a COMMON (3)!
+        is_task_to_event = existing.genre == CategoryGenre.TASKS and data.genre in (CategoryGenre.EVENTS, CategoryGenre.COMMON)
+        is_event_to_task = existing.genre == CategoryGenre.EVENTS and data.genre in (CategoryGenre.TASKS, CategoryGenre.COMMON)
+        if is_task_to_event or is_event_to_task:
+            existing.genre = CategoryGenre.COMMON
+            if data.colore:
+                existing.colore = data.colore
+            saved = repo.save_user_category(db, existing)
+            return _to_response(saved)
+
         raise HTTPException(status_code=400, detail="Hai già questa categoria salvata.")
 
     user_category = UserCategory(
