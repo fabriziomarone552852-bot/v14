@@ -131,17 +131,25 @@ if ($gradleExitCode -ne 0) {
 
 Set-Location $rootDir
 $finalApk = Join-Path $androidDir "app\build\outputs\apk\debug\app-debug.apk"
+$versionedApk = Join-Path $outputDir "vita-v$appVersion.apk"
 
 if (Test-Path $finalApk) {
     # Copia nella cartella apk/
-    try { Copy-Item $finalApk (Join-Path $outputDir "vita-v$appVersion.apk") -Force } catch {}
+    try { Copy-Item $finalApk $versionedApk -Force } catch {}
     try { Copy-Item $finalApk (Join-Path $outputDir "vita.apk") -Force } catch {}
+
+    # Upload su Google Drive (opzionale / automatico)
+    $uploadScript = Join-Path $rootDir "scripts\upload_to_drive.py"
+    if (Test-Path $uploadScript) {
+        Write-Host "`nSincronizzazione automatica con Google Drive..." -ForegroundColor Cyan
+        python $uploadScript --file $versionedApk
+    }
 
     Write-Host "`n=====================================================" -ForegroundColor Green
     Write-Host "  VITA APK COMPILATO CON SUCCESSO (v$appVersion)!" -ForegroundColor Green
-    Write-Host "  File generati in $($outputDir):" -ForegroundColor Green
-    Write-Host "    - $outputDir\vita-v$appVersion.apk" -ForegroundColor Green
-    Write-Host "    - $outputDir\vita.apk" -ForegroundColor Green
+    Write-Host "  File caricato su Google Drive (App Mobile):" -ForegroundColor Cyan
+    Write-Host "    - vita-v$appVersion.apk" -ForegroundColor White
+    Write-Host "    -> APK sincronizzato! Versioni precedenti in 'old versions/'" -ForegroundColor Green
     Write-Host "=====================================================" -ForegroundColor Green
 } else {
     Write-Host "`nAPK non trovato nel percorso atteso. Controlla i log precedenti." -ForegroundColor Red

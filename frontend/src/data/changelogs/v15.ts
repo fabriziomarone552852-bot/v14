@@ -3,12 +3,30 @@ import type { ChangelogItem } from './types';
 
 export const CHANGELOG_V15: ChangelogItem[] = [
   {
+    id: 'v15.1.5',
+    version: '15.1.5',
+    date: 'Ottobre 2026',
+    title: 'Upload Automatico APK su Google Drive & Archiviazione Versioni (TECH-009)',
+    isLatest: true,
+    published: false,
+    highlights: [
+      'Upload Automatico APK su Google Drive (TECH-009): Integrato caricamento automatico della nuova release APK al termine dei comandi di build (`build_all.ps1` e `build_apk.ps1`), eliminando qualsiasi passaggio manuale.',
+      'Archiviazione Storica Versioni: Spostamento istantaneo di tutte le versioni APK precedenti nella sottocartella "old versions/" di Google Drive, lasciando visibile nella radice solo l\'ultima versione numerata.',
+    ],
+    features: [
+      'Script di Distribuzione Google Drive: Tooling Python dedicato (`scripts/upload_to_drive.py`) basato su Google Drive API v3 (OAuth2 Desktop Client) con barra di avanzamento real-time e memorizzazione sicura del token locale.',
+    ],
+    improvements: [
+      'Rilascio Pulito: Caricamento esclusivo del file APK con versione numerata (es. `vita-v15.1.5.apk`) per mantenere trasparenza e tracciabilità immediata.',
+    ],
+  },
+  {
     id: 'v15.1.4',
     version: '15.1.4',
     date: 'Ottobre 2026',
     title: 'Errori Login (AUTH-001), Notifiche Liste (FEAT-014) & Timeline Serie TV',
-    isLatest: true,
-    published: false,
+    isLatest: false,
+    published: true,
     highlights: [
       'Notifiche Nuove Liste nei Gruppi Condivisi (FEAT-014): Quando un membro crea una nuova lista in un gruppo spesa condiviso, viene inviata in automatico una notifica a tutti gli altri membri del gruppo con link diretto.',
       'Finestra Avviso Errore con Countdown (AUTH-001): Risolto il problema della scomparsa istantanea del messaggio di errore al login. L\'avviso rimane ora visibile per almeno 5 secondi completi, con barra di avanzamento temporale e pulsante di chiusura rapida.',

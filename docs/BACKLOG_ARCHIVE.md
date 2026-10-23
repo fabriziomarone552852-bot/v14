@@ -8,6 +8,7 @@ Questo file contiene lo storico completo e strutturato di tutte le funzionalità
 
 | ID | Attività / Funzionalità | Ambito | Stato Backend | Stato Frontend | Data Completamento |
 | :--- | :--- | :---: | :---: | :---: | :---: |
+| **TECH-009** | Upload Automatico APK su Google Drive & Archiviazione Vecchie Versioni | `build` / deploy | 🟢 Completato | 🟢 Completato | Ottobre 2026 |
 | **FEAT-014** | Notifiche per Nuove Liste nei Gruppi Condivisi | `notifications` / social | 🟢 Completato | 🟢 Completato | Ottobre 2026 |
 | **AUTH-001** | Sistemazione Finestre e Messaggi di Errore al Login (Countdown 5s, Alert & Protezione Invii) | `auth` / UI | 🟢 Supportato | 🟢 Completato | Ottobre 2026 |
 | **HABITS-001** | Recap Mensile: Ripetizioni Multiple (Frazione `Y/X`), Cadenze & Rimozione "gg" | `habits` / UI | 🟢 Completato | 🟢 Completato | Ottobre 2026 |
@@ -653,5 +654,21 @@ Configurazione delle variabili d'ambiente per le chiavi API TMDB sul server NAS 
 4. **Navigazione Diretta al Tap (`useNotificationsInbox.ts`)**:
    - Al tocco o click della notifica, la notifica viene marcata come letta e l'applicazione naviga direttamente a `/shopping?listId=<ID>`, aprendo e selezionando all'istante la nuova lista creata nel gruppo.
 
+---
 
+### [TECH-009] Upload Automatico APK su Google Drive & Archiviazione Vecchie Versioni (🟢 Completato)
 
+#### 📋 Descrizione & Risoluzione
+1. **Script di Upload Dedicato (`scripts/upload_to_drive.py`)**:
+   - Integrazione completa con le Google Drive API v3 ufficiali tramite client Python (`google-api-python-client`, `google-auth-oauthlib`).
+   - Autenticazione OAuth 2.0 Desktop con memorizzazione permanente del `token.json` e rinnovo trasparente in background.
+   - Feedback in tempo reale nel terminale con percentuale di caricamento e chunking ottimizzato a 2MB.
+2. **Archiviazione Automatica Versioni Precedenti (`old versions/`)**:
+   - Rilevamento o creazione automatica della sottocartella `old versions` all'interno della cartella condivisa di Google Drive.
+   - Prima del caricamento, tutti i file APK o versioni precedenti presenti nella radice vengono spostati istantaneamente nella cartella `old versions/` tramite chiamata API `files().update` (spostamento atomico di genitori senza re-upload).
+3. **Upload Esclusivo Versione Numerata**:
+   - Caricamento esclusivo del file APK con versione semantica nel nome (es. `vita-v15.1.5.apk`), mantenendo la cartella di Drive pulita ed eliminando file generici ridondanti (`vita.apk`).
+4. **Integrazione nei File di Build & Sicurezza**:
+   - Invocazione automatica alla fine di `build_all.ps1` e `build_apk.ps1`.
+   - Aggiornamento di `.gitignore` per escludere `credentials.json` e `token.json`.
+   - Redazione guida operativa in `docs/GOOGLE_DRIVE_SETUP.md`.

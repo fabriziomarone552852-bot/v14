@@ -171,9 +171,21 @@ if ($gradleExitCode -ne 0) {
 
 Set-Location $rootDir
 $finalApk = Join-Path $androidDir "app\build\outputs\apk\debug\app-debug.apk"
+$versionedApk = Join-Path $outputDir "vita-v$appVersion.apk"
 if (Test-Path $finalApk) {
-    try { Copy-Item $finalApk (Join-Path $outputDir "vita-v$appVersion.apk") -Force } catch {}
+    try { Copy-Item $finalApk $versionedApk -Force } catch {}
     try { Copy-Item $finalApk (Join-Path $outputDir "vita.apk") -Force } catch {}
+}
+
+# =====================================================================
+# UPLOAD SU GOOGLE DRIVE (OPZIONALE / AUTOMATICO)
+# =====================================================================
+$uploadScript = Join-Path $rootDir "scripts\upload_to_drive.py"
+if ((Test-Path $versionedApk) -and (Test-Path $uploadScript)) {
+    Write-Host "`n-----------------------------------------------------------" -ForegroundColor Yellow
+    Write-Host " Sincronizzazione automatica con Google Drive..." -ForegroundColor Yellow
+    Write-Host "-----------------------------------------------------------" -ForegroundColor Yellow
+    python $uploadScript --file $versionedApk
 }
 
 # =====================================================================
@@ -187,8 +199,7 @@ Write-Host "   - vxame14_backend.tar" -ForegroundColor White
 Write-Host "   - vxame14_frontend.tar" -ForegroundColor White
 Write-Host "   -> Copiali sul NAS ed esegui: sh deploy_nas.sh`n" -ForegroundColor DarkGray
 
-Write-Host " File generati per Google Drive (App Mobile):" -ForegroundColor Cyan
-Write-Host "   - $outputDir\vita-v$appVersion.apk" -ForegroundColor White
-Write-Host "   - $outputDir\vita.apk" -ForegroundColor White
-Write-Host "   -> Carica vita-v$appVersion.apk nella cartella Google Drive!" -ForegroundColor DarkGray
+Write-Host " File caricato su Google Drive (App Mobile):" -ForegroundColor Cyan
+Write-Host "   - vita-v$appVersion.apk" -ForegroundColor White
+Write-Host "   -> APK sincronizzato! Le versioni precedenti sono archiviate in 'old versions/'" -ForegroundColor Green
 Write-Host "===========================================================`n" -ForegroundColor Green
