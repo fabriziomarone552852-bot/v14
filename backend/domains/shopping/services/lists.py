@@ -3,6 +3,7 @@ Services per ShoppingList e ShoppingListItem.
 Regole di business: ownership lista, coerenza prodotto, stato acquisto.
 """
 
+from datetime import datetime, timezone
 from typing import List, Optional
 
 from fastapi import HTTPException
@@ -11,6 +12,7 @@ from sqlalchemy.orm import Session
 from backend.domains.shopping import repository as repo
 from backend.domains.shopping import schemas
 from backend.domains.shopping.models import ShoppingList, ShoppingListItem, ShoppingProduct
+from backend.domains.notifications.models import Interaction
 from backend.domains.users.models import User
 from .common import _now
 
@@ -69,6 +71,38 @@ def create_list(
     repo.add(db, db_list)
     repo.commit(db)
     repo.refresh(db, db_list)
+
+    # FEAT-014: Notifica a tutti i membri del gruppo spesa (escluso chi ha creato la lista)
+    if db_list.group_id:
+        try:
+            group = repo.get_group_accessible(db, db_list.group_id, current_user.id)
+            if group:
+                members = repo.list_members(db, db_list.group_id)
+                recipient_ids: set[int] = set()
+                if group.owner_id != current_user.id:
+                    recipient_ids.add(group.owner_id)
+                for m in members:
+                    if m.user_id != current_user.id:
+                        recipient_ids.add(m.user_id)
+
+                now_utc = datetime.now(timezone.utc)
+                for r_id in recipient_ids:
+                    notification = Interaction(
+                        interaction_type="SHOPPING_GROUP_NEW_LIST",
+                        author_id=current_user.id,
+                        recipient_id=r_id,
+                        reference_id=db_list.id,
+                        content=f"{current_user.username} ha creato una nuova lista '{db_list.name}' nel gruppo '{group.name}'.",
+                        created_at=now_utc,
+                        read_at=None,
+                    )
+                    db.add(notification)
+                if recipient_ids:
+                    db.commit()
+        except Exception as notif_err:
+            import logging
+            logging.getLogger(__name__).warning("Errore invio notifica SHOPPING_GROUP_NEW_LIST: %s", notif_err)
+
     return db_list
 
 

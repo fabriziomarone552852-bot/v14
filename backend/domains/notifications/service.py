@@ -47,6 +47,12 @@ def _hydrate_interaction(db: Session, int_obj: Interaction) -> schemas.Interacti
                     int_dict["series_tmdb_id"] = series.tmdb_id
                     int_dict["episode_id"] = log.episode_id
                     
+    elif int_obj.interaction_type == "SHOPPING_GROUP_NEW_LIST":
+        from backend.domains.shopping.models.lists import ShoppingList
+        s_list = db.query(ShoppingList).filter(ShoppingList.id == int_obj.reference_id).first()
+        if s_list:
+            int_dict["context_title"] = s_list.name
+
     return schemas.InteractionResponse(**int_dict)
 
 def list_interactions(

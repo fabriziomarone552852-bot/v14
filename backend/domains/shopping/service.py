@@ -637,6 +637,7 @@ def create_list(db: Session, current_user: User, list_in: ShoppingListCreate) ->
         name=list_in.name,
         description=list_in.description,
         is_completed=bool(list_in.is_completed),
+        pin_status=list_in.pin_status,
         created_at=now,
         updated_at=now,
     )
@@ -644,6 +645,38 @@ def create_list(db: Session, current_user: User, list_in: ShoppingListCreate) ->
     repo.add(db, db_list)
     repo.commit(db)
     repo.refresh(db, db_list)
+
+    # FEAT-014: Notifica a tutti i membri del gruppo spesa (escluso chi ha creato la lista)
+    if db_list.group_id:
+        try:
+            group = repo.get_group_accessible(db, db_list.group_id, current_user.id)
+            if group:
+                members = repo.list_members(db, db_list.group_id)
+                recipient_ids: set[int] = set()
+                if group.owner_id != current_user.id:
+                    recipient_ids.add(group.owner_id)
+                for m in members:
+                    if m.user_id != current_user.id:
+                        recipient_ids.add(m.user_id)
+
+                now_utc = datetime.now(timezone.utc)
+                for r_id in recipient_ids:
+                    notification = Interaction(
+                        interaction_type="SHOPPING_GROUP_NEW_LIST",
+                        author_id=current_user.id,
+                        recipient_id=r_id,
+                        reference_id=db_list.id,
+                        content=f"{current_user.username} ha creato una nuova lista '{db_list.name}' nel gruppo '{group.name}'.",
+                        created_at=now_utc,
+                        read_at=None,
+                    )
+                    db.add(notification)
+                if recipient_ids:
+                    db.commit()
+        except Exception as notif_err:
+            import logging
+            logging.getLogger(__name__).warning("Errore invio notifica SHOPPING_GROUP_NEW_LIST: %s", notif_err)
+
     return db_list
 
 

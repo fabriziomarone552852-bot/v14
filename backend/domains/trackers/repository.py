@@ -162,22 +162,23 @@ def mark_episode_unwatched(db: Session, user_id: int, episode_id: int) -> None:
         db.commit()
 
 
-def get_upcoming_episodes(db: Session, user_id: int, start_date=None, end_date=None) -> List[Tuple[TMDBEpisode, TMDBSeries, bool, Optional[str]]]:
-    """Restituisce i prossimi episodi in uscita per le serie seguite dall'utente con lo stato is_watched e la locandina personalizzata."""
+def get_upcoming_episodes(
+    db: Session,
+    user_id: int,
+    start_date=None,
+    end_date=None,
+    before_date=None,
+    after_date=None,
+    limit: Optional[int] = None
+) -> List[Tuple[TMDBEpisode, TMDBSeries, bool, Optional[str]]]:
+    """Restituisce gli episodi in uscita o recenti per le serie seguite dall'utente con lo stato is_watched e la locandina personalizzata."""
     from datetime import date
     
     where_clauses = [
         UserSeriesTracking.user_id == user_id,
-        UserSeriesTracking.status.in_(["watching", "to_watch", "waiting", "completed", "watched"])
+        UserSeriesTracking.status.in_(["watching", "to_watch", "waiting", "completed", "watched"]),
+        TMDBEpisode.air_date.isnot(None),
     ]
-    
-    if start_date:
-        where_clauses.append(TMDBEpisode.air_date >= start_date)
-    else:
-        where_clauses.append(TMDBEpisode.air_date >= date.today())
-        
-    if end_date:
-        where_clauses.append(TMDBEpisode.air_date <= end_date)
 
     watched_subq = (
         select(UserEpisodeLog.id)
@@ -188,10 +189,63 @@ def get_upcoming_episodes(db: Session, user_id: int, start_date=None, end_date=N
         .exists()
     )
 
-    stmt = (
+    base_select = (
         select(TMDBEpisode, TMDBSeries, watched_subq.label("is_watched"), UserSeriesTracking.custom_poster_path)
         .join(TMDBSeries, TMDBSeries.tmdb_id == TMDBEpisode.series_tmdb_id)
         .join(UserSeriesTracking, UserSeriesTracking.series_tmdb_id == TMDBSeries.tmdb_id)
+    )
+
+    # 1. Navigazione indietro nel passato (episodi usciti prima di before_date)
+    if before_date:
+        where_clauses.append(TMDBEpisode.air_date < before_date)
+        if start_date:
+            where_clauses.append(TMDBEpisode.air_date >= start_date)
+        stmt = (
+            base_select
+            .where(*where_clauses)
+            .order_by(
+                TMDBEpisode.air_date.desc(),
+                TMDBSeries.title.asc(),
+                TMDBEpisode.season_number.desc(),
+                TMDBEpisode.episode_number.desc()
+            )
+        )
+        if limit:
+            stmt = stmt.limit(limit)
+        results = list(db.execute(stmt).all())
+        results.reverse()
+        return results
+
+    # 2. Navigazione in avanti nel futuro (episodi usciti dopo after_date)
+    if after_date:
+        where_clauses.append(TMDBEpisode.air_date > after_date)
+        if end_date:
+            where_clauses.append(TMDBEpisode.air_date <= end_date)
+        stmt = (
+            base_select
+            .where(*where_clauses)
+            .order_by(
+                TMDBEpisode.air_date.asc(),
+                TMDBSeries.title.asc(),
+                TMDBEpisode.season_number.asc(),
+                TMDBEpisode.episode_number.asc()
+            )
+        )
+        if limit:
+            stmt = stmt.limit(limit)
+        return list(db.execute(stmt).all())
+
+    # 3. Intervallo standard di date (start_date -> end_date)
+    if start_date:
+        where_clauses.append(TMDBEpisode.air_date >= start_date)
+    else:
+        where_clauses.append(TMDBEpisode.air_date >= date.today())
+        
+    if end_date:
+        where_clauses.append(TMDBEpisode.air_date <= end_date)
+
+    stmt = (
+        base_select
         .where(*where_clauses)
         .order_by(
             TMDBEpisode.air_date.asc(),
@@ -201,7 +255,9 @@ def get_upcoming_episodes(db: Session, user_id: int, start_date=None, end_date=N
         )
     )
     
-    if not start_date and not end_date:
+    if limit:
+        stmt = stmt.limit(limit)
+    elif not start_date and not end_date:
         stmt = stmt.limit(10)
         
     return list(db.execute(stmt).all())

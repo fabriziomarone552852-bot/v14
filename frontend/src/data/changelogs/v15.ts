@@ -3,11 +3,36 @@ import type { ChangelogItem } from './types';
 
 export const CHANGELOG_V15: ChangelogItem[] = [
   {
+    id: 'v15.1.4',
+    version: '15.1.4',
+    date: 'Ottobre 2026',
+    title: 'Errori Login (AUTH-001), Notifiche Liste (FEAT-014) & Timeline Serie TV',
+    isLatest: true,
+    published: false,
+    highlights: [
+      'Notifiche Nuove Liste nei Gruppi Condivisi (FEAT-014): Quando un membro crea una nuova lista in un gruppo spesa condiviso, viene inviata in automatico una notifica a tutti gli altri membri del gruppo con link diretto.',
+      'Finestra Avviso Errore con Countdown (AUTH-001): Risolto il problema della scomparsa istantanea del messaggio di errore al login. L\'avviso rimane ora visibile per almeno 5 secondi completi, con barra di avanzamento temporale e pulsante di chiusura rapida.',
+      'Timeline Uscite Serie TV Continua: Lo scorrimento verso il passato e il futuro carica in automatico gli episodi precedenti e successivi colmando pause temporali pluriennali tra stagioni.',
+    ],
+    features: [
+      'Navigazione Diretta Lista Spesa: Al tap sulla notifica di una nuova lista creata nel gruppo, l\'inbox reindirizza direttamente alla pagina Shopping aprendo e impostando come attiva la lista interessata (desktop e mobile).',
+    ],
+    improvements: [
+      'Protezione Doppi Invii & Icone Password: Bloccati i click o pressioni rapide multiple del tasto Invio che cancellavano lo stato di errore e modernizzate le icone di visibilità password.',
+      'Recap Mensile Routine Mobile: Ottimizzati i quadratini a riga singola mostrando il semplice numero del giorno sui parziali in giallo; al tocco della card la routine si espande su due righe ingrandite permettendo di leggere comodamente la frazione "Y/X".',
+    ],
+    fixes: [
+      'Risolto il bug per cui le notifiche e i messaggi di errore nella schermata di login scomparivano subito dopo essere comparsi.',
+      'Anteprima Catalogo Serie TV Mobile: Risolto il filtro nel banner "Le tue serie" sulla dashboard mobile che escludeva le serie non ancora iniziate.',
+      'Timeline Uscite Serie TV Mobile: Risolto il blocco dello scorrimento verso il passato in presenza di intervalli vuoti superiori a due mesi tra le stagioni.',
+    ],
+  },
+  {
     id: 'v15.1.3',
     version: '15.1.3',
     date: 'Ottobre 2026',
     title: 'Aggiornamenti APK, Flessibilità Orario & Recap Mensile Abitudini',
-    isLatest: true,
+    isLatest: false,
     published: true,
     highlights: [
       'Controllo Aggiornamenti APK (CORS Nginx): Abilitati gli header CORS nativi su /version.json nel proxy Nginx per consentire al WebView di Android di leggere la versione online senza blocchi di sicurezza del browser.',

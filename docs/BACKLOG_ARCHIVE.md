@@ -8,6 +8,8 @@ Questo file contiene lo storico completo e strutturato di tutte le funzionalità
 
 | ID | Attività / Funzionalità | Ambito | Stato Backend | Stato Frontend | Data Completamento |
 | :--- | :--- | :---: | :---: | :---: | :---: |
+| **FEAT-014** | Notifiche per Nuove Liste nei Gruppi Condivisi | `notifications` / social | 🟢 Completato | 🟢 Completato | Ottobre 2026 |
+| **AUTH-001** | Sistemazione Finestre e Messaggi di Errore al Login (Countdown 5s, Alert & Protezione Invii) | `auth` / UI | 🟢 Supportato | 🟢 Completato | Ottobre 2026 |
 | **HABITS-001** | Recap Mensile: Ripetizioni Multiple (Frazione `Y/X`), Cadenze & Rimozione "gg" | `habits` / UI | 🟢 Completato | 🟢 Completato | Ottobre 2026 |
 | **GENERAL-001** | Fix Selezione Orario e Minuti Eventi/Countdown & Unificazione Categorie a "Comune" | `calendar` / UI | 🟢 Completato | 🟢 Completato | Ottobre 2026 |
 | **TRACKERS-018** | Controllo Esecuzione Ricerca TMDB Mobile (Bozza Locale `draftFilters`, Avvio Esplicito su Invio o Tasto) | `trackers` / mobile | 🟢 Supportato | 🟢 Completato | Ottobre 2026 |
@@ -619,5 +621,37 @@ Configurazione delle variabili d'ambiente per le chiavi API TMDB sul server NAS 
 1. **Progresso Frazionario Y/X**: Per routine e abitudini con ripetizioni multiple giornaliere (`target > 1`), i completamenti parziali ($0 < Y < X$) vengono mostrati nei quadratini in colore ambra con la frazione visibile (es. `2/3`), mentre i completati ($Y \ge X$) risaltano in verde.
 2. **Cadenze Non Giornaliere & Resa Visiva**: Visualizzazione di tutti i giorni del mese, distinguendo con grigio chiaro/tenue i giorni non programmati e con grigio più marcato i giorni attivi ma non completati.
 3. **Pulizia Badge**: Rimozione del suffisso `"gg"` dai badge di conteggio completati/attivi (es. `13/18`).
+
+---
+
+### [AUTH-001] Sistemazione Finestre e Messaggi di Errore al Login (🟢 Completato)
+
+#### 📋 Descrizione & Risoluzione
+1. **Finestra di Avviso con Countdown di 5 Secondi Garantiti (`AuthErrorAlert.tsx`)**:
+   - Risolto il problema per cui i messaggi di errore al login (credenziali errate, password sbagliata, errore di rete) scomparivano prematuramente o istantaneamente.
+   - L'avviso rimane visibile a schermo per almeno **5 secondi completi** con una sottile barra di avanzamento temporale animata (countdown da 100% a 0%).
+   - **Pausa al Mouseover**: passando sopra con il puntatore del mouse, il timer si interrompe per consentire la lettura con calma e riprende all'uscita.
+   - **Pulsante di Chiusura Rapida ("X")**: possibilità di chiudere subito la finestra senza attendere la scadenza dei 5 secondi.
+2. **Messaggi Parlanti & Riconoscimento Errori (`authErrorUtils.ts`)**:
+   - Traduzione e mappatura in linguaggio amichevole per tutti gli stati HTTP: credenziali errate (401), account bloccato o disattivato (400), errori di connessione al server / Tailscale offline e validazione dati (422).
+3. **Protezione Invii Doppi (Double-Submit Guard)**:
+   - Blocco di pressioni multiple consecutive di Invio o doppi tap da smartphone per prevenire azzeramenti prematuri dello stato di errore.
+   - Sostituzione degli SVG inline con le icone standardizzate `Eye` ed `EyeOff` di Lucide.
+
+---
+
+### [FEAT-014] Notifiche per Nuove Liste nei Gruppi Condivisi (🟢 Completato)
+
+#### 📋 Descrizione & Risoluzione
+1. **Generazione Automatica Notifiche nel Backend (`shopping/service.py`)**:
+   - Quando un utente crea una nuova lista della spesa all'interno di un gruppo condiviso (`group_id` valorizzato), il backend genera in automatico una notifica permanente di tipo `SHOPPING_GROUP_NEW_LIST` per ciascuno dei membri attivi del gruppo e per l'owner, escludendo l'autore che l'ha creata.
+   - Testo notifica: `"{username} ha creato una nuova lista '{nome_lista}' nel gruppo '{nome_gruppo}'."` con salvataggio del riferimento `reference_id = list.id`.
+2. **Idratazione & Dati di Contesto (`notifications/service.py`)**:
+   - Popolamento del titolo contestuale `context_title` con il nome della lista creata.
+3. **UI Desktop & Mobile (`NotificationsTab.tsx`)**:
+   - Visualizzazione nell'Inbox con badge dedicato in maiuscolo: `NUOVA LISTA SPESA`.
+4. **Navigazione Diretta al Tap (`useNotificationsInbox.ts`)**:
+   - Al tocco o click della notifica, la notifica viene marcata come letta e l'applicazione naviga direttamente a `/shopping?listId=<ID>`, aprendo e selezionando all'istante la nuova lista creata nel gruppo.
+
 
 

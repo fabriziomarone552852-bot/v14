@@ -90,6 +90,8 @@ export const useNotificationsInbox = (options?: UseNotificationsInboxOptions) =>
     let message = 'Caricamento in corso...';
     if (interaction.interaction_type === 'SHOPPING_GROUP_INVITE') {
       message = 'Apertura gruppo spesa...';
+    } else if (interaction.interaction_type === 'SHOPPING_GROUP_NEW_LIST') {
+      message = 'Apertura lista della spesa...';
     } else if (
       interaction.interaction_type.includes('REVIEW') ||
       interaction.interaction_type.includes('COMMENT') ||
@@ -103,6 +105,8 @@ export const useNotificationsInbox = (options?: UseNotificationsInboxOptions) =>
 
     if (interaction.interaction_type === 'SHOPPING_GROUP_INVITE') {
       navigate(`/shopping?openGroup=${interaction.reference_id}`);
+    } else if (interaction.interaction_type === 'SHOPPING_GROUP_NEW_LIST') {
+      navigate(`/shopping?listId=${interaction.reference_id}`);
     } else if (
       interaction.interaction_type === 'SERIES_REVIEW_COMMENT' ||
       interaction.interaction_type === 'SERIES_REVIEW_COMMENT_THREAD' ||

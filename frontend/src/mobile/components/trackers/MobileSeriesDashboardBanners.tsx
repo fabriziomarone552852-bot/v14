@@ -12,64 +12,24 @@ export interface MobileSeriesDashboardBannersProps {
   onOpenPersonalLists: (list?: MediaList) => void;
 }
 
-const getLastWatchedTimestamp = (s: TVSeries): number => {
-  let maxTime = 0;
-  if (s.episodes && Array.isArray(s.episodes)) {
-    for (const ep of s.episodes) {
-      if (ep.logs && Array.isArray(ep.logs)) {
-        for (const log of ep.logs) {
-          if (log.watched_at) {
-            const t = new Date(log.watched_at).getTime();
-            if (t > maxTime) maxTime = t;
-          }
-        }
-      }
-    }
-  }
-  if (s.logs && Array.isArray(s.logs)) {
-    for (const l of s.logs) {
-      if (l.watched_at) {
-        const t = new Date(l.watched_at).getTime();
-        if (t > maxTime) maxTime = t;
-      }
-    }
-  }
-  if (maxTime === 0 && (s.status === 'watching' || s.status === 'watched' || s.status === 'completed')) {
-    if (s.updated_at) {
-      maxTime = new Date(s.updated_at).getTime();
-    }
-  }
-  if (maxTime === 0) {
-    const rawAdded = s.created_at;
-    if (rawAdded) {
-      maxTime = new Date(rawAdded).getTime();
-    }
-  }
-  return maxTime;
-};
-
 export const MobileSeriesDashboardBanners: React.FC<MobileSeriesDashboardBannersProps> = ({
   series,
   myLists,
   onOpenCatalog,
   onOpenPersonalLists,
 }) => {
-  // 1. Ultime serie guardate in ordine cronologico decrescente
-  const recentlyWatchedSeries = useMemo(() => {
+  // 1. Ultime serie aggiunte nel catalogo in ordine cronologico decrescente (a prescindere dallo status)
+  const latestAddedSeries = useMemo(() => {
     if (!series || series.length === 0) return [];
-    const watched = series.filter(
-      (s) =>
-        s.status === 'watching' ||
-        s.status === 'watched' ||
-        s.status === 'completed' ||
-        (s.episodes && s.episodes.some((ep) => ep.is_watched || (ep.logs && ep.logs.length > 0)))
-    );
-
-    const source = watched.length > 0 ? watched : series;
-    return [...source].sort((a, b) => getLastWatchedTimestamp(b) - getLastWatchedTimestamp(a));
+    return [...series].sort((a, b) => {
+      const timeA = a.created_at ? new Date(a.created_at).getTime() : 0;
+      const timeB = b.created_at ? new Date(b.created_at).getTime() : 0;
+      if (timeB !== timeA) return timeB - timeA;
+      return (b.id || 0) - (a.id || 0);
+    });
   }, [series]);
 
-  const displayWatched = recentlyWatchedSeries.slice(0, 4);
+  const displaySeries = latestAddedSeries.slice(0, 4);
 
   // 2. Ultime liste personali
   const displayLists = (myLists || []).slice(0, 4);
@@ -88,10 +48,10 @@ export const MobileSeriesDashboardBanners: React.FC<MobileSeriesDashboardBanners
           </span>
         </div>
 
-        {/* Sotto: Locandine ultime serie guardate in ordine cronologico */}
+        {/* Sotto: Locandine ultime serie aggiunte al catalogo in ordine cronologico */}
         <div className="grid grid-cols-4 gap-2 w-full pt-1 flex-1 min-h-0 items-center">
-          {displayWatched.length > 0 ? (
-            displayWatched.map((s) => {
+          {displaySeries.length > 0 ? (
+            displaySeries.map((s) => {
               const rawPoster = s.custom_poster_path
                 ? resolveImageUrl(s.custom_poster_path)
                 : s.poster_path || s.tmdb_series?.poster_path;

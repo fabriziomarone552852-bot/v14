@@ -908,9 +908,25 @@ def delete_quote(db: Session, current_user: User, quote_id: int) -> None:
     db.delete(quote)
     db.commit()
 
-def get_upcoming_episodes(db: Session, current_user: User, start_date=None, end_date=None) -> List[UpcomingEpisodeResponse]:
+def get_upcoming_episodes(
+    db: Session,
+    current_user: User,
+    start_date=None,
+    end_date=None,
+    before_date=None,
+    after_date=None,
+    limit: Optional[int] = None
+) -> List[UpcomingEpisodeResponse]:
     from backend.domains.trackers.schemas import UpcomingEpisodeResponse
-    results = repository.get_upcoming_episodes(db, current_user.id, start_date, end_date)
+    results = repository.get_upcoming_episodes(
+        db,
+        current_user.id,
+        start_date=start_date,
+        end_date=end_date,
+        before_date=before_date,
+        after_date=after_date,
+        limit=limit
+    )
     return [
         UpcomingEpisodeResponse(
             episode_id=ep.id,

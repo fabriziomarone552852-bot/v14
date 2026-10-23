@@ -92,6 +92,8 @@ export const NotificationsTab: React.FC<Props> = ({
                             <span className="text-[10px] uppercase font-bold text-gray-400">
                               {notif.interaction_type === 'SHOPPING_GROUP_INVITE' 
                                 ? 'Invito Gruppo Spesa' 
+                                : notif.interaction_type === 'SHOPPING_GROUP_NEW_LIST'
+                                ? 'Nuova Lista Spesa'
                                 : notif.interaction_type.replace(/_/g, ' ')}
                             </span>
                             <span className="text-[10px] text-gray-400">

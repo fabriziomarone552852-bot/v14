@@ -122,16 +122,47 @@ export const useMyQuotes = () => {
   });
 };
 
-export const useUpcomingEpisodes = (startDate?: string, endDate?: string) => {
+export interface UpcomingEpisodesParams {
+  startDate?: string;
+  endDate?: string;
+  beforeDate?: string;
+  afterDate?: string;
+  limit?: number;
+}
+
+export const fetchUpcomingEpisodes = async (
+  params: UpcomingEpisodesParams = {}
+): Promise<UpcomingEpisode[]> => {
+  const queryParams: Record<string, string | number> = {};
+  if (params.startDate) queryParams.start_date = params.startDate;
+  if (params.endDate) queryParams.end_date = params.endDate;
+  if (params.beforeDate) queryParams.before_date = params.beforeDate;
+  if (params.afterDate) queryParams.after_date = params.afterDate;
+  if (params.limit) queryParams.limit = params.limit;
+  const data = await api.get<UpcomingEpisode[]>('/trackers/series/upcoming', { params: queryParams });
+  return data || [];
+};
+
+export const useUpcomingEpisodes = (
+  startDateOrParams?: string | UpcomingEpisodesParams,
+  endDate?: string
+) => {
+  const paramsObj: UpcomingEpisodesParams =
+    typeof startDateOrParams === 'object' && startDateOrParams !== null
+      ? startDateOrParams
+      : { startDate: startDateOrParams, endDate };
+
   return useQuery<UpcomingEpisode[]>({
-    queryKey: ['trackers', 'upcoming', startDate, endDate],
-    queryFn: async () => {
-      const params: Record<string, string> = {};
-      if (startDate) params.start_date = startDate;
-      if (endDate) params.end_date = endDate;
-      const data = await api.get<UpcomingEpisode[]>('/trackers/series/upcoming', { params });
-      return data || [];
-    },
+    queryKey: [
+      'trackers',
+      'upcoming',
+      paramsObj.startDate,
+      paramsObj.endDate,
+      paramsObj.beforeDate,
+      paramsObj.afterDate,
+      paramsObj.limit,
+    ],
+    queryFn: () => fetchUpcomingEpisodes(paramsObj),
     placeholderData: keepPreviousData,
   });
 };

@@ -6,7 +6,7 @@ import axios from 'axios';
 import { apiUrl, apiClient } from '@/api/client';
 import type { TokenResponse, UserResponse } from '@/types/auth';
 import { logger } from '@/utils/logger';
-import { extractErrorMessage } from '@/utils/errorUtils';
+import { formatAuthErrorMessage } from '@/utils/authErrorUtils';
 
 interface AuthContextValue {
   token: string | null;
@@ -151,7 +151,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       persistUser(userData);
 
     } catch (e: unknown) {
-      const msg = extractErrorMessage(e, 'Errore di login');
+      const msg = formatAuthErrorMessage(e, 'Errore durante l\'accesso al server');
 
       setError(msg);
       persistTokens(null, null);
@@ -178,7 +178,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       await login(normalizedUsername, password);
     } catch (e: unknown) {
-      const msg = extractErrorMessage(e, 'Errore di registrazione');
+      const msg = formatAuthErrorMessage(e, 'Errore durante la registrazione');
 
       setError(msg);
       throw e;
@@ -205,7 +205,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       persistUser(userRes.data);
 
     } catch (e: unknown) {
-      const msg = extractErrorMessage(e, 'Errore nel cambio password');
+      const msg = formatAuthErrorMessage(e, 'Errore nel cambio password');
 
       setError(msg);
       throw e;

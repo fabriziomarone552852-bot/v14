@@ -9,8 +9,8 @@ Questo documento traccia in modo strutturato, prioritizzato e costantemente aggi
 ## 📊 Matrice di Stato Rapida (Attività Aperte & Future)
 
 | ID | Attività / Funzionalità | Ambito | Stato Backend | Stato Frontend | Priorità |
-| :--- | :--- | :---: | :---: | :---: | :---: |
 | **FEAT-004** | Sezione Media: Estensione a Libri e Film & Funzionalità Evolutive | `media` / books & movies | 🟡 Parziale | 🟡 Parziale | 🔴 **Massima (Passo Fondamentale)** |
+| **TRACKERS-019** | Giudizio & Voto alle singole Stagioni delle Serie TV (Valutazione per Stagione) | `media` / trackers | 🔴 Da Strutturare | 🔴 Da Implementare | 🟡 **Media** |
 | **FEAT-015** | Gestione Saghe di Film (TMDB Collections) | `media` / movies | 🔴 Da Implementare | 🔴 Da Implementare | 🟡 **Media** |
 | **FEAT-001** | Liste Spesa: Preferite & Pinnate (`pin_status` desktop & mobile) | `shopping` / lists | 🟢 Completato | 🔴 Da Implementare | 🟡 **Media-Alta** |
 | **SHOPPING-004** | Ricerca & Consultazione Prezzi nel Modale Dettaglio Prodotto (per Brand) | `shopping` / UI | 🔴 Da Iniziare | 🔴 Da Iniziare | 🟡 **Media-Alta** |
@@ -20,10 +20,8 @@ Questo documento traccia in modo strutturato, prioritizzato e costantemente aggi
 | **FEAT-003** | Dashboard Analytics & Storico Prezzi Spesa | `analytics` / shopping | 🟢 Completato | 🔴 Da Implementare | 🟢 **Bassa** |
 | **CAL-002** | Filtro Categorie Eventi nel Calendario Homepage (Menu Ingranaggio ⚙️) | `calendar` / UI | 🔴 Da Iniziare | 🔴 Da Iniziare | 🟡 **Media-Alta** |
 | **FEAT-011** | Sezione Lavoro & Gestione Turni di Lavoro (Punto da definire con Daniela) | `work` / shifts | 🔴 Da Definire | 🔴 Da Definire | 🟡 **Media-Alta** |
-| **AUTH-001** | Sistemazione Finestre e Messaggi di Errore al Login | `auth` / UI | 🟢 Supportato | 🔴 Da Implementare | 🟡 **Media** |
 | **FEAT-005** | Sezione Liste Tematiche & Personalizzate (Posti, Siti, Wishlist, Giochi) | `custom_lists` | 🟡 Parziale | 🟡 Parziale | 🔴 **Massima (Passo Fondamentale)** |
 | **FEAT-013** | Archivio Notifiche / Sezione Storico Notifiche Permanente | `notifications` / UI | 🟢 Completato | 🟡 Da Implementare | 🟡 **Media** |
-| **FEAT-014** | Notifiche per Nuove Liste nei Gruppi Condivisi | `notifications` / social | 🔴 Da Implementare | 🔴 Da Implementare | 🟡 **Media** |
 | **FEAT-009** | Restyling & Rifinitura Grafica Schermate SuperUser (Admin Panel) | `admin` / UI | 🟢 Supportato | 🔴 Da Implementare | 🟡 **Media-Alta** |
 | **FEAT-010** | Database & Sincronizzazione Centralizzata Quotes (Citazioni del Giorno) | `core` / quotes | 🔴 Da Implementare | 🔴 Da Implementare | 🟡 **Media** |
 | **AI-001** | Studio & Integrazione Intelligenza Artificiale (Voice, Breakdown, Briefing) | `ai` / assistant | 🔴 Da Analizzare | 🔴 Da Analizzare | 🟡 **Media-Alta (Ricerca)** |
@@ -60,6 +58,13 @@ Questo documento traccia in modo strutturato, prioritizzato e costantemente aggi
 - **Incrocio Liste Miste**: Trasferire il componente `SeriesMatchModal` in una futura Homepage Trackers unificata per supportare contenuti eterogenei.
 - **Voto Community**: Visualizzare il voto medio espresso dalla community dell'applicazione accanto o in alternativa al voto TMDB.
 - **Suggerimenti Homepage**: Sezione con raccomandazioni dinamiche basate sugli ultimi titoli completati o guardati di frequente.
+
+### [TRACKERS-019] Giudizio & Voto alle singole Stagioni delle Serie TV (Valutazione per Stagione)
+- **Descrizione**: Possibilità per l'utente di esprimere un voto (in scala stelle/decimi) e/o un giudizio testuale / recensione dedicato a ciascuna singola stagione completata o in corso d'opera.
+- **Obiettivo & Casi d'Uso**:
+  - Consentire una valutazione granulare di serie televisive con qualità eterogenea tra una stagione e l'altra (es. stagioni capolavoro vs stagioni successive sottotono).
+  - Visualizzare il voto/giudizio di ciascuna stagione nella scheda delle stagioni (`MobileSeriesSeasonsTab` e modale desktop), affiancandolo alle recensioni dei singoli episodi e alla valutazione complessiva della serie.
+- **Stato**: 🔴 Da Strutturare / Da Implementare *(Desktop & Mobile — Priorità: Media)*.
 
 ---
 
@@ -144,10 +149,6 @@ Questo documento traccia in modo strutturato, prioritizzato e costantemente aggi
 - **UI/UX**: Lista a scorrimento, filtri per tipologia (Social, Spesa, Sistema) e raggruppamento per data (Oggi, Ieri, Questa Settimana, Mese).
 - **Stato**: Backend 🟢 Supportato | Frontend 🟡 Da Implementare *(Priorità: Media)*.
 
-### [FEAT-014] Notifiche per Nuove Liste nei Gruppi Condivisi
-- **Descrizione**: Ricevere una notifica quando un membro di un gruppo di cui si fa parte crea una nuova lista (es. una nuova lista all'interno di un gruppo Shopping o Media).
-- **Stato**: 🔴 Da Implementare *(Priorità: Media)*.
-
 ---
 
 ## ⚙️ 6. Amministrazione, Citazioni & Sistema
@@ -163,10 +164,6 @@ Questo documento traccia in modo strutturato, prioritizzato e costantemente aggi
 ### [FEAT-010] Database & Sincronizzazione Centralizzata Citazioni Giornaliere (Quotes)
 - **Descrizione**: Centralizzare le citazioni giornaliere (Quotes) tramite tabella database dedicata nel backend, in modo che tutti gli utenti e dispositivi visualizzino la stessa identica citazione del giorno in modo sincronizzato e consistente.
 - **Stato**: 🔴 Da Implementare *(Priorità: Media)*.
-
-### [AUTH-001] Sistemazione Finestre e Messaggi di Errore al Login
-- **Descrizione**: Revisione grafica e funzionale dei modali/alert di errore nella schermata di Login (gestione credenziali errate, utente bloccato, sessione scaduta, errori di connessione al server), garantendo chiarezza visiva e un feedback pulito e non invasivo all'utente.
-- **Stato**: Backend 🟢 Supportato | Frontend 🔴 Da Implementare *(Priorità: Media)*.
 
 ---
 

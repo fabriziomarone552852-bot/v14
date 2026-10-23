@@ -75,10 +75,14 @@ Quando l'utente scrive **"fine"** (o frasi equivalenti come *"abbiamo finito"*, 
    - **IMPORTANTE**: Spostare le descrizioni estese di tutti i task completati in `docs/BACKLOG_ARCHIVE.md`, mantenendo nel `BACKLOG.md` principale solo i progetti in corso o futuri per preservarne la leggibilità.
    - Inserire o aggiornare eventuali nuove funzionalità, idee o note emerse nella discussione nel `BACKLOG.md`.
 
-2. **📝 Aggiornamento Changelog & Versioning ([`frontend/src/data/changelogData.ts`](file:///c:/Users/Fabrizio/Desktop/app/smart/v14/frontend/src/data/changelogData.ts))**:
+2. **📝 Aggiornamento, Check & Sintesi del Changelog ([`frontend/src/data/changelogs/v<MAJOR>.ts`](file:///c:/Users/Fabrizio/Desktop/app/smart/v14/frontend/src/data/changelogs/v<MAJOR>.ts))**:
    - Se ci sono state modifiche al codice o alle funzionalità, applicare la regola di versioning (Sezione 1):
-     - Se `published: false`: integrare `highlights`, `features`, `improvements`, `fixes` nella voce bozza in cima. Effettuare un check del changelog per accorpare e riassumere i punti principali se la lista sta diventando troppo lunga o dispersiva.
-     - Se `published: true`: incrementare la versione in `package.json` e creare la nuova voce con `published: false`.
+     - Se `published: false`: integrare i nuovi elementi all'interno della voce bozza in cima.
+     - Se `published: true`: incrementare la versione in `package.json` e creare la nuova voce bozza con `published: false`.
+   - **🔍 Check di Sintesi e Accorpamento Obbligatorio (Anti-Prolissità)**:
+     - Subito dopo l'inserimento, l'assistente deve **rileggere l'intera voce bozza corrente**.
+     - Se il numero di punti in `highlights`, `improvements` o `fixes` sta crescendo eccessivamente o include micro-interventi correlati/ripetitivi, l'assistente deve **accorparli e riassumerli in punti chiari, compatti e significativi**.
+     - Eliminare dettagli tecnici ridondanti, unire modifiche affini (es. più ritocchi alla stessa schermata raggruppati in una sola voce) e mantenere il changelog pulito, leggibile e orientato al valore reale per l'utente, evitando categoricamente elenchi dispersivi o troppo prolissi.
 
 3. **🧪 Verifica Compilazione & Type-Check**:
    - Eseguire `npm run build` all'interno di `frontend/` per verificare che non vi siano errori di compilazione TypeScript o problemi di bundling.

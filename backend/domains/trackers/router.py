@@ -80,10 +80,21 @@ async def add_series(
 def get_upcoming(
     start_date: Optional[date] = None,
     end_date: Optional[date] = None,
+    before_date: Optional[date] = None,
+    after_date: Optional[date] = None,
+    limit: Optional[int] = None,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_app_user),
 ):
-    return service.get_upcoming_episodes(db, current_user, start_date, end_date)
+    return service.get_upcoming_episodes(
+        db,
+        current_user,
+        start_date=start_date,
+        end_date=end_date,
+        before_date=before_date,
+        after_date=after_date,
+        limit=limit
+    )
 
 
 @router.get("/series/stats", response_model=TVDashboardStats)

@@ -16,7 +16,8 @@ Fare sempre riferimento a:
 3. Gli script `build_all.ps1`, `build_apk.ps1` e `deploy_build_pc.ps1` finalizzano e pubblicano automaticamente la versione (`published: true`).
 4. **Trigger "fine"**: Quando l'utente scrive "fine", eseguire automaticamente il protocollo di chiusura:
    - Spostare i task completati in `docs/BACKLOG_ARCHIVE.md` e mantenere i futuri in `docs/BACKLOG.md`.
-   - Aggiornare il Changelog, riassumendo i punti principali se l'ultima versione (`published: false`) risulta troppo lunga.
+   - Aggiornare il Changelog con le novità della sessione.
+   - **Check & Riassunto Changelog**: eseguire subito un check della voce bozza corrente (`published: false`), accorpando e sintetizzando le voci correlate per evitare elenchi troppo lunghi, dispersivi o prolissi.
    - Eseguire `npm run build` e fornire il report finale.
 
 ### Regole di Sviluppo (Sintesi)

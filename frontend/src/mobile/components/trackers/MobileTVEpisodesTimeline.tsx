@@ -1,7 +1,7 @@
 // src/mobile/components/trackers/MobileTVEpisodesTimeline.tsx
 import React, { useRef, useEffect, useState, useMemo, useCallback } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { useUpcomingEpisodes } from '@/hooks/queries/useTrackersQueries';
+import { useUpcomingEpisodes, fetchUpcomingEpisodes } from '@/hooks/queries/useTrackersQueries';
 import { useTrackersMutations } from '@/hooks/mutations/useTrackersMutations';
 import type { UpcomingEpisode, TVSeries } from '@/types/trackers';
 import MobileTVEpisodeHorizontalCard from './MobileTVEpisodeHorizontalCard';
@@ -33,12 +33,8 @@ export const MobileTVEpisodesTimeline: React.FC<MobileTVEpisodesTimelineProps> =
   const hasReachedStartOfHistory = useRef<boolean>(false);
   const hasReachedEndOfFuture = useRef<boolean>(false);
   const topEpisodeIdRef = useRef<number | null>(null);
-  const prevEpisodeCountRef = useRef<number>(0);
 
-  // Finestra dinamica dei mesi: default da 2 mesi fa a 2 mesi avanti (es. da Agosto a Dicembre a Ottobre)
-  const [pastMonthsOffset, setPastMonthsOffset] = useState<number>(2);
-  const [futureMonthsOffset, setFutureMonthsOffset] = useState<number>(2);
-
+  const [episodes, setEpisodes] = useState<UpcomingEpisode[]>([]);
   const [isFetchingEarlier, setIsFetchingEarlier] = useState<boolean>(false);
   const [isFetchingLater, setIsFetchingLater] = useState<boolean>(false);
   const [showBackToToday, setShowBackToToday] = useState<boolean>(false);
@@ -54,7 +50,7 @@ export const MobileTVEpisodesTimeline: React.FC<MobileTVEpisodesTimelineProps> =
     };
   }, []);
 
-  // Spazio inferiore dinamico per consentire all'episodio di oggi/prossimo di raggiungere sempre la cima sotto l'header
+  // Spazio inferiore dinamico per consentire all'episodio di oggi/prossimo di raggiungere la cima sotto l'header
   const [bottomPadding, setBottomPadding] = useState<number>(() => {
     if (typeof window !== 'undefined') {
       return Math.max(350, window.innerHeight - 150);
@@ -91,16 +87,14 @@ export const MobileTVEpisodesTimeline: React.FC<MobileTVEpisodesTimelineProps> =
     return map;
   }, [series]);
 
-  // Calcolo intervallo date per la query API basato sugli offset dei mesi
+  // Finestra iniziale date: da 2 mesi fa a 3 mesi avanti rispetto a oggi
   const { startDateStr, endDateStr } = useMemo(() => {
     const now = new Date();
     const currentYear = now.getFullYear();
     const currentMonth = now.getMonth();
 
-    // Inizio: 1° giorno di (mese corrente - pastMonthsOffset)
-    const start = new Date(currentYear, currentMonth - pastMonthsOffset, 1);
-    // Fine: ultimo giorno di (mese corrente + futureMonthsOffset)
-    const end = new Date(currentYear, currentMonth + futureMonthsOffset + 1, 0);
+    const start = new Date(currentYear, currentMonth - 2, 1);
+    const end = new Date(currentYear, currentMonth + 4, 0);
 
     const formatISO = (d: Date) =>
       `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
@@ -109,21 +103,18 @@ export const MobileTVEpisodesTimeline: React.FC<MobileTVEpisodesTimelineProps> =
       startDateStr: formatISO(start),
       endDateStr: formatISO(end),
     };
-  }, [pastMonthsOffset, futureMonthsOffset]);
+  }, []);
 
   const {
-    data: upcomingData,
+    data: initialUpcomingData,
     isLoading,
-    isFetching,
     isError,
     refetch,
   } = useUpcomingEpisodes(startDateStr, endDateStr);
 
-  // Listone continuo di episodi ordinati cronologicamente; per la stessa data in ordine alfabetico
-  const allEpisodes = useMemo(() => {
-    if (!upcomingData || upcomingData.length === 0) return [];
-
-    return [...upcomingData].sort((a, b) => {
+  // Ordinamento cronologico continuo; per la stessa data ordine per titolo serie e numero episodio
+  const sortEpisodes = useCallback((list: UpcomingEpisode[]) => {
+    return [...list].sort((a, b) => {
       const dateA = (a.air_date || '').substring(0, 10);
       const dateB = (b.air_date || '').substring(0, 10);
       const dateCmp = dateA.localeCompare(dateB);
@@ -134,49 +125,150 @@ export const MobileTVEpisodesTimeline: React.FC<MobileTVEpisodesTimelineProps> =
       if (a.season_number !== b.season_number) return a.season_number - b.season_number;
       return a.episode_number - b.episode_number;
     });
-  }, [upcomingData]);
+  }, []);
+
+  // Inizializzazione della lista con i dati della finestra iniziale
+  useEffect(() => {
+    if (initialUpcomingData && episodes.length === 0) {
+      if (initialUpcomingData.length > 0) {
+        setEpisodes(sortEpisodes(initialUpcomingData));
+      } else {
+        // Fallback: se nella finestra iniziale di +/-2 mesi non ci sono episodi, cerca i 20 più recenti prima di oggi
+        fetchUpcomingEpisodes({ beforeDate: todayStr, limit: 20 }).then((past) => {
+          if (past && past.length > 0) {
+            setEpisodes(sortEpisodes(past));
+          }
+        });
+      }
+    }
+  }, [initialUpcomingData, episodes.length, sortEpisodes, todayStr]);
 
   // Identifica l'episodio su cui posizionare la vista all'apertura:
   // 1. Il primo episodio di oggi
   // 2. Se non c'è, il prossimo episodio in uscita (primo nel futuro)
   // 3. Se tutte le uscite sono passate, l'episodio più recente
   const todayAnchorId = useMemo(() => {
-    if (allEpisodes.length === 0) return null;
+    if (episodes.length === 0) return null;
 
     // 1. Episodio che esce oggi
-    const todayEp = allEpisodes.find((ep) => getCleanDate(ep.air_date) === todayStr);
+    const todayEp = episodes.find((ep) => getCleanDate(ep.air_date) === todayStr);
     if (todayEp) return todayEp.episode_id;
 
     // 2. Prossimo episodio futuro (primo nel futuro)
-    const nextEp = allEpisodes.find((ep) => getCleanDate(ep.air_date) > todayStr);
+    const nextEp = episodes.find((ep) => getCleanDate(ep.air_date) > todayStr);
     if (nextEp) return nextEp.episode_id;
 
     // 3. Fallback: episodio più recente del passato
-    return allEpisodes[allEpisodes.length - 1].episode_id;
-  }, [allEpisodes, todayStr, getCleanDate]);
+    return episodes[episodes.length - 1].episode_id;
+  }, [episodes, todayStr, getCleanDate]);
 
-  // Controllo automatico per garantire che la pagina sia riempita da episodi futuri
-  // Se ci sono pochi episodi futuri (meno di 7), estende la ricerca fino a 12 mesi
-  useEffect(() => {
-    if (isLoading || isFetching) return;
-    if (allEpisodes.length === 0) return;
-    if (hasReachedEndOfFuture.current) return;
-
-    const anchorIndex = allEpisodes.findIndex((ep) => ep.episode_id === todayAnchorId);
-    const futureCount = anchorIndex >= 0 ? allEpisodes.length - anchorIndex : 0;
-
-    // Se ci sono meno di 7 episodi futuri (non riempiono la vista), espandi fino a 12 mesi
-    if (futureCount < 7 && futureMonthsOffset < 12) {
-      prevEpisodeCountRef.current = allEpisodes.length;
-      isFetchingLaterRef.current = true;
-      setIsFetchingLater(true);
-      setFutureMonthsOffset((prev) => prev + 3);
+  // Caricamento episodi precedenti (indietro nel tempo) a prescindere dal gap temporale
+  const fetchEarlier = useCallback(async () => {
+    if (
+      isFetchingEarlierRef.current ||
+      hasReachedStartOfHistory.current ||
+      episodes.length === 0
+    ) {
+      return;
     }
-  }, [isLoading, isFetching, allEpisodes, todayAnchorId, futureMonthsOffset]);
+
+    const earliestEp = episodes[0];
+    if (!earliestEp || !earliestEp.air_date) {
+      hasReachedStartOfHistory.current = true;
+      return;
+    }
+
+    isFetchingEarlierRef.current = true;
+    setIsFetchingEarlier(true);
+    topEpisodeIdRef.current = earliestEp.episode_id;
+
+    const earliestDate = earliestEp.air_date.substring(0, 10);
+    try {
+      const earlier = await fetchUpcomingEpisodes({ beforeDate: earliestDate, limit: 30 });
+      if (!earlier || earlier.length === 0) {
+        hasReachedStartOfHistory.current = true;
+      } else {
+        const existingIds = new Set(episodes.map((e) => e.episode_id));
+        const uniqueEarlier = earlier.filter((e) => !existingIds.has(e.episode_id));
+        if (uniqueEarlier.length === 0) {
+          hasReachedStartOfHistory.current = true;
+        } else {
+          setEpisodes((prev) => sortEpisodes([...uniqueEarlier, ...prev]));
+          requestAnimationFrame(() => {
+            if (topEpisodeIdRef.current) {
+              const el = document.getElementById(`ep-${topEpisodeIdRef.current}`);
+              if (el && scrollContainerRef.current) {
+                el.scrollIntoView({ block: 'start' });
+              }
+            }
+          });
+        }
+      }
+    } catch {
+      // Ignora errore transitorio di rete
+    } finally {
+      isFetchingEarlierRef.current = false;
+      setIsFetchingEarlier(false);
+    }
+  }, [episodes, sortEpisodes]);
+
+  // Caricamento episodi futuri successivi a prescindere dal gap temporale
+  const fetchLater = useCallback(async () => {
+    if (
+      isFetchingLaterRef.current ||
+      hasReachedEndOfFuture.current ||
+      episodes.length === 0
+    ) {
+      return;
+    }
+
+    const latestEp = episodes[episodes.length - 1];
+    if (!latestEp || !latestEp.air_date) {
+      hasReachedEndOfFuture.current = true;
+      return;
+    }
+
+    isFetchingLaterRef.current = true;
+    setIsFetchingLater(true);
+
+    const latestDate = latestEp.air_date.substring(0, 10);
+    try {
+      const later = await fetchUpcomingEpisodes({ afterDate: latestDate, limit: 30 });
+      if (!later || later.length === 0) {
+        hasReachedEndOfFuture.current = true;
+      } else {
+        const existingIds = new Set(episodes.map((e) => e.episode_id));
+        const uniqueLater = later.filter((e) => !existingIds.has(e.episode_id));
+        if (uniqueLater.length === 0) {
+          hasReachedEndOfFuture.current = true;
+        } else {
+          setEpisodes((prev) => sortEpisodes([...prev, ...uniqueLater]));
+        }
+      }
+    } catch {
+      // Ignora errore transitorio di rete
+    } finally {
+      isFetchingLaterRef.current = false;
+      setIsFetchingLater(false);
+    }
+  }, [episodes, sortEpisodes]);
+
+  // Se ci sono meno di 7 episodi futuri rispetto all'ancora odierna, pre-carica automaticamente altri futuri
+  useEffect(() => {
+    if (isLoading || isFetchingEarlier || isFetchingLater) return;
+    if (episodes.length === 0 || hasReachedEndOfFuture.current) return;
+
+    const anchorIndex = episodes.findIndex((ep) => ep.episode_id === todayAnchorId);
+    const futureCount = anchorIndex >= 0 ? episodes.length - anchorIndex : 0;
+
+    if (futureCount < 7) {
+      fetchLater();
+    }
+  }, [isLoading, isFetchingEarlier, isFetchingLater, episodes, todayAnchorId, fetchLater]);
 
   // Posizionamento iniziale accurato su "Oggi" o sul "Prossimo Episodio"
   useEffect(() => {
-    if (!isLoading && allEpisodes.length > 0 && !hasScrolledToToday.current) {
+    if (!isLoading && episodes.length > 0 && !hasScrolledToToday.current) {
       const performAlignment = () => {
         if (userHasScrolledManually.current) return;
         const container = scrollContainerRef.current;
@@ -184,12 +276,10 @@ export const MobileTVEpisodesTimeline: React.FC<MobileTVEpisodesTimelineProps> =
         if (container && target) {
           const containerRect = container.getBoundingClientRect();
           const targetRect = target.getBoundingClientRect();
-          // Calcolo esatto dei pixel relativi rispetto all'area visibile del contenitore (-4px per pt-1)
           const scrollOffset = targetRect.top - containerRect.top + container.scrollTop - 4;
           container.scrollTop = Math.max(0, scrollOffset);
           hasScrolledToToday.current = true;
 
-          // Calcola il padding inferiore ottimale per evitare vuoto eccessivo ma garantire lo scroll
           const lastCard = container.querySelector('[data-episode-card]:last-of-type') as HTMLElement | null;
           if (lastCard) {
             const lastCardBottom = lastCard.offsetTop + lastCard.offsetHeight;
@@ -201,7 +291,6 @@ export const MobileTVEpisodesTimeline: React.FC<MobileTVEpisodesTimelineProps> =
         }
       };
 
-      // Sequenza di allineamento affidabile (immediato + frame successivo + timeout 80ms)
       performAlignment();
       const raf = requestAnimationFrame(performAlignment);
       const timer = setTimeout(performAlignment, 80);
@@ -212,35 +301,9 @@ export const MobileTVEpisodesTimeline: React.FC<MobileTVEpisodesTimelineProps> =
       };
     }
     return undefined;
-  }, [isLoading, allEpisodes]);
+  }, [isLoading, episodes]);
 
-  // Gestione dell'arrivo di nuovi dati: riposizionamento scroll o rilevamento fine storico/futuro
-  useEffect(() => {
-    if (!upcomingData) return;
-
-    if (isFetchingEarlierRef.current) {
-      if (upcomingData.length <= prevEpisodeCountRef.current) {
-        hasReachedStartOfHistory.current = true;
-      } else if (topEpisodeIdRef.current) {
-        const el = document.getElementById(`ep-${topEpisodeIdRef.current}`);
-        if (el && scrollContainerRef.current) {
-          el.scrollIntoView({ block: 'start' });
-        }
-      }
-      isFetchingEarlierRef.current = false;
-      setIsFetchingEarlier(false);
-    }
-
-    if (isFetchingLaterRef.current) {
-      if (upcomingData.length <= prevEpisodeCountRef.current) {
-        hasReachedEndOfFuture.current = true;
-      }
-      isFetchingLaterRef.current = false;
-      setIsFetchingLater(false);
-    }
-  }, [upcomingData]);
-
-  // Gestione dello scroll per infinite scroll e tasto "Torna ad oggi / prossimo"
+  // Gestione dello scroll continuo
   const handleScroll = () => {
     const container = scrollContainerRef.current;
     if (!container) return;
@@ -264,44 +327,21 @@ export const MobileTVEpisodesTimeline: React.FC<MobileTVEpisodesTimelineProps> =
       const targetRect = todayAnchorRef.current.getBoundingClientRect();
       const diff = targetRect.top - containerRect.top;
 
-      // Se la distanza dal bordo superiore supera i 40px, mostra il pulsante
       const isDistant = Math.abs(diff) > 40;
       setShowBackToToday(isDistant);
-      // diff > 40: l'ancora è in basso (utente scrollato verso l'alto/passato) -> freccia verso il basso
-      // diff < -40: l'ancora è in alto (utente scrollato verso il basso/futuro) -> freccia verso l'alto
       setIsTodayAnchorBelow(diff > 40);
     }
 
-    // Non attivare il caricamento dinamico se l'ancoraggio iniziale non è ancora completato
     if (!hasScrolledToToday.current) return;
 
-    // Scroll verso la cima: attiva SOLO quando l'utente raggiunge fisicamente il margine superiore (scrollTop <= 15)
-    if (
-      scrollTop <= 15 &&
-      !isFetchingEarlierRef.current &&
-      !hasReachedStartOfHistory.current &&
-      !isFetching
-    ) {
-      isFetchingEarlierRef.current = true;
-      setIsFetchingEarlier(true);
-      if (allEpisodes.length > 0) {
-        topEpisodeIdRef.current = allEpisodes[0].episode_id;
-      }
-      prevEpisodeCountRef.current = allEpisodes.length;
-      setPastMonthsOffset((prev) => prev + 2);
+    // Scroll verso la cima: attiva quando si raggiunge il margine superiore
+    if (scrollTop <= 20) {
+      fetchEarlier();
     }
 
-    // Scroll verso il fondo: attiva se si raggiunge l'ultima card
-    if (
-      scrollHeight - scrollTop - clientHeight <= (bottomPadding + 60) &&
-      !isFetchingLaterRef.current &&
-      !hasReachedEndOfFuture.current &&
-      !isFetching
-    ) {
-      isFetchingLaterRef.current = true;
-      setIsFetchingLater(true);
-      prevEpisodeCountRef.current = allEpisodes.length;
-      setFutureMonthsOffset((prev) => prev + 3);
+    // Scroll verso il fondo: attiva quando si raggiunge l'ultima card
+    if (scrollHeight - scrollTop - clientHeight <= (bottomPadding + 60)) {
+      fetchLater();
     }
   };
 
@@ -321,7 +361,15 @@ export const MobileTVEpisodesTimeline: React.FC<MobileTVEpisodesTimelineProps> =
 
   const handleToggleWatch = useCallback(
     (episode: UpcomingEpisode) => {
-      // Aggiornamento ottimistico della cache per un feedback visivo istantaneo al tap
+      // Aggiornamento ottimistico locale immediato (0ms)
+      setEpisodes((prev) =>
+        prev.map((ep) =>
+          ep.episode_id === episode.episode_id
+            ? { ...ep, is_watched: !ep.is_watched }
+            : ep
+        )
+      );
+
       queryClient.setQueriesData<UpcomingEpisode[]>(
         { queryKey: ['trackers', 'upcoming'] },
         (old) => {
@@ -341,6 +389,13 @@ export const MobileTVEpisodesTimeline: React.FC<MobileTVEpisodesTimelineProps> =
         },
         {
           onError: () => {
+            setEpisodes((prev) =>
+              prev.map((ep) =>
+                ep.episode_id === episode.episode_id
+                  ? { ...ep, is_watched: episode.is_watched }
+                  : ep
+              )
+            );
             queryClient.invalidateQueries({ queryKey: ['trackers', 'upcoming'] });
           },
         }
@@ -349,7 +404,7 @@ export const MobileTVEpisodesTimeline: React.FC<MobileTVEpisodesTimelineProps> =
     [queryClient, toggleEpisodeWatched]
   );
 
-  if (isError && allEpisodes.length === 0) {
+  if (isError && episodes.length === 0) {
     return (
       <div className="h-full flex flex-col items-center justify-center p-4">
         <EmptyState
@@ -358,7 +413,12 @@ export const MobileTVEpisodesTimeline: React.FC<MobileTVEpisodesTimelineProps> =
         />
         <button
           type="button"
-          onClick={() => refetch()}
+          onClick={() => {
+            setEpisodes([]);
+            hasReachedStartOfHistory.current = false;
+            hasReachedEndOfFuture.current = false;
+            refetch();
+          }}
           className="mt-3 px-4 py-2 bg-blue-600 text-white rounded-xl text-xs font-bold shadow-xs active:scale-95 transition-all cursor-pointer"
         >
           Riprova
@@ -367,7 +427,7 @@ export const MobileTVEpisodesTimeline: React.FC<MobileTVEpisodesTimelineProps> =
     );
   }
 
-  if (!isLoading && allEpisodes.length === 0) {
+  if (!isLoading && episodes.length === 0) {
     return (
       <div className="h-full flex flex-col items-center justify-center p-4">
         <EmptyState
@@ -389,13 +449,20 @@ export const MobileTVEpisodesTimeline: React.FC<MobileTVEpisodesTimelineProps> =
           isScrolling ? 'is-scrolling' : ''
         }`}
       >
+        {/* AVVISO INIZIO STORICO QUANDO NON CI SONO PIÙ PUNTATE PASSATE */}
+        {hasReachedStartOfHistory.current && episodes.length > 0 && (
+          <div className="py-2.5 px-3 text-center text-[10px] text-gray-400 font-medium italic border-b border-gray-100 bg-gray-50/50">
+            Hai raggiunto l'inizio delle uscite delle tue serie
+          </div>
+        )}
+
         {/* CARICAMENTO IN CIMA (SOPRA TUTTE LE CARD PER IL PASSATO O ALL'AVVIO) */}
-        {(isFetchingEarlier || (isLoading && allEpisodes.length === 0)) && (
+        {(isFetchingEarlier || (isLoading && episodes.length === 0)) && (
           <TimelineLoadingCard />
         )}
 
         {/* LISTONE CARD SENZA TITOLI O RIQUADRI INTERMEDI */}
-        {allEpisodes.map((ep) => {
+        {episodes.map((ep) => {
           const isAnchor = ep.episode_id === todayAnchorId;
           const isToday = getCleanDate(ep.air_date) === todayStr;
 
@@ -420,6 +487,13 @@ export const MobileTVEpisodesTimeline: React.FC<MobileTVEpisodesTimelineProps> =
 
         {/* CARICAMENTO IN FONDO (SOTTO TUTTE LE CARD PER IL FUTURO) */}
         {isFetchingLater && <TimelineLoadingCard />}
+
+        {/* AVVISO FINE USCITE FUTURE */}
+        {hasReachedEndOfFuture.current && episodes.length > 0 && (
+          <div className="py-2.5 px-3 text-center text-[10px] text-gray-400 font-medium italic border-t border-gray-100 bg-gray-50/50">
+            Nessun'altra uscita futura annunciata
+          </div>
+        )}
       </div>
 
       {/* TASTO TONDO "TORNA AD OGGI / PROSSIMO" CON FRECCIA DINAMICA */}
