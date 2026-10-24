@@ -685,7 +685,7 @@ async def get_series_detail(db: Session, current_user: User, tmdb_id: int) -> TV
     episodes_data = repository.get_series_episodes_with_user_tracking(db, tmdb_id, current_user.id)
     return _build_series_response_with_next(db, current_user, tracking, episodes_data)
 
-def toggle_episode_watched(db: Session, current_user: User, episode_id: int, watched: bool) -> TVEpisodeResponse:
+def toggle_episode_watched(db: Session, current_user: User, episode_id: int, watched: bool, is_historic: bool = False) -> TVEpisodeResponse:
     import sqlalchemy
     stmt = sqlalchemy.select(TMDBEpisode).where(TMDBEpisode.id == episode_id)
     tmdb_ep = db.execute(stmt).scalar_one_or_none()
@@ -693,7 +693,7 @@ def toggle_episode_watched(db: Session, current_user: User, episode_id: int, wat
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Episodio non trovato.")
         
     if watched:
-        repository.mark_episode_watched(db, current_user.id, episode_id)
+        repository.mark_episode_watched(db, current_user.id, episode_id, is_historic=is_historic)
     else:
         repository.mark_episode_unwatched(db, current_user.id, episode_id)
         
@@ -701,7 +701,7 @@ def toggle_episode_watched(db: Session, current_user: User, episode_id: int, wat
         
     # Fetch logs and quotes to return
     from backend.domains.trackers.models import UserEpisodeLog, TVQuote
-    logs_stmt = sqlalchemy.select(UserEpisodeLog).where(UserEpisodeLog.user_id == current_user.id, UserEpisodeLog.episode_id == episode_id).order_by(UserEpisodeLog.watched_at.desc())
+    logs_stmt = sqlalchemy.select(UserEpisodeLog).where(UserEpisodeLog.user_id == current_user.id, UserEpisodeLog.episode_id == episode_id).order_by(UserEpisodeLog.watched_at.desc().nullslast(), UserEpisodeLog.id.desc())
     user_logs = list(db.execute(logs_stmt).scalars().all())
     
     quotes_stmt = sqlalchemy.select(TVQuote).where(TVQuote.user_id == current_user.id, TVQuote.episode_id == episode_id).order_by(TVQuote.created_at.desc())
@@ -709,12 +709,12 @@ def toggle_episode_watched(db: Session, current_user: User, episode_id: int, wat
         
     return _build_episode_response(tmdb_ep, user_logs, user_quotes, db=db)
 
-def mark_all_episodes_watched(db: Session, current_user: User, tmdb_series_id: int):
+def mark_all_episodes_watched(db: Session, current_user: User, tmdb_series_id: int, is_historic: bool = False):
     tracking = repository.get_user_series_tracking(db, tmdb_series_id, current_user.id)
     if not tracking:
         tracking = repository.create_user_series_tracking(db, tmdb_series_id, current_user.id, status="watching")
         
-    repository.mark_all_episodes_watched(db, current_user.id, tmdb_series_id)
+    repository.mark_all_episodes_watched(db, current_user.id, tmdb_series_id, is_historic=is_historic)
     _sync_series_status(db, current_user.id, tmdb_series_id)
     return {"status": "success"}
 
@@ -774,7 +774,7 @@ def add_episode_log(db: Session, current_user: User, episode_id: int, notes: str
     if not tmdb_ep:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Episodio non trovato.")
         
-    watched_dt = datetime.now(timezone.utc)
+    watched_dt = None
     if watched_at_date:
         watched_dt = datetime.combine(watched_at_date, datetime.min.time()).replace(tzinfo=timezone.utc)
 
@@ -795,7 +795,7 @@ def add_episode_log(db: Session, current_user: User, episode_id: int, notes: str
     db.commit()
     
     # Ricarica e restituisci l'episodio
-    logs_stmt = sqlalchemy.select(UserEpisodeLog).where(UserEpisodeLog.user_id == current_user.id, UserEpisodeLog.episode_id == episode_id).order_by(UserEpisodeLog.watched_at.desc())
+    logs_stmt = sqlalchemy.select(UserEpisodeLog).where(UserEpisodeLog.user_id == current_user.id, UserEpisodeLog.episode_id == episode_id).order_by(UserEpisodeLog.watched_at.desc().nullslast(), UserEpisodeLog.id.desc())
     user_logs = list(db.execute(logs_stmt).scalars().all())
     quotes_stmt = sqlalchemy.select(TVQuote).where(TVQuote.user_id == current_user.id, TVQuote.episode_id == episode_id).order_by(TVQuote.created_at.desc())
     user_quotes = list(db.execute(quotes_stmt).scalars().all())
@@ -818,6 +818,8 @@ def update_episode_log(db: Session, current_user: User, log_id: int, notes: str 
         log.review_visibility = review_visibility
     if watched_at_date:
         log.watched_at = datetime.combine(watched_at_date, datetime.min.time()).replace(tzinfo=timezone.utc)
+    else:
+        log.watched_at = None
 
     # Gestione piattaforma: '' = rimuovi, stringa non vuota = imposta, None = non toccare
     if viewing_platform_name is not None:
@@ -832,7 +834,7 @@ def update_episode_log(db: Session, current_user: User, log_id: int, notes: str 
     ep_stmt = sqlalchemy.select(TMDBEpisode).where(TMDBEpisode.id == log.episode_id)
     tmdb_ep = db.execute(ep_stmt).scalar_one_or_none()
     
-    logs_stmt = sqlalchemy.select(UserEpisodeLog).where(UserEpisodeLog.user_id == current_user.id, UserEpisodeLog.episode_id == log.episode_id).order_by(UserEpisodeLog.watched_at.desc())
+    logs_stmt = sqlalchemy.select(UserEpisodeLog).where(UserEpisodeLog.user_id == current_user.id, UserEpisodeLog.episode_id == log.episode_id).order_by(UserEpisodeLog.watched_at.desc().nullslast(), UserEpisodeLog.id.desc())
     user_logs = list(db.execute(logs_stmt).scalars().all())
     quotes_stmt = sqlalchemy.select(TVQuote).where(TVQuote.user_id == current_user.id, TVQuote.episode_id == log.episode_id).order_by(TVQuote.created_at.desc())
     user_quotes = list(db.execute(quotes_stmt).scalars().all())

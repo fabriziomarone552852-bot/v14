@@ -6,7 +6,7 @@ import { ReviewVisibilityIcon, type ReviewVisibilityType } from './ReviewVisibil
 export interface FriendReviewCardItem {
   id: number;
   rating?: number | null;
-  dateStr: string;
+  dateStr?: string | null;
   notes?: string | null;
   review_visibility?: ReviewVisibilityType;
   commentsCount?: number;
@@ -57,7 +57,7 @@ export const FriendDetailReviewsView = <T,>({
                 month: 'short',
                 year: 'numeric',
               })
-            : '';
+            : 'Visto nel passato';
 
           return (
             <div

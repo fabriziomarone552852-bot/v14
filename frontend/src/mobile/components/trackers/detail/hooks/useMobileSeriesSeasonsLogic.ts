@@ -15,6 +15,7 @@ export interface UseMobileSeriesSeasonsLogicProps {
   tmdbSeries: TMDBSeries;
   userTracking: UserSeriesTracking | null;
   initialEpisode?: TMDBEpisode | null;
+  isHistoricMode?: boolean;
 }
 
 export const roundToHalfStar = roundRatingToHalfStar;
@@ -24,6 +25,7 @@ export const useMobileSeriesSeasonsLogic = ({
   tmdbSeries,
   userTracking,
   initialEpisode,
+  isHistoricMode = false,
 }: UseMobileSeriesSeasonsLogicProps) => {
   const [selectedEpisode, setSelectedEpisode] = useState<TMDBEpisode | null>(initialEpisode || null);
   const [expandedSeason, setExpandedSeason] = useState<number | null>(
@@ -114,7 +116,7 @@ export const useMobileSeriesSeasonsLogic = ({
 
       const count = ep.watch_count || 0;
       if (count === 0) {
-        toggleEpisodeWatched({ episode_id: ep.id, watched: true });
+        toggleEpisodeWatched({ episode_id: ep.id, watched: true, is_historic: isHistoricMode });
       } else {
         setDrawerTarget({
           type: 'episode',
@@ -126,7 +128,7 @@ export const useMobileSeriesSeasonsLogic = ({
         });
       }
     },
-    [requireTracking, toggleEpisodeWatched]
+    [requireTracking, toggleEpisodeWatched, isHistoricMode]
   );
 
   // Gestione tocco pallino intera stagione
@@ -143,7 +145,7 @@ export const useMobileSeriesSeasonsLogic = ({
       if (seasonMinWatchCount === 0) {
         seasonEpisodes.forEach((ep) => {
           if ((ep.watch_count || 0) === 0) {
-            toggleEpisodeWatched({ episode_id: ep.id, watched: true });
+            toggleEpisodeWatched({ episode_id: ep.id, watched: true, is_historic: isHistoricMode });
           }
         });
       } else {
@@ -156,7 +158,7 @@ export const useMobileSeriesSeasonsLogic = ({
         });
       }
     },
-    [requireTracking, toggleEpisodeWatched, getSeasonTitle]
+    [requireTracking, toggleEpisodeWatched, getSeasonTitle, isHistoricMode]
   );
 
   // Esecuzione azioni dal Drawer
@@ -168,30 +170,30 @@ export const useMobileSeriesSeasonsLogic = ({
         setRewatchTarget({ episode: ep });
         return;
       }
-      toggleEpisodeWatched({ episode_id: drawerTarget.id, watched: true });
+      toggleEpisodeWatched({ episode_id: drawerTarget.id, watched: true, is_historic: isHistoricMode });
     } else {
       const seasonEpisodes = seasonsMap[drawerTarget.id] || [];
       seasonEpisodes.forEach((ep) => {
-        toggleEpisodeWatched({ episode_id: ep.id, watched: true });
+        toggleEpisodeWatched({ episode_id: ep.id, watched: true, is_historic: isHistoricMode });
       });
     }
-  }, [drawerTarget, episodes, userTracking, seasonsMap, toggleEpisodeWatched]);
+  }, [drawerTarget, episodes, userTracking, seasonsMap, toggleEpisodeWatched, isHistoricMode]);
 
   const handleConfirmSingleWatch = useCallback(() => {
     if (!rewatchTarget) return;
-    toggleEpisodeWatched({ episode_id: rewatchTarget.episode.id, watched: true });
+    toggleEpisodeWatched({ episode_id: rewatchTarget.episode.id, watched: true, is_historic: isHistoricMode });
     setRewatchTarget(null);
-  }, [rewatchTarget, toggleEpisodeWatched]);
+  }, [rewatchTarget, toggleEpisodeWatched, isHistoricMode]);
 
   const handleConfirmRewatchSeries = useCallback(() => {
     if (!rewatchTarget || !userTracking) return;
-    toggleEpisodeWatched({ episode_id: rewatchTarget.episode.id, watched: true });
+    toggleEpisodeWatched({ episode_id: rewatchTarget.episode.id, watched: true, is_historic: isHistoricMode });
     updateSeries({
       id: userTracking.series_tmdb_id || tmdbSeries.tmdb_id,
       updates: { is_rewatching: true },
     });
     setRewatchTarget(null);
-  }, [rewatchTarget, userTracking, tmdbSeries.tmdb_id, toggleEpisodeWatched, updateSeries]);
+  }, [rewatchTarget, userTracking, tmdbSeries.tmdb_id, toggleEpisodeWatched, updateSeries, isHistoricMode]);
 
   const handleDrawerResetWatch = useCallback(() => {
     if (!drawerTarget) return;

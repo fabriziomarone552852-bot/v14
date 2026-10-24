@@ -248,7 +248,7 @@ export const useSeriesReviewTabLogic = ({
           rating: rating > 0 ? Math.round(rating * 2) : null,
           notes: review,
           review_visibility: visibility,
-          watched_at: reviewDate,
+          watched_at: reviewDate || null,
         },
       });
     } else {
@@ -258,7 +258,7 @@ export const useSeriesReviewTabLogic = ({
           rating: rating > 0 ? Math.round(rating * 2) : null,
           notes: review,
           review_visibility: visibility,
-          watched_at: reviewDate,
+          watched_at: reviewDate || null,
         },
       });
     }

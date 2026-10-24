@@ -34,63 +34,81 @@ export const MobileTVSeriesDiarySlide: React.FC<MobileTVSeriesDiarySlideProps> =
 
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const anchorRef = useRef<HTMLDivElement>(null);
-  const hasCenteredInitially = useRef<boolean>(false);
-  const hasUserScrolled = useRef<boolean>(false);
-  const [showBackToNext, setShowBackToNext] = useState<boolean>(false);
+
+  const [showBackToAnchor, setShowBackToAnchor] = useState<boolean>(false);
   const [isAnchorBelow, setIsAnchorBelow] = useState<boolean>(true);
+
+  // Riferimenti per preservare la posizione esatta al pixel quando l'altezza dello storico sopra cambia
+  const prevAnchorTopRef = useRef<number | null>(null);
+  const isInitialAlignDone = useRef<boolean>(false);
 
   // Allineamento dell'ancora a filo dell'header
   const alignToAnchor = React.useCallback(() => {
-    if (hasUserScrolled.current) return;
     if (anchorRef.current && scrollContainerRef.current) {
       scrollContainerRef.current.scrollTop = anchorRef.current.offsetTop;
+      prevAnchorTopRef.current = anchorRef.current.offsetTop;
     }
   }, []);
 
-  // Ancoraggio iniziale istantaneo a "I prossimi da guardare" senza animazioni né salti a vista
+  // Ancoraggio iniziale a "I prossimi da guardare" all'apertura della slide
   useLayoutEffect(() => {
     if (activePageIndex !== 1) return;
-    if (hasCenteredInitially.current) return;
+    if (isInitialAlignDone.current) return;
     if (!series) return;
 
     alignToAnchor();
 
-    // Check asincroni per garantire l'allineamento perfetto dopo il rendering completo di font, immagini e WebView Android
-    const frameId = requestAnimationFrame(() => {
+    const frameId = requestAnimationFrame(alignToAnchor);
+    const t = setTimeout(() => {
       alignToAnchor();
-    });
-    const t1 = setTimeout(alignToAnchor, 60);
-    const t2 = setTimeout(() => {
-      alignToAnchor();
-      hasCenteredInitially.current = true;
-    }, 200);
+      isInitialAlignDone.current = true;
+    }, 150);
 
     return () => {
       cancelAnimationFrame(frameId);
-      clearTimeout(t1);
-      clearTimeout(t2);
+      clearTimeout(t);
     };
-  }, [activePageIndex, series, nextToWatch.length, watchedHistory.length, alignToAnchor]);
+  }, [activePageIndex, series, alignToAnchor]);
 
-  // Monitoraggio dello scroll per mostrare il pulsante "Torna ai prossimi" se si è nello storico o troppo in basso
+  // Compensazione matematica immediata (0ms, pre-paint):
+  // Quando l'utente segna un episodio come visto, questo entra nello storico sopra l'ancora
+  // aumentando l'altezza dello storico di `diff`.
+  // Incrementando scrollTop esattamente di `diff`, "I prossimi da guardare" non si sposta di un singolo pixel
+  // e la card appena vista rimane sopra nello storico, invisibile nel viewport!
+  useLayoutEffect(() => {
+    if (!anchorRef.current || !scrollContainerRef.current) return;
+    const currentAnchorTop = anchorRef.current.offsetTop;
+
+    if (prevAnchorTopRef.current !== null && isInitialAlignDone.current) {
+      const diff = currentAnchorTop - prevAnchorTopRef.current;
+      if (diff !== 0) {
+        scrollContainerRef.current.scrollTop += diff;
+      }
+    }
+
+    prevAnchorTopRef.current = currentAnchorTop;
+  });
+
+  // Monitoraggio dello scroll per mostrare il pulsante "Torna ai prossimi" se si è saliti nello storico o troppo in basso
   const handleScroll = () => {
     if (!anchorRef.current || !scrollContainerRef.current) return;
     const anchorTop = anchorRef.current.offsetTop;
     const currentScroll = scrollContainerRef.current.scrollTop;
 
-    // Se l'utente è salito nello storico sopra l'ancora
     if (currentScroll < anchorTop - 120) {
-      setShowBackToNext(true);
+      // L'utente è salito nello storico sopra l'ancora -> freccia verso il basso
+      setShowBackToAnchor(true);
       setIsAnchorBelow(true);
     } else if (currentScroll > anchorTop + 450) {
-      setShowBackToNext(true);
+      // L'utente è sceso molto in basso -> freccia verso l'alto
+      setShowBackToAnchor(true);
       setIsAnchorBelow(false);
     } else {
-      setShowBackToNext(false);
+      setShowBackToAnchor(false);
     }
   };
 
-  const scrollToNext = () => {
+  const scrollToAnchor = () => {
     if (anchorRef.current && scrollContainerRef.current) {
       scrollContainerRef.current.scrollTo({
         top: anchorRef.current.offsetTop,
@@ -109,16 +127,11 @@ export const MobileTVSeriesDiarySlide: React.FC<MobileTVSeriesDiarySlideProps> =
       <div
         ref={scrollContainerRef}
         onScroll={handleScroll}
-        onTouchStart={() => {
-          hasUserScrolled.current = true;
-        }}
-        onWheel={() => {
-          hasUserScrolled.current = true;
-        }}
+        style={{ overflowAnchor: 'none' }}
         className="flex-1 min-h-0 overflow-y-auto px-3.5 pt-2 pb-24 scrollbar-none [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] select-none"
       >
         {/* ================================================================= */}
-        {/* 1. SEZIONE STORICO: EPISODI GUARDATI (Scorrendo verso l'alto)    */}
+        {/* 1. SEZIONE STORICO: EPISODI GUARDATI (Sopra, scorrendo in alto)   */}
         {/* ================================================================= */}
         {watchedHistory.length > 0 && (
           <div className="flex flex-col gap-2.5 pb-4">
@@ -141,10 +154,7 @@ export const MobileTVSeriesDiarySlide: React.FC<MobileTVSeriesDiarySlideProps> =
         )}
 
         {/* ================================================================= */}
-        {/* 2. AREA PRINCIPALE: ANCORA INIZIALE E SEZIONI DA GUARDARE         */}
-        {/* Il min-h-full garantisce che quest'area sia alta almeno quanto    */}
-        {/* l'intero viewport, permettendo all'ancora di posizionarsi         */}
-        {/* sempre in cima a filo dell'header sia su PC che su smartphone.    */}
+        {/* 2. AREA PRINCIPALE: ANCORA E SEZIONI DA GUARDARE                  */}
         {/* ================================================================= */}
         <div ref={anchorRef} className="min-h-full flex flex-col pt-1">
           <MobileTVDiarySectionPill title="I prossimi da guardare" />
@@ -218,11 +228,11 @@ export const MobileTVSeriesDiarySlide: React.FC<MobileTVSeriesDiarySlideProps> =
         </div>
       </div>
 
-      {/* Tasto tondo blu con freccia "Torna ai prossimi" identico a quello in prossime uscite */}
+      {/* Tasto tondo blu con freccia "Torna ai prossimi" */}
       <TimelineBackToTodayButton
-        visible={showBackToNext}
+        visible={showBackToAnchor}
         isAnchorBelow={isAnchorBelow}
-        onClick={scrollToNext}
+        onClick={scrollToAnchor}
       />
 
       {/* Modale Dialog di conferma Rewatch */}

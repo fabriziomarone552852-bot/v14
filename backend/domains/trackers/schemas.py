@@ -78,7 +78,7 @@ class EpisodeLogResponse(ORMBaseModel):
     notes: Optional[str] = None
     review_visibility: str
     viewing_platform_name: Optional[str] = None  # Mappato dalla relazione viewing_platform
-    watched_at: datetime
+    watched_at: Optional[datetime] = None
     comments: List[dict] = Field(default_factory=list)
 
 
@@ -127,7 +127,7 @@ class UserSeriesLogResponse(ORMBaseModel):
     rating: Optional[float] = None
     notes: Optional[str] = None
     review_visibility: str
-    watched_at: datetime
+    watched_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None
     comments: List[dict] = Field(default_factory=list)
 
@@ -295,7 +295,7 @@ class FriendEpisodeLogResponse(ORMBaseModel):
     rating: Optional[float] = None
     notes: Optional[str] = None
     review_visibility: str
-    watched_at: datetime
+    watched_at: Optional[datetime] = None
     comments: Optional[List[dict]] = Field(default_factory=list)
 
 class GenreStat(BaseModel):

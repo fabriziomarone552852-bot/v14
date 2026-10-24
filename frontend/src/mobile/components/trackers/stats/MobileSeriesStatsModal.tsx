@@ -1,13 +1,15 @@
 // src/mobile/components/trackers/stats/MobileSeriesStatsModal.tsx
-import React from 'react';
+import React, { useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useFullSeriesStats } from '@/hooks/queries/useTrackersQueries';
 import { useBackHandler } from '@/utils/backButtonManager';
 import { LoadingIcon, BackIcon } from '@/components/shared/utils/Icons';
+import { CalendarIcon } from '@/components/shared/utils/CalendarTimeIcons';
 import { MobileStatsOverviewSection } from './MobileStatsOverviewSection';
 import { MobileStatsRatingsSection } from './MobileStatsRatingsSection';
 import { MobileStatsHabitsSection } from './MobileStatsHabitsSection';
 import { MobileStatsRewatchSection } from './MobileStatsRewatchSection';
+import { MobileSeriesStatsCalendarModal } from './MobileSeriesStatsCalendarModal';
 
 export interface MobileSeriesStatsModalProps {
   isOpen: boolean;
@@ -21,15 +23,16 @@ export const MobileSeriesStatsModal: React.FC<MobileSeriesStatsModalProps> = ({
   zIndexClass,
 }) => {
   const { data: stats, isLoading, isError, refetch } = useFullSeriesStats();
+  const [isCalendarOpen, setIsCalendarOpen] = useState(false);
 
   // Supporto al tasto indietro nativo Android (Hardware / Gesture Back)
   useBackHandler(
-    isOpen,
+    isOpen && !isCalendarOpen,
     () => {
       onClose();
       return true;
     },
-    20 // Priorità alta per modale attivo
+    20 // Priorità modale attivo (il calendario usa 25)
   );
 
   if (!isOpen) return null;
@@ -61,6 +64,17 @@ export const MobileSeriesStatsModal: React.FC<MobileSeriesStatsModalProps> = ({
             </span>
           </div>
         </div>
+
+        {/* Sul limite destro: Icona Calendario per aprire la vista calendario */}
+        <button
+          type="button"
+          onClick={() => setIsCalendarOpen(true)}
+          aria-label="Apri calendario visioni"
+          className="w-9 h-9 rounded-xl text-blue-600 bg-blue-50 border border-blue-200 hover:bg-blue-100 active:scale-95 transition-all cursor-pointer shrink-0 flex items-center justify-center shadow-xs"
+          title="Calendario visioni"
+        >
+          <CalendarIcon className="w-5 h-5 text-blue-600" />
+        </button>
       </div>
 
       {/* 2. Contenuto Modale */}
@@ -110,6 +124,13 @@ export const MobileSeriesStatsModal: React.FC<MobileSeriesStatsModalProps> = ({
           <MobileStatsRewatchSection stats={stats} />
         </div>
       )}
+
+      {/* 4. Finestra Modale Calendario (aperta sopra le statistiche) */}
+      <MobileSeriesStatsCalendarModal
+        isOpen={isCalendarOpen}
+        onClose={() => setIsCalendarOpen(false)}
+        zIndexClass="z-[10030]"
+      />
     </div>
   );
 

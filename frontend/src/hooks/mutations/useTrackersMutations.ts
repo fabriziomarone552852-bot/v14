@@ -121,13 +121,19 @@ export const useTrackersMutations = () => {
   });
 
   const markAllEpisodesWatchedMutation = useMutation({
-    mutationFn: async (tmdb_id: number) => {
-      const data = await api.post<MarkAllWatchedResponse>(`/trackers/series/${tmdb_id}/watched-all`);
+    mutationFn: async (args: number | { tmdb_id: number; is_historic?: boolean }) => {
+      const id = typeof args === 'number' ? args : args.tmdb_id;
+      const historic = typeof args === 'number' ? false : Boolean(args.is_historic);
+      const url = historic
+        ? `/trackers/series/${id}/watched-all?is_historic=true`
+        : `/trackers/series/${id}/watched-all`;
+      const data = await api.post<MarkAllWatchedResponse>(url);
       return data;
     },
-    onSuccess: (_, tmdb_id) => {
+    onSuccess: (_, args) => {
+      const id = typeof args === 'number' ? args : args.tmdb_id;
       queryClient.invalidateQueries({ queryKey: ['trackers', 'series'] });
-      queryClient.invalidateQueries({ queryKey: ['trackers', 'series', 'detail', tmdb_id] });
+      queryClient.invalidateQueries({ queryKey: ['trackers', 'series', 'detail', id] });
     },
   });
 
@@ -281,13 +287,14 @@ export const useTrackersMutations = () => {
       payload,
     }: {
       episode_id: number;
-      payload: { rating?: number | null; notes?: string; review_visibility?: string; watched_at?: string; viewing_platform_name?: string | null };
+      payload: { rating?: number | null; notes?: string; review_visibility?: string; watched_at?: string | null; viewing_platform_name?: string | null };
     }) => {
       const data = await api.post<UserEpisodeLog>(`/trackers/episodes/${episode_id}/logs`, payload);
       return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['trackers', 'series'] });
+      queryClient.invalidateQueries({ queryKey: ['trackers', 'series', 'detail'] });
     },
   });
 
@@ -297,13 +304,14 @@ export const useTrackersMutations = () => {
       payload,
     }: {
       log_id: number;
-      payload: { rating?: number | null; notes?: string; review_visibility?: string; watched_at?: string; viewing_platform_name?: string | null };
+      payload: { rating?: number | null; notes?: string; review_visibility?: string; watched_at?: string | null; viewing_platform_name?: string | null };
     }) => {
       const data = await api.patch<UserEpisodeLog>(`/trackers/episodes/logs/${log_id}`, payload);
       return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['trackers', 'series'] });
+      queryClient.invalidateQueries({ queryKey: ['trackers', 'series', 'detail'] });
     },
   });
 
@@ -314,6 +322,7 @@ export const useTrackersMutations = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['trackers', 'series'] });
+      queryClient.invalidateQueries({ queryKey: ['trackers', 'series', 'detail'] });
     },
   });
 
@@ -330,25 +339,37 @@ export const useTrackersMutations = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['trackers', 'series'] });
+      queryClient.invalidateQueries({ queryKey: ['trackers', 'series', 'detail'] });
     },
   });
 
   const toggleEpisodeWatchedMutation = useMutation({
-    mutationFn: async ({ episode_id, watched }: { episode_id: number; watched: boolean }) => {
+    mutationFn: async ({
+      episode_id,
+      watched,
+      is_historic = false,
+    }: {
+      episode_id: number;
+      watched: boolean;
+      is_historic?: boolean;
+    }) => {
       if (watched) {
-        return await api.post<ToggleEpisodeWatchedResponse | void>(`/trackers/episodes/${episode_id}/watched`);
+        const url = is_historic
+          ? `/trackers/episodes/${episode_id}/watched?is_historic=true`
+          : `/trackers/episodes/${episode_id}/watched`;
+        return await api.post<ToggleEpisodeWatchedResponse | void>(url);
       } else {
         return await api.delete<ToggleEpisodeWatchedResponse | void>(`/trackers/episodes/${episode_id}/watched`);
       }
     },
-    onMutate: async ({ episode_id, watched }) => {
+    onMutate: async ({ episode_id, watched, is_historic = false }) => {
       await queryClient.cancelQueries({ queryKey: ['trackers', 'series'] });
       await queryClient.cancelQueries({ queryKey: ['trackers', 'upcoming'] });
 
       const previousSeriesQueries = queryClient.getQueriesData<TVSeries[]>({ queryKey: ['trackers', 'series'] });
       const previousDetailQueries = queryClient.getQueriesData<TMDBSeries>({ queryKey: ['trackers', 'series', 'detail'] });
 
-      // 1. Aggiornamento ottimistico dettaglio serie (episodes)
+      // 1. Aggiornamento ottimistico dettaglio serie (episodes e logs a 0ms)
       queryClient.setQueriesData<TMDBSeries>({ queryKey: ['trackers', 'series', 'detail'] }, (old) => {
         if (!old || !old.episodes) return old;
         const targetEp = old.episodes.find((ep) => ep.id === episode_id);
@@ -357,8 +378,26 @@ export const useTrackersMutations = () => {
         const currentCount = targetEp.watch_count || 0;
         const nextCount = watched ? currentCount + 1 : Math.max(0, currentCount - 1);
 
+        let updatedLogs = targetEp.logs ? [...targetEp.logs] : [];
+        if (watched) {
+          const optimisticLog: UserEpisodeLog = {
+            id: -Date.now(),
+            user_id: 0,
+            episode_id: episode_id,
+            rating: null,
+            notes: null,
+            review_visibility: 'friends_only',
+            watched_at: is_historic ? null : new Date().toISOString(),
+            comments: [],
+            created_at: new Date().toISOString(),
+          };
+          updatedLogs = [optimisticLog, ...updatedLogs];
+        } else {
+          updatedLogs = updatedLogs.slice(1);
+        }
+
         const updatedEpisodes = old.episodes.map((ep) =>
-          ep.id === episode_id ? { ...ep, watch_count: nextCount } : ep
+          ep.id === episode_id ? { ...ep, watch_count: nextCount, logs: updatedLogs } : ep
         );
 
         return {
@@ -376,7 +415,26 @@ export const useTrackersMutations = () => {
             if (ep.id !== episode_id) return ep;
             const currentCount = ep.watch_count || 0;
             const nextCount = watched ? currentCount + 1 : Math.max(0, currentCount - 1);
-            return { ...ep, watch_count: nextCount };
+
+            let updatedLogs = ep.logs ? [...ep.logs] : [];
+            if (watched) {
+              const optimisticLog: UserEpisodeLog = {
+                id: -Date.now(),
+                user_id: 0,
+                episode_id: episode_id,
+                rating: null,
+                notes: null,
+                review_visibility: 'friends_only',
+                watched_at: is_historic ? null : new Date().toISOString(),
+                comments: [],
+                created_at: new Date().toISOString(),
+              };
+              updatedLogs = [optimisticLog, ...updatedLogs];
+            } else {
+              updatedLogs = updatedLogs.slice(1);
+            }
+
+            return { ...ep, watch_count: nextCount, logs: updatedLogs };
           });
           return {
             ...s,

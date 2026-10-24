@@ -60,6 +60,7 @@ export const MobileTVSeriesDetailModal: React.FC<MobileTVSeriesDetailModalProps>
   const [showFriendsDrawer, setShowFriendsDrawer] = useState(false);
   const [showListsDrawer, setShowListsDrawer] = useState(false);
   const [showOptionsModal, setShowOptionsModal] = useState(false);
+  const [isHistoricMode, setIsHistoricMode] = useState(false);
 
   const { updateSeries } = useTrackersMutations();
 
@@ -131,6 +132,10 @@ export const MobileTVSeriesDetailModal: React.FC<MobileTVSeriesDetailModalProps>
       }
       if (showOptionsModal) {
         setShowOptionsModal(false);
+        return true;
+      }
+      if (isHistoricMode) {
+        setIsHistoricMode(false);
         return true;
       }
       // Se c'è un episodio aperto, chiude il modale se standalone o torna alla lista delle stagioni
@@ -234,6 +239,8 @@ export const MobileTVSeriesDetailModal: React.FC<MobileTVSeriesDetailModalProps>
                 initialReviewLogId={internalReviewLogId}
                 onSelectEpisode={(ep) => setInternalEpisode(ep)}
                 isLoading={false}
+                isHistoricMode={isHistoricMode}
+                onDisableHistoricMode={() => setIsHistoricMode(false)}
               />
             )}
             {activeTab === 'review' && (
@@ -332,6 +339,12 @@ export const MobileTVSeriesDetailModal: React.FC<MobileTVSeriesDetailModalProps>
               updates: { status: targetStatus },
             });
           }
+        }}
+        isHistoricMode={isHistoricMode}
+        onEnableHistoricMode={() => {
+          setIsHistoricMode((prev) => !prev);
+          setActiveTab('seasons');
+          setInternalEpisode(null);
         }}
       />
 

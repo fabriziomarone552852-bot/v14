@@ -33,9 +33,11 @@ export const MobileSeriesMyReviewsList: React.FC<MobileSeriesMyReviewsListProps>
 
   const { confirm } = useConfirm();
 
-  const sortedLogs = [...logs].sort(
-    (a, b) => new Date(b.watched_at).getTime() - new Date(a.watched_at).getTime()
-  );
+  const sortedLogs = [...logs].sort((a, b) => {
+    const timeA = a.watched_at ? new Date(a.watched_at).getTime() : 0;
+    const timeB = b.watched_at ? new Date(b.watched_at).getTime() : 0;
+    return timeB - timeA;
+  });
 
   // Gestione Pressione Prolungata (Long-Press per selezione)
   const handleTouchStart = (logId: number) => {
@@ -216,11 +218,13 @@ export const MobileSeriesMyReviewsList: React.FC<MobileSeriesMyReviewsListProps>
                       </div>
                       <div className="text-[11px] text-gray-500 font-semibold flex items-center gap-1.5 flex-wrap">
                         <span>
-                          {new Date(log.watched_at).toLocaleDateString('it-IT', {
-                            day: 'numeric',
-                            month: 'short',
-                            year: 'numeric',
-                          })}
+                          {log.watched_at
+                            ? new Date(log.watched_at).toLocaleDateString('it-IT', {
+                                day: 'numeric',
+                                month: 'short',
+                                year: 'numeric',
+                              })
+                            : 'Visto nel passato'}
                         </span>
                         <ReviewVisibilityIcon
                           visibility={log.review_visibility || 'public'}

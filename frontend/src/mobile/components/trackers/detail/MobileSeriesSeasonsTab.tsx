@@ -1,6 +1,6 @@
 // src/mobile/components/trackers/detail/MobileSeriesSeasonsTab.tsx
 import React from 'react';
-import { Check, ChevronDown, Film, Star } from 'lucide-react';
+import { Check, ChevronDown, Film, Star, History } from 'lucide-react';
 import type { TMDBSeries, UserSeriesTracking, TMDBEpisode } from '@/types/trackers';
 import { EpisodeDetailView } from '@/components/trackers/SeriesDetailModal/EpisodeDetailView';
 import { MobileWatchActionDrawer } from './MobileWatchActionDrawer';
@@ -18,6 +18,8 @@ export interface MobileSeriesSeasonsTabProps {
   initialReviewLogId?: number;
   isLoading?: boolean;
   onSelectEpisode?: (ep: TMDBEpisode) => void;
+  isHistoricMode?: boolean;
+  onDisableHistoricMode?: () => void;
 }
 
 export const MobileSeriesSeasonsTab: React.FC<MobileSeriesSeasonsTabProps> = ({
@@ -27,6 +29,8 @@ export const MobileSeriesSeasonsTab: React.FC<MobileSeriesSeasonsTabProps> = ({
   initialReviewLogId,
   isLoading = false,
   onSelectEpisode,
+  isHistoricMode = false,
+  onDisableHistoricMode,
 }) => {
   const {
     selectedEpisode,
@@ -53,6 +57,7 @@ export const MobileSeriesSeasonsTab: React.FC<MobileSeriesSeasonsTabProps> = ({
     tmdbSeries,
     userTracking,
     initialEpisode,
+    isHistoricMode,
   });
 
   // Se un episodio è selezionato e non c'è gestore esterno (es. parent modal), mostriamo la vista interna
@@ -101,6 +106,27 @@ export const MobileSeriesSeasonsTab: React.FC<MobileSeriesSeasonsTabProps> = ({
 
   return (
     <div className="flex flex-col gap-3 pb-8 select-none animate-fadeIn scrollbar-none [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+      {/* Banner Modalità Inserimento Storico */}
+      {isHistoricMode && (
+        <div className="bg-amber-500/10 border border-amber-500/30 rounded-2xl p-3.5 flex items-center justify-between gap-3 shadow-2xs animate-fadeIn">
+          <div className="flex items-start gap-2.5 min-w-0">
+            <History className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
+            <p className="text-xs font-bold text-amber-900 leading-snug">
+              Modalità Storico attiva: i tocchi registrano gli episodi come già visti in passato senza alterare le statistiche recenti.
+            </p>
+          </div>
+          {onDisableHistoricMode && (
+            <button
+              type="button"
+              onClick={onDisableHistoricMode}
+              className="px-3 py-1.5 bg-amber-600 hover:bg-amber-700 active:scale-95 text-white rounded-xl text-xs font-bold shrink-0 transition-all cursor-pointer shadow-xs"
+            >
+              Fine
+            </button>
+          )}
+        </div>
+      )}
+
       {seasonsList.map((seasonNumber) => {
         const seasonEpisodes = seasonsMap[seasonNumber];
         const isExpanded = expandedSeason === seasonNumber;

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { History } from 'lucide-react';
 import type { TMDBSeries, UserSeriesTracking, TMDBEpisode } from '@/types/trackers';
 import { EpisodeDetailView } from './EpisodeDetailView';
 import { StarRating } from './StarRating';
@@ -13,6 +14,8 @@ interface SeasonsTabProps {
   initialEpisode?: TMDBEpisode | null;
   initialReviewLogId?: number;
   isLoading?: boolean;
+  isHistoricMode?: boolean;
+  onDisableHistoricMode?: () => void;
 }
 
 interface RewatchControlsProps {
@@ -68,7 +71,15 @@ const RewatchControls: React.FC<RewatchControlsProps> = ({
   );
 };
 
-export const SeasonsTab: React.FC<SeasonsTabProps> = ({ tmdbSeries, initialEpisode, initialReviewLogId, isLoading, userTracking }) => {
+export const SeasonsTab: React.FC<SeasonsTabProps> = ({
+  tmdbSeries,
+  initialEpisode,
+  initialReviewLogId,
+  isLoading,
+  userTracking,
+  isHistoricMode = false,
+  onDisableHistoricMode,
+}) => {
   const [selectedEpisode, setSelectedEpisode] = useState<TMDBEpisode | null>(initialEpisode || null);
   const [expandedSeason, setExpandedSeason] = useState<number | null>(initialEpisode ? initialEpisode.season_number : null);
 
@@ -114,7 +125,7 @@ export const SeasonsTab: React.FC<SeasonsTabProps> = ({ tmdbSeries, initialEpiso
   const handleWatchCountChange = (e: React.MouseEvent, episodeId: number, delta: number) => {
     if (!requireTracking(e)) return;
     if (delta > 0) {
-      toggleEpisodeWatched({ episode_id: episodeId, watched: true });
+      toggleEpisodeWatched({ episode_id: episodeId, watched: true, is_historic: isHistoricMode });
     } else if (delta < 0) {
       toggleEpisodeWatched({ episode_id: episodeId, watched: false });
     }
@@ -125,7 +136,7 @@ export const SeasonsTab: React.FC<SeasonsTabProps> = ({ tmdbSeries, initialEpiso
     if (currentWatchCount > 0) {
       toggleEpisodeWatched({ episode_id: episodeId, watched: false });
     } else {
-      toggleEpisodeWatched({ episode_id: episodeId, watched: true });
+      toggleEpisodeWatched({ episode_id: episodeId, watched: true, is_historic: isHistoricMode });
     }
   };
 
@@ -139,7 +150,7 @@ export const SeasonsTab: React.FC<SeasonsTabProps> = ({ tmdbSeries, initialEpiso
          toggleEpisodeWatched({ episode_id: ep.id, watched: false });
       } else {
          if (current <= seasonMinWatchCount) {
-             toggleEpisodeWatched({ episode_id: ep.id, watched: true });
+             toggleEpisodeWatched({ episode_id: ep.id, watched: true, is_historic: isHistoricMode });
          }
       }
     }
@@ -151,7 +162,7 @@ export const SeasonsTab: React.FC<SeasonsTabProps> = ({ tmdbSeries, initialEpiso
       const current = ep.watch_count || 0;
       if (current === targetCount) {
         if (delta > 0) {
-          toggleEpisodeWatched({ episode_id: ep.id, watched: true });
+          toggleEpisodeWatched({ episode_id: ep.id, watched: true, is_historic: isHistoricMode });
         } else if (delta < 0) {
           toggleEpisodeWatched({ episode_id: ep.id, watched: false });
         }
@@ -219,6 +230,29 @@ export const SeasonsTab: React.FC<SeasonsTabProps> = ({ tmdbSeries, initialEpiso
 
   return (
     <div className="flex flex-col gap-4 animate-fadeIn">
+      {/* Banner Modalità Inserimento Storico */}
+      {isHistoricMode && (
+        <div className="bg-amber-500/10 border border-amber-500/30 rounded-2xl p-4 flex items-center justify-between gap-4 shadow-sm animate-fadeIn">
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="w-9 h-9 rounded-xl bg-amber-500/20 text-amber-600 flex items-center justify-center shrink-0">
+              <History className="w-5 h-5" />
+            </div>
+            <p className="text-sm font-bold text-amber-900 leading-snug">
+              Modalità Storico attiva: i tocchi registrano gli episodi come già visti in passato senza alterare le statistiche recenti.
+            </p>
+          </div>
+          {onDisableHistoricMode && (
+            <button
+              type="button"
+              onClick={onDisableHistoricMode}
+              className="px-4 py-2 bg-amber-600 hover:bg-amber-700 active:scale-95 text-white rounded-xl text-xs font-bold shrink-0 transition-all cursor-pointer shadow-sm"
+            >
+              Fine
+            </button>
+          )}
+        </div>
+      )}
+
       {seasonsList.map(seasonNumber => {
         const seasonEpisodes = seasonsMap[seasonNumber];
         const isExpanded = expandedSeason === seasonNumber;

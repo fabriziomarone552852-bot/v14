@@ -1,6 +1,5 @@
-// src/mobile/components/trackers/detail/MobileEpisodeReviewForm.tsx
 import React, { useState } from "react";
-import { ArrowLeft, Calendar, Check, Monitor } from "lucide-react";
+import { ArrowLeft, Calendar, Check, Monitor, X } from "lucide-react";
 import { StarRating } from "@/components/trackers/SeriesDetailModal/StarRating";
 import { DatePicker } from "@/components/shared/utils/DatePicker/DatePicker";
 import { ReviewVisibilityIcon } from "@/components/trackers/SeriesDetailModal/shared/ReviewVisibilityBadge";
@@ -84,17 +83,42 @@ export const MobileEpisodeReviewForm: React.FC<MobileEpisodeReviewFormProps> = (
       <div className="shrink-0 -mx-4 px-4 pt-2 pb-2 bg-gray-50/95 backdrop-blur-xs border-t border-gray-200/80 z-10 space-y-2">
         <div className="grid grid-cols-2 gap-2 w-full">
           <div className="col-span-1">
-            <DatePicker
-              value={reviewDate} onChange={setReviewDate} isOpen={isDatePickerOpen}
-              onClose={() => setIsDatePickerOpen(false)} onToggle={() => setIsDatePickerOpen(!isDatePickerOpen)}
-              overlay={true} align="center"
-              customTrigger={
-                <button type="button" className="w-full h-10 px-1 border border-gray-200 bg-white rounded-xl text-xs text-gray-700 font-semibold flex items-center justify-center gap-1.5 hover:border-gray-300 active:scale-95 transition-all shadow-2xs cursor-pointer select-none">
-                  <Calendar className="w-3.5 h-3.5 text-gray-500 shrink-0" />
-                  <span className="truncate">{reviewDate ? new Date(`${reviewDate}T00:00:00`).toLocaleDateString("it-IT", { day: "numeric", month: "short" }) : "Oggi"}</span>
+            <div className="flex items-center gap-1 w-full">
+              <div className="flex-1 min-w-0">
+                <DatePicker
+                  value={reviewDate}
+                  onChange={setReviewDate}
+                  isOpen={isDatePickerOpen}
+                  onClose={() => setIsDatePickerOpen(false)}
+                  onToggle={() => setIsDatePickerOpen(!isDatePickerOpen)}
+                  overlay={true}
+                  align="center"
+                  customTrigger={
+                    <button
+                      type="button"
+                      className="w-full h-10 px-1 border border-gray-200 bg-white rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 hover:border-gray-300 active:scale-95 transition-all shadow-2xs cursor-pointer select-none"
+                    >
+                      <Calendar className="w-3.5 h-3.5 text-gray-500 shrink-0" />
+                      <span className={`truncate ${reviewDate ? 'text-gray-700' : 'text-gray-400 italic'}`}>
+                        {reviewDate
+                          ? new Date(`${reviewDate}T00:00:00`).toLocaleDateString("it-IT", { day: "numeric", month: "short" })
+                          : "Senza data"}
+                      </span>
+                    </button>
+                  }
+                />
+              </div>
+              {Boolean(reviewDate) && (
+                <button
+                  type="button"
+                  onClick={() => setReviewDate('')}
+                  className="h-10 w-8 flex items-center justify-center text-gray-400 hover:text-red-500 active:scale-90 bg-white border border-gray-200 rounded-xl transition-colors cursor-pointer shrink-0 shadow-2xs"
+                  title="Rimuovi data"
+                >
+                  <X className="w-3.5 h-3.5" />
                 </button>
-              }
-            />
+              )}
+            </div>
           </div>
           <div className="col-span-1">
             <button type="button" onClick={() => setIsPrivacyModalOpen(true)} className="w-full h-10 px-1 border border-gray-200 bg-white rounded-xl text-xs text-gray-700 font-semibold flex items-center justify-center gap-1.5 hover:border-gray-300 active:scale-95 transition-all shadow-2xs cursor-pointer select-none">

@@ -2,7 +2,7 @@
 Repository for Trackers domain.
 """
 from typing import List, Optional, Tuple, Sequence
-from datetime import datetime
+from datetime import datetime, timezone
 from sqlalchemy import select, delete, and_, update, exists
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.orm import Session, selectinload
@@ -94,7 +94,7 @@ def get_series_episodes_with_user_tracking(db: Session, tmdb_id: int, user_id: i
         select(UserEpisodeLog)
         .join(TMDBEpisode, TMDBEpisode.id == UserEpisodeLog.episode_id)
         .where(TMDBEpisode.series_tmdb_id == tmdb_id, UserEpisodeLog.user_id == user_id)
-        .order_by(UserEpisodeLog.watched_at.desc())
+        .order_by(UserEpisodeLog.watched_at.desc().nullslast(), UserEpisodeLog.id.desc())
     )
     logs = db.execute(stmt_logs).scalars().all()
     
@@ -120,15 +120,16 @@ def get_series_episodes_with_user_tracking(db: Session, tmdb_id: int, user_id: i
     return [(ep, logs_by_episode.get(ep.id, []), quotes_by_episode.get(ep.id, [])) for ep in episodes]
 
 
-def mark_episode_watched(db: Session, user_id: int, episode_id: int) -> UserEpisodeLog:
+def mark_episode_watched(db: Session, user_id: int, episode_id: int, is_historic: bool = False) -> UserEpisodeLog:
     # Aggiunge sempre un nuovo log (Rewatch)
-    tracking = UserEpisodeLog(user_id=user_id, episode_id=episode_id)
+    watched_at = None if is_historic else datetime.now(timezone.utc)
+    tracking = UserEpisodeLog(user_id=user_id, episode_id=episode_id, watched_at=watched_at)
     db.add(tracking)
     db.commit()
     db.refresh(tracking)
     return tracking
 
-def mark_all_episodes_watched(db: Session, user_id: int, tmdb_series_id: int) -> None:
+def mark_all_episodes_watched(db: Session, user_id: int, tmdb_series_id: int, is_historic: bool = False) -> None:
     # Get all episodes for the series
     stmt = select(TMDBEpisode).where(TMDBEpisode.series_tmdb_id == tmdb_series_id)
     episodes = db.execute(stmt).scalars().all()
@@ -138,10 +139,11 @@ def mark_all_episodes_watched(db: Session, user_id: int, tmdb_series_id: int) ->
     existing_episode_ids = set(db.execute(logs_stmt).scalars().all())
     
     # Create logs only for unwatched episodes
+    watched_at = None if is_historic else datetime.now(timezone.utc)
     new_logs = []
     for ep in episodes:
         if ep.id not in existing_episode_ids:
-            new_logs.append(UserEpisodeLog(user_id=user_id, episode_id=ep.id))
+            new_logs.append(UserEpisodeLog(user_id=user_id, episode_id=ep.id, watched_at=watched_at))
             
     if new_logs:
         db.add_all(new_logs)
@@ -153,7 +155,7 @@ def mark_episode_unwatched(db: Session, user_id: int, episode_id: int) -> None:
     stmt = (
         select(UserEpisodeLog)
         .where(UserEpisodeLog.user_id == user_id, UserEpisodeLog.episode_id == episode_id)
-        .order_by(UserEpisodeLog.watched_at.desc())
+        .order_by(UserEpisodeLog.watched_at.desc().nullslast(), UserEpisodeLog.id.desc())
         .limit(1)
     )
     latest_log = db.execute(stmt).scalar_one_or_none()

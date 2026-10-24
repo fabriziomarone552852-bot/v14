@@ -8,6 +8,9 @@ Questo file contiene lo storico completo e strutturato di tutte le funzionalità
 
 | ID | Attività / Funzionalità | Ambito | Stato Backend | Stato Frontend | Data Completamento |
 | :--- | :--- | :---: | :---: | :---: | :---: |
+| **TRACKERS-022** | Calendario Visioni Serie TV (Web & Mobile, Fino a 4 Serie) & Compensazione Scroll Storico Diario Mobile | `trackers` / UI | 🟢 Completato | 🟢 Completato | Ottobre 2026 |
+| **TRACKERS-021** | Modalità Inserimento Storico Serie TV (Visioni pregresse senza alterare Binge & Statistiche) | `trackers` / fullstack | 🟢 Completato | 🟢 Completato | Ottobre 2026 |
+| **TRACKERS-020** | Timeline Serie TV Senza Uscite Future: Avviso in Cima, Ordine Inverso Passato & Modularità | `trackers` / mobile | 🟢 Supportato | 🟢 Completato | Ottobre 2026 |
 | **TECH-009** | Upload Automatico APK su Google Drive & Archiviazione Vecchie Versioni | `build` / deploy | 🟢 Completato | 🟢 Completato | Ottobre 2026 |
 | **FEAT-014** | Notifiche per Nuove Liste nei Gruppi Condivisi | `notifications` / social | 🟢 Completato | 🟢 Completato | Ottobre 2026 |
 | **AUTH-001** | Sistemazione Finestre e Messaggi di Errore al Login (Countdown 5s, Alert & Protezione Invii) | `auth` / UI | 🟢 Supportato | 🟢 Completato | Ottobre 2026 |
@@ -73,6 +76,21 @@ Questo file contiene lo storico completo e strutturato di tutte le funzionalità
 ---
 
 ## 📺 1. Media & Trackers (Serie TV)
+
+### [TRACKERS-020] Timeline Serie TV Senza Uscite Future: Avviso in Cima, Ordine Inverso Passato & Modularità (🟢 Completato)
+
+#### 📋 Descrizione & Obiettivo
+Risolto il comportamento dello scorrimento e della visualizzazione nella pagina Prossime Uscite su smartphone quando per le serie seguite non sono presenti episodi futuri:
+- **Banner Informativo in Cima**:
+  - Quando non ci sono puntate annunciate in programma, in cima alla lista compare un riquadro dedicato (*"Nessun'altra uscita futura annunciata per ora."* con sottotitolo esplicativo), eliminando qualsiasi scorrimento automatico verso il fondo.
+- **Ordinamento Cronologico Decrescente per lo Storico**:
+  - Subito sotto il banner viene mostrato l'ultimo episodio uscito (es. S2E8 di *Daredevil: Rinascita*); scorrendo verso il basso l'utente esplora comodamente a ritroso le puntate precedenti (S2E7, S2E6...), con caricamento progressivo degli episodi più remoti e azzeramento dello spazio bianco inferiore artificiale.
+- **Tasto Torna in Cima**:
+  - Quando l'utente scorre in basso nel passato, il tasto flottante permette con un tocco di risalire in cima.
+- **Refactoring Architetturale Strict**:
+  - Estratta tutta la gestione dello stato e dello scroll in un custom hook dedicato [`useMobileTVEpisodesTimeline.ts`](file:///c:/Users/Fabrizio/Desktop/app/smart/v14/frontend/src/mobile/hooks/useMobileTVEpisodesTimeline.ts), riducendo il componente JSX [`MobileTVEpisodesTimeline.tsx`](file:///c:/Users/Fabrizio/Desktop/app/smart/v14/frontend/src/mobile/components/trackers/MobileTVEpisodesTimeline.tsx) da oltre 500 a sole ~150 righe snelle e leggibili.
+
+---
 
 ### [TRACKERS-018] Controllo Esecuzione Ricerca TMDB Mobile (Bozza Locale `draftFilters`, Avvio Esplicito su Invio o Tasto) (🟢 Completato)
 
@@ -672,3 +690,60 @@ Configurazione delle variabili d'ambiente per le chiavi API TMDB sul server NAS 
    - Invocazione automatica alla fine di `build_all.ps1` e `build_apk.ps1`.
    - Aggiornamento di `.gitignore` per escludere `credentials.json` e `token.json`.
    - Redazione guida operativa in `docs/GOOGLE_DRIVE_SETUP.md`.
+
+---
+
+### [TRACKERS-021] Modalità Inserimento Storico Serie TV (🟢 Completato)
+
+#### 📋 Descrizione & Risoluzione
+1. **Problema Risolto & Casi d'Uso**:
+   - In precedenza, segnare episodi o stagioni di serie TV già viste in passato (es. anni o mesi prima) applicava il timestamp della data odierna (`watched_at = now()`), alterando e gonfiando falsamente i record di Binge Watching (episodi massimi visti in un giorno), i trend temporali e le abitudini di visione settimanali/mensili.
+   - Con la nuova **Modalità Inserimento Storico**, l'utente può attivare un'apposita modalità che permette di spuntare singoli episodi, intere stagioni o la serie completa registrandoli come visti nel passato senza timestamp (`watched_at = null`).
+   - Gli episodi contano comunque al 100% per il progresso di completamento serie, per le ore totali viste e per lo stato visto, ma vengono ignorati nei calcoli di Binge Watching, trend orari e timeline del Diario.
+2. **Architettura Database & Backend**:
+   - Migrazione Alembic difensiva ed idempotente `d5e6f7a8b9c0_make_watched_at_nullable_in_tv_user_episode_logs.py`: colonna `watched_at` resa `nullable=True` nella tabella `tv_user_episode_logs`. Applicata sia su database di test che di produzione NAS.
+   - Aggiornamento repository, service e router con parametro query `is_historic: bool = False` su `POST /episodes/{episode_id}/watched` e `POST /series/{tmdb_id}/watched-all`.
+   - Ordinamento SQL dei log integrato con `.nullslast()` per preservare la priorità cronologica dei log datati.
+3. **UI/UX Desktop (Web)**:
+   - Vicino alla chiusura 'X' dell'intestazione modale (`SeriesDetailHeader.tsx`), introdotto un pulsante rotondo con effetto glass a 3 puntini verticali (`MoreVertical`, `backdrop-blur-md bg-black/30 border border-white/10`).
+   - Il menu a comparsa racchiude l'opzione "Modalità Inserimento Storico" e l'azione "Abbandona / Riprendi Serie", con corretto z-index sopra banner e liste.
+   - Corretta la profondità dello stacking context (`z-20` sul contenitore contenuti) garantendo che la locandina con margine negativo `-mt-32` non venga tagliata dallo sfondo scuro della testata.
+   - Quando la modalità è attiva, in cima al tab Stagioni compare un banner persistente color ambra con spiegazione chiara e pulsante "Fine" per disattivarla rapidamente.
+4. **UI/UX Mobile**:
+   - Aggiunta dell'azione "Modalità Inserimento Storico" con icona `History` all'interno del modale opzioni serie (`MobileSeriesOptionsModal.tsx`), con stile unificato grigio neutro coerente con gli altri pulsanti.
+   - Quando attiva, in cima a `MobileSeriesSeasonsTab.tsx` compare il banner ambra informativo con tasto "Fine".
+   - **Integrazione Tasto Indietro Hardware (`useBackHandler`)**: la pressione del tasto Indietro dello smartphone chiude prima lo stato di modalità storico senza chiudere il modale di dettaglio serie.
+   - Aggiornamento liste recensioni e diario per gestire con eleganza le date storiche non definite (`Visto nel passato`).
+5. **Form Recensioni & Aggiornamento Ottimistico (0ms)**:
+   - In tutti i form recensione episodi e serie (web e mobile), aggiunto pulsante "X" per cancellare la data e salvare visioni senza datazione, con etichetta "Senza data".
+   - Aggiornamento ottimistico immediato a 0ms (`toggleEpisodeWatchedMutation`) con creazione istantanea del log recensione in memoria senza attendere la latenza di rete del server.
+
+---
+
+### [TRACKERS-022] Calendario Visioni Serie TV (Web & Mobile) & Compensazione Scroll Storico Diario Mobile (🟢 Completato)
+
+#### 📋 Descrizione & Risoluzione
+1. **Compensazione Scroll Storico Diario Mobile (0ms Shift)**:
+   - Risolto il difetto visivo in cui, segnando un episodio come visto nella homepage mobile delle Serie TV, la card compariva in alto nello storico spingendo verso il basso la sezione *"I prossimi da guardare"*.
+   - Ripristinato lo storico in posizione superiore prima dell'ancora.
+   - Implementato un algoritmo di compensazione pre-paint in `useLayoutEffect` con `overflowAnchor: 'none'`: calcolando la variazione esatta di altezza (`diff = anchorRef.offsetTop - previousOffsetTop`), il contenitore compensa istantaneamente la coordinata di scroll (`scrollContainer.scrollTop += diff`), ancorando visivamente *"I prossimi da guardare"* al pixel senza scatti né spostamenti visibili.
+2. **Calendario Visioni nelle Statistiche Serie TV (Web & Mobile)**:
+   - Sviluppato l'hook centralizzato `useSeriesWatchCalendar.ts` che raggruppa in memoria (RAM) tutte le puntate viste per data (`YYYY-MM-DD`), gestisce il mese visualizzato, la navigazione e calcola le metriche mensili.
+   - Componente riutilizzabile `DayCellPostersGrid.tsx` che supporta la suddivisione dinamica della cella fino a 4 serie:
+     - 1 serie: locandina a schermo intero.
+     - 2 serie: suddivisione a metà (2 colonne 50%/50%).
+     - 3 serie: 3 spicchi (colonna sinistra intera + 2 card sovrapposte a destra).
+     - 4+ serie: 4 quadranti 2x2 (con badge `+N` se superiori a 4).
+3. **Esperienza Web Desktop (`SeriesCalendarStatsView.tsx`)**:
+   - Nuova scheda tab "CALENDARIO" integrata in `SeriesStatsModal.tsx`.
+   - Header laterale in stile `CalendarHeader` / `CalendarColumn` dell'Agenda (`[ < ] Mese Anno [ > ]`) con supporto `DatePicker`.
+   - Griglia mensile compatta (`auto-rows-fr h-full flex-1 min-h-0`), priva di scrollbar verticali e con perfetto adattamento al contenitore senza sovrapposizione tra giorni.
+   - Modale pop-up di dettaglio giorno con elenco serie, stagioni, episodi e orari di visione.
+4. **Esperienza Mobile (`MobileSeriesStatsCalendarModal.tsx`)**:
+   - Accesso rapido tramite icona Calendario nell'header delle statistiche Serie TV (`MobileSeriesStatsModal.tsx`).
+   - Modale a schermo intero sovrapposto alle statistiche con pulsante di chiusura rapida "X" e gestione tasto fisico Indietro (`useBackHandler`).
+   - Header compatto in stile Agenda (`MobileAgendaPeriodHeader`) con indicatore mese/anno e icona di ripristino `UndoIcon` ("Oggi") attiva solo se si naviga fuori dal mese corrente.
+   - Navigazione mensile fluida tramite gesture di swipe verticale touch (swipe verso l'alto per il mese successivo, verso il basso per il mese precedente).
+   - Bottom Sheet touch-friendly al tap su qualsiasi giorno con visioni registrate.
+
+

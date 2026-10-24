@@ -112,11 +112,13 @@ export const MobileReviewDetailView: React.FC<MobileReviewDetailViewProps> = ({
                 </span>
                 <div className="flex items-center gap-1.5 flex-wrap">
                   <span className="text-[10px] text-gray-400 font-medium">
-                    {new Date(review.updated_at).toLocaleDateString('it-IT', {
-                      day: 'numeric',
-                      month: 'short',
-                      year: 'numeric',
-                    })}
+                    {review.updated_at
+                      ? new Date(review.updated_at).toLocaleDateString('it-IT', {
+                          day: 'numeric',
+                          month: 'short',
+                          year: 'numeric',
+                        })
+                      : 'Visto nel passato'}
                   </span>
                   {review.viewing_platform_name && (
                     <span className="text-[9px] font-bold text-slate-600 bg-slate-50 border border-slate-200/80 px-1.5 py-0.5 rounded-md leading-none">

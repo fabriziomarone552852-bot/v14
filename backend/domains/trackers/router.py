@@ -200,10 +200,11 @@ class EpisodeNotesUpdate(BaseModel):
 @router.post("/episodes/{episode_id}/watched", response_model=TVEpisodeResponse)
 def mark_episode_watched(
     episode_id: int,
+    is_historic: bool = False,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_app_user),
 ):
-    return service.toggle_episode_watched(db, current_user, episode_id, watched=True)
+    return service.toggle_episode_watched(db, current_user, episode_id, watched=True, is_historic=is_historic)
 
 
 @router.delete("/episodes/{episode_id}/watched", response_model=TVEpisodeResponse)
@@ -447,10 +448,11 @@ async def get_series_preview(
 @router.post("/series/{tmdb_id}/watched-all")
 def mark_all_episodes_watched_endpoint(
     tmdb_id: int,
+    is_historic: bool = False,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_app_user),
 ):
-    return service.mark_all_episodes_watched(db, current_user, tmdb_id)
+    return service.mark_all_episodes_watched(db, current_user, tmdb_id, is_historic=is_historic)
 
 
 

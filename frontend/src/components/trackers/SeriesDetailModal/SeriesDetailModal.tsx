@@ -1,5 +1,5 @@
 // src/components/trackers/SeriesDetailModal/SeriesDetailModal.tsx
-import React from 'react';
+import React, { useState } from 'react';
 import BaseModal from '@/components/shared/dialog/BaseModal';
 import {
   type TMDBEpisode,
@@ -52,6 +52,7 @@ export const SeriesDetailModal: React.FC<SeriesDetailModalProps> = ({
   onPlatformClick,
   zIndexClass,
 }) => {
+  const [isHistoricMode, setIsHistoricMode] = useState(false);
   const { updateSeries } = useTrackersMutations();
 
   const {
@@ -144,6 +145,11 @@ export const SeriesDetailModal: React.FC<SeriesDetailModalProps> = ({
           isAbandoned={isAbandoned}
           onAbandon={handleAbandon}
           onResume={handleResume}
+          isHistoricMode={isHistoricMode}
+          onToggleHistoricMode={() => {
+            setIsHistoricMode((prev) => !prev);
+            setActiveTab('seasons');
+          }}
           genres={genres}
           onGenreClick={onGenreClick}
           providersData={providersData}
@@ -164,7 +170,7 @@ export const SeriesDetailModal: React.FC<SeriesDetailModalProps> = ({
         />
 
         {/* CONTENUTO PRINCIPALE */}
-        <div className="flex-1 flex min-h-0 relative z-10">
+        <div className="flex-1 flex min-h-0 relative z-20">
           {/* COLONNA SINISTRA (Locandina, stato, menu schede) */}
           <SeriesDetailSidebar
             posterUrl={posterUrl}
@@ -200,6 +206,8 @@ export const SeriesDetailModal: React.FC<SeriesDetailModalProps> = ({
                 initialEpisode={internalEpisode}
                 initialReviewLogId={internalReviewLogId}
                 isLoading={false}
+                isHistoricMode={isHistoricMode}
+                onDisableHistoricMode={() => setIsHistoricMode(false)}
               />
             )}
             {activeTab === 'review' && (

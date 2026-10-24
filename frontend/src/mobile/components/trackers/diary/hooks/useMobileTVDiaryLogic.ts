@@ -78,6 +78,7 @@ export const useMobileTVDiaryLogic = (series: TVSeries[] | undefined) => {
       eps.forEach((ep) => {
         const logs = ep.logs || [];
         logs.forEach((log) => {
+          if (!log.watched_at) return;
           historyList.push({
             logId: log.id,
             series: s,
@@ -125,6 +126,7 @@ export const useMobileTVDiaryLogic = (series: TVSeries[] | undefined) => {
       let latestWatchedDate: Date | null = null;
       for (const ep of eps) {
         for (const log of ep.logs || []) {
+          if (!log.watched_at) continue;
           const logDate = new Date(log.watched_at);
           if (!latestWatchedDate || logDate.getTime() > latestWatchedDate.getTime()) {
             latestWatchedDate = logDate;

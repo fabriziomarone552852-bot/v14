@@ -233,10 +233,9 @@ class UserEpisodeLog(Base):
     review_visibility: Mapped[str] = mapped_column(String(50), nullable=False, default="friends_only")
     viewing_platform_id: Mapped[Optional[int]] = mapped_column(Integer, ForeignKey("tv_user_platforms.id", ondelete="SET NULL"), nullable=True)
     
-    watched_at: Mapped[datetime] = mapped_column(
+    watched_at: Mapped[Optional[datetime]] = mapped_column(
         DateTime(timezone=True),
-        nullable=False,
-        default=lambda: datetime.now(timezone.utc)
+        nullable=True,
     )
     
     # Relationships

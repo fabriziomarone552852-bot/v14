@@ -5,6 +5,7 @@ import { GeneralStatsView } from './SeriesStatsViews/GeneralStatsView';
 import { RatingsStatsView } from './SeriesStatsViews/RatingsStatsView';
 import { HabitsStatsView } from './SeriesStatsViews/HabitsStatsView';
 import { RewatchStatsView } from './SeriesStatsViews/RewatchStatsView';
+import { SeriesCalendarStatsView } from './SeriesStatsViews/SeriesCalendarStatsView';
 
 interface SeriesStatsModalProps {
   onClose: () => void;
@@ -12,7 +13,7 @@ interface SeriesStatsModalProps {
 
 const SeriesStatsModal: React.FC<SeriesStatsModalProps> = ({ onClose }) => {
   const { data: stats, isLoading, isError } = useFullSeriesStats();
-  const [activeTab, setActiveTab] = useState<'generale' | 'voti' | 'abitudini' | 'rewatch'>('generale');
+  const [activeTab, setActiveTab] = useState<'generale' | 'voti' | 'abitudini' | 'rewatch' | 'calendario'>('generale');
 
   if (isLoading) {
     return (
@@ -64,10 +65,10 @@ const SeriesStatsModal: React.FC<SeriesStatsModalProps> = ({ onClose }) => {
 
         {/* Tabs */}
         <div className="flex px-6 pt-4 gap-2 bg-white border-b border-slate-200 shrink-0 overflow-x-auto custom-scrollbar">
-          {['generale', 'voti', 'abitudini', 'rewatch'].map(tab => (
+          {(['generale', 'voti', 'abitudini', 'rewatch', 'calendario'] as const).map(tab => (
             <button
               key={tab}
-              onClick={() => setActiveTab(tab as 'generale' | 'voti' | 'abitudini' | 'rewatch')}
+              onClick={() => setActiveTab(tab)}
               className={`px-6 py-2.5 rounded-t-xl font-bold text-sm transition-colors uppercase tracking-wider whitespace-nowrap ${activeTab === tab ? 'bg-blue-500 text-white' : 'bg-slate-100 text-slate-500 hover:bg-slate-200'}`}
             >
               {tab}
@@ -81,6 +82,7 @@ const SeriesStatsModal: React.FC<SeriesStatsModalProps> = ({ onClose }) => {
           {activeTab === 'voti' && <RatingsStatsView stats={stats} />}
           {activeTab === 'abitudini' && <HabitsStatsView stats={stats} />}
           {activeTab === 'rewatch' && <RewatchStatsView stats={stats} />}
+          {activeTab === 'calendario' && <SeriesCalendarStatsView />}
         </div>
       </div>
     </div>

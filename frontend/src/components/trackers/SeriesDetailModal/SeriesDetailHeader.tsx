@@ -1,6 +1,5 @@
-// src/components/trackers/SeriesDetailModal/SeriesDetailHeader.tsx
-import React from 'react';
-import { Ban, RotateCcw } from 'lucide-react';
+import React, { useState } from 'react';
+import { Ban, RotateCcw, MoreVertical, History } from 'lucide-react';
 import type { MediaList, SeriesFriendDisplayItem } from '@/types/trackers';
 import type { TMDBProvidersResponse } from './hooks/useSeriesDetailModalLogic';
 import { SeriesDetailListsBar } from './SeriesDetailListsBar';
@@ -12,6 +11,8 @@ interface SeriesDetailHeaderProps {
   isAbandoned?: boolean;
   onAbandon?: () => void;
   onResume?: () => void;
+  isHistoricMode?: boolean;
+  onToggleHistoricMode?: () => void;
   genres: string[];
   onGenreClick?: (genre: string) => void;
   providersData?: TMDBProvidersResponse | null;
@@ -32,6 +33,8 @@ export const SeriesDetailHeader: React.FC<SeriesDetailHeaderProps> = ({
   isAbandoned = false,
   onAbandon,
   onResume,
+  isHistoricMode = false,
+  onToggleHistoricMode,
   genres,
   onGenreClick,
   providersData,
@@ -44,6 +47,7 @@ export const SeriesDetailHeader: React.FC<SeriesDetailHeaderProps> = ({
   onOpenListManager,
   onOpenListDrawer,
 }) => {
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
   return (
     <div className="relative h-48 shrink-0 bg-gray-900">
       <img
@@ -52,27 +56,97 @@ export const SeriesDetailHeader: React.FC<SeriesDetailHeaderProps> = ({
         className="w-full h-full object-cover opacity-50 blur-sm scale-105"
       />
 
-      {/* AZIONI IN ALTO A DESTRA: TASTO ABBANDONA / RIPRENDI E TASTO CHIUDI */}
-      <div className="absolute top-4 right-4 flex items-center gap-2.5 z-20">
+      {/* AZIONI IN ALTO A DESTRA: TASTO 3 PUNTINI (MENU OPZIONI GLASS) E TASTO CHIUDI */}
+      <div className="absolute top-4 right-4 flex items-center gap-2.5 z-40">
+        {/* Tasto 3 Puntini (Menu Opzioni) con effetto Glass */}
         {isUserTracked && (
-          <button
-            type="button"
-            onClick={isAbandoned ? onResume : onAbandon}
-            className="px-3.5 py-1.5 rounded-full text-xs font-bold backdrop-blur-md transition-all duration-200 cursor-pointer border border-white/20 bg-black/30 text-white shadow-lg flex items-center gap-1.5 active:scale-95 select-none hover:bg-red-600/80 hover:border-red-500"
-            title={isAbandoned ? 'Riprendi serie' : 'Abbandona serie'}
-          >
-            {isAbandoned ? (
+          <div className="relative">
+            <button
+              type="button"
+              onClick={() => setIsMenuOpen((prev) => !prev)}
+              className={`p-2 backdrop-blur-md rounded-full text-white transition-all cursor-pointer border shadow-lg flex items-center justify-center active:scale-95 ${
+                isMenuOpen || isHistoricMode
+                  ? 'bg-white/20 border-white/40 ring-2 ring-white/30'
+                  : 'bg-black/30 hover:bg-black/50 border-white/10'
+              }`}
+              title="Altre opzioni serie"
+              aria-label="Altre opzioni serie"
+            >
+              <MoreVertical className="w-5 h-5" />
+            </button>
+
+            {/* Dropdown Menu Glass */}
+            {isMenuOpen && (
               <>
-                <RotateCcw className="w-3.5 h-3.5 text-white" />
-                <span>Riprendi</span>
-              </>
-            ) : (
-              <>
-                <Ban className="w-3.5 h-3.5 text-white" />
-                <span>Abbandona</span>
+                {/* Backdrop invisibile per chiudere al click fuori */}
+                <div
+                  className="fixed inset-0 z-40"
+                  onClick={() => setIsMenuOpen(false)}
+                />
+                <div className="absolute right-0 mt-2 w-64 rounded-2xl bg-gray-900/90 backdrop-blur-xl border border-white/15 shadow-2xl p-1.5 z-50 flex flex-col gap-1 text-white animate-scaleUp origin-top-right">
+                  {/* Voce Modalità Inserimento Storico */}
+                  {onToggleHistoricMode && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        onToggleHistoricMode();
+                        setIsMenuOpen(false);
+                      }}
+                      className="w-full px-3 py-2.5 rounded-xl text-left text-xs font-bold flex items-center gap-2.5 hover:bg-white/15 transition-colors cursor-pointer text-gray-100"
+                    >
+                      <History className="w-4 h-4 text-amber-400 shrink-0" />
+                      <div className="flex flex-col">
+                        <span>{isHistoricMode ? 'Disattiva Inserimento Storico' : 'Modalità Inserimento Storico'}</span>
+                        <span className="text-[10px] font-normal text-gray-400">
+                          {isHistoricMode ? 'Torna a visione normale' : 'Segna visti nel passato senza alterare le statistiche'}
+                        </span>
+                      </div>
+                    </button>
+                  )}
+
+                  {/* Voce Abbandona / Riprendi serie */}
+                  {(onAbandon || onResume) && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (isAbandoned) {
+                          onResume?.();
+                        } else {
+                          onAbandon?.();
+                        }
+                        setIsMenuOpen(false);
+                      }}
+                      className={`w-full px-3 py-2.5 rounded-xl text-left text-xs font-bold flex items-center gap-2.5 hover:bg-white/15 transition-colors cursor-pointer ${
+                        isAbandoned ? 'text-blue-300' : 'text-red-300'
+                      }`}
+                    >
+                      {isAbandoned ? (
+                        <>
+                          <RotateCcw className="w-4 h-4 text-blue-400 shrink-0" />
+                          <div className="flex flex-col">
+                            <span>Riprendi Serie</span>
+                            <span className="text-[10px] font-normal text-gray-400">
+                              Ripristina tra le serie attive
+                            </span>
+                          </div>
+                        </>
+                      ) : (
+                        <>
+                          <Ban className="w-4 h-4 text-red-400 shrink-0" />
+                          <div className="flex flex-col">
+                            <span>Abbandona Serie</span>
+                            <span className="text-[10px] font-normal text-gray-400">
+                              Rimuove dai prossimi da vedere
+                            </span>
+                          </div>
+                        </>
+                      )}
+                    </button>
+                  )}
+                </div>
               </>
             )}
-          </button>
+          </div>
         )}
 
         {/* Tasto Chiudi */}
@@ -130,7 +204,7 @@ export const SeriesDetailHeader: React.FC<SeriesDetailHeaderProps> = ({
       </div>
 
       {/* AMICI E LISTE (In basso a destra) */}
-      <div className="absolute bottom-4 right-6 flex flex-col items-end gap-2 z-20 max-w-[calc(100%-340px)] justify-start">
+      <div className="absolute bottom-4 right-6 flex flex-col items-end gap-2 z-10 max-w-[calc(100%-340px)] justify-start">
         {(isFriendsLoading || friends.length > 0) && (
           <div className="flex items-center flex-row-reverse gap-1.5">
             {isFriendsLoading ? (

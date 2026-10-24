@@ -88,11 +88,13 @@ export const ReviewDetailCard: React.FC<ReviewDetailCardProps> = ({
               <div>
                 <div className="font-bold text-gray-900">{review.author_name}</div>
                 <div className="text-xs text-gray-500">
-                  {new Date(review.updated_at).toLocaleDateString('it-IT', {
-                    day: 'numeric',
-                    month: 'short',
-                    year: 'numeric',
-                  })}
+                  {review.updated_at
+                    ? new Date(review.updated_at).toLocaleDateString('it-IT', {
+                        day: 'numeric',
+                        month: 'short',
+                        year: 'numeric',
+                      })
+                    : 'Visto nel passato'}
                 </div>
               </div>
             </div>

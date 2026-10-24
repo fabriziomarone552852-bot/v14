@@ -5,3 +5,4 @@ export * from './MobileStatsRatingsSection';
 export * from './MobileStatsHabitsSection';
 export * from './MobileStatsRewatchSection';
 export * from './MobileStatsSectionHeader';
+export * from './MobileSeriesStatsCalendarModal';

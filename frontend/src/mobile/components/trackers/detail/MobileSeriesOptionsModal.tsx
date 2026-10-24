@@ -1,6 +1,6 @@
 import React, { useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { RotateCcw, Ban } from 'lucide-react';
+import { RotateCcw, Ban, History } from 'lucide-react';
 import { mediaService } from '@/api/mediaService';
 import { logger } from '@/utils/logger';
 import { PhotoIcon, LoadingIcon, CloseIcon, TrashIcon } from '@/components/shared/utils/Icons';
@@ -18,6 +18,8 @@ export interface MobileSeriesOptionsModalProps {
   isAbandoned?: boolean;
   onAbandonSeries?: () => void;
   onResumeSeries?: () => void;
+  isHistoricMode?: boolean;
+  onEnableHistoricMode?: () => void;
 }
 
 export const MobileSeriesOptionsModal: React.FC<MobileSeriesOptionsModalProps> = ({
@@ -31,6 +33,8 @@ export const MobileSeriesOptionsModal: React.FC<MobileSeriesOptionsModalProps> =
   isAbandoned = false,
   onAbandonSeries,
   onResumeSeries,
+  isHistoricMode = false,
+  onEnableHistoricMode,
 }) => {
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -114,6 +118,33 @@ export const MobileSeriesOptionsModal: React.FC<MobileSeriesOptionsModalProps> =
         </div>
 
         <div className="p-3 space-y-2">
+          {/* Opzione: Modalità Inserimento Storico */}
+          {isUserTracked && onEnableHistoricMode && (
+            <button
+              type="button"
+              disabled={isUploading}
+              onClick={() => {
+                onEnableHistoricMode();
+                onClose();
+              }}
+              className="w-full p-3.5 flex items-center gap-3.5 rounded-2xl bg-gray-50 hover:bg-blue-50/70 border border-gray-100 hover:border-blue-200 transition-all cursor-pointer active:scale-[0.98] text-left group"
+            >
+              <div className="w-10 h-10 rounded-xl bg-gray-100 text-gray-600 group-hover:bg-blue-100 group-hover:text-blue-600 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                <History className="w-5 h-5" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="font-bold text-gray-900 text-sm group-hover:text-blue-600 transition-colors">
+                  {isHistoricMode ? 'Disattiva Inserimento Storico' : 'Modalità Inserimento Storico'}
+                </p>
+                <p className="text-[11px] text-gray-500 font-medium">
+                  {isHistoricMode
+                    ? 'Torna alla modalità di visione quotidiana'
+                    : 'Segna serie o episodi già visti in passato senza alterare le statistiche'}
+                </p>
+              </div>
+            </button>
+          )}
+
           {/* Opzione: Interrompi Rewatch (visibile solo se isRewatching è attivo) */}
           {isRewatching && onStopRewatch && (
             <button

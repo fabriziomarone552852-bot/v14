@@ -56,25 +56,44 @@ export const EpisodeReviewForm: React.FC<EpisodeReviewFormProps> = ({
         </div>
 
         <div className="flex items-center gap-2">
-          <div className="relative">
-            <DatePicker
-              value={reviewDate}
-              onChange={setReviewDate}
-              isOpen={isDatePickerOpen}
-              onClose={() => setIsDatePickerOpen(false)}
-              onToggle={() => setIsDatePickerOpen(!isDatePickerOpen)}
-              usePortal={true}
-              customTrigger={
-                <div onClick={() => setIsDatePickerOpen(!isDatePickerOpen)} className="px-3 py-2 border border-gray-200 rounded-xl text-sm bg-white cursor-pointer flex justify-between items-center hover:border-blue-500 transition-colors shadow-sm select-none">
-                  <div className="flex items-center gap-2">
-                    <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                    </svg>
-                    <span className="text-gray-700 font-medium">{reviewDate ? new Date(reviewDate).toLocaleDateString('it-IT') : 'Oggi'}</span>
+          <div className="flex items-center gap-1.5">
+            <div className="relative">
+              <DatePicker
+                value={reviewDate}
+                onChange={setReviewDate}
+                isOpen={isDatePickerOpen}
+                onClose={() => setIsDatePickerOpen(false)}
+                onToggle={() => setIsDatePickerOpen(!isDatePickerOpen)}
+                usePortal={true}
+                customTrigger={
+                  <div
+                    onClick={() => setIsDatePickerOpen(!isDatePickerOpen)}
+                    className="px-3 py-2 border border-gray-200 rounded-xl text-sm bg-white cursor-pointer flex justify-between items-center hover:border-blue-500 transition-colors shadow-sm select-none gap-2"
+                  >
+                    <div className="flex items-center gap-2">
+                      <svg className="w-4 h-4 text-gray-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                      </svg>
+                      <span className={`text-sm ${reviewDate ? 'text-gray-700 font-medium' : 'text-gray-400 italic'}`}>
+                        {reviewDate ? new Date(reviewDate).toLocaleDateString('it-IT') : 'Senza data'}
+                      </span>
+                    </div>
                   </div>
-                </div>
-              }
-            />
+                }
+              />
+            </div>
+            {Boolean(reviewDate) && (
+              <button
+                type="button"
+                onClick={() => setReviewDate('')}
+                className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-colors cursor-pointer"
+                title="Rimuovi data"
+              >
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            )}
           </div>
 
           <div className="relative" style={{ width: '130px' }}>

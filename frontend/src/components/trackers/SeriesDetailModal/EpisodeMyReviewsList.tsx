@@ -25,9 +25,11 @@ export const EpisodeMyReviewsList: React.FC<EpisodeMyReviewsListProps> = ({
   onSelectReview,
   onDeleteReview,
 }) => {
-  const sortedLogs = [...logs].sort(
-    (a, b) => new Date(b.watched_at).getTime() - new Date(a.watched_at).getTime()
-  );
+  const sortedLogs = [...logs].sort((a, b) => {
+    const timeA = a.watched_at ? new Date(a.watched_at).getTime() : 0;
+    const timeB = b.watched_at ? new Date(b.watched_at).getTime() : 0;
+    return timeB - timeA;
+  });
 
   return (
     <div className="flex flex-col h-full animate-fadeIn">
@@ -100,11 +102,15 @@ const EpisodeReviewRow: React.FC<{
             )}
           </div>
           <div className="text-xs text-gray-500 font-medium flex items-center gap-1.5">
-            {new Date(log.watched_at).toLocaleDateString('it-IT', {
-              day: 'numeric',
-              month: 'short',
-              year: 'numeric',
-            })}
+            {log.watched_at ? (
+              new Date(log.watched_at).toLocaleDateString('it-IT', {
+                day: 'numeric',
+                month: 'short',
+                year: 'numeric',
+              })
+            ) : (
+              <span className="italic text-gray-400">Visto nel passato</span>
+            )}
             <div
               title={
                 log.review_visibility === 'private'

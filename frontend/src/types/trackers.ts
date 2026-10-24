@@ -27,15 +27,16 @@ export interface UserEpisodeLog {
   id: number;
   user_id: number;
   episode_id: number;
-  tmdb_id: number;
-  season_number: number;
-  episode_number: number;
-  watched_at: string;
-  notes?: string;
+  tmdb_id?: number;
+  season_number?: number;
+  episode_number?: number;
+  watched_at?: string | null;
+  notes?: string | null;
   review_visibility?: string;
-  rating?: number;
+  rating?: number | null;
   viewing_platform_name?: string | null;
   comments?: ReviewComment[];
+  created_at?: string;
 }
 
 export interface SeriesCastMember {
@@ -91,7 +92,7 @@ export interface UserSeriesLog {
   rating?: number | null;
   notes?: string | null;
   review_visibility: string;
-  watched_at: string;
+  watched_at?: string | null;
   updated_at?: string | null;
   comments: ReviewComment[];
 }
@@ -183,7 +184,7 @@ export interface FriendEpisodeLog {
   friend_avatar?: string | null;
   notes?: string | null;
   review_visibility: string;
-  watched_at: string;
+  watched_at?: string | null;
   viewing_platform_name?: string | null;
   comments: ReviewComment[];
 }
@@ -344,9 +345,9 @@ export interface MarkAllWatchedResponse {
 
 export interface SeriesLogMutationPayload {
   rating?: number | null;
-  notes?: string;
+  notes?: string | null;
   review_visibility?: string;
-  watched_at?: string;
+  watched_at?: string | null;
 }
 
 export type AnyReviewLog = UserSeriesLog | UserEpisodeLog | FriendSeriesLog | FriendEpisodeLog;
@@ -358,7 +359,7 @@ export interface UnifiedReviewData<TLog extends AnyReviewLog = AnyReviewLog> {
   author_avatar?: string | null;
   rating: number;
   notes: string;
-  updated_at: string;
+  updated_at?: string | null;
   review_visibility?: 'private' | 'friends_only' | 'public' | string;
   viewing_platform_name?: string | null;
   comments: ReviewComment[];

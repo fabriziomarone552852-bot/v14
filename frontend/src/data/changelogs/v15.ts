@@ -3,12 +3,39 @@ import type { ChangelogItem } from './types';
 
 export const CHANGELOG_V15: ChangelogItem[] = [
   {
+    id: 'v15.1.6',
+    version: '15.1.6',
+    date: 'Ottobre 2026',
+    title: 'Modalità Storico Serie TV, Calendario Visioni & Diario Mobile',
+    isLatest: true,
+    published: false,
+    highlights: [
+      'Nuova Vista Calendario Visioni (Web & Mobile): Aggiunta nelle statistiche Serie TV una vista calendario completa con locandine TMDB divise dinamicamente fino a 4 serie per giorno (a metà, a 3 spicchi o a 4 quadranti) e stile compatto con icona di ripristino su mobile.',
+      'Ancoraggio e Compensazione Storico Diario Mobile: Lo storico risiede in alto e, quando si segna un episodio come visto, la variazione di altezza viene compensata istantaneamente a 0ms prima del rendering visivo, mantenendo "I prossimi da guardare" perfettamente fermi senza spostamenti verso il basso.',
+      'Modalità Inserimento Storico Serie TV: Possibilità di segnare episodi, intere stagioni o la serie completa come già visti in passato (con data vuota) senza alterare il Binge Watching, i record giornalieri o le statistiche recenti.',
+    ],
+    features: [
+      'Calendario Visioni nelle Statistiche (Desktop & Mobile): Header con mese e frecce laterali in stile CalendarHeader dell\'Agenda; griglia mensile fluida e compatta senza scrollbar né sovrapposizioni, con suddivisione intelligente delle locandine fino a 4 serie (a metà, a 3 spicchi o a 4 quadranti) e dialog di dettaglio.',
+      'Menu Opzioni Glass & Gestione Mobile: Introdotto su desktop un pulsante glass con menu a comparsa a 3 puntini per le opzioni serie con corretta profondità z-index. Su smartphone, pulsante unificato nello stile standard e banner persistente per lo storico con chiusura rapida.',
+      'Visioni Senza Data nei Form Recensione: Aggiunto pulsante rapido per cancellare la data ("X") nei form recensione episodi e serie (web e mobile), permettendo di salvare visioni senza data esplicita con etichetta "Senza data".',
+    ],
+    improvements: [
+      'Stabilità Assoluta Diario Mobile (Scroll Compensator): Algoritmo pre-paint di compensazione scroll con overflow-anchor disabilitato, garantendo che le card segnate entrino nello storico sopra senza alterare la posizione della viewport.',
+      'Aggiornamento Ottimistico Recensioni Episodi (0ms): La registrazione di un episodio crea o rimuove all\'istante il relativo log nella scheda recensioni senza attendere il ciclo di rete del server.',
+      'Refactoring Modulare Timeline Mobile: Estratto il custom hook useMobileTVEpisodesTimeline snellendo il componente visivo (<170 righe) ed eliminando il padding vuoto inferiore.',
+    ],
+    fixes: [
+      'Risolto il posizionamento errato dello scroll su smartphone nella sezione Prossime Uscite quando tutte le puntate delle serie seguite sono già uscite nel passato.',
+      'Corretto il livello di sovrapposizione del menu a 3 puntini e ripristinata la piena visibilità della locandina serie nel modale desktop.',
+    ],
+  },
+  {
     id: 'v15.1.5',
     version: '15.1.5',
     date: 'Ottobre 2026',
     title: 'Upload Automatico APK su Google Drive & Archiviazione Versioni (TECH-009)',
-    isLatest: true,
-    published: false,
+    isLatest: false,
+    published: true,
     highlights: [
       'Upload Automatico APK su Google Drive (TECH-009): Integrato caricamento automatico della nuova release APK al termine dei comandi di build (`build_all.ps1` e `build_apk.ps1`), eliminando qualsiasi passaggio manuale.',
       'Archiviazione Storica Versioni: Spostamento istantaneo di tutte le versioni APK precedenti nella sottocartella "old versions/" di Google Drive, lasciando visibile nella radice solo l\'ultima versione numerata.',

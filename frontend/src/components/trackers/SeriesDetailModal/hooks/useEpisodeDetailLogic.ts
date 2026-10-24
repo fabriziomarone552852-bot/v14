@@ -251,7 +251,7 @@ export const useEpisodeDetailLogic = ({
           notes: review,
           review_visibility: visibility,
           viewing_platform_name: platform || null,
-          watched_at: reviewDate,
+          watched_at: reviewDate || null,
         },
       });
     } else {
@@ -262,7 +262,7 @@ export const useEpisodeDetailLogic = ({
           notes: review,
           review_visibility: visibility,
           viewing_platform_name: platform || null,
-          watched_at: reviewDate,
+          watched_at: reviewDate || null,
         },
       });
     }
