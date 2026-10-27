@@ -39,3 +39,4 @@ class InteractionResponse(ORMBaseModel):
     context_title: Optional[str] = None
     series_tmdb_id: Optional[int] = None
     episode_id: Optional[int] = None
+    movie_tmdb_id: Optional[int] = None

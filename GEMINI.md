@@ -6,7 +6,7 @@ Fare sempre riferimento a:
 
 ### Regola Rapida di Versioning & Multi-Chat
 1. Controlla lo stato in `frontend/src/data/changelogs/v<MAJOR>.ts` (e aggregato in `frontend/src/data/changelogData.ts`, rileggi SEMPRE su disco, mai fidarsi della memoria chat):
-   - Se `published: false`: non cambiare versione in `package.json`, unisci semplicemente le tue novità alla voce draft in cima al file della major corrente (`v<MAJOR>.ts`).
+   - Se `published: false`: accumula le novità nella bozza in cima. Se le nuove modifiche cambiano la natura dell'aggiornamento (es. da soli bug fix a nuove funzionalità o sottosezioni), **promuovi la bozza corrente** al livello SemVer corretto (es. da PATCH `15.1.6` a MINOR `15.2.0`) aggiornando `package.json` e changelog.
    - Se `published: true`: incrementa `"version": "X.Y.Z"` in `frontend/package.json` seguendo le regole SemVer:
      - **PATCH**: fix bug, ritocchi UI.
      - **MINOR**: nuove funzioni in sezioni esistenti.

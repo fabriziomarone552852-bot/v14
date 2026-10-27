@@ -4,6 +4,7 @@ import type { TVSeries, TMDBSeriesSearchResult } from '@/types/trackers';
 import { LoadingIcon } from '@/components/shared/utils/Icons';
 import { EmptyState } from '@/components/shared/utils/EmptyState';
 import { MobileTVSeriesHorizontalCard } from './MobileTVSeriesHorizontalCard';
+import { LoadMoreButton } from '@/components/trackers/shared/LoadMoreButton';
 
 export interface MobileTVSeriesSearchResultsProps {
   isSearching: boolean;
@@ -13,6 +14,9 @@ export interface MobileTVSeriesSearchResultsProps {
   onAddClick: (tmdbId: number, e: React.MouseEvent) => void;
   onToggleTrack?: (tmdbId: number, isTracked: boolean, e: React.MouseEvent) => void;
   emptyMessage?: string;
+  hasMoreResults?: boolean;
+  isFetchingMore?: boolean;
+  onFetchMore?: () => void;
 }
 
 export const MobileTVSeriesSearchResults: React.FC<MobileTVSeriesSearchResultsProps> = ({
@@ -23,6 +27,9 @@ export const MobileTVSeriesSearchResults: React.FC<MobileTVSeriesSearchResultsPr
   onAddClick,
   onToggleTrack,
   emptyMessage = 'Nessuna serie trovata su TMDB con questi criteri.',
+  hasMoreResults = false,
+  isFetchingMore = false,
+  onFetchMore,
 }) => {
   return (
     <div className="space-y-3 pb-6 animate-fadeIn">
@@ -53,6 +60,14 @@ export const MobileTVSeriesSearchResults: React.FC<MobileTVSeriesSearchResultsPr
               />
             );
           })}
+          {onFetchMore && (
+            <LoadMoreButton
+              hasMore={Boolean(hasMoreResults)}
+              isLoading={Boolean(isFetchingMore)}
+              onLoadMore={onFetchMore}
+              size="sm"
+            />
+          )}
         </div>
       )}
     </div>

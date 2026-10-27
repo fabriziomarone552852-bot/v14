@@ -1,10 +1,11 @@
 import React from 'react';
+import { resolveImageUrl } from '@/utils/imageUtils';
 
-interface GlassCardWidgetProps {
+export interface GlassCardWidgetProps {
   label: string;
   title: string;
-  subtitle: string;
-  posterPath: string | null;
+  subtitle?: string | null;
+  posterPath?: string | null;
   onClick?: () => void;
 }
 
@@ -13,10 +14,14 @@ export const GlassCardWidget: React.FC<GlassCardWidgetProps> = ({
   title,
   subtitle,
   posterPath,
-  onClick
+  onClick,
 }) => {
-  const imageUrl = posterPath 
-    ? (posterPath.startsWith('http') ? posterPath : `https://image.tmdb.org/t/p/w300${posterPath}`)
+  const imageUrl = posterPath
+    ? posterPath.startsWith('http') || posterPath.startsWith('data:')
+      ? posterPath
+      : posterPath.startsWith('/uploads')
+      ? resolveImageUrl(posterPath)
+      : `https://image.tmdb.org/t/p/w300${posterPath}`
     : null;
 
   return (

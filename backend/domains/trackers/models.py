@@ -12,9 +12,9 @@ from sqlalchemy import (
     Float,
     ForeignKey,
     Integer,
-    Float,
     String,
     Text,
+    UniqueConstraint,
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -349,6 +349,13 @@ class MediaListItem(Base):
         nullable=True,
         index=True,
     )
+    movie_tmdb_id: Mapped[Optional[int]] = mapped_column(
+        Integer,
+        ForeignKey("tmdb_movies.tmdb_id", ondelete="CASCADE"),
+        nullable=True,
+        index=True,
+    )
+    media_type: Mapped[str] = mapped_column(String(20), default="tv", server_default="tv", nullable=False)
 
     sort_order: Mapped[int] = mapped_column(Integer, default=0)
 
@@ -360,9 +367,10 @@ class MediaListItem(Base):
 
     media_list: Mapped["MediaList"] = relationship("MediaList", back_populates="items")
     series: Mapped[Optional["TMDBSeries"]] = relationship("TMDBSeries")
+    movie: Mapped[Optional["TMDBMovie"]] = relationship("TMDBMovie")
 
     def __repr__(self) -> str:
-        return f"<MediaListItem id={self.id} list_id={self.list_id} series_id={self.series_tmdb_id}>"
+        return f"<MediaListItem id={self.id} list_id={self.list_id} type={self.media_type} series={self.series_tmdb_id} movie={self.movie_tmdb_id}>"
 
 
 from datetime import timedelta
@@ -435,3 +443,209 @@ class SeriesMatchParticipant(Base):
 
     def __repr__(self) -> str:
         return f"<SeriesMatchParticipant id={self.id} session={self.session_id} user={self.user_id} status={self.status}>"
+
+
+# ==========================================
+# 🎬 DOMINIO FILM (MOVIE TRACKER)
+# ==========================================
+
+class TMDBMovie(Base):
+    """Global TMDB catalog data for a Movie (Shared across all users)."""
+
+    __tablename__ = "tmdb_movies"
+
+    tmdb_id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=False)
+
+    title: Mapped[str] = mapped_column(String(255), nullable=False)
+    original_title: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
+    overview: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+
+    poster_path: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
+    backdrop_path: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
+
+    genres: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
+    runtime: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
+
+    release_date: Mapped[Optional[date]] = mapped_column(Date, nullable=True)
+    italy_release_date: Mapped[Optional[date]] = mapped_column(Date, nullable=True)
+    vote_average: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
+
+    # Saga / Collezione TMDB
+    collection_id: Mapped[Optional[int]] = mapped_column(Integer, nullable=True, index=True)
+    collection_name: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
+    collection_poster_path: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
+    collection_backdrop_path: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
+
+    last_sync_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        nullable=False,
+        default=lambda: datetime.now(timezone.utc),
+    )
+
+    user_trackings: Mapped[List["UserMovieTracking"]] = relationship(
+        "UserMovieTracking",
+        back_populates="tmdb_movie",
+        cascade="all, delete-orphan",
+    )
+    logs: Mapped[List["UserMovieLog"]] = relationship(
+        "UserMovieLog",
+        back_populates="tmdb_movie",
+        cascade="all, delete-orphan",
+    )
+    quotes: Mapped[List["MovieQuote"]] = relationship(
+        "MovieQuote",
+        back_populates="tmdb_movie",
+        cascade="all, delete-orphan",
+    )
+
+    def __repr__(self) -> str:
+        return f"<TMDBMovie tmdb_id={self.tmdb_id} title={self.title!r}>"
+
+
+class UserMovieTracking(Base):
+    """User-specific tracking data for a Movie."""
+
+    __tablename__ = "user_movie_tracking"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+
+    user_id: Mapped[int] = mapped_column(
+        Integer,
+        ForeignKey("users.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    movie_tmdb_id: Mapped[int] = mapped_column(
+        Integer,
+        ForeignKey("tmdb_movies.tmdb_id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+
+    # User's personal status: 'to_watch', 'watched'
+    status: Mapped[str] = mapped_column(String(50), nullable=False, default="to_watch", index=True)
+
+    custom_poster_path: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
+    custom_backdrop_path: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
+
+    is_rewatching: Mapped[bool] = mapped_column(Boolean, default=False, server_default="0", nullable=False)
+
+    obtained_at: Mapped[Optional[datetime]] = mapped_column(
+        DateTime(timezone=True),
+        nullable=True,
+    )
+
+    added_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        nullable=False,
+        default=lambda: datetime.now(timezone.utc),
+    )
+    updated_at: Mapped[Optional[datetime]] = mapped_column(
+        DateTime(timezone=True),
+        nullable=True,
+        onupdate=lambda: datetime.now(timezone.utc),
+    )
+
+    user: Mapped["User"] = relationship("User")
+    tmdb_movie: Mapped["TMDBMovie"] = relationship("TMDBMovie", back_populates="user_trackings")
+
+    __table_args__ = (
+        UniqueConstraint("user_id", "movie_tmdb_id", name="ux_user_movie_tracking"),
+    )
+
+    def __repr__(self) -> str:
+        return f"<UserMovieTracking id={self.id} user={self.user_id} movie={self.movie_tmdb_id} status={self.status}>"
+
+
+class UserMovieLog(Base):
+    """
+    User viewing logs and reviews for specific movies (Diary pattern).
+    Each row represents a specific viewing session (including rewatches).
+    """
+
+    __tablename__ = "movie_user_logs"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True, index=True)
+    user_id: Mapped[int] = mapped_column(
+        Integer,
+        ForeignKey("users.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    movie_tmdb_id: Mapped[int] = mapped_column(
+        Integer,
+        ForeignKey("tmdb_movies.tmdb_id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+
+    rating: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
+    notes: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+
+    review_visibility: Mapped[str] = mapped_column(String(50), nullable=False, default="friends_only")
+    viewing_platform_id: Mapped[Optional[int]] = mapped_column(
+        Integer, ForeignKey("tv_user_platforms.id", ondelete="SET NULL"), nullable=True
+    )
+
+    watched_at: Mapped[Optional[datetime]] = mapped_column(
+        DateTime(timezone=True),
+        nullable=True,
+    )
+
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        nullable=False,
+        default=lambda: datetime.now(timezone.utc),
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        nullable=False,
+        default=lambda: datetime.now(timezone.utc),
+        onupdate=lambda: datetime.now(timezone.utc),
+    )
+
+    user: Mapped["User"] = relationship("User")
+    tmdb_movie: Mapped["TMDBMovie"] = relationship("TMDBMovie", back_populates="logs")
+    viewing_platform: Mapped[Optional["UserTVPlatform"]] = relationship("UserTVPlatform")
+
+    def __repr__(self) -> str:
+        return f"<UserMovieLog id={self.id} user={self.user_id} movie={self.movie_tmdb_id}>"
+
+
+class MovieQuote(Base):
+    """Quotes from Movies saved by the user."""
+
+    __tablename__ = "tracker_movie_quotes"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    user_id: Mapped[int] = mapped_column(
+        Integer,
+        ForeignKey("users.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    movie_tmdb_id: Mapped[int] = mapped_column(
+        Integer,
+        ForeignKey("tmdb_movies.tmdb_id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+
+    quote_text: Mapped[str] = mapped_column(Text, nullable=False)
+
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        nullable=False,
+        default=lambda: datetime.now(timezone.utc),
+    )
+    updated_at: Mapped[Optional[datetime]] = mapped_column(
+        DateTime(timezone=True),
+        nullable=True,
+        onupdate=lambda: datetime.now(timezone.utc),
+    )
+
+    user: Mapped["User"] = relationship("User")
+    tmdb_movie: Mapped["TMDBMovie"] = relationship("TMDBMovie", back_populates="quotes")
+
+    def __repr__(self) -> str:
+        return f"<MovieQuote id={self.id} user_id={self.user_id} movie_id={self.movie_tmdb_id}>"

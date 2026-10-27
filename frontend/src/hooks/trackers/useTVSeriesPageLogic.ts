@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useQueryClient, useQuery, useMutation } from '@tanstack/react-query';
 import { api } from '@/api/apiService';
@@ -9,7 +9,8 @@ import {
   useSeriesStats,
   useMyQuotes,
   useMediaLists,
-  useTMDBDiscover,
+  useInfiniteSearchTMDBSeries,
+  useInfiniteDiscoverTMDBSeries,
 } from '@/hooks/queries/useTrackersQueries';
 import { type TVSeries, type TMDBEpisode, type TMDBPaginatedSearch, type SeriesDetailTarget, extractSeriesTmdbId } from '@/types/trackers';
 import type { TabType } from '@/components/trackers/SeriesDetailModal';
@@ -137,19 +138,56 @@ export const useTVSeriesPageLogic = () => {
     return () => clearTimeout(timer);
   }, [searchQuery]);
 
-  const { data: searchResults, isLoading: isSearchLoading } = useQuery({
-    queryKey: ['tmdb', 'search', debouncedQuery],
-    queryFn: async () => {
-      if (!debouncedQuery.trim()) return null;
-      const data = await api.get<TMDBPaginatedSearch>('/trackers/series/search', {
-        params: { query: debouncedQuery, page: 1 },
-      });
-      return data;
-    },
-    enabled: !!debouncedQuery.trim(),
-  });
+  const searchInfinite = useInfiniteSearchTMDBSeries(debouncedQuery, !!debouncedQuery.trim());
+  const discoverInfinite = useInfiniteDiscoverTMDBSeries(filters, Boolean(filters.globalSearch));
 
-  const { data: discoverData, isLoading: isDiscoverLoading } = useTMDBDiscover(filters);
+  const isSearchLoading = searchInfinite.isLoading;
+  const isDiscoverLoading = discoverInfinite.isLoading;
+
+  const searchResults: TMDBPaginatedSearch | null = useMemo(() => {
+    if (!searchInfinite.data?.pages?.length) return null;
+    const allResults = searchInfinite.data.pages.flatMap((p) => p.results || []);
+    const lastPage = searchInfinite.data.pages[searchInfinite.data.pages.length - 1];
+    return {
+      page: lastPage?.page || 1,
+      total_pages: lastPage?.total_pages || 1,
+      total_results: lastPage?.total_results || allResults.length,
+      results: allResults,
+    };
+  }, [searchInfinite.data]);
+
+  const discoverData: TMDBPaginatedSearch | null = useMemo(() => {
+    if (!discoverInfinite.data?.pages?.length) return null;
+    const allResults = discoverInfinite.data.pages.flatMap((p) => p.results || []);
+    const lastPage = discoverInfinite.data.pages[discoverInfinite.data.pages.length - 1];
+    return {
+      page: lastPage?.page || 1,
+      total_pages: lastPage?.total_pages || 1,
+      total_results: lastPage?.total_results || allResults.length,
+      results: allResults,
+    };
+  }, [discoverInfinite.data]);
+
+  const isSearching = Boolean(debouncedQuery.trim());
+  const hasMoreResults = isSearching
+    ? Boolean(searchInfinite.hasNextPage)
+    : Boolean(discoverInfinite.hasNextPage);
+  const isFetchingMore = isSearching
+    ? searchInfinite.isFetchingNextPage
+    : discoverInfinite.isFetchingNextPage;
+
+  const fetchMoreResults = useCallback(() => {
+    if (isSearching) {
+      if (searchInfinite.hasNextPage && !searchInfinite.isFetchingNextPage) {
+        searchInfinite.fetchNextPage();
+      }
+    } else {
+      if (discoverInfinite.hasNextPage && !discoverInfinite.isFetchingNextPage) {
+        discoverInfinite.fetchNextPage();
+      }
+    }
+  }, [isSearching, searchInfinite, discoverInfinite]);
+
 
   const removeSeriesMutation = useMutation({
     mutationFn: async (tmdbId: number) => {
@@ -313,5 +351,8 @@ export const useTVSeriesPageLogic = () => {
     handleToggleTrack,
     handleGenreClick,
     handlePlatformClick,
+    hasMoreResults,
+    isFetchingMore,
+    fetchMoreResults,
   };
 };

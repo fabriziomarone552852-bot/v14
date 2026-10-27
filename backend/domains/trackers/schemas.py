@@ -247,8 +247,18 @@ class TMDBSeriesSimpleResponse(ORMBaseModel):
     first_air_date: Optional[date] = None
     genres: Optional[str] = None
 
+class TMDBMovieSimpleResponse(ORMBaseModel):
+    tmdb_id: int
+    title: str
+    poster_path: Optional[str] = None
+    backdrop_path: Optional[str] = None
+    release_date: Optional[date] = None
+    genres: Optional[str] = None
+
 class MediaListItemCreate(BaseModel):
     series_tmdb_id: Optional[int] = None
+    movie_tmdb_id: Optional[int] = None
+    media_type: Optional[str] = "tv"
     sort_order: Optional[int] = 0
 
 class MediaListItemUpdate(BaseModel):
@@ -258,9 +268,12 @@ class MediaListItemResponse(ORMBaseModel):
     id: int
     list_id: int
     series_tmdb_id: Optional[int] = None
+    movie_tmdb_id: Optional[int] = None
+    media_type: str = "tv"
     sort_order: int
     added_at: datetime
     series: Optional[TMDBSeriesSimpleResponse] = None
+    movie: Optional[TMDBMovieSimpleResponse] = None
 
 class MediaListResponse(ORMBaseModel):
     id: int

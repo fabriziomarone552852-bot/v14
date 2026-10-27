@@ -46,6 +46,15 @@ def _hydrate_interaction(db: Session, int_obj: Interaction) -> schemas.Interacti
                     int_dict["context_title"] = f"S{ep.season_number}E{ep.episode_number} di {series.title}"
                     int_dict["series_tmdb_id"] = series.tmdb_id
                     int_dict["episode_id"] = log.episode_id
+
+    elif int_obj.interaction_type in ["MOVIE_REVIEW_COMMENT", "MOVIE_REVIEW_COMMENT_THREAD", "MOVIE_REVIEW_MENTION"]:
+        from backend.domains.trackers.models import UserMovieLog, TMDBMovie
+        log = db.query(UserMovieLog).filter(UserMovieLog.id == int_obj.reference_id).first()
+        if log:
+            movie = db.query(TMDBMovie).filter(TMDBMovie.tmdb_id == log.movie_tmdb_id).first()
+            if movie:
+                int_dict["context_title"] = movie.title
+                int_dict["movie_tmdb_id"] = movie.tmdb_id
                     
     elif int_obj.interaction_type == "SHOPPING_GROUP_NEW_LIST":
         from backend.domains.shopping.models.lists import ShoppingList
@@ -82,7 +91,7 @@ def create_interaction(
     )
     result = repo.add(db, interaction)
 
-    if payload.interaction_type in ["SERIES_REVIEW_COMMENT", "EPISODE_REVIEW_COMMENT"]:
+    if payload.interaction_type in ["SERIES_REVIEW_COMMENT", "EPISODE_REVIEW_COMMENT", "MOVIE_REVIEW_COMMENT"]:
         import re
         # Extract @username mentions
         mentioned_usernames = re.findall(r'@([\w.-]+)', payload.content)

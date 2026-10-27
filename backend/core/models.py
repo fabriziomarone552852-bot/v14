@@ -31,8 +31,6 @@ def import_all_models() -> None:
     import backend.domains.yearly_entries.models  # noqa: F401
     import backend.domains.social.models  # noqa: F401
 
-    ensure_database_schema_compat()
-
 
 def ensure_database_schema_compat() -> None:
     """Esegue controlli di compatibilità schema idempotenti all'avvio."""

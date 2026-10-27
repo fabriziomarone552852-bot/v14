@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect, useCallback } from 'react';
+import { useState, useMemo, useEffect, useCallback, useRef } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import type {
   TMDBSeries,
@@ -7,12 +7,14 @@ import type {
   UserSeriesLog,
   UnifiedReviewData,
   SeriesQuote,
+  ReviewComment,
 } from '@/types/trackers';
 import { useTrackersMutations } from '@/hooks/mutations/useTrackersMutations';
 import { useFriendsSeriesReviews } from '@/hooks/queries/useTrackersQueries';
 import { useNotifications } from '@/hooks/useNotifications';
 import { useAuth } from '@/context/AuthContext';
 import { useCommentMentions } from '../shared/useCommentMentions';
+import { showTrackerToast } from '@/components/trackers/TrackerToast';
 
 export type SeriesReviewViewState =
   | 'main'
@@ -145,6 +147,20 @@ export const useSeriesReviewTabLogic = ({
     }
   }, [friendsLogsData, logs, selectedReview, view]);
 
+  // Resetta il draft del commento quando si esce dalla recensione o si passa a un'altra recensione
+  const prevReviewIdRef = useRef<string | number | null>(null);
+  useEffect(() => {
+    if (view !== 'review_detail') {
+      commentMentions.resetComment();
+      prevReviewIdRef.current = null;
+    } else if (selectedReview) {
+      if (prevReviewIdRef.current !== null && prevReviewIdRef.current !== selectedReview.id) {
+        commentMentions.resetComment();
+      }
+      prevReviewIdRef.current = selectedReview.id;
+    }
+  }, [view, selectedReview?.id, commentMentions]);
+
   // Form state
   const [editingLogId, setEditingLogId] = useState<number | null>(null);
   const [rating, setRating] = useState<number>(0);
@@ -274,17 +290,64 @@ export const useSeriesReviewTabLogic = ({
     tmdbSeries.tmdb_id,
   ]);
 
-  const handleSendComment = useCallback(async () => {
-    if (!commentMentions.commentText.trim() || !selectedReview) return;
-    await createInteraction.mutateAsync({
-      interaction_type: 'SERIES_REVIEW_COMMENT',
-      recipient_id: Number(selectedReview.author_id),
-      reference_id: Number(selectedReview.id),
-      content: commentMentions.commentText.trim(),
-    });
+  // Invio Commento Recensione con Aggiornamento Ottimistico (0ms Latency)
+  const handleSendComment = useCallback(() => {
+    const textToSend = commentMentions.commentText.trim();
+    if (!textToSend || !selectedReview) return;
+
+    const tempId = `temp-${Date.now()}`;
+    const newComment: ReviewComment = {
+      id: tempId,
+      author_id: String(user?.id || ''),
+      author_name: user?.username || 'Tu',
+      author_avatar: user?.profile_picture_url || undefined,
+      text: textToSend,
+      created_at: new Date().toISOString(),
+    };
+
+    // 1. Resetta immediatamente il campo di input
     commentMentions.resetComment();
-    queryClient.invalidateQueries({ queryKey: ['trackers'] });
-  }, [commentMentions, createInteraction, queryClient, selectedReview]);
+
+    // 2. Aggiornamento ottimistico istantaneo dello stato locale
+    setSelectedReview((prev) =>
+      prev ? { ...prev, comments: [...(prev.comments || []), newComment] } : null
+    );
+
+    // 3. Mutazione asincrona in background con rollback in onError
+    createInteraction.mutate(
+      {
+        interaction_type: 'SERIES_REVIEW_COMMENT',
+        recipient_id: Number(selectedReview.author_id),
+        reference_id: Number(selectedReview.id),
+        content: textToSend,
+      },
+      {
+        onError: () => {
+          showTrackerToast('Impossibile inviare il commento. Riprova.', 'warning');
+          setSelectedReview((prev) =>
+            prev
+              ? {
+                  ...prev,
+                  comments: (prev.comments || []).filter((c) => c.id !== tempId),
+                }
+              : null
+          );
+          queryClient.invalidateQueries({ queryKey: ['trackers'] });
+        },
+        onSettled: () => {
+          queryClient.invalidateQueries({ queryKey: ['trackers'] });
+        },
+      }
+    );
+  }, [
+    commentMentions,
+    createInteraction,
+    queryClient,
+    selectedReview,
+    user?.id,
+    user?.profile_picture_url,
+    user?.username,
+  ]);
 
   return {
     view,

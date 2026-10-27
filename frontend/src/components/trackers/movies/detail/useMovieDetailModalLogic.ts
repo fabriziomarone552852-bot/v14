@@ -1,0 +1,1 @@
+export * from './useMovieDetailModalLogic.tsx';

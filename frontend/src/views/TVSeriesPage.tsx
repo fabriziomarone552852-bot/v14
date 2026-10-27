@@ -64,6 +64,9 @@ const TVSeriesPage: React.FC = () => {
     handleToggleTrack,
     handleGenreClick,
     handlePlatformClick,
+    hasMoreResults,
+    isFetchingMore,
+    fetchMoreResults,
   } = useTVSeriesPageLogic();
 
   if (isLoading) {
@@ -116,6 +119,9 @@ const TVSeriesPage: React.FC = () => {
           handleAdd={handleAdd}
           displaySeries={displaySeries}
           openSeriesDetail={openSeriesDetail}
+          hasMoreResults={hasMoreResults}
+          isFetchingMore={isFetchingMore}
+          fetchMoreResults={fetchMoreResults}
         />
 
         {/* SIDEBAR (4 Colonne) */}

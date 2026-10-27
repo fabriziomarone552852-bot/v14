@@ -50,6 +50,14 @@ def _compute_boot_status(db: Session) -> BootStatus:
     return "READY"
 
 
+_cached_ready = False
+
+
+def reset_boot_status_cache() -> None:
+    global _cached_ready
+    _cached_ready = False
+
+
 def _is_public_boot_path(path: str) -> bool:
     return (
         path in BOOT_PUBLIC_PATHS
@@ -60,9 +68,13 @@ def _is_public_boot_path(path: str) -> bool:
 
 
 async def system_boot_guard(request: Request, call_next):
+    global _cached_ready
     path = request.url.path
 
     if _is_public_boot_path(path):
+        return await call_next(request)
+
+    if _cached_ready:
         return await call_next(request)
 
     db = SessionLocal()
@@ -80,6 +92,7 @@ async def system_boot_guard(request: Request, call_next):
             },
         )
 
+    _cached_ready = True
     return await call_next(request)
 
 

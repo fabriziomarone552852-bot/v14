@@ -14,9 +14,13 @@ L'assistente deve controllare la prima voce in cima alla major corrente in `fron
 > ⚠️ **Controllo Live su Disco Obbligatorio**: Prima di modificare `package.json` o il file del changelog, l'assistente deve **rileggere TASSATIVAMENTE il file reale su disco** (`view_file`). Non fidarsi MAI della memoria pregressa della conversazione, poiché l'utente potrebbe aver eseguito uno script di build o deploy (`deploy_build_pc.ps1` o `build_apk.ps1`) che ha marcato la versione come pubblicata (`published: true`).
 
 1. **Se `published: false` (Versione ancora in sviluppo / non ancora rilasciata)**:
-   - **NON creare un nuovo numero di versione** e **NON modificare `package.json`**.
-   - **Unisci/aggiungi** semplicemente i nuovi punti salienti (`highlights`, `features`, `improvements`, `fixes`) all'interno della voce draft esistente in cima a `frontend/src/data/changelogs/v<MAJOR>.ts`.
-   - Questo permette a **più chat o sessioni contemporanee** di accumulare modifiche nella stessa versione senza frammentare i numeri.
+   - **Di norma NON creare un nuovo blocco di versione**: unisci/aggiungi semplicemente i nuovi punti salienti (`highlights`, `features`, `improvements`, `fixes`) all'interno della voce draft esistente in cima a `frontend/src/data/changelogs/v<MAJOR>.ts`. Questo permette a più chat o sessioni contemporanee di accumulare modifiche nella stessa versione senza frammentare i numeri.
+   - 🌟 **Regola di Promozione della Bozza (Upgrade di Livello)**:
+     L'assistente deve valutare attentamente se le novità introdotte nella sessione corrente richiedono un livello SemVer superiore rispetto a quello attuale della bozza:
+     - **Da PATCH a MINOR**: se la bozza corrente era nata come Patch (es. `15.1.6`) ma vengono aggiunte nuove funzionalità, nuove viste secondarie o sottosezioni rilevanti (es. il modulo Film nei Tracker), l'assistente **DEVE PROMUOVERE** la bozza a MINOR (es. `15.2.0`), aggiornando `"version"` in `package.json` e `id`/`version` nella bozza del changelog.
+     - **Da PATCH/MINOR a MAJOR**: se vengono introdotte intere macro-sezioni portanti o grandi riscritture architetturali, l'assistente promuove la bozza a MAJOR (es. `16.0.0`).
+     - **Stabilità una volta promossa**: una volta che la bozza ha raggiunto il livello corretto (es. `15.2.0`), successive chat o interventi che aggiungono altre funzionalità manterranno quel numero (rimane `15.2.0`) senza ulteriori incrementi fino alla pubblicazione effettiva (`published: true`).
+
 
 2. **Se `published: true` (L'ultima versione è già stata rilasciata/pubblicata)**:
    - Determina l'incremento di versione (`MAJOR.MINOR.PATCH`):

@@ -37,6 +37,7 @@ from backend.domains.shopping.router import router as shopping_router
 from backend.domains.sync.router import router as sync_router
 from backend.domains.tasks.router import router as tasks_router
 from backend.domains.trackers.router import router as trackers_router
+from backend.domains.trackers.movie_router import router as movies_router
 from backend.domains.users.router import router as users_router
 from backend.domains.social.router import router as social_router
 
@@ -129,6 +130,7 @@ app.include_router(notifications_router)
 app.include_router(media_router)
 app.include_router(feedback_router)
 app.include_router(trackers_router)
+app.include_router(movies_router)
 app.include_router(social_router)
 
 from fastapi import Request

@@ -1,3 +1,5 @@
+import type { UserMovieLog, FriendMovieLog } from './movies';
+
 export interface TMDBEpisode {
   id: number;
   series_tmdb_id: number;
@@ -110,6 +112,7 @@ export interface UserSeriesTracking {
   notes?: string;
   review_visibility?: string;
   custom_poster_path?: string | null;
+  next_episode_to_watch?: TVEpisode | null;
 }
 
 export interface TVEpisode {
@@ -233,13 +236,25 @@ export interface TMDBSeriesSimple {
   status?: string;
 }
 
+export interface TMDBMovieSimple {
+  tmdb_id: number;
+  title: string;
+  poster_path?: string | null;
+  backdrop_path?: string | null;
+  release_date?: string | null;
+  genres?: string | null;
+}
+
 export interface MediaListItem {
   id: number;
   list_id: number;
   series_tmdb_id?: number | null;
+  movie_tmdb_id?: number | null;
+  media_type: 'tv' | 'movie';
   sort_order: number;
   added_at: string;
   series?: TMDBSeriesSimple | null;
+  movie?: TMDBMovieSimple | null;
 }
 
 export interface MediaList {
@@ -350,7 +365,13 @@ export interface SeriesLogMutationPayload {
   watched_at?: string | null;
 }
 
-export type AnyReviewLog = UserSeriesLog | UserEpisodeLog | FriendSeriesLog | FriendEpisodeLog;
+export type AnyReviewLog =
+  | UserSeriesLog
+  | UserEpisodeLog
+  | FriendSeriesLog
+  | FriendEpisodeLog
+  | UserMovieLog
+  | FriendMovieLog;
 
 export interface UnifiedReviewData<TLog extends AnyReviewLog = AnyReviewLog> {
   id: string | number;

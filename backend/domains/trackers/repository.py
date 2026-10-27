@@ -350,7 +350,10 @@ def get_media_lists(db: Session, user_id: int) -> Sequence[MediaList]:
     stmt = (
         select(MediaList)
         .where(MediaList.user_id == user_id)
-        .options(selectinload(MediaList.items).selectinload(MediaListItem.series))
+        .options(
+            selectinload(MediaList.items).selectinload(MediaListItem.series),
+            selectinload(MediaList.items).selectinload(MediaListItem.movie),
+        )
         .order_by(MediaList.created_at.desc())
     )
     return db.execute(stmt).scalars().all()
@@ -359,7 +362,10 @@ def get_media_list(db: Session, list_id: int, user_id: int) -> Optional[MediaLis
     stmt = (
         select(MediaList)
         .where(MediaList.id == list_id, MediaList.user_id == user_id)
-        .options(selectinload(MediaList.items).selectinload(MediaListItem.series))
+        .options(
+            selectinload(MediaList.items).selectinload(MediaListItem.series),
+            selectinload(MediaList.items).selectinload(MediaListItem.movie),
+        )
     )
     return db.execute(stmt).scalar_one_or_none()
 

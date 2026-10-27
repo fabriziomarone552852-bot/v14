@@ -85,9 +85,6 @@ export const SeriesDetailModal: React.FC<SeriesDetailModalProps> = ({
     genres,
     providersData,
     listsWithSeries,
-    StatusIcon,
-    statusColor,
-    statusText,
     SERIES_FRIENDS,
     isFriendsLoading,
     getStatusBorderColor,
@@ -176,15 +173,13 @@ export const SeriesDetailModal: React.FC<SeriesDetailModalProps> = ({
             posterUrl={posterUrl}
             title={title}
             userTracking={userTracking}
+            tmdbStatus={tmdbSeries?.tmdb_status}
             isPressing={isPressing}
             handleMouseDown={handleMouseDown}
             handleMouseUp={handleMouseUp}
             handleTouchStart={handleTouchStart}
             handleTouchEnd={handleTouchEnd}
             handleClickTrack={handleClickTrack}
-            statusColor={statusColor}
-            statusText={statusText}
-            StatusIcon={StatusIcon}
             activeTab={activeTab}
             onTabChange={setActiveTab}
             onOpenImageModal={() => setIsImageModalOpen(true)}

@@ -1,22 +1,20 @@
-// src/components/trackers/SeriesDetailModal/SeriesDetailSidebar.tsx
 import React from 'react';
 import type { UserSeriesTracking } from '@/types/trackers';
 import type { TabType } from './hooks/useSeriesDetailModalLogic';
-import { showTrackerToast } from '@/components/trackers/TrackerToast';
+import { getMediaStatusConfig } from '@/utils/mediaStatusTheme';
+import { MediaPosterFolderTab } from '@/components/trackers/shared/MediaPosterFolderTab';
 
 interface SeriesDetailSidebarProps {
   posterUrl: string;
   title: string;
   userTracking: UserSeriesTracking | null;
+  tmdbStatus?: string | null;
   isPressing: boolean;
   handleMouseDown: (e: React.PointerEvent) => void;
   handleMouseUp: () => void;
   handleTouchStart: (e: React.TouchEvent) => void;
   handleTouchEnd: () => void;
   handleClickTrack: () => void;
-  statusColor: string;
-  statusText: string;
-  StatusIcon: React.ReactNode;
   activeTab: TabType;
   onTabChange: (tab: TabType) => void;
   onOpenImageModal: () => void;
@@ -26,31 +24,29 @@ export const SeriesDetailSidebar: React.FC<SeriesDetailSidebarProps> = ({
   posterUrl,
   title,
   userTracking,
+  tmdbStatus,
   isPressing,
   handleMouseDown,
   handleMouseUp,
   handleTouchStart,
   handleTouchEnd,
   handleClickTrack,
-  statusColor,
-  statusText,
-  StatusIcon,
   activeTab,
   onTabChange,
   onOpenImageModal,
 }) => {
+  const statusConfig = getMediaStatusConfig(
+    userTracking?.status,
+    tmdbStatus
+  );
+  const borderClass = statusConfig.id === 'untracked' ? 'border-white' : statusConfig.borderColor;
+
   return (
     <div className="w-1/3 min-w-[250px] max-w-[300px] p-6 flex flex-col gap-6 relative z-20">
       {/* LOCANDINA / POSTER */}
       <div
-        className="group/poster -mt-32 w-full aspect-[2/3] rounded-xl overflow-hidden shadow-2xl border-4 border-white bg-gray-200 shrink-0 relative z-30 cursor-pointer"
-        onClick={() => {
-          if (userTracking) {
-            onOpenImageModal();
-          } else {
-            showTrackerToast('Aggiungi prima la serie alla tua libreria per personalizzare la locandina', 'warning');
-          }
-        }}
+        className={`group/poster -mt-32 w-full aspect-[2/3] rounded-xl overflow-hidden shadow-2xl border-4 ${borderClass} bg-gray-200 shrink-0 relative z-30 cursor-pointer`}
+        onClick={onOpenImageModal}
       >
         <img src={posterUrl} alt={title} className="w-full h-full object-cover" />
 
@@ -68,6 +64,13 @@ export const SeriesDetailSidebar: React.FC<SeriesDetailSidebarProps> = ({
           </div>
           <span className="text-white text-xs font-bold uppercase tracking-wider drop-shadow-md">Cambia</span>
         </div>
+
+        {/* Linguetta Stato in basso a sinistra stile portadocumenti visibile in hover */}
+        <MediaPosterFolderTab
+          status={userTracking?.status}
+          externalStatus={tmdbStatus}
+          mediaType="series"
+        />
 
         {/* Tasto Aggiungi / Segna tutti */}
         <div className="absolute top-2 right-2 z-40">
@@ -108,18 +111,6 @@ export const SeriesDetailSidebar: React.FC<SeriesDetailSidebarProps> = ({
               </svg>
             )}
           </button>
-        </div>
-
-        {/* Tasto Stato */}
-        <div className="absolute bottom-2 right-2 z-40 group/status">
-          <div
-            className={`w-8 h-8 rounded-full flex items-center justify-center text-white shadow-md border-2 border-white ${statusColor}`}
-          >
-            {StatusIcon}
-          </div>
-          <div className="absolute bottom-full mb-2 right-0 bg-gray-900 text-white text-xs font-bold px-2 py-1 rounded opacity-0 group-hover/status:opacity-100 transition-opacity whitespace-nowrap pointer-events-none shadow-lg">
-            {statusText}
-          </div>
         </div>
       </div>
 

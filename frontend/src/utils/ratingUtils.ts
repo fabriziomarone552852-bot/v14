@@ -69,6 +69,7 @@ export interface BaseFriendReviewInput {
   friend_name: string;
   friend_avatar?: string | null;
   rating?: number | null;
+  notes?: string | null;
 }
 
 export interface AggregatedFriendReviewer {
@@ -82,14 +83,14 @@ export interface AggregatedFriendReviewer {
 /**
  * Raggruppa i log delle recensioni degli amici per friend_id, calcola
  * la media in scala 1-5 e applica l'arrotondamento ai quarti/mezzi di stella (DRY).
- * Utilizzato uniformemente da SeriesReviewTab e EpisodeDetailView.
+ * Utilizzato uniformemente da SeriesReviewTab, EpisodeDetailView e MovieReviewTab.
  */
 export const aggregateFriendsReviews = <T extends BaseFriendReviewInput>(
   logs: T[]
 ): AggregatedFriendReviewer[] => {
   const userMap: Record<
     string,
-    { id: string | number; name: string; avatar?: string | null; ratings: number[] }
+    { id: string | number; name: string; avatar?: string | null; ratings: number[]; hasReviewText: boolean }
   > = {};
 
   logs.forEach((log) => {
@@ -100,10 +101,14 @@ export const aggregateFriendsReviews = <T extends BaseFriendReviewInput>(
         name: log.friend_name,
         avatar: log.friend_avatar,
         ratings: [],
+        hasReviewText: false,
       };
     }
-    if (typeof log.rating === 'number') {
+    if (typeof log.rating === 'number' && log.rating > 0) {
       userMap[fId].ratings.push(log.rating / 2);
+    }
+    if (log.notes && log.notes.trim().length > 0) {
+      userMap[fId].hasReviewText = true;
     }
   });
 
@@ -117,7 +122,13 @@ export const aggregateFriendsReviews = <T extends BaseFriendReviewInput>(
         if (fractional >= 0.25 && fractional <= 0.75) roundedAvg += 0.5;
         else if (fractional > 0.75) roundedAvg += 1.0;
       }
-      return { ...u, average: roundedAvg };
+      return {
+        id: u.id,
+        name: u.name,
+        avatar: u.avatar,
+        ratings: u.ratings,
+        average: roundedAvg,
+      };
     })
-    .filter((u) => u.average !== null);
+    .filter((u) => u.average !== null || u.ratings.length > 0 || userMap[String(u.id)]?.hasReviewText);
 };

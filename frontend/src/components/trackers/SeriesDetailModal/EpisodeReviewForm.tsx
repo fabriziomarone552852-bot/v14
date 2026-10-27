@@ -193,7 +193,7 @@ export const EpisodeReviewForm: React.FC<EpisodeReviewFormProps> = ({
       </div>
 
       <div className="flex items-center justify-between pt-4 border-t border-gray-100 shrink-0">
-        <StarRating value={rating} onChange={setRating} hideNumber />
+        <StarRating value={rating} onChange={setRating} hideNumber size="xl" />
         <button onClick={onSave} className="px-8 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-md transition-colors">
           Salva
         </button>

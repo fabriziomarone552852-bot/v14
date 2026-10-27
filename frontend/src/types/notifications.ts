@@ -17,6 +17,7 @@ export interface NotificationResponse {
   context_title?: string | null;
   series_tmdb_id?: number | null;
   episode_id?: number | null;
+  movie_tmdb_id?: number | null;
 }
 
 export interface NotificationCreate {

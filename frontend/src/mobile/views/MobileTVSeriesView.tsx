@@ -64,6 +64,9 @@ export const MobileTVSeriesView: React.FC = () => {
     setIsFilterModalOpen,
     myLists,
     handleToggleTrack,
+    hasMoreResults,
+    isFetchingMore,
+    fetchMoreResults,
   } = useTVSeriesPageLogic();
 
   const { data: tmdbGenres = [] } = useTMDBGenres();
@@ -410,6 +413,9 @@ export const MobileTVSeriesView: React.FC = () => {
         }}
         onAddClick={handleAdd}
         onToggleTrack={(tmdbId, isTracked) => handleToggleTrack(tmdbId, isTracked)}
+        hasMoreResults={hasMoreResults}
+        isFetchingMore={isFetchingMore}
+        onFetchMore={fetchMoreResults}
       />
 
       {/* 5. MODALE CATALOGO COMPLETO */}

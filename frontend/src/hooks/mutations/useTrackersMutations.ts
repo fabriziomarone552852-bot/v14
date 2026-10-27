@@ -4,6 +4,7 @@ import { api } from '@/api/apiService';
 import type {
   TVSeries,
   TMDBSeries,
+  TMDBEpisode,
   SeriesQuote,
   UserEpisodeLog,
   MediaList,
@@ -289,10 +290,29 @@ export const useTrackersMutations = () => {
       episode_id: number;
       payload: { rating?: number | null; notes?: string; review_visibility?: string; watched_at?: string | null; viewing_platform_name?: string | null };
     }) => {
-      const data = await api.post<UserEpisodeLog>(`/trackers/episodes/${episode_id}/logs`, payload);
+      const data = await api.post<TMDBEpisode>(`/trackers/episodes/${episode_id}/logs`, payload);
       return data;
     },
-    onSuccess: () => {
+    onSuccess: (updatedEp) => {
+      if (updatedEp && updatedEp.id) {
+        queryClient.setQueriesData<TMDBSeries>({ queryKey: ['trackers', 'series', 'detail'] }, (old) => {
+          if (!old || !old.episodes) return old;
+          return {
+            ...old,
+            episodes: old.episodes.map((ep) => (ep.id === updatedEp.id ? { ...ep, ...updatedEp } : ep)),
+          };
+        });
+        queryClient.setQueriesData<TVSeries[]>({ queryKey: ['trackers', 'series'] }, (old) => {
+          if (!Array.isArray(old)) return old;
+          return old.map((s) => {
+            if (!s.episodes || !s.episodes.some((ep) => ep.id === updatedEp.id)) return s;
+            return {
+              ...s,
+              episodes: s.episodes.map((ep) => (ep.id === updatedEp.id ? { ...ep, ...updatedEp } : ep)),
+            };
+          });
+        });
+      }
       queryClient.invalidateQueries({ queryKey: ['trackers', 'series'] });
       queryClient.invalidateQueries({ queryKey: ['trackers', 'series', 'detail'] });
     },
@@ -306,10 +326,29 @@ export const useTrackersMutations = () => {
       log_id: number;
       payload: { rating?: number | null; notes?: string; review_visibility?: string; watched_at?: string | null; viewing_platform_name?: string | null };
     }) => {
-      const data = await api.patch<UserEpisodeLog>(`/trackers/episodes/logs/${log_id}`, payload);
+      const data = await api.patch<TMDBEpisode>(`/trackers/episodes/logs/${log_id}`, payload);
       return data;
     },
-    onSuccess: () => {
+    onSuccess: (updatedEp) => {
+      if (updatedEp && updatedEp.id) {
+        queryClient.setQueriesData<TMDBSeries>({ queryKey: ['trackers', 'series', 'detail'] }, (old) => {
+          if (!old || !old.episodes) return old;
+          return {
+            ...old,
+            episodes: old.episodes.map((ep) => (ep.id === updatedEp.id ? { ...ep, ...updatedEp } : ep)),
+          };
+        });
+        queryClient.setQueriesData<TVSeries[]>({ queryKey: ['trackers', 'series'] }, (old) => {
+          if (!Array.isArray(old)) return old;
+          return old.map((s) => {
+            if (!s.episodes || !s.episodes.some((ep) => ep.id === updatedEp.id)) return s;
+            return {
+              ...s,
+              episodes: s.episodes.map((ep) => (ep.id === updatedEp.id ? { ...ep, ...updatedEp } : ep)),
+            };
+          });
+        });
+      }
       queryClient.invalidateQueries({ queryKey: ['trackers', 'series'] });
       queryClient.invalidateQueries({ queryKey: ['trackers', 'series', 'detail'] });
     },
@@ -317,10 +356,30 @@ export const useTrackersMutations = () => {
 
   const deleteEpisodeLogMutation = useMutation({
     mutationFn: async (log_id: number) => {
-      const data = await api.delete<GenericSuccessResponse | void>(`/trackers/episodes/logs/${log_id}`);
+      const data = await api.delete<TMDBEpisode | GenericSuccessResponse | void>(`/trackers/episodes/logs/${log_id}`);
       return data;
     },
-    onSuccess: () => {
+    onSuccess: (response) => {
+      if (response && typeof response === 'object' && 'id' in response && 'logs' in response) {
+        const updatedEp = response as TMDBEpisode;
+        queryClient.setQueriesData<TMDBSeries>({ queryKey: ['trackers', 'series', 'detail'] }, (old) => {
+          if (!old || !old.episodes) return old;
+          return {
+            ...old,
+            episodes: old.episodes.map((ep) => (ep.id === updatedEp.id ? { ...ep, ...updatedEp } : ep)),
+          };
+        });
+        queryClient.setQueriesData<TVSeries[]>({ queryKey: ['trackers', 'series'] }, (old) => {
+          if (!Array.isArray(old)) return old;
+          return old.map((s) => {
+            if (!s.episodes || !s.episodes.some((ep) => ep.id === updatedEp.id)) return s;
+            return {
+              ...s,
+              episodes: s.episodes.map((ep) => (ep.id === updatedEp.id ? { ...ep, ...updatedEp } : ep)),
+            };
+          });
+        });
+      }
       queryClient.invalidateQueries({ queryKey: ['trackers', 'series'] });
       queryClient.invalidateQueries({ queryKey: ['trackers', 'series', 'detail'] });
     },
@@ -471,7 +530,17 @@ export const useTrackersMutations = () => {
   });
 
   const addToListMutation = useMutation({
-    mutationFn: async ({ list_id, payload }: { list_id: number; payload: { series_tmdb_id: number } }) => {
+    mutationFn: async ({
+      list_id,
+      payload,
+    }: {
+      list_id: number;
+      payload: {
+        series_tmdb_id?: number;
+        movie_tmdb_id?: number;
+        media_type?: 'tv' | 'movie';
+      };
+    }) => {
       const data = await api.post<MediaListItem>(`/trackers/lists/${list_id}/items`, payload);
       return data;
     },

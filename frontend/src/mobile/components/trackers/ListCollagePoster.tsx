@@ -2,13 +2,19 @@
 import React, { useMemo } from 'react';
 import { resolveImageUrl } from '@/utils/imageUtils';
 import type { MediaList, TVSeries } from '@/types/trackers';
+import type { Movie } from '@/types/movies';
 
 export interface ListCollagePosterProps {
   list: MediaList;
-  series: TVSeries[] | undefined;
+  series?: TVSeries[];
+  movies?: Movie[];
 }
 
-export const getListRecentPosters = (list: MediaList, seriesList: TVSeries[] | undefined): string[] => {
+export const getListRecentPosters = (
+  list: MediaList,
+  seriesList?: TVSeries[],
+  moviesList?: Movie[]
+): string[] => {
   if (!list.items || list.items.length === 0) return [];
 
   const sorted = [...list.items].sort(
@@ -16,16 +22,30 @@ export const getListRecentPosters = (list: MediaList, seriesList: TVSeries[] | u
   );
 
   const posters: string[] = [];
-  const seenIds = new Set<number>();
+  const seenIds = new Set<string>();
 
   for (const item of sorted) {
-    if (item.series_tmdb_id && seenIds.has(item.series_tmdb_id)) continue;
-    if (item.series_tmdb_id) seenIds.add(item.series_tmdb_id);
+    const isMovie = item.media_type === 'movie' || Boolean(item.movie_tmdb_id);
+    const mediaKey = isMovie ? `movie-${item.movie_tmdb_id}` : `tv-${item.series_tmdb_id}`;
 
-    const matched = seriesList?.find((s) => s.tmdb_id === item.series_tmdb_id);
-    const rawPoster = matched?.custom_poster_path
-      ? resolveImageUrl(matched.custom_poster_path)
-      : item.series?.poster_path || matched?.poster_path;
+    if (seenIds.has(mediaKey)) continue;
+    seenIds.add(mediaKey);
+
+    let rawPoster: string | null | undefined = null;
+
+    if (isMovie && item.movie_tmdb_id) {
+      const matchedMovie = moviesList?.find((m) => m.tmdb_id === item.movie_tmdb_id);
+      rawPoster = matchedMovie?.custom_poster_path
+        ? resolveImageUrl(matchedMovie.custom_poster_path)
+        : matchedMovie?.poster_path || item.movie?.poster_path;
+    } else if (item.series_tmdb_id) {
+      const matchedSeries = seriesList?.find((s) => s.tmdb_id === item.series_tmdb_id);
+      rawPoster = matchedSeries?.custom_poster_path
+        ? resolveImageUrl(matchedSeries.custom_poster_path)
+        : matchedSeries?.poster_path || item.series?.poster_path;
+    } else {
+      rawPoster = item.movie?.poster_path || item.series?.poster_path;
+    }
 
     if (rawPoster) {
       const poster = rawPoster.startsWith('http') || rawPoster.startsWith('data:')
@@ -42,8 +62,9 @@ export const getListRecentPosters = (list: MediaList, seriesList: TVSeries[] | u
   return posters;
 };
 
-export const ListCollagePoster: React.FC<ListCollagePosterProps> = ({ list, series }) => {
-  const posters = useMemo(() => getListRecentPosters(list, series), [list, series]);
+export const ListCollagePoster: React.FC<ListCollagePosterProps> = ({ list, series, movies }) => {
+  const posters = useMemo(() => getListRecentPosters(list, series, movies), [list, series, movies]);
+
 
   return (
     <div

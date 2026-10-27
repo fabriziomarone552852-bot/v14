@@ -178,7 +178,7 @@ export const EpisodeMainOverview: React.FC<EpisodeMainOverviewProps> = ({
                 className="flex items-center"
                 title={`Media basata su ${logs.filter((l) => typeof l.rating === 'number').length} voti`}
               >
-                <StarRating value={myAverage} hideNumber readonly iconClassName="w-7 h-7" />
+                <StarRating value={myAverage} hideNumber readonly iconClassName="w-6 h-6" />
               </div>
             </div>
           ) : (

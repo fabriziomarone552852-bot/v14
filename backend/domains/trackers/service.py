@@ -977,7 +977,7 @@ def get_dashboard_stats(db: Session, current_user: User) -> TVDashboardStats:
         last_completed_series=stats["last_completed"]
     )
 
-from backend.domains.trackers.schemas import MediaListCreate, MediaListUpdate, MediaListResponse, MediaListItemCreate, MediaListItemResponse, MediaListItemUpdate, TMDBSeriesSimpleResponse
+from backend.domains.trackers.schemas import MediaListCreate, MediaListUpdate, MediaListResponse, MediaListItemCreate, MediaListItemResponse, MediaListItemUpdate, TMDBSeriesSimpleResponse, TMDBMovieSimpleResponse
 from backend.domains.trackers.models import MediaList, MediaListItem
 
 def get_user_media_lists(db: Session, current_user: User) -> List[MediaListResponse]:
@@ -1024,21 +1024,38 @@ async def add_item_to_media_list(db: Session, current_user: User, list_id: int, 
     if not lst:
         raise HTTPException(status_code=404, detail="Lista non trovata")
 
-    # If adding a TMDB series, ensure it exists in our local catalog
-    if payload.series_tmdb_id:
+    media_type = payload.media_type or ("movie" if payload.movie_tmdb_id else "tv")
+
+    # Se aggiungiamo una Serie TV, assicurati che esista nel catalogo locale
+    if payload.series_tmdb_id and media_type == "tv":
         series = repository.get_tmdb_series(db, payload.series_tmdb_id)
         if not series:
             await sync_tmdb_series_lazy(db, payload.series_tmdb_id)
 
-        # Avoid duplicate entries of the same series in the list
-        existing = next((x for x in lst.items if x.series_tmdb_id == payload.series_tmdb_id), None)
+        # Evita duplicati della stessa serie nella lista
+        existing = next((x for x in lst.items if x.series_tmdb_id == payload.series_tmdb_id and x.media_type == "tv"), None)
+        if existing:
+            return _build_media_list_item_response(existing)
+
+    # Se aggiungiamo un Film, assicurati che esista nel catalogo locale
+    if payload.movie_tmdb_id and media_type == "movie":
+        from backend.domains.trackers.movie_service import sync_tmdb_movie_metadata
+        from backend.domains.trackers.movie_repository import get_tmdb_movie
+        movie = get_tmdb_movie(db, payload.movie_tmdb_id)
+        if not movie:
+            await sync_tmdb_movie_metadata(db, payload.movie_tmdb_id)
+
+        # Evita duplicati dello stesso film nella lista
+        existing = next((x for x in lst.items if x.movie_tmdb_id == payload.movie_tmdb_id and x.media_type == "movie"), None)
         if existing:
             return _build_media_list_item_response(existing)
 
     item = MediaListItem(
         list_id=list_id,
-        series_tmdb_id=payload.series_tmdb_id,
-        sort_order=payload.sort_order
+        series_tmdb_id=payload.series_tmdb_id if media_type == "tv" else None,
+        movie_tmdb_id=payload.movie_tmdb_id if media_type == "movie" else None,
+        media_type=media_type,
+        sort_order=payload.sort_order or 0,
     )
     item = repository.add_item_to_media_list(db, item)
     lst = repository.get_media_list(db, list_id, current_user.id)
@@ -1064,13 +1081,28 @@ def _build_media_list_item_response(item: MediaListItem) -> MediaListItemRespons
             backdrop_path=item.series.backdrop_path,
             genres=item.series.genres
         )
+
+    movie_resp = None
+    if item.movie:
+        movie_resp = TMDBMovieSimpleResponse(
+            tmdb_id=item.movie.tmdb_id,
+            title=item.movie.title,
+            poster_path=item.movie.poster_path,
+            backdrop_path=item.movie.backdrop_path,
+            release_date=item.movie.release_date,
+            genres=item.movie.genres
+        )
+
     return MediaListItemResponse(
         id=item.id,
         list_id=item.list_id,
         series_tmdb_id=item.series_tmdb_id,
+        movie_tmdb_id=item.movie_tmdb_id,
+        media_type=item.media_type or ("movie" if item.movie_tmdb_id else "tv"),
         sort_order=item.sort_order,
         added_at=item.added_at,
-        series=series_resp
+        series=series_resp,
+        movie=movie_resp
     )
 
 def _build_media_list_response(lst: MediaList) -> MediaListResponse:

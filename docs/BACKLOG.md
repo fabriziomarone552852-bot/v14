@@ -9,9 +9,9 @@ Questo documento traccia in modo strutturato, prioritizzato e costantemente aggi
 ## 📊 Matrice di Stato Rapida (Attività Aperte & Future)
 
 | ID | Attività / Funzionalità | Ambito | Stato Backend | Stato Frontend | Priorità |
-| **FEAT-004** | Sezione Media: Estensione a Libri e Film & Funzionalità Evolutive | `media` / books & movies | 🟡 Parziale | 🟡 Parziale | 🔴 **Massima (Passo Fondamentale)** |
+| **FEAT-004 (Libri)** | Sezione Media: Estensione a Libri (Google Books, Pagine lette, Stati lettura) | `media` / books | 🔴 Da Strutturare | 🔴 Da Implementare | 🔴 **Massima (Passo Fondamentale)** |
 | **TRACKERS-019** | Giudizio & Voto alle singole Stagioni delle Serie TV (Valutazione per Stagione) | `media` / trackers | 🔴 Da Strutturare | 🔴 Da Implementare | 🟡 **Media** |
-| **FEAT-015** | Gestione Saghe di Film (TMDB Collections) | `media` / movies | 🔴 Da Implementare | 🔴 Da Implementare | 🟡 **Media** |
+| **TRACKERS-025** | Ricerca & Filtro per Attori / Regista (Film & Serie TV) | `media` / trackers | 🔴 Da Strutturare | 🔴 Da Implementare | 🟡 **Media** |
 | **FEAT-001** | Liste Spesa: Preferite & Pinnate (`pin_status` desktop & mobile) | `shopping` / lists | 🟢 Completato | 🔴 Da Implementare | 🟡 **Media-Alta** |
 | **SHOPPING-004** | Ricerca & Consultazione Prezzi nel Modale Dettaglio Prodotto (per Brand) | `shopping` / UI | 🔴 Da Iniziare | 🔴 Da Iniziare | 🟡 **Media-Alta** |
 | **SHOPPING-005** | Pannello Laterale Recensioni & Giudizio Marchi all'Aggiunta Prodotto | `shopping` / UI | 🔴 Da Strutturare | 🔴 Da Implementare | 🟡 **Media-Alta** |
@@ -29,29 +29,22 @@ Questo documento traccia in modo strutturato, prioritizzato e costantemente aggi
 
 *Legenda Stati:*
 - 🟢 **Completato / Supportato**: Già sviluppato, presente nel DB o API pronta.
-- 🟡 **Parziale / Da Valutare**: Presente in parte o in fase di definizione logica/funzionale.
+- 🟡 **In Corso / Parziale**: In fase di sviluppo o parzialmente integrato.
 - 🔴 **Da Implementare / Da Iniziare**: Attività da sviluppare ex-novo.
 
 ---
 
-## 📺 1. Media & Trackers (Film, Libri, Saghe)
+## 📺 1. Media & Trackers (Libri, Serie TV & Funzionalità Evolutive)
 
-### [FEAT-004] Estensione Sezione Media: Libri, Film & Funzionalità Evolutive
-*(Nota: Il modulo Serie TV è stato completato e archiviato con successo in `BACKLOG_ARCHIVE.md`).*
+> 🗄️ **Moduli Serie TV & Film Completati**: I moduli completi delle **Serie TV** e dei **Film** (inclusa la gestione Saghe TMDB, calendari visioni, statistiche di durata reale, liste miste, standardizzazione header/cards `TRACKERS-023`, modale statistiche unificata `TRACKERS-024`, standardizzazione modale dettaglio `TRACKERS-028`, armonizzazione recensioni/citazioni `TRACKERS-029`, social/commenti ottimistici `TRACKERS-030`, paginazione progressiva TMDB `TRACKERS-031`, standardizzazione catalogo `TRACKERS-032` e standardizzazione mobile trackers `TRACKERS-033`) sono stati completati con successo e archiviati in dettaglio in [`docs/BACKLOG_ARCHIVE.md`](file:///c:/Users/Fabrizio/Desktop/app/smart/v14/docs/BACKLOG_ARCHIVE.md).
 
-#### 1. Sotto-sezione Libri
-- **Dati Tracciati**: Titolo, autore, ISBN/codice, genere, numero totale di pagine, pagine attualmente lette, data di inizio e completamento, copertina/immagine.
+### [FEAT-004 (Libri)] Estensione Sezione Media: Libri
+*(Attività futura pianificata per il completamento dell'hub Media).*
+
+#### 📚 Sotto-sezione Libri (Roadmap Futura)
+- **Dati Tracciati**: Titolo, autore, ISBN/codice, genere, numero totale di pagine, pagine lette, data inizio/fine, copertina.
 - **Stato Lettura**: `Da leggere`, `In lettura`, `Completato`, `Abbandonato`, `In pausa`.
-- **Dettagli & Valutazione**: Valutazione in stelle (1-5), recensione personale, citazioni/passi preferiti, tag personalizzati.
-- **Integrazioni Esterne**:
-  - **Google Books API**: ricerca gratuita per titolo, autore o ISBN per recuperare copertina, trama e metadati.
-  - **Goodreads Feed RSS**: sincronizzazione monodirezionale in sola lettura leggendo il feed RSS pubblico dell'utente (`to-read`, `currently-reading`, `read`).
-
-#### 2. Sotto-sezione Film & [FEAT-015] Gestione Saghe
-- **Dati Tracciati**: Titolo, regista, anno di uscita, genere, durata, locandina, piattaforma di fruizione (Netflix, Prime Video, Cinema, Apple TV, Disney+).
-- **Stato Visione**: `Watchlist / Da vedere`, `Visto`.
-- **Dettagli & Valutazione**: Data di visione, voto personale, recensione/commento rapido, trailer.
-- **[FEAT-015] Saghe & Collections TMDB**: Sfruttare il campo `belongs_to_collection` di TMDB per raggruppare automaticamente i film appartenenti alla stessa saga (es. MCU, Star Wars, Harry Potter), consentendo di tracciare l'intera saga con barra di progresso e ordinamento cronologico.
+- **Integrazioni Esterne**: Google Books API e Goodreads Feed RSS.
 
 #### 3. Funzionalità Evolutive Media (Roadmap Futura)
 - **Incrocio Liste Amici**: Comparare e incrociare serie TV e film salvati tra due o più amici per decidere cosa guardare insieme.
@@ -64,6 +57,13 @@ Questo documento traccia in modo strutturato, prioritizzato e costantemente aggi
 - **Obiettivo & Casi d'Uso**:
   - Consentire una valutazione granulare di serie televisive con qualità eterogenea tra una stagione e l'altra (es. stagioni capolavoro vs stagioni successive sottotono).
   - Visualizzare il voto/giudizio di ciascuna stagione nella scheda delle stagioni (`MobileSeriesSeasonsTab` e modale desktop), affiancandolo alle recensioni dei singoli episodi e alla valutazione complessiva della serie.
+- **Stato**: 🔴 Da Strutturare / Da Implementare *(Desktop & Mobile — Priorità: Media)*.
+
+### [TRACKERS-025] Ricerca & Filtro per Attori / Registi (Film & Serie TV)
+- **Descrizione**: Possibilità di cercare titoli per attore o regista (tramite TMDB People Search o credits), visualizzare la filmografia di un interprete/regista selezionato dal cast o dalla scheda panoramica, e filtrare la propria libreria personale per cast preferito.
+- **Obiettivo & Casi d'Uso**:
+  - Dalla scheda del film o serie tv, cliccando sulla foto/nome di un attore o sul nome del regista, aprire una vista con le loro opere o filtrare i film già salvati/visti nella propria collezione.
+  - Estendere la ricerca globale con supporto per persone (registi e attori).
 - **Stato**: 🔴 Da Strutturare / Da Implementare *(Desktop & Mobile — Priorità: Media)*.
 
 ---

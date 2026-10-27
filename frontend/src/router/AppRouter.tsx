@@ -23,6 +23,7 @@ const ShoppingPage = !IS_MOBILE_BUILD ? React.lazy(() => import('@/views/Shoppin
 const AdminPage = !IS_MOBILE_BUILD ? React.lazy(() => import('@/views/AdminPage')) : () => null;
 const NotFoundPage = !IS_MOBILE_BUILD ? React.lazy(() => import('@/views/NotFoundPage')) : () => null;
 const TVSeriesPage = !IS_MOBILE_BUILD ? React.lazy(() => import('@/views/TVSeriesPage')) : () => null;
+const MoviePage = !IS_MOBILE_BUILD ? React.lazy(() => import('@/views/MoviePage')) : () => null;
 
 
 // Pagine Archivio Desktop
@@ -125,6 +126,7 @@ const AppRouter: React.FC = () => {
           
           <Route path="/trackers" element={<Navigate to="/trackers/serie-tv" replace />} />
           <Route path="/trackers/serie-tv" element={<TVSeriesPage />} />
+          <Route path="/trackers/film" element={<MoviePage />} />
 
           <Route path="/admin" element={<AdminPage />} />
           <Route path="/settings" element={<UserSettingsPage />} />

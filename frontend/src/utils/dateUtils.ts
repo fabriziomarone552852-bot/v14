@@ -184,9 +184,17 @@ export const getLocalDateString = getLocalTodayStr;
   firstDayIdx: number, 
   daysInMo: number
 ): (number | null)[][] => {
+  // Gestione difensiva se per errore vengono passati (year, month) con year > 31
+  let actualFirstDay = firstDayIdx;
+  let actualDays = daysInMo;
+  if (firstDayIdx > 31) {
+    actualFirstDay = getFirstDayIndex(firstDayIdx, daysInMo);
+    actualDays = getDaysInMonth(firstDayIdx, daysInMo);
+  }
+
   const cells: (number | null)[] = [
-    ...Array(firstDayIdx).fill(null),
-    ...Array.from({ length: daysInMo }, (_, i) => i + 1)
+    ...Array(actualFirstDay).fill(null),
+    ...Array.from({ length: actualDays }, (_, i) => i + 1)
   ];
   
   while (cells.length % 7 !== 0) {
@@ -212,4 +220,22 @@ export const getAgendaDateLabels = (targetDate: Date) => {
   const formattedDate = targetDate.toLocaleDateString('it-IT', { day: 'numeric', month: 'long', year: 'numeric' });
 
   return { isToday, displayName, formattedDate };
+};
+
+/**
+ * Formatta una durata in minuti in ore e minuti (es. "1 ora", "2 ore 15 minuti", "45 minuti", "1 ora 1 minuto").
+ */
+export const formatWatchDuration = (totalMinutes: number): string => {
+  const roundedMins = Math.max(0, Math.round(totalMinutes));
+  if (roundedMins < 60) {
+    return roundedMins === 1 ? '1 minuto' : `${roundedMins} minuti`;
+  }
+  const hours = Math.floor(roundedMins / 60);
+  const mins = roundedMins % 60;
+  const hoursStr = hours === 1 ? '1 ora' : `${hours} ore`;
+  if (mins === 0) {
+    return hoursStr;
+  }
+  const minsStr = mins === 1 ? '1 minuto' : `${mins} minuti`;
+  return `${hoursStr} ${minsStr}`;
 };

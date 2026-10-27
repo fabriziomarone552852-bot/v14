@@ -24,6 +24,10 @@ export interface MediaStatusThemeConfig {
   badgeBorder: string;
   dotColor: string;
   ringColor: string;
+  // Tab / Linguetta portadocumenti su locandina
+  tabBg: string;
+  tabText: string;
+  tabBorder: string;
   labels: Record<MediaType, string>;
 }
 
@@ -37,6 +41,9 @@ export const MEDIA_STATUS_THEMES: Record<NormalizedMediaStatus, MediaStatusTheme
     badgeBorder: 'border-gray-300',
     dotColor: 'bg-gray-400',
     ringColor: 'ring-gray-400/20',
+    tabBg: 'bg-gray-400',
+    tabText: 'text-neutral-900',
+    tabBorder: 'border-gray-400',
     labels: {
       series: 'In lista',
       movies: 'In lista',
@@ -53,6 +60,9 @@ export const MEDIA_STATUS_THEMES: Record<NormalizedMediaStatus, MediaStatusTheme
     badgeBorder: 'border-yellow-300',
     dotColor: 'bg-yellow-400',
     ringColor: 'ring-yellow-400/20',
+    tabBg: 'bg-yellow-400',
+    tabText: 'text-neutral-900',
+    tabBorder: 'border-yellow-400',
     labels: {
       series: 'In visione',
       movies: 'In visione',
@@ -69,6 +79,9 @@ export const MEDIA_STATUS_THEMES: Record<NormalizedMediaStatus, MediaStatusTheme
     badgeBorder: 'border-green-300',
     dotColor: 'bg-green-500',
     ringColor: 'ring-green-500/20',
+    tabBg: 'bg-green-500',
+    tabText: 'text-white',
+    tabBorder: 'border-green-500',
     labels: {
       series: 'Completata',
       movies: 'Visto',
@@ -85,6 +98,9 @@ export const MEDIA_STATUS_THEMES: Record<NormalizedMediaStatus, MediaStatusTheme
     badgeBorder: 'border-purple-300',
     dotColor: 'bg-purple-500',
     ringColor: 'ring-purple-500/20',
+    tabBg: 'bg-purple-500',
+    tabText: 'text-white',
+    tabBorder: 'border-purple-500',
     labels: {
       series: 'In attesa',
       movies: 'In attesa',
@@ -101,6 +117,9 @@ export const MEDIA_STATUS_THEMES: Record<NormalizedMediaStatus, MediaStatusTheme
     badgeBorder: 'border-orange-300',
     dotColor: 'bg-orange-400',
     ringColor: 'ring-orange-400/20',
+    tabBg: 'bg-orange-400',
+    tabText: 'text-neutral-900',
+    tabBorder: 'border-orange-400',
     labels: {
       series: 'In pausa',
       movies: 'In pausa',
@@ -117,6 +136,9 @@ export const MEDIA_STATUS_THEMES: Record<NormalizedMediaStatus, MediaStatusTheme
     badgeBorder: 'border-red-300',
     dotColor: 'bg-red-500',
     ringColor: 'ring-red-500/20',
+    tabBg: 'bg-red-500',
+    tabText: 'text-white',
+    tabBorder: 'border-red-500',
     labels: {
       series: 'Abbandonata',
       movies: 'Abbandonato',
@@ -133,6 +155,9 @@ export const MEDIA_STATUS_THEMES: Record<NormalizedMediaStatus, MediaStatusTheme
     badgeBorder: 'border-gray-200',
     dotColor: 'bg-gray-300',
     ringColor: 'ring-gray-300/20',
+    tabBg: 'bg-white',
+    tabText: 'text-neutral-900',
+    tabBorder: 'border-white',
     labels: {
       series: 'Non in libreria',
       movies: 'Non in libreria',

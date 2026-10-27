@@ -55,7 +55,7 @@ export const EpisodeMyReviewsList: React.FC<EpisodeMyReviewsListProps> = ({
         </div>
 
         <div className="w-48">
-          <AddButton label="Scrivi Recensione" onClick={onOpenNewReview} />
+          <AddButton label="Nuova Recensione" onClick={onOpenNewReview} />
         </div>
       </div>
 

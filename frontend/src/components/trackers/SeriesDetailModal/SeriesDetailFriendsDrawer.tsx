@@ -1,24 +1,26 @@
 // src/components/trackers/SeriesDetailModal/SeriesDetailFriendsDrawer.tsx
 import React from 'react';
 import type { SeriesFriendDisplayItem } from '@/types/trackers';
-import { getMediaStatusLabel } from '@/utils/mediaStatusTheme';
+import { getMediaStatusLabel, type MediaType } from '@/utils/mediaStatusTheme';
 
 export interface SeriesDetailFriendsDrawerProps {
   isOpen: boolean;
   onClose: () => void;
   friends: SeriesFriendDisplayItem[];
   getStatusBorderColor: (status: string) => string;
+  mediaType?: MediaType;
 }
 
 /**
  * Pannello laterale a comparsa (Drawer) che mostra l'elenco completo degli amici
- * che stanno tracciando o hanno completato la serie TV (DRY ed estrazione modulare).
+ * che stanno tracciando o hanno completato la serie TV o Film (DRY ed estrazione modulare).
  */
 export const SeriesDetailFriendsDrawer: React.FC<SeriesDetailFriendsDrawerProps> = ({
   isOpen,
   onClose,
   friends,
   getStatusBorderColor,
+  mediaType = 'series',
 }) => {
   if (!isOpen) return null;
 
@@ -53,7 +55,7 @@ export const SeriesDetailFriendsDrawer: React.FC<SeriesDetailFriendsDrawerProps>
                 {f.name}
               </p>
               <p className="text-xs text-gray-500 capitalize">
-                {getMediaStatusLabel(f.status, undefined, 'series')}
+                {getMediaStatusLabel(f.status, undefined, mediaType)}
               </p>
             </div>
           </div>

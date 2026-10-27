@@ -1,4 +1,4 @@
-import { useQuery, keepPreviousData } from '@tanstack/react-query';
+import { useQuery, useInfiniteQuery, keepPreviousData } from '@tanstack/react-query';
 import { api } from '@/api/apiService';
 import type { TVSeries, TMDBPaginatedSearch, FriendSeriesLog, FriendEpisodeLog, SeriesCastMember, SeriesRecommendation, SeriesSeasonInfo, MediaList, TVDashboardStats, TVFullStats, SeriesQuote, UpcomingEpisode } from '@/types/trackers';
 
@@ -32,6 +32,27 @@ export const useSearchTMDBSeries = (query: string, page: number = 1, enabled: bo
     enabled: enabled && query.length > 0,
   });
 };
+
+export const useInfiniteSearchTMDBSeries = (query: string, enabled: boolean = false) => {
+  return useInfiniteQuery<TMDBPaginatedSearch>({
+    queryKey: ['trackers', 'series', 'search', 'infinite', query],
+    queryFn: async ({ pageParam = 1 }) => {
+      const data = await api.get<TMDBPaginatedSearch>(`/trackers/series/search`, {
+        params: { query, page: pageParam },
+      });
+      return data as TMDBPaginatedSearch;
+    },
+    initialPageParam: 1,
+    getNextPageParam: (lastPage) => {
+      if (lastPage && lastPage.page < lastPage.total_pages) {
+        return lastPage.page + 1;
+      }
+      return undefined;
+    },
+    enabled: enabled && query.trim().length > 0,
+  });
+};
+
 
 
 export const useFriendsSeriesReviews = (tmdbId?: number, enabled: boolean = true) => {
@@ -219,3 +240,27 @@ export const useTMDBDiscover = (filters: TMDBDiscoverFilters) => {
     enabled: !!filters.globalSearch && (filters.genre !== 'all' || filters.network !== 'all' || filters.year !== 'all'),
   });
 };
+
+export const useInfiniteDiscoverTMDBSeries = (filters: TMDBDiscoverFilters, enabled: boolean = true) => {
+  return useInfiniteQuery<TMDBPaginatedSearch>({
+    queryKey: ['tmdb', 'discover', 'infinite', filters.genre, filters.network, filters.year],
+    queryFn: async ({ pageParam = 1 }) => {
+      const params: TMDBDiscoverParams & { page: number } = { page: pageParam as number };
+      if (filters.genre && filters.genre !== 'all') params.with_genres = filters.genre;
+      if (filters.network && filters.network !== 'all') params.with_networks = filters.network;
+      if (filters.year && filters.year !== 'all') params.first_air_date_year = filters.year;
+      
+      const data = await api.get<TMDBPaginatedSearch>('/trackers/tmdb/discover', { params });
+      return data as TMDBPaginatedSearch;
+    },
+    initialPageParam: 1,
+    getNextPageParam: (lastPage) => {
+      if (lastPage && lastPage.page < lastPage.total_pages) {
+        return lastPage.page + 1;
+      }
+      return undefined;
+    },
+    enabled: enabled && !!filters.globalSearch && (filters.genre !== 'all' || filters.network !== 'all' || filters.year !== 'all'),
+  });
+};
+

@@ -8,6 +8,19 @@ Questo file contiene lo storico completo e strutturato di tutte le funzionalità
 
 | ID | Attività / Funzionalità | Ambito | Stato Backend | Stato Frontend | Data Completamento |
 | :--- | :--- | :---: | :---: | :---: | :---: |
+| **TRACKERS-033** | Standardizzazione Mobile Film a 2 Pagine, Suite Condivisa Trackers (`shared/`), Ricerca Schermo Intero & Aggiunta Ottimistica a 0ms | `trackers` / mobile | 🟢 Supportato | 🟢 Completato | Ottobre 2026 |
+| **TRACKERS-032** | Standardizzazione Catalogo Trackers (`TrackerLibraryShell` & `TMDBMediaCard`) per Serie TV, Film e Futuri Media | `trackers` / UI | 🟢 Supportato | 🟢 Completato | Ottobre 2026 |
+| **TRACKERS-031** | Paginazione Progressiva TMDB (Superamento Limite 20 Risultati, `useInfiniteQuery` & Pulsante Centrale) | `trackers` / fullstack | 🟢 Supportato | 🟢 Completato | Ottobre 2026 |
+| **TRACKERS-030** | Collegamento Amici & Social Film, Notifiche, Commenti Ottimistici a 0ms e Reset Bozze Recensioni | `trackers` / social | 🟢 Completato | 🟢 Completato | Ottobre 2026 |
+| **TRACKERS-029** | Armonizzazione Modale Dettaglio Film & Serie TV (Recensioni, Citazioni al Click, Piattaforme Personali e Dimensioni Rating) | `trackers` / fullstack | 🟢 Completato | 🟢 Completato | Ottobre 2026 |
+| **TRACKERS-028** | Standardizzazione Modale Dettaglio Film & Serie TV, Bordo Stato, Linguetta e Scheda Saga Catalogo | `trackers` / UI | 🟢 Supportato | 🟢 Completato | Ottobre 2026 |
+| **TRACKERS-027** | Allineamento Catalogo Film alle Serie TV: Rimozione Etichette e Badge Sezioni | `trackers` / UI | 🟢 Supportato | 🟢 Completato | Ottobre 2026 |
+| **TRACKERS-026** | Fix Salvataggio Voti Recensioni Episodi Mobile (Touch Coordinate StarRating & Cache 0ms) | `trackers` / mobile | 🟢 Supportato | 🟢 Completato | Ottobre 2026 |
+| **TRACKERS-024** | Standardizzazione Finestra Statistiche Media Trackers (Film & Serie TV), Generale, Rewatch & Calendario Boxy | `trackers` / fullstack | 🟢 Completato | 🟢 Completato | Ottobre 2026 |
+| **TRACKERS-023** | Standardizzazione Header & Top Cards (Serie TV & Film), Stato "Ottenuto" e Calendario Uscite | `trackers` / fullstack | 🟢 Completato | 🟢 Completato | Ottobre 2026 |
+| **FEAT-004 (Film)** | Modulo Film Completo (Catalogo, TMDB ITA/Saghe, Liste Miste, Diario, Statistiche, Mobile) | `trackers` / fullstack | 🟢 Completato | 🟢 Completato | Ottobre 2026 |
+| **FEAT-015** | Gestione Saghe di Film (TMDB Collections, Timeline Cronologica & Stato Visione) | `media` / movies | 🟢 Completato | 🟢 Completato | Ottobre 2026 |
+| **MOVIES-001..006** | Suite Film Completa (DB, Tipi/Hooks 0ms, Desktop UI, Modale Dettaglio, Statistiche, Mobile UI) | `trackers` / fullstack | 🟢 Completato | 🟢 Completato | Ottobre 2026 |
 | **TRACKERS-022** | Calendario Visioni Serie TV (Web & Mobile, Fino a 4 Serie) & Compensazione Scroll Storico Diario Mobile | `trackers` / UI | 🟢 Completato | 🟢 Completato | Ottobre 2026 |
 | **TRACKERS-021** | Modalità Inserimento Storico Serie TV (Visioni pregresse senza alterare Binge & Statistiche) | `trackers` / fullstack | 🟢 Completato | 🟢 Completato | Ottobre 2026 |
 | **TRACKERS-020** | Timeline Serie TV Senza Uscite Future: Avviso in Cima, Ordine Inverso Passato & Modularità | `trackers` / mobile | 🟢 Supportato | 🟢 Completato | Ottobre 2026 |
@@ -75,7 +88,194 @@ Questo file contiene lo storico completo e strutturato di tutte le funzionalità
 
 ---
 
-## 📺 1. Media & Trackers (Serie TV)
+## 📺 1. Media & Trackers (Serie TV & Film)
+
+### [TRACKERS-033] Standardizzazione Mobile Film a 2 Pagine, Suite Condivisa Trackers (`shared/`), Ricerca Schermo Intero & Aggiunta Ottimistica a 0ms (🟢 Completato)
+
+#### 📋 Descrizione & Obiettivo
+Riorganizzazione, semplificazione e standardizzazione dell'esperienza mobile del modulo Film (`MobileMovieView`), mutuando l'architettura collaudata delle Serie TV ed estraendo componenti condivisi universali per tutti i tracker attuali e futuri:
+- **Architettura Mobile a 2 Pagine (Slide Fluide)**:
+  - **Pagina 0 ("Al Cinema & Uscite")**: Focus sulle uscite cinematografiche sul territorio italiano (ComingSoon per 110 province, programmazione sale e orari) e sulle prossime uscite in streaming/catalogo.
+  - **Pagina 1 ("Dashboard")**: Obiettivo annuale interattivo, citazione del giorno compatta a 2 righe, le 3 Highlight Cards ("Aggiunto", "Ottenuto", "Guardato") e i due banner orizzontali ("I Tuoi Film" con 4 locandine e "Le Tue Liste" con collage).
+- **Suite di Componenti Condivisi Trackers Mobile (`frontend/src/mobile/components/trackers/shared/`)**:
+  - `MobileTrackerPaginationDots`: Slider touch compatto a pillola con supporto per configurazioni dinamiche a 2 o 3 slide.
+  - `MobileTrackerGoalBar`: Barra obiettivo annuale con badge sovrapposto centrato `current/goal` e tap rapido per statistiche.
+  - `MobileTrackerDailyQuote`: Citazione stile agenda a 2 righe con espansione/collasso al tap.
+  - `MobileTrackerHighlightCard`: Poster 2:3 con badge identificativo colorato in basso a destra.
+  - `MobileTrackerDashboardBanners`: Banner inferiori con layout 4 locandine orizzontali e collage copertine liste.
+  - `MobileMediaHorizontalCard`: Card orizzontale universale per risultati ricerca TMDB con bordo dinamico di stato spesso, backdrop sfumato e pulsante rapido "+" / spunta blu.
+  - `ListCollagePoster`: Collage universale per liste miste, film e serie tv.
+- **Ricerca Mobile a Schermo Intero & Selettori Centrali**:
+  - Creato `MobileMovieSearchModal` a tutto schermo conforme a `AGENTS.md` (niente popover inline o clipping da overflow, solo modali centrali a finestra oscurata `SelectModalDialog` e `MobileModalSelect` per generi, piattaforme, saghe, liste e datepicker).
+- **Estrazione Casuale Uniformata (`RandomMediaModal`)**:
+  - Modalità a schermo intero `fullScreen={true}` e supporto stati non iniziati (`to_watch`, `planned`, `unstarted`, `to_read`, `to_play`).
+- **Aggiornamento Ottimistico Istantaneo a 0ms (Optimistic UI)**:
+  - In `useMovieMutations.ts` e `useMoviePageLogic.ts`, al click su "+" nei risultati di ricerca TMDB, il film viene inserito all'istante in RAM a 0ms con record fittizio provvisorio: il pulsante diventa subito spunta blu e il bordo locandina si colora senza attendere il roundtrip del server.
+
+---
+
+### [TRACKERS-032] Standardizzazione Catalogo Trackers (`TrackerLibraryShell` & `TMDBMediaCard`) per Serie TV, Film e Futuri Media (🟢 Completato)
+
+#### 📋 Descrizione & Obiettivo
+Creazione di un'architettura modulare e unificata per la visualizzazione dei cataloghi e della ricerca nei tracker:
+- **`TrackerLibraryShell.tsx`**: Componente shell condiviso che racchiude:
+  - Barra di ricerca fluttuante in alto con pulsante per modale filtri e badge rosso attivo.
+  - Tab pills/segmented control per gli stati di visione/collezione (configurabili per ciascun dominio).
+  - Maschera a sfumatura superiore (`WebkitMaskImage`) per lo scorrimento continuo delle locandine.
+  - Gestione DRY degli stati di caricamento, stati vuoti e integrazione del pulsante di paginazione.
+- **`TMDBMediaCard.tsx`**: Card universale per la presentazione dei risultati di ricerca TMDB (Film, Serie TV e futuri media) con bordo dinamico basato sullo stato del media, poster TMDB e pulsante rapido di inserimento in lista ("+" / spunta "V").
+- **Snellimento di `TVSeriesLibrary.tsx` e `MovieLibrary.tsx`**: Ridotti a componenti dichiarativi snelli (<140 righe) completamente coerenti tra loro e pronti all'estensione per nuovi tracker (Libri, Giochi, Anime).
+
+---
+
+### [TRACKERS-031] Paginazione Progressiva TMDB (Superamento Limite 20 Risultati, `useInfiniteQuery` & Pulsante Centrale) (🟢 Completato)
+
+#### 📋 Descrizione & Obiettivo
+Superamento del limite nativo di 20 risultati per pagina dell'API di The Movie Database (TMDb) e introduzione di un'esperienza di navigazione continua a blocchi:
+- **Query Paginata con `useInfiniteQuery`**:
+  - Creati gli hook `useInfiniteSearchTMDBSeries`, `useInfiniteDiscoverTMDBSeries`, `useInfiniteSearchTMDBMovies` e `useInfiniteDiscoverTMDBMovies`.
+  - Appiattimento e concatenazione automatica degli array `results` di tutte le pagine scaricate senza ricaricare la schermata.
+- **Pulsante Centrale Touch-Friendly (`LoadMoreButton.tsx`)**:
+  - Collocato al centro sotto la griglia/elenco dei risultati sia su Desktop che su Mobile.
+  - Mostra testo chiaro ("Carica altri risultati") e icona freccia in giù; durante il fetch della pagina successiva visualizza lo spinner animato e disabilita il pulsante.
+  - **Ripetibile ad ogni click**: finché l'API TMDB segnala ulteriori pagine disponibili (`page < total_pages`), il pulsante rimane visibile per consentire all'utente di caricare progressivamente tutti i risultati ("a ripetizione"). Quando i risultati sono esauriti, il pulsante scompare automaticamente.
+- **Supporto Mobile**:
+  - Integrato `LoadMoreButton` anche al termine della lista di card orizzontali in `MobileTVSeriesSearchResults.tsx` all'interno di `MobileTVSeriesSearchModal.tsx`.
+
+---
+
+### [TRACKERS-030] Collegamento Amici & Social Film, Notifiche, Commenti Ottimistici a 0ms e Reset Bozze Recensioni (🟢 Completato)
+
+#### 📋 Descrizione & Obiettivo
+Risoluzione e completamento dell'integrazione social e delle recensioni per il Tracker Film, estensione del sistema ottimistico (0ms) per l'invio dei commenti su Film, Serie TV ed Episodi, e gestione intelligente del reset delle bozze:
+- **Risoluzione Crash Backend 500 (`movie_repository.py`)**:
+  - Corretto l'errore provocato da attributi errati del modello `User` (`avatar_url` sostituito con `profile_picture_url`) e del modello `Interaction` (`text` sostituito con `content`).
+  - Assegnato un ID univoco negativo (`-tracking.id`) per gli amici che hanno salvato il film in libreria senza aver ancora scritto una recensione, evitando conflitti di key React.
+  - Risolto il rispetto della privacy: note e commenti privati dell'amico vengono filtrati se `review_visibility == 'private'`.
+- **Commenti su Recensioni Personali (`movie_service.py`)**:
+  - Aggiunto caricamento batch dei commenti ricevuti dagli amici anche per le recensioni personali dell'utente nei film (`_get_comments_for_log_ids` e aggiornamento `_build_movie_response`).
+- **Deep Links & Notifiche Recensioni Film**:
+  - Esteso lo schema notifiche (`InteractionResponse`) con `movie_tmdb_id` e idratato `context_title` per commenti e menzioni `@username` nei film.
+  - Al tocco di una notifica su un film, navigazione immediata e apertura diretta del modale film anche se non ancora salvato in libreria (`useMovieUrlParams.ts`).
+- **Allineamento Drawer Amici (`SeriesDetailFriendsDrawer.tsx`, `MovieDetailModal.tsx`)**:
+  - Aggiunta prop `mediaType` per mostrare correttamente le etichette cinematografiche ("Visto" con bordo verde / "In lista" con bordo grigio) senza residui dello stato "In corso" tipico delle serie.
+- **Supporto Recensioni Senza Voto Stelle (`ratingUtils.ts`)**:
+  - Ammessa la visualizzazione nel pannello recensioni amici anche per quegli amici che hanno inserito una recensione testuale senza assegnare un voto numerico.
+- **Sistema Ottimistico a 0ms per i Commenti (`useMovieReviewTabLogic`, `useSeriesReviewTabLogic`, `useEpisodeDetailLogic`)**:
+  - Al tocco del pulsante Invia, il commento viene inserito all'istante (0ms) nello stato visivo locale e nella cache TanStack Query sia per le recensioni personali che per quelle degli amici.
+  - Il campo di testo e il query delle menzioni si azzerano immediatamente; in caso di errore di rete interviene il rollback sicuro e un toast di avviso, con invalidazione silenziosa a sincronizzazione ultimata.
+- **Reset Automatico delle Bozze non Pubblicate**:
+  - Tramite listener reattivo su cambio ID recensione o chiusura dettaglio, qualsiasi bozza di commento non inviata viene ripulita all'istante, evitando che il testo digitato sotto la recensione X persista accidentalmente aprendo la recensione Y.
+
+---
+
+### [TRACKERS-029] Armonizzazione Modale Dettaglio Film & Serie TV (Recensioni, Citazioni al Click, Piattaforme Personali e Dimensioni Rating) (🟢 Completato)
+
+#### 📋 Descrizione & Obiettivo
+Completamento dell'armonizzazione stilistica e funzionale tra il modale di dettaglio dei Film (`MovieReviewTab`, `MovieMainOverview`, `MovieMyReviewsList`, `MovieReviewForm`) e quello delle Serie TV / Episodi (`EpisodeDetailView`, `EpisodeMyReviewsList`, `EpisodeQuotesSection`, `EpisodeReviewForm`):
+- **Voti di Testata & Pulizia Numerica**: Rimossi i numeri ridondanti in scala 10/5 accanto alle stelle nei tre blocchi di voto globale (TMDB, Amici, Tuo Voto) in `MovieMainOverview.tsx`, preservando il rating visuale a stelle pulito.
+- **Pulsanti e Nomenclatura Standardizzati**:
+  - Sostituito il titolo "Il mio diario e le mie recensioni" con "Le mie recensioni" arricchito da badge contatore blu.
+  - Sostituita la dicitura "Aggiungi recensione" / "Nuova visione" con il componente standard `AddButton` e l'etichetta universale "Nuova Recensione" in Film, Episodi e Serie TV.
+  - Sostituito "Salva citazione" con la sola dicitura "Salva", tasto "Annulla" evidenziato in rosso vivo con testo bianco (`bg-red-600 text-white`).
+- **Standardizzazione Dimensioni Stelle (`StarRating.tsx`)**:
+  - Introdotta la prop semantica `size?: 'sm' | 'md' | 'lg' | 'xl'` per una scalabilità uniforme in tutta l'applicazione (`sm` = `w-4 h-4`, `md` = `w-5 h-5`, `lg` = `w-6 h-6`, `xl` = `w-7 h-7`).
+  - Allineati i componenti di visualizzazione riassuntiva dei voti in Film ed Episodi su `size="lg"`, le card recensione su `size="md"` e i moduli interattivi su `size="xl"`.
+- **Piattaforme di Visione Personali per i Film**:
+  - Rimosso l'elenco statico di provider TMDB e introdotto il medesimo selettore e motore di memorizzazione delle piattaforme personali utente (`tv_user_platforms`).
+  - Campo di input con pulsante `+ Aggiungi`, rilevamento duplicati, autocompletamento touch-friendly e cancellazione rapida.
+  - Supporto backend tramite `viewing_platform_name` in `UserMovieLogCreate`/`UserMovieLogUpdate` e risoluzione con `_get_or_create_tv_platform`.
+- **Modifica Rapida Citazioni al Click & 0ms Optimistic UI**:
+  - Cliccando su qualsiasi card citazione salvata (o sul pulsante matita in hover), viene attivata istantaneamente la modalità di modifica.
+  - Il testo viene precaricato, il campo di input riceve il focus posizionando il cursore alla fine, e la card attiva si illumina con un bordo blu e ombra ad anello.
+  - Chiudibile e annullabile con Escape, pulsante Annulla o click esterno se il testo è vuoto.
+  - Nuove API backend dedicate: `PATCH` e `PUT /trackers/movies/quotes/{quote_id}` con schema `MovieQuoteUpdate`, gestione ottimistica a 0ms in RAM e TanStack Query cache.
+
+---
+
+### [TRACKERS-028] Standardizzazione Modale Dettaglio Film & Serie TV, Bordo Stato e Linguetta Portadocumenti Locandina (🟢 Completato)
+
+#### 📋 Descrizione & Obiettivo
+Allineamento del modale di dettaglio Film (`MovieDetailModal`) agli standard consolidati nelle Serie TV (`SeriesDetailModal`), eliminazione di elementi disordinati e introduzione di un'identità visiva universale dello stato di tracciamento sulla locandina:
+- **Bordo Dinamico Locandina Coordinato (`mediaStatusTheme.ts`)**: Sostituito il bordo bianco fisso con un bordo spesso `border-4` collegato centralmente allo stato del media (`border-green-500` per Visto/Completata, `border-yellow-400` per In visione, `border-purple-500` per In attesa, `border-gray-400` per In lista, `border-white` per Non in libreria, `border-red-500` per Abbandonata).
+- **Linguetta Stile Portadocumenti / Schedario (`MediaPosterFolderTab.tsx`)**: Componente atomico riutilizzabile ancorato a filo del bordo inferiore della locandina (`bottom-[-2px] left-4` con base piatta e sommità arrotondata `rounded-t-lg`). A riposo è nascosto e in hover scivola verso l'alto (`translate-y-full` -> `translate-y-0`) con ombra a proiezione esclusivamente superiore (`shadow-[0_-8px_14px_-6px_rgba(0,0,0,0.3)]`) che elimina qualsiasi alone o linetta scura di giunzione. Sfondo e bordo usano la stessa tinta del bordo della locandina con etichetta ad alto contrasto (`text-white` o `text-neutral-900`) e senza pallino superfluo.
+- **Consigliati con Backdrop 16:9 (`MovieOverviewTab.tsx`)**: Sostituite le locandine verticali 2:3 con backdrop orizzontali `aspect-video` compatti (fino a 15 raccomandazioni) e rimosso il voto/stelle per un layout pulito.
+- **Scheda "Saga" Condizionale & Restyling Stile Catalogo (`MovieSagaTab.tsx`)**:
+  - Il pulsante Saga appare ora esclusivamente se il film appartiene a una collezione TMDB (`hasCollection`), con fallback automatico a Panoramica.
+  - Sostituite le vecchie card orizzontali con una griglia a locandine verticali 2:3 (`aspect-[2/3]`) perfettamente allineata al catalogo.
+  - Testo compatto in sovrimpressione con anno di uscita in piccolo e nome del film subito sotto, voto rimosso per massima pulizia.
+  - Tasto rapido lista/no lista con quadrato blu e spunta in alto a destra (oppure quadrato tratteggiato con `+` per aggiunta immediata).
+  - Bordo colorato della locandina in base allo stato (`getMediaBorderClass`, verde per visto, grigio per in lista) e alone ad anello/bolla blu (`ring-4 ring-blue-500`) sul film correntemente attivo.
+  - Intestazioni ripulite: cambiato "Saga / Franchise" in "Saga", rimosso "nella collezione" dal contatore e rimossa l'etichetta "Ordine di Uscita Cronologico".
+- **Pulizia Header & Menu 3 Puntini (`MovieDetailHeader.tsx`)**: Rimossa l'etichetta "Regia:" (lasciando l'icona ciak e il nome) ed eliminate dal menu a comparsa le voci ridondanti ("Cambia locandina" e "Segna come visto"), mantenendo solo "Segna come ottenuto", "+ Aggiungi Rewatch" e "Modalità Inserimento Storico".
+
+---
+
+### [TRACKERS-027] Allineamento Catalogo Film alle Serie TV: Rimozione Etichette e Badge Sezioni (🟢 Completato)
+
+#### 📋 Descrizione & Obiettivo
+Allineamento del layout del catalogo Film (`MovieCatalogSections.tsx`) all'interfaccia pulita e minimale consolidata nelle Serie TV (`TVSeriesCatalogSections.tsx`):
+- **Rimozione Titoli & Badge Sezioni**: Eliminate le intestazioni testuali `<h3>` ("IN LISTA", "GUARDATI") e i badge con il conteggio degli elementi.
+- **Flusso Continuo Locandine**: Le locandine dei film fluiscono ora in modo armonioso e continuo attraverso la griglia condivisa a colonne con spaziatura standardizzata (`gap-6`).
+
+---
+
+### [TRACKERS-026] Fix Salvataggio Voti Recensioni Episodi su Mobile (Touch Coordinate StarRating & Cache 0ms) (🟢 Completato)
+
+#### 📋 Descrizione & Obiettivo
+Risoluzione del bug che impediva il salvataggio del voto in stelle nelle recensioni per singoli episodi e serie TV su smartphone e browser touch:
+- **Calcolo Diretto Coordinate su Touch & Click (`StarRating.tsx`)**: Eliminata la dipendenza da `hoverValue` (che su touch risultava `null` nel frame del click bloccando `onChange`), introducendo il calcolo geometrico immediato della coordinata X (`touch.clientX - rect.left`) distinguendo mezze stelle e stelle intere con `onTouchEnd` e `touch-manipulation`.
+- **Toggle Deselezione / Azzeramento**: Cliccando/toccando nuovamente lo stesso voto attivo la valutazione torna a zero in modo naturale senza elementi UI di disturbo.
+- **Sincronizzazione Cache Istantanea (`useTrackersMutations.ts`)**: Aggiornamento a 0ms della cache TanStack Query con l'oggetto episodio restituito dal backend sia nel dettaglio (`trackers`, `series`, `detail`) che nella lista catalogo (`trackers`, `series`).
+
+---
+
+### [TRACKERS-024] Standardizzazione Finestra Statistiche Media Trackers (Film & Serie TV), Sezione Generale, Rewatch & Calendario a Celle (🟢 Completato)
+
+#### 📋 Descrizione & Obiettivo
+Standardizzazione visiva, funzionale e architetturale della finestra modale delle statistiche tra Serie TV e Film, estrazione di componenti riutilizzabili condivisi, rinnovamento della sezione "Generale" Film, arricchimento della sezione "Rewatch" e ottimizzazione del calendario mensile a celle spaziose:
+- **Suite Componenti Condivisi Statistiche (`components/trackers/shared/stats/`)**:
+  - `MediaStatsModalShell.tsx`: Struttura modale universale con loading spin, gestione errori e tab di navigazione.
+  - `MediaCalendarHeader.tsx`: Header mensile unificato con navigazione temporale `<` `>`, datepicker mese e badge informativi.
+  - `MediaStatsCalendarGrid.tsx`: Griglia a 7 colonne uniforme per giorni della settimana con celle boxy ad altezza minima garantita (`min-h-[64px] sm:min-h-[80px]`).
+  - `CalendarDayDetailModal.tsx`: Modale riassuntivo dettagliato per i titoli visti nel giorno selezionato (locandina, titolo, rating in decimi, note, piattaforma).
+  - `DayCellPostersGrid.tsx`: Griglia multi-locandina per cella (1, 2, 3 o 4 poster con overlay sfumato scuro e badge `+N`).
+  - `ComfortZoneCard.tsx`: Classifica titoli più rivisti ("La tua Comfort Zone") con podio 🥇 🥈 🥉, rating a stelle, badge conteggio visioni e tab opzionali.
+  - `GuiltyPleasuresCard.tsx`: Card "Il Test del Tempo" (titoli visti più volte con voto medio basso).
+  - `ExplorationVsNostalgiaCard.tsx`: Grafico a ciambella bicolore (blu per novità, viola per rewatch) con confronto ore e percentuali.
+  - `FranchiseTrackerList.tsx`: Elenco delle saghe TMDB seguite con locandina, barra di avanzamento e conteggio `XX/YY` film visti su totali.
+- **Rinnovamento Sezione "Generale" Film**:
+  - Due card temporali allineate verticalmente con il Franchise Tracker: "Negli ultimi 30 giorni" e "Negli ultimi 365 giorni", con riepilogo su singola riga ("XX film" a sinistra e durata esatta in "XX ore XX minuti" a destra tramite helper `formatWatchDuration`).
+  - Franchise Tracker al posto del box generico piattaforme, con calcolo in RAM e fallback istantaneo.
+- **Sezioni Voti, Abitudini & Rewatch Film Allineate**:
+  - Aggiunta della "Top 5 Generi" con stelle nella sezione Voti.
+  - Sostituzione delle fasce orarie con la distribuzione per Mesi nella sezione Abitudini, affiancata da giorni della settimana e top generi/piattaforme.
+  - Sezione Rewatch completa di Comfort Zone, Test del Tempo ed Esplorazione vs Nostalgia con fallback sicuro su `useMyMovies()`.
+- **Risoluzione Bug Calendario Film ("tante righe")**:
+  - Corretta la chiamata a `generateWeeksGrid` in `useMovieWatchCalendar.ts` che passava erroneamente l'anno generando oltre 290 righe vuote.
+  - Aggiunta protezione difensiva in `dateUtils.ts` e applicata altezza minima uniforme per un aspetto a celle pulito e classico.
+
+---
+
+### [TRACKERS-023] Standardizzazione Header & Top Cards (Serie TV & Film), Stato "Ottenuto" e Calendario Uscite (🟢 Completato)
+
+#### 📋 Descrizione & Obiettivo
+Standardizzazione visiva e architetturale tra le sezioni Serie TV e Film, con introduzione del tracciamento film ottenuti e calendario uscite persistente:
+- **Header Standardizzato a 3 Zone (`TrackerHeader.tsx`)**:
+  - Risolto il disallineamento visivo (pixel-shift) tra "Serie TV" e "Film" mediante layout a tre zone rigide con colonne laterali a larghezza fissa (`w-56 xl:w-64 shrink-0`) e barra obiettivo progressiva al centro.
+- **Top Cards Standardizzate Condivise (`TrackerTopCards.tsx`)**:
+  - Architettura a card frosted glass riutilizzabile su desktop e mobile per tutti i media trackers (Serie TV, Film e futuri Libri/Giochi).
+  - Rimossi i dettagli secondari non necessari (generi e date superflue) mantenendo una visualizzazione centrata, pulita ed essenziale incentrata sul titolo.
+  - **Film**: "Ultimo aggiunto", "Ultimo ottenuto" (con data ottenimento) e "Ultimo guardato".
+  - **Serie TV**: "Ultima aggiunta", "Continua a guardare" (con badge dinamico `next_episode_to_watch`, es. `S01E03`) e "Completata!".
+- **Stato Film "Ottenuto" (`obtained_at`)**:
+  - Colonna timestamp su `user_movie_tracking` nel DB gestita in modo idempotente su test locale e produzione NAS via migrazione Alembic `f2a3b4c5d6e7`.
+  - Salvataggio dello stato ottenuto senza generare record di diario o recensioni vuote indesiderate.
+  - Filtro e ordinamento rapido per disponibilità/ottenimento nel catalogo e nel modale filtri.
+- **Calendario Prossime Uscite Persistente (`UpcomingMovieCalendarWidget.tsx`)**:
+  - Griglia mensile con navigazione temporale `<` `>` sempre attiva e consultabile anche a calendario vuoto.
+
+---
 
 ### [TRACKERS-020] Timeline Serie TV Senza Uscite Future: Avviso in Cima, Ordine Inverso Passato & Modularità (🟢 Completato)
 
@@ -746,4 +946,58 @@ Configurazione delle variabili d'ambiente per le chiavi API TMDB sul server NAS 
    - Navigazione mensile fluida tramite gesture di swipe verticale touch (swipe verso l'alto per il mese successivo, verso il basso per il mese precedente).
    - Bottom Sheet touch-friendly al tap su qualsiasi giorno con visioni registrate.
 
+---
 
+## 🎬 2. Media & Trackers (Film & Saghe)
+
+### [FEAT-004 (Film) / MOVIES-001..006] Modulo Film Completo (Web & Mobile) (🟢 Completato)
+
+#### 📋 Descrizione & Obiettivo
+Estensione completa del dominio Trackers ai **Film** (`/trackers/film`), duplicando e adattando l'architettura delle Serie TV sia per la versione Web Desktop che Mobile, rispettando i principi di *Frontend-First ("Mazzo di Carte")*, *Aggiornamento Ottimistico a 0ms*, *Nessun dato mock* e *Modali Centrali Mobile*.
+
+1. **Modulo 1: Database & Backend TMDB Movies (`MOVIES-001`)**:
+   - Modelli SQLAlchemy dedicati:
+     - `TMDBMovie`: catalogazione con `runtime` (minuti effettivi), `release_date`, `italy_release_date` (data di uscita ufficiale italiana theatrical/digital da TMDB release dates), `collection_id` e `collection_name` (saghe), `genres`, `vote_average`.
+     - `UserMovieTracking`: tracciamento utente a due soli stati (`to_watch` / `watched`), custom poster/backdrop, flag rewatch.
+     - `UserMovieLog`: storico visioni e diario (`rating`, `notes`, `viewing_platform_id`, `watched_at`, `review_visibility`).
+     - `MovieQuote`: citazioni dei film collegate a `tmdb_movies`.
+     - `MediaListItem`: estensione a liste miste universali con supporto `movie_tmdb_id` (FK `tmdb_movies.tmdb_id`) e `media_type` (`tv` | `movie`).
+   - Migrazione Alembic difensiva `e1f2a3b4c5d6_add_movie_tracker_domain_and_extend_media_lists.py` applicata con successo sia su DB test che sul NAS di produzione (`family-smart` su `192.168.11.20`).
+   - Servizio, repository e router con 21 endpoint REST sotto `/trackers/movies`: ricerca TMDB, discover, anteprima, extras con saghe, CRUD libreria, recensioni, statistiche e prossime uscite con finestra di 14 giorni.
+
+2. **Modulo 2: Tipi TypeScript & Custom Hooks (`MOVIES-002`)**:
+   - Definizione rigorosa di tutte le interfacce in `frontend/src/types/movies.ts` con **zero `any`**.
+   - Custom hooks di query (`useMovieQueries.ts`) e mutazioni ottimistiche (`useMovieMutations.ts`) con aggiornamento istantaneo a 0ms della cache in RAM (`onMutate`), rollback sicuro (`onError`) e invalidazione silenziosa (`onSettled`).
+   - Hook architetturali dedicati: `useMoviePageLogic.ts` (orchestratore stato), `useFilteredMovies.ts` (filtri e ordinamenti in RAM), `useMovieFilterOptions.ts` (estrazione dinamica saghe, generi e piattaforme presenti in libreria), `useMovieUrlParams.ts` (deep-linking) e `useMovieWatchCalendar.ts` (calendario mensile visioni).
+
+3. **Modulo 3: Schermata Desktop Film (`MoviePage.tsx`) (`MOVIES-003`)**:
+   - Header con progress bar e cerchio per l'obiettivo annuale film (`tracker_type = 'movies'`) e tasto per la scelta casuale del film.
+   - 3 Glass Cards superiori: *Ultima aggiunta in lista*, *Ultimo visto/completato*, *Prossimo da vedere / In evidenza*.
+   - Catalogo libreria a 2 stati (*"In lista"* / *"Guardati"*) con griglia locandine, badge voto e azioni rapide.
+   - Filtri avanzati desktop (`MovieFilterModal.tsx`) con saghe, genere, anno, voto minimo, piattaforma streaming e pannello laterale liste miste.
+   - Sidebar laterale con widget citazioni film espandibile e widget uscite (con badge permanente 14 giorni per i film al cinema/recenti).
+
+4. **Modulo 4: Modale Dettaglio Film (`MovieDetailModal.tsx`) (`MOVIES-004`)**:
+   - Header con backdrop, runtime effettivo, data di uscita italiana, regista e pulsanti drawer.
+   - Sidebar con locandina, toggle visto rapido, contatore rewatch e generi.
+   - **Tab "Saga / Collezione" (`MovieSagaTab.tsx`)**: visualizzazione cronologica di tutti i capitoli della saga con stato di visione e pulsante rapido di aggiunta alla libreria.
+   - Tab Recensione & Diario: stelle voto, selezione piattaforma di visione associata alla recensione, data, note, citazioni e commenti.
+   - Drawers laterali per le recensioni degli amici e per le liste miste condivise (`MediaListManagerModal.tsx` reso universale).
+
+5. **Modulo 5: Modale Statistiche Film (`MovieStatsModal.tsx`) (`MOVIES-005`)**:
+   - Metriche calcolate sul `runtime` effettivo in minuti convertito in giorni, ore e minuti.
+   - Forecast completamento watchlist, Binge record (record film visti in un singolo giorno), percentuale di completamento.
+   - Statistiche 30 e 365 giorni, grafici distribuzione voti (senza slider stagioni), abitudini per giorno della settimana e fascia oraria, top rewatch. Rimozione categorica del cimitero.
+   - Scheda Calendario mensile con locandine dei film visti (suddivisione fino a 4 per giorno) e dettaglio giorno.
+
+6. **Modulo 6: Schermata Mobile Film (`MobileMovieView.tsx`) & Routing (`MOVIES-006`)**:
+   - Vista a 3 slide swipe touch (`0`: Uscite & Al Cinema, `1`: Watchlist & Diario, `2`: Dashboard & Statistiche) con indicatori a pallini (`MobileTVPaginationDots`).
+   - Modali centrali a finestra touch-friendly con backdrop scuro (`MobileModalSelect`), conformi alla Regola d'Oro Mobile UI.
+   - Rotte attive `/trackers/film` su Desktop e Mobile con switcher header unificato (`MobileHeaderTrackerSwitcher`).
+
+---
+
+### [FEAT-015] Gestione Saghe di Film (TMDB Collections) (🟢 Completato)
+- Catalogazione automatica della saga (`belongs_to_collection`) all'importazione o ricerca di qualsiasi film su TMDB.
+- Scheda interattiva dedicata all'interno del modale dettaglio con timeline cronologica di tutti i capitoli, visualizzazione dello stato di possesso e visione, e aggiunta istantanea in un click dei capitoli mancanti.
+- Filtro rapido nella libreria film desktop e mobile per visualizzare all'istante tutti i titoli appartenenti a una specifica saga posseduta.

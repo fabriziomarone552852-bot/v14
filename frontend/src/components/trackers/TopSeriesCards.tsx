@@ -1,6 +1,5 @@
 import React from 'react';
-import { GlassCardWidget } from './GlassCardWidget';
-import { resolveImageUrl } from '@/utils/imageUtils';
+import { TrackerTopCards, type TrackerTopCardItem } from './shared/TrackerTopCards';
 import type { TVSeries } from '@/types/trackers';
 
 interface TopSeriesCardsProps {
@@ -9,38 +8,50 @@ interface TopSeriesCardsProps {
 }
 
 export const TopSeriesCards: React.FC<TopSeriesCardsProps> = ({ series, openSeriesDetail }) => {
-  const watchingSeries = series?.filter(s => s.status === 'watching') || [];
-  const watchedSeries = series?.filter(s => s.status === 'watched' || s.status === 'completed') || [];
+  const watchingSeries = series?.filter((s) => s.status === 'watching') || [];
+  const watchedSeries = series?.filter((s) => s.status === 'watched' || s.status === 'completed') || [];
 
-  const lastAdded = series && series.length > 0 
-    ? [...series].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())[0] 
-    : null;
+  const lastAdded =
+    series && series.length > 0
+      ? [...series].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())[0]
+      : null;
+
   const lastWatched = watchingSeries.length > 0 ? watchingSeries[0] : null;
   const lastCompleted = watchedSeries.length > 0 ? watchedSeries[0] : null;
 
-  return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 shrink-0">
-      <GlassCardWidget 
-        label="Ultima aggiunta" 
-        title={lastAdded?.title || "Nessuno"} 
-        subtitle={""}
-        posterPath={lastAdded?.custom_poster_path ? resolveImageUrl(lastAdded.custom_poster_path) : lastAdded?.poster_path || null} 
-        onClick={() => lastAdded && openSeriesDetail(lastAdded)} 
-      />
-      <GlassCardWidget 
-        label="Continua a guardare" 
-        title={lastWatched?.title || "Nessuno"} 
-        subtitle={lastWatched ? "S02E04" : ""}
-        posterPath={lastWatched?.custom_poster_path ? resolveImageUrl(lastWatched.custom_poster_path) : lastWatched?.poster_path || null} 
-        onClick={() => lastWatched && openSeriesDetail(lastWatched)} 
-      />
-      <GlassCardWidget 
-        label="Completata!" 
-        title={lastCompleted?.title || "Nessuno"} 
-        subtitle={""}
-        posterPath={lastCompleted?.custom_poster_path ? resolveImageUrl(lastCompleted.custom_poster_path) : lastCompleted?.poster_path || null} 
-        onClick={() => lastCompleted && openSeriesDetail(lastCompleted)} 
-      />
-    </div>
-  );
+  const getContinueSubtitle = (s: TVSeries | null) => {
+    if (!s) return '';
+    if (s.next_episode_to_watch) {
+      const ep = s.next_episode_to_watch;
+      return `S${String(ep.season_number).padStart(2, '0')}E${String(ep.episode_number).padStart(2, '0')}`;
+    }
+    return 'In corso';
+  };
+
+  const cards: TrackerTopCardItem[] = [
+    {
+      label: 'Ultima aggiunta',
+      title: lastAdded?.title || null,
+      posterPath: lastAdded?.custom_poster_path || lastAdded?.poster_path || null,
+      emptyTitle: 'Nessuna serie',
+      onClick: () => lastAdded && openSeriesDetail(lastAdded),
+    },
+    {
+      label: 'Continua a guardare',
+      title: lastWatched?.title || null,
+      subtitle: getContinueSubtitle(lastWatched),
+      posterPath: lastWatched?.custom_poster_path || lastWatched?.poster_path || null,
+      emptyTitle: 'Nessuna serie in visione',
+      onClick: () => lastWatched && openSeriesDetail(lastWatched),
+    },
+    {
+      label: 'Completata!',
+      title: lastCompleted?.title || null,
+      posterPath: lastCompleted?.custom_poster_path || lastCompleted?.poster_path || null,
+      emptyTitle: 'Nessuna serie completata',
+      onClick: () => lastCompleted && openSeriesDetail(lastCompleted),
+    },
+  ];
+
+  return <TrackerTopCards cards={cards} />;
 };

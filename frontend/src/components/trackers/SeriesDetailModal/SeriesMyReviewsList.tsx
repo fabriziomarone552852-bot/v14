@@ -1,8 +1,8 @@
-// src/components/trackers/SeriesDetailModal/SeriesMyReviewsList.tsx
 import React from 'react';
 import type { UserSeriesLog } from '@/types/trackers';
 import { StarRating } from './StarRating';
 import { EmptyState } from '@/components/shared/utils/EmptyState';
+import { AddButton } from '@/components/shared/utils/AddButton';
 import ConfirmDialog from '@/components/shared/dialog/ConfirmDialog';
 import { ReviewVisibilityIcon } from './shared/ReviewVisibilityBadge';
 
@@ -35,33 +35,29 @@ export const SeriesMyReviewsList: React.FC<SeriesMyReviewsListProps> = ({
 
   return (
     <div className="flex flex-col h-full animate-fadeIn">
-      <div className="flex items-center justify-between pb-4 border-b border-gray-100 shrink-0">
+      <div className="flex items-center justify-between border-b border-gray-200 pb-4 mb-4 shrink-0">
         <div className="flex items-center gap-3">
           <button
             onClick={onBack}
-            className="p-2 bg-gray-50 hover:bg-gray-100 text-gray-700 rounded-full transition-colors cursor-pointer"
+            className="p-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-full transition-colors cursor-pointer"
             title="Torna indietro"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
             </svg>
           </button>
-          <h2 className="text-xl font-bold text-gray-900">Le mie Recensioni</h2>
+          <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
+            Le mie Recensioni
+            {logs.length > 0 && (
+              <span className="bg-blue-100 text-blue-700 text-xs font-bold px-2 py-0.5 rounded-full">
+                {logs.length}
+              </span>
+            )}
+          </h2>
         </div>
-        <button
-          onClick={onOpenNewReview}
-          className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold rounded-2xl shadow-sm transition-colors flex items-center gap-2 cursor-pointer"
-        >
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"
-            />
-          </svg>
-          Vota!
-        </button>
+        <div className="w-48">
+          <AddButton label="Nuova Recensione" onClick={onOpenNewReview} />
+        </div>
       </div>
 
       <div className="flex-1 overflow-y-auto custom-scrollbar flex flex-col gap-4 pt-4 pr-2">

@@ -86,6 +86,9 @@ export const NotificationsTab: React.FC<Props> = ({
                              notif.interaction_type === 'EPISODE_REVIEW_COMMENT' ? `${notif.author_name || 'Qualcuno'} ha commentato la tua recensione dell'episodio ${notif.context_title || ''}` : 
                              notif.interaction_type === 'EPISODE_REVIEW_COMMENT_THREAD' ? `${notif.author_name || 'Qualcuno'} ha partecipato alla discussione sulla recensione dell'episodio ${notif.context_title || ''}` : 
                              notif.interaction_type === 'EPISODE_REVIEW_MENTION' ? `${notif.author_name || 'Qualcuno'} ti ha menzionato nella recensione dell'episodio ${notif.context_title || ''}` :
+                             notif.interaction_type === 'MOVIE_REVIEW_COMMENT' ? `${notif.author_name || 'Qualcuno'} ha commentato la tua recensione di ${notif.context_title || 'un film'}` : 
+                             notif.interaction_type === 'MOVIE_REVIEW_COMMENT_THREAD' ? `${notif.author_name || 'Qualcuno'} ha partecipato alla discussione sulla recensione di ${notif.context_title || 'un film'}` : 
+                             notif.interaction_type === 'MOVIE_REVIEW_MENTION' ? `${notif.author_name || 'Qualcuno'} ti ha menzionato nella recensione di ${notif.context_title || 'un film'}` :
                              notif.content}
                           </p>
                           <div className="flex justify-between items-center mt-2">

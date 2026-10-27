@@ -27,6 +27,9 @@ export interface MobileTVSeriesSearchModalProps {
   onCardClick: (mockSeries: Partial<TVSeries>) => void;
   onAddClick: (tmdbId: number, e: React.MouseEvent) => void;
   onToggleTrack?: (tmdbId: number, isTracked: boolean, e: React.MouseEvent) => void;
+  hasMoreResults?: boolean;
+  isFetchingMore?: boolean;
+  onFetchMore?: () => void;
 }
 
 export const MobileTVSeriesSearchModal: React.FC<MobileTVSeriesSearchModalProps> = ({
@@ -47,6 +50,9 @@ export const MobileTVSeriesSearchModal: React.FC<MobileTVSeriesSearchModalProps>
   onCardClick,
   onAddClick,
   onToggleTrack,
+  hasMoreResults = false,
+  isFetchingMore = false,
+  onFetchMore,
 }) => {
   const inputRef = useRef<HTMLInputElement>(null);
   const prevIsOpenRef = useRef(false);
@@ -384,6 +390,9 @@ export const MobileTVSeriesSearchModal: React.FC<MobileTVSeriesSearchModalProps>
               onAddClick={onAddClick}
               onToggleTrack={onToggleTrack}
               emptyMessage={emptyMessage}
+              hasMoreResults={hasMoreResults}
+              isFetchingMore={isFetchingMore}
+              onFetchMore={onFetchMore}
             />
           </div>
         ) : (

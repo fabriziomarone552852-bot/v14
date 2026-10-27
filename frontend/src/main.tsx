@@ -48,7 +48,7 @@ ReactDOM.createRoot(rootEl).render(
       persistOptions={{
         persister,
         maxAge: 1000 * 60 * 60 * 24 * 7, // 7 giorni
-        buster: 'v15.1.6',
+        buster: 'v15.2.0',
       }}
     >
       <App />

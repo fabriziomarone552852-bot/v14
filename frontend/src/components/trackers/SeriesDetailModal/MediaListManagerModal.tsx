@@ -11,6 +11,7 @@ interface MediaListManagerModalProps {
   isOpen: boolean;
   onClose: () => void;
   seriesId?: number; // L'ID della serie che stiamo cercando di aggiungere
+  movieId?: number; // L'ID del film che stiamo cercando di aggiungere
   zIndexClass?: string;
 }
 
@@ -18,6 +19,7 @@ export const MediaListManagerModal: React.FC<MediaListManagerModalProps> = ({
   isOpen,
   onClose,
   seriesId,
+  movieId,
   zIndexClass = 'z-[10050]'
 }) => {
   const [selectedListId, setSelectedListId] = useState<number | 'new' | null>(null);
@@ -33,10 +35,22 @@ export const MediaListManagerModal: React.FC<MediaListManagerModalProps> = ({
     : mediaLists.find((l: MediaList) => l.id === selectedListId);
 
   const isAlreadyInList = Boolean(
-    seriesId && selectedListId !== 'new' && selectedList?.items?.some((it: MediaListItem) => it.series_tmdb_id === seriesId)
+    selectedListId !== 'new' &&
+      selectedList?.items?.some((it: MediaListItem) =>
+        (seriesId && it.series_tmdb_id === seriesId) ||
+        (movieId && it.movie_tmdb_id === movieId)
+      )
   );
 
+  const getItemPayload = () => {
+    if (movieId) {
+      return { movie_tmdb_id: movieId, media_type: 'movie' as const };
+    }
+    return { series_tmdb_id: seriesId!, media_type: 'tv' as const };
+  };
+
   const handleSave = () => {
+    const hasTarget = Boolean(seriesId || movieId);
     if (selectedListId === 'new') {
       if (!newListName.trim()) {
         showTrackerToast("Inserisci un nome per la lista", "warning");
@@ -47,14 +61,14 @@ export const MediaListManagerModal: React.FC<MediaListManagerModalProps> = ({
         visibility: listPrivacy
       }, {
         onSuccess: (newList: MediaList | null) => {
-          if (seriesId && newList?.id) {
-             addToList({ list_id: newList.id, payload: { series_tmdb_id: seriesId }});
+          if (hasTarget && newList?.id) {
+             addToList({ list_id: newList.id, payload: getItemPayload() });
           }
           onClose();
         }
       });
-    } else if (selectedListId && seriesId) {
-      addToList({ list_id: selectedListId, payload: { series_tmdb_id: seriesId }}, {
+    } else if (selectedListId && hasTarget) {
+      addToList({ list_id: selectedListId, payload: getItemPayload() }, {
         onSuccess: () => {
           onClose();
         }

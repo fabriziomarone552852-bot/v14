@@ -24,6 +24,7 @@ interface RandomMediaModalProps<T extends RandomMediaItem> {
   emptyMessage?: string;
   noUnstartedMessage?: string;
   fullScreen?: boolean;
+  isUnstartedItem?: (item: T) => boolean;
 }
 
 const RandomMediaModal = <T extends RandomMediaItem>({ 
@@ -34,7 +35,8 @@ const RandomMediaModal = <T extends RandomMediaItem>({
   modalTitle = "Cosa scegliamo oggi?",
   emptyMessage = "Nessun elemento disponibile.",
   noUnstartedMessage = "Non hai nessun elemento da iniziare nella lista!",
-  fullScreen = false
+  fullScreen = false,
+  isUnstartedItem,
 }: RandomMediaModalProps<T>) => {
   const [phase, setPhase] = useState<'SELECTION' | 'ROTATING' | 'QUESTION' | 'RESULT'>('SELECTION');
   const [targetItem, setTargetItem] = useState<T | null>(null);
@@ -71,7 +73,18 @@ const RandomMediaModal = <T extends RandomMediaItem>({
   const handleStartExtraction = (mode: 'ALL' | 'UNWATCHED') => {
     let pool = items;
     if (mode === 'UNWATCHED') {
-      pool = items.filter(s => s.status === 'to_watch' || s.status === 'to_read' || s.status === 'to_play');
+      pool = items.filter((s) => {
+        if (isUnstartedItem) return isUnstartedItem(s);
+        const st = s.status?.toLowerCase();
+        return (
+          st === 'to_watch' ||
+          st === 'plan_to_watch' ||
+          st === 'planned' ||
+          st === 'unstarted' ||
+          st === 'to_read' ||
+          st === 'to_play'
+        );
+      });
     }
     
     if (pool.length === 0) {
