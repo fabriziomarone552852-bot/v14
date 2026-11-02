@@ -1,12 +1,10 @@
 ﻿id;name_normalized;brand_id;created_by_user_id;updated_by_user_id;created_at;updated_at;deleted_at;brand_id2
 1;patate;novelle;1;NULL;26/08/2026 19:00;NULL;NULL;98
-2;cipolle dorate;dorate;1;NULL;26/08/2026 19:00;NULL;NULL;65
 3;tonno 65 g;rio mare;1;NULL;26/08/2026 19:00;NULL;NULL;7
 4;salsa di soia suzi wan 143 ml;coop;1;NULL;26/08/2026 19:00;NULL;NULL;1
 5;salsa teriyaki kikkoma 150 ml;coop;1;NULL;26/08/2026 19:00;NULL;NULL;1
 6;tonno 104 g;coop;1;NULL;26/08/2026 19:00;NULL;NULL;1
 7;pesce spada affumicato;coop;1;NULL;26/08/2026 19:00;NULL;NULL;1
-8;mozzarella santa lucia;galbani;1;NULL;26/08/2026 19:00;NULL;NULL;8
 9;yogurt activia misto frutta;danone;1;NULL;26/08/2026 19:00;NULL;NULL;9
 10;falafel mini;coop;1;NULL;26/08/2026 19:00;NULL;NULL;1
 11;salmone filetti surg 250 g;eurospin;1;NULL;26/08/2026 19:00;NULL;NULL;5
@@ -21,7 +19,6 @@
 20;pomodoro piccadilly 1 kg;piccadilly;1;NULL;26/08/2026 19:00;NULL;NULL;66
 21;banane 1 kg;ciquita;1;NULL;26/08/2026 19:00;NULL;NULL;71
 22;uova grandi 6 pz;avicola del sole;1;NULL;26/08/2026 19:00;NULL;NULL;42
-23;mozzarella agerola 1 kg;agerola;1;NULL;26/08/2026 19:00;NULL;NULL;24
 24;nodini stornarella 1 kg;stornarella;1;NULL;26/08/2026 19:00;NULL;NULL;25
 25;fesa di tacchino aequilibrium aia;sds;1;NULL;26/08/2026 19:00;NULL;NULL;34
 26;mastrolindo 930 ml;mastrolindo;1;NULL;26/08/2026 19:00;NULL;NULL;12
@@ -33,7 +30,6 @@
 32;sapone liquido milmil 2 l;milmil;1;NULL;26/08/2026 19:00;NULL;NULL;18
 33;ricotta montrone 125 g;montrone;1;NULL;26/08/2026 19:00;NULL;NULL;19
 34;prosciutto aff praga beretta;beretta;1;NULL;26/08/2026 19:00;NULL;NULL;20
-35;mozzarella aff montrone;montrone;1;NULL;26/08/2026 19:00;NULL;NULL;19
 36;latte;;3;3;01/09/2026 22:33;01/09/2026 22:33;NULL;NULL
 37;pelati;;3;3;01/09/2026 22:34;01/09/2026 22:34;NULL;NULL
 38;limone;coop;3;3;01/09/2026 22:34;01/09/2026 22:34;NULL;1
@@ -53,7 +49,7 @@
 52;ricotta di pecora;savino;1;1;15/10/2026 16:07;15/10/2026 16:07;NULL;26
 53;arrosto di tacchino;fiorucci;1;1;15/10/2026 16:07;15/10/2026 16:07;NULL;27
 54;salame ungherese;famila;1;1;15/10/2026 16:07;15/10/2026 16:07;NULL;6
-55;panini integrali;panificio caruso;1;1;15/10/2026 16:07;15/10/2026 16:07;NULL;29
+55;panini integrali;martucci uno;1;1;15/10/2026 16:07;15/10/2026 16:07;NULL;14
 56;provola affumicata;eurospin;1;1;15/10/2026 16:26;15/10/2026 16:26;NULL;5
 57;salsiccia suino;eurospin;1;1;15/10/2026 16:26;15/10/2026 16:26;NULL;5
 58;roastbeef a fette;eurospin;1;1;15/10/2026 16:26;15/10/2026 16:26;NULL;5
@@ -73,16 +69,16 @@
 72;fette biscottate malto-orzo;mulino bianco;1;1;15/10/2026 18:05;15/10/2026 18:05;NULL;31
 73;yogurt bianco;fage;1;1;15/10/2026 18:05;15/10/2026 18:05;NULL;32
 74;tacquolina;renzini;1;1;15/10/2026 18:05;15/10/2026 18:05;NULL;33
-75;prosciutto aff praga;beretta;1;1;15/10/2026 18:05;15/10/2026 18:05;NULL;20
+75;prosciutto aff praga;martucci uno;1;1;15/10/2026 18:05;15/10/2026 18:05;NULL;14
 76;confettura fichi limoni bio;mielizia;1;1;15/10/2026 18:05;15/10/2026 18:05;NULL;35
 77;mix allegro;famila;1;1;15/10/2026 18:05;15/10/2026 18:05;NULL;6
 78;orata filetti surgelati;eurospin;1;1;16/10/2026 15:01;16/10/2026 15:01;NULL;5
-79;mozzarella;galbani;1;1;16/10/2026 17:21;16/10/2026 17:21;NULL;8
+79;mozzarella;la sipontina;1;1;16/10/2026 17:21;16/10/2026 17:21;NULL;106
 80;pizza;tartufata;1;1;16/10/2026 17:32;16/10/2026 17:32;NULL;81
 81;uova medie 6 pz;avicola del sole;1;1;19/10/2026 15:43;19/10/2026 15:43;NULL;42
 82;mortadella;villani;1;1;19/10/2026 15:43;19/10/2026 15:43;NULL;28
 83;passata pomodoro;rosso gargano;1;1;19/10/2026 15:43;19/10/2026 15:43;NULL;43
-84;mozzarella affumicata;eurospin;1;1;19/10/2026 15:45;19/10/2026 15:45;NULL;5
+84;mozzarella affumicata;la sipontina;1;1;19/10/2026 15:45;19/10/2026 15:45;NULL;106
 85;ace candeggina 3 l;ace;1;1;19/10/2026 15:56;19/10/2026 15:56;NULL;44
 86;scottex fazzoletti;tempo;1;1;19/10/2026 15:56;19/10/2026 15:56;NULL;85
 87;ace gentile 2.3 l;ace;1;1;19/10/2026 15:56;19/10/2026 15:56;NULL;44
@@ -107,9 +103,9 @@
 106;pere;conference;1;1;19/10/2026 16:28;19/10/2026 16:28;NULL;59
 107;uva;bianca;1;1;19/10/2026 16:28;19/10/2026 16:28;NULL;64
 108;patatine;classiche;1;1;19/10/2026 16:28;19/10/2026 16:28;NULL;63
-109;cipolle;bianche;1;1;19/10/2026 16:31;19/10/2026 16:31;NULL;57
+109;cipolle;coop;1;1;19/10/2026 16:31;19/10/2026 16:31;NULL;1
 110;mais;famila;1;1;19/10/2026 16:59;19/10/2026 16:59;NULL;6
-111;pomodoro;;1;1;19/10/2026 17:39;19/10/2026 17:39;NULL;NULL
+111;pomodoro;;1;NULL;19/10/2026 17:39;NULL;NULL;NULL
 112;pomodori;insalataro;1;1;19/10/2026 17:41;19/10/2026 17:41;NULL;100
 113;fagioli;borlotti;1;1;19/10/2026 17:56;19/10/2026 17:56;NULL;67
 114;piselli;;1;1;19/10/2026 18:03;19/10/2026 18:03;NULL;NULL
@@ -176,4 +172,22 @@
 175;burgher broccoli;eurospin;1;1;20/10/2026 12:13;20/10/2026 12:13;NULL;5
 176;radicchio;eurospin;1;1;20/10/2026 12:13;20/10/2026 12:13;NULL;5
 177;fesa di tacchino;sds;1;1;20/10/2026 14:34;20/10/2026 14:34;NULL;34
-178;mozzarelle santa lucia;galbani;1;NULL;26/08/2026 19:00;NULL;NULL;8
+179;dp to hdmi;cinese;1;1;22/10/2026 21:44;22/10/2026 21:44;NULL;101
+180;cavo dp to hdmi;cinese;1;1;22/10/2026 21:44;22/10/2026 21:44;NULL;101
+181;viti e tasselli da 6;cinese;1;1;22/10/2026 21:44;22/10/2026 21:44;NULL;101
+182;zanzariera balcone salotto;marrone;1;1;22/10/2026 21:45;22/10/2026 21:45;NULL;103
+183;prosciutto cotto;branchi;1;1;22/10/2026 21:51;22/10/2026 21:51;NULL;105
+184;tavoletta water;wc net;1;1;29/10/2026 15:16;29/10/2026 15:16;NULL;17
+185;margarina;eurospin;1;1;29/10/2026 15:16;29/10/2026 15:16;NULL;5
+186;fettine scelte;eurospin;1;1;29/10/2026 15:39;29/10/2026 15:39;NULL;5
+187;passata pomodoro 2x350g;eurospin;1;1;29/10/2026 15:39;29/10/2026 15:39;NULL;5
+188;cioccolatini busta;eurospin;1;1;29/10/2026 15:39;29/10/2026 15:39;NULL;5
+189;grano duro precotto;eurospin;1;1;29/10/2026 15:39;29/10/2026 15:39;NULL;5
+190;arance;eurospin;1;1;29/10/2026 15:39;29/10/2026 15:39;NULL;5
+191;clementine;eurospin;1;1;29/10/2026 15:39;29/10/2026 15:39;NULL;5
+192;patatine fritte;hamburgeria;1;1;02/11/2026 11:00;02/11/2026 11:00;NULL;109
+193;stick mozzarella;hamburgeria;1;1;02/11/2026 11:00;02/11/2026 11:00;NULL;109
+194;panino amatriciana;hamburgeria;1;1;02/11/2026 11:00;02/11/2026 11:00;NULL;109
+195;panino affumicato;hamburgeria;1;1;02/11/2026 11:00;02/11/2026 11:00;NULL;109
+196;panino giorgina;hamburgeria;1;1;02/11/2026 11:00;02/11/2026 11:00;NULL;109
+197;mozzarella bufala;la sipontina;1;1;02/11/2026 11:45;02/11/2026 11:45;NULL;106

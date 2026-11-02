@@ -2035,27 +2035,33 @@ def merge_products(
     if not target_product:
         raise HTTPException(status_code=404, detail="Prodotto destinazione (master da mantenere) non trovato.")
 
+    # Conta quanti lotti e quanti elementi della lista appartengono al prodotto sorgente
+    moved_batches = len(source_product.inventory_batches)
+    moved_items = len(source_product.list_items)
+
     # 1. Sposta tutti gli inventory_batch
-    moved_batches = (
-        db.query(InventoryBatch)
-        .filter(InventoryBatch.product_id == source_product_id)
-        .update({InventoryBatch.product_id: target_product_id}, synchronize_session="fetch")
+    # Reassegnazione sia a livello ORM (per aggiornare in memoria il puntamento al nuovo target
+    # ed evitare che SQLAlchemy tenti di azzerare la FK product_id=None al momento della delete)
+    # sia a livello DB per sicurezza.
+    for batch in list(source_product.inventory_batches):
+        batch.product = target_product
+        batch.product_id = target_product_id
+
+    db.query(InventoryBatch).filter(InventoryBatch.product_id == source_product_id).update(
+        {InventoryBatch.product_id: target_product_id}, synchronize_session=False
     )
 
     # 2. Sposta tutti gli shopping_list_items
-    moved_items = (
-        db.query(ShoppingListItem)
-        .filter(ShoppingListItem.product_id == source_product_id)
-        .update({ShoppingListItem.product_id: target_product_id}, synchronize_session="fetch")
+    for item in list(source_product.list_items):
+        item.product = target_product
+        item.product_id = target_product_id
+
+    db.query(ShoppingListItem).filter(ShoppingListItem.product_id == source_product_id).update(
+        {ShoppingListItem.product_id: target_product_id}, synchronize_session=False
     )
 
     # 3. Sposta i product_brands
-    source_links = (
-        db.query(ShoppingProductBrand)
-        .filter(ShoppingProductBrand.product_id == source_product_id)
-        .all()
-    )
-    for link in source_links:
+    for link in list(source_product.product_brands):
         existing_target_link = (
             db.query(ShoppingProductBrand)
             .filter(
@@ -2071,7 +2077,7 @@ def merge_products(
                 notes=link.notes,
             )
             db.add(new_link)
-        db.delete(link)
+    source_product.product_brands.clear()
 
     # 4. Elimina il prodotto duplicato
     db.delete(source_product)
