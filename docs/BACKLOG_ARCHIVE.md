@@ -8,6 +8,7 @@ Questo file contiene lo storico completo e strutturato di tutte le funzionalità
 
 | ID | Attività / Funzionalità | Ambito | Stato Backend | Stato Frontend | Data Completamento |
 | :--- | :--- | :---: | :---: | :---: | :---: |
+| **SHOPPING-021** | Risoluzione Errore 500 Unione Prodotti Spesa (Admin Shopping) & Gestione `passive_deletes` Foreign Key | `shopping` / admin | 🟢 Completato | 🟢 Supportato | Novembre 2026 |
 | **TRACKERS-033** | Standardizzazione Mobile Film a 2 Pagine, Suite Condivisa Trackers (`shared/`), Ricerca Schermo Intero & Aggiunta Ottimistica a 0ms | `trackers` / mobile | 🟢 Supportato | 🟢 Completato | Ottobre 2026 |
 | **TRACKERS-032** | Standardizzazione Catalogo Trackers (`TrackerLibraryShell` & `TMDBMediaCard`) per Serie TV, Film e Futuri Media | `trackers` / UI | 🟢 Supportato | 🟢 Completato | Ottobre 2026 |
 | **TRACKERS-031** | Paginazione Progressiva TMDB (Superamento Limite 20 Risultati, `useInfiniteQuery` & Pulsante Centrale) | `trackers` / fullstack | 🟢 Supportato | 🟢 Completato | Ottobre 2026 |
@@ -557,6 +558,19 @@ Rilascio dell'intera infrastruttura del modulo Serie TV all'interno del macro-do
 ---
 
 ## 🛒 2. Spesa, Prodotti, Marchi & Amministrazione
+
+### [SHOPPING-021] Risoluzione Errore 500 Unione Prodotti Spesa (Admin Shopping) & Gestione `passive_deletes` Foreign Key (🟢 Completato)
+
+#### 📋 Descrizione & Risoluzione
+Nella pagina riservata di amministrazione spesa (SuperUser), la funzione di unione prodotti (`POST /shopping/products/merge`) falliva con errore HTTP 500 (`psycopg.errors.NotNullViolation: null value in column "product_id" violates not-null constraint`) durante il tentativo di eliminazione del prodotto duplicato:
+- **Causa Radice**: Il caricamento iniziale con `lazy="selectin"` popolava le collezioni in memoria (`source_product.inventory_batches` e `list_items`). Al momento di invocare `db.delete(source_product)`, l'ORM di SQLAlchemy – non trovando una cancellazione a cascata – cercava di disassociare i figli impostando `product_id = NULL`, violando il vincolo `NOT NULL` del database PostgreSQL.
+- **Risoluzione a Livello ORM & DB**:
+  - Re-linking esplicito e immediato delle istanze dei lotti e delle righe lista al prodotto target in memoria (`batch.product = target_product`), svuotando in modo pulito e nativo la collezione del sorgente prima del `delete`.
+  - Mantenuto l'aggiornamento SQL difensivo a livello database (`synchronize_session=False`) per eventuali record non caricati in memoria.
+  - Gestione corretta dei marchi associati (`ShoppingProductBrand`) con creazione dei soli brand mancanti sul target e pulizia preventiva.
+  - Configurazione di `passive_deletes="all"` sulle relazioni `inventory_batches` e `list_items` in `ShoppingProduct` ([`models/catalog.py`](file:///c:/Users/user/Documents/PYTHON/VxAme14/backend/domains/shopping/models/catalog.py)) per inibire a monte qualsiasi tentativo ORM di azzeramento delle FK non-nullable durante l'eliminazione di un prodotto.
+
+---
 
 ### [SHOPPING-019] Inserimento Nuovo Brand e Nuovo Fornitore dalla Data Grid Lotti (🟢 Completato)
 

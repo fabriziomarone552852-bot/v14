@@ -5,7 +5,7 @@ export const CHANGELOG_V15: ChangelogItem[] = [
   {
     id: 'v15.2.0',
     version: '15.2.0',
-    date: 'Ottobre 2026',
+    date: 'Novembre 2026',
     title: 'Modulo Tracker Film Completo (Web & Mobile), Cinema & Orari in Sala (ComingSoon), Saghe TMDB & Statistiche',
     isLatest: true,
     published: false,
@@ -44,6 +44,7 @@ export const CHANGELOG_V15: ChangelogItem[] = [
       'Allineamento Idempotente Database: Migrazione difensiva Alembic per `obtained_at` allineata con successo sia sull\'ambiente di test locale che sul database NAS in produzione (`family-smart`).',
     ],
     fixes: [
+      'Risolto errore 500 nella fusione prodotti duplicati (Admin Spesa): corretto il re-linking ORM dei lotti (inventory_batch) e degli elementi della lista sul prodotto target prima dell\'eliminazione del sorgente, prevenendo l\'azzeramento illegale della Foreign Key con vincolo Not-Null.',
       'Risolto il collegamento amici e recensioni nel Tracker Film: corretto l\'errore HTTP 500 nel backend provocato da attributi errati (`avatar_url` e `content`), ripristinando la visualizzazione immediata degli avatar degli amici nell\'header, la lista degli amici nel drawer con etichette corrette ("Visto" / "In lista") e la scheda Recensioni Amici.',
       'Eliminata la linetta nera di giunzione sotto la linguetta locandina in hover tramite sovrapposizione al bordo inferiore ed eliminazione dello spread inferiore dell\'ombra.',
       'Allineato il catalogo Film al layout delle Serie TV: rimossi i titoli e badge delle sezioni ("In lista", "Guardati") per una visualizzazione pulita e continua delle locandine.',
