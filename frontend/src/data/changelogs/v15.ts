@@ -6,10 +6,11 @@ export const CHANGELOG_V15: ChangelogItem[] = [
     id: 'v15.2.0',
     version: '15.2.0',
     date: 'Novembre 2026',
-    title: 'Modulo Tracker Film Completo (Web & Mobile), Cinema & Orari in Sala (ComingSoon), Saghe TMDB & Statistiche',
+    title: 'Modulo Tracker Film Completo (Web & Mobile), Cinema & Orari in Sala (ComingSoon), Previsioni Meteo MET Norway (Finestra Dinamica & Adesivi), Saghe TMDB & Statistiche',
     isLatest: true,
     published: false,
     highlights: [
+      'Finestra Meteo Dinamica in HomePage & Previsioni MET Norway: Sostituita la precedente card con una "finestra sul meteo" viva e animata a 60fps (WeatherAtmosphereCard) che riflette in tempo reale le condizioni correnti della località scelta (sereno giorno/notte, nuvole fluttuanti, foschia/nebbia con onde dense, pioggia a cascata, temporali con lampi, neve con fiocchi oscillanti), integrata con micro-servizio proxy MET Norway, adesivo desktop in alto a sinistra, adesivo mobile ergonomico in basso a destra con apertura a tocco prolungato (600ms) anti-scroll e feedback aptico, e card Impostazioni per GPS.',
       'Cinema & Orari in Sala (ComingSoon Mobile): Nuova sezione interattiva nella home mobile dei film con selezione tra 110 province italiane, elenco delle pellicole in sala con badge di stato ("In lista" / "Visto"), programmazione completa dei cinema con orari degli spettacoli, sale, indicazioni Google Maps e link acquisto biglietti a 0ms tramite caching in RAM sul backend.',
       'Mobile Film a 2 Pagine & Suite Condivisa Trackers: Riorganizzata la vista mobile su 2 sole pagine fluide ("Al Cinema & Uscite" e "Dashboard" con catalogo e liste integrate), suite di componenti riutilizzabili per tutti i tracker (paginatore dinamico, barra obiettivo, citazione compatta, highlight cards e banner), estrazione casuale a schermo intero e ricerca TMDB nativa con aggiunta ottimistica a 0ms.',
       'Paginazione Progressiva TMDB & Standardizzazione Catalogo: Superato il limite di 20 risultati grazie al caricamento continuo con pulsante centrale "Carica altri risultati" (Serie TV, Film e Mobile), unificato nell\'architettura modulare TrackerLibraryShell e TMDBMediaCard.',
@@ -20,6 +21,8 @@ export const CHANGELOG_V15: ChangelogItem[] = [
       'Finestra Statistiche Standardizzata & Franchise Tracker: Modale universale condiviso con Franchise Tracker per saghe TMDB, card temporali con durata esatta, rewatch completo e calendario mensile a celle boxy persistente.',
     ],
     features: [
+      'Finestra Atmosferica Meteo in HomePage (WeatherAtmosphereCard): Finestra paesaggistica dinamica viva che muta in tempo reale in base al meteo corrente (8 scenari animati a 60fps tra cui nebbia/foschia a strati ondulati, pioggia a cascata, temporali con lampi e sereno giorno/notte), con badge sovrimposto di temperatura/località e fallback all\'Oasi Naturale.',
+      'Adesivi Meteo Desktop & Mobile (WeatherBadge): Adesivo fluttuante in alto a sinistra per desktop e adesivo ergonomico in basso a destra per smartphone con apertura a tocco prolungato (Long Press 600ms) protetto da attivazioni accidentali durante lo scroll, micro-vibrazione aptica e modale dettagli orario/giornaliero ad alto z-index.',
       'Integrazione Cinema & Orari Film in Sala (ComingSoon Mobile): Sezione dedicata nella Slide 0 mobile ("Al Cinema & Uscite") con segmented switch ("In Sala", "I Cinema", "Prossime Uscite"), modale di cambio provincia conforme agli standard touch, dettaglio sale/orari per singolo film e programmazione completa per cinema con tasti rapidi di contatto telefonico e Google Maps.',
       'Esperienza Mobile Film a 2 Pagine (MobileMovieView) & Suite Condivisa: Semplificata la navigazione mobile su 2 sole slide ("Al Cinema & Uscite" e "Dashboard"), modale di ricerca nativo a tutto schermo (MobileMovieSearchModal) con selettori touch a finestra oscurata per generi, piattaforme, saghe e anno, estrazione casuale full-screen ed esportazione della suite condivisa (shared/) per Serie TV e futuri media.',
       'Caricamento Progressivo TMDB ("Carica altri risultati"): Nuovo pulsante centrale touch-friendly che permette di sfogliare a blocchi successivi tutti i risultati forniti da TMDb sia per la ricerca testuale che per il Discover globale (generi, anni, piattaforme) su Web e Mobile.',
@@ -31,6 +34,7 @@ export const CHANGELOG_V15: ChangelogItem[] = [
       'Calendario Visioni Mensile a Celle: Griglia standardizzata a 7 colonne (Lunedì-Domenica) con celle a riquadro ben definite visibili anche senza visioni, locandine sfumate e modale di dettaglio al tocco del giorno.',
     ],
     improvements: [
+      'Micro-Proxy Meteo con Cache in RAM & Zero API Key: Gestione delle quote e delle condizioni d\'uso di MET Norway nel backend con chiavi coordinate arrotondate a 3 decimali per massimizzare il riuso della cache, fallback sicuro su Nominatim per la ricerca geografica ed eliminazione di header bloccati dai browser.',
       'Aggiornamenti Ottimistici a 0ms (Optimistic UI) & Ricerca TMDB: Tutte le interazioni (aggiunta e tracciamento film da ricerca TMDB con record provvisorio immediato in RAM, toggle visto, ottenuto/disponibile, libreria, rewatch, recensioni e commenti) aggiornano all\'istante l\'interfaccia e la cache TanStack Query senza attendere la risposta di rete.',
       'Suite Mobile Condivisa Trackers (`shared/`): Estrazione e centralizzazione di paginatore dinamico a 2/3 slide, barra obiettivo annuale, citazione compatta a 2 righe, highlight card 2:3, banner catalogo/liste e card orizzontale TMDB.',
       'Architettura Catalogo Condivisa (`TrackerLibraryShell` & `TMDBMediaCard`): Standardizzazione architetturale del catalogo tra Serie TV, Film e futuri tracker (libri, anime), con barra di ricerca fluttuante unificata, maschera a sfumatura e griglie coordinate.',

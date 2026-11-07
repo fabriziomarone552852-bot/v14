@@ -11,6 +11,7 @@ import {
 } from './shared/utils/Icons';
 import { NotificationsSidebar } from '@/components/shared/notifications/NotificationsSidebar';
 import { TrackerToast } from '@/components/trackers/TrackerToast';
+import { WeatherBadge } from '@/components/weather/WeatherBadge';
 import { SidebarItem } from './navigation/SidebarItem';
 import { AgendaNavSection } from './navigation/AgendaNavSection';
 import { TrackersNavSection } from './navigation/TrackersNavSection';
@@ -199,6 +200,14 @@ const AppShellLayout: React.FC<AppShellLayoutProps> = ({ onLogout }) => {
 
       {/* CONTENUTO PRINCIPALE */}
       <div className="flex-1 flex flex-col overflow-hidden relative min-w-0">
+        {/* Adesivo Meteo Fluttuante in alto a sinistra (Opzione A) */}
+        <div className="absolute top-3 left-4 z-30 pointer-events-auto">
+          <WeatherBadge
+            isToday={true}
+            className="shadow-sm hover:shadow-md bg-white/95 backdrop-blur-md border-slate-200/90 hover:bg-white hover:border-blue-400 transition-all hover:scale-105"
+          />
+        </div>
+
         <main className="flex-1 overflow-x-hidden overflow-y-auto p-6 relative">
           <Outlet />
         </main>

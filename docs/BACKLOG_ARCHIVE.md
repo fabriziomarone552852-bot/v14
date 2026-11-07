@@ -8,6 +8,7 @@ Questo file contiene lo storico completo e strutturato di tutte le funzionalità
 
 | ID | Attività / Funzionalità | Ambito | Stato Backend | Stato Frontend | Data Completamento |
 | :--- | :--- | :---: | :---: | :---: | :---: |
+| **WEATHER-001** | Integrazione Previsioni Meteo MET Norway (Proxy Backend, Finestra Dinamica HomePage, Adesivi Desktop & Mobile con Long Press 600ms, Impostazioni GPS/Città) | `weather` / fullstack | 🟢 Completato | 🟢 Completato | Novembre 2026 |
 | **SHOPPING-021** | Risoluzione Errore 500 Unione Prodotti Spesa (Admin Shopping) & Gestione `passive_deletes` Foreign Key | `shopping` / admin | 🟢 Completato | 🟢 Supportato | Novembre 2026 |
 | **TRACKERS-033** | Standardizzazione Mobile Film a 2 Pagine, Suite Condivisa Trackers (`shared/`), Ricerca Schermo Intero & Aggiunta Ottimistica a 0ms | `trackers` / mobile | 🟢 Supportato | 🟢 Completato | Ottobre 2026 |
 | **TRACKERS-032** | Standardizzazione Catalogo Trackers (`TrackerLibraryShell` & `TMDBMediaCard`) per Serie TV, Film e Futuri Media | `trackers` / UI | 🟢 Supportato | 🟢 Completato | Ottobre 2026 |
@@ -86,6 +87,37 @@ Questo file contiene lo storico completo e strutturato di tutte le funzionalità
 | **TECH-005** | Risoluzione 502 Bad Gateway NAS & Automated Docker Smoke Test | `build` / docker | 🟢 Completato | 🟢 Completato | Ottobre 2026 |
 | **TECH-006** | Allineamento Migrazioni Alembic DB Produzione (NAS) & Fix Login 500 | `build` / db | 🟢 Completato | 🟢 Completato | Ottobre 2026 |
 | **TECH-007** | Configurazione TMDB Produzione NAS & Fix 500 Ricerca Serie | `build` / NAS | 🟢 Completato | 🟢 Completato | Ottobre 2026 |
+
+---
+
+## 🌤️ 0. Meteo & Servizi Ambientali
+
+### [WEATHER-001] Integrazione Previsioni Meteo MET Norway (Proxy Backend, Finestra Dinamica HomePage, Adesivi Desktop & Mobile con Long Press 600ms, Impostazioni GPS/Città) (🟢 Completato)
+
+#### 📋 Descrizione & Obiettivo
+Integrazione completa del servizio di previsioni meteorologiche aperto e gratuito di MET Norway (`api.met.no`) e geocoding OpenStreetMap Nominatim per la ricerca geografica, con visualizzazione multipiattaforma (Desktop e Mobile):
+- **Micro-Servizio Backend Proxy (`backend/domains/weather/`)**:
+  - Piena aderenza ai Terms of Service di MET Norway: User-Agent identificativo obbligatorio (`VitaAgenda/15.2`), arrotondamento coordinate a 3 decimali per massimizzare il riuso della cache e meccanismo in-memory a 0ms con TTL di 30 minuti.
+  - Endpoint pubblico `GET /weather/forecast` accessibile senza token (utilizzabile anche nella schermata di login) e `GET /weather/search` per la ricerca località via OpenStreetMap.
+  - Persistenza della posizione scelta per utente nella colonna JSON `users.module_preferences.weather` con merge conservativo per non sovrascrivere altre preferenze, e default automatico a `Foggia, Puglia, Italia` (`lat: 41.4620, lon: 15.5433`) per utenti non configurati o offline.
+- **Finestra Meteo Atmosferica in HomePage (`WeatherAtmosphereCard.tsx`)**:
+  - Sostituita l'illustrazione statica in basso a destra con una finestra scenica dinamica a 60fps perfettamente incorniciata nel layout originale (`xl:col-span-7`, altezza bloccata `155px`, zero layout shift).
+  - 8 scenari meteorologici realistici animati in CSS/SVG:
+    1. *Sereno Giorno*: sole luminoso pulsante con raggi rotanti morbidi e riflessi caldi.
+    2. *Sereno Notte*: cielo blu notte profondo, mezza luna argentata e stelle scintillanti (`twinkle`).
+    3. *Parzialmente Nuvoloso*: nubi soffici a doppio strato che scivolano in parallasse.
+    4. *Coperto*: cielo grigio perla/ardesia con nuvole dense stratificate.
+    5. *Nebbia / Foschia*: atmosfera ovattata con banchi di nebbia densi e sfumati a strati orizzontali fluttuanti con `backdrop-blur`.
+    6. *Pioggia / Rovesci*: cielo piovoso con gocce animate a cascata diagonale.
+    7. *Temporale*: pioggia battente veloce con lampi intermittenti e fulmine stilizzato a bagliori.
+    8. *Neve*: fiocchi bianchi candidi che cadono lenti con oscillazione a zigzag.
+  - Badge sovraimposto con località, temperatura e meteo attuale, e fallback automatico all'Oasi Naturale originaria in caso di disattivazione.
+- **Adesivi Fluttuanti Multipiattaforma (`WeatherBadge.tsx`)**:
+  - **Desktop (`AppShellLayout.tsx`)**: Adesivo in alto a sinistra (`top-3 left-4 z-30`) in stile vetro satinato, con apertura al click di modale dettagli orario/giornaliero ad alto livello (`createPortal` su `document.body` a `z-[10000]`), senza toccare il layout di nessuna pagina.
+  - **Mobile (`MobileAppShell.tsx`)**: Adesivo ergonomico in basso a destra (`bottom-4 right-4 z-40`), compatto a riga singola, con apertura esclusiva a **Tocco Prolungato (Long Press 600ms)**: totalmente immune allo scorrimento degli elenchi (cancellazione immediata per movimenti >8px), con animazione di compressione a pressione (`scale-90` con ring blu) e micro-vibrazione aptica (`navigator.vibrate(35)`). Aggiunto `pb-20` al contenitore scroll per garantire visibilità completa agli ultimi elementi.
+  - **Login (`LoginPage.tsx`)**: Ripristinata l'interfaccia di accesso minimale e focalizzata originale senza il widget meteo.
+- **Impostazioni & Rilevamento GPS (`WeatherSettingsCard.tsx`)**:
+  - Sezione dedicata in Impostazioni > Integrazioni con toggle attivazione, rilevamento posizione tramite geolocalizzazione del browser e campo di ricerca città con autocompletamento.
 
 ---
 

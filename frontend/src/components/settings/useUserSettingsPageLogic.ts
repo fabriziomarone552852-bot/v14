@@ -7,8 +7,20 @@ import type {
   UserServerSettings,
   UserSettingsFormState,
   UserSettingsUpdatePayload,
+  UserModulePreferences,
 } from '@/types/settings';
 import type { UserResponse } from '@/types/auth';
+
+const getBooleanModulePreferences = (prefs?: UserModulePreferences | null): Record<string, boolean> => {
+  const result: Record<string, boolean> = {};
+  if (!prefs) return result;
+  for (const [key, value] of Object.entries(prefs)) {
+    if (typeof value === 'boolean') {
+      result[key] = value;
+    }
+  }
+  return result;
+};
 
 export const useUserSettingsPageLogic = () => {
   const { logout, updateUser } = useAuth();
@@ -53,7 +65,7 @@ export const useUserSettingsPageLogic = () => {
             email: data.email ?? '',
             maxDepth: data.max_subtask_depth_user !== null ? data.max_subtask_depth_user : 3,
             defaultStartupPage: data.default_startup_page ?? '',
-            modulePreferences: data.module_preferences ?? {},
+            modulePreferences: getBooleanModulePreferences(data.module_preferences),
           });
         }
       } catch (err: unknown) {
@@ -81,7 +93,8 @@ export const useUserSettingsPageLogic = () => {
     const depthChanged =
       form.maxDepth !== '' && form.maxDepth !== (settings.max_subtask_depth_user ?? 3);
     const startupPageChanged = form.defaultStartupPage !== (settings.default_startup_page ?? '');
-    const modulePrefChanged = JSON.stringify(form.modulePreferences) !== JSON.stringify(settings.module_preferences ?? {});
+    const currentBoolPrefs = getBooleanModulePreferences(settings.module_preferences);
+    const modulePrefChanged = JSON.stringify(form.modulePreferences) !== JSON.stringify(currentBoolPrefs);
 
     return emailChanged || depthChanged || startupPageChanged || modulePrefChanged;
   }, [settings, form]);
@@ -92,7 +105,7 @@ export const useUserSettingsPageLogic = () => {
       email: settings.email ?? '',
       maxDepth: settings.max_subtask_depth_user !== null ? settings.max_subtask_depth_user : 3,
       defaultStartupPage: settings.default_startup_page ?? '',
-      modulePreferences: settings.module_preferences ?? {},
+      modulePreferences: getBooleanModulePreferences(settings.module_preferences),
     });
     setError(null);
   };
@@ -122,8 +135,11 @@ export const useUserSettingsPageLogic = () => {
       payload.default_startup_page = form.defaultStartupPage;
     }
 
-    if (JSON.stringify(form.modulePreferences) !== JSON.stringify(settings.module_preferences ?? {})) {
-      payload.module_preferences = form.modulePreferences;
+    const currentServerPrefs = settings.module_preferences ?? {};
+    const newPrefs: UserModulePreferences = { ...currentServerPrefs, ...form.modulePreferences };
+    const currentBoolPrefs = getBooleanModulePreferences(settings.module_preferences);
+    if (JSON.stringify(form.modulePreferences) !== JSON.stringify(currentBoolPrefs)) {
+      payload.module_preferences = newPrefs;
     }
 
     if (Object.keys(payload).length === 0) {
@@ -141,7 +157,7 @@ export const useUserSettingsPageLogic = () => {
           email: updated.email ?? '',
           maxDepth: updated.max_subtask_depth_user !== null ? updated.max_subtask_depth_user : 3,
           defaultStartupPage: updated.default_startup_page ?? '',
-          modulePreferences: updated.module_preferences ?? {},
+          modulePreferences: getBooleanModulePreferences(updated.module_preferences),
         });
         // Refetch user data and update global AuthContext
         const meRes = await api.get<UserResponse>('/users/me');

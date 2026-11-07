@@ -3,6 +3,7 @@ import React from 'react';
 import { CalendarIcon, CheckCircleIcon, LoadingIcon } from '@/components/shared/utils/Icons';
 import { useGoogleCalendarIntegration } from '@/hooks/useGoogleCalendarIntegration';
 import { BingersSyncCard } from './BingersSyncCard';
+import { WeatherSettingsCard } from './WeatherSettingsCard';
 
 export const IntegrationsSection: React.FC = () => {
   const {
@@ -159,6 +160,9 @@ export const IntegrationsSection: React.FC = () => {
 
       {/* Card Bingers & Portabilità Trackers */}
       <BingersSyncCard />
+
+      {/* Card Previsioni Meteo MET Norway */}
+      <WeatherSettingsCard />
     </div>
   );
 };
