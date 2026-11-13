@@ -10,7 +10,7 @@ import {
   MenuBarsIcon,
 } from './shared/utils/Icons';
 import { NotificationsSidebar } from '@/components/shared/notifications/NotificationsSidebar';
-import { TrackerToast } from '@/components/trackers/TrackerToast';
+import { TrackerToast } from '@/components/trackers/shared/TrackerToast';
 import { WeatherBadge } from '@/components/weather/WeatherBadge';
 import { SidebarItem } from './navigation/SidebarItem';
 import { AgendaNavSection } from './navigation/AgendaNavSection';

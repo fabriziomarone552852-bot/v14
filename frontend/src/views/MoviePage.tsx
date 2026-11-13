@@ -2,13 +2,13 @@
 import React from 'react';
 import PageLoadingState from '@/components/shared/feedback/PageLoadingState';
 import PageErrorState from '@/components/shared/feedback/PageErrorState';
-import { MovieHeader } from '@/components/trackers/movies/MovieHeader';
+import { TrackerHeader } from '@/components/trackers/shared/TrackerHeader';
 import { TopMovieCards } from '@/components/trackers/movies/TopMovieCards';
 import { MovieLibrary } from '@/components/trackers/movies/MovieLibrary';
 import { MovieQuoteWidget } from '@/components/trackers/movies/MovieQuoteWidget';
 import { UpcomingMoviesWidget } from '@/components/trackers/movies/UpcomingMoviesWidget';
 import { UpcomingMovieCalendarWidget } from '@/components/trackers/movies/UpcomingMovieCalendarWidget';
-import RandomMediaModal from '@/components/trackers/RandomMediaModal';
+import RandomTrackerModal from '@/components/trackers/shared/RandomTrackerModal';
 import { MovieDetailModal } from '@/components/trackers/movies/detail/MovieDetailModal';
 import { MovieStatsModal } from '@/components/trackers/movies/stats/MovieStatsModal';
 import { MovieFilterModal } from '@/components/trackers/movies/MovieFilterModal';
@@ -79,14 +79,18 @@ const MoviePage: React.FC = () => {
 
   return (
     <div className="flex flex-col gap-5 max-w-[1600px] mx-auto min-h-full xl:h-full xl:overflow-hidden relative p-2 xl:p-0">
-      <MovieHeader
+      <TrackerHeader
+        title="Film"
+        goalLabel="Obiettivo Annuale di Film"
         goalPercent={goalPercent}
         goalViewType={goalViewType}
-        setGoalViewType={setGoalViewType}
-        currentMovies={currentMovies}
-        goal={goal}
-        setStatsModalOpen={setStatsModalOpen}
-        setRandomModalOpen={setRandomModalOpen}
+        onToggleGoalViewType={() => setGoalViewType((prev) => (prev === 'percent' ? 'fraction' : 'percent'))}
+        currentCount={currentMovies}
+        goalTotal={goal}
+        onOpenStats={() => setStatsModalOpen(true)}
+        onOpenRandom={() => setRandomModalOpen(true)}
+        statsButtonTitle="Vedi Statistiche Film"
+        randomButtonTooltip="Non sai cosa guardare? Scegliamo un film per te!"
       />
 
       {/* TOP ROW: 3 GLASS CARDS */}
@@ -120,7 +124,7 @@ const MoviePage: React.FC = () => {
         />
 
         {/* SIDEBAR (4 Colonne) */}
-        <div className="xl:col-span-4 flex flex-col gap-6 h-[600px] xl:h-full min-h-0 overflow-y-auto no-scrollbar pr-2">
+        <div className="xl:col-span-4 flex flex-col gap-6 h-[600px] xl:h-full min-h-0 overflow-y-auto overscroll-x-none no-scrollbar pr-2">
           {/* CITAZIONI (Espandibile al click) */}
           <MovieQuoteWidget
             myQuotes={myQuotes}
@@ -140,20 +144,23 @@ const MoviePage: React.FC = () => {
               <UpcomingMovieCalendarWidget openMovieDetail={openMovieDetail} />
             </div>
             <div
-              className={`absolute top-0 left-0 right-0 transition-all duration-500 ease-in-out origin-top flex flex-col min-h-0 ${
+              className={`absolute -top-6 left-0 right-0 transition-all duration-500 ease-in-out origin-top flex flex-col min-h-0 ${
                 isQuoteExpanded
                   ? 'opacity-100 translate-y-0 delay-100'
                   : 'opacity-0 pointer-events-none -translate-y-4'
               }`}
             >
-              <UpcomingMoviesWidget openMovieDetail={openMovieDetail} />
+              <UpcomingMoviesWidget
+                movies={movies}
+                openMovieDetail={openMovieDetail}
+              />
             </div>
           </div>
         </div>
       </div>
 
       {/* Modal Random Chooser */}
-      <RandomMediaModal
+      <RandomTrackerModal
         isOpen={isRandomModalOpen}
         onClose={() => setRandomModalOpen(false)}
         items={movies || []}

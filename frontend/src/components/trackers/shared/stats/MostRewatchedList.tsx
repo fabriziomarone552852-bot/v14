@@ -1,5 +1,6 @@
 import React from 'react';
-import { StarRating } from '@/components/trackers/SeriesDetailModal/StarRating';
+import { StarRating } from '@/components/trackers/shared/detail/StarRating';
+import { EmptyState } from '@/components/shared/utils/EmptyState';
 
 export interface MostRewatchedItem {
   title: string;
@@ -102,9 +103,11 @@ export const MostRewatchedList: React.FC<MostRewatchedListProps> = ({
             );
           })
         ) : (
-          <div className="flex flex-col items-center justify-center h-48 text-center text-slate-400 text-xs gap-2">
-            <span className="text-3xl">🔁</span>
-            <p>{emptyMessage}</p>
+          <div className="flex items-center justify-center h-48 py-4">
+            <EmptyState
+              message={emptyMessage}
+              icon={<span className="text-3xl not-italic">🔁</span>}
+            />
           </div>
         )}
       </div>

@@ -1,4 +1,6 @@
 // src/types/settings.ts
+
+import type { UserStreamingProvider } from './auth';
 import type { WeatherLocationPreference } from '@/types/weather';
 
 export type SettingsTabId = 'profile' | 'preferences' | 'tasks' | 'integrations' | 'memory' | 'danger';
@@ -30,6 +32,7 @@ export interface UserServerSettings {
   profile_picture_url: string | null;
   default_startup_page: string | null;
   module_preferences: UserModulePreferences | null;
+  streaming_providers?: UserStreamingProvider[] | null;
 }
 
 export interface UserSettingsFormState {
@@ -48,6 +51,7 @@ export interface UserSettingsUpdatePayload {
   profile_picture_url?: string | null;
   default_startup_page?: string | null;
   module_preferences?: UserModulePreferences | null;
+  streaming_providers?: UserStreamingProvider[] | null;
 }
 
 export interface MemoryDiagnostics {

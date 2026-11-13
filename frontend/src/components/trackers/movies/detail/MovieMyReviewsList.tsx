@@ -1,10 +1,10 @@
 import React from 'react';
 import type { UserMovieLog } from '@/types/movies';
-import { StarRating } from '@/components/trackers/SeriesDetailModal/StarRating';
+import { StarRating } from '@/components/trackers/shared/detail/StarRating';
 import { EmptyState } from '@/components/shared/utils/EmptyState';
 import { AddButton } from '@/components/shared/utils/AddButton';
 import ConfirmDialog from '@/components/shared/dialog/ConfirmDialog';
-import { ReviewVisibilityIcon } from '@/components/trackers/SeriesDetailModal/shared/ReviewVisibilityBadge';
+import { ReviewVisibilityIcon } from '@/components/trackers/shared/detail/ReviewVisibilityBadge';
 import { EditIcon, TrashIcon } from '@/components/shared/utils/Icons';
 
 interface MovieMyReviewsListProps {

@@ -25,6 +25,7 @@ def get_user_settings(db: Session, current_user: User) -> schemas.UserSettingsRe
         profile_picture_url=current_user.profile_picture_url,
         default_startup_page=current_user.default_startup_page,
         module_preferences=current_user.module_preferences,
+        streaming_providers=current_user.streaming_providers,
     )
 
 
@@ -70,6 +71,9 @@ def update_settings(
         current_prefs = dict(current_user.module_preferences or {})
         current_prefs.update(data["module_preferences"])
         current_user.module_preferences = current_prefs
+
+    if "streaming_providers" in data:
+        current_user.streaming_providers = data["streaming_providers"]
 
     if "profile_picture_url" in data:
         current_user.profile_picture_url = data["profile_picture_url"]

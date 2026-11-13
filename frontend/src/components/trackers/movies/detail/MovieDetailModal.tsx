@@ -7,11 +7,12 @@ import { MovieDetailSidebar } from './MovieDetailSidebar';
 import { MovieOverviewTab } from './MovieOverviewTab';
 import { MovieSagaTab } from './MovieSagaTab';
 import { MovieReviewTab } from './MovieReviewTab';
-import { SeriesDetailListsDrawer } from '@/components/trackers/SeriesDetailModal/SeriesDetailListsDrawer';
-import { SeriesDetailFriendsDrawer } from '@/components/trackers/SeriesDetailModal/SeriesDetailFriendsDrawer';
-import { MediaListManagerModal } from '@/components/trackers/SeriesDetailModal/MediaListManagerModal';
-import { SeriesImageModal } from '@/components/trackers/SeriesDetailModal/SeriesImageModal';
-import { ListDetailModal } from '@/components/trackers/SeriesDetailModal/ListDetailModal';
+import { MovieCinemaShowtimesTab } from './MovieCinemaShowtimesTab';
+import { TrackerDetailListsDrawer } from '@/components/trackers/shared/detail/TrackerDetailListsDrawer';
+import { TrackerDetailFriendsDrawer } from '@/components/trackers/shared/detail/TrackerDetailFriendsDrawer';
+import { TrackerListManagerModal } from '@/components/trackers/shared/detail/TrackerListManagerModal';
+import { TrackerImageModal } from '@/components/trackers/shared/detail/TrackerImageModal';
+import { TrackerListDetailModal } from '@/components/trackers/shared/detail/TrackerListDetailModal';
 import type { MovieDetailTabType } from '@/hooks/trackers/useMovieUrlParams';
 
 export interface MovieDetailModalProps {
@@ -199,11 +200,18 @@ export const MovieDetailModal: React.FC<MovieDetailModalProps> = ({
                 onAddTracking={handleToggleLibrary}
               />
             )}
+
+            {activeTab === 'cinema' && (
+              <MovieCinemaShowtimesTab
+                tmdbId={tmdbId}
+                movieTitle={title}
+              />
+            )}
           </div>
         </div>
 
         {/* SIDEBAR LISTE */}
-        <SeriesDetailListsDrawer
+        <TrackerDetailListsDrawer
           isOpen={showListsPanel}
           onClose={() => setShowListsPanel(false)}
           lists={listsWithMovie}
@@ -212,7 +220,7 @@ export const MovieDetailModal: React.FC<MovieDetailModalProps> = ({
         />
 
         {/* SIDEBAR AMICI */}
-        <SeriesDetailFriendsDrawer
+        <TrackerDetailFriendsDrawer
           isOpen={showFriendsPanel}
           onClose={() => setShowFriendsPanel(false)}
           friends={MOVIE_FRIENDS}
@@ -223,7 +231,7 @@ export const MovieDetailModal: React.FC<MovieDetailModalProps> = ({
 
       {/* MODALE GESTIONE LISTE */}
       {isListManagerOpen && (
-        <MediaListManagerModal
+        <TrackerListManagerModal
           isOpen={isListManagerOpen}
           onClose={() => setIsListManagerOpen(false)}
           movieId={tmdbId}
@@ -233,7 +241,7 @@ export const MovieDetailModal: React.FC<MovieDetailModalProps> = ({
 
       {/* MODALE CAMBIA IMMAGINE / LOCANDINA */}
       {isImageModalOpen && (
-        <SeriesImageModal
+        <TrackerImageModal
           isOpen={isImageModalOpen}
           onClose={() => setIsImageModalOpen(false)}
           currentUrl={posterUrl}
@@ -244,7 +252,7 @@ export const MovieDetailModal: React.FC<MovieDetailModalProps> = ({
 
       {/* MODALE DETTAGLIO LISTA */}
       {listDetailId !== null && (
-        <ListDetailModal
+        <TrackerListDetailModal
           isOpen={listDetailId !== null}
           onClose={() => setListDetailId(null)}
           listId={listDetailId}

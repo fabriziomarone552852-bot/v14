@@ -20,6 +20,7 @@ Questo documento traccia in modo strutturato, prioritizzato e costantemente aggi
 | **FEAT-006** | Hub Spesa, Ricettario, Meal Prep & Wishlist Desideri | `shopping` / food | 🔴 Da Strutturare | 🔴 Da Implementare | 🔴 **Massima (Passo Fondamentale)** |
 | **FEAT-003** | Dashboard Analytics & Storico Prezzi Spesa | `analytics` / shopping | 🟢 Completato | 🔴 Da Implementare | 🟢 **Bassa** |
 | **CAL-002** | Filtro Categorie Eventi nel Calendario Homepage (Menu Ingranaggio ⚙️) | `calendar` / UI | 🔴 Da Iniziare | 🔴 Da Iniziare | 🟡 **Media-Alta** |
+| **CAL-003** | Copia & Duplicazione Rapida Eventi (Calendario & Agenda) | `calendar` / events | 🔴 Da Iniziare | 🔴 Da Iniziare | 🟡 **Media-Alta** |
 | **FEAT-011** | Sezione Lavoro & Gestione Turni di Lavoro (Punto da definire con Daniela) | `work` / shifts | 🔴 Da Definire | 🔴 Da Definire | 🟡 **Media-Alta** |
 | **FEAT-005** | Sezione Liste Tematiche & Personalizzate (Posti, Siti, Wishlist, Giochi) | `custom_lists` | 🟡 Parziale | 🟡 Parziale | 🔴 **Massima (Passo Fondamentale)** |
 | **FEAT-013** | Archivio Notifiche / Sezione Storico Notifiche Permanente | `notifications` / UI | 🟢 Completato | 🟡 Da Implementare | 🟡 **Media** |
@@ -56,7 +57,7 @@ Questo documento traccia in modo strutturato, prioritizzato e costantemente aggi
 
 ## 📺 1. Media & Trackers (Libri, Serie TV & Funzionalità Evolutive)
 
-> 🗄️ **Moduli Serie TV & Film Completati**: I moduli completi delle **Serie TV** e dei **Film** (inclusa la gestione Saghe TMDB, calendari visioni, statistiche di durata reale, liste miste, standardizzazione header/cards `TRACKERS-023`, modale statistiche unificata `TRACKERS-024`, standardizzazione modale dettaglio `TRACKERS-028`, armonizzazione recensioni/citazioni `TRACKERS-029`, social/commenti ottimistici `TRACKERS-030`, paginazione progressiva TMDB `TRACKERS-031`, standardizzazione catalogo `TRACKERS-032` e standardizzazione mobile trackers `TRACKERS-033`) sono stati completati con successo e archiviati in dettaglio in [`docs/BACKLOG_ARCHIVE.md`](file:///c:/Users/Fabrizio/Desktop/app/smart/v14/docs/BACKLOG_ARCHIVE.md).
+> 🗄️ **Moduli Serie TV & Film Completati**: I moduli completi delle **Serie TV** e dei **Film** (inclusa la gestione Saghe TMDB, calendari visioni, statistiche di durata reale, liste miste, standardizzazione header/cards `TRACKERS-023`, modale statistiche unificata `TRACKERS-024`, standardizzazione modale dettaglio `TRACKERS-028`, armonizzazione recensioni/citazioni `TRACKERS-029`, social/commenti ottimistici `TRACKERS-030`, paginazione progressiva TMDB `TRACKERS-031`, standardizzazione catalogo `TRACKERS-032`, standardizzazione mobile trackers `TRACKERS-033`, il modulo Cinema & orari in sala `TRACKERS-034`, le piattaforme streaming utente con fallback home mobile `TRACKERS-037`, il motore di ricerca incrociata avanzata con generi 3 stati e reset rapido `TRACKERS-038`, il modale piattaforma universale con ordinamento alfabetico `TRACKERS-039`, la centratura geometrica dell'header e del catalogo mobile `TRACKERS-040`, il modale analytics mobile film con calendario unificato ed EmptyState universali `TRACKERS-041`, la riorganizzazione architetturale simmetrica `shared/`-`series/`-`movies/` con nomenclatura unificata `TRACKERS-042`, la rifinitura scheda dettaglio film e standardizzazione recensioni mobile `TRACKERS-043`, la suite liste personali mobile filtrata per tracker con slider header a doppio livello `TRACKERS-044`, il pulsante e modale piattaforme catalogo desktop `TRACKERS-036` e gli orari cinema e carosello "In sala" su Webpage Desktop `TRACKERS-035`) sono stati completati con successo e archiviati in dettaglio in [`docs/BACKLOG_ARCHIVE.md`](file:///c:/Users/Fabrizio/Desktop/app/smart/v14/docs/BACKLOG_ARCHIVE.md).
 
 ### [FEAT-004 (Libri)] Estensione Sezione Media: Libri
 *(Attività futura pianificata per il completamento dell'hub Media).*
@@ -138,6 +139,14 @@ Questo documento traccia in modo strutturato, prioritizzato e costantemente aggi
   - Altre categorie / Tag personalizzati.
 - **Persistenza**: Preferenze salvate in memoria locale dell'utente per mantenere attiva la configurazione scelta tra le sessioni.
 - **Stato**: 🔴 Da Iniziare *(Priorità: Media-Alta)*.
+
+### [CAL-003] Copia & Duplicazione Rapida Eventi (Calendario & Agenda)
+- **Descrizione**: Possibilità per l'utente di copiare e duplicare un evento esistente nel calendario o nell'agenda (sia da interfaccia Desktop che Mobile).
+- **Casi d'Uso & Funzionalità**:
+  - Pulsante dedicato "Copia Evento" / "Duplica" all'interno del modale di dettaglio evento o nel menu opzioni contestuale (tre puntini / tocco prolungato).
+  - Modalità di duplicazione rapida nello stesso giorno o selezione guidata di una data di destinazione differente, preservando orario di inizio/fine, categoria, descrizione, colore e promemoria preconfigurati.
+  - Salvataggio immediato ottimistico (0ms) con notifica toast leggera di conferma.
+- **Stato**: 🔴 Da Iniziare *(Desktop & Mobile — Priorità: Media-Alta)*.
 
 ### [FEAT-011] Sezione Lavoro & Gestione Turni di Lavoro
 - **Descrizione**: Modulo dedicato alla gestione delle attività lavorative, tracciamento orari e organizzazione turni.

@@ -1,5 +1,6 @@
 import React from 'react';
-import { StarRating } from '@/components/trackers/SeriesDetailModal/StarRating';
+import { StarRating } from '@/components/trackers/shared/detail/StarRating';
+import { EmptyState } from '@/components/shared/utils/EmptyState';
 
 export interface TopMediaItem {
   title: string;
@@ -64,9 +65,11 @@ export const TopMediaRankingList: React.FC<TopMediaRankingListProps> = ({
             </div>
           ))
         ) : (
-          <div className="flex flex-col items-center justify-center h-40 text-xs text-slate-400 text-center p-4">
-            <span className="text-2xl not-italic mb-2">⭐</span>
-            <p>{emptyMessage}</p>
+          <div className="flex items-center justify-center h-48 py-4">
+            <EmptyState
+              message={emptyMessage}
+              icon={<span className="text-2xl not-italic">⭐</span>}
+            />
           </div>
         )}
       </div>

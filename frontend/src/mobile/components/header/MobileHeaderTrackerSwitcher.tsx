@@ -11,46 +11,63 @@ export const MobileHeaderTrackerSwitcher: React.FC = () => {
   const isFilm = path === '/trackers/film';
   const isBooks = path === '/trackers/libri';
 
+  const activeIndex = isFilm ? 1 : isBooks ? 2 : 0;
+
   return (
-    <div className="flex items-center bg-gray-100/90 p-1 rounded-xl border border-gray-200 gap-0.5 shadow-inner">
-      {/* SERIE TV */}
+    <div className="relative grid grid-cols-3 items-center bg-gray-100/90 p-1 rounded-xl border border-gray-200 shadow-inner select-none">
+      {/* Livello base: icone scure sempre visibili sulla traccia grigia */}
       <Link
         to="/trackers/serie-tv"
         title="Serie TV"
-        className={`p-1.5 rounded-lg transition-all flex items-center justify-center ${
-          isTV
-            ? 'bg-blue-600 text-white shadow-xs font-bold scale-105'
-            : 'text-gray-500 hover:text-gray-900 hover:bg-gray-200/60'
-        }`}
+        aria-current={isTV ? 'page' : undefined}
+        className="relative z-10 w-8 h-8 rounded-lg flex items-center justify-center text-gray-600 hover:text-gray-900"
       >
         <TvIcon className="w-5 h-5" />
       </Link>
 
-      {/* FILM */}
       <Link
         to="/trackers/film"
         title="Film"
-        className={`p-1.5 rounded-lg transition-all flex items-center justify-center ${
-          isFilm
-            ? 'bg-blue-600 text-white shadow-xs font-bold scale-105'
-            : 'text-gray-500 hover:text-gray-900 hover:bg-gray-200/60'
-        }`}
+        aria-current={isFilm ? 'page' : undefined}
+        className="relative z-10 w-8 h-8 rounded-lg flex items-center justify-center text-gray-600 hover:text-gray-900"
       >
         <FilmIcon className="w-5 h-5" />
       </Link>
 
-      {/* LIBRI */}
       <Link
         to="/trackers/libri"
         title="Libri"
-        className={`p-1.5 rounded-lg transition-all flex items-center justify-center ${
-          isBooks
-            ? 'bg-blue-600 text-white shadow-xs font-bold scale-105'
-            : 'text-gray-500 hover:text-gray-900 hover:bg-gray-200/60'
-        }`}
+        aria-current={isBooks ? 'page' : undefined}
+        className="relative z-10 w-8 h-8 rounded-lg flex items-center justify-center text-gray-600 hover:text-gray-900"
       >
         <BookIcon className="w-5 h-5" />
       </Link>
+
+      {/* Pillola blu scorrevole con maschera interna per icone bianche (zero lag di colore) */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute top-1 bottom-1 left-1 z-20 w-8 h-8 rounded-lg bg-blue-600 shadow-xs overflow-hidden transition-transform duration-250 ease-[cubic-bezier(0.22,1,0.36,1)] will-change-transform"
+        style={{
+          transform: `translate3d(${activeIndex * 2}rem, 0, 0)`,
+        }}
+      >
+        <div
+          className="grid grid-cols-3 w-24 h-8 text-white transition-transform duration-250 ease-[cubic-bezier(0.22,1,0.36,1)] will-change-transform"
+          style={{
+            transform: `translate3d(-${activeIndex * 2}rem, 0, 0)`,
+          }}
+        >
+          <div className="w-8 h-8 flex items-center justify-center">
+            <TvIcon className="w-5 h-5" />
+          </div>
+          <div className="w-8 h-8 flex items-center justify-center">
+            <FilmIcon className="w-5 h-5" />
+          </div>
+          <div className="w-8 h-8 flex items-center justify-center">
+            <BookIcon className="w-5 h-5" />
+          </div>
+        </div>
+      </div>
     </div>
   );
 };

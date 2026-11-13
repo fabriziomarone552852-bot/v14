@@ -1,29 +1,30 @@
 // src/mobile/views/MobileTVSeriesView.tsx
-import React, { useState } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import PageLoadingState from '@/components/shared/feedback/PageLoadingState';
 import PageErrorState from '@/components/shared/feedback/PageErrorState';
 import { useTVSeriesPageLogic } from '@/hooks/trackers/useTVSeriesPageLogic';
-import RandomMediaModal from '@/components/trackers/RandomMediaModal';
-import { MobileSeriesStatsModal } from '../components/trackers/stats';
-import { MobileTVSeriesDetailModal } from '../components/trackers/detail';
-import MobileTVSeriesSearchModal from '../components/trackers/MobileTVSeriesSearchModal';
-import MobileTVEpisodesTimeline from '../components/trackers/MobileTVEpisodesTimeline';
-import MobileTVSeriesDashboardSlide from '../components/trackers/MobileTVSeriesDashboardSlide';
-import MobileTVSeriesDiarySlide from '../components/trackers/MobileTVSeriesDiarySlide';
-import MobileSeriesCatalogModal from '../components/trackers/MobileSeriesCatalogModal';
-import MobileSeriesPersonalListsModal from '../components/trackers/MobileSeriesPersonalListsModal';
-import { MobileMediaListManagerModal } from '../components/trackers/detail/MobileMediaListManagerModal';
+import { DEFAULT_SERIES_FILTERS } from '@/hooks/trackers/useMediaFilterOptions';
+import RandomTrackerModal from '@/components/trackers/shared/RandomTrackerModal';
+import { MobileSeriesStatsModal } from '../components/trackers/series/stats';
+import { MobileTVSeriesDetailModal } from '../components/trackers/series/detail';
+import MobileTVSeriesSearchModal from '../components/trackers/series/MobileTVSeriesSearchModal';
+import MobileTVEpisodesTimeline from '../components/trackers/series/MobileTVEpisodesTimeline';
+import MobileTVSeriesDashboardSlide from '../components/trackers/series/MobileTVSeriesDashboardSlide';
+import MobileTVSeriesDiarySlide from '../components/trackers/series/MobileTVSeriesDiarySlide';
+import MobileSeriesCatalogModal from '../components/trackers/series/MobileSeriesCatalogModal';
 import type {
   TVSeries,
   UpcomingEpisode,
   TMDBEpisode,
   SeriesDetailTarget,
-  MediaList,
 } from '@/types/trackers';
 import { extractSeriesTmdbId } from '@/types/trackers';
-import MobileTVPaginationDots from '../components/trackers/MobileTVPaginationDots';
+import {
+  MobileTrackerPaginationDots,
+  MobileTrackerPersonalListsModal,
+} from '../components/trackers/shared';
 import { useTrackerHeader } from '@/context/TrackerHeaderContext';
-import { useTMDBGenres, useTMDBProviders } from '@/hooks/queries/useTrackersQueries';
+import { useMobileHorizontalSlidePages } from '../hooks/useMobileHorizontalSlidePages';
 
 export const MobileTVSeriesView: React.FC = () => {
   const {
@@ -69,81 +70,51 @@ export const MobileTVSeriesView: React.FC = () => {
     fetchMoreResults,
   } = useTVSeriesPageLogic();
 
-  const { data: tmdbGenres = [] } = useTMDBGenres();
-  const { data: tmdbProviders = [] } = useTMDBProviders();
-
-  // Modali dedicati per Catalogo e Liste Personali
   const [isCatalogModalOpen, setIsCatalogModalOpen] = useState(false);
   const [isPersonalListsModalOpen, setIsPersonalListsModalOpen] = useState(false);
-  const [selectedListForModal, setSelectedListForModal] = useState<MediaList | null>(null);
-  const [isListManagerModalOpen, setIsListManagerModalOpen] = useState(false);
   const [isStandaloneEpisode, setIsStandaloneEpisode] = useState(() => {
     return Boolean(new URLSearchParams(window.location.search).get('open_episode'));
   });
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (detailModalEpisode && detailModalReviewLogId) {
       setIsStandaloneEpisode(true);
     }
   }, [detailModalEpisode, detailModalReviewLogId]);
 
-  // Apertura ricerca globale TMDB filtrata per Genere
-  const handleMobileGenreClick = React.useCallback(
+  const handleMobileGenreClick = useCallback(
     (genreName: string) => {
-      const match = tmdbGenres.find((g) => g.name.toLowerCase() === genreName.toLowerCase());
-      const genreId = match ? String(match.id) : genreName;
-
       handleFilterChange({
-        keyword: '',
-        genre: genreId,
-        network: 'all',
-        ratings: [],
-        tmdbStatus: 'all',
-        year: 'all',
-        sortBy: 'date_added_desc',
-        listId: null,
+        ...DEFAULT_SERIES_FILTERS,
+        genres: { include: [genreName], exclude: [], mode: 'OR' },
         globalSearch: true,
       });
       setDebouncedQuery('');
       setDetailModalOpen(false);
       setIsFilterModalOpen(true);
     },
-    [tmdbGenres, handleFilterChange, setDebouncedQuery, setDetailModalOpen, setIsFilterModalOpen]
+    [handleFilterChange, setDebouncedQuery, setDetailModalOpen, setIsFilterModalOpen]
   );
 
-  // Apertura ricerca globale TMDB filtrata per Piattaforma streaming / distributore
-  const handleMobilePlatformClick = React.useCallback(
-    (platformName: string, providerId?: number) => {
-      let networkId = providerId ? String(providerId) : '';
-      if (!networkId) {
-        const match = tmdbProviders.find((p) => p.provider_name.toLowerCase() === platformName.toLowerCase());
-        networkId = match ? String(match.provider_id) : platformName;
-      }
-
+  const handleMobilePlatformClick = useCallback(
+    (platformName: string) => {
       handleFilterChange({
-        keyword: '',
-        genre: 'all',
-        network: networkId,
-        ratings: [],
-        tmdbStatus: 'all',
-        year: 'all',
-        sortBy: 'date_added_desc',
-        listId: null,
+        ...DEFAULT_SERIES_FILTERS,
+        networks: [platformName],
         globalSearch: true,
       });
       setDebouncedQuery('');
       setDetailModalOpen(false);
       setIsFilterModalOpen(true);
     },
-    [tmdbProviders, handleFilterChange, setDebouncedQuery, setDetailModalOpen, setIsFilterModalOpen]
+    [handleFilterChange, setDebouncedQuery, setDetailModalOpen, setIsFilterModalOpen]
   );
 
-  // Configurazione bottoni Header Mobile (Lente ricerca e Pallino blu ?) con handler stabili
-  const handleOpenSearch = React.useCallback(() => {
+  const handleOpenSearch = useCallback(() => {
     setIsFilterModalOpen(true);
   }, [setIsFilterModalOpen]);
 
-  const handleOpenRandom = React.useCallback(() => {
+  const handleOpenRandom = useCallback(() => {
     setRandomModalOpen(true);
   }, [setRandomModalOpen]);
 
@@ -153,55 +124,19 @@ export const MobileTVSeriesView: React.FC = () => {
     hasActiveFilters: hasActiveFilters || Boolean(searchQuery) || Boolean(debouncedQuery),
   });
 
-  // Paginazione a 3 slide:
-  // 0 = Timeline Uscite (a sinistra di Pagina 1)
-  // 1 = Diario Episodi (Pagina centrale / Home principale all'apertura)
-  // 2 = Dashboard & Catalogo (a destra di Pagina 1)
-  const [activePageIndex, setActivePageIndex] = useState<0 | 1 | 2>(1);
+  // Paginazione circolare a 3 slide: 0 = Timeline, 1 = Diario, 2 = Dashboard
+  const {
+    activePageIndex,
+    setActivePageIndex,
+    getSlideClass,
+    handleTouchStart,
+    handleTouchEnd,
+  } = useMobileHorizontalSlidePages<0 | 1 | 2>({
+    pageCount: 3,
+    initialPage: 1,
+    circular: true,
+  });
 
-  // Calcolo classi di posizionamento orizzontale circolare per le 3 slide
-  const getSlideClass = (pageIdx: 0 | 1 | 2) => {
-    const diff = pageIdx - activePageIndex;
-    if (diff === 0) {
-      return 'translate-x-0 pointer-events-auto z-10 opacity-100';
-    }
-    if (diff === 1 || diff === -2) {
-      return 'translate-x-full pointer-events-none z-0 opacity-0';
-    }
-    return '-translate-x-full pointer-events-none z-0 opacity-0';
-  };
-
-  // Gesture Touch Swipe
-  const [touchStartX, setTouchStartX] = useState<number | null>(null);
-  const [touchStartY, setTouchStartY] = useState<number | null>(null);
-
-  const handleTouchStart = (e: React.TouchEvent) => {
-    setTouchStartX(e.touches[0].clientX);
-    setTouchStartY(e.touches[0].clientY);
-  };
-
-  const handleTouchEnd = (e: React.TouchEvent) => {
-    if (touchStartX === null || touchStartY === null) return;
-    const deltaX = e.changedTouches[0].clientX - touchStartX;
-    const deltaY = e.changedTouches[0].clientY - touchStartY;
-    setTouchStartX(null);
-    setTouchStartY(null);
-
-    // Ignora lo swipe orizzontale se prevale lo scroll verticale
-    if (Math.abs(deltaY) > Math.abs(deltaX)) return;
-    // Soglia minima di scorrimento (45px)
-    if (Math.abs(deltaX) < 45) return;
-
-    if (deltaX < 0) {
-      // Dito verso sinistra -> pagina successiva in loop circolare (0 -> 1 -> 2 -> 0)
-      setActivePageIndex((prev) => ((prev + 1) % 3) as 0 | 1 | 2);
-    } else if (deltaX > 0) {
-      // Dito verso destra -> pagina precedente in loop circolare (0 -> 2 -> 1 -> 0)
-      setActivePageIndex((prev) => ((prev - 1 + 3) % 3) as 0 | 1 | 2);
-    }
-  };
-
-  // Apertura a tutto schermo dell'episodio nel modale dettaglio della serie (standalone)
   const handleTimelineEpisodeClick = (ep: UpcomingEpisode) => {
     setIsStandaloneEpisode(true);
     const match = series?.find((s) => s.tmdb_id === ep.series_tmdb_id);
@@ -228,7 +163,9 @@ export const MobileTVSeriesView: React.FC = () => {
   };
 
   if (isLoading) {
-    const isOpeningReview = Boolean(new URLSearchParams(window.location.search).get('open_review_log_id'));
+    const isOpeningReview = Boolean(
+      new URLSearchParams(window.location.search).get('open_review_log_id')
+    );
     return (
       <PageLoadingState
         messages={
@@ -249,12 +186,15 @@ export const MobileTVSeriesView: React.FC = () => {
     );
   }
 
-  // Card in evidenza per Dashboard
   const watchingSeries = series?.filter((s) => s.status === 'watching') || [];
-  const watchedSeries = series?.filter((s) => s.status === 'watched' || s.status === 'completed') || [];
-  const lastAdded = series && series.length > 0
-    ? [...series].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())[0]
-    : null;
+  const watchedSeries =
+    series?.filter((s) => s.status === 'watched' || s.status === 'completed') || [];
+  const lastAdded =
+    series && series.length > 0
+      ? [...series].sort(
+          (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+        )[0]
+      : null;
   const lastWatched = watchingSeries.length > 0 ? watchingSeries[0] : null;
   const lastCompleted = watchedSeries.length > 0 ? watchedSeries[0] : null;
 
@@ -264,11 +204,8 @@ export const MobileTVSeriesView: React.FC = () => {
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
     >
-      {/* AREA PRINCIPALE DELLE PAGINE CON ANIMAZIONE SLIDE ORIZZONTALE */}
       <div className="flex-1 min-h-0 relative overflow-hidden">
-        {/* ===================================================================== */}
-        {/* PAGINA 0: TIMELINE USCITE EPISODI (A sinistra del Diario)             */}
-        {/* ===================================================================== */}
+        {/* PAGINA 0: TIMELINE USCITE EPISODI */}
         <div
           className={`absolute inset-0 w-full h-full flex flex-col transition-all duration-300 ease-out ${getSlideClass(0)}`}
         >
@@ -290,9 +227,7 @@ export const MobileTVSeriesView: React.FC = () => {
           />
         </div>
 
-        {/* ===================================================================== */}
-        {/* PAGINA 1: DIARIO EPISODI (Pagina principale centrale all'apertura)    */}
-        {/* ===================================================================== */}
+        {/* PAGINA 1: DIARIO EPISODI */}
         <div
           className={`absolute inset-0 w-full h-full flex flex-col transition-all duration-300 ease-out ${getSlideClass(1)}`}
         >
@@ -310,9 +245,7 @@ export const MobileTVSeriesView: React.FC = () => {
           />
         </div>
 
-        {/* ===================================================================== */}
-        {/* PAGINA 2: DASHBOARD & ATTIVITÀ (A destra del Diario)                   */}
-        {/* ===================================================================== */}
+        {/* PAGINA 2: DASHBOARD & ATTIVITÀ */}
         <MobileTVSeriesDashboardSlide
           className={getSlideClass(2)}
           activePageIndex={activePageIndex}
@@ -331,21 +264,16 @@ export const MobileTVSeriesView: React.FC = () => {
           }}
           onOpenStats={() => setStatsModalOpen(true)}
           onOpenCatalog={() => setIsCatalogModalOpen(true)}
-          onOpenPersonalLists={(list) => {
-            setSelectedListForModal(list || null);
-            setIsPersonalListsModalOpen(true);
-          }}
+          onOpenPersonalLists={() => setIsPersonalListsModalOpen(true)}
         />
       </div>
 
-      {/* 3. INDICATORE DI PAGINAZIONE TOUCH IN BASSO (SLIDER DOTS) */}
-      <MobileTVPaginationDots
+      <MobileTrackerPaginationDots
         activePageIndex={activePageIndex}
         onSelectPage={setActivePageIndex}
       />
 
-      {/* 4. MODALI CONDIVISI */}
-      <RandomMediaModal
+      <RandomTrackerModal
         isOpen={isRandomModalOpen}
         onClose={() => setRandomModalOpen(false)}
         items={series || []}
@@ -368,8 +296,9 @@ export const MobileTVSeriesView: React.FC = () => {
             setIsStandaloneEpisode(false);
           }}
           series={
-            (series?.find((s) => s.tmdb_id === extractSeriesTmdbId(detailModalSeries)) as SeriesDetailTarget) ||
-            detailModalSeries
+            (series?.find(
+              (s) => s.tmdb_id === extractSeriesTmdbId(detailModalSeries)
+            ) as SeriesDetailTarget) || detailModalSeries
           }
           initialTab={detailModalTab}
           initialEpisode={detailModalEpisode}
@@ -418,7 +347,6 @@ export const MobileTVSeriesView: React.FC = () => {
         onFetchMore={fetchMoreResults}
       />
 
-      {/* 5. MODALE CATALOGO COMPLETO */}
       <MobileSeriesCatalogModal
         isOpen={isCatalogModalOpen}
         onClose={() => setIsCatalogModalOpen(false)}
@@ -427,24 +355,16 @@ export const MobileTVSeriesView: React.FC = () => {
         onOpenSeriesDetail={openSeriesDetail}
       />
 
-      {/* 6. MODALE LISTE PERSONALI */}
-      <MobileSeriesPersonalListsModal
+      <MobileTrackerPersonalListsModal
         isOpen={isPersonalListsModalOpen}
-        onClose={() => {
-          setIsPersonalListsModalOpen(false);
-          setSelectedListForModal(null);
-        }}
+        onClose={() => setIsPersonalListsModalOpen(false)}
+        mediaType="tv"
         myLists={myLists || []}
         series={series || []}
-        onOpenSeriesDetail={openSeriesDetail}
-        onOpenListManager={() => setIsListManagerModalOpen(true)}
-        initialSelectedList={selectedListForModal}
-      />
-
-      {/* 7. MODALE CREAZIONE / GESTIONE LISTE */}
-      <MobileMediaListManagerModal
-        isOpen={isListManagerModalOpen}
-        onClose={() => setIsListManagerModalOpen(false)}
+        onOpenSeriesDetail={(s) => {
+          setIsStandaloneEpisode(false);
+          openSeriesDetail(s);
+        }}
       />
     </div>
   );

@@ -2,16 +2,16 @@
 import React from 'react';
 import PageLoadingState from '@/components/shared/feedback/PageLoadingState';
 import PageErrorState from '@/components/shared/feedback/PageErrorState';
-import { TVSeriesHeader } from '@/components/trackers/TVSeriesHeader';
-import { TVSeriesLibrary } from '@/components/trackers/TVSeriesLibrary';
-import { TopSeriesCards } from '@/components/trackers/TopSeriesCards';
-import { DailyQuoteWidget } from '@/components/trackers/DailyQuoteWidget';
-import { UpcomingCalendarWidget } from '@/components/trackers/UpcomingCalendarWidget';
-import { UpcomingEpisodesWidget } from '@/components/trackers/UpcomingEpisodesWidget';
-import RandomMediaModal from '@/components/trackers/RandomMediaModal';
-import SeriesStatsModal from '@/components/trackers/SeriesStatsModal';
-import { SeriesDetailModal } from '@/components/trackers/SeriesDetailModal';
-import { MediaFilterModal } from '@/components/trackers/MediaFilterModal';
+import { TrackerHeader } from '@/components/trackers/shared/TrackerHeader';
+import { TVSeriesLibrary } from '@/components/trackers/series/TVSeriesLibrary';
+import { TopSeriesCards } from '@/components/trackers/series/TopSeriesCards';
+import { SeriesQuoteWidget } from '@/components/trackers/series/SeriesQuoteWidget';
+import { UpcomingSeriesCalendarWidget } from '@/components/trackers/series/UpcomingSeriesCalendarWidget';
+import { UpcomingEpisodesWidget } from '@/components/trackers/series/UpcomingEpisodesWidget';
+import RandomTrackerModal from '@/components/trackers/shared/RandomTrackerModal';
+import SeriesStatsModal from '@/components/trackers/series/stats/SeriesStatsModal';
+import { SeriesDetailModal } from '@/components/trackers/series/detail';
+import { SeriesFilterModal } from '@/components/trackers/series/SeriesFilterModal';
 import type { TVSeries, SeriesDetailTarget } from '@/types/trackers';
 import { extractSeriesTmdbId } from '@/types/trackers';
 import { useTVSeriesPageLogic } from '@/hooks/trackers/useTVSeriesPageLogic';
@@ -84,14 +84,17 @@ const TVSeriesPage: React.FC = () => {
 
   return (
     <div className="flex flex-col gap-5 max-w-[1600px] mx-auto min-h-full xl:h-full xl:overflow-hidden relative p-2 xl:p-0">
-      <TVSeriesHeader
+      <TrackerHeader
+        title="Serie TV"
+        goalLabel="Obiettivo Annuale di Episodi"
         goalPercent={goalPercent}
         goalViewType={goalViewType}
-        setGoalViewType={setGoalViewType}
-        currentEpisodes={currentEpisodes}
-        goal={goal}
-        setStatsModalOpen={setStatsModalOpen}
-        setRandomModalOpen={setRandomModalOpen}
+        onToggleGoalViewType={() => setGoalViewType((prev) => (prev === 'percent' ? 'fraction' : 'percent'))}
+        currentCount={currentEpisodes}
+        goalTotal={goal}
+        onOpenStats={() => setStatsModalOpen(true)}
+        onOpenRandom={() => setRandomModalOpen(true)}
+        statsButtonTitle="Vedi Statistiche Serie TV"
       />
 
       {/* TOP ROW: 3 GLASS CARDS */}
@@ -127,7 +130,7 @@ const TVSeriesPage: React.FC = () => {
         {/* SIDEBAR (4 Colonne) */}
         <div className="xl:col-span-4 flex flex-col gap-6 h-[600px] xl:h-full min-h-0 overflow-y-auto no-scrollbar pr-2">
           {/* CITAZIONI (Espandibile al clic) */}
-          <DailyQuoteWidget
+          <SeriesQuoteWidget
             myQuotes={myQuotes}
             isQuoteExpanded={isQuoteExpanded}
             setIsQuoteExpanded={setIsQuoteExpanded}
@@ -142,7 +145,7 @@ const TVSeriesPage: React.FC = () => {
                   : 'opacity-100 translate-y-0 delay-100'
               }`}
             >
-              <UpcomingCalendarWidget openSeriesDetail={openSeriesDetail} />
+              <UpcomingSeriesCalendarWidget openSeriesDetail={openSeriesDetail} />
             </div>
             <div
               className={`absolute top-0 left-0 right-0 transition-all duration-500 ease-in-out origin-top flex flex-col min-h-0 ${
@@ -157,7 +160,7 @@ const TVSeriesPage: React.FC = () => {
         </div>
       </div>
 
-      <RandomMediaModal
+      <RandomTrackerModal
         isOpen={isRandomModalOpen}
         onClose={() => setRandomModalOpen(false)}
         items={series || []}
@@ -192,7 +195,7 @@ const TVSeriesPage: React.FC = () => {
         <SeriesStatsModal onClose={() => setStatsModalOpen(false)} />
       )}
 
-      <MediaFilterModal
+      <SeriesFilterModal
         isOpen={isFilterModalOpen}
         onClose={() => setIsFilterModalOpen(false)}
         filters={filters}

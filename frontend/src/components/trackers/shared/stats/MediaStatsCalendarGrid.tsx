@@ -53,8 +53,13 @@ export const MediaStatsCalendarGrid: React.FC<MediaStatsCalendarGridProps> = ({
         ))}
       </div>
 
-      {/* Griglia Settimane / Giorni */}
-      <div className="grid grid-cols-7 gap-1.5 flex-1 min-h-0 pt-1.5 auto-rows-fr h-full">
+      {/* Griglia Settimane / Giorni (righe esatte senza min-height fissa per evitare qualsiasi sovrapposizione) */}
+      <div
+        className="grid grid-cols-7 gap-1.5 flex-1 min-h-0 pt-1.5 h-full"
+        style={{
+          gridTemplateRows: `repeat(${weeks.length || 5}, minmax(0, 1fr))`,
+        }}
+      >
         {weeks.map((week, wIdx) => (
           <React.Fragment key={`week-${wIdx}`}>
             {week.map((day, dIdx) => {
@@ -62,7 +67,7 @@ export const MediaStatsCalendarGrid: React.FC<MediaStatsCalendarGridProps> = ({
                 return (
                   <div
                     key={`empty-${wIdx}-${dIdx}`}
-                    className="bg-slate-50/30 border border-dashed border-slate-200/60 rounded-xl min-h-[64px] sm:min-h-[80px]"
+                    className="bg-slate-50/30 border border-dashed border-slate-200/60 rounded-xl min-h-0 h-full"
                   />
                 );
               }
@@ -79,9 +84,9 @@ export const MediaStatsCalendarGrid: React.FC<MediaStatsCalendarGridProps> = ({
                       onSelectDay(dayData);
                     }
                   }}
-                  className={`relative rounded-xl border transition-all flex flex-col overflow-hidden select-none min-h-[64px] sm:min-h-[80px] h-full ${
+                  className={`relative rounded-xl border transition-colors flex flex-col overflow-hidden select-none min-h-0 h-full ${
                     hasWatches
-                      ? 'cursor-pointer hover:shadow-md hover:scale-[1.01] border-slate-300'
+                      ? 'cursor-pointer hover:shadow-md hover:border-blue-400 border-slate-300 z-0 hover:z-10'
                       : 'border-slate-200/70 bg-white hover:bg-slate-50/60'
                   } ${isToday ? 'ring-2 ring-blue-500 border-blue-500' : ''}`}
                 >
@@ -91,9 +96,9 @@ export const MediaStatsCalendarGrid: React.FC<MediaStatsCalendarGridProps> = ({
                   )}
 
                   {/* Header Giorno: Numero & Badge */}
-                  <div className="relative z-10 flex items-center justify-between p-1.5">
+                  <div className="relative z-10 flex items-center justify-between p-1 sm:p-1.5">
                     <span
-                      className={`text-xs leading-none px-1.5 py-0.5 rounded-md ${
+                      className={`text-[11px] sm:text-xs leading-none px-1.5 py-0.5 rounded-md ${
                         hasWatches
                           ? 'bg-black/60 text-white backdrop-blur-xs font-black'
                           : isToday
@@ -113,8 +118,8 @@ export const MediaStatsCalendarGrid: React.FC<MediaStatsCalendarGridProps> = ({
 
                   {/* Footer Giorno: Titolo compatto in basso */}
                   {hasWatches && dayData?.bottomTitle && (
-                    <div className="relative z-10 mt-auto p-1.5">
-                      <p className="text-[10px] font-extrabold text-white truncate drop-shadow-md leading-tight">
+                    <div className="relative z-10 mt-auto p-1 sm:p-1.5 w-full min-h-0">
+                      <p className="text-[9px] sm:text-[10px] font-extrabold text-white truncate drop-shadow-md leading-tight">
                         {dayData.bottomTitle}
                       </p>
                     </div>

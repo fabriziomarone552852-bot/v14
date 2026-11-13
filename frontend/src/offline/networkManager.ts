@@ -13,6 +13,12 @@ interface NetworkStore extends NetworkStatusState {
   checkReachability: () => Promise<boolean>;
 }
 
+interface WindowWithNetworkCleanup extends Window {
+  __vitaNetworkCleanup?: () => void;
+}
+
+let inFlightReachabilityPromise: Promise<boolean> | null = null;
+
 export const useNetworkStore = create<NetworkStore>((set, get) => ({
   isOnline: typeof navigator !== 'undefined' ? navigator.onLine : true,
   isServerReachable: true,
@@ -55,43 +61,54 @@ export const useNetworkStore = create<NetworkStore>((set, get) => ({
       return false;
     }
 
-    try {
-      const baseUrl = getApiBaseUrl();
-      const token = localStorage.getItem('token');
-      const headers: Record<string, string> = {};
-      if (token) headers.Authorization = `Bearer ${token}`;
-
-      // Probe leggero con timeout di 4 secondi
-      await axios.get(`${baseUrl}/users/me`, {
-        headers,
-        timeout: 4000,
-        validateStatus: (status) => status < 500, // 200, 401, 403, 404 indicano comunque che il server risponde
-      });
-
-      get().setServerReachable(true);
+    const { lastCheckedAt, isServerReachable } = get();
+    if (isServerReachable && lastCheckedAt !== null && Date.now() - lastCheckedAt < 5000) {
       return true;
-    } catch {
-      get().setServerReachable(false);
-      return false;
     }
+
+    if (inFlightReachabilityPromise) {
+      return inFlightReachabilityPromise;
+    }
+
+    inFlightReachabilityPromise = (async () => {
+      try {
+        const baseUrl = getApiBaseUrl();
+
+        // Probe leggero zero-DB e senza header Authorization (evita query SQL, preflight OPTIONS e 401 a token scaduto)
+        await axios.get(`${baseUrl}/system/version`, {
+          timeout: 4000,
+          validateStatus: (status) => status < 500,
+        });
+
+        get().setServerReachable(true);
+        return true;
+      } catch {
+        get().setServerReachable(false);
+        return false;
+      } finally {
+        inFlightReachabilityPromise = null;
+      }
+    })();
+
+    return inFlightReachabilityPromise;
   },
 }));
-
-let isInitialized = false;
-let probeIntervalId: ReturnType<typeof setInterval> | null = null;
 
 /**
  * Inizializza i listener di rete del browser e il polling di heartbeat
  */
 export function initNetworkManager(onReconnected?: () => void): () => void {
-  if (typeof window === 'undefined' || isInitialized) {
+  if (typeof window === 'undefined') {
     return () => {};
   }
 
-  isInitialized = true;
-  const store = useNetworkStore.getState();
+  const win = window as WindowWithNetworkCleanup;
+  if (win.__vitaNetworkCleanup) {
+    win.__vitaNetworkCleanup();
+  }
 
   const handleOnline = async () => {
+    const store = useNetworkStore.getState();
     store.setOnline(true);
     const reachable = await store.checkReachability();
     if (reachable && onReconnected) {
@@ -100,30 +117,53 @@ export function initNetworkManager(onReconnected?: () => void): () => void {
   };
 
   const handleOffline = () => {
-    store.setOnline(false);
+    useNetworkStore.getState().setOnline(false);
   };
 
-  window.addEventListener('online', handleOnline);
-  window.addEventListener('offline', handleOffline);
-
-  // Heartbeat probe ogni 30 secondi per rilevare tunnel Tailscale o cadute connessione
-  probeIntervalId = setInterval(async () => {
-    if (navigator.onLine) {
+  const handleVisibilityChange = async () => {
+    if (typeof document !== 'undefined' && document.visibilityState === 'visible' && navigator.onLine) {
+      const store = useNetworkStore.getState();
       const wasReachable = store.isServerReachable;
       const nowReachable = await store.checkReachability();
       if (!wasReachable && nowReachable && onReconnected) {
         onReconnected();
       }
     }
-  }, 30000);
+  };
+
+  window.addEventListener('online', handleOnline);
+  window.addEventListener('offline', handleOffline);
+  document.addEventListener('visibilitychange', handleVisibilityChange);
+
+  // Heartbeat probe ogni 60 secondi quando il tab è visibile o quando siamo in stato offline/pending
+  const probeIntervalId = setInterval(async () => {
+    if (!navigator.onLine) return;
+    const store = useNetworkStore.getState();
+    const isTabHidden = typeof document !== 'undefined' && document.visibilityState === 'hidden';
+    if (isTabHidden && store.isServerReachable && store.pendingCount === 0) {
+      return;
+    }
+
+    const wasReachable = store.isServerReachable;
+    const nowReachable = await store.checkReachability();
+    if (!wasReachable && nowReachable && onReconnected) {
+      onReconnected();
+    }
+  }, 60000);
 
   // Esegui un primo check immediato
-  void store.checkReachability();
+  void useNetworkStore.getState().checkReachability();
 
-  return () => {
+  const cleanup = () => {
     window.removeEventListener('online', handleOnline);
     window.removeEventListener('offline', handleOffline);
-    if (probeIntervalId) clearInterval(probeIntervalId);
-    isInitialized = false;
+    document.removeEventListener('visibilitychange', handleVisibilityChange);
+    clearInterval(probeIntervalId);
+    if (win.__vitaNetworkCleanup === cleanup) {
+      delete win.__vitaNetworkCleanup;
+    }
   };
+
+  win.__vitaNetworkCleanup = cleanup;
+  return cleanup;
 }

@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import type { Movie, MovieDetailTarget } from '@/types/movies';
 
-export type MovieDetailTabType = 'overview' | 'saga' | 'review' | 'friends' | 'lists';
+export type MovieDetailTabType = 'overview' | 'saga' | 'review' | 'friends' | 'lists' | 'cinema';
 
 export const useMovieUrlParams = (
   movies: Movie[] | undefined,

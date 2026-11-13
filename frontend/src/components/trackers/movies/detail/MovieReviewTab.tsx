@@ -4,10 +4,10 @@ import { useMovieReviewTabLogic } from './useMovieReviewTabLogic';
 import { MovieMainOverview } from './MovieMainOverview';
 import { MovieMyReviewsList } from './MovieMyReviewsList';
 import { MovieReviewForm } from './MovieReviewForm';
-import { ReviewDetailCard } from '@/components/trackers/SeriesDetailModal/shared/ReviewDetailCard';
-import { ReviewCommentInput } from '@/components/trackers/SeriesDetailModal/shared/ReviewCommentInput';
-import { FriendsReviewsListView } from '@/components/trackers/SeriesDetailModal/shared/FriendsReviewsListView';
-import { FriendDetailReviewsView } from '@/components/trackers/SeriesDetailModal/shared/FriendDetailReviewsView';
+import { ReviewDetailCard } from '@/components/trackers/shared/detail/ReviewDetailCard';
+import { ReviewCommentInput } from '@/components/trackers/shared/detail/ReviewCommentInput';
+import { FriendsReviewsListView } from '@/components/trackers/shared/detail/FriendsReviewsListView';
+import { FriendDetailReviewsView } from '@/components/trackers/shared/detail/FriendDetailReviewsView';
 import { aggregateFriendsReviews } from '@/utils/ratingUtils';
 
 interface MovieReviewTabProps {

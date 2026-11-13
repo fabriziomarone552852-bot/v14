@@ -62,6 +62,7 @@ def _is_public_boot_path(path: str) -> bool:
     return (
         path in BOOT_PUBLIC_PATHS
         or path.startswith("/auth/")
+        or path.startswith("/system/")
         or path.startswith("/google-calendar/callback")
         or path.startswith("/api/v1/google-calendar/callback")
     )

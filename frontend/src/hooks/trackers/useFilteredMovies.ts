@@ -1,6 +1,11 @@
 import { useMemo } from 'react';
 import type { Movie, MovieFilters } from '@/types/movies';
 import type { MediaList } from '@/types/trackers';
+import { matchesMoviePlatformFilter } from '@/utils/platformFilterUtils';
+import {
+  matchesGenreFilterRule,
+  matchesYearMultiFilter,
+} from '@/utils/trackerFilterUtils';
 
 export const useFilteredMovies = (
   movies: Movie[] | undefined,
@@ -16,48 +21,45 @@ export const useFilteredMovies = (
       if (activeTab === 'to_watch' && m.status !== 'to_watch') return false;
       if (activeTab === 'watched' && m.status !== 'watched') return false;
 
-      // 2. Keyword
-      if (filters.keyword) {
-        const kw = filters.keyword.toLowerCase();
+      // 2. Keyword (Titolo italiano o originale)
+      if (filters.keyword?.trim()) {
+        const kw = filters.keyword.trim().toLowerCase();
         const matchesTitle = m.title.toLowerCase().includes(kw);
-        const matchesOriginal = m.original_title?.toLowerCase().includes(kw);
+        const matchesOriginal = Boolean(m.original_title?.toLowerCase().includes(kw));
         if (!matchesTitle && !matchesOriginal) return false;
       }
 
-      // 3. Genre
-      if (filters.genre !== 'all') {
-        if (!m.genres || !m.genres.toLowerCase().includes(filters.genre.toLowerCase())) {
-          return false;
-        }
+      // 3. Generi (Includi con E / O + Escludi NO)
+      if (!matchesGenreFilterRule(m.genres, filters.genres)) {
+        return false;
       }
 
-      // 4. Platform
-      if (filters.platform !== 'all') {
-        const matchesPlatform = m.logs?.some(
-          (log) => log.viewing_platform_name?.toLowerCase() === filters.platform.toLowerCase()
-        );
-        if (!matchesPlatform) return false;
+      // 4. Piattaforme (Multi-selezione O)
+      if (!matchesMoviePlatformFilter(m, filters.platforms)) {
+        return false;
       }
 
-      // 5. Saga / Collezione
-      if (filters.saga !== 'all') {
-        const sagaId = Number(filters.saga);
-        if (!isNaN(sagaId)) {
-          if (m.collection_id !== sagaId) return false;
-        } else {
-          if (m.collection_name?.toLowerCase() !== filters.saga.toLowerCase()) return false;
-        }
+      // 5. Saga / Collezione (Multi-selezione O)
+      if (filters.sagas && filters.sagas.length > 0) {
+        const matchesSaga = filters.sagas.some((sagaToken) => {
+          const sagaId = Number(sagaToken);
+          if (!Number.isNaN(sagaId) && m.collection_id === sagaId) {
+            return true;
+          }
+          return m.collection_name?.toLowerCase() === sagaToken.toLowerCase();
+        });
+        if (!matchesSaga) return false;
       }
 
-      // 6. Year
-      if (filters.year && filters.year !== 'all') {
+      // 6. Anno di uscita (Multi-selezione O)
+      if (filters.years && filters.years.length > 0) {
         const yearMatch =
-          m.release_date?.startsWith(filters.year) ||
-          m.italy_release_date?.startsWith(filters.year);
+          matchesYearMultiFilter(m.release_date, filters.years) ||
+          matchesYearMultiFilter(m.italy_release_date, filters.years);
         if (!yearMatch) return false;
       }
 
-      // 7. Rating personale
+      // 7. Voto Personale (Multi-selezione O)
       const activeRatings = filters.ratings || [];
       if (activeRatings.length > 0) {
         const r = m.my_rating != null ? Number(m.my_rating.toFixed(1)) : 0;
@@ -79,17 +81,14 @@ export const useFilteredMovies = (
         if (filters.obtainedFilter === 'not_obtained' && isObtained) return false;
       }
 
-      // 9. Lista Personale (liste miste MediaList)
-      if (filters.listId !== null && myLists) {
-        const targetList = myLists.find((l) => l.id === filters.listId);
-        if (targetList) {
-          const isInList = targetList.items?.some(
-            (item) => item.movie_tmdb_id === m.tmdb_id
-          );
-          if (!isInList) return false;
-        } else {
-          return false;
-        }
+      // 9. Liste Personali (Multi-selezione O)
+      if (filters.listIds && filters.listIds.length > 0) {
+        if (!myLists) return false;
+        const selectedLists = myLists.filter((l) => filters.listIds.includes(l.id));
+        const isInAnySelectedList = selectedLists.some((l) =>
+          l.items?.some((item) => item.movie_tmdb_id === m.tmdb_id)
+        );
+        if (!isInAnySelectedList) return false;
       }
 
       return true;

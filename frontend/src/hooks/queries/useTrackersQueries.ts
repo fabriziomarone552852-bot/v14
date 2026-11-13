@@ -33,12 +33,52 @@ export const useSearchTMDBSeries = (query: string, page: number = 1, enabled: bo
   });
 };
 
-export const useInfiniteSearchTMDBSeries = (query: string, enabled: boolean = false) => {
+export interface TMDBSeriesQueryFilterParams {
+  with_genres?: string;
+  without_genres?: string;
+  with_watch_providers?: string;
+  with_status?: string;
+  first_air_date_year?: string;
+  sort_by?: string;
+}
+
+export const useInfiniteSearchTMDBSeries = (
+  query: string,
+  enabled: boolean = false,
+  filterParams?: TMDBSeriesQueryFilterParams
+) => {
   return useInfiniteQuery<TMDBPaginatedSearch>({
-    queryKey: ['trackers', 'series', 'search', 'infinite', query],
+    queryKey: [
+      'trackers',
+      'series',
+      'search',
+      'infinite',
+      query,
+      filterParams?.with_genres || '',
+      filterParams?.without_genres || '',
+      filterParams?.with_watch_providers || '',
+      filterParams?.with_status || '',
+      filterParams?.first_air_date_year || '',
+      filterParams?.sort_by || '',
+    ],
     queryFn: async ({ pageParam = 1 }) => {
+      const params: Record<string, string | number> = {
+        query,
+        page: pageParam as number,
+      };
+      if (filterParams?.with_genres) params.with_genres = filterParams.with_genres;
+      if (filterParams?.without_genres) params.without_genres = filterParams.without_genres;
+      if (filterParams?.with_watch_providers) {
+        params.with_watch_providers = filterParams.with_watch_providers;
+      }
+      if (filterParams?.with_status) params.with_status = filterParams.with_status;
+      if (filterParams?.first_air_date_year) {
+        params.first_air_date_year = filterParams.first_air_date_year;
+      }
+      if (filterParams?.sort_by) params.sort_by = filterParams.sort_by;
+
       const data = await api.get<TMDBPaginatedSearch>(`/trackers/series/search`, {
-        params: { query, page: pageParam },
+        params,
       });
       return data as TMDBPaginatedSearch;
     },
@@ -202,54 +242,45 @@ export const useTMDBGenres = () => {
 };
 
 export const useTMDBProviders = () => {
-  return useQuery<{ provider_id: number; provider_name: string }[]>({
+  return useQuery<{ provider_id: number; provider_name: string; logo_path?: string | null; display_priority?: number; display_priorities?: Record<string, number> }[]>({
     queryKey: ['tmdb', 'providers'],
     queryFn: async () => {
-      const data = await api.get<{ results: { provider_id: number; provider_name: string }[] }>('/trackers/tmdb/providers');
+      const data = await api.get<{ results: { provider_id: number; provider_name: string; logo_path?: string | null; display_priority?: number; display_priorities?: Record<string, number> }[] }>('/trackers/tmdb/providers');
       return data?.results || [];
     },
     staleTime: 1000 * 60 * 60 * 24, // 24 hours
   });
 };
 
-export interface TMDBDiscoverFilters {
-  genre?: string;
-  network?: string;
-  year?: string;
-  globalSearch?: boolean;
-}
-
-export interface TMDBDiscoverParams {
-  with_genres?: string;
-  with_networks?: string;
-  first_air_date_year?: string;
-}
-
-export const useTMDBDiscover = (filters: TMDBDiscoverFilters) => {
-  return useQuery({
-    queryKey: ['tmdb', 'discover', filters.genre, filters.network, filters.year],
-    queryFn: async () => {
-      const params: TMDBDiscoverParams = {};
-      if (filters.genre && filters.genre !== 'all') params.with_genres = filters.genre;
-      if (filters.network && filters.network !== 'all') params.with_networks = filters.network;
-      if (filters.year && filters.year !== 'all') params.first_air_date_year = filters.year;
-      
-      const data = await api.get<TMDBPaginatedSearch>('/trackers/tmdb/discover', { params });
-      return data;
-    },
-    enabled: !!filters.globalSearch && (filters.genre !== 'all' || filters.network !== 'all' || filters.year !== 'all'),
-  });
-};
-
-export const useInfiniteDiscoverTMDBSeries = (filters: TMDBDiscoverFilters, enabled: boolean = true) => {
+export const useInfiniteDiscoverTMDBSeries = (
+  filterParams: TMDBSeriesQueryFilterParams,
+  enabled: boolean = true
+) => {
   return useInfiniteQuery<TMDBPaginatedSearch>({
-    queryKey: ['tmdb', 'discover', 'infinite', filters.genre, filters.network, filters.year],
+    queryKey: [
+      'tmdb',
+      'discover',
+      'infinite',
+      filterParams.with_genres || '',
+      filterParams.without_genres || '',
+      filterParams.with_watch_providers || '',
+      filterParams.with_status || '',
+      filterParams.first_air_date_year || '',
+      filterParams.sort_by || '',
+    ],
     queryFn: async ({ pageParam = 1 }) => {
-      const params: TMDBDiscoverParams & { page: number } = { page: pageParam as number };
-      if (filters.genre && filters.genre !== 'all') params.with_genres = filters.genre;
-      if (filters.network && filters.network !== 'all') params.with_networks = filters.network;
-      if (filters.year && filters.year !== 'all') params.first_air_date_year = filters.year;
-      
+      const params: Record<string, string | number> = { page: pageParam as number };
+      if (filterParams.with_genres) params.with_genres = filterParams.with_genres;
+      if (filterParams.without_genres) params.without_genres = filterParams.without_genres;
+      if (filterParams.with_watch_providers) {
+        params.with_watch_providers = filterParams.with_watch_providers;
+      }
+      if (filterParams.with_status) params.with_status = filterParams.with_status;
+      if (filterParams.first_air_date_year) {
+        params.first_air_date_year = filterParams.first_air_date_year;
+      }
+      if (filterParams.sort_by) params.sort_by = filterParams.sort_by;
+
       const data = await api.get<TMDBPaginatedSearch>('/trackers/tmdb/discover', { params });
       return data as TMDBPaginatedSearch;
     },
@@ -260,7 +291,7 @@ export const useInfiniteDiscoverTMDBSeries = (filters: TMDBDiscoverFilters, enab
       }
       return undefined;
     },
-    enabled: enabled && !!filters.globalSearch && (filters.genre !== 'all' || filters.network !== 'all' || filters.year !== 'all'),
+    enabled,
   });
 };
 

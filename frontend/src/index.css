@@ -32,10 +32,15 @@
   }
 
   /* Scrollbar reattiva a scomparsa: compare solo durante lo scorrimento attivo e sfuma a riposo */
-  .fade-scrollbar {
-    scrollbar-width: thin;
-    scrollbar-color: transparent transparent;
-    transition: scrollbar-color 0.4s ease;
+  @supports not selector(::-webkit-scrollbar) {
+    .fade-scrollbar {
+      scrollbar-width: thin;
+      scrollbar-color: transparent transparent;
+      transition: scrollbar-color 0.4s ease;
+    }
+    .fade-scrollbar.is-scrolling {
+      scrollbar-color: rgba(156, 163, 175, 0.6) transparent;
+    }
   }
   .fade-scrollbar::-webkit-scrollbar {
     width: 4px;
@@ -48,9 +53,6 @@
     background-color: transparent;
     border-radius: 20px;
     transition: background-color 0.4s ease;
-  }
-  .fade-scrollbar.is-scrolling {
-    scrollbar-color: rgba(156, 163, 175, 0.6) transparent;
   }
   .fade-scrollbar.is-scrolling::-webkit-scrollbar-thumb {
     background-color: rgba(156, 163, 175, 0.6);

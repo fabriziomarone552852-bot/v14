@@ -34,12 +34,49 @@ export const useSearchTMDBMovies = (query: string, page: number = 1, enabled: bo
   });
 };
 
-export const useInfiniteSearchTMDBMovies = (query: string, enabled: boolean = false) => {
+export interface TMDBMovieQueryFilterParams {
+  with_genres?: string;
+  without_genres?: string;
+  with_watch_providers?: string;
+  primary_release_year?: string;
+  sort_by?: string;
+}
+
+export const useInfiniteSearchTMDBMovies = (
+  query: string,
+  enabled: boolean = false,
+  filterParams?: TMDBMovieQueryFilterParams
+) => {
   return useInfiniteQuery<TMDBPaginatedMovieSearch>({
-    queryKey: ['trackers', 'movies', 'search', 'infinite', query],
+    queryKey: [
+      'trackers',
+      'movies',
+      'search',
+      'infinite',
+      query,
+      filterParams?.with_genres || '',
+      filterParams?.without_genres || '',
+      filterParams?.with_watch_providers || '',
+      filterParams?.primary_release_year || '',
+      filterParams?.sort_by || '',
+    ],
     queryFn: async ({ pageParam = 1 }) => {
+      const params: Record<string, string | number> = {
+        query,
+        page: pageParam as number,
+      };
+      if (filterParams?.with_genres) params.with_genres = filterParams.with_genres;
+      if (filterParams?.without_genres) params.without_genres = filterParams.without_genres;
+      if (filterParams?.with_watch_providers) {
+        params.with_watch_providers = filterParams.with_watch_providers;
+      }
+      if (filterParams?.primary_release_year) {
+        params.primary_release_year = filterParams.primary_release_year;
+      }
+      if (filterParams?.sort_by) params.sort_by = filterParams.sort_by;
+
       const data = await api.get<TMDBPaginatedMovieSearch>('/trackers/movies/search', {
-        params: { query, page: pageParam },
+        params,
       });
       return data as TMDBPaginatedMovieSearch;
     },
@@ -54,51 +91,33 @@ export const useInfiniteSearchTMDBMovies = (query: string, enabled: boolean = fa
   });
 };
 
-export const useDiscoverTMDBMovies = (
-  filters: {
-    genre?: string;
-    platform?: string;
-    year?: string;
-    sortBy?: string;
-    page?: number;
-  },
-  enabled: boolean = false
-) => {
-  const { genre, platform, year, sortBy, page = 1 } = filters;
-  return useQuery<TMDBPaginatedMovieSearch>({
-    queryKey: ['trackers', 'movies', 'discover', genre, platform, year, sortBy, page],
-    queryFn: async () => {
-      const params: Record<string, string | number> = { page };
-      if (genre && genre !== 'all') params.with_genres = genre;
-      if (platform && platform !== 'all') params.with_watch_providers = platform;
-      if (year && year !== 'all') params.primary_release_year = year;
-      if (sortBy) params.sort_by = sortBy;
-
-      const data = await api.get<TMDBPaginatedMovieSearch>('/trackers/movies/discover', { params });
-      return data as TMDBPaginatedMovieSearch;
-    },
-    enabled,
-  });
-};
-
 export const useInfiniteDiscoverTMDBMovies = (
-  filters: {
-    genre?: string;
-    platform?: string;
-    year?: string;
-    sortBy?: string;
-  },
+  filterParams: TMDBMovieQueryFilterParams,
   enabled: boolean = false
 ) => {
-  const { genre, platform, year, sortBy } = filters;
   return useInfiniteQuery<TMDBPaginatedMovieSearch>({
-    queryKey: ['trackers', 'movies', 'discover', 'infinite', genre, platform, year, sortBy],
+    queryKey: [
+      'trackers',
+      'movies',
+      'discover',
+      'infinite',
+      filterParams.with_genres || '',
+      filterParams.without_genres || '',
+      filterParams.with_watch_providers || '',
+      filterParams.primary_release_year || '',
+      filterParams.sort_by || '',
+    ],
     queryFn: async ({ pageParam = 1 }) => {
       const params: Record<string, string | number> = { page: pageParam as number };
-      if (genre && genre !== 'all') params.with_genres = genre;
-      if (platform && platform !== 'all') params.with_watch_providers = platform;
-      if (year && year !== 'all') params.primary_release_year = year;
-      if (sortBy) params.sort_by = sortBy;
+      if (filterParams.with_genres) params.with_genres = filterParams.with_genres;
+      if (filterParams.without_genres) params.without_genres = filterParams.without_genres;
+      if (filterParams.with_watch_providers) {
+        params.with_watch_providers = filterParams.with_watch_providers;
+      }
+      if (filterParams.primary_release_year) {
+        params.primary_release_year = filterParams.primary_release_year;
+      }
+      if (filterParams.sort_by) params.sort_by = filterParams.sort_by;
 
       const data = await api.get<TMDBPaginatedMovieSearch>('/trackers/movies/discover', { params });
       return data as TMDBPaginatedMovieSearch;
@@ -126,13 +145,19 @@ export const useTMDBMovieGenres = () => {
   });
 };
 
+export interface TMDBCatalogProviderItem {
+  provider_id: number;
+  provider_name: string;
+  logo_path?: string | null;
+  display_priority?: number;
+  display_priorities?: Record<string, number>;
+}
+
 export const useTMDBMovieProviders = () => {
-  return useQuery<{ provider_id: number; provider_name: string; logo_path: string }[]>({
+  return useQuery<TMDBCatalogProviderItem[]>({
     queryKey: ['trackers', 'movies', 'providers'],
     queryFn: async () => {
-      const data = await api.get<
-        { provider_id: number; provider_name: string; logo_path: string }[]
-      >('/trackers/movies/providers');
+      const data = await api.get<TMDBCatalogProviderItem[]>('/trackers/movies/providers');
       return data || [];
     },
     staleTime: 1000 * 60 * 60 * 24, // 24 ore

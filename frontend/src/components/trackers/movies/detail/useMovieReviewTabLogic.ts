@@ -13,8 +13,9 @@ import { useFriendsMovieReviews } from '@/hooks/queries/useMovieQueries';
 import { useTVPlatforms } from '@/hooks/queries/useTrackersQueries';
 import { useNotifications } from '@/hooks/useNotifications';
 import { useAuth } from '@/context/AuthContext';
-import { useCommentMentions } from '@/components/trackers/SeriesDetailModal/shared/useCommentMentions';
-import { showTrackerToast } from '@/components/trackers/TrackerToast';
+import { useCommentMentions } from '@/components/trackers/shared/detail/useCommentMentions';
+import { showTrackerToast } from '@/components/trackers/shared/TrackerToast';
+import { buildUnifiedPlatforms } from '@/components/trackers/shared/platformUtils';
 
 export type MovieReviewViewState =
   | 'main'
@@ -167,21 +168,7 @@ export const useMovieReviewTabLogic = ({
   });
 
   const { data: dbPlatforms = [] } = useTVPlatforms();
-  const allPlatforms = useMemo(() => {
-    const defaultPlatforms = [
-      'Netflix',
-      'Prime Video',
-      'Disney+',
-      'Apple TV+',
-      'Sky / NOW',
-      'Paramount+',
-      'Pirati 🏴‍☠️',
-      'DVD / Blu-Ray',
-      'Cinema',
-      'TV (In chiaro)',
-    ];
-    return Array.from(new Set([...defaultPlatforms, ...dbPlatforms.map((p) => p.name)]));
-  }, [dbPlatforms]);
+  const allPlatforms = useMemo(() => buildUnifiedPlatforms(dbPlatforms), [dbPlatforms]);
 
   // Dialog conferma cancellazione
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);

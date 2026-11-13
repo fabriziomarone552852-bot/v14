@@ -60,7 +60,6 @@ export const MobileTrackerHighlightCard: React.FC<MobileTrackerHighlightCardProp
 
   const getBadgeBg = () => {
     if (badgeBgColor) return badgeBgColor;
-    if (type === 'obtained') return 'bg-amber-600';
     return 'bg-blue-600';
   };
 

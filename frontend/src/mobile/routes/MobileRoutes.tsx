@@ -10,9 +10,9 @@ import MobileMonthView from '../views/MobileMonthView';
 import MobileYearView from '../views/MobileYearView';
 
 import MobileShoppingView from '../views/MobileShoppingView';
-const MobileTVSeriesView = React.lazy(() => import('../views/MobileTVSeriesView'));
-const MobileMovieView = React.lazy(() => import('../views/MobileMovieView'));
-const MobileTrackersPlaceholderView = React.lazy(() => import('../views/MobileTrackersPlaceholderView'));
+import MobileTVSeriesView from '../views/MobileTVSeriesView';
+import MobileMovieView from '../views/MobileMovieView';
+import MobileTrackersPlaceholderView from '../views/MobileTrackersPlaceholderView';
 
 const NotFoundPage = React.lazy(() => import('@/views/NotFoundPage'));
 

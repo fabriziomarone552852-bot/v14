@@ -1,8 +1,8 @@
 // src/mobile/components/trackers/shared/MobileTrackerDashboardBanners.tsx
-import React from 'react';
-import type { MediaList, TVSeries } from '@/types/trackers';
-import type { Movie } from '@/types/movies';
-import { ListCollagePoster } from '../ListCollagePoster';
+import React, { useMemo } from 'react';
+import type { MediaList, TrackerMediaType } from '@/types/trackers';
+import { filterListsByMediaType } from '@/utils/trackerListUtils';
+import { ListCollagePoster } from './ListCollagePoster';
 
 export interface DashboardBannerItem {
   id: number | string;
@@ -11,24 +11,22 @@ export interface DashboardBannerItem {
 }
 
 export interface MobileTrackerDashboardBannersProps {
+  mediaType: TrackerMediaType;
   catalogTitle: string;
   catalogItems: DashboardBannerItem[];
   myLists?: MediaList[];
-  seriesForLists?: TVSeries[];
-  moviesForLists?: Movie[];
   emptyCatalogMessage?: string;
   emptyListsMessage?: string;
   onOpenCatalog: () => void;
-  onOpenPersonalLists: (list?: MediaList) => void;
+  onOpenPersonalLists: () => void;
   placeholderIcon?: React.ReactNode;
 }
 
 export const MobileTrackerDashboardBanners: React.FC<MobileTrackerDashboardBannersProps> = ({
+  mediaType,
   catalogTitle,
   catalogItems,
   myLists,
-  seriesForLists,
-  moviesForLists,
   emptyCatalogMessage = 'Nessun elemento ancora a catalogo',
   emptyListsMessage = 'Nessuna lista creata',
   onOpenCatalog,
@@ -36,7 +34,16 @@ export const MobileTrackerDashboardBanners: React.FC<MobileTrackerDashboardBanne
   placeholderIcon,
 }) => {
   const displayItems = catalogItems.slice(0, 4);
-  const displayLists = (myLists || []).slice(0, 4);
+
+  const posterByMediaId = useMemo(
+    () => new Map(catalogItems.map((item) => [item.id, item.posterUrl])),
+    [catalogItems]
+  );
+
+  const displayLists = useMemo(
+    () => filterListsByMediaType(myLists, mediaType).slice(0, 4),
+    [myLists, mediaType]
+  );
 
   return (
     <div className="flex-1 min-h-0 flex flex-col gap-2 pt-0.5">
@@ -90,7 +97,7 @@ export const MobileTrackerDashboardBanners: React.FC<MobileTrackerDashboardBanne
 
       {/* BANNER 2: LE TUE LISTE */}
       <div
-        onClick={() => onOpenPersonalLists()}
+        onClick={onOpenPersonalLists}
         className="flex-1 min-h-0 bg-white rounded-2xl border border-gray-200/90 shadow-2xs p-2.5 sm:p-3 flex flex-col justify-between cursor-pointer active:scale-[0.99] transition-all hover:bg-gray-50/60 select-none"
       >
         <div className="flex items-center justify-between shrink-0">
@@ -105,8 +112,8 @@ export const MobileTrackerDashboardBanners: React.FC<MobileTrackerDashboardBanne
               <ListCollagePoster
                 key={list.id}
                 list={list}
-                series={seriesForLists}
-                movies={moviesForLists}
+                mediaType={mediaType}
+                posterByMediaId={posterByMediaId}
               />
             ))
           ) : (

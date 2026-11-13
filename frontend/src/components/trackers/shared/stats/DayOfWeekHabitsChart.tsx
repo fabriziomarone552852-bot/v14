@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 
 export interface DayOfWeekHabitsChartProps {
   byDay: Record<string, number>;
@@ -9,6 +9,16 @@ export interface DayOfWeekHabitsChartProps {
   className?: string;
 }
 
+const WEEKDAYS = [
+  { key: 'Lun', label: 'Lun', aliases: ['lun', 'lunedì', 'lunedi', 'monday'] },
+  { key: 'Mar', label: 'Mar', aliases: ['mar', 'martedì', 'martedi', 'tuesday'] },
+  { key: 'Mer', label: 'Mer', aliases: ['mer', 'mercoledì', 'mercoledi', 'wednesday'] },
+  { key: 'Gio', label: 'Gio', aliases: ['gio', 'giovedì', 'giovedi', 'thursday'] },
+  { key: 'Ven', label: 'Ven', aliases: ['ven', 'venerdì', 'venerdi', 'friday'] },
+  { key: 'Sab', label: 'Sab', aliases: ['sab', 'sabato', 'saturday'] },
+  { key: 'Dom', label: 'Dom', aliases: ['dom', 'domenica', 'sunday'] },
+];
+
 export const DayOfWeekHabitsChart: React.FC<DayOfWeekHabitsChartProps> = ({
   byDay = {},
   title = 'Giorni Preferiti',
@@ -17,8 +27,25 @@ export const DayOfWeekHabitsChart: React.FC<DayOfWeekHabitsChartProps> = ({
   barHoverColorClass = 'group-hover:bg-blue-600',
   className = '',
 }) => {
-  const daysLabels = ['Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab', 'Dom'];
-  const maxDayCount = Math.max(...Object.values(byDay), 1);
+  const dayList = useMemo(() => {
+    return WEEKDAYS.map((w) => {
+      let count = 0;
+      for (const [key, val] of Object.entries(byDay)) {
+        const lower = key.trim().toLowerCase();
+        if (w.aliases.includes(lower)) {
+          count = Number(val) || 0;
+          break;
+        }
+      }
+      return {
+        key: w.key,
+        label: w.label,
+        count,
+      };
+    });
+  }, [byDay]);
+
+  const maxDayCount = Math.max(1, ...dayList.map((d) => d.count));
 
   return (
     <div
@@ -32,12 +59,11 @@ export const DayOfWeekHabitsChart: React.FC<DayOfWeekHabitsChartProps> = ({
       </div>
 
       <div className="flex-1 min-h-0 flex items-end justify-center gap-2 sm:gap-3 pt-4">
-        {daysLabels.map((day) => {
-          const count = byDay[day] || 0;
+        {dayList.map(({ key, label, count }) => {
           const pct = maxDayCount > 0 ? (count / maxDayCount) * 100 : 0;
           return (
             <div
-              key={day}
+              key={key}
               className="flex flex-col items-center gap-1.5 flex-1 group h-full justify-end max-w-[48px]"
             >
               <span className="text-xs font-bold text-slate-400 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -47,7 +73,7 @@ export const DayOfWeekHabitsChart: React.FC<DayOfWeekHabitsChartProps> = ({
                 className={`w-full rounded-t-lg transition-all duration-500 ${barColorClass} ${barHoverColorClass}`}
                 style={{ height: `${Math.max(6, pct)}%` }}
               />
-              <span className="text-xs font-bold text-slate-700">{day}</span>
+              <span className="text-xs font-bold text-slate-700">{label}</span>
             </div>
           );
         })}

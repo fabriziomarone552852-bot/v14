@@ -1,6 +1,7 @@
 import React, { useMemo } from 'react';
 import type { Movie } from '@/types/movies';
 import { useMovieExtras } from '@/hooks/queries/useMovieQueries';
+import { EmptyState } from '@/components/shared/utils/EmptyState';
 
 export interface FranchiseData {
   collectionId: number;
@@ -170,9 +171,11 @@ export const FranchiseTrackerList: React.FC<FranchiseTrackerListProps> = ({
           ))}
         </div>
       ) : (
-        <div className="flex-1 flex flex-col items-center justify-center text-center p-6 text-slate-400 text-xs">
-          <span className="text-3xl mb-2">🎬</span>
-          <p>{emptyMessage}</p>
+        <div className="flex-1 flex items-center justify-center p-6">
+          <EmptyState
+            message={emptyMessage}
+            icon={<span className="text-3xl not-italic">🎬</span>}
+          />
         </div>
       )}
     </div>

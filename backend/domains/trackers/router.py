@@ -46,9 +46,28 @@ async def get_series_extras(
 async def search_series(
     query: str = Query(..., min_length=1, description="Termine di ricerca per la serie TV (su TMDB)"),
     page: int = Query(1, ge=1, description="Numero di pagina per la paginazione"),
+    with_genres: Optional[str] = None,
+    without_genres: Optional[str] = None,
+    with_networks: Optional[str] = None,
+    with_watch_providers: Optional[str] = None,
+    with_status: Optional[str] = None,
+    first_air_date_year: Optional[str] = None,
+    sort_by: Optional[str] = None,
+    db: Session = Depends(get_db),
     current_user: User = Depends(get_current_app_user),
 ):
-    return await service.search_tmdb_series(query=query, page=page)
+    providers = with_watch_providers or with_networks
+    return await service.search_tmdb_series(
+        query=query,
+        page=page,
+        with_genres=with_genres,
+        without_genres=without_genres,
+        with_watch_providers=providers,
+        with_status=with_status,
+        first_air_date_year=first_air_date_year,
+        sort_by=sort_by,
+        db=db,
+    )
 
 
 @router.get("/series", response_model=List[TVSeriesResponse])
@@ -112,6 +131,14 @@ def get_full_stats(
 ):
     from backend.domains.trackers.schemas import TVFullStats
     return service.get_full_stats(db, current_user)
+
+
+@router.post("/series/sync-providers")
+async def sync_series_providers(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_app_user),
+):
+    return await service.sync_missing_user_series_providers(db, current_user)
 
 @router.get("/series/{tmdb_id}", response_model=TVSeriesResponse)
 async def get_series_detail(
@@ -402,9 +429,10 @@ def get_friends_episode_reviews(
 @router.get("/series/{tmdb_id}/providers")
 async def get_series_providers(
     tmdb_id: int,
+    db: Session = Depends(get_db),
     current_user: User = Depends(get_current_app_user),
 ):
-    return await service.fetch_tmdb_series_providers(tmdb_id)
+    return await service.fetch_tmdb_series_providers(tmdb_id, db=db)
 
 
 @router.get("/series/{tmdb_id}/preview", response_model=TVSeriesResponse)
@@ -471,16 +499,24 @@ async def get_tmdb_providers(
 @router.get("/tmdb/discover", response_model=TMDBPaginatedSearch)
 async def discover_tmdb_series(
     with_genres: Optional[str] = None,
+    without_genres: Optional[str] = None,
     with_networks: Optional[str] = None,
+    with_watch_providers: Optional[str] = None,
+    with_status: Optional[str] = None,
     first_air_date_year: Optional[str] = None,
+    sort_by: Optional[str] = None,
     page: int = Query(1, ge=1),
     current_user: User = Depends(get_current_app_user),
 ):
+    providers = with_watch_providers or with_networks
     return await service.discover_tmdb_series(
         with_genres=with_genres,
-        with_networks=with_networks,
+        without_genres=without_genres,
+        with_networks=providers,
+        with_status=with_status,
         first_air_date_year=first_air_date_year,
-        page=page
+        sort_by=sort_by,
+        page=page,
     )
 
 # --- TV Platforms ---
@@ -496,6 +532,30 @@ def get_user_platforms(
     import sqlalchemy
     platforms = db.execute(sqlalchemy.select(UserTVPlatform).where(UserTVPlatform.user_id == current_user.id).order_by(UserTVPlatform.name.asc())).scalars().all()
     return platforms
+
+@router.post("/platforms", response_model=UserTVPlatformResponse, status_code=status.HTTP_201_CREATED)
+def create_user_platform(
+    payload: dict,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_app_user),
+):
+    from backend.domains.trackers.service import _get_or_create_tv_platform
+    from backend.domains.trackers.models import UserTVPlatform
+    import sqlalchemy
+    from fastapi import HTTPException
+    
+    name = (payload.get("name") or "").strip()
+    if not name:
+        raise HTTPException(status_code=400, detail="Il nome della piattaforma non può essere vuoto")
+        
+    platform_id = _get_or_create_tv_platform(db, current_user.id, name)
+    platform = db.execute(
+        sqlalchemy.select(UserTVPlatform).where(
+            UserTVPlatform.id == platform_id,
+            UserTVPlatform.user_id == current_user.id
+        )
+    ).scalar_one()
+    return platform
 
 @router.patch("/platforms/{platform_id}", response_model=UserTVPlatformResponse)
 def rename_platform(

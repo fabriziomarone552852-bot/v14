@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { StarRating } from '@/components/trackers/SeriesDetailModal/StarRating';
+import { StarRating } from '@/components/trackers/shared/detail/StarRating';
 import { DatePicker } from '@/components/shared/utils/DatePicker/DatePicker';
-import { ReviewVisibilityIcon } from '@/components/trackers/SeriesDetailModal/shared/ReviewVisibilityBadge';
+import { ReviewVisibilityIcon } from '@/components/trackers/shared/detail/ReviewVisibilityBadge';
 
 interface MovieReviewFormProps {
   editingLogId: number | null;

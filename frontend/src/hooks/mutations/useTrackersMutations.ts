@@ -1,6 +1,7 @@
 // src/hooks/mutations/useTrackersMutations.ts
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/api/apiService';
+import { showTrackerToast } from '@/components/trackers/shared/TrackerToast';
 import type {
   TVSeries,
   TMDBSeries,
@@ -584,6 +585,34 @@ export const useTrackersMutations = () => {
     },
   });
 
+  const createPlatformMutation = useMutation({
+    mutationFn: async (name: string) => {
+      return await api.post<{ id: number; name: string }>('/trackers/platforms', { name });
+    },
+    onMutate: async (name: string) => {
+      await queryClient.cancelQueries({ queryKey: ['trackers', 'platforms'] });
+      const previousPlatforms = queryClient.getQueryData<{ id: number; name: string }[]>(['trackers', 'platforms']);
+      if (previousPlatforms) {
+        queryClient.setQueryData<{ id: number; name: string }[]>(['trackers', 'platforms'], (old) => {
+          if (!old) return [{ id: Date.now(), name }];
+          if (old.some((p) => p.name.toLowerCase() === name.toLowerCase())) return old;
+          return [...old, { id: Date.now(), name }];
+        });
+      }
+      return { previousPlatforms };
+    },
+    onError: (_err, _name, context) => {
+      if (context?.previousPlatforms) {
+        queryClient.setQueryData(['trackers', 'platforms'], context.previousPlatforms);
+      }
+      showTrackerToast('Impossibile salvare la nuova piattaforma', 'warning');
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ['trackers', 'platforms'] });
+      queryClient.invalidateQueries({ queryKey: ['trackers', 'series'] });
+    },
+  });
+
   const renamePlatformMutation = useMutation({
     mutationFn: async ({ platform_id, name }: { platform_id: number; name: string }) => {
       return await api.patch<GenericSuccessResponse | void>(`/trackers/platforms/${platform_id}`, { name });
@@ -648,6 +677,8 @@ export const useTrackersMutations = () => {
     removeFromList: removeFromListMutation.mutate,
     removeFromListAsync: removeFromListMutation.mutateAsync,
     isRemovingFromList: removeFromListMutation.isPending,
+    createPlatform: createPlatformMutation.mutate,
+    createPlatformAsync: createPlatformMutation.mutateAsync,
     renamePlatform: renamePlatformMutation.mutate,
     deletePlatform: deletePlatformMutation.mutate,
   };

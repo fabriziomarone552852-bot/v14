@@ -3,10 +3,16 @@ import { RotateCcw } from 'lucide-react';
 import { ArchiveFilterSearchInput } from '@/components/archive/common';
 import type { Movie, MovieFilters } from '@/types/movies';
 import type { MediaList } from '@/types/trackers';
-import DatePicker from '@/components/shared/utils/DatePicker/DatePicker';
-import { DropdownIcon } from '@/components/shared/utils/Icons';
+import { CheckCircleIcon } from '@/components/shared/utils/Icons';
 import BaseModal from '@/components/shared/dialog/BaseModal';
-import { CustomSelect } from '@/components/trackers/MediaFilterCustomSelect';
+import { CustomSelect } from '@/components/trackers/shared/TrackerFilterCustomSelect';
+import { DesktopMultiSelect } from '@/components/trackers/shared/DesktopMultiSelect';
+import { DesktopGenreTriStateSelect } from '@/components/trackers/shared/DesktopGenreTriStateSelect';
+import { TrackerMultiYearSelect } from '@/components/trackers/shared/TrackerMultiYearSelect';
+import { MobileMyPlatformsQuickChip } from '@/mobile/components/trackers/shared/MobileMyPlatformsQuickChip';
+import { useAuth } from '@/context/AuthContext';
+import { getPlatformMultiDisplayLabel } from '@/utils/platformFilterUtils';
+import { toggleMultiOrValue } from '@/utils/trackerFilterUtils';
 import { useMovieFilterOptions } from '@/hooks/trackers/useMovieFilterOptions';
 
 interface MovieFilterModalProps {
@@ -30,6 +36,9 @@ export const MovieFilterModal: React.FC<MovieFilterModalProps> = ({
   movies,
   myLists,
 }) => {
+  const { user } = useAuth();
+  const userProviders = user?.streaming_providers ?? [];
+
   const {
     availableGenres,
     availablePlatforms,
@@ -37,18 +46,33 @@ export const MovieFilterModal: React.FC<MovieFilterModalProps> = ({
     ratingOptions,
     sortOptions,
     obtainedOptions,
-    isDatePickerOpen,
-    setIsDatePickerOpen,
     handleFieldChange,
     toggleRating,
     handleToggleGlobalSearch,
-    handleYearChange,
   } = useMovieFilterOptions({ movies, filters, onFilterChange });
+
+  const platformDisplayOverride = getPlatformMultiDisplayLabel(
+    filters.platforms,
+    userProviders
+  );
+
+  const selectedListIds = filters.listIds || [];
 
   const SidePanel = (
     <div className="bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden flex flex-col h-full">
       <div className="px-4 py-3 border-b border-gray-100 flex justify-between items-center bg-gray-50 shrink-0">
-        <h4 className="text-sm font-extrabold text-gray-800 uppercase tracking-wider">Le Mie Liste</h4>
+        <h4 className="text-sm font-extrabold text-gray-800 uppercase tracking-wider">
+          Le Mie Liste
+        </h4>
+        {selectedListIds.length > 0 && (
+          <button
+            type="button"
+            onClick={() => handleFieldChange('listIds', [])}
+            className="text-[11px] font-extrabold text-red-500 hover:text-red-700 cursor-pointer"
+          >
+            Azzera
+          </button>
+        )}
       </div>
       <div className="flex-1 overflow-y-auto custom-scrollbar p-3 flex flex-col gap-2 max-h-[60vh]">
         {!myLists || myLists.length === 0 ? (
@@ -56,29 +80,45 @@ export const MovieFilterModal: React.FC<MovieFilterModalProps> = ({
         ) : (
           <>
             <button
-              onClick={() => handleFieldChange('listId', null)}
-              className={`text-left px-3 py-2 rounded-xl text-sm font-bold transition-all cursor-pointer ${
-                filters.listId === null ? 'bg-blue-50 text-blue-700' : 'text-gray-600 hover:bg-gray-50'
+              type="button"
+              onClick={() => handleFieldChange('listIds', [])}
+              className={`text-left px-3 py-2 rounded-xl text-sm font-bold transition-all cursor-pointer flex items-center justify-between ${
+                selectedListIds.length === 0
+                  ? 'bg-blue-50 text-blue-700'
+                  : 'text-gray-600 hover:bg-gray-50'
               }`}
             >
-              Tutti i Film
+              <span>Tutti i Film</span>
+              {selectedListIds.length === 0 && (
+                <CheckCircleIcon className="w-4 h-4 text-blue-600 shrink-0" />
+              )}
             </button>
             {myLists.map((list) => {
-              const movieItemsCount = list.items?.filter((item) => item.movie_tmdb_id != null).length ?? 0;
+              const isSelected = selectedListIds.includes(list.id);
+              const movieItemsCount =
+                list.items?.filter((item) => item.movie_tmdb_id != null).length ?? 0;
               return (
                 <button
                   key={list.id}
-                  onClick={() => handleFieldChange('listId', list.id)}
+                  type="button"
+                  onClick={() =>
+                    handleFieldChange('listIds', toggleMultiOrValue(selectedListIds, list.id))
+                  }
                   className={`text-left flex items-center justify-between px-3 py-2 rounded-xl text-sm transition-all cursor-pointer ${
-                    filters.listId === list.id
+                    isSelected
                       ? 'bg-blue-50 text-blue-700 font-bold border border-blue-100 shadow-xs'
                       : 'text-gray-600 hover:bg-gray-50 font-medium border border-transparent'
                   }`}
                 >
                   <span className="truncate">{list.name}</span>
-                  <span className="text-[10px] bg-white border border-gray-200 text-gray-500 px-1.5 py-0.5 rounded-full ml-2 shrink-0 shadow-sm">
-                    {movieItemsCount}
-                  </span>
+                  <div className="flex items-center gap-1.5 ml-2 shrink-0">
+                    <span className="text-[10px] bg-white border border-gray-200 text-gray-500 px-1.5 py-0.5 rounded-full shadow-sm">
+                      {movieItemsCount}
+                    </span>
+                    {isSelected && (
+                      <CheckCircleIcon className="w-3.5 h-3.5 text-blue-600 shrink-0" />
+                    )}
+                  </div>
                 </button>
               );
             })}
@@ -141,63 +181,45 @@ export const MovieFilterModal: React.FC<MovieFilterModalProps> = ({
         />
 
         <div className="grid grid-cols-2 gap-4">
-          <CustomSelect
+          <DesktopGenreTriStateSelect
             label="Genere"
-            value={filters.genre || 'all'}
+            rule={filters.genres}
             options={availableGenres}
-            onChange={(val: string) => handleFieldChange('genre', val)}
+            onChange={(nextRule) => handleFieldChange('genres', nextRule)}
             allLabel="Tutti i generi"
           />
 
-          <CustomSelect
+          <DesktopMultiSelect
             label="Piattaforma"
-            value={filters.platform || 'all'}
+            values={filters.platforms || []}
             options={availablePlatforms}
-            onChange={(val: string) => handleFieldChange('platform', val)}
+            onChange={(vals) => handleFieldChange('platforms', vals)}
             allLabel="Tutte le piattaforme"
+            displayValueOverride={platformDisplayOverride}
+            headerAction={
+              <MobileMyPlatformsQuickChip
+                currentValues={filters.platforms || []}
+                availableOptions={availablePlatforms}
+                onSelectValues={(vals) => handleFieldChange('platforms', vals)}
+              />
+            }
           />
         </div>
 
         <div className="grid grid-cols-2 gap-4">
-          <div>
-            <label className="block text-xs font-bold text-gray-500 uppercase mb-1">
-              Anno di Uscita
-            </label>
-            <div className="relative">
-              <DatePicker
-                value={filters.year && filters.year !== 'all' ? `${filters.year}-01-01` : ''}
-                onChange={handleYearChange}
-                isOpen={isDatePickerOpen}
-                onClose={() => setIsDatePickerOpen(false)}
-                onToggle={() => setIsDatePickerOpen(!isDatePickerOpen)}
-                selectionMode="year"
-                overlay={false}
-                usePortal={true}
-                align="center"
-                customTrigger={
-                  <button
-                    type="button"
-                    className={`w-full flex items-center justify-between px-3 py-2 border rounded-xl text-xs transition-colors cursor-pointer ${
-                      filters.year && filters.year !== 'all'
-                        ? 'border-blue-300 bg-blue-50/50 text-blue-900 font-bold'
-                        : 'border-gray-200 bg-white text-gray-700 font-normal hover:border-gray-300'
-                    }`}
-                  >
-                    <span className="truncate">
-                      {filters.year && filters.year !== 'all' ? filters.year : 'Tutti gli anni'}
-                    </span>
-                    <DropdownIcon className="w-4 h-4 text-gray-400 shrink-0 ml-2" />
-                  </button>
-                }
-              />
-            </div>
-          </div>
+          <TrackerMultiYearSelect
+            label="Anno di Uscita"
+            years={filters.years || []}
+            onChange={(vals) => handleFieldChange('years', vals)}
+            allLabel="Tutti gli anni"
+            asModal={false}
+          />
 
-          <CustomSelect
+          <DesktopMultiSelect
             label="Saga / Collezione"
-            value={filters.saga || 'all'}
+            values={filters.sagas || []}
             options={availableSagas}
-            onChange={(val: string) => handleFieldChange('saga', val)}
+            onChange={(vals) => handleFieldChange('sagas', vals)}
             allLabel="Tutte le saghe"
           />
         </div>

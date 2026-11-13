@@ -63,6 +63,12 @@ export interface SeriesSeasonInfo {
   poster_path?: string | null;
 }
 
+export interface SeriesWatchProvider {
+  provider_id: number;
+  provider_name: string;
+  logo_path?: string | null;
+}
+
 export interface TMDBSeries {
   tmdb_id: number;
   title: string;
@@ -79,6 +85,8 @@ export interface TMDBSeries {
   first_air_date?: string | null;
   last_air_date?: string | null;
   last_sync_at?: string;
+  watch_providers?: SeriesWatchProvider[] | null;
+  providers_synced_at?: string | null;
   episodes?: TMDBEpisode[];
   cast?: SeriesCastMember[];
   recommendations?: SeriesRecommendation[];
@@ -245,12 +253,14 @@ export interface TMDBMovieSimple {
   genres?: string | null;
 }
 
+export type TrackerMediaType = 'tv' | 'movie' | (string & {});
+
 export interface MediaListItem {
   id: number;
   list_id: number;
   series_tmdb_id?: number | null;
   movie_tmdb_id?: number | null;
-  media_type: 'tv' | 'movie';
+  media_type: TrackerMediaType;
   sort_order: number;
   added_at: string;
   series?: TMDBSeriesSimple | null;

@@ -3,12 +3,16 @@ import { useSearchParams } from 'react-router-dom';
 import { useQueryClient, useQuery } from '@tanstack/react-query';
 import { userGoalsApi } from '@/api/userGoalsApi';
 import { useConfirm } from '@/context/ConfirmContext';
+import { useAuth } from '@/context/AuthContext';
 import {
   useMyMovies,
   useMovieDashboardStats,
   useMovieQuotes,
+  useTMDBMovieGenres,
+  useTMDBMovieProviders,
   useInfiniteSearchTMDBMovies,
   useInfiniteDiscoverTMDBMovies,
+  type TMDBMovieQueryFilterParams,
 } from '@/hooks/queries/useMovieQueries';
 import { useMediaLists } from '@/hooks/queries/useTrackersQueries';
 import { useMovieMutations } from '@/hooks/mutations/useMovieMutations';
@@ -18,11 +22,18 @@ import type {
   TMDBPaginatedMovieSearch,
 } from '@/types/movies';
 import { extractMovieTmdbId } from '@/types/movies';
+import {
+  DEFAULT_MOVIE_FILTERS,
+  hasActiveMovieFilters,
+} from './useMovieFilterOptions';
 import { useFilteredMovies } from './useFilteredMovies';
 import { useMovieUrlParams, type MovieDetailTabType } from './useMovieUrlParams';
+import { buildTMDBGenreParams, mapSortByToTMDB } from '@/utils/trackerFilterUtils';
+import { buildTMDBWatchProvidersParam } from '@/utils/platformFilterUtils';
 
 export const useMoviePageLogic = () => {
   const { confirm } = useConfirm();
+  const { user } = useAuth();
   const queryClient = useQueryClient();
   const [searchParams] = useSearchParams();
 
@@ -57,6 +68,8 @@ export const useMoviePageLogic = () => {
   const { data: statsData } = useMovieDashboardStats();
   const { data: myQuotes } = useMovieQuotes();
   const { data: myLists } = useMediaLists();
+  const { data: tmdbGenres = [] } = useTMDBMovieGenres();
+  const { data: tmdbProviders = [] } = useTMDBMovieProviders();
 
   useMovieUrlParams(movies, detailModalOpen, openMovieDetail);
 
@@ -77,18 +90,7 @@ export const useMoviePageLogic = () => {
   const [debouncedQuery, setDebouncedQuery] = useState('');
 
   const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
-  const [filters, setFilters] = useState<MovieFilters>({
-    keyword: '',
-    genre: 'all',
-    platform: 'all',
-    year: 'all',
-    saga: 'all',
-    ratings: [],
-    sortBy: 'date_added_desc',
-    listId: null,
-    obtainedFilter: 'all',
-    globalSearch: false,
-  });
+  const [filters, setFilters] = useState<MovieFilters>(DEFAULT_MOVIE_FILTERS);
 
   const searchQuery = filters.keyword;
 
@@ -97,31 +99,10 @@ export const useMoviePageLogic = () => {
   };
 
   const handleResetFilters = () => {
-    setFilters({
-      keyword: '',
-      genre: 'all',
-      platform: 'all',
-      year: 'all',
-      saga: 'all',
-      ratings: [],
-      sortBy: 'date_added_desc',
-      listId: null,
-      obtainedFilter: 'all',
-      globalSearch: false,
-    });
+    setFilters(DEFAULT_MOVIE_FILTERS);
   };
 
-  const hasActiveFilters =
-    filters.keyword !== '' ||
-    filters.genre !== 'all' ||
-    filters.platform !== 'all' ||
-    filters.year !== 'all' ||
-    filters.saga !== 'all' ||
-    (filters.ratings || []).length > 0 ||
-    filters.listId !== null ||
-    (filters.obtainedFilter && filters.obtainedFilter !== 'all') ||
-    filters.sortBy !== 'date_added_desc' ||
-    Boolean(filters.globalSearch);
+  const hasActiveFilters = useMemo(() => hasActiveMovieFilters(filters), [filters]);
 
   const [isQuoteExpanded, setIsQuoteExpanded] = useState(false);
   const [isRandomModalOpen, setRandomModalOpen] = useState(false);
@@ -134,15 +115,47 @@ export const useMoviePageLogic = () => {
     return () => clearTimeout(timer);
   }, [searchQuery]);
 
-  const searchInfinite = useInfiniteSearchTMDBMovies(debouncedQuery, !!debouncedQuery.trim());
+  const tmdbFilterParams = useMemo<TMDBMovieQueryFilterParams>(() => {
+    const genreParams = buildTMDBGenreParams(filters.genres, tmdbGenres, 'movie');
+    const providersParam = buildTMDBWatchProvidersParam(
+      filters.platforms,
+      tmdbProviders,
+      user?.streaming_providers ?? []
+    );
+    const yearParam =
+      filters.years && filters.years.length > 0
+        ? filters.years.join('|')
+        : undefined;
+
+    return {
+      with_genres: genreParams.with_genres,
+      without_genres: genreParams.without_genres,
+      with_watch_providers: providersParam,
+      primary_release_year: yearParam,
+      sort_by: mapSortByToTMDB(filters.sortBy, 'movie'),
+    };
+  }, [filters.genres, filters.platforms, filters.years, filters.sortBy, tmdbGenres, tmdbProviders, user?.streaming_providers]);
+
+  const hasListFilter = (filters.listIds?.length ?? 0) > 0;
+  const hasPersonalOnlyFilter =
+    hasListFilter ||
+    (!filters.globalSearch &&
+      ((filters.ratings?.length ?? 0) > 0 ||
+        (filters.sagas?.length ?? 0) > 0 ||
+        (Boolean(filters.obtainedFilter) && filters.obtainedFilter !== 'all')));
+
+  const shouldSearchTMDB = Boolean(debouncedQuery.trim()) && !hasPersonalOnlyFilter;
+  const shouldDiscoverTMDB =
+    !shouldSearchTMDB && Boolean(filters.globalSearch) && !hasListFilter;
+
+  const searchInfinite = useInfiniteSearchTMDBMovies(
+    debouncedQuery,
+    shouldSearchTMDB,
+    tmdbFilterParams
+  );
   const discoverInfinite = useInfiniteDiscoverTMDBMovies(
-    {
-      genre: filters.genre,
-      platform: filters.platform,
-      year: filters.year,
-      sortBy: filters.sortBy,
-    },
-    Boolean(filters.globalSearch)
+    tmdbFilterParams,
+    shouldDiscoverTMDB
   );
 
   const isSearchLoading = searchInfinite.isLoading;
@@ -172,26 +185,24 @@ export const useMoviePageLogic = () => {
     };
   }, [discoverInfinite.data]);
 
-  const isSearching = Boolean(debouncedQuery.trim());
-  const hasMoreResults = isSearching
+  const hasMoreResults = shouldSearchTMDB
     ? Boolean(searchInfinite.hasNextPage)
     : Boolean(discoverInfinite.hasNextPage);
-  const isFetchingMore = isSearching
+  const isFetchingMore = shouldSearchTMDB
     ? searchInfinite.isFetchingNextPage
     : discoverInfinite.isFetchingNextPage;
 
   const fetchMoreResults = useCallback(() => {
-    if (isSearching) {
+    if (shouldSearchTMDB) {
       if (searchInfinite.hasNextPage && !searchInfinite.isFetchingNextPage) {
         searchInfinite.fetchNextPage();
       }
-    } else {
+    } else if (shouldDiscoverTMDB) {
       if (discoverInfinite.hasNextPage && !discoverInfinite.isFetchingNextPage) {
         discoverInfinite.fetchNextPage();
       }
     }
-  }, [isSearching, searchInfinite, discoverInfinite]);
-
+  }, [shouldSearchTMDB, shouldDiscoverTMDB, searchInfinite, discoverInfinite]);
 
   const { addMovieMutation, deleteMovieMutation } = useMovieMutations();
 
@@ -239,7 +250,8 @@ export const useMoviePageLogic = () => {
         (detailModalMovie && modalTmdbId === tmdbId
           ? {
               title: detailModalMovie.title,
-              original_title: 'original_title' in detailModalMovie ? detailModalMovie.original_title : undefined,
+              original_title:
+                'original_title' in detailModalMovie ? detailModalMovie.original_title : undefined,
               overview: 'overview' in detailModalMovie ? detailModalMovie.overview : undefined,
               poster_path: detailModalMovie.poster_path,
               backdrop_path: detailModalMovie.backdrop_path,
@@ -279,17 +291,26 @@ export const useMoviePageLogic = () => {
   };
 
   const handleGenreClick = (genre: string) => {
-    setFilters((prev) => ({ ...prev, genre }));
+    setFilters((prev) => ({
+      ...prev,
+      genres: { include: [genre], exclude: [], mode: 'OR' },
+    }));
     setDetailModalOpen(false);
   };
 
   const handlePlatformClick = (platform: string) => {
-    setFilters((prev) => ({ ...prev, platform }));
+    setFilters((prev) => ({
+      ...prev,
+      platforms: [platform],
+    }));
     setDetailModalOpen(false);
   };
 
   const handleSagaClick = (saga: string) => {
-    setFilters((prev) => ({ ...prev, saga }));
+    setFilters((prev) => ({
+      ...prev,
+      sagas: [saga],
+    }));
     setDetailModalOpen(false);
   };
 
@@ -316,8 +337,8 @@ export const useMoviePageLogic = () => {
     setDetailModalOpen,
     detailModalMovie,
     setDetailModalMovie,
-    detailModalTab,
     setDetailModalTab,
+    detailModalTab,
     detailModalReviewLogId,
     displayMovies,
     myQuotes,

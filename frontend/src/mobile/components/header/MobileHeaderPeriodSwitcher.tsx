@@ -21,59 +21,77 @@ export const MobileHeaderPeriodSwitcher: React.FC<MobileHeaderPeriodSwitcherProp
   isMonth,
   isYear,
 }) => {
+  const activeIndex = isDay ? 0 : isWeek ? 1 : isMonth ? 2 : isYear ? 3 : -1;
+
   return (
-    <div className="flex items-center bg-gray-100/90 p-1 rounded-xl border border-gray-200 gap-0.5 shadow-inner">
-      {/* GIORNO */}
+    <div className="relative grid grid-cols-4 items-center bg-gray-100/90 p-1 rounded-xl border border-gray-200 shadow-inner select-none">
+      {/* Livello base: icone scure sempre visibili sulla traccia grigia */}
       <Link
         to="/giorno"
         title="Vista Giorno"
-        className={`p-1.5 rounded-lg transition-all flex items-center justify-center ${
-          isDay
-            ? 'bg-blue-600 text-white shadow-xs font-bold scale-105'
-            : 'text-gray-500 hover:text-gray-900 hover:bg-gray-200/60'
-        }`}
+        aria-current={isDay ? 'page' : undefined}
+        className="relative z-10 w-8 h-8 rounded-lg flex items-center justify-center text-gray-600 hover:text-gray-900"
       >
         <CalendarDayIcon className="w-5 h-5" />
       </Link>
 
-      {/* SETTIMANA */}
       <Link
         to="/settimana"
         title="Vista Settimana"
-        className={`p-1.5 rounded-lg transition-all flex items-center justify-center ${
-          isWeek
-            ? 'bg-blue-600 text-white shadow-xs font-bold scale-105'
-            : 'text-gray-500 hover:text-gray-900 hover:bg-gray-200/60'
-        }`}
+        aria-current={isWeek ? 'page' : undefined}
+        className="relative z-10 w-8 h-8 rounded-lg flex items-center justify-center text-gray-600 hover:text-gray-900"
       >
         <CalendarWeekIcon className="w-5 h-5" />
       </Link>
 
-      {/* MESE */}
       <Link
         to="/mese"
         title="Vista Mese"
-        className={`p-1.5 rounded-lg transition-all flex items-center justify-center ${
-          isMonth
-            ? 'bg-blue-600 text-white shadow-xs font-bold scale-105'
-            : 'text-gray-500 hover:text-gray-900 hover:bg-gray-200/60'
-        }`}
+        aria-current={isMonth ? 'page' : undefined}
+        className="relative z-10 w-8 h-8 rounded-lg flex items-center justify-center text-gray-600 hover:text-gray-900"
       >
         <CalendarMonthIcon className="w-5 h-5" />
       </Link>
 
-      {/* ANNO */}
       <Link
         to="/anno"
         title="Vista Anno"
-        className={`p-1.5 rounded-lg transition-all flex items-center justify-center ${
-          isYear
-            ? 'bg-blue-600 text-white shadow-xs font-bold scale-105'
-            : 'text-gray-500 hover:text-gray-900 hover:bg-gray-200/60'
-        }`}
+        aria-current={isYear ? 'page' : undefined}
+        className="relative z-10 w-8 h-8 rounded-lg flex items-center justify-center text-gray-600 hover:text-gray-900"
       >
         <CalendarYearIcon className="w-5 h-5" />
       </Link>
+
+      {/* Pillola blu scorrevole con maschera interna per icone bianche (zero lag di colore) */}
+      {activeIndex >= 0 && (
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute top-1 bottom-1 left-1 z-20 w-8 h-8 rounded-lg bg-blue-600 shadow-xs overflow-hidden transition-transform duration-250 ease-[cubic-bezier(0.22,1,0.36,1)] will-change-transform"
+          style={{
+            transform: `translate3d(${activeIndex * 2}rem, 0, 0)`,
+          }}
+        >
+          <div
+            className="grid grid-cols-4 w-32 h-8 text-white transition-transform duration-250 ease-[cubic-bezier(0.22,1,0.36,1)] will-change-transform"
+            style={{
+              transform: `translate3d(-${activeIndex * 2}rem, 0, 0)`,
+            }}
+          >
+            <div className="w-8 h-8 flex items-center justify-center">
+              <CalendarDayIcon className="w-5 h-5" />
+            </div>
+            <div className="w-8 h-8 flex items-center justify-center">
+              <CalendarWeekIcon className="w-5 h-5" />
+            </div>
+            <div className="w-8 h-8 flex items-center justify-center">
+              <CalendarMonthIcon className="w-5 h-5" />
+            </div>
+            <div className="w-8 h-8 flex items-center justify-center">
+              <CalendarYearIcon className="w-5 h-5" />
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

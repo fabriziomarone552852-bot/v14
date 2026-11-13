@@ -4,22 +4,40 @@ import { useQueryClient, useQuery, useMutation } from '@tanstack/react-query';
 import { api } from '@/api/apiService';
 import { userGoalsApi } from '@/api/userGoalsApi';
 import { useConfirm } from '@/context/ConfirmContext';
+import { useAuth } from '@/context/AuthContext';
 import {
   useMySeries,
   useSeriesStats,
   useMyQuotes,
   useMediaLists,
+  useTMDBGenres,
+  useTMDBProviders,
   useInfiniteSearchTMDBSeries,
   useInfiniteDiscoverTMDBSeries,
+  type TMDBSeriesQueryFilterParams,
 } from '@/hooks/queries/useTrackersQueries';
-import { type TVSeries, type TMDBEpisode, type TMDBPaginatedSearch, type SeriesDetailTarget, extractSeriesTmdbId } from '@/types/trackers';
-import type { TabType } from '@/components/trackers/SeriesDetailModal';
-import type { MediaFilterState as SeriesFilterState } from '@/components/trackers/MediaFilterModal';
+import {
+  type TVSeries,
+  type TMDBEpisode,
+  type TMDBPaginatedSearch,
+  type SeriesDetailTarget,
+  extractSeriesTmdbId,
+} from '@/types/trackers';
+import type { TabType } from '@/components/trackers/series/detail';
+import {
+  DEFAULT_SERIES_FILTERS,
+  hasActiveSeriesFilters,
+  type MediaFilterState as SeriesFilterState,
+} from './useMediaFilterOptions';
 import { useFilteredTVSeries } from './useFilteredTVSeries';
 import { useSeriesUrlParams } from './useSeriesUrlParams';
+import { useAutoSyncSeriesProviders } from './useAutoSyncSeriesProviders';
+import { buildTMDBGenreParams, mapSortByToTMDB } from '@/utils/trackerFilterUtils';
+import { buildTMDBWatchProvidersParam } from '@/utils/platformFilterUtils';
 
 export const useTVSeriesPageLogic = () => {
   const { confirm } = useConfirm();
+  const { user } = useAuth();
   const queryClient = useQueryClient();
   const [searchParams] = useSearchParams();
 
@@ -64,9 +82,12 @@ export const useTVSeriesPageLogic = () => {
   };
 
   const { data: series, isLoading, isError } = useMySeries();
+  useAutoSyncSeriesProviders(series);
   const { data: statsData } = useSeriesStats();
   const { data: myQuotes } = useMyQuotes();
   const { data: myLists } = useMediaLists();
+  const { data: tmdbGenres = [] } = useTMDBGenres();
+  const { data: tmdbProviders = [] } = useTMDBProviders();
 
   useSeriesUrlParams(series, detailModalOpen, openSeriesDetail);
 
@@ -80,23 +101,14 @@ export const useTVSeriesPageLogic = () => {
         }
       }
     }
-  }, [series, detailModalOpen]);
+  }, [series, detailModalOpen, detailModalSeries]);
 
   const [activeTab, setActiveTab] = useState<'all' | 'watching' | 'watched' | 'to_watch'>('all');
   const [goalViewType, setGoalViewType] = useState<'percent' | 'fraction'>('fraction');
   const [debouncedQuery, setDebouncedQuery] = useState('');
 
   const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
-  const [filters, setFilters] = useState<SeriesFilterState>({
-    keyword: '',
-    genre: 'all',
-    network: 'all',
-    ratings: [],
-    tmdbStatus: 'all',
-    year: 'all',
-    sortBy: 'date_added_desc',
-    listId: null,
-  });
+  const [filters, setFilters] = useState<SeriesFilterState>(DEFAULT_SERIES_FILTERS);
 
   const searchQuery = filters.keyword;
 
@@ -105,27 +117,10 @@ export const useTVSeriesPageLogic = () => {
   };
 
   const handleResetFilters = () => {
-    setFilters({
-      keyword: '',
-      genre: 'all',
-      network: 'all',
-      ratings: [],
-      tmdbStatus: 'all',
-      year: 'all',
-      sortBy: 'date_added_desc',
-      listId: null,
-    });
+    setFilters(DEFAULT_SERIES_FILTERS);
   };
 
-  const hasActiveFilters =
-    filters.keyword !== '' ||
-    filters.genre !== 'all' ||
-    filters.network !== 'all' ||
-    (filters.ratings || []).length > 0 ||
-    filters.tmdbStatus !== 'all' ||
-    filters.year !== 'all' ||
-    filters.listId !== null ||
-    filters.sortBy !== 'date_added_desc';
+  const hasActiveFilters = useMemo(() => hasActiveSeriesFilters(filters), [filters]);
 
   const [isQuoteExpanded, setIsQuoteExpanded] = useState(false);
   const [isRandomModalOpen, setRandomModalOpen] = useState(false);
@@ -138,8 +133,49 @@ export const useTVSeriesPageLogic = () => {
     return () => clearTimeout(timer);
   }, [searchQuery]);
 
-  const searchInfinite = useInfiniteSearchTMDBSeries(debouncedQuery, !!debouncedQuery.trim());
-  const discoverInfinite = useInfiniteDiscoverTMDBSeries(filters, Boolean(filters.globalSearch));
+  const tmdbFilterParams = useMemo<TMDBSeriesQueryFilterParams>(() => {
+    const genreParams = buildTMDBGenreParams(filters.genres, tmdbGenres, 'tv');
+    const providersParam = buildTMDBWatchProvidersParam(
+      filters.networks,
+      tmdbProviders,
+      user?.streaming_providers ?? []
+    );
+    const statusParam =
+      filters.tmdbStatuses && filters.tmdbStatuses.length > 0
+        ? filters.tmdbStatuses.join('|')
+        : undefined;
+    const yearParam =
+      filters.years && filters.years.length > 0
+        ? filters.years.join('|')
+        : undefined;
+
+    return {
+      with_genres: genreParams.with_genres,
+      without_genres: genreParams.without_genres,
+      with_watch_providers: providersParam,
+      with_status: statusParam,
+      first_air_date_year: yearParam,
+      sort_by: mapSortByToTMDB(filters.sortBy, 'tv'),
+    };
+  }, [filters.genres, filters.networks, filters.tmdbStatuses, filters.years, filters.sortBy, tmdbGenres, tmdbProviders, user?.streaming_providers]);
+
+  const hasListFilter = (filters.listIds?.length ?? 0) > 0;
+  const hasPersonalOnlyFilter =
+    hasListFilter || (!filters.globalSearch && (filters.ratings?.length ?? 0) > 0);
+
+  const shouldSearchTMDB = Boolean(debouncedQuery.trim()) && !hasPersonalOnlyFilter;
+  const shouldDiscoverTMDB =
+    !shouldSearchTMDB && Boolean(filters.globalSearch) && !hasListFilter;
+
+  const searchInfinite = useInfiniteSearchTMDBSeries(
+    debouncedQuery,
+    shouldSearchTMDB,
+    tmdbFilterParams
+  );
+  const discoverInfinite = useInfiniteDiscoverTMDBSeries(
+    tmdbFilterParams,
+    shouldDiscoverTMDB
+  );
 
   const isSearchLoading = searchInfinite.isLoading;
   const isDiscoverLoading = discoverInfinite.isLoading;
@@ -168,26 +204,24 @@ export const useTVSeriesPageLogic = () => {
     };
   }, [discoverInfinite.data]);
 
-  const isSearching = Boolean(debouncedQuery.trim());
-  const hasMoreResults = isSearching
+  const hasMoreResults = shouldSearchTMDB
     ? Boolean(searchInfinite.hasNextPage)
     : Boolean(discoverInfinite.hasNextPage);
-  const isFetchingMore = isSearching
+  const isFetchingMore = shouldSearchTMDB
     ? searchInfinite.isFetchingNextPage
     : discoverInfinite.isFetchingNextPage;
 
   const fetchMoreResults = useCallback(() => {
-    if (isSearching) {
+    if (shouldSearchTMDB) {
       if (searchInfinite.hasNextPage && !searchInfinite.isFetchingNextPage) {
         searchInfinite.fetchNextPage();
       }
-    } else {
+    } else if (shouldDiscoverTMDB) {
       if (discoverInfinite.hasNextPage && !discoverInfinite.isFetchingNextPage) {
         discoverInfinite.fetchNextPage();
       }
     }
-  }, [isSearching, searchInfinite, discoverInfinite]);
-
+  }, [shouldSearchTMDB, shouldDiscoverTMDB, searchInfinite, discoverInfinite]);
 
   const removeSeriesMutation = useMutation({
     mutationFn: async (tmdbId: number) => {
@@ -200,17 +234,22 @@ export const useTVSeriesPageLogic = () => {
 
   const addSeriesMutation = useMutation({
     mutationFn: async (payload: { tmdb_id: number; status: string }) => {
-      const data = await api.post<TVSeries, { tmdb_id: number; status: string }>('/trackers/series', payload);
+      const data = await api.post<TVSeries, { tmdb_id: number; status: string }>(
+        '/trackers/series',
+        payload
+      );
       return data;
     },
     onMutate: async (payload: { tmdb_id: number; status: string }) => {
       await queryClient.cancelQueries({ queryKey: ['trackers', 'series'] });
       const previousSeries = queryClient.getQueryData<TVSeries[]>(['trackers', 'series']);
 
-      const seriesDetails = searchResults?.results?.find((s) => s.id === payload.tmdb_id);
+      const seriesDetails =
+        searchResults?.results?.find((s) => s.id === payload.tmdb_id) ||
+        discoverData?.results?.find((s) => s.id === payload.tmdb_id);
 
       if (seriesDetails) {
-        queryClient.setQueryData<TVSeries[]>(['trackers', 'series'], (old: TVSeries[] | undefined) => {
+        queryClient.setQueryData<TVSeries[]>(['trackers', 'series'], (old) => {
           const newSeries: Partial<TVSeries> = {
             id: -Math.floor(Math.random() * 100000),
             tmdb_id: seriesDetails.id,
@@ -291,12 +330,18 @@ export const useTVSeriesPageLogic = () => {
   };
 
   const handleGenreClick = (genre: string) => {
-    setFilters((prev: SeriesFilterState) => ({ ...prev, genre }));
+    setFilters((prev) => ({
+      ...prev,
+      genres: { include: [genre], exclude: [], mode: 'OR' },
+    }));
     setDetailModalOpen(false);
   };
 
   const handlePlatformClick = (platform: string) => {
-    setFilters((prev: SeriesFilterState) => ({ ...prev, network: platform }));
+    setFilters((prev) => ({
+      ...prev,
+      networks: [platform],
+    }));
     setDetailModalOpen(false);
   };
 

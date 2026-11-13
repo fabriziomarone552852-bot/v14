@@ -3,7 +3,7 @@ import React from 'react';
 import type { Movie, TMDBMovieSearchResult, MovieDetailTarget } from '@/types/movies';
 import { FilmIcon } from '@/components/shared/utils/Icons';
 import { resolveImageUrl } from '@/utils/imageUtils';
-import { MobileMediaHorizontalCard } from '../shared/MobileMediaHorizontalCard';
+import { MobileTrackerHorizontalCard } from '../shared/MobileTrackerHorizontalCard';
 
 export interface MobileMovieHorizontalCardProps {
   result: TMDBMovieSearchResult;
@@ -37,7 +37,7 @@ export const MobileMovieHorizontalCard: React.FC<MobileMovieHorizontalCardProps>
     : result.poster_path || existingMovie?.poster_path;
 
   return (
-    <MobileMediaHorizontalCard
+    <MobileTrackerHorizontalCard
       id={result.id}
       title={result.title}
       originalTitle={result.original_title}

@@ -1,5 +1,12 @@
 // src/types/movies.ts
 import type { ReviewComment } from './trackers';
+import type { GenreFilterRule } from '@/utils/trackerFilterUtils';
+
+export interface MovieWatchProvider {
+  provider_id: number;
+  provider_name: string;
+  logo_path?: string | null;
+}
 
 export interface TMDBMovie {
   tmdb_id: number;
@@ -17,6 +24,8 @@ export interface TMDBMovie {
   collection_name?: string | null;
   collection_poster_path?: string | null;
   collection_backdrop_path?: string | null;
+  watch_providers?: MovieWatchProvider[] | null;
+  providers_synced_at?: string | null;
   last_sync_at?: string;
 }
 
@@ -238,13 +247,13 @@ export function extractMovieTmdbId(item: MovieDetailTarget | null | undefined): 
 
 export interface MovieFilters {
   keyword: string;
-  genre: string;
-  platform: string;
-  year: string;
-  saga: string;
+  genres: GenreFilterRule;
+  platforms: string[];
+  years: string[];
+  sagas: string[];
   ratings: string[];
   sortBy: string;
-  listId: number | null;
+  listIds: number[];
   obtainedFilter?: 'all' | 'obtained' | 'not_obtained';
   globalSearch?: boolean;
 }

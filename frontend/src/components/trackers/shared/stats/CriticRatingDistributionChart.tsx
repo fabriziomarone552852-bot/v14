@@ -1,4 +1,5 @@
 import React from 'react';
+import { EmptyState } from '@/components/shared/utils/EmptyState';
 
 export interface RatingDistributionItem {
   rating: number;
@@ -44,9 +45,11 @@ export const CriticRatingDistributionChart: React.FC<CriticRatingDistributionCha
       </div>
 
       {totalVotes === 0 ? (
-        <div className="flex-1 flex flex-col items-center justify-center text-center text-xs text-slate-400 p-6">
-          <span className="text-3xl mb-2">📊</span>
-          Nessuna valutazione registrata al momento.
+        <div className="flex-1 flex items-center justify-center p-6">
+          <EmptyState
+            message="Nessuna valutazione registrata al momento."
+            icon={<span className="text-3xl not-italic">📊</span>}
+          />
         </div>
       ) : (
         <div className="flex-1 min-h-0 flex items-end justify-center gap-1 sm:gap-2 pt-2">

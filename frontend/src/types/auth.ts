@@ -8,6 +8,12 @@ export interface TokenResponse {
   access_scope?: string;
 }
 
+export interface UserStreamingProvider {
+  provider_id: number;
+  provider_name: string;
+  logo_path?: string | null;
+}
+
 export interface UserResponse {
   id: number;
   username: string;
@@ -17,4 +23,5 @@ export interface UserResponse {
   profile_picture_url?: string | null;
   default_startup_page?: string | null;
   module_preferences?: UserModulePreferences | null;
+  streaming_providers?: UserStreamingProvider[] | null;
 }

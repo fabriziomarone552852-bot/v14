@@ -66,15 +66,35 @@ async def add_movie(
 async def search_movies(
     query: str = Query(..., min_length=1, description="Termine di ricerca per il film"),
     page: int = Query(1, ge=1, description="Numero di pagina"),
+    with_genres: Optional[str] = None,
+    without_genres: Optional[str] = None,
+    with_networks: Optional[str] = None,
+    with_watch_providers: Optional[str] = None,
+    first_air_date_year: Optional[str] = None,
+    primary_release_year: Optional[str] = None,
+    sort_by: Optional[str] = None,
+    db: Session = Depends(get_db),
     current_user: User = Depends(get_current_app_user),
 ):
-    """Cerca film su TMDB in italiano."""
-    return await service.search_tmdb_movies(query=query, page=page)
+    """Cerca film su TMDB in italiano con supporto per filtri incrociati."""
+    providers = with_watch_providers or with_networks
+    year = primary_release_year or first_air_date_year
+    return await service.search_tmdb_movies(
+        query=query,
+        page=page,
+        with_genres=with_genres,
+        without_genres=without_genres,
+        with_watch_providers=providers,
+        primary_release_year=year,
+        sort_by=sort_by,
+        db=db,
+    )
 
 
 @router.get("/discover", response_model=TMDBPaginatedMovieSearch)
 async def discover_movies(
     with_genres: Optional[str] = None,
+    without_genres: Optional[str] = None,
     with_networks: Optional[str] = None,
     with_watch_providers: Optional[str] = None,
     first_air_date_year: Optional[str] = None,
@@ -83,11 +103,12 @@ async def discover_movies(
     page: int = Query(1, ge=1),
     current_user: User = Depends(get_current_app_user),
 ):
-    """Esplora film con filtri per genere, provider streaming e anno."""
+    """Esplora film con filtri per genere (inclusione/esclusione), provider streaming e anno."""
     providers = with_watch_providers or with_networks
     year = primary_release_year or first_air_date_year
     return await service.discover_tmdb_movies(
         with_genres=with_genres,
+        without_genres=without_genres,
         with_watch_providers=providers,
         primary_release_year=year,
         sort_by=sort_by,
@@ -109,6 +130,15 @@ async def get_movie_providers(
 ):
     """Restituisce i provider streaming attivi in Italia per i film."""
     return await service.get_tmdb_movie_providers()
+
+
+@router.post("/sync-providers")
+async def sync_my_movie_providers(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_app_user),
+):
+    """Sincronizza in blocco i provider streaming IT mancanti o scaduti per il catalogo utente."""
+    return await service.sync_missing_user_movie_providers(db, current_user)
 
 
 # --- Prossime Uscite & Statistiche ---
@@ -340,7 +370,8 @@ def mark_movie_watched(
 @router.get("/{tmdb_id}/providers")
 async def get_movie_single_providers(
     tmdb_id: int,
+    db: Session = Depends(get_db),
     current_user: User = Depends(get_current_app_user),
 ):
     """Restituisce le piattaforme streaming TMDB in Italia per uno specifico film."""
-    return await service.fetch_tmdb_movie_providers(tmdb_id)
+    return await service.fetch_tmdb_movie_providers(tmdb_id, db=db)
