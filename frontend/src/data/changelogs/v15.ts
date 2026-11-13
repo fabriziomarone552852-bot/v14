@@ -8,7 +8,7 @@ export const CHANGELOG_V15: ChangelogItem[] = [
     date: 'Novembre 2026',
     title: 'Modulo Tracker Film Completo (Web & Mobile), Cinema & Orari in Sala (ComingSoon), Previsioni Meteo MET Norway (Finestra Dinamica & Adesivi), Saghe TMDB & Statistiche',
     isLatest: true,
-    published: false,
+    published: true,
     highlights: [
       'Finestra Meteo Dinamica in HomePage & Previsioni MET Norway: Sostituita la precedente card con una "finestra sul meteo" viva e animata a 60fps (WeatherAtmosphereCard) che riflette in tempo reale le condizioni correnti della località scelta (sereno giorno/notte, nuvole fluttuanti, foschia/nebbia con onde dense, pioggia a cascata, temporali con lampi, neve con fiocchi oscillanti), integrata con micro-servizio proxy MET Norway, adesivo desktop in alto a sinistra, adesivo mobile ergonomico in basso a destra con apertura a tocco prolungato (600ms) anti-scroll e feedback aptico, e card Impostazioni per GPS.',
       'Cinema & Orari in Sala (ComingSoon Mobile): Nuova sezione interattiva nella home mobile dei film con selezione tra 110 province italiane, elenco delle pellicole in sala con badge di stato ("In lista" / "Visto"), programmazione completa dei cinema con orari degli spettacoli, sale, indicazioni Google Maps e link acquisto biglietti a 0ms tramite caching in RAM sul backend.',
