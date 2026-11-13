@@ -9,6 +9,7 @@ Questo documento traccia in modo strutturato, prioritizzato e costantemente aggi
 ## 📊 Matrice di Stato Rapida (Attività Aperte & Future)
 
 | ID | Attività / Funzionalità | Ambito | Stato Backend | Stato Frontend | Priorità |
+| **INFRA-001** | Migrazione Definitiva Infrastruttura: QNAP → Proxmox (Cutover Notturno) | `infra` / deploy | 🟡 Staging Pronto | 🟡 Staging Pronto | 🟡 **Pianificato** |
 | **FEAT-004 (Libri)** | Sezione Media: Estensione a Libri (Google Books, Pagine lette, Stati lettura) | `media` / books | 🔴 Da Strutturare | 🔴 Da Implementare | 🔴 **Massima (Passo Fondamentale)** |
 | **TRACKERS-019** | Giudizio & Voto alle singole Stagioni delle Serie TV (Valutazione per Stagione) | `media` / trackers | 🔴 Da Strutturare | 🔴 Da Implementare | 🟡 **Media** |
 | **TRACKERS-025** | Ricerca & Filtro per Attori / Regista (Film & Serie TV) | `media` / trackers | 🔴 Da Strutturare | 🔴 Da Implementare | 🟡 **Media** |
@@ -31,6 +32,25 @@ Questo documento traccia in modo strutturato, prioritizzato e costantemente aggi
 - 🟢 **Completato / Supportato**: Già sviluppato, presente nel DB o API pronta.
 - 🟡 **In Corso / Parziale**: In fase di sviluppo o parzialmente integrato.
 - 🔴 **Da Implementare / Da Iniziare**: Attività da sviluppare ex-novo.
+
+---
+
+## 🏗️ 0. Infrastruttura & Migrazione Server
+
+### [INFRA-001] Migrazione Definitiva da NAS QNAP a Proxmox (Cutover Notturno)
+- **Stato Attuale**: 🟡 **Staging / Beta Testing Attivo su Proxmox**
+  - Host Proxmox: `192.168.11.19`
+  - LXC App Python / Docker: `192.168.11.14:8181`
+  - LXC PostgreSQL: `192.168.11.15:5432`
+  - LXC Tailscale: `192.168.11.16` (subnet routing `192.168.11.0/24`)
+- **Procedura Cutover Finale da Ricordare**:
+  1. Esecuzione di `build_all.ps1` sul PC Windows per compilare simultaneamente la Web App (`.tar`) e la Mobile App (`.apk`).
+  2. Caricamento del nuovo APK su Google Drive per consentire l'auto-aggiornamento agli utenti.
+  3. Trasferimento dei `.tar` aggiornati su Proxmox (`192.168.11.14`).
+  4. Sospensione servizio QNAP (`docker stop backend vxame14_frontend`).
+  5. Esecuzione di `cutover_sync_finale.sh` e `deploy_proxmox.sh` su Proxmox (allineamento delta DB + uploads).
+  6. Switch hostname su Tailscale (`smartagenda` -> `smartagenda-old`, `tailproxfg` -> `smartagenda`).
+  7. Dettagli e documentazione permanente in [`docs/MIGRAZIONE_PROXMOX.md`](file:///c:/Users/user/Documents/PYTHON/VxAme14/docs/MIGRAZIONE_PROXMOX.md).
 
 ---
 

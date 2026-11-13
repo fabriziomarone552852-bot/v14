@@ -3,11 +3,37 @@ import type { ChangelogItem } from './types';
 
 export const CHANGELOG_V15: ChangelogItem[] = [
   {
+    id: 'v15.3.0',
+    version: '15.3.0',
+    date: 'Novembre 2026',
+    title: 'Centro Messaggistica Broadcast & Avvisi di Sistema (Pop-up Istantaneo & Inbox), Scheda Admin Dedicata',
+    isLatest: true,
+    published: false,
+    highlights: [
+      'Messaggistica di Sistema Broadcast & Pop-up Istantaneo: Integrato un sistema centralizzato di allerta per avvisare gli utenti di interventi di manutenzione programmata (es. passaggio a nuovo server o riavvio NAS) tramite una finestra pop-up modale che compare all\'apertura o in tempo reale durante l\'uso dell\'app.',
+      'Nuova Scheda Riservata Admin "📢 Avvisi & Broadcast": Sezione dedicata nel pannello di amministrazione con composizione rapida, modelli predefiniti (Cambio Server, Manutenzione 20m, Riavvio Rapido), stato live "In trasmissione" e archivio storico.',
+      'Diffusione Multicanale (Pop-up + Inbox): Supporto per pop-up a tutto schermo con chiusura "Ho capito" e memorizzazione locale, abbinato all\'invio automatico di una notifica di sistema permanente (SYSTEM_ALERT) nel centro notifiche di tutti gli utenti.',
+    ],
+    features: [
+      'Scheda Amministrazione "Avvisi & Broadcast": Nuova tab in AdminPage con gestione dello stato live, pulsante di interruzione immediata ("Termina / Rimuovi Avviso") e storico comunicazioni.',
+      'Modelli di Avviso Rapidi: Preset precompilati con un click per i casi d\'uso più comuni (Passaggio Nuovo Server, Manutenzione 20 Minuti, Breve Riavvio 5 Minuti).',
+      'Pop-up Globale Intelligente (SystemBroadcastModal): Modale centrato responsive (Desktop & Mobile) con backdrop oscurato, chiusura da tasto Escape o tasto Indietro Android, livelli di gravità tematici (Info ℹ️, Allerta ⚠️, Critico 🛑) e polling leggero in background.',
+      'Badge Distintivo Notifiche di Sistema: Rendering dedicato nell\'Inbox per gli avvisi di tipo SYSTEM_ALERT con badge ambrato e marcatura automatica come letto.',
+    ],
+    improvements: [
+      'Heartbeat Polling a 15s a Basso Overhead: Chiamata GET ultraleggera via TanStack Query che notifica in pochi secondi gli utenti attualmente collegati.',
+      'Persistenza & Idempotenza Multi-Ambiente: Migrazione Alembic (g3b4c5d6e7f8) per la tabella `system_broadcasts` allineata con successo sia sui database di test e produzione NAS che sul nuovo server Proxmox.',
+    ],
+    fixes: [
+      'Risolto il disallineamento dello stamp di versione Alembic su test e produzione prima della nuova migrazione.',
+    ],
+  },
+  {
     id: 'v15.2.0',
     version: '15.2.0',
     date: 'Novembre 2026',
     title: 'Modulo Tracker Film Completo (Web & Mobile), Cinema & Orari in Sala (ComingSoon), Previsioni Meteo MET Norway (Finestra Dinamica & Adesivi), Saghe TMDB & Statistiche',
-    isLatest: true,
+    isLatest: false,
     published: true,
     highlights: [
       'Finestra Meteo Dinamica in HomePage & Previsioni MET Norway: Sostituita la precedente card con una "finestra sul meteo" viva e animata a 60fps (WeatherAtmosphereCard) che riflette in tempo reale le condizioni correnti della località scelta (sereno giorno/notte, nuvole fluttuanti, foschia/nebbia con onde dense, pioggia a cascata, temporali con lampi, neve con fiocchi oscillanti), integrata con micro-servizio proxy MET Norway, adesivo desktop in alto a sinistra, adesivo mobile ergonomico in basso a destra con apertura a tocco prolungato (600ms) anti-scroll e feedback aptico, e card Impostazioni per GPS.',

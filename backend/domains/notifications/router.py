@@ -39,6 +39,15 @@ def create_interaction(
     return service.create_interaction(db, current_user, payload)
 
 
+@router.get("/broadcast/active", response_model=Optional[schemas.SystemBroadcastResponse])
+def get_active_system_broadcast(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Restituisce l'avviso di sistema attualmente attivo per tutti gli utenti."""
+    return service.get_active_broadcast(db)
+
+
 @router.get("/{interaction_id}", response_model=schemas.InteractionResponse)
 def read_interaction(
     interaction_id: int,

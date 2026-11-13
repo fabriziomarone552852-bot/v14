@@ -5,7 +5,7 @@ from datetime import datetime, timezone
 from sqlalchemy.orm import Session
 from sqlalchemy import or_
 
-from backend.domains.notifications.models import Interaction
+from backend.domains.notifications.models import Interaction, SystemBroadcast
 
 
 def list_for_user(
@@ -68,3 +68,39 @@ def delete_expired_ephemeral(db: Session, ttl_hours: int = 24) -> int:
     # (Oppure fetch & delete)
     # Questa funzione verrebbe chiamata da un cron job
     pass
+
+
+def get_active_broadcast(db: Session) -> Optional[SystemBroadcast]:
+    """Restituisce l'avviso di sistema attivo e non ancora scaduto."""
+    now_utc = datetime.now(timezone.utc)
+    return (
+        db.query(SystemBroadcast)
+        .filter(
+            SystemBroadcast.is_active == True,
+            or_(SystemBroadcast.expires_at.is_(None), SystemBroadcast.expires_at > now_utc),
+        )
+        .order_by(SystemBroadcast.created_at.desc())
+        .first()
+    )
+
+
+def list_broadcasts(db: Session, limit: int = 50) -> List[SystemBroadcast]:
+    """Restituisce lo storico degli avvisi broadcast."""
+    return (
+        db.query(SystemBroadcast)
+        .order_by(SystemBroadcast.created_at.desc())
+        .limit(limit)
+        .all()
+    )
+
+
+def get_broadcast(db: Session, broadcast_id: int) -> Optional[SystemBroadcast]:
+    return db.query(SystemBroadcast).filter(SystemBroadcast.id == broadcast_id).first()
+
+
+def add_broadcast(db: Session, obj: SystemBroadcast) -> SystemBroadcast:
+    db.add(obj)
+    db.commit()
+    db.refresh(obj)
+    return obj
+

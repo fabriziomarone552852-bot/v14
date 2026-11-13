@@ -40,3 +40,30 @@ class InteractionResponse(ORMBaseModel):
     series_tmdb_id: Optional[int] = None
     episode_id: Optional[int] = None
     movie_tmdb_id: Optional[int] = None
+
+
+class SystemBroadcastCreate(StrictBaseModel):
+    """Request model for creating a system-wide broadcast announcement."""
+
+    title: str = Field(..., min_length=2, max_length=200)
+    message: str = Field(..., min_length=2)
+    level: str = Field("WARNING", description="INFO, WARNING, CRITICAL")
+    show_popup: bool = True
+    send_inbox: bool = True
+    expires_at: Optional[datetime] = None
+
+
+class SystemBroadcastResponse(ORMBaseModel):
+    """Response model for system broadcast announcements."""
+
+    id: int
+    title: str
+    message: str
+    level: str
+    show_popup: bool
+    is_active: bool
+    created_at: datetime
+    expires_at: Optional[datetime] = None
+    created_by_id: Optional[int] = None
+    created_by_name: Optional[str] = None
+

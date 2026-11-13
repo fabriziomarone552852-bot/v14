@@ -17,6 +17,7 @@ import { AdminTasksDataGridSection } from '@/components/admin/tasks/AdminTasksDa
 import { AdminConfigSection } from '@/components/admin/AdminConfigSection';
 import { AdminCodesSection } from '@/components/admin/AdminCodesSection';
 import { AdminMaintenanceSection } from '@/components/admin/AdminMaintenanceSection';
+import { AdminBroadcastSection } from '@/components/admin/broadcast/AdminBroadcastSection';
 import { AdminSystemHealthSection } from '@/components/admin/AdminSystemHealthSection';
 import { AdminFeedbackSection } from '@/components/admin/AdminFeedbackSection';
 import { extractErrorMessage } from '@/utils/errorUtils';
@@ -28,6 +29,7 @@ type AdminTab =
   | 'tasks'
   | 'config'
   | 'codes'
+  | 'broadcast'
   | 'maintenance'
   | 'health'
   | 'feedback';
@@ -159,6 +161,7 @@ const AdminPage: React.FC = () => {
           { id: 'tasks', label: 'Attività', icon: '✅', count: undefined, color: 'amber' },
           { id: 'config', label: 'Parametri', icon: '⚙️', count: configs.length, color: 'sky' },
           { id: 'codes', label: 'Vocabolari', icon: '🏷️', count: codes.length, color: 'sky' },
+          { id: 'broadcast', label: 'Avvisi & Broadcast', icon: '📢', count: undefined, color: 'amber' },
           { id: 'maintenance', label: 'Manutenzione DB', icon: '🛠️', count: undefined, color: 'sky' },
           { id: 'health', label: 'Diagnostica', icon: '🔍', count: undefined, color: 'sky' },
           { id: 'feedback', label: 'Feedback', icon: '📨', count: undefined, color: 'sky' },
@@ -213,6 +216,7 @@ const AdminPage: React.FC = () => {
           {activeTab === 'tasks' && <AdminTasksDataGridSection />}
           {activeTab === 'config' && <AdminConfigSection configs={configs} onRefresh={loadData} />}
           {activeTab === 'codes' && <AdminCodesSection codes={codes} onRefresh={loadData} />}
+          {activeTab === 'broadcast' && <AdminBroadcastSection />}
           {activeTab === 'maintenance' && <AdminMaintenanceSection users={users} onRefresh={loadData} />}
           {activeTab === 'health' && <AdminSystemHealthSection />}
           {activeTab === 'feedback' && <AdminFeedbackSection />}

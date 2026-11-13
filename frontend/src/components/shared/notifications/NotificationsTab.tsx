@@ -92,11 +92,17 @@ export const NotificationsTab: React.FC<Props> = ({
                              notif.content}
                           </p>
                           <div className="flex justify-between items-center mt-2">
-                            <span className="text-[10px] uppercase font-bold text-gray-400">
+                            <span className={`text-[10px] uppercase font-bold ${
+                              notif.interaction_type === 'SYSTEM_ALERT'
+                                ? 'text-amber-600 bg-amber-50 px-2 py-0.5 rounded-md border border-amber-200'
+                                : 'text-gray-400'
+                            }`}>
                               {notif.interaction_type === 'SHOPPING_GROUP_INVITE' 
                                 ? 'Invito Gruppo Spesa' 
                                 : notif.interaction_type === 'SHOPPING_GROUP_NEW_LIST'
                                 ? 'Nuova Lista Spesa'
+                                : notif.interaction_type === 'SYSTEM_ALERT'
+                                ? '📢 Avviso di Sistema'
                                 : notif.interaction_type.replace(/_/g, ' ')}
                             </span>
                             <span className="text-[10px] text-gray-400">
