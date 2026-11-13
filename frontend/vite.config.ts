@@ -60,6 +60,7 @@ export default defineConfig({
       '/interactions': apiProxyConfig,
       '/trackers': apiProxyConfig,
       '/feedback': apiProxyConfig,
+      '/weather': apiProxyConfig,
       '/api': apiProxyConfig,
     },
   },

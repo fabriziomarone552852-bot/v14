@@ -82,11 +82,13 @@ class ShoppingProduct(Base):
         "ShoppingListItem",
         back_populates="product",
         lazy="selectin",
+        passive_deletes="all",
     )
     inventory_batches: Mapped[List["InventoryBatch"]] = relationship(
         "InventoryBatch",
         back_populates="product",
         lazy="selectin",
+        passive_deletes="all",
     )
 
     def __repr__(self) -> str:

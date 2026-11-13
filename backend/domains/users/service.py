@@ -67,8 +67,10 @@ def update_settings(
     if "default_startup_page" in data:
         current_user.default_startup_page = data["default_startup_page"]
 
-    if "module_preferences" in data:
-        current_user.module_preferences = data["module_preferences"]
+    if "module_preferences" in data and data["module_preferences"] is not None:
+        current_prefs = dict(current_user.module_preferences or {})
+        current_prefs.update(data["module_preferences"])
+        current_user.module_preferences = current_prefs
 
     if "streaming_providers" in data:
         current_user.streaming_providers = data["streaming_providers"]

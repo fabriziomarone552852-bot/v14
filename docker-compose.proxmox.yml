@@ -1,0 +1,62 @@
+# ==========================================================================
+#  Vita (VxAme14) - Docker Compose per Nuovo Server Proxmox
+#  Host:        192.168.11.14 (LXC phyton-apps)
+#  PostgreSQL:  LXC PostGreSqlFG - 192.168.11.15:5432 (esterno, non gestito qui)
+#  Tailscale:   LXC dedicato - 192.168.11.16 (subnet routing 192.168.11.0/24)
+#  MagicDNS:    tailproxfg.tailf3b58c.ts.net  (-> smartagenda.tailf3b58c.ts.net al cutover)
+#
+#  NOTA: PostgreSQL NON è incluso in questo compose: è un LXC dedicato
+#        raggiunto direttamente tramite IP di rete locale.
+# ==========================================================================
+
+services:
+
+  # ------------------------------------------------------------------------
+  #  BACKEND FastAPI
+  # ------------------------------------------------------------------------
+  backend:
+    image: vxame14_backend:latest
+    container_name: vita_backend
+    restart: unless-stopped
+    environment:
+      - APP_ENV=prod
+      # PostgreSQL nel LXC dedicato, raggiunto tramite IP LAN (con encoding UTF8 esplicito)
+      - DATABASE_URL=postgresql+psycopg://PostGre:Password-Robusta@192.168.11.15:5432/family-smart?client_encoding=utf8
+      - SECRET_KEY=DB_POOL_RECYCLE=1800DB_POOL_TIMEOUT=30DEFAULT_MAX_SUBTASK_DEPTH=3
+      - ALGORITHM=HS256
+      - ACCESS_TOKEN_EXPIRE_MINUTES=60
+      - REFRESH_TOKEN_EXPIRE_DAYS=7
+      - GOOGLE_CLIENT_ID=948133104741-hsv9jk7ujtsavhq315m6j0oklcabu995.apps.googleusercontent.com
+      - GOOGLE_CLIENT_SECRET=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
+      # Al cutover finale, aggiornare con il nuovo MagicDNS smartagenda.tailf3b58c.ts.net
+      - GOOGLE_REDIRECT_URI=https://tailproxfg.tailf3b58c.ts.net/api/v1/google-calendar/callback
+      - TMDB_API_KEY=843439e230288335ea2d15119f8a6c27
+      - TMDB_READ_ACCESS_TOKEN=eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiI4NDM0MzllMjMwMjg4MzM1ZWEyZDE1MTE5ZjhhNmMyNyIsIm5iZiI6MTc4OTY2ODE3OS4xMTksInN1YiI6IjZhYWMyYjUzNDFmNjMwYmFlM2I0NDE1OSIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.UqqP0lMzZDRLgUOld7QAgjZJhfqg0FPECXnsIUG34xA
+    volumes:
+      # Volume persistente per le immagini e allegati caricati
+      - ./uploads:/app/uploads
+    ports:
+      - "8000:8000"
+    networks:
+      - vita_net
+    extra_hosts:
+      - "PostGreSqlFG:192.168.11.15"
+
+  # ------------------------------------------------------------------------
+  #  FRONTEND React (Nginx)
+  # ------------------------------------------------------------------------
+  frontend:
+    image: vxame14_frontend:latest
+    container_name: vita_frontend
+    restart: unless-stopped
+    ports:
+      - "8181:80"
+    depends_on:
+      - backend
+    networks:
+      - vita_net
+
+networks:
+  vita_net:
+    name: vita_net
+    driver: bridge

@@ -1,8 +1,17 @@
 // src/types/settings.ts
 
 import type { UserStreamingProvider } from './auth';
+import type { WeatherLocationPreference } from '@/types/weather';
 
 export type SettingsTabId = 'profile' | 'preferences' | 'tasks' | 'integrations' | 'memory' | 'danger';
+
+export interface UserModulePreferences {
+  agenda?: boolean;
+  shopping?: boolean;
+  trackers?: boolean;
+  weather?: WeatherLocationPreference;
+  [key: string]: unknown;
+}
 
 export interface GoogleCalendarStatus {
   is_connected: boolean;
@@ -22,7 +31,7 @@ export interface UserServerSettings {
   must_change_password: boolean;
   profile_picture_url: string | null;
   default_startup_page: string | null;
-  module_preferences: Record<string, boolean> | null;
+  module_preferences: UserModulePreferences | null;
   streaming_providers?: UserStreamingProvider[] | null;
 }
 
@@ -41,7 +50,7 @@ export interface UserSettingsUpdatePayload {
   confirm_new_password?: string;
   profile_picture_url?: string | null;
   default_startup_page?: string | null;
-  module_preferences?: Record<string, boolean> | null;
+  module_preferences?: UserModulePreferences | null;
   streaming_providers?: UserStreamingProvider[] | null;
 }
 

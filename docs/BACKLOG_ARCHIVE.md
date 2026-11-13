@@ -8,8 +8,8 @@ Questo file contiene lo storico completo e strutturato di tutte le funzionalità
 
 | ID | Attività / Funzionalità | Ambito | Stato Backend | Stato Frontend | Data Completamento |
 | :--- | :--- | :---: | :---: | :---: | :---: |
-| **TRACKERS-035** | Estensione Sincronizzazione Orari Cinema & Sale su Webpage Desktop (`MoviePage` & `MovieDetailModal`) | `media` / cinema | 🟢 Supportato | 🟢 Completato | Novembre 2026 |
-| **TRACKERS-036** | Estensione Pulsante & Modale Piattaforme Utente ("Le mie") nel Catalogo Desktop (Film & Serie TV) | `trackers` / UI | 🟢 Completato | 🟢 Completato | Novembre 2026 |
+| **WEATHER-001** | Integrazione Previsioni Meteo MET Norway (Proxy Backend, Finestra Dinamica HomePage, Adesivi Desktop & Mobile con Long Press 600ms, Impostazioni GPS/Città) | `weather` / fullstack | 🟢 Completato | 🟢 Completato | Novembre 2026 |
+| **SHOPPING-021** | Risoluzione Errore 500 Unione Prodotti Spesa (Admin Shopping) & Gestione `passive_deletes` Foreign Key | `shopping` / admin | 🟢 Completato | 🟢 Supportato | Novembre 2026 |
 | **TRACKERS-044** | Standardizzazione Suite Liste Personali Mobile (`shared/lists/`) Filtrata per Tracker & Slider Header a Doppio Livello | `trackers` / mobile | 🟢 Supportato | 🟢 Completato | Novembre 2026 |
 | **TRACKERS-043** | Rifinitura Scheda Dettaglio Film Mobile, Catalogo & Standardizzazione Recensioni (Film, Serie TV & Episodi) | `trackers` / mobile | 🟢 Supportato | 🟢 Completato | Novembre 2026 |
 | **TRACKERS-042** | Riorganizzazione Architetturale Simmetrica Trackers (`shared/`, `series/`, `movies/`), Unificazione Nomenclatura `Tracker*`/`MobileTracker*` & Pulizia Wrapper/File Morti | `trackers` / arch | 🟢 Supportato | 🟢 Completato | Novembre 2026 |
@@ -18,6 +18,8 @@ Questo file contiene lo storico completo e strutturato di tutte le funzionalità
 | **TRACKERS-039** | Modale Piattaforma Universale (Serie TV & Film), Salvataggio DB a 0ms, Ordinamento Alfabetico A-Z & Layout Recensione Episodio Mobile | `trackers` / fullstack | 🟢 Completato | 🟢 Completato | Novembre 2026 |
 | **TRACKERS-038** | Motore Ricerca Incrociata Avanzata, Generi a 3 Stati (+/-), Multi-Selezione Anni, Reset Rapido Desktop ("X") & Scrollbar a Scomparsa | `trackers` / fullstack | 🟢 Completato | 🟢 Completato | Novembre 2026 |
 | **TRACKERS-037** | Piattaforme Streaming Utente, Fallback Home Film Mobile, Badge Contatore Cataloghi & Sync Provider Serie TV/Film | `trackers` / fullstack | 🟢 Completato | 🟢 Completato | Ottobre 2026 |
+| **TRACKERS-036** | Estensione Pulsante & Modale Piattaforme Utente ("Le mie") nel Catalogo Desktop (Film & Serie TV) | `trackers` / UI | 🟢 Completato | 🟢 Completato | Novembre 2026 |
+| **TRACKERS-035** | Estensione Sincronizzazione Orari Cinema & Sale su Webpage Desktop (`MoviePage` & `MovieDetailModal`) | `media` / cinema | 🟢 Supportato | 🟢 Completato | Novembre 2026 |
 | **TRACKERS-034** | Modulo Cinema & Orari in Sala (ComingSoon), Vetrina "Ora al Cinema", Modale Dettaglio Cinema Full-Screen & Citazioni Centrate Mobile | `trackers` / cinema | 🟢 Supportato | 🟢 Completato | Ottobre 2026 |
 | **TRACKERS-033** | Standardizzazione Mobile Film a 2 Pagine, Suite Condivisa Trackers (`shared/`), Ricerca Schermo Intero & Aggiunta Ottimistica a 0ms | `trackers` / mobile | 🟢 Supportato | 🟢 Completato | Ottobre 2026 |
 | **TRACKERS-032** | Standardizzazione Catalogo Trackers (`TrackerLibraryShell` & `TMDBMediaCard`) per Serie TV, Film e Futuri Media | `trackers` / UI | 🟢 Supportato | 🟢 Completato | Ottobre 2026 |
@@ -96,6 +98,37 @@ Questo file contiene lo storico completo e strutturato di tutte le funzionalità
 | **TECH-005** | Risoluzione 502 Bad Gateway NAS & Automated Docker Smoke Test | `build` / docker | 🟢 Completato | 🟢 Completato | Ottobre 2026 |
 | **TECH-006** | Allineamento Migrazioni Alembic DB Produzione (NAS) & Fix Login 500 | `build` / db | 🟢 Completato | 🟢 Completato | Ottobre 2026 |
 | **TECH-007** | Configurazione TMDB Produzione NAS & Fix 500 Ricerca Serie | `build` / NAS | 🟢 Completato | 🟢 Completato | Ottobre 2026 |
+
+---
+
+## 🌤️ 0. Meteo & Servizi Ambientali
+
+### [WEATHER-001] Integrazione Previsioni Meteo MET Norway (Proxy Backend, Finestra Dinamica HomePage, Adesivi Desktop & Mobile con Long Press 600ms, Impostazioni GPS/Città) (🟢 Completato)
+
+#### 📋 Descrizione & Obiettivo
+Integrazione completa del servizio di previsioni meteorologiche aperto e gratuito di MET Norway (`api.met.no`) e geocoding OpenStreetMap Nominatim per la ricerca geografica, con visualizzazione multipiattaforma (Desktop e Mobile):
+- **Micro-Servizio Backend Proxy (`backend/domains/weather/`)**:
+  - Piena aderenza ai Terms of Service di MET Norway: User-Agent identificativo obbligatorio (`VitaAgenda/15.2`), arrotondamento coordinate a 3 decimali per massimizzare il riuso della cache e meccanismo in-memory a 0ms con TTL di 30 minuti.
+  - Endpoint pubblico `GET /weather/forecast` accessibile senza token (utilizzabile anche nella schermata di login) e `GET /weather/search` per la ricerca località via OpenStreetMap.
+  - Persistenza della posizione scelta per utente nella colonna JSON `users.module_preferences.weather` con merge conservativo per non sovrascrivere altre preferenze, e default automatico a `Foggia, Puglia, Italia` (`lat: 41.4620, lon: 15.5433`) per utenti non configurati o offline.
+- **Finestra Meteo Atmosferica in HomePage (`WeatherAtmosphereCard.tsx`)**:
+  - Sostituita l'illustrazione statica in basso a destra con una finestra scenica dinamica a 60fps perfettamente incorniciata nel layout originale (`xl:col-span-7`, altezza bloccata `155px`, zero layout shift).
+  - 8 scenari meteorologici realistici animati in CSS/SVG:
+    1. *Sereno Giorno*: sole luminoso pulsante con raggi rotanti morbidi e riflessi caldi.
+    2. *Sereno Notte*: cielo blu notte profondo, mezza luna argentata e stelle scintillanti (`twinkle`).
+    3. *Parzialmente Nuvoloso*: nubi soffici a doppio strato che scivolano in parallasse.
+    4. *Coperto*: cielo grigio perla/ardesia con nuvole dense stratificate.
+    5. *Nebbia / Foschia*: atmosfera ovattata con banchi di nebbia densi e sfumati a strati orizzontali fluttuanti con `backdrop-blur`.
+    6. *Pioggia / Rovesci*: cielo piovoso con gocce animate a cascata diagonale.
+    7. *Temporale*: pioggia battente veloce con lampi intermittenti e fulmine stilizzato a bagliori.
+    8. *Neve*: fiocchi bianchi candidi che cadono lenti con oscillazione a zigzag.
+  - Badge sovraimposto con località, temperatura e meteo attuale, e fallback automatico all'Oasi Naturale originaria in caso di disattivazione.
+- **Adesivi Fluttuanti Multipiattaforma (`WeatherBadge.tsx`)**:
+  - **Desktop (`AppShellLayout.tsx`)**: Adesivo in alto a sinistra (`top-3 left-4 z-30`) in stile vetro satinato, con apertura al click di modale dettagli orario/giornaliero ad alto livello (`createPortal` su `document.body` a `z-[10000]`), senza toccare il layout di nessuna pagina.
+  - **Mobile (`MobileAppShell.tsx`)**: Adesivo ergonomico in basso a destra (`bottom-4 right-4 z-40`), compatto a riga singola, con apertura esclusiva a **Tocco Prolungato (Long Press 600ms)**: totalmente immune allo scorrimento degli elenchi (cancellazione immediata per movimenti >8px), con animazione di compressione a pressione (`scale-90` con ring blu) e micro-vibrazione aptica (`navigator.vibrate(35)`). Aggiunto `pb-20` al contenitore scroll per garantire visibilità completa agli ultimi elementi.
+  - **Login (`LoginPage.tsx`)**: Ripristinata l'interfaccia di accesso minimale e focalizzata originale senza il widget meteo.
+- **Impostazioni & Rilevamento GPS (`WeatherSettingsCard.tsx`)**:
+  - Sezione dedicata in Impostazioni > Integrazioni con toggle attivazione, rilevamento posizione tramite geolocalizzazione del browser e campo di ricerca città con autocompletamento.
 
 ---
 
@@ -308,7 +341,7 @@ Integrazione completa del monitoraggio delle proiezioni cinematografiche in Ital
   - Tutti gli orari del cinema unificati e ordinati in sequenza crescente come pillole blu.
   - Empty state pulito con icona pellicola ambra e messaggio essenziale *"Nessuno spettacolo programmato per oggi"*.
 - **Citazioni nel Modale Mobile (`MobileMovieReviewTab`)**:
-  - Tasto di aggiunta citazione standardizzato con il componente tratteggiato `<AddButton compact label="Aggiungi" />`.
+  - Tasto di aggiunta citazione standardizzato con il componente tratteggiato `<AddButton compact label="Aggiungi"/>`.
   - Nuova citazione / Modifica aperta in una finestra modale centrata a tutto schermo con backdrop oscurato (`createPortal`), textarea dedicata, pulsante Annulla con sfondo rosso e testo bianco conforme allo stile del modale webpage desktop, e supporto tasto fisico Indietro Android (`useBackHandler`).
 
 ---
@@ -494,292 +527,26 @@ Standardizzazione visiva e architetturale tra le sezioni Serie TV e Film, con in
 - **Stato Film "Ottenuto" (`obtained_at`)**:
   - Colonna timestamp su `user_movie_tracking` nel DB gestita in modo idempotente su test locale e produzione NAS via migrazione Alembic `f2a3b4c5d6e7`.
   - Salvataggio dello stato ottenuto senza generare record di diario o recensioni vuote indesiderate.
-  - Filtro e ordinamento rapido per disponibilità/ottenimento nel catalogo e nel modale filtri.
+  - Filtro e ordinamento rapido per disponibilità/ottenimento nel catalogo e modale filtri.
 - **Calendario Prossime Uscite Persistente (`UpcomingMovieCalendarWidget.tsx`)**:
   - Griglia mensile con navigazione temporale `<` `>` sempre attiva e consultabile anche a calendario vuoto.
 
 ---
 
-### [TRACKERS-020] Timeline Serie TV Senza Uscite Future: Avviso in Cima, Ordine Inverso Passato & Modularità (🟢 Completato)
-
-#### 📋 Descrizione & Obiettivo
-Risolto il comportamento dello scorrimento e della visualizzazione nella pagina Prossime Uscite su smartphone quando per le serie seguite non sono presenti episodi futuri:
-- **Banner Informativo in Cima**:
-  - Quando non ci sono puntate annunciate in programma, in cima alla lista compare un riquadro dedicato (*"Nessun'altra uscita futura annunciata per ora."* con sottotitolo esplicativo), eliminando qualsiasi scorrimento automatico verso il fondo.
-- **Ordinamento Cronologico Decrescente per lo Storico**:
-  - Subito sotto il banner viene mostrato l'ultimo episodio uscito (es. S2E8 di *Daredevil: Rinascita*); scorrendo verso il basso l'utente esplora comodamente a ritroso le puntate precedenti (S2E7, S2E6...), con caricamento progressivo degli episodi più remoti e azzeramento dello spazio bianco inferiore artificiale.
-- **Tasto Torna in Cima**:
-  - Quando l'utente scorre in basso nel passato, il tasto flottante permette con un tocco di risalire in cima.
-- **Refactoring Architetturale Strict**:
-  - Estratta tutta la gestione dello stato e dello scroll in un custom hook dedicato [`useMobileTVEpisodesTimeline.ts`](file:///c:/Users/Fabrizio/Desktop/app/smart/v14/frontend/src/mobile/hooks/useMobileTVEpisodesTimeline.ts), riducendo il componente JSX [`MobileTVEpisodesTimeline.tsx`](file:///c:/Users/Fabrizio/Desktop/app/smart/v14/frontend/src/mobile/components/trackers/MobileTVEpisodesTimeline.tsx) da oltre 500 a sole ~150 righe snelle e leggibili.
-
----
-
-### [TRACKERS-018] Controllo Esecuzione Ricerca TMDB Mobile (Bozza Locale `draftFilters`, Avvio Esplicito su Invio o Tasto) (🟢 Completato)
-
-#### 📋 Descrizione & Obiettivo
-Nella schermata di ricerca approfondita mobile (`MobileTVSeriesSearchModal.tsx`), la modifica delle opzioni di filtro (come piattaforma/network, genere, stato o anno) innescava prematuramente la query di ricerca TMDB e la commutazione istantanea alla vista risultati (`viewMode = 'results'`), impedendo all'utente di selezionare più criteri contemporaneamente in serenità:
-- **Bozza Locale Filtri (`draftFilters`)**:
-  - Tutte le selezioni di piattaforma, categoria, anno e ordinamento nel modale rimangono isolate in uno stato locale senza ricaricare la pagina né sollecitare inutilmente le API remote prima dell'invio.
-- **Avvio Esplicito della Ricerca**:
-  - La ricerca globale su TMDB (o all'interno di una lista) si avvia esclusivamente alla pressione del tasto **Invio** sulla tastiera o al tap sul pulsante fisso inferiore **"Cerca su TMDB"**.
-- **Navigazione & Modifica Veloce**:
-  - Dalla schermata risultati, il tap sulla barra di ricerca o la pressione del tasto Indietro/gesture hardware consente di tornare istantaneamente alla vista filtri mantenendo memorizzate le selezioni precedenti.
-
----
-
-### [TRACKERS-017] Icone Freccia Ripristino nei Modali di Ricerca Mobile (Catalogo & Ricerca Approfondita, `RotateCcw`) (🟢 Completato)
-
-#### 📋 Descrizione & Obiettivo
-Unificazione visiva ed ergonomica dei controlli di azzeramento filtri e ricerca nella versione mobile:
-- **Sostituzione Testo "Azzera" e Crocette**:
-  - Nel modale di ricerca catalogo personale (`MobileSeriesCatalogSearchModal.tsx`) e nel modale di ricerca approfondita (`MobileTVSeriesSearchModal.tsx`), il tasto testuale "Azzera" e la "X" generica sono stati sostituiti con l'icona della freccia tonda `RotateCcw` di `lucide-react`.
-  - Stile e dimensioni allineati al componente del modale desktop ([`MediaFilterModal.tsx`](file:///c:/Users/Fabrizio/Desktop/app/smart/v14/frontend/src/components/trackers/MediaFilterModal.tsx)), con evidenziazione attiva rossa/accento al tocco.
-- **Pulizia Rapida Testo**:
-  - Aggiunto un pulsante compatto e discreto interno al campo di testo della barra di ricerca per cancellare velocemente la parola chiave digitata senza cancellare gli altri filtri impostati.
-
----
-
-### [TRACKERS-016] Fix Ancoraggio Diario Mobile Serie TV (`min-h-full` Sezioni Inferiori & Stabilizzazione Asincrona Scroll) (🟢 Completato)
-
-#### 📋 Descrizione & Obiettivo
-Risoluzione del bug di posizionamento verticale della vista centrale "Diario" su smartphone Android reali:
-- **Causa Tecnica Identificata**:
-  - Su dispositivi con viewport verticale lungo (850–950px), in presenza di pochi elementi sotto l'ancora (es. solo 1-2 puntate da continuare), l'altezza complessiva scrollabile era inferiore all'offset dell'ancora (`scrollHeight - clientHeight < offsetTop`). Il container si bloccava a fondo corsa, lasciando l'ancora in basso sul footer e mostrando a schermo per l'80% lo storico del diario sopra.
-- **Risoluzione Strutturale**:
-  - Assegnata l'altezza minima `min-h-full` all'intero wrapper che include *"I prossimi da guardare"*, *"Da riprendere"* e *"Nuove serie"*, assicurando che da questo punto in giù l'altezza sia pari ad almeno il 100% del viewport visibile. L'ancora può così raggiungere in ogni circostanza la coordinata iniziale (`scrollTop = offsetTop`), collocandosi **perfettamente a filo dell'header**.
-  - Stabilizzazione con `requestAnimationFrame` e timeout asincroni per garantire l'ancoraggio anche in presenza di ritardi di rendering dei font, immagini o WebView di Android.
-  - Intercettazione del tocco utente (`onTouchStart`/`onWheel`) per cedere istantaneamente il controllo manuale dello scorrimento.
-
----
-
-### [TRACKERS-015] Visualizzazione Media Voto Personale per Singolo Episodio in Stelle (Serie TV Web Desktop) (🟢 Completato)
-
-#### 📋 Descrizione & Obiettivo
-Nella vista di dettaglio della serie (`SeriesDetailModal`) su Web/Desktop, all'interno della scheda "Stagioni ed Episodi" (`SeasonsTab.tsx`), è stata introdotta la visualizzazione grafica in stelle (`StarRating`) della media dei voti personali dell'utente per ciascun singolo episodio valutato:
-- **Posizionamento & Layout Coordinato**:
-  - Le stelle sono mostrate sulla destra di ciascun episodio prima dell'icona a freccia `(>)`, esattamente nella stessa posizione orizzontale in cui viene mostrata la media dei voti della stagione nella testata.
-  - La freccia di destra è racchiusa in un contenitore a larghezza fissa (`w-5 flex items-center justify-center`), pareggiando con precisione al pixel i 20px della freccia della stagione e garantendo un allineamento visivo perfetto.
-- **Calcolo della Media Personale & Arrotondamento**:
-  - Calcolato tramite l'helper centralizzato `getEpisodePersonalRating` in `ratingUtils.ts` partendo dai log personali dell'episodio (`ep.logs` con `rating > 0`), convertendo la scala 1-10 in 0.5-5.0 stelle e arrotondando a mezze stelle.
-  - In presenza di visioni multiple (rewatch) con voti diversi, viene calcolata la media complessiva delle valutazioni personali.
-- **Tooltip Informativo**: Hover con tooltip contestuale che indica chiaramente il voto (es. `"Voto personale: 4.5"` per un voto singolo, oppure `"Media voto personale: 4.5 (2 valutazioni)"` per episodi rivisti e valutati più volte).
-- **Refactoring & DRY**:
-  - Centralizzazione della logica di calcolo dei rating degli episodi in `frontend/src/utils/ratingUtils.ts`, condivisa sia dal modulo desktop che da quello mobile (`useMobileSeriesSeasonsLogic.ts`).
-  - Estrazione del componente `RewatchControls` all'esterno del corpo del componente per prevenire allocazioni inutili a ogni render.
-
----
-
-### [TRACKERS-014] Sincronizzazione Bidirezionale Serie TV con Bingers (Import/Export CSV/ZIP, Multi-Recensioni & Calibrazione Scala Voti) (🟢 Completato)
-
-#### 📋 Descrizione & Obiettivo
-Implementazione del sistema di sincronizzazione bidirezionale completa tra **Vita** e **Bingers** (applicazione di tracking serie TV), integrato nella sezione **Impostazioni ➔ Sincronizzazione** (`IntegrationsSection.tsx` su Desktop e `MobileSyncSettingsSection.tsx` su Mobile) con il medesimo design system e feedback visivo di Google Calendar:
-- **Importazione Flessibile (File Multipli & ZIP)**:
-  - Supporta l'upload drag & drop o tramite selettore di singoli file CSV (`library.csv`, `watches.csv`, `ratings.csv`, `lists.csv`) o direttamente dell'archivio `.zip` esportato da Bingers.
-  - Sincronizzazione automatica da TMDB: per le serie presenti nel file ma non ancora censite nel catalogo locale di Vita, il backend effettua il fetch asincrono automatico da TMDB popolando serie, stagioni ed episodi.
-  - Mappatura completa dello stato serie (`watching`, `to_watch`, `dropped`, `completed`), conservazione di preferiti (`favorite: yes/no`), e preservazione accurata della data originale di aggiunta (`added_at`) e completamento.
-  - Creazione e popolamento automatico delle liste tematiche personalizzate presenti in `lists.csv`.
-- **Supporto Multi-Recensione & Rewatch**:
-  - Se un episodio o una serie ha già una recensione o visione registrata in Vita, l'importazione crea una seconda recensione/visione separata nel diario dell'episodio e nelle statistiche rewatch senza sovrascrivere o scartare dati preesistenti.
-  - Piena idempotenza: successivi re-import dello stesso file riconoscono la recensione già acquisita ed evitano duplicati.
-- **Calibrazione Trasparente Scala Voti (1-5 vs 1-10)**:
-  - Vita archivia le valutazioni nel DB su scala 1-10 (ogni punto = mezza stella, per cui `10 = 5.0 stelle`), mentre Bingers utilizza la scala 1-5.
-  - In fase di import, i voti vengono moltiplicati per 2 (`rating_val * 2`), garantendo che 5 stelle piene su Bingers vengano mostrate come 5 stelle piene anche nel frontend di Vita.
-  - In fase di export, il valore viene diviso per 2 (`rating / 2`), generando CSV conformi allo standard di Bingers.
-- **Esportazione a 1-Click**: Generazione immediata di un archivio compresso `.zip` contenente i 4 file standard CSV con download diretto.
-- **Frontend & Mobile UI**:
-  - Hook unificato `useBingersSync.ts` con gestione file, stato di caricamento e toast di reportistica con conteggio serie, episodi, voti e liste importate.
-  - Componenti `BingersSyncCard.tsx` (Desktop) e `MobileBingersSyncCard.tsx` (Mobile) integrati perfettamente nelle impostazioni.
-
----
-
-### [NOTIF-001] Notifiche su Mobile: Entry Point, Bottom Sheet, Navigazione Diretta & Loading Overlay (🟢 Completato)
-
-#### 📋 Descrizione & Obiettivo
-Integrazione completa e nativa dell'inbox notifiche, richieste di amicizia e messaggi effimeri nell'applicazione mobile smartphone:
-- **Entry Point & Indicatori Visivi**:
-  - Pallino rosso con animazione pulsante (`animate-ping`) sull'icona a menu hamburger dell'header mobile (`MobileHeader.tsx`) in presenza di notifiche o messaggi non letti.
-  - Nel menu laterale (`MobileDrawerFooter.tsx`), ripartizione dello spazio inferiore a 5 colonne: 4 colonne dedicate alle Impostazioni e 1 colonna per la Campanella Notifiche (`BellIcon`). In presenza di elementi non letti, il pulsante della campanella diventa rosso pulsante (`bg-red-600 animate-pulse text-white`).
-- **Pannello Bottom Sheet Touch-Friendly (`MobileNotificationsSheet.tsx`)**:
-  - Apertura fluida dal basso verso l'alto (`animate-slideUp`) con chiusura contestuale del menu laterale e visualizzazione sopra la pagina corrente.
-  - Pull bar superiore touch, backdrop oscurato con sfocatura (`backdrop-blur-xs`), chiusura rapida al tap o con tasto "Indietro" nativo di Android (`useBackHandler`, priorità 9).
-  - Schede segmentate per "Notifiche" (inviti ai gruppi spesa, richieste di amicizia con azioni rapide di accettazione/rifiuto, notifiche social) e "Messaggi Effimeri" (lista amici con messaggi con logica burn-after-reading).
-- **Navigazione Diretta & Loading Feedback Contestuale**:
-  - Al tap su notifiche di recensioni o commenti alle serie TV, eliminati tutti i salti visivi intermedi; sincronizzazione sincrona dello stato modale e apertura diretta della recensione specifica.
-  - Overlay di caricamento immediato nel foglio notifiche con messaggi contestuali (*"Apertura recensione..."*, *"Apertura gruppo spesa..."*).
-- **Centralizzazione Architettura (`useNotificationsInbox.ts`)**: Hook condiviso riutilizzato sia da `NotificationsSidebar.tsx` (Desktop) che da `MobileNotificationsSheet.tsx` (Mobile), snellendo il codice e garantendo coerenza di stato e conteggi.
-
----
-
-### [TRACKERS-005] Ottimizzazione Latenza: Aggiornamento Ottimistico Spunta/Rewatch & Citazioni, Audit Notifiche (🟢 Completato)
-
-#### 📋 Descrizione & Obiettivo
-Rifinitura profonda della reattività, fluidità e comunicazione visiva nei moduli Serie TV e Trackers:
-- **Aggiornamento Ottimistico Spunta & Rewatch (0ms di latenza visiva)**:
-  - Introdotto `onMutate`, `onError` e `onSettled` in `toggleEpisodeWatchedMutation` all'interno di `useTrackersMutations.ts`.
-  - Al tocco della spunta dell'episodio o al cambio di visualizzazioni rewatch, lo stato visivo in RAM e nella cache TanStack Query si aggiorna istantaneamente prima dell'esito della chiamata asincrona al server, eliminando qualsiasi latenza percepita.
-  - Sincronizzazione simultanea dello stato ottimistico sia nel catalogo Desktop/Mobile sia nelle schede a tutto schermo e nel Diario/Timeline.
-- **Aggiornamento Ottimistico Citazioni dell'Episodio**: Mutazioni ottimistiche per inserimento, modifica ed eliminazione citazioni con aggiornamento istantaneo del badge numerico sul fumetto dell'episodio a 0ms.
-- **Audit Notifiche Mobile & Componente `TrackerToast`**:
-  - Rimossi tutti i vecchi `alert()` bloccanti di sistema (`window.alert`) dai moduli serie TV e trackers.
-  - Introdotto il componente in-app `TrackerToast.tsx` con helper globale `showTrackerToast(message, type)` montato sia in `AppShellLayout.tsx` (Desktop) che in `MobileAppShell.tsx` (Mobile).
-  - Posizionamento calibrato in alto (`top-16`, centrato) con `z-[10070]` e auto-scomparsa a 2.5s per non coprire mai la barra di navigazione o i pulsanti di azione touch.
-
----
-
-### [TRACKERS-010] Gestione Serie Abbandonate ("Drop"): Criteri, Azioni & Ripristino (🟢 Completato)
-
-#### 📋 Descrizione
-Implementata la gestione completa dell'abbandono e ripristino delle serie TV ("Drop" / Cimitero Serie) sia su smartphone che su desktop:
-- **Mobile (Menu 3 Puntini)**: Nel modale di dettaglio serie (`MobileSeriesOptionsModal`), aggiunta l'opzione touch *"Abbandona Serie"* (con icona `Ban` e stile rosso) che imposta lo stato a `dropped` ed esclude immediatamente la serie da *"I prossimi da guardare"*, *"Da riprendere"* e *"Nuove serie"*. Se la serie è già abbandonata, compare l'opzione *"Riprendi Serie"* (con icona `RotateCcw` e stile verde smeraldo) che ripristina la serie in stato `watching` (se ha episodi già visti) o `to_watch`.
-- **Web / Desktop (Header Modale Dettaglio)**: Pulsante con effetto glass posizionato a sinistra della "X" di chiusura (`SeriesDetailHeader`). All'hover assume colore rosso (*"Abbandona"*); se la serie è abbandonata, si trasforma nel pulsante *"Riprendi"*.
-- **Catalogo Mobile & Web**:
-  - Bordo spesso rosso (`border-[2.5px] border-red-500` su mobile, `border-[3px] border-red-500` su desktop).
-  - Posizionate in coda al catalogo subito dopo le serie completate: su mobile accompagnate da pillola grigia `"ABBANDONATE"`, su desktop disposte su riga separata.
-- **Aggiornamento Istantaneo in RAM**: Allineamento immediato della cache TanStack Query alla mutazione dello stato.
-
----
-
-### [TRACKERS-007] Ordinamento & 4 Aree Tematiche Serie TV Web Desktop (Griglie Separate) (🟢 Completato)
-
-#### 📋 Descrizione
-Riorganizzazione completa della libreria principale Serie TV Web Desktop (`TVSeriesLibrary.tsx`), adottando il criterio di suddivisione del catalogo mobile:
-- **Componente Dedicato `TVSeriesCatalogSections.tsx`**: Raggruppamento e ordinamento rigoroso delle serie personali nelle 4 macro-aree canoniche:
-  1. *In Visione* (`watching` / bordi gialli)
-  2. *In Lista* (`to_watch`, `dropped`, `on_hold`, `untracked` / bordi grigi)
-  3. *In Attesa* (`waiting` / bordi viola)
-  4. *Completate* (`completed` / bordi verdi)
-- **A Capo a Fine Categoria**: Ciascun gruppo popola una propria griglia a 5 colonne responsive desktop; quando terminano le serie di uno stato, la riga non si mescola e va a capo lasciando vuoto lo spazio residuo a destra.
-- **Estetica Pulita & Allineamento Filtri RAM**: Nessuna pillola testuale invasiva, sincronizzazione perfetta con i filtri rapidi in alto (occhietti) tramite `normalizeMediaStatus` in `useFilteredTVSeries.ts`.
-
----
-
-### [UI-003] Sostituzione Pulsante "Reset Filtri" con Freccia (Serie TV Web Desktop) (🟢 Completato)
-
-#### 📋 Descrizione
-Nel modale di ricerca approfondita Serie TV desktop (`MediaFilterModal.tsx`), sostituito il pulsante testuale "Reset Filtri" con l'icona circolare di ripristino (`RotateCcw` da `lucide-react`):
-- Visibile solo in presenza di filtri attivi nell'header del modale (`hasActiveFilters`).
-- Dotato di tooltip `title="Ripristina tutti i filtri"` e animazione `active:scale-90`.
-- Allineato e proporzionato con il pulsante di chiusura `X` del `BaseModal`.
-
----
-
-### [TRACKERS-008] Riorganizzazione 3 Pagine Serie TV Circolari, Diario Puntate Viste, Gestione Rewatch & Mobile (🟢 Completato)
-
-#### 📋 Descrizione
-Riorganizzazione completa della sezione mobile Serie TV in 3 schermate a scorrimento circolare continuo e introduzione del Diario Puntate come pagina principale:
-- **Navigazione a 3 Pagine Circolari (Loop Continuo)**:
-  - **Pagina 1 (Centrale / Home all'apertura)**: **Diario Episodi** (`MobileTVSeriesDiarySlide`).
-  - **Pagina 0 (A sinistra del Diario)**: **Prossime Uscite** (`MobileTVEpisodesTimeline` con calendario e uscite).
-  - **Pagina 2 (A destra del Diario)**: **Dashboard, Obiettivo Annuale & Catalogo** (`MobileTVSeriesDashboardSlide`).
-  - Transizioni swipe circolari senza fine corsa e barra indicatore inferiore con 3 pallini dinamici (`MobileTVPaginationDots`).
-- **Nuovo Diario Episodi & Pillole Uniformate**:
-  - Vista verticale suddivisa da pillole grigie sobrie (`MobileTVDiarySectionPill`): *"Storico puntate viste"*, *"I prossimi da guardare"*, *"Da riprendere"* (serie ferme da >30 giorni) e *"Nuove serie"*.
-  - **Ordinamento Storico Naturale**: Puntate viste più di recente posizionate subito sopra l'ancora centrale; risalendo con lo scroll verso l'alto si accede alle visioni più remote.
-  - **Tasto Torna a Oggi Circolare**: Tasto flottante circolare blu con freccia dinamica (`TimelineBackToTodayButton`).
-  - **Esclusione Episodi Speciali (S00)**: Gli episodi speciali (`season_number <= 0`) vengono rigorosamente esclusi dal calcolo dei prossimi episodi da guardare e dai contatori residui.
-- **Card Episodio Diario Ridisegnata (`MobileTVEpisodeDiaryCard`)**: Nuova gerarchia con data in alto, codice & titolo episodio con badge `+ N` senza sfondo, pillola cliccabile della serie TV al di sotto e supporto alle locandine personalizzate (`custom_poster_path`).
-- **Apertura a "Solo Episodio" da Diario e Prossime Uscite**: Visualizzazione a schermo intero senza bottom bar delle serie e ritorno diretto alla schermata di partenza alla chiusura.
-- **Gestione Completa del Rewatch**: Dialog touch di conferma al tap su un episodio già visto con scelta tra visione singola o riavvio sequenziale dell'intera serie (`is_rewatching: true`); opzione *"Interrompi Rewatch"* nel menu a tre puntini della serie.
-
----
-
-### [TRACKERS-013] Restyling Modale Liste Personali Mobile ("Le mie liste"), Ordinamento 2 Frecce & Tasto "+" (🟢 Completato)
-
-#### 📋 Descrizione
-Riprogettazione completa, modulare e responsive del sistema di gestione delle liste personali per le Serie TV su smartphone:
-- **Header Multifunzione Dinamico**: Titolo contestuale ("Le mie liste" nella vista panoramica, nome della lista selezionata con freccia indietro quando aperta); tasto ordinamento a due frecce (`ArrowsUpDownIcon`) e tasto creazione `+` (`PlusIcon` stile Agenda) per filtrare per stato di visione (*In visione*, *In lista*, *In attesa*, *Completate*).
-- **Card Orizzontale a Tutta Lunghezza & Collage**: Ogni lista nella panoramica è una card orizzontale a tutta larghezza con titolo e carosello orizzontale delle locandine ordinate cronologicamente.
-- **Selezione Multipla con Long-Press (450ms)**: Selezione massiva di liste per eliminazione o modifica singola, e selezione multipla delle serie all'interno di una lista per rimozione in blocco.
-- **Modale Creazione & Modifica Lista Touch-Friendly (`MobileSeriesCreateListModal`)**: Ricerca integrata con TMDB e catalogo personale, griglia locandine con selezione touch e selettore privacy compatto (Privata / Condivisa / Pubblica).
-- **Architettura Modulare**: Estrazione dello stato in `useMobileSeriesPersonalListsLogic.ts` e scomposizione in componenti snelli (<300 righe).
-
----
-
-### [TRACKERS-012] Restyling Catalogo Mobile ("Le tue serie"), 4 Aree Tematiche & Ricerca Dedicata (🟢 Completato)
-
-#### 📋 Descrizione
-Riprogettazione completa del catalogo Serie TV su smartphone (`MobileSeriesCatalogModal`):
-- **Header Pulito**: Titolo sobrio "Le tue serie" senza contatori numerici ridondanti; freccia indietro (`BackIcon`), lente di ricerca (`SearchIcon`) con pallino blu filtri attivi e icona occhio (`EyeIcon`) riflettente lo stato selezionato.
-- **Menu Speed-Dial Stato Visione**: Tendina fluttuante con 4 opzioni essenziali (*Tutte le serie*, *In corso*, *Serie viste*, *Non viste*) con icone specifiche.
-- **Ricerca nel Catalogo Dedicata & Completa**: Modale `MobileSeriesCatalogSearchModal` circoscritto al catalogo personale in RAM con filtri su titolo, liste personali, generi, piattaforme, anno di uscita con DatePicker, stato produzione TMDB e voto personale.
-- **4 Aree Tematiche con Pillole Grigie**: Suddivisione in 4 griglie autonome a 3 colonne (*In visione*, *In lista*, *In attesa*, *Completate*) precedute da pillola sobria centrale in grigio e bordi colorati di stato sulle locandine.
-
----
-
-### [TRACKERS-011] Modale Statistiche Serie TV Mobile a Schermo Intero & Scorrimento Continuo (🟢 Completato)
-
-#### 📋 Descrizione
-Nuovo modale a tutto schermo dedicato alle Statistiche Serie TV per smartphone (`MobileSeriesStatsModal`):
-- **Esperienza Mobile Nativa Full-Screen**: Visualizzazione a schermo intero montata tramite `createPortal` su `document.body`, animazione fade-in e gestione tasto back Android via `useBackHandler`.
-- **Scorrimento Verticale Continuo**: Superata la suddivisione a schede orizzontali in favore di una singola pagina a flusso verticale continuo con sezioni delimitate da intestazioni coerenti (`MobileStatsSectionHeader`).
-- **Sezioni Integrate**:
-  - *Panoramica*: Griglia 2x2 compatta con Tempo Totale, Completamento %, Proiezioni Future e Binge Record; box temporale ultimi 30 e 365 giorni; Cimitero delle Serie con EmptyState.
-  - *Valutazioni & Voti*: Top generi (griglia 2x2), Profilo del Critico (istogramma di distribuzione voti) e Hall of Fame (Top 10 serie con stelle e media voto).
-  - *Abitudini di Visione*: Ultimi 7 giorni (toggle Ore/Episodi), andamento mensile interattivo con selettore anno pulito (`‹ 2026 ›`) e top network/piattaforme.
-  - *Rewatch & Fedeltà*: Comfort zone (medaglie rewatch), Guilty pleasures e ciambella Esplorazione vs Nostalgia.
-
----
-
-### [TRACKERS-009] Restyling Seconda Pagina / Dashboard Serie TV Mobile, Banner & Collage Liste (🟢 Completato)
-
-#### 📋 Descrizione
-Riprogettazione completa della seconda slide dell'esperienza mobile Serie TV (`MobileTVSeriesDashboardSlide`) come hub a zero scrollbar:
-- **Obiettivo Annuale Episodi**: Barra sottile ispirata all'agenda homepage con badge centrale sovrapposto `XXX/YYY` ed apertura diretta del modale statistiche al tocco.
-- **Citazione del Giorno**: Visualizzazione compatta su 2 righe con espansione fluida al click.
-- **3 Card Highlight Affiancate**: "Ultimo aggiunto", "Ultimo guardato", "Ultimo completato" disposte con spaziatura omogenea (`justify-evenly`) e titolo serie in overlay sfumato.
-- **Due Banner Orizzontali Sovrapposti**:
-  - Banner "LE TUE SERIE": 4 locandine delle ultime serie guardate con apertura del catalogo completo al tap.
-  - Banner "LE TUE LISTE": fino a 4 liste personali con collage dinamico (0-4 serie) implementato nel componente dedicato `ListCollagePoster`.
-
----
-
-### [TRACKERS-006] Mobile TV Episode Fullscreen Detail, Quotes & Reviews Redesign (🟢 Completato)
-
-#### 📋 Descrizione
-Riprogettazione dell'esperienza mobile per il singolo episodio della serie TV (`MobileEpisodeDetailView`) e per la scheda recensioni dell'intera serie:
-- **Dettaglio Episodio a Tutto Schermo**: Banner superiore con still backdrop HD, gradiente di contrasto, sotto-intestazione codice/data con pallino visto interattivo, cassetto rewatch e trama a tutta larghezza.
-- **Rinnovamento Citazioni Episodio & Serie**: Badge a pallino con conteggio numerico delle citazioni salvate per l'episodio ed empty state pulito.
-- **Box Voti Unificato**: Contenitore armonioso che racchiude TMDB, Amici e "Il Tuo Voto" con stelle centrate.
-- **Schermata Dedicata "Nuova/Modifica Recensione"**: Ancorata a pieno schermo con textarea ad altezza dinamica adattiva e barra inferiore fissa a 4 colonne (Calendario, Privacy e Salva).
-- **Selettore Piattaforma di Visione Semplificato**: Modale centrale `SelectModalDialog` con selezione rapida a un tocco e pulsante touch per aggiungere nuove piattaforme al volo.
-
----
-
-### [TRACKERS-004] Date di Uscita Italiane vs TMDB (Air Dates) (❌ Chiuso / Archiviato)
-
-#### 📋 Descrizione
-Studio sull'allineamento delle date di uscita italiane per gli episodi delle serie TV rispetto alle date fornite da TMDB.
-- **Esito**: Chiuso e archiviato senza implementazione in quanto l'API TMDB non supporta in modo nativo e affidabile le date di trasmissione italiane per gli episodi televisivi (fornisce unicamente la data di prima trasmissione nel paese di origine).
-
----
-
-### [TRACKERS-002] Mobile TV Series Detail Modal, Bottom Drawers & Gestione Liste (🟢 Completato)
-
-#### 📋 Descrizione
-Implementazione del modale di dettaglio per le serie TV su smartphone con drawer a comparsa dal basso, selettore stagioni touch-friendly, gestione privacy e collegamenti rapidi alle liste multimediali.
-
----
-
-### [TRACKERS-001] Mobile TV Series Timeline & Restyling Card Episodi (🟢 Completato)
-
-#### 📋 Descrizione
-Prima versione della schermata Timeline Uscite Serie TV su smartphone con layout verticale a giorni, card compatte per gli episodi in uscita, badge numerici e tasto flottante "Torna a Oggi".
-
----
-
-### [FEAT-004 (Serie TV)] Modulo Serie TV Completo (Catalogo, TMDB, Liste, Diario, Statistiche & Social) (🟢 Completato)
-
-#### 📋 Descrizione
-Rilascio dell'intera infrastruttura del modulo Serie TV all'interno del macro-dominio Media:
-- **Integrazione TMDB & Ricerca**: Ricerca globale, arricchimento metadati (cast, locandine, stagioni, episodi, generi, piattaforme JustWatch) e sincronizzazione asincrona.
-- **Liste Multimediali & Filtri Avanzati**: Tabelle ponte per liste personali, incrocio liste, estrazione casuale titoli e filtri in memoria RAM.
-- **Social & Condivisione Recensioni**: Valutazioni in stelle, commenti ai thread con menzioni `@amico`, notifiche con deep-linking diretto e messaggi effimeri.
-- **Refactoring Architetturale Strict**: Separazione rigorosa tra UI e hook di logica, eliminazione completa di qualsiasi tipo `any` e file snelli (<300 righe).
-
----
-
 ## 🛒 2. Spesa, Prodotti, Marchi & Amministrazione
+
+### [SHOPPING-021] Risoluzione Errore 500 Unione Prodotti Spesa (Admin Shopping) & Gestione `passive_deletes` Foreign Key (🟢 Completato)
+
+#### 📋 Descrizione & Risoluzione
+Nella pagina riservata di amministrazione spesa (SuperUser), la funzione di unione prodotti (`POST /shopping/products/merge`) falliva con errore HTTP 500 (`psycopg.errors.NotNullViolation: null value in column "product_id" violates not-null constraint`) durante il tentativo di eliminazione del prodotto duplicato:
+- **Causa Radice**: Il caricamento iniziale con `lazy="selectin"` popolava le collezioni in memoria (`source_product.inventory_batches` e `list_items`). Al momento di invocare `db.delete(source_product)`, l'ORM di SQLAlchemy – non trovando una cancellazione a cascata – cercava di disassociare i figli impostando `product_id = NULL`, violando il vincolo `NOT NULL` del database PostgreSQL.
+- **Risoluzione a Livello ORM & DB**:
+  - Re-linking esplicito e immediato delle istanze dei lotti e delle righe lista al prodotto target in memoria (`batch.product = target_product`), svuotando in modo pulito e nativo la collezione del sorgente prima del `delete`.
+  - Mantenuto l'aggiornamento SQL difensivo a livello database (`synchronize_session=False`) per eventuali record non caricati in memoria.
+  - Gestione corretta dei marchi associati (`ShoppingProductBrand`) con creazione dei soli brand mancanti sul target e pulizia preventiva.
+  - Configurazione di `passive_deletes="all"` sulle relazioni `inventory_batches` e `list_items` in `ShoppingProduct` ([`models/catalog.py`](file:///c:/Users/user/Documents/PYTHON/VxAme14/backend/domains/shopping/models/catalog.py)) per inibire a monte qualsiasi tentativo ORM di azzeramento delle FK non-nullable durante l'eliminazione di un prodotto.
+
+---
 
 ### [SHOPPING-019] Inserimento Nuovo Brand e Nuovo Fornitore dalla Data Grid Lotti (🟢 Completato)
 
@@ -1045,7 +812,7 @@ Configurazione delle variabili d'ambiente per le chiavi API TMDB sul server NAS 
 
 #### 📋 Descrizione
 1. **Risoluzione Errore 500 (`NotNullViolation`)**: Rimozione delle colonne obsolete (`review_visibility`, `rating`, `notes`) dalla tabella `user_series_tracking` tramite la nuova migrazione Alembic `c4d5e6f7a8b9_drop_legacy_columns_from_user_series_tracking.py`, applicata con successo sia su `test-smart` sia su `family-smart` (NAS produzione). La presenza del vincolo `NOT NULL` senza valore di default sulla colonna orfana `review_visibility` bloccava l'inserimento delle nuove serie da parte del frontend (`POST /trackers/series`).
-2. **Idempotenza Migrazioni**: Refactoring difensivo della migrazione `b3c4d5e6f7a8_move_viewing_platform_to_episode_logs.py` con ispezione runtime preventiva delle colonne, foreign key e indici per evitare crash `DuplicateColumn` su ambienti parzialmente applicati.
+​2. **Idempotenza Migrazioni**: Refactoring difensivo della migrazione `b3c4d5e6f7a8_move_viewing_platform_to_episode_logs.py` con ispezione runtime preventiva delle colonne, foreign key e indici per evitare crash `DuplicateColumn` su ambienti parzialmente applicati.
 
 ---
 
@@ -1053,7 +820,7 @@ Configurazione delle variabili d'ambiente per le chiavi API TMDB sul server NAS 
 
 #### 📋 Descrizione
 1. **Digitazione Minuti Flessibile**: Risolto il blocco nella digitazione dei minuti nei modali Evento e Countdown (Desktop e Mobile): consentito lo spazio vuoto senza ripristino forzato a `:00` e normalizzazione automatica al salvataggio (es. `10:` interpretato come `10:00`).
-2. **Promozione Intelligente Categorie**: Implementata la promozione trasparente delle categorie a tipo "Comune" (genre 3) quando una categoria già esistente per i Task viene ricreata/assegnata agli Eventi (o viceversa), azzerando gli errori 400 di duplicato.
+​2. **Promozione Intelligente Categorie**: Implementata la promozione trasparente delle categorie a tipo "Comune" (genre 3) quando una categoria già esistente per i Task viene ricreata/assegnata agli Eventi (o viceversa), azzerando gli errori 400 di duplicato.
 
 ---
 
@@ -1061,7 +828,7 @@ Configurazione delle variabili d'ambiente per le chiavi API TMDB sul server NAS 
 
 #### 📋 Descrizione
 1. **Progresso Frazionario Y/X**: Per routine e abitudini con ripetizioni multiple giornaliere (`target > 1`), i completamenti parziali ($0 < Y < X$) vengono mostrati nei quadratini in colore ambra con la frazione visibile (es. `2/3`), mentre i completati ($Y \ge X$) risaltano in verde.
-2. **Cadenze Non Giornaliere & Resa Visiva**: Visualizzazione di tutti i giorni del mese, distinguendo con grigio chiaro/tenue i giorni non programmati e con grigio più marcato i giorni attivi ma non completati.
+​2. **Cadenze Non Giornaliere & Resa Visiva**: Visualizzazione di tutti i giorni del mese, distinguendo con grigio chiaro/tenue i giorni non programmati e con grigio più marcato i giorni attivi ma non completati.
 3. **Pulizia Badge**: Rimozione del suffisso `"gg"` dai badge di conteggio completati/attivi (es. `13/18`).
 
 ---
@@ -1171,7 +938,7 @@ Configurazione delle variabili d'ambiente per le chiavi API TMDB sul server NAS 
 
 ---
 
-## 🎬 2. Media & Trackers (Film & Saghe)
+## 🎬 4. Media & Trackers (Film & Saghe)
 
 ### [FEAT-004 (Film) / MOVIES-001..006] Modulo Film Completo (Web & Mobile) (🟢 Completato)
 

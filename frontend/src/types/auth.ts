@@ -1,3 +1,5 @@
+import type { UserModulePreferences } from '@/types/settings';
+
 export interface TokenResponse {
   access_token: string;
   token_type: string;
@@ -20,6 +22,6 @@ export interface UserResponse {
   max_subtask_depth_user?: number | null;
   profile_picture_url?: string | null;
   default_startup_page?: string | null;
-  module_preferences?: Record<string, boolean> | null;
+  module_preferences?: UserModulePreferences | null;
   streaming_providers?: UserStreamingProvider[] | null;
 }
