@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
 import type { Movie, MovieDetailTarget } from '@/types/movies';
-import { MediaCard } from '@/components/trackers/MediaCard';
+import { MediaCard } from '@/components/trackers/shared/TrackerCard';
 
 export interface MovieCatalogSectionsProps {
   movies: Movie[];

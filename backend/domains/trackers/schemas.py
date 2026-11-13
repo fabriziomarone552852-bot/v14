@@ -131,6 +131,12 @@ class UserSeriesLogResponse(ORMBaseModel):
     updated_at: Optional[datetime] = None
     comments: List[dict] = Field(default_factory=list)
 
+class SeriesWatchProvider(BaseModel):
+    provider_id: int
+    provider_name: str
+    logo_path: Optional[str] = None
+
+
 class TVSeriesResponse(ORMBaseModel):
     """Response model for a tracked TV Series, combining global data and user tracking."""
     # TMDB Global fields
@@ -149,6 +155,8 @@ class TVSeriesResponse(ORMBaseModel):
     first_air_date: Optional[date] = None
     last_air_date: Optional[date] = None
     vote_average: Optional[float] = None
+    watch_providers: Optional[List[SeriesWatchProvider]] = None
+    providers_synced_at: Optional[datetime] = None
     last_sync_at: datetime
 
     # User Tracking fields

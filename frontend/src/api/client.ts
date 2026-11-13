@@ -24,21 +24,30 @@ export const apiClient = axios.create({
   baseURL: API_BASE_URL 
 });
 
-// 3. IL VIGILE IN USCITA (Attacca il token)
-apiClient.interceptors.request.use(
-  (config: InternalAxiosRequestConfig) => {
-    const token = localStorage.getItem('token');
-    if (token && config.headers) {
-      // Prevent malformed headers if token somehow contains newlines/spaces
-      config.headers.Authorization = `Bearer ${token.trim().replace(/[\r\n]/g, '')}`;
-    }
-    return config;
-  }, 
-  (error: unknown) => Promise.reject(error)
-);
+// === VARIABILI PER LA GESTIONE DELLA RACE CONDITION & JWT EXPIRY ===
 
+interface JwtPayload {
+  exp?: number;
+}
 
-// === VARIABILI PER LA GESTIONE DELLA RACE CONDITION ===
+/**
+ * Verifica se il token JWT è già scaduto (o in scadenza entro bufferSeconds)
+ * decodificando il payload locale senza inviare richieste destinate a fallire con 401.
+ */
+const isJwtExpired = (token: string, bufferSeconds = 10): boolean => {
+  try {
+    const parts = token.split('.');
+    if (parts.length !== 3) return false;
+    const base64Url = parts[1];
+    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+    const padded = base64.padEnd(base64.length + ((4 - (base64.length % 4)) % 4), '=');
+    const payload = JSON.parse(atob(padded)) as JwtPayload;
+    if (typeof payload.exp !== 'number') return false;
+    return Date.now() >= (payload.exp - bufferSeconds) * 1000;
+  } catch {
+    return false;
+  }
+};
 
 // Creiamo un'interfaccia dedicata per pulire la definizione della coda
 interface QueuedRequest {
@@ -62,19 +71,109 @@ const processQueue = (error: unknown | null, token: string | null = null) => {
   });
   failedQueue = [];
 };
-// =======================================================
-
-
-// Estendiamo la configurazione nativa di Axios per includere i nostri flag custom
-interface CustomAxiosRequestConfig extends InternalAxiosRequestConfig {
-  _retry?: boolean;
-  _skipOutbox?: boolean;
-}
 
 // Interfaccia per la risposta attesa dal refresh
 interface RefreshResponse {
   access_token: string;
   refresh_token?: string;
+}
+
+const isTransientRefreshError = (err: unknown): boolean => {
+  if (!axios.isAxiosError(err)) return false;
+  const status = err.response?.status;
+  return !err.response || err.code === 'ERR_NETWORK' || err.code === 'ECONNABORTED' || (typeof status === 'number' && status >= 500);
+};
+
+/**
+ * Rinnova l'access token serializzando le richieste concorrenti nella coda failedQueue.
+ * Riprova 1 volta in caso di errore transitorio (es. spin-up DB / 5xx) e forza il logout
+ * solo se il refresh token è effettivamente rifiutato con 401/403.
+ */
+const refreshAccessToken = async (): Promise<string> => {
+  const refreshToken = localStorage.getItem('refreshToken');
+  if (!refreshToken) {
+    window.dispatchEvent(new Event('force-logout'));
+    throw new Error('Refresh token mancante');
+  }
+
+  if (isRefreshing) {
+    return new Promise<string>((resolve, reject) => {
+      failedQueue.push({ resolve, reject });
+    });
+  }
+
+  isRefreshing = true;
+  try {
+    let response;
+    try {
+      response = await axios.post<RefreshResponse>(
+        apiUrl('/auth/refresh'),
+        { refresh_token: refreshToken },
+        { timeout: 10000 }
+      );
+    } catch (firstErr: unknown) {
+      if (isTransientRefreshError(firstErr)) {
+        await new Promise((r) => setTimeout(r, 600));
+        response = await axios.post<RefreshResponse>(
+          apiUrl('/auth/refresh'),
+          { refresh_token: refreshToken },
+          { timeout: 10000 }
+        );
+      } else {
+        throw firstErr;
+      }
+    }
+
+    const { access_token } = response.data;
+    localStorage.setItem('token', access_token);
+    if (response.data.refresh_token) {
+      localStorage.setItem('refreshToken', response.data.refresh_token);
+    }
+
+    processQueue(null, access_token);
+    return access_token;
+  } catch (refreshError: unknown) {
+    processQueue(refreshError, null);
+    const status = axios.isAxiosError(refreshError) ? refreshError.response?.status : undefined;
+    if (status === 401 || status === 403) {
+      window.dispatchEvent(new Event('force-logout'));
+    }
+    throw refreshError;
+  } finally {
+    isRefreshing = false;
+  }
+};
+// =======================================================
+
+// 3. IL VIGILE IN USCITA (Attacca il token e lo rinnova preventivamente se scaduto)
+apiClient.interceptors.request.use(
+  async (config: InternalAxiosRequestConfig) => {
+    let token = localStorage.getItem('token');
+    const isAuthEndpoint = config.url?.includes('/auth/');
+
+    if (token && !isAuthEndpoint && isJwtExpired(token) && localStorage.getItem('refreshToken')) {
+      try {
+        token = await refreshAccessToken();
+      } catch {
+        // Se il refresh fallisce per rete/5xx, lasciamo proseguire con il token attuale
+        // (la gestione offline/401 dell'interceptor di risposta subentrerà se necessario)
+        token = localStorage.getItem('token');
+      }
+    }
+
+    if (token && config.headers) {
+      // Prevent malformed headers if token somehow contains newlines/spaces
+      config.headers.Authorization = `Bearer ${token.trim().replace(/[\r\n]/g, '')}`;
+    }
+    return config;
+  }, 
+  (error: unknown) => Promise.reject(error)
+);
+
+// Estendiamo la configurazione nativa di Axios per includere i nostri flag custom
+interface CustomAxiosRequestConfig extends InternalAxiosRequestConfig {
+  _retry?: boolean;
+  _skipOutbox?: boolean;
 }
 
 // 4. IL VIGILE IN ENTRATA (Rinnova il token se scade o salva in Outbox se offline)
@@ -84,56 +183,17 @@ apiClient.interceptors.response.use(
     const originalRequest = error.config as CustomAxiosRequestConfig | undefined;
 
     // A. GESTIONE AUTENTICAZIONE 401 & TOKEN REFRESH
-    if (error.response?.status === 401 && originalRequest && !originalRequest._retry) {
+    if (error.response?.status === 401 && originalRequest && !originalRequest._retry && !originalRequest.url?.includes('/auth/')) {
       originalRequest._retry = true;
-      const refreshToken = localStorage.getItem('refreshToken');
-      
-      if (!refreshToken) {
-        window.dispatchEvent(new Event('force-logout'));
-        return Promise.reject(error);
-      }
-
-      // 🚦 SE IL SEMAFORO È ROSSO
-      if (isRefreshing) {
-        return new Promise<string>((resolve, reject) => {
-          failedQueue.push({ resolve, reject });
-        }).then(token => {
-          if (originalRequest.headers) {
-             originalRequest.headers.Authorization = `Bearer ${token}`;
-          }
-          return apiClient(originalRequest); 
-        }).catch((err: unknown) => {
-          return Promise.reject(err);
-        });
-      }
-
-      // 🟢 SE IL SEMAFORO È VERDE
-      isRefreshing = true;
 
       try {
-        const response = await axios.post<RefreshResponse>(apiUrl('/auth/refresh'), {
-          refresh_token: refreshToken
-        });
-
-        const { access_token } = response.data;
-        localStorage.setItem('token', access_token);
-        if (response.data.refresh_token) {
-          localStorage.setItem('refreshToken', response.data.refresh_token);
-        }
-
-        processQueue(null, access_token);
-
+        const newAccessToken = await refreshAccessToken();
         if (originalRequest.headers) {
-          originalRequest.headers.Authorization = `Bearer ${access_token}`;
+          originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
         }
         return apiClient(originalRequest);
-        
       } catch (refreshError: unknown) {
-        processQueue(refreshError, null);
-        window.dispatchEvent(new Event('force-logout'));
         return Promise.reject(refreshError);
-      } finally {
-        isRefreshing = false;
       }
     }
 

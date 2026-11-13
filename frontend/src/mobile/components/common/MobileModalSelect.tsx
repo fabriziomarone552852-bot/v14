@@ -17,6 +17,8 @@ export interface MobileModalSelectProps {
   allLabel?: string;
   showAllOption?: boolean;
   disabled?: boolean;
+  headerAction?: React.ReactNode;
+  displayValueOverride?: string;
 }
 
 /**
@@ -33,15 +35,19 @@ export const MobileModalSelect: React.FC<MobileModalSelectProps> = ({
   allLabel = 'Tutti',
   showAllOption = true,
   disabled = false,
+  headerAction,
+  displayValueOverride,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
 
   const selectedOption = options.find((o) => o.value === value);
-  const selectedName = selectedOption
-    ? selectedOption.label
-    : value === 'all'
-    ? allLabel
-    : value;
+  const selectedName =
+    displayValueOverride ||
+    (selectedOption
+      ? selectedOption.label
+      : value === 'all'
+      ? allLabel
+      : value);
 
   const handleSelect = (val: string) => {
     onChange(val);
@@ -50,9 +56,14 @@ export const MobileModalSelect: React.FC<MobileModalSelectProps> = ({
 
   return (
     <div>
-      <label className="block text-xs font-bold text-gray-500 uppercase mb-1">
-        {label}
-      </label>
+      <div className="flex items-center justify-between gap-1.5 mb-1 min-h-[18px]">
+        <label className="block text-xs font-bold text-gray-500 uppercase truncate">
+          {label}
+        </label>
+        {headerAction && (
+          <div className="shrink-0 flex items-center">{headerAction}</div>
+        )}
+      </div>
 
       {/* Trigger Pulsante Mobile */}
       <button

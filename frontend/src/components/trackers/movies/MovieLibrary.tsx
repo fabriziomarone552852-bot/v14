@@ -72,14 +72,29 @@ export const MovieLibrary: React.FC<MovieLibraryProps> = ({
     []
   );
 
-  const isSearchingOrDiscovering = Boolean(
-    debouncedQuery ||
-    (filters.globalSearch &&
-      (filters.genre !== 'all' || filters.platform !== 'all' || filters.year !== 'all'))
-  );
+  const hasListFilter = (filters.listIds?.length ?? 0) > 0;
+  const hasPersonalOnlyFilter =
+    hasListFilter ||
+    (filters.ratings?.length ?? 0) > 0 ||
+    (filters.sagas?.length ?? 0) > 0 ||
+    filters.obtainedFilter === 'obtained';
 
-  const isSearchLoadingState = debouncedQuery ? isSearchLoading : isDiscoverLoading;
-  const results = debouncedQuery ? searchResults?.results : discoverData?.results;
+  const isSearchingByQuery = Boolean(debouncedQuery.trim()) && !hasPersonalOnlyFilter;
+  const isDiscoveringGlobal =
+    !isSearchingByQuery && Boolean(filters.globalSearch) && !hasPersonalOnlyFilter;
+  const isSearchingOrDiscovering = isSearchingByQuery || isDiscoveringGlobal;
+
+  const isSearchLoadingState = isSearchingByQuery ? isSearchLoading : isDiscoverLoading;
+  const rawResults = isSearchingByQuery ? searchResults?.results : discoverData?.results;
+  const results = useMemo(() => {
+    if (!rawResults) return undefined;
+    if (filters.obtainedFilter === 'not_obtained') {
+      return rawResults.filter(
+        (r) => !movies?.some((m) => m.tmdb_id === r.id && Boolean(m.obtained_at))
+      );
+    }
+    return rawResults;
+  }, [rawResults, filters.obtainedFilter, movies]);
   const hasNoSearchResults = !results || results.length === 0;
 
   return (
@@ -99,9 +114,9 @@ export const MovieLibrary: React.FC<MovieLibraryProps> = ({
       isSearchLoading={isSearchLoadingState}
       hasNoSearchResults={hasNoSearchResults}
       emptySearchMessage={
-        debouncedQuery
-          ? `Nessun risultato trovato per "${debouncedQuery}"`
-          : 'Nessun risultato trovato'
+        debouncedQuery.trim()
+          ? `Nessun risultato trovato per "${debouncedQuery}" con i filtri attivi`
+          : 'Nessun risultato trovato con i filtri attivi'
       }
       emptySearchIcon={<FilmIcon className="w-12 h-12 opacity-20" />}
       searchResultsContent={

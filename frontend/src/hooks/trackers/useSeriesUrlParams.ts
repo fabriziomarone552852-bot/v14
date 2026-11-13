@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import type { TVSeries, TMDBEpisode } from '@/types/trackers';
-import type { TabType } from '@/components/trackers/SeriesDetailModal';
+import type { TabType } from '@/components/trackers/series/detail';
 
 export const useSeriesUrlParams = (
   series: TVSeries[] | undefined,

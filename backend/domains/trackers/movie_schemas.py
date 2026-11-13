@@ -169,6 +169,12 @@ class MovieExtrasResponse(BaseModel):
     collection: Optional[MovieCollectionDetail] = None
 
 
+class MovieWatchProvider(BaseModel):
+    provider_id: int
+    provider_name: str
+    logo_path: Optional[str] = None
+
+
 class MovieResponse(ORMBaseModel):
     """Risposta completa per un Film, con catalogo TMDB e tracking personale."""
     id: int  # ID tracking personale (o 0 se anteprima)
@@ -189,6 +195,8 @@ class MovieResponse(ORMBaseModel):
     collection_name: Optional[str] = None
     collection_poster_path: Optional[str] = None
     collection_backdrop_path: Optional[str] = None
+    watch_providers: Optional[List[MovieWatchProvider]] = None
+    providers_synced_at: Optional[datetime] = None
     last_sync_at: Optional[datetime] = None
 
     # Campi utente
@@ -244,19 +252,58 @@ class MovieDashboardStats(BaseModel):
     last_watched_movie: Optional[str] = None
 
 
+class MovieRatingDistributionItem(BaseModel):
+    rating: float
+    count: int
+
+
+class MovieGenreRatingItem(BaseModel):
+    genre: str
+    average_rating: float
+
+
+class MovieTopItem(BaseModel):
+    title: str
+    rating: float
+
+
+class MovieRewatchItem(BaseModel):
+    title: str
+    rewatch_count: int
+    rating: Optional[float] = None
+
+
+class MoviePlatformDistributionItem(BaseModel):
+    platform: str
+    percentage: float
+    count: Optional[int] = None
+
+
+class MovieGenreDistributionItem(BaseModel):
+    genre: str
+    percentage: float
+    count: int
+
+
+class MovieTimeTrendItem(BaseModel):
+    period: str
+    movies: int
+    hours: float
+
+
 class MovieFullStats(BaseModel):
     total_watch_time: Dict[str, int]  # days, hours, minutes, total_minutes
     completion_rate: Dict[str, float]  # percentage, watched, to_watch
     watchlist_forecast: Dict[str, Optional[str]]  # estimated_date
     personal_records: Dict[str, Optional[str]]  # max_movies_in_day, max_movies_day
     general_stats: Dict[str, float]
-    ratings_distribution: List[Dict[str, float]]
-    ratings_by_genre: List[Dict[str, float]]
-    top_10_movies: List[Dict[str, float]]
-    most_rewatched: List[Dict[str, Any]]
+    ratings_distribution: List[MovieRatingDistributionItem]
+    ratings_by_genre: List[MovieGenreRatingItem]
+    top_10_movies: List[MovieTopItem]
+    most_rewatched: List[MovieRewatchItem]
     rewatch_comparison: Optional[Dict[str, float]] = None
-    guilty_pleasures: Optional[List[Dict[str, Any]]] = Field(default_factory=list)
-    platform_distribution: List[Dict[str, float]]
+    guilty_pleasures: Optional[List[MovieRewatchItem]] = Field(default_factory=list)
+    platform_distribution: List[MoviePlatformDistributionItem]
     viewing_habits: Dict[str, Dict[str, int]]
-    genres_distribution: Optional[List[Dict[str, Any]]] = Field(default_factory=list)
-    time_trend: Optional[Dict[str, List[Dict[str, Any]]]] = Field(default_factory=dict)
+    genres_distribution: Optional[List[MovieGenreDistributionItem]] = Field(default_factory=list)
+    time_trend: Optional[Dict[str, List[MovieTimeTrendItem]]] = Field(default_factory=dict)

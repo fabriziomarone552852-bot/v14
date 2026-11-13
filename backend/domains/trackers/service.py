@@ -240,9 +240,60 @@ async def get_tmdb_series_extras(tmdb_id: int) -> dict:
         "seasons": seasons,
     }
 
-async def search_tmdb_series(query: str, page: int = 1) -> TMDBPaginatedSearch:
+async def search_tmdb_series(
+    query: str,
+    page: int = 1,
+    with_genres: Optional[str] = None,
+    without_genres: Optional[str] = None,
+    with_watch_providers: Optional[str] = None,
+    with_status: Optional[str] = None,
+    first_air_date_year: Optional[str] = None,
+    sort_by: Optional[str] = None,
+    db: Optional[Session] = None,
+) -> TMDBPaginatedSearch:
     if not query.strip():
         return TMDBPaginatedSearch(page=1, results=[], total_pages=0, total_results=0)
+
+    has_extra_filters = any(
+        val and val != "all"
+        for val in (
+            with_genres,
+            without_genres,
+            with_watch_providers,
+            with_status,
+            first_air_date_year,
+        )
+    ) or (
+        sort_by is not None
+        and sort_by not in ("", "date_added_desc", "popularity.desc")
+    )
+
+    if has_extra_filters:
+        from backend.domains.trackers.tmdb_filter_utils import (
+            fetch_filtered_tmdb_search_pages,
+        )
+
+        items, virtual_pages, approx_total = await fetch_filtered_tmdb_search_pages(
+            base_url=TMDB_BASE_URL,
+            headers=get_tmdb_headers(),
+            media_type="tv",
+            query=query,
+            page=page,
+            with_genres=with_genres,
+            without_genres=without_genres,
+            with_watch_providers=with_watch_providers,
+            with_status=with_status,
+            year=first_air_date_year,
+            sort_by=sort_by,
+            db=db,
+        )
+        results = [TMDBSeriesSearchResult(**item) for item in items]
+        return TMDBPaginatedSearch(
+            page=page,
+            results=results,
+            total_pages=virtual_pages,
+            total_results=approx_total,
+        )
 
     url = f"{TMDB_BASE_URL}/search/tv"
     params = {
@@ -266,7 +317,7 @@ async def search_tmdb_series(query: str, page: int = 1) -> TMDBPaginatedSearch:
 
 async def fetch_tmdb_series_details(tmdb_id: int) -> dict:
     url = f"{TMDB_BASE_URL}/tv/{tmdb_id}"
-    params = {"language": "it-IT"}
+    params = {"language": "it-IT", "append_to_response": "watch/providers"}
 
     async with httpx.AsyncClient(timeout=15.0) as client:
         response = await client.get(url, headers=get_tmdb_headers(), params=params)
@@ -288,7 +339,9 @@ async def fetch_tmdb_series_details(tmdb_id: int) -> dict:
 
     return data
 
-async def fetch_tmdb_series_providers(tmdb_id: int) -> dict:
+async def fetch_tmdb_series_providers(tmdb_id: int, db: Optional[Session] = None) -> dict:
+    from backend.domains.trackers.movie_service import _extract_italy_watch_providers_from_it_dict
+
     url = f"{TMDB_BASE_URL}/tv/{tmdb_id}/watch/providers"
     async with httpx.AsyncClient(timeout=15.0) as client:
         response = await client.get(url, headers=get_tmdb_headers())
@@ -300,6 +353,14 @@ async def fetch_tmdb_series_providers(tmdb_id: int) -> dict:
     results = data.get("results", {})
     # Return IT providers if available, else empty
     it_providers = results.get("IT", {})
+
+    if db is not None:
+        series = repository.get_tmdb_series(db, tmdb_id)
+        if series is not None:
+            series.watch_providers = _extract_italy_watch_providers_from_it_dict(it_providers)
+            series.providers_synced_at = datetime.now(timezone.utc)
+            db.commit()
+
     return it_providers
 
 
@@ -321,11 +382,17 @@ async def sync_tmdb_series_lazy(db: Session, tmdb_id: int) -> TMDBSeries:
     return series
 
 async def sync_tmdb_series_metadata_only(db: Session, tmdb_id: int):
+    from backend.domains.trackers.movie_service import _extract_italy_watch_providers_from_it_dict
+
     tmdb_data = await fetch_tmdb_series_details(tmdb_id)
     
     genres_str = ", ".join([g["name"] for g in tmdb_data.get("genres", [])])
     networks_str = ", ".join([n["name"] for n in tmdb_data.get("networks", [])])
     creators_str = ", ".join([c["name"] for c in tmdb_data.get("created_by", [])])
+
+    it_wp = tmdb_data.get("watch/providers", {}).get("results", {}).get("IT", {})
+    watch_providers_list = _extract_italy_watch_providers_from_it_dict(it_wp)
+    now_utc = datetime.now(timezone.utc)
 
     series = TMDBSeries(
         tmdb_id=tmdb_data.get("id"),
@@ -343,11 +410,87 @@ async def sync_tmdb_series_metadata_only(db: Session, tmdb_id: int):
         first_air_date=safe_date(tmdb_data.get("first_air_date")),
         last_air_date=safe_date(tmdb_data.get("last_air_date")),
         vote_average=tmdb_data.get("vote_average"),
-        last_sync_at=datetime.now(timezone.utc)
+        watch_providers=watch_providers_list,
+        providers_synced_at=now_utc,
+        last_sync_at=now_utc
     )
     series = repository.upsert_tmdb_series(db, series)
     seasons = tmdb_data.get("seasons", [])
     return series, seasons
+
+
+async def sync_missing_user_series_providers(db: Session, current_user: User) -> dict:
+    """
+    Sincronizza in blocco i watch_providers IT per le serie TV del catalogo utente
+    che non sono mai state sincronizzate o il cui sync è più vecchio di 14 giorni.
+    """
+    import asyncio
+    from datetime import timedelta
+    from backend.domains.trackers.movie_service import _extract_italy_watch_providers_from_it_dict
+
+    trackings = repository.list_user_series(db, current_user.id)
+    now = datetime.now(timezone.utc)
+    stale_cutoff = now - timedelta(days=14)
+
+    sorted_trackings = sorted(
+        trackings,
+        key=lambda t: 0 if t.status in ("watching", "to_watch") else 1,
+    )
+
+    to_sync_series: List[TMDBSeries] = []
+    seen_series_ids: set[int] = set()
+
+    for t in sorted_trackings:
+        s = t.tmdb_series
+        if not s or s.tmdb_id in seen_series_ids:
+            continue
+        seen_series_ids.add(s.tmdb_id)
+
+        synced_at = s.providers_synced_at
+        if synced_at is not None and synced_at.tzinfo is None:
+            synced_at = synced_at.replace(tzinfo=timezone.utc)
+
+        if s.watch_providers is None or synced_at is None or synced_at < stale_cutoff:
+            to_sync_series.append(s)
+
+    if not to_sync_series:
+        return {"synced_count": 0, "remaining_count": 0}
+
+    batch = to_sync_series[:50]
+    remaining = max(0, len(to_sync_series) - len(batch))
+    headers = get_tmdb_headers()
+    sem = asyncio.Semaphore(8)
+
+    async def _fetch_one(client: httpx.AsyncClient, tmdb_id: int):
+        async with sem:
+            try:
+                resp = await client.get(
+                    f"{TMDB_BASE_URL}/tv/{tmdb_id}/watch/providers",
+                    headers=headers,
+                )
+                if resp.status_code == 200:
+                    it_dict = resp.json().get("results", {}).get("IT", {})
+                    return tmdb_id, _extract_italy_watch_providers_from_it_dict(it_dict)
+            except Exception:
+                pass
+            return tmdb_id, None
+
+    async with httpx.AsyncClient(timeout=15.0) as client:
+        results = await asyncio.gather(*[_fetch_one(client, s.tmdb_id) for s in batch])
+
+    series_map = {s.tmdb_id: s for s in batch}
+    synced_count = 0
+    for tmdb_id, providers_list in results:
+        if providers_list is not None and tmdb_id in series_map:
+            target = series_map[tmdb_id]
+            target.watch_providers = providers_list
+            target.providers_synced_at = now
+            synced_count += 1
+
+    if synced_count > 0:
+        db.commit()
+
+    return {"synced_count": synced_count, "remaining_count": remaining}
 
 async def sync_tmdb_episodes_for_seasons(db: Session, tmdb_id: int, seasons: list):
     season_numbers = [s["season_number"] for s in seasons]
@@ -560,6 +703,8 @@ def _build_series_response(tracking: UserSeriesTracking, db=None, current_user=N
         first_air_date=s.first_air_date,
         last_air_date=s.last_air_date,
         vote_average=s.vote_average,
+        watch_providers=s.watch_providers,
+        providers_synced_at=s.providers_synced_at,
         last_sync_at=s.last_sync_at,
         status=tracking.status,
         is_rewatching=getattr(tracking, 'is_rewatching', False) or False,
@@ -1660,35 +1805,66 @@ async def get_tmdb_providers():
         return response.json()
     return {"results": []}
 
-async def discover_tmdb_series(with_genres: str = None, with_networks: str = None, first_air_date_year: str = None, page: int = 1) -> TMDBPaginatedSearch:
+async def discover_tmdb_series(
+    with_genres: Optional[str] = None,
+    without_genres: Optional[str] = None,
+    with_networks: Optional[str] = None,
+    with_status: Optional[str] = None,
+    first_air_date_year: Optional[str] = None,
+    sort_by: Optional[str] = None,
+    page: int = 1,
+) -> TMDBPaginatedSearch:
+    from backend.domains.trackers.tmdb_filter_utils import (
+        execute_tmdb_discover_variants,
+        map_tv_statuses_for_discover,
+        normalize_tmdb_sort_by,
+    )
+
     url = f"{TMDB_BASE_URL}/discover/tv"
-    params = {
+    tmdb_sort = normalize_tmdb_sort_by(sort_by, "tv")
+    base_params: dict[str, str] = {
         "include_adult": "false",
         "language": "it-IT",
         "page": str(page),
-        "sort_by": "popularity.desc",
-        "watch_region": "IT"
+        "sort_by": tmdb_sort,
+        "watch_region": "IT",
     }
-    if with_genres:
-        params["with_genres"] = with_genres
-    if with_networks:
-        params["with_watch_providers"] = with_networks
-    if first_air_date_year:
-        params["first_air_date_year"] = first_air_date_year
+    if with_genres and with_genres != "all":
+        base_params["with_genres"] = with_genres
+    if without_genres and without_genres != "all":
+        base_params["without_genres"] = without_genres
+    if with_networks and with_networks != "all":
+        base_params["with_watch_providers"] = with_networks
 
-    async with httpx.AsyncClient(timeout=15.0) as client:
-        response = await client.get(url, headers=get_tmdb_headers(), params=params)
+    status_codes, include_miniseries = map_tv_statuses_for_discover(with_status)
+    extra_variants: list[dict[str, str]] = []
+    if status_codes:
+        extra_variants.append({"with_status": status_codes})
+    if include_miniseries:
+        extra_variants.append({"with_type": "2"})
 
-    if response.status_code != 200:
-        raise HTTPException(status_code=response.status_code, detail="Errore da TMDB API")
+    try:
+        merged_raw, max_pages, total_res = await execute_tmdb_discover_variants(
+            url=url,
+            headers=get_tmdb_headers(),
+            base_params=base_params,
+            year_raw=first_air_date_year,
+            year_param_name="first_air_date_year",
+            date_range_prefix="first_air_date",
+            extra_variants=extra_variants,
+            tmdb_sort=tmdb_sort,
+            title_field="name",
+            date_field="first_air_date",
+        )
+    except RuntimeError:
+        raise HTTPException(status_code=502, detail="Errore da TMDB API")
 
-    data = response.json()
-    results = [TMDBSeriesSearchResult(**item) for item in data.get("results", [])]
+    results = [TMDBSeriesSearchResult(**item) for item in merged_raw]
     return TMDBPaginatedSearch(
-        page=data.get("page", 1),
+        page=page,
         results=results,
-        total_pages=data.get("total_pages", 0),
-        total_results=data.get("total_results", 0)
+        total_pages=max_pages,
+        total_results=total_res,
     )
 
 

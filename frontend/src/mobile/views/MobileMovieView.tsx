@@ -3,14 +3,20 @@ import React, { useState, useCallback } from 'react';
 import PageLoadingState from '@/components/shared/feedback/PageLoadingState';
 import PageErrorState from '@/components/shared/feedback/PageErrorState';
 import { useMoviePageLogic } from '@/hooks/trackers/useMoviePageLogic';
-import RandomMediaModal from '@/components/trackers/RandomMediaModal';
-import { MovieDetailModal } from '@/components/trackers/movies/detail/MovieDetailModal';
-import { MovieStatsModal } from '@/components/trackers/movies/stats/MovieStatsModal';
+import { DEFAULT_MOVIE_FILTERS } from '@/hooks/trackers/useMovieFilterOptions';
+import RandomTrackerModal from '@/components/trackers/shared/RandomTrackerModal';
+import { MobileMovieDetailModal } from '../components/trackers/movies/detail';
+import { MobileMovieStatsModal } from '../components/trackers/movies/stats';
 import { MobileMovieSearchModal } from '../components/trackers/movies/MobileMovieSearchModal';
+import { MobileMovieCatalogModal } from '../components/trackers/movies/MobileMovieCatalogModal';
 import { MobileMovieDashboardSlide } from '../components/trackers/movies/MobileMovieDashboardSlide';
 import { MobileMovieUpcomingSlide } from '../components/trackers/movies/MobileMovieUpcomingSlide';
-import { MobileTrackerPaginationDots } from '../components/trackers/shared';
+import {
+  MobileTrackerPaginationDots,
+  MobileTrackerPersonalListsModal,
+} from '../components/trackers/shared';
 import { useTrackerHeader } from '@/context/TrackerHeaderContext';
+import { useMobileHorizontalSlidePages } from '../hooks/useMobileHorizontalSlidePages';
 import type { Movie } from '@/types/movies';
 
 export const MobileMovieView: React.FC = () => {
@@ -49,14 +55,39 @@ export const MobileMovieView: React.FC = () => {
     setIsFilterModalOpen,
     myLists,
     handleToggleTrack,
-    handleGenreClick,
-    handlePlatformClick,
     hasMoreResults,
     isFetchingMore,
     fetchMoreResults,
   } = useMoviePageLogic();
 
-  // Configurazione header mobile (lente ricerca e bottone random)
+  const handleMobileGenreClick = useCallback(
+    (genreName: string) => {
+      handleFilterChange({
+        ...DEFAULT_MOVIE_FILTERS,
+        genres: { include: [genreName], exclude: [], mode: 'OR' },
+        globalSearch: true,
+      });
+      setDebouncedQuery('');
+      setDetailModalOpen(false);
+      setIsFilterModalOpen(true);
+    },
+    [handleFilterChange, setDebouncedQuery, setDetailModalOpen, setIsFilterModalOpen]
+  );
+
+  const handleMobilePlatformClick = useCallback(
+    (platformName: string) => {
+      handleFilterChange({
+        ...DEFAULT_MOVIE_FILTERS,
+        platforms: [platformName],
+        globalSearch: true,
+      });
+      setDebouncedQuery('');
+      setDetailModalOpen(false);
+      setIsFilterModalOpen(true);
+    },
+    [handleFilterChange, setDebouncedQuery, setDetailModalOpen, setIsFilterModalOpen]
+  );
+
   const handleOpenSearch = useCallback(() => {
     setIsFilterModalOpen(true);
   }, [setIsFilterModalOpen]);
@@ -71,50 +102,21 @@ export const MobileMovieView: React.FC = () => {
     hasActiveFilters: hasActiveFilters || Boolean(searchQuery) || Boolean(debouncedQuery),
   });
 
-  // Paginazione a 2 slide:
-  // 0 = Cinema & Prossime Uscite (La prima pagina)
-  // 1 = Dashboard & Obiettivo annuale, Catalogo, Liste
-  const [activePageIndex, setActivePageIndex] = useState<0 | 1>(0);
+  const [isCatalogModalOpen, setIsCatalogModalOpen] = useState(false);
+  const [isPersonalListsModalOpen, setIsPersonalListsModalOpen] = useState(false);
 
-  // Calcolo classi di posizionamento orizzontale a 2 slide
-  const getSlideClass = (pageIdx: 0 | 1) => {
-    const diff = pageIdx - activePageIndex;
-    if (diff === 0) {
-      return 'translate-x-0 pointer-events-auto z-10 opacity-100';
-    }
-    if (diff > 0) {
-      return 'translate-x-full pointer-events-none z-0 opacity-0';
-    }
-    return '-translate-x-full pointer-events-none z-0 opacity-0';
-  };
-
-  // Touch Swipe
-  const [touchStartX, setTouchStartX] = useState<number | null>(null);
-  const [touchStartY, setTouchStartY] = useState<number | null>(null);
-
-  const handleTouchStart = (e: React.TouchEvent) => {
-    setTouchStartX(e.touches[0].clientX);
-    setTouchStartY(e.touches[0].clientY);
-  };
-
-  const handleTouchEnd = (e: React.TouchEvent) => {
-    if (touchStartX === null || touchStartY === null) return;
-    const deltaX = e.changedTouches[0].clientX - touchStartX;
-    const deltaY = e.changedTouches[0].clientY - touchStartY;
-    setTouchStartX(null);
-    setTouchStartY(null);
-
-    if (Math.abs(deltaY) > Math.abs(deltaX)) return;
-    if (Math.abs(deltaX) < 45) return;
-
-    if (deltaX < 0) {
-      // Swipe verso sinistra -> vai a Pagina 1 (Dashboard)
-      setActivePageIndex(1);
-    } else if (deltaX > 0) {
-      // Swipe verso destra -> vai a Pagina 0 (Cinema & Uscite)
-      setActivePageIndex(0);
-    }
-  };
+  // Paginazione lineare a 2 slide: 0 = Al Cinema & Prossime Uscite, 1 = Dashboard
+  const {
+    activePageIndex,
+    setActivePageIndex,
+    getSlideClass,
+    handleTouchStart,
+    handleTouchEnd,
+  } = useMobileHorizontalSlidePages<0 | 1>({
+    pageCount: 2,
+    initialPage: 0,
+    circular: false,
+  });
 
   if (isLoading) {
     return <PageLoadingState messages={['Caricamento Film Mobile...']} />;
@@ -178,11 +180,8 @@ export const MobileMovieView: React.FC = () => {
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
     >
-      {/* AREA PRINCIPALE DELLE PAGINE CON ANIMAZIONE SLIDE ORIZZONTALE */}
       <div className="flex-1 min-h-0 relative overflow-hidden">
-        {/* ===================================================================== */}
-        {/* PAGINA 0: AL CINEMA & PROSSIME USCITE (La prima pagina)               */}
-        {/* ===================================================================== */}
+        {/* PAGINA 0: AL CINEMA & PROSSIME USCITE */}
         <div
           className={`absolute inset-0 w-full h-full flex flex-col transition-all duration-300 ease-out ${getSlideClass(0)}`}
         >
@@ -193,9 +192,7 @@ export const MobileMovieView: React.FC = () => {
           />
         </div>
 
-        {/* ===================================================================== */}
-        {/* PAGINA 1: DASHBOARD, OBIETTIVO, CATALOGO & LISTE                     */}
-        {/* ===================================================================== */}
+        {/* PAGINA 1: DASHBOARD, OBIETTIVO, CATALOGO & LISTE */}
         <MobileMovieDashboardSlide
           className={getSlideClass(1)}
           activePageIndex={activePageIndex}
@@ -211,21 +208,19 @@ export const MobileMovieView: React.FC = () => {
           myLists={myLists}
           onOpenMovieDetail={openMovieDetail}
           onOpenStats={() => setStatsModalOpen(true)}
-          onOpenCatalog={() => setIsFilterModalOpen(true)}
-          onOpenPersonalLists={() => setIsFilterModalOpen(true)}
+          onOpenCatalog={() => setIsCatalogModalOpen(true)}
+          onOpenPersonalLists={() => setIsPersonalListsModalOpen(true)}
         />
       </div>
 
-      {/* 2. INDICATORE DI PAGINAZIONE TOUCH IN BASSO (SLIDER DOTS) */}
       <MobileTrackerPaginationDots
         activePageIndex={activePageIndex}
         onSelectPage={(idx: number) => setActivePageIndex(idx as 0 | 1)}
         labels={['Al Cinema & Uscite', 'Dashboard']}
       />
 
-      {/* MODALI */}
       {detailModalOpen && detailModalMovie && (
-        <MovieDetailModal
+        <MobileMovieDetailModal
           isOpen={detailModalOpen}
           onClose={() => setDetailModalOpen(false)}
           movie={detailModalMovie}
@@ -233,12 +228,33 @@ export const MobileMovieView: React.FC = () => {
           initialReviewLogId={detailModalReviewLogId}
           onToggleTrack={handleToggleTrack}
           onSelectRecommendation={(rec) => openMovieDetail(rec)}
-          onGenreClick={handleGenreClick}
-          onPlatformClick={handlePlatformClick}
+          onGenreClick={handleMobileGenreClick}
+          onPlatformClick={handleMobilePlatformClick}
+          zIndexClass="z-[10030]"
         />
       )}
 
-      {statsModalOpen && <MovieStatsModal onClose={() => setStatsModalOpen(false)} />}
+      <MobileMovieStatsModal
+        isOpen={statsModalOpen}
+        onClose={() => setStatsModalOpen(false)}
+      />
+
+      <MobileMovieCatalogModal
+        isOpen={isCatalogModalOpen}
+        onClose={() => setIsCatalogModalOpen(false)}
+        movies={movies || []}
+        myLists={myLists}
+        onOpenMovieDetail={openMovieDetail}
+      />
+
+      <MobileTrackerPersonalListsModal
+        isOpen={isPersonalListsModalOpen}
+        onClose={() => setIsPersonalListsModalOpen(false)}
+        mediaType="movie"
+        myLists={myLists || []}
+        movies={movies || []}
+        onOpenMovieDetail={openMovieDetail}
+      />
 
       <MobileMovieSearchModal
         isOpen={isFilterModalOpen}
@@ -263,7 +279,7 @@ export const MobileMovieView: React.FC = () => {
         onFetchMore={fetchMoreResults}
       />
 
-      <RandomMediaModal
+      <RandomTrackerModal
         isOpen={isRandomModalOpen}
         onClose={() => setRandomModalOpen(false)}
         items={movies || []}

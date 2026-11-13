@@ -14,6 +14,7 @@ from sqlalchemy import (
     Integer,
     String,
     Text,
+    JSON,
     UniqueConstraint,
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -53,6 +54,10 @@ class TMDBSeries(Base):
     still_path: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
     last_air_date: Mapped[Optional[date]] = mapped_column(Date, nullable=True)
     vote_average: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
+    watch_providers: Mapped[Optional[list]] = mapped_column(JSON, nullable=True)
+    providers_synced_at: Mapped[Optional[datetime]] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
     
     last_sync_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
@@ -475,6 +480,13 @@ class TMDBMovie(Base):
     collection_name: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
     collection_poster_path: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
     collection_backdrop_path: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
+
+    # Piattaforme streaming TMDB in Italia (flatrate / free / ads)
+    watch_providers: Mapped[Optional[list]] = mapped_column(JSON, nullable=True)
+    providers_synced_at: Mapped[Optional[datetime]] = mapped_column(
+        DateTime(timezone=True),
+        nullable=True,
+    )
 
     last_sync_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),

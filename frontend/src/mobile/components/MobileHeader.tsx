@@ -134,16 +134,30 @@ export const MobileHeader: React.FC<MobileHeaderProps> = ({
                 <div className="flex-1" />
               </>
             ) : isTrackers ? (
-              <MobileHeaderTrackerSwitcher />
+              <>
+                <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-0">
+                  <div className="pointer-events-auto">
+                    <MobileHeaderTrackerSwitcher />
+                  </div>
+                </div>
+                <div className="flex-1" />
+              </>
             ) : isShopping || isSettings ? (
               <div className="flex-1" />
             ) : (
-              <MobileHeaderPeriodSwitcher
-                isDay={isDay}
-                isWeek={isWeek}
-                isMonth={isMonth}
-                isYear={isYear}
-              />
+              <>
+                <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-0">
+                  <div className="pointer-events-auto">
+                    <MobileHeaderPeriodSwitcher
+                      isDay={isDay}
+                      isWeek={isWeek}
+                      isMonth={isMonth}
+                      isYear={isYear}
+                    />
+                  </div>
+                </div>
+                <div className="flex-1" />
+              </>
             )}
 
             {/* 3. DESTRA: Azioni contestuali & Tasto Speed Dial (+) */}

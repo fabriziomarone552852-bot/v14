@@ -53,6 +53,7 @@ class User(Base):
     profile_picture_url: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
     default_startup_page: Mapped[Optional[str]] = mapped_column(String(50), nullable=True)
     module_preferences: Mapped[Optional[dict]] = mapped_column(JSON, nullable=True)
+    streaming_providers: Mapped[Optional[list]] = mapped_column(JSON, nullable=True)
 
     is_superuser: Mapped[bool] = mapped_column(
         Boolean,

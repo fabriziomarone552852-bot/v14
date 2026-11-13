@@ -1,6 +1,6 @@
 import React, { useRef, useEffect } from 'react';
 import type { MovieQuote } from '@/types/movies';
-import { StarRating } from '@/components/trackers/SeriesDetailModal/StarRating';
+import { StarRating } from '@/components/trackers/shared/detail/StarRating';
 import { EmptyState } from '@/components/shared/utils/EmptyState';
 import { AddButton } from '@/components/shared/utils/AddButton';
 import { TrashIcon } from '@/components/shared/utils/Icons';

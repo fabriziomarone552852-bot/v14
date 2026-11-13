@@ -27,11 +27,11 @@ export interface MobileMovieDashboardSlideProps {
   onOpenMovieDetail: (movie: MovieDetailTarget) => void;
   onOpenStats: () => void;
   onOpenCatalog: () => void;
-  onOpenPersonalLists: (list?: MediaList) => void;
+  onOpenPersonalLists: () => void;
 }
 
 export const MobileMovieDashboardSlide: React.FC<MobileMovieDashboardSlideProps> = ({
-  activePageIndex = 2,
+  activePageIndex = 1,
   className = '',
   goalPercent,
   currentMovies,
@@ -89,14 +89,14 @@ export const MobileMovieDashboardSlide: React.FC<MobileMovieDashboardSlideProps>
     <div
       className={`absolute inset-0 w-full h-full flex flex-col justify-between overflow-hidden p-2 gap-2 transition-all duration-300 ease-out ${
         className ||
-        (activePageIndex === 2
+        (activePageIndex === 1
           ? 'translate-x-0 pointer-events-auto z-10'
           : 'translate-x-full pointer-events-none z-0')
       }`}
     >
       {/* 1. OBIETTIVO ANNUALE FILM (STANDARD TRACKER GOAL BAR) */}
       <MobileTrackerGoalBar
-        title="Film guardati nell'anno"
+        title="Film visti nell'anno"
         current={currentMovies}
         goal={goal}
         goalPercent={goalPercent}
@@ -128,7 +128,6 @@ export const MobileMovieDashboardSlide: React.FC<MobileMovieDashboardSlideProps>
             posterUrl={getPoster(targetObtained)}
             title={targetObtained?.title}
             placeholderIcon={<FilmIcon className="w-5 h-5 opacity-30" />}
-            borderColorClass={lastObtained ? 'border-amber-300' : 'border-gray-200/80'}
             onClick={() => targetObtained && onOpenMovieDetail(targetObtained)}
           />
         </div>
@@ -146,10 +145,10 @@ export const MobileMovieDashboardSlide: React.FC<MobileMovieDashboardSlideProps>
 
       {/* 4. I DUE BANNER INFERIORI: I TUOI FILM E LE TUE LISTE */}
       <MobileTrackerDashboardBanners
+        mediaType="movie"
         catalogTitle="I TUOI FILM"
         catalogItems={catalogItems}
         myLists={myLists}
-        moviesForLists={movies}
         emptyCatalogMessage="Nessun film ancora a catalogo"
         emptyListsMessage="Nessuna lista creata"
         onOpenCatalog={onOpenCatalog}

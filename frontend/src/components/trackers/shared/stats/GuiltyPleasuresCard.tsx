@@ -1,5 +1,5 @@
 import React from 'react';
-import { StarRating } from '@/components/trackers/SeriesDetailModal/StarRating';
+import { StarRating } from '@/components/trackers/shared/detail/StarRating';
 import { EmptyState } from '@/components/shared/utils/EmptyState';
 
 export interface GuiltyPleasureItem {

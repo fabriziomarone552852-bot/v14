@@ -8,6 +8,17 @@ Questo file contiene lo storico completo e strutturato di tutte le funzionalità
 
 | ID | Attività / Funzionalità | Ambito | Stato Backend | Stato Frontend | Data Completamento |
 | :--- | :--- | :---: | :---: | :---: | :---: |
+| **TRACKERS-035** | Estensione Sincronizzazione Orari Cinema & Sale su Webpage Desktop (`MoviePage` & `MovieDetailModal`) | `media` / cinema | 🟢 Supportato | 🟢 Completato | Novembre 2026 |
+| **TRACKERS-036** | Estensione Pulsante & Modale Piattaforme Utente ("Le mie") nel Catalogo Desktop (Film & Serie TV) | `trackers` / UI | 🟢 Completato | 🟢 Completato | Novembre 2026 |
+| **TRACKERS-044** | Standardizzazione Suite Liste Personali Mobile (`shared/lists/`) Filtrata per Tracker & Slider Header a Doppio Livello | `trackers` / mobile | 🟢 Supportato | 🟢 Completato | Novembre 2026 |
+| **TRACKERS-043** | Rifinitura Scheda Dettaglio Film Mobile, Catalogo & Standardizzazione Recensioni (Film, Serie TV & Episodi) | `trackers` / mobile | 🟢 Supportato | 🟢 Completato | Novembre 2026 |
+| **TRACKERS-042** | Riorganizzazione Architetturale Simmetrica Trackers (`shared/`, `series/`, `movies/`), Unificazione Nomenclatura `Tracker*`/`MobileTracker*` & Pulizia Wrapper/File Morti | `trackers` / arch | 🟢 Supportato | 🟢 Completato | Novembre 2026 |
+| **TRACKERS-041** | Modale Analytics & Calendario Visioni Mobile Film, Standardizzazione Tracker, EmptyState Universali & Fix Calendario Desktop | `trackers` / stats | 🟢 Supportato | 🟢 Completato | Novembre 2026 |
+| **TRACKERS-040** | Centratura Selettore Trackers Mobile (Header Slider) e Struttura Catalogo (Pills & Griglia 3 Colonne) | `trackers` / mobile | 🟢 Supportato | 🟢 Completato | Novembre 2026 |
+| **TRACKERS-039** | Modale Piattaforma Universale (Serie TV & Film), Salvataggio DB a 0ms, Ordinamento Alfabetico A-Z & Layout Recensione Episodio Mobile | `trackers` / fullstack | 🟢 Completato | 🟢 Completato | Novembre 2026 |
+| **TRACKERS-038** | Motore Ricerca Incrociata Avanzata, Generi a 3 Stati (+/-), Multi-Selezione Anni, Reset Rapido Desktop ("X") & Scrollbar a Scomparsa | `trackers` / fullstack | 🟢 Completato | 🟢 Completato | Novembre 2026 |
+| **TRACKERS-037** | Piattaforme Streaming Utente, Fallback Home Film Mobile, Badge Contatore Cataloghi & Sync Provider Serie TV/Film | `trackers` / fullstack | 🟢 Completato | 🟢 Completato | Ottobre 2026 |
+| **TRACKERS-034** | Modulo Cinema & Orari in Sala (ComingSoon), Vetrina "Ora al Cinema", Modale Dettaglio Cinema Full-Screen & Citazioni Centrate Mobile | `trackers` / cinema | 🟢 Supportato | 🟢 Completato | Ottobre 2026 |
 | **TRACKERS-033** | Standardizzazione Mobile Film a 2 Pagine, Suite Condivisa Trackers (`shared/`), Ricerca Schermo Intero & Aggiunta Ottimistica a 0ms | `trackers` / mobile | 🟢 Supportato | 🟢 Completato | Ottobre 2026 |
 | **TRACKERS-032** | Standardizzazione Catalogo Trackers (`TrackerLibraryShell` & `TMDBMediaCard`) per Serie TV, Film e Futuri Media | `trackers` / UI | 🟢 Supportato | 🟢 Completato | Ottobre 2026 |
 | **TRACKERS-031** | Paginazione Progressiva TMDB (Superamento Limite 20 Risultati, `useInfiniteQuery` & Pulsante Centrale) | `trackers` / fullstack | 🟢 Supportato | 🟢 Completato | Ottobre 2026 |
@@ -89,6 +100,218 @@ Questo file contiene lo storico completo e strutturato di tutte le funzionalità
 ---
 
 ## 📺 1. Media & Trackers (Serie TV & Film)
+
+### [TRACKERS-035] Estensione Sincronizzazione Orari Cinema & Sale su Webpage Desktop (`MoviePage` & `MovieDetailModal`) (🟢 Completato)
+
+#### 📋 Descrizione & Obiettivo
+Estesa alla versione Webpage Desktop dei Film (`MoviePage` e `MovieDetailModal`) l'intera integrazione della programmazione cinematografica e degli orari in sala in tempo reale tramite ComingSoon:
+- **Hook Condiviso Provincia (`useCinemaProvinceSelection.ts`)**: Persistenza su `localStorage` (`vita_cinema_province`) condivisa e sincronizzata istantaneamente via custom event tra la home desktop dei film, il modale di dettaglio e la vista mobile.
+- **Carosello Continuo "In sala" nella Colonna Destra (`UpcomingMoviesWidget.tsx`, `useUpcomingMoviesCarousel.ts`, `MoviePage.tsx`)**:
+  - Visibile nella modalità con citazioni allungate (mantenendo inalterato il widget calendario nella modalità compatta) senza finestra/sfondo esterno, utilizzando esclusivamente i film non visti presenti nella libreria dell'utente (zero dati mock).
+  - **Layout Asimmetrico & Allineato**: Prima locandina ingrandita (`w-[130px]`) e successive ridotte (`w-[90px]`), tutte allineate al margine inferiore (`items-end`) e senza taglio verticale; pillola `📍 Provincia` posizionata in alto a destra nello spazio libero sopra le locandine secondarie; `EmptyState` pulito (*"Non ci sono film in sala al momento"*) quando la provincia non ha proiezioni di titoli in watchlist.
+  - **Scorrimento Continuo a Scatto & Protezione Swipe-Back**: Cambio discreto un film alla volta con ciclo continuo circolare (al clic sulla seconda locandina o su rotellina/trackpad con intercettazione dell'asse dominante) e listener `wheel` non passivo (`passive: false`) con `overscroll-x-none` per impedire il gesto "indietro" del browser durante lo scorrimento orizzontale.
+- **Scheda "Orari" nel Modale Dettaglio Film Desktop (`MovieDetailSidebar.tsx`, `MovieDetailModal.tsx`, `MovieCinemaShowtimesTab.tsx`, `useMovieUrlParams.ts`)**:
+  - Posizionata come seconda voce fissa nel menu laterale (`Panoramica`, `Orari`, `Saga`, `Recensioni & Citazioni`) e sincronizzata tramite parametri URL.
+  - Intestazione essenziale con il totale ingrandito (`X salX disponibilX`) sulla sinistra e la pillola `📍 Provincia` interattiva all'estremità destra (`ml-auto`).
+  - Elenco sale cliccabile con nome, indirizzo, badge orari ordinati cronologicamente e apertura diretta su Google Maps al clic sulla card.
+
+---
+
+### [TRACKERS-036] Estensione Pulsante & Modale Piattaforme Utente ("Le mie") nel Catalogo Desktop (Film & Serie TV) (🟢 Completato)
+
+#### 📋 Descrizione & Obiettivo
+Esteso al guscio condiviso del catalogo Web Desktop (`TrackerLibraryShell`) il supporto completo per la configurazione e consultazione istantanea delle proprie piattaforme streaming attive (`users.streaming_providers`), comune sia alla pagina **Film** (`MoviePage`) che alla pagina **Serie TV** (`TVSeriesPage`):
+- **Tasto "Piattaforme" Centrato nel Catalogo Desktop (`TrackerLibraryShell.tsx` & `UserPlatformsButton.tsx`)**:
+  - Posizionato nella barra superiore della finestra del catalogo esattamente al centro tra la barra di ricerca (a sinistra) e l'occhio di stato (a destra), dotato di logo TV, etichetta testuale e badge contatore blu con il totale delle piattaforme attive.
+  - Ancoraggio fisso del controllo di stato (`w-10`) per garantire stabilità visiva senza alcuno spostamento al passaggio del mouse sull'occhio espandibile.
+- **Modale Piattaforme Desktop a 4 Colonne (`UserStreamingProvidersModal.tsx`)**:
+  - **Barra di Ricerca Istantanea**: Campo di ricerca reattivo in alto con pulsante di pulizia rapida per trovare al volo qualsiasi piattaforma streaming italiana.
+  - **Griglia a 4 Colonne**: Layout simmetrico con logo ufficiale TMDB centrato e nome piattaforma sotto ogni icona.
+  - **Priorità & Bordo Blu per Piattaforme Attive**: Al tocco/click, salvataggio a 0ms nel profilo utente e riposizionamento automatico in cima alla griglia con bordo blu, spunta di conferma e sfondo azzurro.
+  - **Azione "Azzera" nell'Header**: Pulsante con freccia curva (`RotateCcw`, rosso con hover dedicato) posizionato in alto a destra nell'header del modale a fianco del pulsante "X" di chiusura, visibile dinamicamente solo quando ci sono piattaforme attive.
+  - **Altezza Fissa & Scrollbar Invisibile**: Altezza costante `h-[55vh]` con `content-start` (nessun rimpicciolimento durante la digitazione) e scrollbar nascosta (`no-scrollbar`).
+  - **Sfumatura Morbida Calibrata**: Velo sfumato sottile (14px) con `maskImage` e padding superiore calibrato (`pt-3.5`), che lascia le piattaforme al 100% scoperte e nitide all'apertura intervenendo solo durante lo scorrimento verso l'alto.
+
+---
+
+### [TRACKERS-044] Standardizzazione Suite Liste Personali Mobile (`shared/lists/`) Filtrata per Tracker & Slider Header a Doppio Livello (🟢 Completato)
+
+#### 📋 Descrizione & Obiettivo
+Unificata e generalizzata l'intera sezione delle Liste Personali su Mobile per funzionare in modo isolato e coerente su Serie TV, Film e futuri tracker (`TrackerMediaType`), e perfezionata la fluidità dello slider nell'header mobile:
+- **Suite Condivisa Liste Personali Mobile (`shared/lists/` & `trackerListUtils.ts`)**:
+  - Creati i mattoncini condivisi `MobileTrackerPersonalListsModal`, `MobileTrackerListOverviewCard`, `MobileTrackerSortFilterModal`, `MobileTrackerCreateListModal` e gli hook `useMobileTrackerPersonalListsLogic` e `useMobileTrackerCreateListLogic` (eliminando i 5 vecchi file esclusivi serie).
+  - Isolamento per singolo tracker (`mediaType: 'tv' | 'movie' | ...`): nella home di `trackers/film` e nel relativo modale *"Le mie liste"* vengono mostrate solo le liste che contengono film e nelle anteprime a collage compaiono solo le locandine dei film (e viceversa per le Serie TV).
+  - Sincronizzazione intelligente in modifica: salvando una lista dall'interno di un tracker vengono aggiornati gli elementi di quel tracker preservando intatti gli elementi di altri tracker eventualmente presenti nella stessa lista mista.
+  - Navigazione uniforme sul banner Dashboard *"Le tue liste"*: il tocco su qualsiasi punto del banner o sulle miniature delle liste apre sempre la panoramica *"Le mie liste"*.
+- **Slider Header Mobile a Doppio Livello & Transizione Istantanea (`MobileHeaderTrackerSwitcher`, `MobileHeaderPeriodSwitcher`, `MobileRoutes`)**:
+  - Sostituito il cambio colore singolo dei tasti con una pillola blu scorrevole GPU-accelerated (`translate3d`) dotata di maschera interna `overflow-hidden` e striscia di icone bianche contro-traslata in sincrono, lasciando le icone base sempre scure (`text-gray-600`) sulla traccia grigia ed eliminando qualsiasi ritardo di contrasto durante lo scorrimento.
+  - Importate direttamente le viste principali Trackers in `MobileRoutes.tsx` con `<Suspense>` locale in `MobileAppShell.tsx`, evitando lo smontaggio dell'header al cambio scheda.
+
+---
+
+### [TRACKERS-043] Rifinitura Scheda Dettaglio Film Mobile, Catalogo & Standardizzazione Recensioni (Film, Serie TV & Episodi) (🟢 Completato)
+
+#### 📋 Descrizione & Obiettivo
+Rifiniti tutti i componenti di interazione rapida e visualizzazione dei Film e standardizzata l'intera suite delle recensioni mobile (Film, Serie TV ed Episodi) per garantire coerenza grafica, simmetria e densità informativa:
+- **Catalogo & Dashboard Mobile Film**:
+  - Tocco sul banner Dashboard *"I tuoi film"* e sulle relative locandine esteso all'intero catalogo per una navigazione intuitiva.
+  - Uniformato in blu il badge *"Ultimo film ottenuto"* nella Dashboard (in precedenza arancione).
+  - Rimosso il pallino ridondante sull'icona di stato (occhio) nel catalogo sia per Film che per Serie TV.
+  - Risolto lo z-index del modale dettaglio film da catalogo (`z-[10030]` vs `z-[10025]`).
+- **Rifinitura Scheda Dettaglio Film Mobile**:
+  - Toggle rapido *"Visto"* sul banner accanto al titolo: pallino touch con spunta bianca su sfondo blu se visto, occhio grigio se non visto.
+  - Pulsante lista/libreria: icona liste con spunta dinamica quando il titolo è presente in una lista personale.
+  - Snellimento modale opzioni: rimossa opzione *"Rimuovi dalla libreria"* e tasto annulla inferiore superfluo.
+  - Panoramica tecnica pulita: eliminato titolo *"Trama"*, mostrato il titolo originale in corsivo solo se diverso dal titolo italiano e senza prefissi, armonizzate le informazioni tecniche (anno, durata e regia in stile desktop).
+  - Scheda Saghe ottimizzata: griglia a 3 colonne identica al catalogo, badge anno di uscita posizionato in alto a sinistra sulla locandina, eliminato titolo duplicato ed etichettatura unificata a *"Saga"*.
+  - Selettore Piattaforme Recensione (`MobileTrackerPlatformSelectModal`): opzione *"Altra piattaforma..."* in prima posizione, seguita da *"Nessuna piattaforma specificata"* (default se vuoto) e ordinamento alfabetico A-Z.
+- **Standardizzazione Recensioni Mobile (Film, Serie TV & Episodi)**:
+  - Tasto *"Nuova Recensione"* con stile `AddButton`: pulsante compatto con bordo tratteggiato e icona più posizionato nella riga del titolo *"Le mie Recensioni"* in alto a destra, eliminando il vecchio pulsante sticky a tutta larghezza in basso in `MobileMovieMyReviewsList`, `MobileSeriesMyReviewsList` e `MobileEpisodeMyReviewsList`.
+  - Layout Card Standardizzato su Due Righe:
+    - *Primo rigo*: valutazione con stelline (`StarRating`) o *"Nessun voto"*, pallino separatore (`•`), data della visione, eventuale badge riquadro della piattaforma (se specificata) e al margine destro icona della privacy affiancata dal contatore commenti.
+    - *Secondo rigo*: testo della recensione con limite massimo di due righe (`line-clamp-2`), non renderizzato quando il testo della recensione è assente.
+
+---
+
+### [TRACKERS-042] Riorganizzazione Architetturale Simmetrica Trackers (`shared/`, `series/`, `movies/`), Unificazione Nomenclatura `Tracker*`/`MobileTracker*` & Pulizia Wrapper/File Morti (🟢 Completato)
+
+#### 📋 Descrizione & Obiettivo
+Standardizzata l'organizzazione delle cartelle e la nomenclatura di tutti i componenti Trackers (sia Desktop in `src/components/trackers/` sia Mobile in `src/mobile/components/trackers/`) per garantire simmetria strutturale e immediata scalabilità verso futuri tracker (Libri, Giochi, Anime):
+- **Architettura a 3 Cartelle Simmetriche (`shared/`, `series/`, `movies/`)**:
+  - Eliminati i file sparsi nella radice di `trackers/` e suddivisi rigorosamente in tre domini speculari su Web e Mobile: `shared/` (con sottocartelle `catalog/`, `detail/`, `stats/` per i mattoncini comuni a tutti i media), `series/` (componenti esclusivi per stagioni, episodi, timeline e diario serie) e `movies/` (componenti esclusivi per saghe, cinema, orari in sala e film).
+- **Unificazione della Nomenclatura (`Tracker*` / `MobileTracker*`)**:
+  - Rinominati con prefisso neutro tutti i componenti condivisi che portavano ancora il nome storico `Series*` o `Media*`:
+    - *Mobile*: `MobileTrackerCatalogHeader`, `MobileTrackerCatalogEyeMenu`, `MobileTrackerHorizontalCard`, `MobileTrackerDetailBanner`, `MobileTrackerDetailBottomBar`, `MobileTrackerFriendsDrawer`, `MobileTrackerListsDrawer`, `MobileTrackerListManagerModal` e le 4 sezioni statistiche serie (`MobileSeriesStats*Section`).
+    - *Desktop*: `TrackerCard`, `RandomTrackerModal`, `TrackerFilterCustomSelect`, `TrackerDetailListsBar`, `TrackerDetailListsDrawer`, `TrackerDetailFriendsDrawer`, `TrackerImageModal`, `TrackerListManagerModal`, `TrackerListDetailModal`, `SeriesQuoteWidget`, `SeriesFilterModal`, `UpcomingSeriesCalendarWidget`, `SeriesOverviewTab` e le viste statistiche (`Series*StatsView`).
+- **Rimozione di 19 File tra Codice Morto e Wrapper "Passacarte"**:
+  - Eliminati 10 file non più referenziati nel progetto (`TMDBSeriesCard`, `TMDBMovieCard`, `MovieDetailFriendsDrawer`, `MovieDetailListsDrawer`, `MediaMatchModal`, `MediaSearchModal`, `SeriesStatsViews/DayCellPostersGrid`, `useMovieDetailModalLogic.ts`, `MobileEpisodeDetailModal`, `MobileMovieWatchlistSlide`).
+  - Eliminati 9 wrapper passacarte ridondanti (`TVSeriesHeader`, `MovieHeader`, `MobileTVPaginationDots`, `HighlightCardItem`, `MobileSeriesDashboardBanners`, `MobileSeriesDetailBanner`, `MobileSeriesDetailBottomBar`, `MobileSeriesFriendsDrawer`, `MobileSeriesListsDrawer`), collegando direttamente le viste e i modali ai rispettivi componenti generici in `shared/`.
+
+---
+
+### [TRACKERS-041] Modale Analytics & Calendario Visioni Mobile Film, Standardizzazione Tracker, EmptyState Universali & Fix Calendario Desktop (🟢 Completato)
+
+#### 📋 Descrizione & Obiettivo
+Completata l'esperienza di analisi dati e tracciamento visioni cinematografico su smartphone, estendendo la standardizzazione dell'architettura condivisa e perfezionando la visualizzazione sia desktop che mobile:
+- **Architettura Standardizzata & Riutilizzabile (`MobileTrackerStatsModalShell`, `MobileTrackerStatsCalendarModal`)**:
+  - Creata la shell a schermo intero condivisa per tutti i tracker (Serie TV, Film e futuri media come Libri, Anime, Giochi) con Portal, header fisso touch-friendly, titolo/badge tracker, pulsante calendario dedicato, stati unificati di caricamento ed errore e gestione gerarchica del tasto indietro Android via `useBackHandler`.
+  - Calendario visioni mensile generico con supporto completo al touch swipe verticale (scorrimento rapido dei mesi con dito in alto/basso), pulsante Undo per ripristinare il mese corrente, anno in nero scuro ad alta leggibilità, locandine a spicchi dinamici (`DayCellPostersGrid`) e dialog modale centrato touch-friendly con dettagli e voti a stella delle opere viste nel giorno selezionato.
+- **Modale Analytics Mobile Film (`MobileMovieStatsModal`)**:
+  - Esperienza a scorrimento verticale continuo suddivisa in 4 sezioni snelle e modulari:
+    1. *Panoramica* (`MobileMovieStatsOverviewSection`): 4 highlight card (Tempo Totale in giorni e ore con durata reale, Tasso di completamento, Data stimata completamento watchlist, Binge record film), riepilogo ultimi 30gg e 365gg con stile tipografico uniforme tra film e durata (entrambi in blu con unità grigia maiuscola), e monitoraggio Saghe & Collezioni (`FranchiseTrackerList`).
+    2. *Valutazioni & Voti* (`MobileMovieStatsRatingsSection`): Profilo del critico con istogramma di distribuzione voti da 1 a 10 con altezze proporzionali, Hall of Fame Top 10 con podio dorato/argento/bronzo e voti a stella, e Top Generi per voto medio.
+    3. *Abitudini di Visione* (`MobileMovieStatsHabitsSection`): Giorni della settimana completi (Lun-Dom sempre presenti anche vuoti a 0, come per i mesi), Andamento mensile interattivo con navigatore d'anno (‹ 2026 ›), obiettivo annuale film modificabile in loco con matita e salvataggio automatico via API, Top 5 Generi preferiti con barre di avanzamento e ripartizione piattaforme streaming & cinema.
+    4. *Rewatch & Fedeltà* (`MobileMovieStatsRewatchSection`): Comfort Zone film più rivisti con podio 🥇🥈🥉🛋️ e badge `xN`, Il Test del Tempo con guilty pleasures 🙈, ed Esplorazione vs Nostalgia con grafico a ciambella e confronto ore.
+- **EmptyState Universali nei Grafici & Aree Vuote (Desktop & Mobile)**:
+  - Adottato il componente standard `<EmptyState>` con messaggi chiari e icone contestuali in tutti i grafici di distribuzione voti, generi, piattaforme, classifiche, rewatch e tempo di visione, eliminando placeholder grezzi o contenitori vuoti.
+- **Risoluzione Sovrapposizione Caselle Calendario Desktop (`MediaStatsCalendarGrid`)**:
+  - Sostituite le altezze minime fisse con `gridTemplateRows: repeat(${weeks.length}, minmax(0, 1fr))` esplicito e `min-h-0 h-full` sulle celle, garantendo una suddivisione fluida e matematica dello spazio verticale del modale a 5 o 6 settimane, eliminando qualsiasi sovrapposizione o collisione tra righe e disattivando l'hover scale 2D che invadeva le caselle adiacenti.
+
+---
+
+### [TRACKERS-040] Centratura Selettore Trackers Mobile (Header Slider) e Struttura Catalogo (Pills & Griglia 3 Colonne) (🟢 Completato)
+
+#### 📋 Descrizione & Obiettivo
+Risolti i problemi di disallineamento e asimmetria orizzontale rilevati nella sezione Trackers / Serie TV su smartphone:
+- **Centratura Assoluta dello Slider Header Mobile (`MobileHeader.tsx`)**:
+  - Risolto lo sbilanciamento asimmetrico del selettore *"Serie/Film/Libri"* (`MobileHeaderTrackerSwitcher`), provocato dalla presenza di 1 solo pulsante a sinistra (hamburger) e 2 pulsanti a destra (lente e random).
+  - Il selettore centrale è ora ancorato in mezzeria assoluta (`inset-0 flex items-center justify-center pointer-events-none`), garantendo perfetto allineamento geometrico rispetto ai margini dello schermo su qualsiasi risoluzione.
+- **Centratura Pills di Sezione e Struttura Catalogo Mobile (`MobileSeriesCatalogGrid.tsx`, `MobileMovieCatalogGrid.tsx`)**:
+  - Rimossa l'asimmetria visiva laterale provocata dallo spazio riservato alla scrollbar nel contenitore del catalogo.
+  - Centrate al millimetro le pillole delle sezioni (*In visione*, *In lista*, *In attesa*, *Completate*, *Abbandonate*) con layout `w-full max-w-lg mx-auto px-3`.
+  - Struttura della griglia a 3 colonne centrata orizzontalmente nella pagina preservando il riempimento canonico dei posti da sinistra a destra (posto 1, 2, 3), mantenendo vuoti i posti 2 e 3 nel caso in cui una sezione contenga una sola serie o film.
+
+---
+
+### [TRACKERS-039] Modale Piattaforma Universale (Serie TV & Film), Salvataggio DB a 0ms, Ordinamento Alfabetico A-Z & Layout Recensione Episodio Mobile (🟢 Completato)
+
+#### 📋 Descrizione & Obiettivo
+Uniformazione, generalizzazione e riprogettazione dell'esperienza di selezione e inserimento delle piattaforme di visione tra Serie TV, Film e futuri media:
+- **Modale Universale Condiviso (`TrackerPlatformSelectModal`)**:
+  - Estrazione del componente atomico riutilizzabile su smartphone e desktop per la selezione della piattaforma di visione.
+  - Opzione *"Nessuna piattaforma specificata"*, elenco con spunta dell'opzione attiva e box *"Altra piattaforma..."*.
+  - Scrollbar resa invisibile (`hideScrollbar={true}` e utility CSS `no-scrollbar`) preservando lo scorrimento touch e rotellina mouse.
+- **Salvataggio Istantaneo nel Database (0ms Optimistic UI)**:
+  - Nuovo endpoint backend `POST /trackers/platforms` collegato a `_get_or_create_tv_platform` per memorizzare la nuova piattaforma direttamente per l'utente loggato.
+  - Mutazione React Query `createPlatform` in `useTrackersMutations.ts` con aggiornamento istantaneo a 0ms della cache in RAM (`['trackers', 'platforms']`) e rollback sicuro in caso di errore.
+- **Piattaforme 100% Comuni & Ordinamento Alfabetico (A-Z)**:
+  - Creata l'utility centrale `platformUtils.ts` (`DEFAULT_TRACKER_PLATFORMS` e `buildUnifiedPlatforms`) per gestire l'elenco unificato delle piattaforme tra Serie TV e Film senza duplicati.
+  - Ordinamento rigorosamente alfabetico A-Z integrato sia negli hook applicativi (`useEpisodeDetailLogic.ts`, `useMovieReviewTabLogic.ts`) sia all'interno del modale `TrackerPlatformSelectModal.tsx`.
+- **Riorganizzazione Layout Form Recensione Episodi (`MobileEpisodeReviewForm`)**:
+  - Barra inferiore ristrutturata a 3 colonne ordinate: Colonna 1 (Data), Colonna 2 (Piattaforma, rinominata con icona TV), Colonna 3 (Privacy).
+  - Pulsante *"Salva"* a tutta larghezza posizionato subito sotto i 3 selettori, armonizzato col modale film.
+  - Uniformato il pulsante di cancellazione data a badge circolare scuro con "X" (`w-5 h-5`) in sovrapposizione in alto a destra, identico a serie TV e film.
+
+---
+
+### [TRACKERS-038] Motore Ricerca Incrociata Avanzata, Generi a 3 Stati (+/-), Multi-Selezione Anni, Reset Rapido Desktop ("X") & Scrollbar a Scomparsa (🟢 Completato)
+
+#### 📋 Descrizione & Obiettivo
+Riprogettazione completa dell'esperienza di ricerca e filtraggio per Serie TV e Film (Web & Mobile), risolvendo il disaccoppiamento tra ricerca testuale e filtri, estendendo la multi-selezione a tutti i criteri e standardizzando la UI:
+- **Intersezione Reale Ricerca Testo + Filtri (TMDB & Catalogo Locale)**:
+  - Risolto il bug critico in `TVSeriesLibrary`, `MovieLibrary`, `MobileTVSeriesSearchModal` e `MobileMovieSearchModal` per cui la digitazione di una query testuale bypassava forzatamente tutti i filtri attivi. Ora parole chiave e filtri vengono sempre incrociati sia nella libreria personale sia nelle ricerche globali TMDB Discover/Search.
+  - Autofocus automatico all'apertura del modale di ricerca su smartphone posizionando all'istante il cursore nel campo testo.
+- **Generi a 3 Stati (+ / -) con Pulsante "Includi tutti" (O -> E)**:
+  - Selettore generi universale (`MobileGenreTriStateModalSelect` e `DesktopGenreTriStateSelect`) basato su 3 stati: `+` (Includi in blu), `-` (Escludi in azzurro chiaro) e stato neutro.
+  - Sostituzione dei caratteri testuali con icone SVG vettoriali Lucide `Plus` e `Minus` (`stroke-[3]`) perfettamente centrate al millimetro nei cerchi badge.
+  - Pulsante compatto *"Includi tutti"* posizionato sulla riga *"Genere"*: abilitato automaticamente se ci sono almeno 2 generi inclusi (grigio se disattivo = logica "O", blu se attivo = logica "E").
+- **Selezione Multipla Estesa agli Anni di Uscita (Stile DatePicker)**:
+  - Nuovo componente condiviso `TrackerMultiYearSelect` per Web e Mobile con navigazione per blocchi a 9 anni e griglia 3x3 circolare (`w-12 h-12 rounded-full`) identica al DatePicker dell'Agenda.
+  - Evidenziazione dell'anno selezionato in blu scuro e dell'anno corrente in ambra brillante.
+  - Eliminazione delle didascalie ridondanti e riassunto pulito *"X selezionati"*.
+- **Pulsanti di Reset Rapido ("X") Affiancati su Desktop**:
+  - Aggiunto il pulsante circolare rosso con la "X" (`CancelIcon`) affianco a tutti i campi di selezione desktop (Anno, Genere, Piattaforme, Stato Produzione, Saghe), consentendo di azzerare la selezione istantaneamente con un solo clic senza dover aprire il rispettivo dropdown.
+  - Rimossi i tasti superflui *"Azzera"* e *"Chiudi"* in basso dal popup dell'anno desktop.
+- **Scrollbar a Scomparsa Reattiva (`useFadeScrollbar`)**:
+  - Integrata in `SelectModalDialog` e nei dropdown desktop: la barra di scorrimento è al 100% invisibile a riposo e compare con transizione sfumata unicamente durante lo scorrimento attivo dell'utente.
+
+---
+
+### [TRACKERS-037] Piattaforme Streaming Utente, Fallback Home Film Mobile, Badge Contatore Cataloghi & Sync Provider Serie TV/Film (🟢 Completato)
+
+#### 📋 Descrizione & Obiettivo
+Gestione completa delle piattaforme streaming disponibili all'utente su Mobile, con fallback automatico nella homepage Film, sincronizzazione in background dei provider italiani per Film e Serie TV e filtri rapidi dedicati:
+- **Backend & Migrazioni Idempotenti Multi-Ambiente (`g3b4c5d6e7f8` & `h4c5d6e7f8a9`)**:
+  - Aggiunto `users.streaming_providers` (JSON) per salvare le piattaforme streaming attive di ciascun utente con aggiornamento ottimistico a 0ms via `PATCH /users/me`.
+  - Aggiunti `watch_providers` (JSON, provider italiani `flatrate`/`free`/`ads`) e `providers_synced_at` sia su `tmdb_movies` sia su `tmdb_series`, allineati su DB di test (`test-smart`) e produzione NAS (`family-smart`).
+  - Endpoint batch asincroni `POST /trackers/movies/sync-providers` e `POST /trackers/series/sync-providers` (con semaforo di concorrenza) più popolamento immediato su aggiunta/aggiornamento (`append_to_response=watch/providers`) e apertura dettaglio.
+- **Fallback Automatico Home Film Mobile (`MobileMovieStreamingFallbackView`)**:
+  - Quando nel catalogo personale non ci sono film in *"Ora al Cinema"* né in *"Prossimamente in Uscita"*, la Slide 0 mobile mostra automaticamente la vetrina rotante e la lista dei film da vedere disponibili sulle piattaforme dell'utente, con selettore piattaforme in alto a destra; se anche questa lista è vuota, ritorna in modo trasparente alla vista Cinema standard con i relativi empty state.
+- **Catalogo Film Mobile & Pulsante Piattaforme Centrato con Badge Contatore (`MobileUserPlatformsButton`)**:
+  - Integrato il modale *"I tuoi film"* (`MobileMovieCatalogModal`) e posizionato al centro esatto dell'header di entrambi i cataloghi (*"I tuoi film"* e *"Le tue serie"*) il selettore piattaforme: mostra `"Piattaforme"` quando vuoto, oppure il logo di una piattaforma casuale dell'utente accompagnato dal badge numerico con il totale delle piattaforme selezionate.
+- **Filtro "Piattaforme", Chip Rapido "Le mie" & Deduplicazione Alias (`platformFilterUtils.ts`)**:
+  - Rinominato `"Network"` in `"Piattaforme"` nei modali di ricerca/filtro mobile e introdotto il chip rapido `"Le mie"` (`MobileMyPlatformsQuickChip`) accanto all'intestazione del selettore.
+  - Risolto il filtraggio delle Serie TV trasmesse in origine su reti estere (es. *Abbott Elementary* su ABC ma distribuita su Disney+ in Italia) interrogando i `watch_providers` italiani sincronizzati automaticamente (`useAutoSyncSeriesProviders`) e unificando eventuali varianti di nome (`Disney Plus` / `Disney+`).
+
+---
+
+### [TRACKERS-034] Modulo Cinema & Orari in Sala (ComingSoon), Vetrina "Ora al Cinema", Modale Dettaglio Cinema Full-Screen & Citazioni Centrate Mobile (🟢 Completato)
+
+#### 📋 Descrizione & Obiettivo
+Integrazione completa del monitoraggio delle proiezioni cinematografiche in Italia e raffinamento dell'esperienza utente mobile per i film al cinema:
+- **Scraping Real-Time ComingSoon & Caching Backend**:
+  - Servizio backend dedicato (`backend/domains/trackers/cinema_service.py`) per 110 province italiane con estrazione di sale, orari degli spettacoli e film in programmazione odierna.
+  - Caching intelligente in memoria RAM a 0ms per azzerare la latenza e prevenire rate-limiting.
+- **Vetrina Mobile "ORA AL CINEMA" (`MobileMovieUpcomingSlide`)**:
+  - Vetrina rotante dinamica (rotazione ogni 10 secondi o swipe orizzontale) con backdrop nitido, titolo, locandina ingrandita e data di uscita pulita (`dal DD/MM`).
+  - **Filtro Istantaneo Film Visti**: esclusione immediata ed automatica di qualsiasi film contrassegnato come visto (`status === 'watched'` o `watch_count > 0`) sia dalla vetrina rotante sia dalle prossime uscite.
+  - Selettore di provincia touch-friendly con modale oscurato e persistenza locale in `localStorage`.
+- **Modale Dettaglio Cinema a Tutto Schermo (`MobileMovieCinemaDetailModal`)**:
+  - Modale full-screen dedicato conforme al design system mobile (`MobileMediaDetailBanner`):
+    - Banner superiore con immagine backdrop originale TMDB, generi in alto a sinistra, pulsante `X` per chiudere in alto a destra e titolo in basso.
+    - Scheda tecnica pulita: data di uscita in testo nero (`dal DD/MM/YYYY`) senza box o sfondi azzurri, durata, regista (`🎬 Nome Cognome` senza dicitura "Regia:") ed eliminazione dei consigliati.
+    - Cast con nomi degli attori disposti su due righe (`line-clamp-2 min-h-[26px]`) esteso a tutti i modali di dettaglio mobile (Film e Serie TV).
+    - Schede dedicate: Informazioni, Orari Cinema, Saga (condizionale su saghe TMDB), Recensioni & Citazioni.
+- **Scheda Orari Cinema & Indicazioni Dirette (`MobileCinemaShowtimesView`)**:
+  - Header compatto con contatore dinamico (`X SALE DISPONIBILI` / `1 SALA DISPONIBILE`) e pulsante provincia in stile homepage.
+  - Card dei cinema snelle: rimossi indirizzo, sale, posti e tasto biglietto; al tap in qualsiasi punto della card si apre direttamente la ricerca della sala su Google Maps.
+  - Tutti gli orari del cinema unificati e ordinati in sequenza crescente come pillole blu.
+  - Empty state pulito con icona pellicola ambra e messaggio essenziale *"Nessuno spettacolo programmato per oggi"*.
+- **Citazioni nel Modale Mobile (`MobileMovieReviewTab`)**:
+  - Tasto di aggiunta citazione standardizzato con il componente tratteggiato `<AddButton compact label="Aggiungi" />`.
+  - Nuova citazione / Modifica aperta in una finestra modale centrata a tutto schermo con backdrop oscurato (`createPortal`), textarea dedicata, pulsante Annulla con sfondo rosso e testo bianco conforme allo stile del modale webpage desktop, e supporto tasto fisico Indietro Android (`useBackHandler`).
+
+---
 
 ### [TRACKERS-033] Standardizzazione Mobile Film a 2 Pagine, Suite Condivisa Trackers (`shared/`), Ricerca Schermo Intero & Aggiunta Ottimistica a 0ms (🟢 Completato)
 

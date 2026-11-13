@@ -2,6 +2,7 @@ import React from 'react';
 import { LoadingIcon } from '@/components/shared/utils/Icons';
 import { EmptyState } from '@/components/shared/utils/EmptyState';
 import { LoadMoreButton } from './LoadMoreButton';
+import { UserPlatformsButton } from './UserPlatformsButton';
 
 export interface TrackerLibraryTab<T extends string = string> {
   id: T;
@@ -68,9 +69,9 @@ export function TrackerLibraryShell<T extends string = string>({
   return (
     <div className="xl:col-span-8 flex flex-col bg-white rounded-xl shadow-sm border border-gray-200 p-5 h-[600px] xl:h-full min-h-0 overflow-hidden relative">
       {/* Top Bar Fluttuante */}
-      <div className="absolute top-5 left-5 right-8 z-20 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pointer-events-none">
+      <div className="absolute top-5 left-5 right-8 z-20 flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-3 pointer-events-none">
         {/* Barra di Ricerca */}
-        <div className="relative w-full sm:flex-1 sm:max-w-sm pointer-events-auto">
+        <div className="relative w-full sm:w-64 md:w-80 lg:w-96 shrink-0 pointer-events-auto">
           <button
             type="button"
             onClick={onOpenFilterModal}
@@ -95,9 +96,16 @@ export function TrackerLibraryShell<T extends string = string>({
           />
         </div>
 
+        {/* Tasto Piattaforme (Centrato tra la Barra di Ricerca e l'Occhio Status) */}
+        <div className="flex-1 flex items-center justify-center pointer-events-none">
+          <div className="pointer-events-auto">
+            <UserPlatformsButton />
+          </div>
+        </div>
+
         {/* Segmented Control / Tabs di stato */}
-        <div className="flex items-center gap-3 pointer-events-auto">
-          <div className="flex items-center bg-white/95 backdrop-blur-md p-1 rounded-full border border-gray-200 shrink-0 shadow-sm group transition-all duration-300 hover:gap-1">
+        <div className="relative w-10 h-10 shrink-0 flex items-center justify-end pointer-events-auto self-end sm:self-auto">
+          <div className="absolute right-0 flex items-center bg-white/95 backdrop-blur-md p-1 rounded-full border border-gray-200 shrink-0 shadow-sm group transition-all duration-300 hover:gap-1 z-30">
             {tabs.map((tab) => {
               const isActive = activeTab === tab.id;
               return (

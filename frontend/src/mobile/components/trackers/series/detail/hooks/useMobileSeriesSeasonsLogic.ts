@@ -1,0 +1,249 @@
+// src/mobile/components/trackers/detail/hooks/useMobileSeriesSeasonsLogic.ts
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import type { TMDBSeries, UserSeriesTracking, TMDBEpisode } from '@/types/trackers';
+import { useTrackersMutations } from '@/hooks/mutations/useTrackersMutations';
+import { useSeriesExtras } from '@/hooks/queries/useTrackersQueries';
+import type { MobileWatchActionTarget } from '../MobileWatchActionDrawer';
+import { showTrackerToast } from '@/components/trackers/shared/TrackerToast';
+
+import {
+  roundRatingToHalfStar,
+  getEpisodeAverageRating,
+} from '@/utils/ratingUtils';
+
+export interface UseMobileSeriesSeasonsLogicProps {
+  tmdbSeries: TMDBSeries;
+  userTracking: UserSeriesTracking | null;
+  initialEpisode?: TMDBEpisode | null;
+  isHistoricMode?: boolean;
+}
+
+export const roundToHalfStar = roundRatingToHalfStar;
+export { getEpisodeAverageRating };
+
+export const useMobileSeriesSeasonsLogic = ({
+  tmdbSeries,
+  userTracking,
+  initialEpisode,
+  isHistoricMode = false,
+}: UseMobileSeriesSeasonsLogicProps) => {
+  const [selectedEpisode, setSelectedEpisode] = useState<TMDBEpisode | null>(initialEpisode || null);
+  const [expandedSeason, setExpandedSeason] = useState<number | null>(
+    initialEpisode ? initialEpisode.season_number : null
+  );
+  const [drawerTarget, setDrawerTarget] = useState<MobileWatchActionTarget | null>(null);
+  const [rewatchTarget, setRewatchTarget] = useState<{ episode: TMDBEpisode } | null>(null);
+
+  const { toggleEpisodeWatched, updateSeries } = useTrackersMutations();
+  const { data: extras } = useSeriesExtras(tmdbSeries.tmdb_id);
+
+  useEffect(() => {
+    if (initialEpisode) {
+      setSelectedEpisode(initialEpisode);
+      setExpandedSeason(initialEpisode.season_number);
+    }
+  }, [initialEpisode]);
+
+  const episodes = tmdbSeries.episodes || [];
+
+  // Mappa dei nomi propri delle stagioni (es. AHS: "Murder House", "Asylum", ecc.)
+  const seasonNamesMap = useMemo(() => {
+    const map: Record<number, string> = {};
+    if (extras?.seasons) {
+      extras.seasons.forEach((s) => {
+        if (s.season_number === 0) {
+          map[0] = 'Episodi Speciali';
+        } else if (s.name) {
+          map[s.season_number] = s.name;
+        }
+      });
+    }
+    return map;
+  }, [extras?.seasons]);
+
+  const getSeasonTitle = useCallback(
+    (sn: number) => {
+      if (sn === 0) return 'Episodi Speciali';
+      return seasonNamesMap[sn] || `Stagione ${sn}`;
+    },
+    [seasonNamesMap]
+  );
+
+  // Raggruppa episodi per stagione
+  const seasonsMap = useMemo(() => {
+    const map: Record<number, TMDBEpisode[]> = {};
+    episodes.forEach((ep) => {
+      if (!map[ep.season_number]) map[ep.season_number] = [];
+      map[ep.season_number].push(ep);
+    });
+    return map;
+  }, [episodes]);
+
+  const seasonsList = useMemo(() => {
+    return Object.keys(seasonsMap)
+      .map(Number)
+      .sort((a, b) => a - b);
+  }, [seasonsMap]);
+
+  // Se l'utente non ha la serie a catalogo, avviso non bloccante
+  const requireTracking = useCallback(() => {
+    if (!userTracking) {
+      showTrackerToast('Aggiungi prima la serie alla tua libreria', 'warning');
+      return false;
+    }
+    return true;
+  }, [userTracking]);
+
+  // Calcolo media delle medie per l'intera stagione
+  const getSeasonAverageRating = useCallback((seasonEpisodes: TMDBEpisode[]): number | null => {
+    let sumEpAverages = 0;
+    let ratedEpisodesCount = 0;
+    seasonEpisodes.forEach((ep) => {
+      const epAvg = getEpisodeAverageRating(ep);
+      if (epAvg !== null) {
+        sumEpAverages += epAvg;
+        ratedEpisodesCount++;
+      }
+    });
+    return ratedEpisodesCount > 0 ? roundToHalfStar(sumEpAverages / ratedEpisodesCount) : null;
+  }, []);
+
+  // Gestione tocco pallino episodio
+  const handleEpisodeCircleClick = useCallback(
+    (e: React.MouseEvent, ep: TMDBEpisode) => {
+      e.stopPropagation();
+      if (!requireTracking()) return;
+
+      const count = ep.watch_count || 0;
+      if (count === 0) {
+        toggleEpisodeWatched({ episode_id: ep.id, watched: true, is_historic: isHistoricMode });
+      } else {
+        setDrawerTarget({
+          type: 'episode',
+          id: ep.id,
+          title: ep.title || `Episodio ${ep.episode_number}`,
+          seasonNumber: ep.season_number,
+          episodeNumber: ep.episode_number,
+          watchCount: count,
+        });
+      }
+    },
+    [requireTracking, toggleEpisodeWatched, isHistoricMode]
+  );
+
+  // Gestione tocco pallino intera stagione
+  const handleSeasonCircleClick = useCallback(
+    (
+      e: React.MouseEvent,
+      seasonNumber: number,
+      seasonEpisodes: TMDBEpisode[],
+      seasonMinWatchCount: number
+    ) => {
+      e.stopPropagation();
+      if (!requireTracking()) return;
+
+      if (seasonMinWatchCount === 0) {
+        seasonEpisodes.forEach((ep) => {
+          if ((ep.watch_count || 0) === 0) {
+            toggleEpisodeWatched({ episode_id: ep.id, watched: true, is_historic: isHistoricMode });
+          }
+        });
+      } else {
+        setDrawerTarget({
+          type: 'season',
+          id: seasonNumber,
+          title: getSeasonTitle(seasonNumber),
+          seasonNumber,
+          watchCount: seasonMinWatchCount,
+        });
+      }
+    },
+    [requireTracking, toggleEpisodeWatched, getSeasonTitle, isHistoricMode]
+  );
+
+  // Esecuzione azioni dal Drawer
+  const handleDrawerAddWatch = useCallback(() => {
+    if (!drawerTarget) return;
+    if (drawerTarget.type === 'episode') {
+      const ep = episodes.find((e) => e.id === drawerTarget.id);
+      if (ep && userTracking && !userTracking.is_rewatching) {
+        setRewatchTarget({ episode: ep });
+        return;
+      }
+      toggleEpisodeWatched({ episode_id: drawerTarget.id, watched: true, is_historic: isHistoricMode });
+    } else {
+      const seasonEpisodes = seasonsMap[drawerTarget.id] || [];
+      seasonEpisodes.forEach((ep) => {
+        toggleEpisodeWatched({ episode_id: ep.id, watched: true, is_historic: isHistoricMode });
+      });
+    }
+  }, [drawerTarget, episodes, userTracking, seasonsMap, toggleEpisodeWatched, isHistoricMode]);
+
+  const handleConfirmSingleWatch = useCallback(() => {
+    if (!rewatchTarget) return;
+    toggleEpisodeWatched({ episode_id: rewatchTarget.episode.id, watched: true, is_historic: isHistoricMode });
+    setRewatchTarget(null);
+  }, [rewatchTarget, toggleEpisodeWatched, isHistoricMode]);
+
+  const handleConfirmRewatchSeries = useCallback(() => {
+    if (!rewatchTarget || !userTracking) return;
+    toggleEpisodeWatched({ episode_id: rewatchTarget.episode.id, watched: true, is_historic: isHistoricMode });
+    updateSeries({
+      id: userTracking.series_tmdb_id || tmdbSeries.tmdb_id,
+      updates: { is_rewatching: true },
+    });
+    setRewatchTarget(null);
+  }, [rewatchTarget, userTracking, tmdbSeries.tmdb_id, toggleEpisodeWatched, updateSeries, isHistoricMode]);
+
+  const handleDrawerResetWatch = useCallback(() => {
+    if (!drawerTarget) return;
+    if (drawerTarget.type === 'episode') {
+      for (let i = 0; i < drawerTarget.watchCount; i++) {
+        toggleEpisodeWatched({ episode_id: drawerTarget.id, watched: false });
+      }
+    } else {
+      const seasonEpisodes = seasonsMap[drawerTarget.id] || [];
+      seasonEpisodes.forEach((ep) => {
+        const count = ep.watch_count || 0;
+        for (let i = 0; i < count; i++) {
+          toggleEpisodeWatched({ episode_id: ep.id, watched: false });
+        }
+      });
+    }
+  }, [drawerTarget, seasonsMap, toggleEpisodeWatched]);
+
+  const handleDrawerSubWatch = useCallback(() => {
+    if (!drawerTarget) return;
+    if (drawerTarget.type === 'episode') {
+      toggleEpisodeWatched({ episode_id: drawerTarget.id, watched: false });
+    } else {
+      const seasonEpisodes = seasonsMap[drawerTarget.id] || [];
+      seasonEpisodes.forEach((ep) => {
+        toggleEpisodeWatched({ episode_id: ep.id, watched: false });
+      });
+    }
+  }, [drawerTarget, seasonsMap, toggleEpisodeWatched]);
+
+  return {
+    selectedEpisode,
+    setSelectedEpisode,
+    expandedSeason,
+    setExpandedSeason,
+    drawerTarget,
+    setDrawerTarget,
+    rewatchTarget,
+    setRewatchTarget,
+    handleConfirmSingleWatch,
+    handleConfirmRewatchSeries,
+    episodes,
+    seasonsMap,
+    seasonsList,
+    getSeasonTitle,
+    getSeasonAverageRating,
+    handleEpisodeCircleClick,
+    handleSeasonCircleClick,
+    handleDrawerAddWatch,
+    handleDrawerResetWatch,
+    handleDrawerSubWatch,
+  };
+};

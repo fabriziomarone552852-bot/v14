@@ -290,38 +290,30 @@ export const useMovieDetailModalLogic = ({
     handleToggleLibrary();
   };
 
-  // Status icon, colore e testo per il badge circolare
+  // Status icon, colore e testo per il badge circolare dello stato visto (nel banner accanto al titolo)
   let StatusIcon: React.ReactNode = null;
-  let statusColor = 'bg-gray-400';
-  let statusText = 'Non in lista';
+  let statusColor = 'bg-black/40 text-gray-300 border-white/60';
+  let statusText = 'Non visto (Tocca per segnare come visto)';
 
   if (isWatched) {
-    statusColor = 'bg-green-500';
-    statusText = 'Guardato (Clicca per segnare da vedere)';
+    statusColor = 'bg-blue-600 text-white border-white shadow-md';
+    statusText = 'Visto (Tocca per segnare come da vedere)';
     StatusIcon = (
-      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <svg className="w-3.5 h-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
       </svg>
     );
-  } else if (isTracked) {
-    statusColor = 'bg-blue-500';
-    statusText = 'In lista / Da vedere (Clicca per segnare come visto)';
+  } else {
+    statusColor = 'bg-black/40 text-gray-300 border-white/60 backdrop-blur-xs hover:border-white hover:text-white';
+    statusText = 'Non visto (Tocca per segnare come visto)';
     StatusIcon = (
-      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <svg className="w-3.5 h-3.5 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path
           strokeLinecap="round"
           strokeLinejoin="round"
           strokeWidth={2}
           d="M15 12a3 3 0 11-6 0 3 3 0 016 0z M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
         />
-      </svg>
-    );
-  } else {
-    statusColor = 'bg-gray-400';
-    statusText = 'Non in lista (Clicca per aggiungere alla lista)';
-    StatusIcon = (
-      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" />
       </svg>
     );
   }

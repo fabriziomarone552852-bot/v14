@@ -33,6 +33,13 @@ class UserCreate(StrictBaseModel):
         return str(value).strip().lower()
 
 
+class UserStreamingProvider(StrictBaseModel):
+    """TMDB streaming watch provider available to the user."""
+    provider_id: int
+    provider_name: str
+    logo_path: str | None = None
+
+
 class UserResponse(ORMBaseModel):
     """Response model for user data."""
     id: int
@@ -44,6 +51,7 @@ class UserResponse(ORMBaseModel):
     profile_picture_url: str | None = None
     default_startup_page: str | None = None
     module_preferences: dict | None = None
+    streaming_providers: list[UserStreamingProvider] | None = None
     deleted_at: datetime | None = None
 
 
@@ -66,6 +74,7 @@ class UserSettingsResponse(ORMBaseModel):
     profile_picture_url: str | None = None
     default_startup_page: str | None = None
     module_preferences: dict | None = None
+    streaming_providers: list[UserStreamingProvider] | None = None
 
 
 class UserAdminResponse(ORMBaseModel):
@@ -102,6 +111,7 @@ class UserSettingsUpdate(StrictBaseModel):
     profile_picture_url: str | None = None
     default_startup_page: str | None = None
     module_preferences: dict | None = None
+    streaming_providers: list[UserStreamingProvider] | None = None
 
     @model_validator(mode="after")
     def validate_password_change(self) -> "UserSettingsUpdate":

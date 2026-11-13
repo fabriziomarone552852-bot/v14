@@ -56,6 +56,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const lastSyncedTokenRef = useRef<string | null>(null);
 
   // L'utente è "autenticato" solo se ha un token con scope normale (non password_change)
   const isAuthenticated = !!token && !mustChangePassword;
@@ -92,6 +93,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const clearError = () => setError(null);
 
   const logout = useCallback(() => {
+    lastSyncedTokenRef.current = null;
     queryClient.clear();
     persistTokens(null, null);
     persistUser(null);
@@ -112,6 +114,25 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return () => window.removeEventListener('force-logout', handleForceLogout);
   }, [logout]);
 
+  // Allineamento silenzioso dei dati profilo utente (es. streaming_providers aggiornati su altri dispositivi)
+  useEffect(() => {
+    if (!isAuthenticated || !token) return;
+    if (lastSyncedTokenRef.current === token) return;
+    lastSyncedTokenRef.current = token;
+
+    apiClient
+      .get<UserResponse>('/users/me')
+      .then((res) => {
+        if (res.data) {
+          persistUser(res.data);
+        }
+      })
+      .catch(() => {
+        // Ignora errori silenziosi di rete in avvio (usa copia locale)
+        lastSyncedTokenRef.current = null;
+      });
+  }, [isAuthenticated, token]);
+
   const login = async (username: string, password: string) => {
     setLoading(true);
     clearError();
@@ -121,6 +142,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       localStorage.removeItem('refreshToken');
       localStorage.removeItem('user');
       localStorage.removeItem('mustChangePassword');
+      lastSyncedTokenRef.current = null;
 
       const normalizedUsername = username.trim().toLowerCase();
       const body = new URLSearchParams();
@@ -143,6 +165,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           headers: { Authorization: `Bearer ${tokenData.access_token}` },
         });
         userData = userRes.data;
+        lastSyncedTokenRef.current = tokenData.access_token;
       }
 
       // Impostiamo sia i token che lo user in modo sincrono prima dell'aggiornamento dello stato
@@ -197,6 +220,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       });
 
       const tokenData = res.data;
+      lastSyncedTokenRef.current = tokenData.access_token;
 
       persistTokens(tokenData.access_token, tokenData.refresh_token ?? null);
       persistMustChangePassword(false);

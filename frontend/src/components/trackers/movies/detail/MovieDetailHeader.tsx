@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { MoreVertical, History, PackageCheck, Package, RotateCw } from 'lucide-react';
 import type { MediaList, SeriesFriendDisplayItem } from '@/types/trackers';
 import type { MovieProvidersResponse } from '@/hooks/queries/useMovieQueries';
-import { SeriesDetailListsBar } from '@/components/trackers/SeriesDetailModal/SeriesDetailListsBar';
+import { TrackerDetailListsBar } from '@/components/trackers/shared/detail/TrackerDetailListsBar';
 
 interface MovieDetailHeaderProps {
   backdropUrl?: string | null;
@@ -278,7 +278,7 @@ export const MovieDetailHeader: React.FC<MovieDetailHeaderProps> = ({
           </div>
         )}
 
-        <SeriesDetailListsBar
+        <TrackerDetailListsBar
           lists={listsWithMovie}
           onOpenManager={onOpenListManager}
           onOpenDrawer={onOpenListDrawer}

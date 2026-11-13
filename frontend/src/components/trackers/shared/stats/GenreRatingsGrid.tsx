@@ -1,4 +1,5 @@
 import React from 'react';
+import { EmptyState } from '@/components/shared/utils/EmptyState';
 
 export interface GenreRatingItem {
   genre: string;
@@ -33,9 +34,11 @@ export const GenreRatingsGrid: React.FC<GenreRatingsGridProps> = ({
         <h3 className="text-sm sm:text-base font-extrabold text-slate-800 mb-3 border-b border-slate-100 pb-2 uppercase tracking-wider">
           {title}
         </h3>
-        <div className="flex flex-col items-center justify-center py-4 text-center text-slate-400 text-xs">
-          <span className="text-2xl not-italic mb-1">🎭</span>
-          <p>{emptyMessage}</p>
+        <div className="py-4">
+          <EmptyState
+            message={emptyMessage}
+            icon={<span className="text-2xl not-italic">🎭</span>}
+          />
         </div>
       </div>
     );

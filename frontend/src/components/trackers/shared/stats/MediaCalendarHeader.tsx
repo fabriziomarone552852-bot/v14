@@ -66,7 +66,7 @@ export const MediaCalendarHeader: React.FC<MediaCalendarHeaderProps> = ({
                 <h3 className="text-base sm:text-xl font-extrabold text-gray-800 group-hover:text-blue-600 transition-colors capitalize">
                   {monthName}
                 </h3>
-                <span className="text-xs sm:text-sm font-bold text-gray-400">
+                <span className="text-xs sm:text-sm font-black text-gray-900">
                   {year}
                 </span>
               </button>

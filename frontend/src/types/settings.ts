@@ -1,5 +1,7 @@
 // src/types/settings.ts
 
+import type { UserStreamingProvider } from './auth';
+
 export type SettingsTabId = 'profile' | 'preferences' | 'tasks' | 'integrations' | 'memory' | 'danger';
 
 export interface GoogleCalendarStatus {
@@ -21,6 +23,7 @@ export interface UserServerSettings {
   profile_picture_url: string | null;
   default_startup_page: string | null;
   module_preferences: Record<string, boolean> | null;
+  streaming_providers?: UserStreamingProvider[] | null;
 }
 
 export interface UserSettingsFormState {
@@ -39,6 +42,7 @@ export interface UserSettingsUpdatePayload {
   profile_picture_url?: string | null;
   default_startup_page?: string | null;
   module_preferences?: Record<string, boolean> | null;
+  streaming_providers?: UserStreamingProvider[] | null;
 }
 
 export interface MemoryDiagnostics {

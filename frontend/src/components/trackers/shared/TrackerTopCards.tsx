@@ -1,5 +1,5 @@
 import React from 'react';
-import { GlassCardWidget } from '../GlassCardWidget';
+import { GlassCardWidget } from './GlassCardWidget';
 
 export interface TrackerTopCardItem {
   label: string;
