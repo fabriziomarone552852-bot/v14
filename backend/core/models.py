@@ -168,6 +168,20 @@ def ensure_database_schema_compat() -> None:
             "ALTER TABLE tv_user_episode_logs ADD COLUMN IF NOT EXISTS viewing_platform_id INTEGER REFERENCES tv_user_platforms(id) ON DELETE SET NULL;",
             "CREATE INDEX IF NOT EXISTS ix_tv_user_episode_logs_viewing_platform_id ON tv_user_episode_logs(viewing_platform_id);",
             "ALTER TABLE user_series_tracking ADD COLUMN IF NOT EXISTS is_rewatching BOOLEAN NOT NULL DEFAULT FALSE;",
+            """
+            CREATE TABLE IF NOT EXISTS system_broadcasts (
+                id SERIAL PRIMARY KEY,
+                title VARCHAR(200) NOT NULL,
+                message TEXT NOT NULL,
+                level VARCHAR(50) NOT NULL DEFAULT 'WARNING',
+                show_popup BOOLEAN NOT NULL DEFAULT TRUE,
+                is_active BOOLEAN NOT NULL DEFAULT TRUE,
+                created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+                expires_at TIMESTAMP WITH TIME ZONE,
+                created_by_id INTEGER REFERENCES users(id) ON DELETE SET NULL
+            );
+            """,
+            "CREATE INDEX IF NOT EXISTS ix_system_broadcasts_is_active ON system_broadcasts(is_active);",
         ]
 
         for stmt in statements:

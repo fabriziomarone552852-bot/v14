@@ -11,6 +11,7 @@ import { ArchiveHeaderProvider } from '@/context/ArchiveHeaderContext';
 import { TailscaleGate } from '@/components/TailscaleGate';
 import AppErrorBoundary from '@/components/AppErrorBoundary';
 import AppUpdateChecker from '@/components/AppUpdateChecker';
+import { SystemBroadcastModal } from '@/components/shared/notifications/SystemBroadcastModal';
 
 function App() {
   return (
@@ -26,6 +27,7 @@ function App() {
                     <RoutineModalProvider>
                       <ShoppingModalProvider>
                         <ArchiveHeaderProvider>
+                          <SystemBroadcastModal />
                           <AppRouter />
                         </ArchiveHeaderProvider>
                       </ShoppingModalProvider>

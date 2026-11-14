@@ -14,6 +14,7 @@ from backend.domains.admin import service
 from backend.domains.categories.models import UserCategory
 from backend.domains.config.models import Config
 from backend.domains.events.models import Event
+from backend.domains.notifications import schemas as notif_schemas, service as notif_service
 from backend.domains.shopping.models.groups import ShoppingGroup, ShoppingGroupMember
 from backend.domains.tasks.models import Task
 from backend.domains.users import schemas as user_schemas
@@ -957,4 +958,48 @@ def list_admin_categories(
         )
         for c in cats
     ]
+
+
+# ---------------------------------------------------------------------------
+# AMMINISTRAZIONE: AVVISI DI SISTEMA & BROADCAST
+# ---------------------------------------------------------------------------
+
+@router.get("/broadcasts", response_model=List[notif_schemas.SystemBroadcastResponse])
+def list_admin_broadcasts(
+    db: Session = Depends(deps.get_db),
+    current_user: User = Depends(deps.require_superuser),
+):
+    """Restituisce lo storico degli avvisi broadcast di sistema."""
+    return notif_service.list_broadcasts(db)
+
+
+@router.post("/broadcasts", response_model=notif_schemas.SystemBroadcastResponse, status_code=status.HTTP_201_CREATED)
+def create_admin_broadcast(
+    payload: notif_schemas.SystemBroadcastCreate,
+    db: Session = Depends(deps.get_db),
+    current_user: User = Depends(deps.require_superuser),
+):
+    """Crea e attiva un nuovo avviso broadcast inviando pop-up e/o notifica inbox."""
+    return notif_service.create_broadcast(db, current_user, payload)
+
+
+@router.post("/broadcasts/{broadcast_id}/deactivate", response_model=notif_schemas.SystemBroadcastResponse)
+def deactivate_admin_broadcast(
+    broadcast_id: int,
+    db: Session = Depends(deps.get_db),
+    current_user: User = Depends(deps.require_superuser),
+):
+    """Disattiva un avviso broadcast attivo (es. al termine dei lavori di manutenzione)."""
+    return notif_service.deactivate_broadcast(db, broadcast_id)
+
+
+@router.delete("/broadcasts/{broadcast_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_admin_broadcast(
+    broadcast_id: int,
+    db: Session = Depends(deps.get_db),
+    current_user: User = Depends(deps.require_superuser),
+):
+    """Elimina definitivamente un avviso dallo storico."""
+    notif_service.delete_broadcast(db, broadcast_id)
+
 

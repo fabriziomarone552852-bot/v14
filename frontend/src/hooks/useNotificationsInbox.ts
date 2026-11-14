@@ -87,6 +87,10 @@ export const useNotificationsInbox = (options?: UseNotificationsInboxOptions) =>
       readInteraction.mutate(interaction.id);
     }
 
+    if (interaction.interaction_type === 'SYSTEM_ALERT') {
+      return;
+    }
+
     let message = 'Caricamento in corso...';
     if (interaction.interaction_type === 'SHOPPING_GROUP_INVITE') {
       message = 'Apertura gruppo spesa...';
