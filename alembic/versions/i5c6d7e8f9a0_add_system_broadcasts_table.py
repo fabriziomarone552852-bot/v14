@@ -1,7 +1,7 @@
 """add system_broadcasts table
 
-Revision ID: g3b4c5d6e7f8
-Revises: f2a3b4c5d6e7
+Revision ID: i5c6d7e8f9a0
+Revises: h4c5d6e7f8a9
 Create Date: 2026-11-13 23:45:00
 
 """
@@ -11,8 +11,8 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision: str = 'g3b4c5d6e7f8'
-down_revision: Union[str, None] = 'f2a3b4c5d6e7'
+revision: str = 'i5c6d7e8f9a0'
+down_revision: Union[str, None] = 'h4c5d6e7f8a9'
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
