@@ -82,7 +82,10 @@ Da qualsiasi computer, smartphone o tablet connesso alla rete locale (LAN o Wi-F
 
 ### Variabili d'Ambiente Backend (`.env.prod`)
 - `APP_ENV=prod`
-- `SECRET_KEY=DB_POOL_RECYCLE=1800DB_POOL_TIMEOUT=30DEFAULT_MAX_SUBTASK_DEPTH=3`
+- `SECRET_KEY` *(chiave segreta dedicata per la firma JWT)*
+- `DB_POOL_RECYCLE=1800`
+- `DB_POOL_TIMEOUT=30`
+- `DEFAULT_MAX_SUBTASK_DEPTH=3`
 - `ALGORITHM=HS256`
 - `ACCESS_TOKEN_EXPIRE_MINUTES=60`
 - `REFRESH_TOKEN_EXPIRE_DAYS=7`

@@ -1,7 +1,7 @@
 // frontend/src/components/dashboard/weather/WeatherAtmosphereCard.tsx
 import React, { useMemo } from 'react';
 import { useWeather } from '@/hooks/useWeather';
-import { getWeatherDescription } from '@/components/weather/WeatherIcon';
+import { getWeatherDescription } from '@/utils/weatherUtils';
 import fairytaleHill from '@/assets/fairytale-hill.svg';
 
 type WeatherAtmosphereType =

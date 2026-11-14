@@ -24,10 +24,12 @@ export const CHANGELOG_V15: ChangelogItem[] = [
     improvements: [
       'Standardizzazione Trackers & Recensioni Mobile: Pulita l\'architettura condivisa (eliminati 24 file obsoleti/wrapper), uniformato il tasto compatto "Nuova Recensione", card a due righe, form episodio a 3 colonne ed EmptyState coerenti.',
       'Rifinitura Dettaglio Film, Saghe & Catalogo Mobile: Toggle rapido "Visto" sul banner, spunta sulle liste, layout Saghe a 3 colonne, badge blu "Ultimo film ottenuto" e griglia catalogo centrata con simboli "+/-" nei generi.',
+      'Adesivo Meteo Desktop Mirato: La nuvoletta meteo fluttuante su desktop compare esclusivamente nelle pagine dell\'Agenda (Home, Giorno, Settimana, Mese, Anno).',
     ],
     fixes: [
       'Slider Header Mobile & Isolamento Liste Personali: Pillola blu GPU-accelerated con maschera a doppio livello (nessuno smontaggio dell\'header), fix apertura "Le mie liste" dal banner e isolamento dati per singolo tracker.',
       'Calendario Desktop, z-index & Stabilità Sistema: Altezza dinamica in MediaStatsCalendarGrid senza sovrapposizioni, z-index corretto per il dettaglio film mobile, fix MovieFullStats 500, rinnovo JWT e heartbeat leggero su /system/version.',
+      'Pulizia Post-Merge & Stabilità Configurazione: Rimosso endpoint duplicato per le citazioni nei Trackers, completata la tipizzazione rigorosa del modulo Meteo e della paginazione mobile, e allineate configurazioni e script di deploy Proxmox/NAS.',
     ],
   },
   {

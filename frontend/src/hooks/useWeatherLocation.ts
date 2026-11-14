@@ -1,5 +1,5 @@
 // frontend/src/hooks/useWeatherLocation.ts
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import type { WeatherLocationPreference } from '@/types/weather';
 import { useAuth } from '@/context/AuthContext';
 import { apiClient } from '@/api/client';
@@ -15,47 +15,59 @@ const DEFAULT_PREFERENCE: WeatherLocationPreference = {
   isAutoGeolocation: false,
 };
 
+const getStoredFallbackPreference = (): WeatherLocationPreference => {
+  try {
+    const stored = localStorage.getItem(STORAGE_KEY);
+    if (stored) {
+      const parsed = JSON.parse(stored) as Partial<WeatherLocationPreference>;
+      // Se era il vecchio default temporaneo 'Roma', aggiorna al default 'Foggia'
+      if (
+        parsed.cityName === 'Roma' &&
+        typeof parsed.latitude === 'number' &&
+        Math.abs(parsed.latitude - 41.9028) < 0.01
+      ) {
+        return DEFAULT_PREFERENCE;
+      }
+      return { ...DEFAULT_PREFERENCE, ...parsed };
+    }
+  } catch {
+    // ignore
+  }
+  return DEFAULT_PREFERENCE;
+};
+
 export const useWeatherLocation = () => {
   const { user, updateUser } = useAuth();
-  const hasInitializedFromUserRef = useRef(false);
+  const currentUserId = user?.id ?? null;
 
-  const [preference, setPreference] = useState<WeatherLocationPreference>(() => {
-    // 1. Prova prima dal profilo dell'utente loggato su DB
+  const [storedFallback] = useState<WeatherLocationPreference>(getStoredFallbackPreference);
+  const [overrideState, setOverrideState] = useState<{
+    userId: number | null;
+    pref: WeatherLocationPreference;
+  } | null>(null);
+
+  const dbWeatherPreference = useMemo<WeatherLocationPreference | null>(() => {
     const dbWeather = user?.module_preferences?.weather as WeatherLocationPreference | undefined;
     if (dbWeather && typeof dbWeather.latitude === 'number' && typeof dbWeather.longitude === 'number') {
       return { ...DEFAULT_PREFERENCE, ...dbWeather };
     }
+    return null;
+  }, [user?.module_preferences?.weather]);
 
-    // 2. Fallback su localStorage
-    try {
-      const stored = localStorage.getItem(STORAGE_KEY);
-      if (stored) {
-        const parsed = JSON.parse(stored);
-        // Se era il vecchio default temporaneo 'Roma', aggiorna al default 'Foggia'
-        if (parsed.cityName === 'Roma' && Math.abs(parsed.latitude - 41.9028) < 0.01) {
-          return DEFAULT_PREFERENCE;
-        }
-        return { ...DEFAULT_PREFERENCE, ...parsed };
-      }
-    } catch {
-      // ignore
+  const preference = useMemo<WeatherLocationPreference>(() => {
+    if (overrideState && overrideState.userId === currentUserId) {
+      return overrideState.pref;
     }
-    return DEFAULT_PREFERENCE;
-  });
+    return dbWeatherPreference ?? storedFallback;
+  }, [overrideState, currentUserId, dbWeatherPreference, storedFallback]);
+
+  const preferenceRef = useRef<WeatherLocationPreference>(preference);
+  useEffect(() => {
+    preferenceRef.current = preference;
+  }, [preference]);
 
   const [isDetecting, setIsDetecting] = useState<boolean>(false);
   const [geoError, setGeoError] = useState<string | null>(null);
-
-  // Allinea con il DB al caricamento dell'utente se disponibile
-  useEffect(() => {
-    if (!hasInitializedFromUserRef.current && user?.module_preferences?.weather) {
-      const dbWeather = user.module_preferences.weather as WeatherLocationPreference;
-      if (typeof dbWeather.latitude === 'number' && typeof dbWeather.longitude === 'number') {
-        hasInitializedFromUserRef.current = true;
-        setPreference((prev) => ({ ...prev, ...dbWeather }));
-      }
-    }
-  }, [user?.module_preferences?.weather]);
 
   // Sincronizza su localStorage per resilienza offline e avvio a 0ms
   useEffect(() => {
@@ -86,30 +98,30 @@ export const useWeatherLocation = () => {
   }, [user, updateUser]);
 
   const toggleEnabled = useCallback((enabled?: boolean) => {
-    setPreference((prev) => {
-      const nextPref: WeatherLocationPreference = {
-        ...prev,
-        enabled: typeof enabled === 'boolean' ? enabled : !prev.enabled,
-      };
-      saveToBackend(nextPref);
-      return nextPref;
-    });
-  }, [saveToBackend]);
+    const prev = preferenceRef.current;
+    const nextPref: WeatherLocationPreference = {
+      ...prev,
+      enabled: typeof enabled === 'boolean' ? enabled : !prev.enabled,
+    };
+    preferenceRef.current = nextPref;
+    setOverrideState({ userId: currentUserId, pref: nextPref });
+    void saveToBackend(nextPref);
+  }, [currentUserId, saveToBackend]);
 
   const setManualLocation = useCallback((cityName: string, latitude: number, longitude: number) => {
-    setPreference((prev) => {
-      const nextPref: WeatherLocationPreference = {
-        ...prev,
-        cityName,
-        latitude,
-        longitude,
-        isAutoGeolocation: false,
-      };
-      saveToBackend(nextPref);
-      return nextPref;
-    });
+    const prev = preferenceRef.current;
+    const nextPref: WeatherLocationPreference = {
+      ...prev,
+      cityName,
+      latitude,
+      longitude,
+      isAutoGeolocation: false,
+    };
+    preferenceRef.current = nextPref;
+    setOverrideState({ userId: currentUserId, pref: nextPref });
+    void saveToBackend(nextPref);
     setGeoError(null);
-  }, [saveToBackend]);
+  }, [currentUserId, saveToBackend]);
 
   const detectLocation = useCallback(() => {
     if (!navigator.geolocation) {
@@ -124,17 +136,17 @@ export const useWeatherLocation = () => {
       (pos) => {
         setIsDetecting(false);
         const { latitude, longitude } = pos.coords;
-        setPreference((prev) => {
-          const nextPref: WeatherLocationPreference = {
-            ...prev,
-            latitude,
-            longitude,
-            cityName: prev.isAutoGeolocation ? prev.cityName : 'Posizione attuale',
-            isAutoGeolocation: true,
-          };
-          saveToBackend(nextPref);
-          return nextPref;
-        });
+        const prev = preferenceRef.current;
+        const nextPref: WeatherLocationPreference = {
+          ...prev,
+          latitude,
+          longitude,
+          cityName: prev.isAutoGeolocation ? prev.cityName : 'Posizione attuale',
+          isAutoGeolocation: true,
+        };
+        preferenceRef.current = nextPref;
+        setOverrideState({ userId: currentUserId, pref: nextPref });
+        void saveToBackend(nextPref);
       },
       (err) => {
         setIsDetecting(false);
@@ -148,7 +160,7 @@ export const useWeatherLocation = () => {
       },
       { timeout: 10000, enableHighAccuracy: false }
     );
-  }, [saveToBackend]);
+  }, [currentUserId, saveToBackend]);
 
   return {
     preference,

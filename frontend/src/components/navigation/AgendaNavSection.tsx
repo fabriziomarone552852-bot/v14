@@ -8,6 +8,7 @@ import {
   CalendarYearIcon,
 } from '@/components/shared/utils/Icons';
 import { SubmenuItem } from './SubmenuItem';
+import { isAgendaRoute } from './agendaRoutes';
 
 interface AgendaNavSectionProps {
   isSidebarOpen: boolean;
@@ -22,12 +23,7 @@ export const AgendaNavSection: React.FC<AgendaNavSectionProps> = ({
   const [isHovered, setIsHovered] = useState(false);
 
   const isActive = (path: string) => location.pathname === path;
-  const isAgendaActive =
-    isActive('/') ||
-    isActive('/giorno') ||
-    isActive('/settimana') ||
-    isActive('/mese') ||
-    isActive('/anno');
+  const isAgendaActive = isAgendaRoute(location.pathname);
 
   return (
     <div

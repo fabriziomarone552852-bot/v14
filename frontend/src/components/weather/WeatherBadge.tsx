@@ -2,7 +2,8 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { useWeather } from '@/hooks/useWeather';
-import { WeatherIcon, getWeatherDescription } from './WeatherIcon';
+import { WeatherIcon } from './WeatherIcon';
+import { getWeatherDescription } from '@/utils/weatherUtils';
 import type { DailyForecast } from '@/types/weather';
 
 interface WeatherBadgeProps {

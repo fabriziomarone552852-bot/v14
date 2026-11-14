@@ -22,7 +22,10 @@ services:
       - APP_ENV=prod
       # PostgreSQL nel LXC dedicato, raggiunto tramite IP LAN (con encoding UTF8 esplicito)
       - DATABASE_URL=postgresql+psycopg://PostGre:Password-Robusta@192.168.11.15:5432/family-smart?client_encoding=utf8
-      - SECRET_KEY=DB_POOL_RECYCLE=1800DB_POOL_TIMEOUT=30DEFAULT_MAX_SUBTASK_DEPTH=3
+      - SECRET_KEY=${SECRET_KEY:-prod-secret-key-change-me-proxmox-2026-secure}
+      - DB_POOL_RECYCLE=1800
+      - DB_POOL_TIMEOUT=30
+      - DEFAULT_MAX_SUBTASK_DEPTH=3
       - ALGORITHM=HS256
       - ACCESS_TOKEN_EXPIRE_MINUTES=60
       - REFRESH_TOKEN_EXPIRE_DAYS=7

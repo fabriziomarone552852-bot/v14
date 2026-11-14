@@ -15,6 +15,7 @@ import { WeatherBadge } from '@/components/weather/WeatherBadge';
 import { SidebarItem } from './navigation/SidebarItem';
 import { AgendaNavSection } from './navigation/AgendaNavSection';
 import { TrackersNavSection } from './navigation/TrackersNavSection';
+import { isAgendaRoute } from './navigation/agendaRoutes';
 
 interface AppShellLayoutProps {
   onLogout?: () => void;
@@ -57,6 +58,7 @@ const AppShellLayout: React.FC<AppShellLayoutProps> = ({ onLogout }) => {
   const showAgenda = prefs.agenda !== false;
   const showShopping = prefs.shopping !== false;
   const showTrackers = prefs.trackers !== false;
+  const showDesktopWeatherBadge = isAgendaRoute(location.pathname);
 
   const mainNavItems = [
     { to: '/universita', label: 'Università', icon: <UniversityIcon className="w-6 h-6 shrink-0" /> },
@@ -200,13 +202,15 @@ const AppShellLayout: React.FC<AppShellLayoutProps> = ({ onLogout }) => {
 
       {/* CONTENUTO PRINCIPALE */}
       <div className="flex-1 flex flex-col overflow-hidden relative min-w-0">
-        {/* Adesivo Meteo Fluttuante in alto a sinistra (Opzione A) */}
-        <div className="absolute top-3 left-4 z-30 pointer-events-auto">
-          <WeatherBadge
-            isToday={true}
-            className="shadow-sm hover:shadow-md bg-white/95 backdrop-blur-md border-slate-200/90 hover:bg-white hover:border-blue-400 transition-all hover:scale-105"
-          />
-        </div>
+        {/* Adesivo Meteo Fluttuante in alto a sinistra solo nelle pagine Agenda (Opzione A) */}
+        {showDesktopWeatherBadge && (
+          <div className="absolute top-3 left-4 z-30 pointer-events-auto">
+            <WeatherBadge
+              isToday={true}
+              className="shadow-sm hover:shadow-md bg-white/95 backdrop-blur-md border-slate-200/90 hover:bg-white hover:border-blue-400 transition-all hover:scale-105"
+            />
+          </div>
+        )}
 
         <main className="flex-1 overflow-x-hidden overflow-y-auto p-6 relative">
           <Outlet />

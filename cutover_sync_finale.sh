@@ -23,7 +23,7 @@ echo " !! ESEGUIRE SOLO A SERVIZIO QNAP SOSPESO !!"
 echo "==========================================================="
 
 echo ""
-echo "[1/3] Dump finale dal QNAP (servizio già fermo)..."
+echo "[1/4] Dump finale dal QNAP (servizio già fermo)..."
 ssh $QNAP_USER@$QNAP_HOST "docker exec -t PostGre-Server pg_dump -U PostGre -d family-smart -F c -b -f /tmp/$DUMP_FILE"
 scp $QNAP_USER@$QNAP_HOST:/tmp/$DUMP_FILE ./$DUMP_FILE
 echo "✅ Dump finale: $DUMP_FILE ($(du -sh ./$DUMP_FILE | cut -f1))"
@@ -54,8 +54,8 @@ echo "✅ Cartella uploads allineata all'ultimo secondo"
 
 echo ""
 echo "[4/4] Allineamento schema Alembic sul nuovo backend..."
-PGPASSWORD="$PG_PASSWORD" psql -h "$PG_NEW_HOST" -U "$PG_USER" -d "$PG_DB" \
-    -c "UPDATE alembic_version SET version_num='f2a3b4c5d6e7';"
+# Non sovrascrivere alembic_version: il dump conserva la revisione reale di origine
+# e `alembic upgrade head` applica solo eventuali migrazioni mancanti fino a HEAD.
 docker exec vita_backend alembic upgrade head
 echo "✅ Schema allineato"
 
