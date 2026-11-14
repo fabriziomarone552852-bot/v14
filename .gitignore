@@ -58,7 +58,16 @@ lerna-debug.log*
 .DS_Store
 Thumbs.db
 desktop.ini
+
+# =========================
+# Build / Deploy artifacts
+# =========================
+
+*.apk
+*.aab
 *.tar
+*.tar.gz
+*.tgz
 
 # =========================
 # Runtime / temp
