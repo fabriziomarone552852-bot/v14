@@ -3,7 +3,8 @@ import React, { useState, useEffect } from 'react';
 import { useWeatherLocation } from '@/hooks/useWeatherLocation';
 import { useWeather } from '@/hooks/useWeather';
 import { weatherApi } from '@/api/weatherApi';
-import { WeatherIcon, getWeatherDescription } from '@/components/weather/WeatherIcon';
+import { WeatherIcon } from '@/components/weather/WeatherIcon';
+import { getWeatherDescription } from '@/utils/weatherUtils';
 import type { LocationSearchResult } from '@/types/weather';
 
 export const WeatherSettingsCard: React.FC = () => {
@@ -26,24 +27,42 @@ export const WeatherSettingsCard: React.FC = () => {
   useEffect(() => {
     const trimmed = searchQuery.trim();
     if (trimmed.length < 2) {
-      setSearchResults([]);
       return;
     }
 
+    let cancelled = false;
     const timer = setTimeout(async () => {
+      if (cancelled) return;
       setIsSearching(true);
       try {
         const results = await weatherApi.searchLocations(trimmed);
-        setSearchResults(results);
+        if (!cancelled) {
+          setSearchResults(results);
+        }
       } catch {
-        setSearchResults([]);
+        if (!cancelled) {
+          setSearchResults([]);
+        }
       } finally {
-        setIsSearching(false);
+        if (!cancelled) {
+          setIsSearching(false);
+        }
       }
     }, 400);
 
-    return () => clearTimeout(timer);
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+    };
   }, [searchQuery]);
+
+  const handleSearchChange = (value: string) => {
+    setSearchQuery(value);
+    if (value.trim().length < 2) {
+      setSearchResults([]);
+      setIsSearching(false);
+    }
+  };
 
   const handleSelectLocation = (loc: LocationSearchResult) => {
     setManualLocation(loc.name, loc.latitude, loc.longitude);
@@ -143,7 +162,7 @@ export const WeatherSettingsCard: React.FC = () => {
               <input
                 type="text"
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                onChange={(e) => handleSearchChange(e.target.value)}
                 placeholder="Digita il nome di una città (es. Milano, Firenze, Napoli...)"
                 className="w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-xs text-slate-800 placeholder-slate-400 focus:border-blue-500 focus:outline-none shadow-xs"
               />

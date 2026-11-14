@@ -27,6 +27,7 @@ Questo documento traccia in modo strutturato, prioritizzato e costantemente aggi
 | **FEAT-009** | Restyling & Rifinitura Grafica Schermate SuperUser (Admin Panel) | `admin` / UI | 🟢 Supportato | 🔴 Da Implementare | 🟡 **Media-Alta** |
 | **FEAT-010** | Database & Sincronizzazione Centralizzata Quotes (Citazioni del Giorno) | `core` / quotes | 🔴 Da Implementare | 🔴 Da Implementare | 🟡 **Media** |
 | **AI-001** | Studio & Integrazione Intelligenza Artificiale (Voice, Breakdown, Briefing) | `ai` / assistant | 🔴 Da Analizzare | 🔴 Da Analizzare | 🟡 **Media-Alta (Ricerca)** |
+| **FEAT-016** | Lettere al Futuro Me (Time Capsule stile FutureMe sigillate fino alla deadline) | `capsules` / personal | 🔴 Da Strutturare | 🔴 Da Implementare | 🟡 **Media** |
 | **HOME-001** | Widget Homepage Rotante (Citazione del Giorno, Oroscopo & Meteo) | `home` / UI | 🔴 Da Iniziare | 🔴 Da Iniziare | 🟡 **Media-Alta** |
 
 *Legenda Stati:*
@@ -210,7 +211,19 @@ Questo documento traccia in modo strutturato, prioritizzato e costantemente aggi
 
 ---
 
-## 🚀 8. Progetti Futuri & Idee di Roadmap
+## ✉️ 8. Capsule Temporali & Messaggi al Futuro
+
+### [FEAT-016] Lettere al Futuro Me (Time Capsule stile FutureMe)
+- **Descrizione**: Funzionalità di capsula temporale ispirata a **FutureMe** che permette all'utente di scrivere e inviare una lettera indirizzata a sé stesso nel futuro, scegliendo una data/ora di scadenza (deadline) per la consegna.
+- **Comportamento & Regole Chiave**:
+  - **Sigillo & Visibilità Zero fino alla Deadline**: Una volta inviata, la lettera **scompare dalla vista** e non è più consultabile, rileggibile né modificabile fino allo scadere della deadline impostata (il blocco deve valere sia lato UI che lato backend, evitando l'esposizione del contenuto prima della data di sblocco).
+  - **Scelta Scadenza Flessibile**: Possibilità di impostare una data precisa futura o preset rapidi (es. tra 3 mesi, 6 mesi, 1 anno, 5 anni).
+  - **Consegna & Storico Permanente**: Al raggiungimento della deadline, la lettera viene sbloccata e segnalata tramite notifica permanente nell'app, diventando leggibile nella propria raccolta di lettere ricevute.
+- **Stato**: 🔴 Da Strutturare / Da Implementare *(Desktop & Mobile — Priorità: Media)*.
+
+---
+
+## 🚀 9. Progetti Futuri & Idee di Roadmap
 
 ### 9.1 Mobile & Esperienza Utente
 - [ ] **[HOME-001] Widget Homepage Rotante (Citazione, Oroscopo & Meteo)**: Widget rotante in homepage che alterna citazione, oroscopo del giorno e meteo locale, con apertura espansa al click che mostra tutte e tre le informazioni.

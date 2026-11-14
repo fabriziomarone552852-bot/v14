@@ -37,7 +37,10 @@ docker run -d \
   -v /share/CACHEDEV1_DATA/Container/uploads:/app/uploads \
   -e DATABASE_URL="postgresql+psycopg://PostGre:Password-Robusta@PostGre-Server:5432/family-smart" \
   -e APP_ENV=prod \
-  -e SECRET_KEY="DB_POOL_RECYCLE=1800DB_POOL_TIMEOUT=30DEFAULT_MAX_SUBTASK_DEPTH=3" \
+  -e SECRET_KEY="${SECRET_KEY:-prod-secret-key-change-me-qnap-nas-2026-secure}" \
+  -e DB_POOL_RECYCLE=1800 \
+  -e DB_POOL_TIMEOUT=30 \
+  -e DEFAULT_MAX_SUBTASK_DEPTH=3 \
   -e GOOGLE_CLIENT_ID="948133104741-hsv9jk7ujtsavhq315m6j0oklcabu995.apps.googleusercontent.com" \
   -e GOOGLE_CLIENT_SECRET="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" \
   -e GOOGLE_REDIRECT_URI="https://smartagenda.tailf3b58c.ts.net/api/v1/google-calendar/callback" \

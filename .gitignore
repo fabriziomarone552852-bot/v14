@@ -4,7 +4,8 @@
 
 **/__pycache__/
 backend/*.py[cod]
-backend/.pytest_cache/
+**/.pytest_cache/
+.pytest_cache/
 backend/.mypy_cache/
 backend/.coverage
 backend/htmlcov/
@@ -57,7 +58,16 @@ lerna-debug.log*
 .DS_Store
 Thumbs.db
 desktop.ini
+
+# =========================
+# Build / Deploy artifacts
+# =========================
+
+*.apk
+*.aab
 *.tar
+*.tar.gz
+*.tgz
 
 # =========================
 # Runtime / temp
@@ -65,8 +75,12 @@ desktop.ini
 
 tmp/
 temp/
+scratch/
 uploads/
 staticfiles/
+*.db
+*.sqlite
+*.sqlite3
 
 # =========================
 # Google Drive API Secrets
