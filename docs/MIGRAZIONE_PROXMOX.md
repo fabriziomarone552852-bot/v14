@@ -66,3 +66,26 @@ Nel browser su **https://login.tailscale.com/admin/machines**:
   ```bash
   docker update --restart=no backend vxame14_frontend
   ```
+
+---
+
+## 🛡️ 8. Strategia & Pianificazione Backup Automatici (Proxmox + NAS QNAP)
+
+Per garantire la massima sicurezza dei dati (principio 3-2-1), l'infrastruttura include lo script automatizzato `auto_backup.sh`:
+- **Backup Giornaliero (`daily`)**: eseguito ogni notte, genera il dump compresso (`.json.gz`) dell'intero DB in locale (`./backups/daily/`) e lo replica istantaneamente sul NAS QNAP (`/share/CACHEDEV1_DATA/Container/backups/vita/daily/`).
+- **Backup Settimanale (`weekly`)**: eseguito ogni domenica notte, genera il dump in `./backups/weekly/`, lo replica sul NAS e sincronizza in modo incrementale anche la cartella immagini/allegati `uploads/`.
+- **Politica di Retention (Max 2 copie)**: sia per il giornaliero che per il settimanale vengono conservati unicamente il backup corrente e quello precedente (FIFO), rimuovendo automaticamente i file più vecchi per non saturare lo spazio.
+- **Creazione Difensiva delle Cartelle**: lo script crea preventivamente con `mkdir -p` sia le cartelle locali su Proxmox che quelle remote sul NAS prima di avviare il salvataggio o la sincronizzazione.
+
+### Configurazione su `crontab` dell'LXC Proxmox (`192.168.11.14`):
+```bash
+crontab -e
+```
+Aggiungere le due righe seguenti:
+```cron
+# Backup Giornaliero Vita (ogni notte alle 03:00) + replica NAS (max 2 copie)
+0 3 * * * /opt/docker-apps/vita/auto_backup.sh daily >> /var/log/vita_backup.log 2>&1
+
+# Backup Settimanale Vita + uploads (ogni domenica alle 03:30) + replica NAS (max 2 copie)
+30 3 * * 0 /opt/docker-apps/vita/auto_backup.sh weekly >> /var/log/vita_backup.log 2>&1
+```

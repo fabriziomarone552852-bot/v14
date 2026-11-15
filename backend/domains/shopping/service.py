@@ -1928,6 +1928,10 @@ def update_product(
         if existing and existing.id != product_id:
             raise HTTPException(status_code=400, detail="Esiste già un altro prodotto con questo nome nel catalogo.")
         db_product.name_normalized = normalized_name
+        # Sincronizza anche gli elementi di lista aperti con questo prodotto
+        for item in db_product.list_items:
+            if not item.is_purchased and item.deleted_at is None:
+                item.name_normalized = normalized_name
 
     db_product.updated_at = _now()
     db_product.updated_by_user_id = current_user.id

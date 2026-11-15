@@ -52,9 +52,9 @@ export const AdminDatabaseBackupsCard: React.FC<AdminDatabaseBackupsCardProps> =
         <div className="flex items-start gap-3">
           <div className="rounded-2xl bg-sky-50 p-2.5 text-xl text-sky-600">🛡️</div>
           <div>
-            <h4 className="text-sm font-bold text-slate-900">Backup & Restore Generale Database (NAS Storage)</h4>
+            <h4 className="text-sm font-bold text-slate-900">Backup & Restore Generale Database (Server Proxmox & NAS)</h4>
             <p className="text-xs text-slate-500 mt-0.5">
-              Copia di sicurezza globale compressa (<code className="text-slate-700 font-mono">.json.gz</code>) di tutte le 40 tabelle (utenti, eventi, attività, tracker, serie TV, spesa). Archiviata in modo permanente sul NAS e ripristinabile in qualsiasi momento.
+              Copia di sicurezza globale compressa (<code className="text-slate-700 font-mono">.json.gz</code>) di tutte le tabelle. Archiviazione locale su Proxmox con replica automatica sul NAS (giornaliera e settimanale, max 2 copie) e ripristino istantaneo.
             </p>
           </div>
         </div>
@@ -65,7 +65,7 @@ export const AdminDatabaseBackupsCard: React.FC<AdminDatabaseBackupsCardProps> =
             onClick={onRefreshBackups}
             disabled={loadingBackups}
             className="py-2.5 px-3 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold transition disabled:opacity-50 cursor-pointer shadow-xs"
-            title="Aggiorna lista file NAS"
+            title="Aggiorna lista backup"
           >
             {loadingBackups ? '...' : '🔄'}
           </button>
@@ -77,7 +77,7 @@ export const AdminDatabaseBackupsCard: React.FC<AdminDatabaseBackupsCardProps> =
               disabled={creatingBackup || !!restoringFile}
               className="py-2.5 px-4 rounded-xl bg-sky-600 hover:bg-sky-700 text-white text-xs font-bold transition disabled:opacity-50 cursor-pointer shadow-xs flex items-center gap-2"
             >
-              {creatingBackup ? 'Salvataggio in corso...' : '🛡️ Esegui Nuovo Backup su NAS'}
+              {creatingBackup ? 'Salvataggio in corso...' : '🛡️ Esegui Backup Manuale'}
             </button>
           ) : (
             <div className="flex items-center gap-2 bg-slate-50 p-1.5 rounded-xl border border-slate-200">
@@ -162,16 +162,16 @@ export const AdminDatabaseBackupsCard: React.FC<AdminDatabaseBackupsCardProps> =
         </div>
       )}
 
-      {/* LISTA DEI BACKUP DISPONIBILI SUL NAS */}
+      {/* LISTA DEI BACKUP DISPONIBILI SUL SERVER */}
       <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white">
         <div className="bg-slate-50/80 px-4 py-2.5 border-b border-slate-100 flex items-center justify-between text-xs font-bold text-slate-700">
-          <span>Archivio Backup su Disco NAS ({backups.length})</span>
-          <span className="text-[11px] text-slate-400 font-normal">Posizione container: /app/backups/database</span>
+          <span>Archivio Backup su Server ({backups.length})</span>
+          <span className="text-[11px] text-slate-400 font-normal">Posizione server: /app/backups (database, daily, weekly)</span>
         </div>
 
         {backups.length === 0 ? (
           <div className="p-6 text-center text-xs text-slate-400">
-            {loadingBackups ? 'Caricamento archivio in corso...' : 'Nessun backup trovato nel NAS. Crea il primo con il pulsante in alto!'}
+            {loadingBackups ? 'Caricamento archivio in corso...' : 'Nessun backup trovato sul server. Crea il primo con il pulsante in alto o attendi la pianificazione automatica!'}
           </div>
         ) : (
           <div className="divide-y divide-slate-100 max-h-72 overflow-y-auto">
@@ -181,8 +181,23 @@ export const AdminDatabaseBackupsCard: React.FC<AdminDatabaseBackupsCardProps> =
                 className="p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-slate-50/70 transition"
               >
                 <div className="space-y-0.5">
-                  <div className="font-mono text-xs font-bold text-slate-800 flex items-center gap-2">
+                  <div className="font-mono text-xs font-bold text-slate-800 flex flex-wrap items-center gap-2">
                     <span>{b.filename}</span>
+                    {b.category === 'daily' && (
+                      <span className="font-sans px-2 py-0.5 rounded-md bg-blue-50 text-blue-700 text-[10px] font-bold border border-blue-100">
+                        🗓️ Giornaliero
+                      </span>
+                    )}
+                    {b.category === 'weekly' && (
+                      <span className="font-sans px-2 py-0.5 rounded-md bg-purple-50 text-purple-700 text-[10px] font-bold border border-purple-100">
+                        📅 Settimanale
+                      </span>
+                    )}
+                    {(!b.category || b.category === 'database') && (
+                      <span className="font-sans px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 text-[10px] font-bold border border-emerald-100">
+                        🛡️ Manuale
+                      </span>
+                    )}
                     {b.note && (
                       <span className="font-sans px-2 py-0.5 rounded-md bg-sky-50 text-sky-700 text-[10px] font-semibold border border-sky-100">
                         {b.note}
@@ -226,7 +241,7 @@ export const AdminDatabaseBackupsCard: React.FC<AdminDatabaseBackupsCardProps> =
                     disabled={deletingBackup === b.filename || !!restoringFile}
                     onClick={() => onDeleteBackup(b.filename)}
                     className="p-1.5 px-2.5 rounded-lg text-rose-600 hover:bg-rose-50 text-xs font-semibold transition disabled:opacity-50"
-                    title="Elimina definitivamente dal NAS"
+                    title="Elimina definitivamente dal server"
                   >
                     {deletingBackup === b.filename ? '...' : '🗑️'}
                   </button>
