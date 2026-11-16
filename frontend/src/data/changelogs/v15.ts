@@ -3,11 +3,36 @@ import type { ChangelogItem } from './types';
 
 export const CHANGELOG_V15: ChangelogItem[] = [
   {
+    id: 'v15.4.1',
+    version: '15.4.1',
+    date: 'Novembre 2026',
+    title: 'Automazione Backup Proxmox 3-2-1 & Routing Mobile App su Rete Proxmox',
+    isLatest: true,
+    published: false,
+    highlights: [
+      'Strategia Backup 3-2-1 su Proxmox: Automazione notturna del dump DB locale persistente e replica in tempo reale sul NAS QNAP con retention FIFO rigorosa a 2 copie.',
+      'Routing & Port Forwarding Mobile App: Configurazione ponte TCP su container Tailscale Proxmox (192.168.11.16) per consentire al micro-proxy tsnet dell\'APK Android di raggiungere il container applicativo (192.168.11.14:8181).',
+    ],
+    features: [
+      'Script Unificato auto_backup.sh con sshpass: Dump giornaliero e settimanale con sincronizzazione incrementale uploads, retention automatica a 2 copie e autenticazione remota robusta verso il NAS.',
+      'Badge di Categoria in AdminPage: Visualizzazione visiva immediata dello stato dei backup (🗓️ Giornaliero, 📅 Settimanale, 🛡️ Manuale) nella plancia di ripristino.',
+      'Guida Operativa Cutover Notturno: Documentate in `docs/MIGRAZIONE_PROXMOX.md` le istruzioni operative passo-passo per il sync finale DB, switch hostname Tailscale e deployment Proxmox.',
+    ],
+    improvements: [
+      'Persistenza Volume Docker: Configurato il mount `./backups:/app/backups` in `docker-compose.proxmox.yml` per preservare l\'archivio a ogni aggiornamento dei container.',
+      'Creazione Preventiva e Difensiva: Riconoscimento e creazione automatica delle cartelle target su Proxmox e sul NAS con percorsi sicuri.',
+    ],
+    fixes: [
+      'Risolto il fallimento della sincronizzazione remota dovuto ai vincoli di autenticazione SSH non presidiata del NAS QNAP.',
+      'Risolto il mancato caricamento dati dell\'app mobile Android dovuto alla separazione di rete tra container Tailscale e container web su Proxmox.',
+    ],
+  },
+  {
     id: 'v15.4.0',
     version: '15.4.0',
     date: 'Novembre 2026',
     title: 'Centro di Comando Admin: Sanatoria Media, Abitudini, Traguardi, Categorie, Tag & Shopping',
-    isLatest: true,
+    isLatest: false,
     published: true,
     highlights: [
       'Sanatoria Media, Piattaforme & Liste Multimediali: Nuova sezione riservata SuperUser "🎬 Media & Streaming" in AdminPage per correggere refusi nelle piattaforme di visione custom, titoli/visibilità di liste personali e citazioni salvate per Serie TV e Film.',
@@ -26,7 +51,6 @@ export const CHANGELOG_V15: ChangelogItem[] = [
       'Plancia "🏷️ Anagrafiche & Cataloghi" nell\'Admin Shopping Hub: 4 viste tabellari specializzate (Articoli & Prodotti, Marche & Brand, Negozi & Punti Vendita, Liste & Gruppi Spesa) con filtri di ricerca in tempo reale ed editing in linea.',
     ],
     improvements: [
-      'Infrastruttura Backup Multi-Tier (Proxmox & NAS QNAP): Aggiornato il modulo di backup con persistenza volume `/app/backups`, supporto a sottocartelle (database, daily, weekly), retention automatica FIFO a max 2 copie, creazione difensiva cartelle e script unificato `auto_backup.sh` per la replica notturna verso il NAS.',
       'Architettura Modulare & Mazzo di Carte in RAM: Calcolo istantaneo delle relazioni (lotti registrati per brand, prodotti collegati, negozi, utilizzi categorie, visioni collegate e log abitudini) sfruttando la memoria client con azzeramento dei tempi di caricamento.',
       'Feedback Visivo & Gestione Bozze (Drafts): Evidenziazione cromatica ambra per le righe modificate, pulsanti rapidi Salva/Annulla per ogni entità e invalidazione silenziosa delle query TanStack Query.',
     ],

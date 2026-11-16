@@ -24,7 +24,6 @@ Questo documento traccia in modo strutturato, prioritizzato e costantemente aggi
 | **FEAT-011** | Sezione Lavoro & Gestione Turni di Lavoro (Punto da definire con Daniela) | `work` / shifts | 🔴 Da Definire | 🔴 Da Definire | 🟡 **Media-Alta** |
 | **FEAT-005** | Sezione Liste Tematiche & Personalizzate (Posti, Siti, Wishlist, Giochi) | `custom_lists` | 🟡 Parziale | 🟡 Parziale | 🔴 **Massima (Passo Fondamentale)** |
 | **FEAT-013** | Archivio Notifiche / Sezione Storico Notifiche Permanente | `notifications` / UI | 🟢 Completato | 🟡 Da Implementare | 🟡 **Media** |
-| **FEAT-009** | Restyling & Rifinitura Grafica Schermate SuperUser (Admin Panel) | `admin` / UI | 🟢 Supportato | 🔴 Da Implementare | 🟡 **Media-Alta** |
 | **FEAT-010** | Database & Sincronizzazione Centralizzata Quotes (Citazioni del Giorno) | `core` / quotes | 🔴 Da Implementare | 🔴 Da Implementare | 🟡 **Media** |
 | **AI-001** | Studio & Integrazione Intelligenza Artificiale (Voice, Breakdown, Briefing) | `ai` / assistant | 🔴 Da Analizzare | 🔴 Da Analizzare | 🟡 **Media-Alta (Ricerca)** |
 | **FEAT-016** | Lettere al Futuro Me (Time Capsule stile FutureMe sigillate fino alla deadline) | `capsules` / personal | 🔴 Da Strutturare | 🔴 Da Implementare | 🟡 **Media** |
@@ -44,15 +43,21 @@ Questo documento traccia in modo strutturato, prioritizzato e costantemente aggi
   - Host Proxmox: `192.168.11.19`
   - LXC App Python / Docker: `192.168.11.14:8181`
   - LXC PostgreSQL: `192.168.11.15:5432`
-  - LXC Tailscale: `192.168.11.16` (subnet routing `192.168.11.0/24`)
+  - LXC Tailscale Gateway: `192.168.11.16` (subnet routing `192.168.11.0/24`)
+- **Configurazione di Rete Cruciale per Mobile App (tsnet)**:
+  - L'APK mobile integra un micro-tunnel WireGuard autonomo (`tsnet`) che invia tutte le richieste HTTP verso `smartagenda.tailf3b58c.ts.net:8181`.
+  - Poiché su Proxmox il nodo Tailscale (`192.168.11.16`) è separato dal container web (`192.168.11.14`), sul container Tailscale `192.168.11.16` è obbligatorio il port-forwarding delle porte 8181 e 8000 verso `192.168.11.14` (tramite demone `rinetd` o `tailscale serve --bg --tcp 8181 192.168.11.14:8181`).
 - **Procedura Cutover Finale da Ricordare**:
-  1. Esecuzione di `build_all.ps1` sul PC Windows per compilare simultaneamente la Web App (`.tar`) e la Mobile App (`.apk`).
-  2. Caricamento del nuovo APK su Google Drive per consentire l'auto-aggiornamento agli utenti.
-  3. Trasferimento dei `.tar` aggiornati su Proxmox (`192.168.11.14`).
-  4. Sospensione servizio QNAP (`docker stop backend vxame14_frontend`).
-  5. Esecuzione di `cutover_sync_finale.sh` e `deploy_proxmox.sh` su Proxmox (allineamento delta DB + uploads).
-  6. Switch hostname su Tailscale (`smartagenda` -> `smartagenda-old`, `tailproxfg` -> `smartagenda`).
-  7. Dettagli e documentazione permanente in [`docs/MIGRAZIONE_PROXMOX.md`](file:///c:/Users/user/Documents/PYTHON/VxAme14/docs/MIGRAZIONE_PROXMOX.md).
+  1. **Avviso agli Utenti**: Trasmissione dell'avviso di sistema dal nuovo pannello Admin (`Avvisi & Broadcast` -> modello rapido *"🔄 Cambio Server"*) con pop-up immediato a tutti gli utenti e notifica Inbox prima di iniziare i lavori.
+  2. Esecuzione di `build_all.ps1` sul PC Windows per compilare simultaneamente la Web App (`.tar`) e la Mobile App (`.apk`).
+  3. Caricamento del nuovo APK su Google Drive per consentire l'auto-aggiornamento agli utenti.
+  4. Trasferimento dei `.tar` aggiornati su Proxmox (`192.168.11.14`).
+  5. Sospensione servizio QNAP (`docker stop backend vxame14_frontend`).
+  6. Esecuzione di `cutover_sync_finale.sh` e `deploy_proxmox.sh` su Proxmox (allineamento delta DB + uploads).
+  7. Switch hostname su Tailscale (`smartagenda` -> `smartagenda-old`, `tailproxfg` -> `smartagenda`).
+  8. Riapertura del servizio: revoca dell'avviso di trasmissione dal pannello Admin cliccando *"🛑 Termina / Rimuovi Avviso"*.
+  9. Sistema di Backup Automatico 3-2-1 (`auto_backup.sh` su cron Proxmox + replica NAS QNAP con retention max 2 copie) già collaudato ed operativo.
+  10. Dettagli e documentazione permanente in [`docs/MIGRAZIONE_PROXMOX.md`](file:///c:/Users/user/Documents/PYTHON/VxAme14/docs/MIGRAZIONE_PROXMOX.md).
 
 ---
 
@@ -181,15 +186,7 @@ Questo documento traccia in modo strutturato, prioritizzato e costantemente aggi
 
 ---
 
-## ⚙️ 6. Amministrazione, Citazioni & Sistema
-
-### [FEAT-009] Restyling & Rifinitura Grafica Schermate SuperUser (Admin Panel)
-- **Descrizione**: Rifinire, armonizzare e modernizzare visivamente tutte le schermate del pannello SuperUser Desktop (`/admin`), adattandole al design system dell'applicazione:
-  - Dashboard Amministrazione (Statistiche e KPI server).
-  - Gestione Utenti, Ruoli e Permessi.
-  - Gestione Database, Pulizia Cache e Diagnostica.
-  - Sezione Feedback, Segnalazioni e Bug Report.
-- **Stato**: Backend 🟢 Supportato | Frontend 🔴 Da Implementare *(Priorità: Media-Alta)*.
+## ⚙️ 6. Citazioni & Sistema
 
 ### [FEAT-010] Database & Sincronizzazione Centralizzata Citazioni Giornaliere (Quotes)
 - **Descrizione**: Centralizzare le citazioni giornaliere (Quotes) tramite tabella database dedicata nel backend, in modo che tutti gli utenti e dispositivi visualizzino la stessa identica citazione del giorno in modo sincronizzato e consistente.

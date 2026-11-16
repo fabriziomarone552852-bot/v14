@@ -11,7 +11,7 @@
 #  - Generazione dump compresso (.json.gz) dell'intero DB da container backend
 #  - Creazione difensiva delle cartelle target (locale e remota su NAS)
 #  - Retention FIFO rigorosa: massimo 2 copie per frequenza (corrente + precedente)
-#  - Replica automatica immediata verso il NAS QNAP
+#  - Replica automatica immediata verso il NAS QNAP con supporto sshpass
 #  - Per la frequenza 'weekly': backup speculare anche della cartella uploads/
 # ==========================================================================
 
@@ -28,11 +28,24 @@ UPLOADS_DIR="$DEPLOY_DIR/uploads"
 
 NAS_USER="${NAS_USER:-admin}"
 NAS_HOST="${NAS_HOST:-192.168.11.20}"
+NAS_PASSWORD="${NAS_PASSWORD:-bTicina60}"
 NAS_BACKUP_DIR="${NAS_BACKUP_DIR:-/share/CACHEDEV1_DATA/Container/backups/vita}"
 NAS_TARGET_DIR="$NAS_BACKUP_DIR/$FREQ"
 NAS_UPLOADS_DIR="${NAS_UPLOADS_DIR:-/share/CACHEDEV1_DATA/Container/uploads}"
 
 CONTAINER_NAME="${CONTAINER_NAME:-vita_backend}"
+
+# Configurazione comandi SSH / Rsync con supporto sshpass
+export SSHPASS="$NAS_PASSWORD"
+if command -v sshpass >/dev/null 2>&1; then
+    SSH_CMD="sshpass -e ssh -o ConnectTimeout=10 -o StrictHostKeyChecking=accept-new"
+    SCP_CMD="sshpass -e scp -o ConnectTimeout=10 -o StrictHostKeyChecking=accept-new"
+    RSYNC_SSH="sshpass -e ssh -o ConnectTimeout=10 -o StrictHostKeyChecking=accept-new"
+else
+    SSH_CMD="ssh -o BatchMode=yes -o ConnectTimeout=10 -o StrictHostKeyChecking=accept-new"
+    SCP_CMD="scp -o BatchMode=yes -o ConnectTimeout=10 -o StrictHostKeyChecking=accept-new"
+    RSYNC_SSH="ssh -o BatchMode=yes -o ConnectTimeout=10 -o StrictHostKeyChecking=accept-new"
+fi
 
 echo "==========================================================="
 echo " 🛡️ Avvio Backup Automatico Vita ($FREQ)"
@@ -48,10 +61,10 @@ echo "[1/4] Verifica e creazione cartelle target..."
 mkdir -p "$TARGET_LOCAL_DIR" "$BACKUP_DIR/database"
 echo "  → Cartella locale pronta: $TARGET_LOCAL_DIR"
 
-if ssh -o BatchMode=yes -o ConnectTimeout=5 -o StrictHostKeyChecking=accept-new "$NAS_USER@$NAS_HOST" "mkdir -p '$NAS_TARGET_DIR' '$NAS_BACKUP_DIR/database'" 2>/dev/null; then
+if $SSH_CMD "$NAS_USER@$NAS_HOST" "mkdir -p '$NAS_TARGET_DIR' '$NAS_BACKUP_DIR/database'" 2>/dev/null; then
     echo "  → Cartella remota sul NAS pronta: $NAS_TARGET_DIR"
 else
-    echo "  ⚠️ [AVVISO] NAS non raggiungibile via SSH o credenziali non configurate. Il backup locale proseguirà comunque."
+    echo "  ⚠️ [AVVISO] Connessione al NAS non riuscita. Verificare IP o installazione sshpass ('apt install -y sshpass'). Il backup locale proseguirà comunque."
 fi
 
 # ------------------------------------------------------------------
@@ -91,14 +104,14 @@ echo ""
 echo "[3/4] Sincronizzazione verso il NAS ($NAS_HOST)..."
 
 if command -v rsync >/dev/null 2>&1; then
-    if rsync -avz --delete "$TARGET_LOCAL_DIR/" "$NAS_USER@$NAS_HOST:$NAS_TARGET_DIR/" 2>/dev/null; then
+    if rsync -avz --delete -e "$RSYNC_SSH" "$TARGET_LOCAL_DIR/" "$NAS_USER@$NAS_HOST:$NAS_TARGET_DIR/" 2>/dev/null; then
         echo "✅ Sincronizzazione rsync verso $NAS_TARGET_DIR completata"
     else
-        echo "⚠️  rsync fallito, tentativo fallback via scp..."
-        scp "$TARGET_LOCAL_DIR/"*.json.gz "$NAS_USER@$NAS_HOST:$NAS_TARGET_DIR/" 2>/dev/null || echo "❌ Copia remota NAS non riuscita."
+        echo "⚠️  rsync non riuscito, tentativo fallback via scp..."
+        $SCP_CMD "$TARGET_LOCAL_DIR/"*.json.gz "$NAS_USER@$NAS_HOST:$NAS_TARGET_DIR/" 2>/dev/null && echo "✅ Copia remota SCP su NAS completata" || echo "❌ Copia remota NAS non riuscita."
     fi
 else
-    scp "$TARGET_LOCAL_DIR/"*.json.gz "$NAS_USER@$NAS_HOST:$NAS_TARGET_DIR/" 2>/dev/null || echo "❌ Copia remota NAS non riuscita."
+    $SCP_CMD "$TARGET_LOCAL_DIR/"*.json.gz "$NAS_USER@$NAS_HOST:$NAS_TARGET_DIR/" 2>/dev/null && echo "✅ Copia remota SCP su NAS completata" || echo "❌ Copia remota NAS non riuscita."
 fi
 
 # ------------------------------------------------------------------
@@ -108,8 +121,8 @@ if [ "$FREQ" = "weekly" ]; then
     echo ""
     echo "[4/4] Sincronizzazione settimanale uploads multimediali verso il NAS..."
     if [ -d "$UPLOADS_DIR" ]; then
-        ssh -o BatchMode=yes -o ConnectTimeout=5 "$NAS_USER@$NAS_HOST" "mkdir -p '$NAS_UPLOADS_DIR'" 2>/dev/null || true
-        if rsync -avz "$UPLOADS_DIR/" "$NAS_USER@$NAS_HOST:$NAS_UPLOADS_DIR/" 2>/dev/null; then
+        $SSH_CMD "$NAS_USER@$NAS_HOST" "mkdir -p '$NAS_UPLOADS_DIR'" 2>/dev/null || true
+        if rsync -avz -e "$RSYNC_SSH" "$UPLOADS_DIR/" "$NAS_USER@$NAS_HOST:$NAS_UPLOADS_DIR/" 2>/dev/null; then
             echo "✅ Cartella uploads sincronizzata sul NAS con successo"
         else
             echo "⚠️  Sincronizzazione uploads verso il NAS fallita o saltata"

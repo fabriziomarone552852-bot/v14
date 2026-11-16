@@ -55,10 +55,19 @@ bash cutover_sync_finale.sh
 bash deploy_proxmox.sh
 ```
 
-### 6. Switch Hostname su Console Tailscale (30 secondi)
-Nel browser su **https://login.tailscale.com/admin/machines**:
-1. Ridenominare il vecchio nodo QNAP da `smartagenda` a `smartagenda-old`.
-2. Ridenominare il nuovo nodo LXC da `tailproxfg` a `smartagenda`.
+### 6. Switch Hostname su Console Tailscale & Port Forwarding LXC
+1. Nel browser su **https://login.tailscale.com/admin/machines**:
+   - Ridenominare il vecchio nodo QNAP da `smartagenda` a `smartagenda-old`.
+   - Ridenominare il nuovo nodo LXC da `tailproxfg` a `smartagenda`.
+2. **Configurazione Port Forwarding sul container Tailscale (`192.168.11.16`)**:
+   L'APK mobile include al suo interno un micro-nodo Tailscale autonomo (`tsnet`) che invia il traffico a `smartagenda.tailf3b58c.ts.net:8181`. Poiché il nodo Tailscale Proxmox risiede su `192.168.11.16` mentre le app risiedono su `192.168.11.14`, sul container `192.168.11.16` è necessario inoltrare le porte verso `192.168.11.14`:
+   ```bash
+   apt-get update && apt-get install -y rinetd
+   echo "0.0.0.0 8181 192.168.11.14 8181" >> /etc/rinetd.conf
+   echo "0.0.0.0 8000 192.168.11.14 8000" >> /etc/rinetd.conf
+   systemctl restart rinetd && systemctl enable rinetd
+   ```
+   *(Oppure nativamente via Tailscale: `tailscale serve --bg --tcp 8181 192.168.11.14:8181`)*
 
 ### 7. Fine Fermo & Verifica
 * Aprire l'app mobile sullo smartphone: si collegherà automaticamente al nuovo server.
