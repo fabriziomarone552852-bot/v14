@@ -15,6 +15,7 @@ BACKEND_TAR="$DEPLOY_DIR/vxame14_backend.tar"
 FRONTEND_TAR="$DEPLOY_DIR/vxame14_frontend.tar"
 COMPOSE_FILE="$DEPLOY_DIR/docker-compose.proxmox.yml"
 UPLOADS_DIR="$DEPLOY_DIR/uploads"
+BACKUPS_DIR="$DEPLOY_DIR/backups"
 
 echo "==========================================================="
 echo " 🚀 Deployment Vita (VxAme14) su Proxmox"
@@ -40,9 +41,11 @@ if [ ! -f "$FRONTEND_TAR" ]; then
     exit 1
 fi
 
-# Crea la cartella uploads se non esiste
+# Crea la cartella uploads e la struttura completa backups (database, daily, weekly) se non esistono
 mkdir -p "$UPLOADS_DIR"
-echo "✅ Prerequisiti OK — cartella uploads: $UPLOADS_DIR"
+mkdir -p "$BACKUPS_DIR/database" "$BACKUPS_DIR/daily" "$BACKUPS_DIR/weekly"
+chmod +x "$DEPLOY_DIR/auto_backup.sh" 2>/dev/null || true
+echo "✅ Prerequisiti OK — cartelle uploads e backups pronte"
 
 # ------------------------------------------------------------------
 # [2/5] Caricamento immagini Docker

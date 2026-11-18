@@ -38,6 +38,8 @@ services:
     volumes:
       # Volume persistente per le immagini e allegati caricati
       - ./uploads:/app/uploads
+      # Volume persistente per l'archivio dei backup del database (database, daily, weekly)
+      - ./backups:/app/backups
     ports:
       - "8000:8000"
     networks:

@@ -14,6 +14,9 @@ import { AdminUsersSection } from '@/components/admin/AdminUsersSection';
 import { AdminShoppingHubSection } from '@/components/admin/AdminShoppingHubSection';
 import { AdminEventsDataGridSection } from '@/components/admin/events/AdminEventsDataGridSection';
 import { AdminTasksDataGridSection } from '@/components/admin/tasks/AdminTasksDataGridSection';
+import { AdminCategoriesSection } from '@/components/admin/categories/AdminCategoriesSection';
+import { AdminHabitsGoalsSection } from '@/components/admin/habits_goals/AdminHabitsGoalsSection';
+import { AdminMediaSection } from '@/components/admin/media/AdminMediaSection';
 import { AdminConfigSection } from '@/components/admin/AdminConfigSection';
 import { AdminCodesSection } from '@/components/admin/AdminCodesSection';
 import { AdminMaintenanceSection } from '@/components/admin/AdminMaintenanceSection';
@@ -27,6 +30,9 @@ type AdminTab =
   | 'shopping'
   | 'events'
   | 'tasks'
+  | 'categories'
+  | 'habits-goals'
+  | 'media'
   | 'config'
   | 'codes'
   | 'broadcast'
@@ -159,6 +165,9 @@ const AdminPage: React.FC = () => {
           { id: 'shopping', label: 'Spesa', icon: '🛒', count: undefined, color: 'emerald' },
           { id: 'events', label: 'Eventi', icon: '📅', count: undefined, color: 'violet' },
           { id: 'tasks', label: 'Attività', icon: '✅', count: undefined, color: 'amber' },
+          { id: 'categories', label: 'Categorie & Tag', icon: '🏷️', count: undefined, color: 'violet' },
+          { id: 'habits-goals', label: 'Abitudini & Traguardi', icon: '🎯', count: undefined, color: 'amber' },
+          { id: 'media', label: 'Media & Streaming', icon: '🎬', count: undefined, color: 'violet' },
           { id: 'config', label: 'Parametri', icon: '⚙️', count: configs.length, color: 'sky' },
           { id: 'codes', label: 'Vocabolari', icon: '🏷️', count: codes.length, color: 'sky' },
           { id: 'broadcast', label: 'Avvisi & Broadcast', icon: '📢', count: undefined, color: 'amber' },
@@ -214,6 +223,9 @@ const AdminPage: React.FC = () => {
           {activeTab === 'shopping' && <AdminShoppingHubSection />}
           {activeTab === 'events' && <AdminEventsDataGridSection />}
           {activeTab === 'tasks' && <AdminTasksDataGridSection />}
+          {activeTab === 'categories' && <AdminCategoriesSection />}
+          {activeTab === 'habits-goals' && <AdminHabitsGoalsSection />}
+          {activeTab === 'media' && <AdminMediaSection />}
           {activeTab === 'config' && <AdminConfigSection configs={configs} onRefresh={loadData} />}
           {activeTab === 'codes' && <AdminCodesSection codes={codes} onRefresh={loadData} />}
           {activeTab === 'broadcast' && <AdminBroadcastSection />}

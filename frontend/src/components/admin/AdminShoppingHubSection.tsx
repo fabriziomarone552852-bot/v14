@@ -3,8 +3,9 @@ import React, { useState } from 'react';
 import { AdminReceiptQuickEntrySection } from './AdminReceiptQuickEntrySection';
 import { AdminShoppingDataGridSection } from './shopping/AdminShoppingDataGridSection';
 import { AdminShoppingMergeProductsSection } from './shopping/AdminShoppingMergeProductsSection';
+import { AdminShoppingEntitiesSection } from './shopping/entities/AdminShoppingEntitiesSection';
 
-export type AdminShoppingSubTab = 'receipts' | 'data-grid' | 'merge-products';
+export type AdminShoppingSubTab = 'receipts' | 'data-grid' | 'merge-products' | 'entities';
 
 export const AdminShoppingHubSection: React.FC = () => {
   const [activeSubTab, setActiveSubTab] = useState<AdminShoppingSubTab>('receipts');
@@ -24,6 +25,11 @@ export const AdminShoppingHubSection: React.FC = () => {
       id: 'merge-products' as AdminShoppingSubTab,
       label: 'Unione Prodotti Duplicati',
       icon: '🔀',
+    },
+    {
+      id: 'entities' as AdminShoppingSubTab,
+      label: 'Anagrafiche & Cataloghi',
+      icon: '🏷️',
     },
   ];
 
@@ -56,6 +62,7 @@ export const AdminShoppingHubSection: React.FC = () => {
         {activeSubTab === 'receipts' && <AdminReceiptQuickEntrySection />}
         {activeSubTab === 'data-grid' && <AdminShoppingDataGridSection />}
         {activeSubTab === 'merge-products' && <AdminShoppingMergeProductsSection />}
+        {activeSubTab === 'entities' && <AdminShoppingEntitiesSection />}
       </div>
     </div>
   );

@@ -8,6 +8,8 @@ Questo file contiene lo storico completo e strutturato di tutte le funzionalità
 
 | ID | Attività / Funzionalità | Ambito | Stato Backend | Stato Frontend | Data Completamento |
 | :--- | :--- | :---: | :---: | :---: | :---: |
+| **BROADCAST-001** | Servizio Messaggistica Broadcast & Avvisi di Sistema (Pop-up Istantaneo Globale, Scheda Admin Riservata `Avvisi & Broadcast`, Modelli Rapidi, Heartbeat Polling 15s & Notifiche Inbox Permanenti) | `admin` / notifications | 🟢 Completato | 🟢 Completato | Novembre 2026 |
+| **ADMIN-001** | Centro di Comando Admin / Zero-pgAdmin Console (Sanatoria & Editing Dati Multi-Dominio: Shopping Anagrafiche, Categorie & Tag, Abitudini & Traguardi, Media & Trackers) | `admin` / fullstack | 🟢 Completato | 🟢 Completato | Novembre 2026 |
 | **WEATHER-001** | Integrazione Previsioni Meteo MET Norway (Proxy Backend, Finestra Dinamica HomePage, Adesivi Desktop & Mobile con Long Press 600ms, Impostazioni GPS/Città) | `weather` / fullstack | 🟢 Completato | 🟢 Completato | Novembre 2026 |
 | **TRACKERS-025** | Ricerca & Filtro Multi-Persona (`AND`/`OR`) per Attori / Registi / Creatori (Film & Serie TV, Web & Mobile), Scheda Persona Cliccabile & Modali Dettaglio Film | `trackers` / fullstack | 🟢 Completato | 🟢 Completato | Novembre 2026 |
 | **SHOPPING-021** | Risoluzione Errore 500 Unione Prodotti Spesa (Admin Shopping) & Gestione `passive_deletes` Foreign Key | `shopping` / admin | 🟢 Completato | 🟢 Supportato | Novembre 2026 |
@@ -84,6 +86,7 @@ Questo file contiene lo storico completo e strutturato di tutte le funzionalità
 | **SEED-001** | Pulizia Dati Seed Prodotti (Disaccoppiamento Brand e Catalogo Asettico) | `shopping` / seed | 🟢 Completato | 🟢 Completato | Ottobre 2026 |
 | **SEED-002** | Snapshot & Dump Completo Seeds CSV (7 file, N:N Brand, Precisione Decimali) | `admin` / seeds | 🟢 Completato | 🟢 Completato | Ottobre 2026 |
 | **BACKUP-001** | Backup & Restore Generale Database su NAS Storage (40 tabelle, JSON.GZ) | `admin` / backup | 🟢 Completato | 🟢 Completato | Ottobre 2026 |
+| **BACKUP-002** | Strategia 3-2-1: Backup Automatico Proxmox, Retention FIFO (Max 2 copie) e Replica NAS QNAP | `admin` / backup | 🟢 Completato | 🟢 Completato | Novembre 2026 |
 | **CORE-001** | Refactoring Globale & Pulizia Architetturale (0 any, 19 domini) | `core` / arch | 🟢 Completato | 🟢 Completato | Ottobre 2026 |
 | **CORE-002** | Refactoring Continuo, Modularità & Cleanup Codice (File <300 righe) | `core` / arch | 🟢 Completato | 🟢 Completato | Ottobre 2026 |
 | **REBRAND-001** | Rebranding App con Nome "Vita" e Nuova Icona Applicazione | `brand` / UI | 🟢 Completato | 🟢 Completato | Ottobre 2026 |
@@ -102,7 +105,60 @@ Questo file contiene lo storico completo e strutturato di tutte le funzionalità
 
 ---
 
-## 🌤️ 0. Meteo & Servizi Ambientali
+## 🛡️ 0. Amministrazione, Sanatoria & Data Management
+
+### [BROADCAST-001] Servizio Messaggistica Broadcast & Avvisi di Sistema (🟢 Completato)
+
+#### 📋 Descrizione & Obiettivo
+Integrazione di un sistema completo di messaggistica di emergenza e avvisi di servizio gestibile direttamente dalla pagina riservata dell'amministratore/SuperUser (`/admin`), pensato specificamente per annunciare interruzioni temporanee per manutenzione del database, riavvio dei container o migrazione verso un nuovo server Proxmox:
+- **Pannello Admin Dedicato (`AdminBroadcastSection.tsx` & `useAdminBroadcastLogic.ts`)**:
+  - Nuova scheda orizzontale `📢 Avvisi & Broadcast` nella pagina `/admin`.
+  - Box di stato live con indicatore animato `🟢 IN TRASMISSIONE`, anteprima reale del messaggio e pulsante con un solo click **«🛑 Termina / Rimuovi Avviso»** per revocare all'istante l'avviso una volta terminati i lavori di manutenzione.
+  - Modelli rapidi preconfigurati (One-Click Presets): *"🔄 Cambio Server"*, *"🛠️ Manutenzione (20m)"*, *"⚡ Riavvio Rapido (5m)"*.
+  - Scelta del livello di gravità (*Info* ℹ️, *Allerta* ⚠️, *Critico* 🛑) e selezione dei canali di diffusione (*Pop-up immediato* e *Notifica Inbox permanente*).
+  - Storico consultabile degli avvisi trasmessi con data, autore e possibilità di eliminazione definitiva.
+- **Finestra Pop-up Globale Intelligente (`SystemBroadcastModal.tsx` & `useSystemBroadcast.ts`)**:
+  - Finestra modale centrata responsive in primo piano con sfondo oscurato e sfocato (`backdrop-blur-xs`), visibile sia da desktop che da smartphone.
+  - Ricezione sia all'avvio dell'app che istantanea durante la normale navigazione tramite heartbeat polling ultraleggero a 15s via TanStack Query.
+  - Pulsante *"✓ Ho capito, chiudi"* che memorizza la presa visione in locale (evitando che il pop-up ricompaia ai successivi cambi pagina per lo stesso avviso).
+  - Pieno supporto tastiera (tasto `Escape`) e integrazione nativa con il tasto Indietro su Android (`useBackHandler`).
+- **Canale Inbox & Allineamento Notifiche (`SYSTEM_ALERT`)**:
+  - Recapito massivo opzionale di un record permanente di interazione (`SYSTEM_ALERT`) nell'Inbox di tutti gli utenti registrati.
+  - Badge dedicato ambrato *"📢 Avviso di Sistema"* nel cassetto notifiche con marcatura automatica come letto al click.
+- **Database, Idempotenza & Multi-Ambiente**:
+  - Nuova tabella `system_broadcasts` con migrazione Alembic difensiva `g3b4c5d6e7f8` applicata e allineata con successo sia sull'ambiente di test che su produzione NAS (`family-smart` su `192.168.11.20`) e nuovo server Proxmox (`192.168.11.15`).
+  - Fallback idempotente `CREATE TABLE IF NOT EXISTS system_broadcasts` integrato in `ensure_database_schema_compat()`.
+
+### [ADMIN-001] Centro di Comando Admin / Zero-pgAdmin Console (Sanatoria & Editing Dati Multi-Dominio) (🟢 Completato)
+
+#### 📋 Descrizione & Obiettivo
+Creazione di una plancia di comando integrata riservata all'Admin/SuperUser (SU) che consente di correggere qualsiasi errore, refuso o incongruenza immesso o segnalato dagli utenti su tutte le tabelle ed entità chiave dell'applicazione, senza dover mai aprire strumenti client SQL esterni (DBeaver, pgAdmin) sul database reale ("Zero-pgAdmin Policy"):
+- **Step 0 — Anagrafiche & Cataloghi Shopping (`AdminShoppingHubSection.tsx` & `components/admin/shopping/entities/`)**:
+  - Nuova tab "Anagrafiche & Cataloghi" con 4 viste tabellari specializzate: Articoli/Prodotti, Marche/Brand, Negozi/Fornitori e Liste/Gruppi Spesa.
+  - Endpoint `PATCH /api/v1/shopping/products/{id}` per correggere il nome o descrizione dell'articolo a catalogo con aggiornamento automatico e sincronizzazione immediata di tutti i riferimenti negli item delle liste attive.
+  - Editing in linea e cancellazione protetta per marche e fornitori con ricalcolo utilizzi in tempo reale.
+- **Step 1 — Categorie & Tag Utente (`AdminCategoriesSection.tsx` & `components/admin/categories/`)**:
+  - Nuova 5ª scheda in AdminPage per la revisione centralizzata di categorie agenda, tag ed etichette (`user_categories`).
+  - Endpoint `PATCH /api/v1/admin/categories/{id}` e `DELETE /api/v1/admin/categories/{id}` protetti per SuperUser.
+  - Disaccoppiamento sicuro con `SET NULL` di task ed eventi associati alla categoria prima dell'eliminazione per preservare l'integrità referenziale.
+  - Color picker integrato, filtro per utente e selezione rapida per ambito (Comune, Attività, Eventi, Tag, Umore).
+- **Step 2 — Abitudini, Routine & Traguardi (`AdminHabitsGoalsSection.tsx` & `components/admin/habits_goals/`)**:
+  - Nuova 6ª scheda in AdminPage per la gestione tabellare di Abitudini (`tipo = 'A'`), Routine (`tipo = 'R'`) e Conti alla Rovescia (`countdowns`).
+  - Endpoint `GET`, `PATCH` e `DELETE` dedicati in `/api/v1/admin/habits` e `/api/v1/admin/countdowns`.
+  - Calcolo relazionale dei log eseguiti (`logs_count` da `habit_log`) e periodi associati (`habit_period`).
+  - Modifica rapida in linea di titoli, tipologie, target, regole di ricorrenza (`rrule`), date obiettivo e stati (`active`/`closed`).
+- **Step 3 — Trackers Media & Piattaforme Streaming (`AdminMediaSection.tsx` & `components/admin/media/`)**:
+  - Nuova 7ª scheda in AdminPage per i trackers multimediali: Piattaforme di Visione Custom (`tv_user_platforms`), Liste Multimediali (`media_lists`) e Citazioni TV/Film (`tracker_tv_quotes` & `tracker_movie_quotes`).
+  - Endpoint `GET`, `PATCH` e `DELETE` dedicati in `/api/v1/admin/media/platforms`, `/api/v1/admin/media/lists` e `/api/v1/admin/media/quotes`.
+  - Conteggio visioni collegate su episodi e film con disaccoppiamento sicuro `SET NULL`, gestione visibilità liste e rettifica testi citazioni.
+- **Principi Architetturali Rispettati**:
+  - Calcoli e filtri incrociati in RAM client a 0ms ("Regola del Mazzo di Carte").
+  - Evidenziazione cromatiche delle bozze sporche (ambra), salvataggio ottimistico e rollback automatico in caso di errore.
+  - Piena aderenza a TypeScript Strict (zero `any`) e file modulari sotto i 300-350 righe.
+
+---
+
+## 🌤️ 0.1 Meteo & Servizi Ambientali
 
 ### [WEATHER-001] Integrazione Previsioni Meteo MET Norway (Proxy Backend, Finestra Dinamica HomePage, Adesivi Desktop & Mobile con Long Press 600ms, Impostazioni GPS/Città) (🟢 Completato)
 
@@ -977,6 +1033,17 @@ Strumento di esportazione integrale dal database dello stato reale di 7 file CSV
 
 #### 📋 Descrizione
 Modulo completo di sicurezza per il backup compresso (`.json.gz`) dell'intero patrimonio dati dell'applicazione (40 tabelle) memorizzato sul filesystem del NAS, con interfaccia amministrativa protetta (`AdminDatabaseBackupsCard.tsx`), ripristino atomico transazionale e riallineamento delle sequenze PostgreSQL.
+
+---
+
+### [BACKUP-002] Strategia 3-2-1: Backup Automatico Proxmox, Retention FIFO (Max 2 copie) e Replica NAS QNAP (🟢 Completato)
+
+#### 📋 Descrizione
+Evoluzione dell'infrastruttura di backup in seguito alla migrazione dell'applicazione su Proxmox:
+1. Mappatura volume persistente `./backups:/app/backups` in `docker-compose.proxmox.yml` e creazione preventiva all'avvio.
+2. Motore Python esteso con supporto alle sottocartelle (`database`, `daily`, `weekly`), ricerca sicura dei file e retention automatica FIFO limitata rigorosamente alle ultime 2 copie (corrente e precedente).
+3. Script di automazione `auto_backup.sh` per esecuzione notturna via cron, con autenticazione remota robusta tramite `sshpass`, superando i limiti del firmware QTS del NAS QNAP e sincronizzazione incrementale speculare per la cartella `uploads/` nella frequenza domenicale.
+4. Plancia di ripristino Admin aggiornata con badge visivi dedicati (🗓️ Giornaliero, 📅 Settimanale, 🛡️ Manuale).
 
 ---
 

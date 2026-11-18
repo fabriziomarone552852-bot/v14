@@ -49,15 +49,79 @@ def _json_serial(obj: Any) -> Any:
     raise TypeError(f"Type {type(obj)} not serializable")
 
 
-def create_full_database_backup(db: Session, note: Optional[str] = None) -> Dict[str, Any]:
+def find_backup_file(filename: str) -> Optional[Path]:
+    """
+    Cerca in modo sicuro un file di backup per nome all'interno di BACKUPS_BASE_DIR
+    (nelle sottocartelle database, daily, weekly o altrove).
+    Previene categoricamente directory traversal.
+    """
+    clean_name = Path(filename).name
+    if not clean_name or clean_name != filename or not clean_name.endswith(".json.gz"):
+        return None
+
+    # Controllo rapido nei percorsi standard più frequenti
+    for candidate_dir in (BACKUPS_SYSTEM_DIR, BACKUPS_BASE_DIR / "daily", BACKUPS_BASE_DIR / "weekly", BACKUPS_BASE_DIR):
+        target = candidate_dir / clean_name
+        if target.is_file():
+            return target
+
+    # Fallback ricerca ricorsiva controllata
+    base_resolved = BACKUPS_BASE_DIR.resolve()
+    for p in BACKUPS_BASE_DIR.glob(f"**/{clean_name}"):
+        if p.is_file():
+            try:
+                if p.resolve().is_relative_to(base_resolved):
+                    return p
+            except Exception:
+                pass
+    return None
+
+
+def rotate_backups(subdir: str = "daily", keep: int = 2) -> List[str]:
+    """
+    Politica di retention FIFO (max N copie):
+    mantiene solo gli ultimi `keep` file di backup (.json.gz) nella cartella specificata
+    ordinati per data di modifica discendente ed elimina i più obsoleti.
+    Restituisce l'elenco dei nomi di file eliminati.
+    """
+    target_dir = BACKUPS_BASE_DIR / subdir
+    if not target_dir.is_dir():
+        return []
+
+    files = sorted(
+        [f for f in target_dir.glob("*.json.gz") if f.is_file()],
+        key=lambda f: f.stat().st_mtime,
+        reverse=True,
+    )
+    deleted = []
+    if len(files) > keep:
+        for old_file in files[keep:]:
+            try:
+                old_file.unlink()
+                deleted.append(old_file.name)
+                logger.info("Rotazione backup %s: rimosso file eccedente %s", subdir, old_file.name)
+            except Exception as e:
+                logger.warning("Impossibile eliminare backup eccedente %s: %s", old_file, e)
+    return deleted
+
+
+def create_full_database_backup(
+    db: Session,
+    note: Optional[str] = None,
+    subdir: Optional[str] = None,
+) -> Dict[str, Any]:
     """
     Estrae tutte le tabelle registrate nel sistema in ordine topologico
-    e salva un file compresso .json.gz nella cartella di backup del NAS.
+    e salva un file compresso .json.gz nella cartella di destinazione (database, daily, weekly).
+    Crea automaticamente la cartella target se non esiste.
     """
-    BACKUPS_SYSTEM_DIR.mkdir(parents=True, exist_ok=True)
+    target_category = (subdir or "database").strip().lower()
+    target_dir = BACKUPS_BASE_DIR / target_category
+    target_dir.mkdir(parents=True, exist_ok=True)
+
     timestamp_str = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
     filename = f"backup_vita_{timestamp_str}.json.gz"
-    filepath = BACKUPS_SYSTEM_DIR / filename
+    filepath = target_dir / filename
 
     tables_data: Dict[str, List[Dict[str, Any]]] = {}
     table_counts: Dict[str, int] = {}
@@ -108,11 +172,12 @@ def create_full_database_backup(db: Session, note: Optional[str] = None) -> Dict
 
     metadata = {
         "app": "Vita (Smart Agenda)",
-        "version": "15.1.0",
+        "version": "15.4.0",
         "created_at": datetime.now(timezone.utc).isoformat(),
         "total_records": total_records,
         "tables_count": len(sorted_tables),
         "note": note or "",
+        "category": target_category,
         "table_counts": table_counts,
     }
 
@@ -132,6 +197,7 @@ def create_full_database_backup(db: Session, note: Optional[str] = None) -> Dict
     return {
         "filename": filename,
         "path": str(filepath),
+        "category": target_category,
         "created_at": metadata["created_at"],
         "size_kb": file_size_kb,
         "total_records": total_records,
@@ -140,37 +206,48 @@ def create_full_database_backup(db: Session, note: Optional[str] = None) -> Dict
 
 
 def list_database_backups() -> List[Dict[str, Any]]:
-    """Restituisce l'elenco dei file di backup presenti nella cartella NAS ordinati per data discendente."""
-    BACKUPS_SYSTEM_DIR.mkdir(parents=True, exist_ok=True)
-    results = []
+    """
+    Restituisce l'elenco cronologico di tutti i file di backup presenti nelle cartelle di archiviazione
+    (database, daily, weekly), ordinati per data discendente.
+    Garantisce la creazione difensiva di tutte le cartelle se non esistono.
+    """
+    for sub in ("database", "daily", "weekly"):
+        (BACKUPS_BASE_DIR / sub).mkdir(parents=True, exist_ok=True)
 
-    for file_p in BACKUPS_SYSTEM_DIR.glob("*.json.gz"):
+    results = []
+    seen_filenames = set()
+
+    # Esplora ricorsivamente tutti i file .json.gz in BACKUPS_BASE_DIR
+    for file_p in BACKUPS_BASE_DIR.glob("**/*.json.gz"):
+        if not file_p.is_file() or file_p.name in seen_filenames:
+            continue
+        seen_filenames.add(file_p.name)
+
         try:
             stat = file_p.stat()
             mod_time = datetime.fromtimestamp(stat.st_mtime, tz=timezone.utc).isoformat()
             size_kb = round(stat.st_size / 1024, 2)
+            category = file_p.parent.name if file_p.parent != BACKUPS_BASE_DIR else "database"
 
-            # Leggiamo solo i metadati se possibile senza decomprimere tutto il payload dati
-            # o leggiamo velocemente la testa
             records_count = None
             note = None
             try:
                 with gzip.open(file_p, "rt", encoding="utf-8") as f:
-                    # Leggiamo i primi 2048 caratteri per estrarre velocemente il blocco metadata
                     chunk = f.read(4096)
-                    # Se il json inizia con {"metadata": {...}}
                     meta_start = chunk.find('"metadata":')
                     if meta_start != -1:
-                        # Parsing sicuro dell'oggetto metadata
                         data_parsed = json.loads(chunk + '}}')
                         if "metadata" in data_parsed:
                             records_count = data_parsed["metadata"].get("total_records")
                             note = data_parsed["metadata"].get("note")
+                            if "category" in data_parsed["metadata"]:
+                                category = data_parsed["metadata"]["category"]
             except Exception:
                 pass
 
             results.append({
                 "filename": file_p.name,
+                "category": category,
                 "created_at": mod_time,
                 "size_kb": size_kb,
                 "total_records": records_count,
@@ -184,9 +261,9 @@ def list_database_backups() -> List[Dict[str, Any]]:
 
 
 def delete_database_backup(filename: str) -> bool:
-    """Elimina un file di backup dalla cartella NAS."""
-    target = BACKUPS_SYSTEM_DIR / filename
-    if target.is_file() and target.name.endswith(".json.gz"):
+    """Elimina in modo sicuro un file di backup dalla cartella di archiviazione."""
+    target = find_backup_file(filename)
+    if target and target.is_file():
         target.unlink()
         return True
     return False
@@ -194,15 +271,15 @@ def delete_database_backup(filename: str) -> bool:
 
 def restore_full_database_backup(db: Session, filename: str) -> Dict[str, Any]:
     """
-    Ripristina il database completo da un file di backup .json.gz presente sul NAS.
+    Ripristina il database completo da un file di backup .json.gz (ricercato in modo sicuro).
     Esegue un'operazione transazionale atomica:
     1. Legge e convalida il backup.
     2. Svuota tutte le tabelle in ordine inverso rispetto alle dipendenze (foreign key).
     3. Reinserisce i dati in ordine diretto.
     4. Sincronizza tutte le sequenze autoincrement in PostgreSQL.
     """
-    target = BACKUPS_SYSTEM_DIR / filename
-    if not target.is_file():
+    target = find_backup_file(filename)
+    if not target or not target.is_file():
         raise FileNotFoundError(f"File di backup '{filename}' non trovato nella directory di archiviazione")
 
     with gzip.open(target, "rt", encoding="utf-8") as f:

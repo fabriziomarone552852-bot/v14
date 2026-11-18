@@ -263,6 +263,11 @@ def update_product(
     db: Session = Depends(deps.get_db),
     current_user: User = Depends(deps.get_current_app_user),
 ):
+    if not current_user.is_superuser:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Solo gli utenti SuperUser/Admin possono modificare la denominazione degli articoli nel catalogo.",
+        )
     return service.update_product(db, current_user, product_id, product_in)
 
 

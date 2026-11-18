@@ -212,6 +212,7 @@ export interface DatabaseBackupItem {
   size_kb: number;
   total_records?: number | null;
   note?: string | null;
+  category?: string | null;
 }
 
 export interface DatabaseRestoreResult {

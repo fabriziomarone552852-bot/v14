@@ -16,6 +16,7 @@ services:
       - "8000:8000"
     volumes:
       - ./uploads:/app/uploads
+      - ./backups:/app/backups
 
   # Servizio Frontend React (Nginx Web Server)
   frontend:

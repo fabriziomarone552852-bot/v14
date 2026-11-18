@@ -3,6 +3,64 @@ import type { ChangelogItem } from './types';
 
 export const CHANGELOG_V15: ChangelogItem[] = [
   {
+    id: 'v15.4.1',
+    version: '15.4.1',
+    date: 'Novembre 2026',
+    title: 'Automazione Backup Proxmox 3-2-1 & Routing Mobile App su Rete Proxmox',
+    isLatest: true,
+    published: false,
+    highlights: [
+      'Strategia Backup 3-2-1 su Proxmox: Automazione notturna del dump DB locale persistente e replica in tempo reale sul NAS QNAP con retention FIFO rigorosa a 2 copie.',
+      'Routing & Port Forwarding Mobile App: Configurazione ponte TCP su container Tailscale Proxmox (192.168.11.16) per consentire al micro-proxy tsnet dell\'APK Android di raggiungere il container applicativo (192.168.11.14:8181).',
+    ],
+    features: [
+      'Script Unificato auto_backup.sh con sshpass: Dump giornaliero e settimanale con sincronizzazione incrementale uploads, retention automatica a 2 copie e autenticazione remota robusta verso il NAS.',
+      'Badge di Categoria in AdminPage: Visualizzazione visiva immediata dello stato dei backup (🗓️ Giornaliero, 📅 Settimanale, 🛡️ Manuale) nella plancia di ripristino.',
+      'Guida Operativa Cutover Notturno: Documentate in `docs/MIGRAZIONE_PROXMOX.md` le istruzioni operative passo-passo per il sync finale DB, switch hostname Tailscale e deployment Proxmox.',
+    ],
+    improvements: [
+      'Persistenza Volume Docker: Configurato il mount `./backups:/app/backups` in `docker-compose.proxmox.yml` per preservare l\'archivio a ogni aggiornamento dei container.',
+      'Creazione Preventiva e Difensiva: Riconoscimento e creazione automatica delle cartelle target su Proxmox e sul NAS con percorsi sicuri.',
+    ],
+    fixes: [
+      'Risolto il fallimento della sincronizzazione remota dovuto ai vincoli di autenticazione SSH non presidiata del NAS QNAP.',
+      'Risolto il mancato caricamento dati dell\'app mobile Android dovuto alla separazione di rete tra container Tailscale e container web su Proxmox.',
+    ],
+  },
+  {
+    id: 'v15.4.0',
+    version: '15.4.0',
+    date: 'Novembre 2026',
+    title: 'Centro di Comando Admin: Sanatoria Media, Abitudini, Traguardi, Categorie, Tag & Shopping',
+    isLatest: false,
+    published: true,
+    highlights: [
+      'Sanatoria Media, Piattaforme & Liste Multimediali: Nuova sezione riservata SuperUser "🎬 Media & Streaming" in AdminPage per correggere refusi nelle piattaforme di visione custom, titoli/visibilità di liste personali e citazioni salvate per Serie TV e Film.',
+      'Sanatoria Abitudini, Routine & Traguardi (Countdowns): Nuova sezione riservata SuperUser "🎯 Abitudini & Traguardi" in AdminPage per correggere refusi nei titoli, ricalibrare target o modificare date e stati di abitudini, routine e conti alla rovescia di qualsiasi utente.',
+      'Centro di Comando Admin & Sanatoria Categorie e Tag: Nuova sezione riservata SuperUser "🏷️ Categorie & Tag" in AdminPage per correggere refusi, modificare colori ed editare ambiti di tutte le categorie e tag utente con scollegamento sicuro.',
+      'Console Anagrafiche, Cataloghi & Denominazioni Shopping: Introdotta la nuova sezione riservata SuperUser "🏷️ Anagrafiche & Cataloghi" nell\'Admin Shopping Hub per correggere refusi ed errori nelle descrizioni di articoli, marche, negozi e liste.',
+      'Risoluzione a Monte & Zero-pgAdmin Policy: La correzione diretta da console web aggiorna istantaneamente tutti i record collegati ed elimina per sempre la necessità di accedere a client SQL esterni (DBeaver, pgAdmin).',
+    ],
+    features: [
+      'Console "🎬 Media & Streaming" in AdminPage: 3 viste tabellari specializzate per Piattaforme Visione (📺), Liste Multimediali (📑) e Citazioni TV & Film (💬) con contatore visioni collegate, filtri per utente/ricerca ed editing in linea con anteprima immediata.',
+      'API Admin per Media & Trackers: Endpoint protetti per SuperUser in `/api/v1/admin/media/platforms`, `/api/v1/admin/media/lists` e `/api/v1/admin/media/quotes` per la bonifica sicura con disaccoppiamento `SET NULL` e cascate controllate.',
+      'Console "🎯 Abitudini & Traguardi" in AdminPage: Gestione tabellare per Abitudini (⚡), Routine (🔁) e Traguardi/Countdown (⏳) con editing in linea di titoli, target, date e stati, contatore log eseguiti e filtri per utente/ricerca rapida.',
+      'API Admin per Habits & Countdowns: Endpoint `GET`, `PATCH` e `DELETE` dedicati in `/api/v1/admin/habits` e `/api/v1/admin/countdowns` protetti per SuperUser con verifica di coerenza e cascade controllato.',
+      'Console "🏷️ Categorie & Tag" in AdminPage: Tabella interattiva per la revisione e bonifica di categorie agenda, tag ed etichette con filtri per utente/ambito (Comune, Attività, Eventi, Tag, Umore), conteggio utilizzi, color picker in linea e rimozione sicura.',
+      'API Admin Categorie con Tracciamento & Sicurezza: Nuovi endpoint `PATCH` e `DELETE` `/api/v1/admin/categories/{id}` protetti per SuperUser con normalizzazione stringhe, controllo anti-duplicati e disaccoppiamento automatico di task ed eventi.',
+      'Plancia "🏷️ Anagrafiche & Cataloghi" nell\'Admin Shopping Hub: 4 viste tabellari specializzate (Articoli & Prodotti, Marche & Brand, Negozi & Punti Vendita, Liste & Gruppi Spesa) con filtri di ricerca in tempo reale ed editing in linea.',
+    ],
+    improvements: [
+      'Architettura Modulare & Mazzo di Carte in RAM: Calcolo istantaneo delle relazioni (lotti registrati per brand, prodotti collegati, negozi, utilizzi categorie, visioni collegate e log abitudini) sfruttando la memoria client con azzeramento dei tempi di caricamento.',
+      'Feedback Visivo & Gestione Bozze (Drafts): Evidenziazione cromatica ambra per le righe modificate, pulsanti rapidi Salva/Annulla per ogni entità e invalidazione silenziosa delle query TanStack Query.',
+    ],
+    fixes: [
+      'Risolta l\'impossibilità di correggere da interfaccia refusi nei nomi delle piattaforme streaming custom create dagli utenti, titoli di liste multimediali o errori di battitura nelle citazioni.',
+      'Corretta l\'impossibilità di modificare le denominazioni e descrizioni degli articoli a catalogo senza dover ricorrere a operazioni di unione forzata o interventi manuali su database.',
+      'Risolta l\'impossibilità per l\'amministratore di correggere errori o refusi nelle categorie, tag, abitudini, routine o traguardi creati dagli utenti.',
+    ],
+  },
+  {
     id: 'v15.4.0',
     version: '15.4.0',
     date: 'Novembre 2026',
