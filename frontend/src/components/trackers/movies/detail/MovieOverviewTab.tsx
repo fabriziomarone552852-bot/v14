@@ -4,6 +4,8 @@ import type {
   MovieRecommendation,
   MovieDetailTarget,
 } from '@/types/movies';
+import type { MediaCreditPerson } from '@/types/people';
+import { ClickableCreditsLine } from '@/components/trackers/shared/detail/ClickableCreditsLine';
 
 interface MovieOverviewTabProps {
   title?: string;
@@ -11,11 +13,14 @@ interface MovieOverviewTabProps {
   releaseYear?: string;
   runtime?: number | null;
   director?: string | null;
+  directors?: MediaCreditPerson[];
   overview?: string | null;
   cast?: MovieCastMember[];
   recommendations?: MovieRecommendation[];
   isLoadingExtras?: boolean;
+  isLoadingDetails?: boolean;
   onSelectRecommendation?: (movie: MovieDetailTarget) => void;
+  onPersonClick?: (person: MediaCreditPerson) => void;
 }
 
 export const MovieOverviewTab: React.FC<MovieOverviewTabProps> = ({
@@ -24,11 +29,14 @@ export const MovieOverviewTab: React.FC<MovieOverviewTabProps> = ({
   releaseYear,
   runtime,
   director,
+  directors,
   overview,
   cast = [],
   recommendations = [],
   isLoadingExtras = false,
+  isLoadingDetails = false,
   onSelectRecommendation,
+  onPersonClick,
 }) => {
   const formatRuntime = (mins?: number | null) => {
     if (!mins) return '';
@@ -54,9 +62,14 @@ export const MovieOverviewTab: React.FC<MovieOverviewTabProps> = ({
                 • ⏱ {formatRuntime(runtime)}
               </span>
             )}
-            {director && (
-              <span className="text-gray-500 font-medium text-xs">
-                • 🎬 <strong className="text-gray-700">{director}</strong>
+            {(director || (directors && directors.length > 0)) && (
+              <span className="text-gray-500 font-medium text-xs inline-flex items-center gap-1">
+                <span>•</span>
+                <ClickableCreditsLine
+                  people={directors}
+                  fallbackText={director}
+                  onPersonClick={onPersonClick}
+                />
               </span>
             )}
           </div>
@@ -74,7 +87,13 @@ export const MovieOverviewTab: React.FC<MovieOverviewTabProps> = ({
 
         {/* Overview Scrollabile */}
         <div className="mt-4 mb-4 text-sm text-gray-700 leading-relaxed overflow-y-auto custom-scrollbar flex-1 min-h-0 pr-2">
-          {overview ? (
+          {isLoadingDetails && !overview ? (
+            <div className="animate-pulse flex flex-col gap-2">
+              <div className="h-4 bg-gray-200 rounded w-full"></div>
+              <div className="h-4 bg-gray-200 rounded w-5/6"></div>
+              <div className="h-4 bg-gray-200 rounded w-4/6"></div>
+            </div>
+          ) : overview ? (
             <p>{overview}</p>
           ) : (
             <p className="italic text-gray-400">Nessuna trama disponibile in italiano.</p>
@@ -86,7 +105,7 @@ export const MovieOverviewTab: React.FC<MovieOverviewTabProps> = ({
           <h3 className="text-sm font-bold text-gray-800 uppercase tracking-wider border-b border-gray-200 pb-1">
             Cast Principale
           </h3>
-          <div className="flex gap-4 overflow-x-auto pb-2 modal-scrollbar">
+          <div className="flex gap-4 overflow-x-auto pt-1.5 px-2 pb-2 modal-scrollbar">
             {isLoadingExtras ? (
               <div className="w-full flex items-center justify-center p-4">
                 <span className="text-gray-400 italic text-sm">Caricamento cast...</span>
@@ -97,8 +116,20 @@ export const MovieOverviewTab: React.FC<MovieOverviewTabProps> = ({
               </div>
             ) : (
               cast.map((actor: MovieCastMember) => (
-                <div key={actor.id} className="flex flex-col gap-1 w-[80px] shrink-0">
-                  <div className="w-[80px] h-[80px] rounded-full overflow-hidden bg-gray-200 shadow-inner shrink-0">
+                <button
+                  key={actor.id}
+                  type="button"
+                  onClick={() =>
+                    onPersonClick?.({
+                      id: actor.id,
+                      name: actor.name,
+                      profile_path: actor.profile_path,
+                    })
+                  }
+                  className="relative hover:z-10 flex flex-col gap-1 w-[80px] shrink-0 text-left group cursor-pointer focus:outline-none"
+                  title={`Vedi filmografia di ${actor.name}`}
+                >
+                  <div className="w-[80px] h-[80px] rounded-full overflow-hidden bg-gray-200 shadow-inner shrink-0 transition-all ring-2 ring-transparent group-hover:ring-blue-400">
                     {actor.profile_path ? (
                       <img
                         src={`https://image.tmdb.org/t/p/w185${actor.profile_path}`}
@@ -117,9 +148,9 @@ export const MovieOverviewTab: React.FC<MovieOverviewTabProps> = ({
                       </div>
                     )}
                   </div>
-                  <div className="text-center mt-1">
+                  <div className="text-center mt-1 w-full">
                     <p
-                      className="font-bold text-gray-900 text-xs leading-tight line-clamp-2"
+                      className="font-bold text-gray-900 group-hover:text-blue-600 text-xs leading-tight line-clamp-2 transition-colors"
                       title={actor.name}
                     >
                       {actor.name}
@@ -133,7 +164,7 @@ export const MovieOverviewTab: React.FC<MovieOverviewTabProps> = ({
                       </p>
                     )}
                   </div>
-                </div>
+                </button>
               ))
             )}
           </div>

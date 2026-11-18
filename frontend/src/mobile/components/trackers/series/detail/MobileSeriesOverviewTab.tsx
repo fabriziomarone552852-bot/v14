@@ -1,9 +1,11 @@
 // src/mobile/components/trackers/detail/MobileSeriesOverviewTab.tsx
 import React from 'react';
 import type { TMDBSeries, SeriesCastMember, SeriesRecommendation } from '@/types/trackers';
+import type { MediaCreditPerson } from '@/types/people';
 import type { TMDBProvidersResponse } from '@/components/trackers/series/detail/useSeriesDetailModalLogic';
 import { useSeriesExtras } from '@/hooks/queries/useTrackersQueries';
 import { TvIcon } from '@/components/shared/utils/Icons';
+import { ClickableCreditsLine } from '@/components/trackers/shared/detail/ClickableCreditsLine';
 
 export interface MobileSeriesOverviewTabProps {
   tmdbSeries: TMDBSeries;
@@ -12,6 +14,7 @@ export interface MobileSeriesOverviewTabProps {
   providersData?: TMDBProvidersResponse | null;
   onPlatformClick?: (platform: string, providerId?: number) => void;
   onSelectRecommendation?: (series: SeriesRecommendation) => void;
+  onPersonClick?: (person: MediaCreditPerson) => void;
   isLoading?: boolean;
 }
 
@@ -22,11 +25,13 @@ export const MobileSeriesOverviewTab: React.FC<MobileSeriesOverviewTabProps> = (
   providersData,
   onPlatformClick,
   onSelectRecommendation,
+  onPersonClick,
   isLoading = false,
 }) => {
   const { data: extras, isLoading: isExtrasLoading } = useSeriesExtras(tmdbSeries.tmdb_id);
 
   const cast = extras?.cast || [];
+  const creators = extras?.creators || [];
   const recommendations = extras?.recommendations || [];
 
   return (
@@ -107,6 +112,15 @@ export const MobileSeriesOverviewTab: React.FC<MobileSeriesOverviewTabProps> = (
         <h3 className="text-xs font-black uppercase tracking-wider text-gray-700">
           Trama
         </h3>
+        {(creators.length > 0 || tmdbSeries.creators) && (
+          <div className="text-xs text-gray-500">
+            <ClickableCreditsLine
+              people={creators}
+              fallbackText={tmdbSeries.creators}
+              onPersonClick={onPersonClick}
+            />
+          </div>
+        )}
         <div className="text-sm text-gray-700 leading-relaxed font-normal">
           {isLoading ? (
             <div className="animate-pulse flex flex-col gap-2 pt-1">
@@ -140,7 +154,19 @@ export const MobileSeriesOverviewTab: React.FC<MobileSeriesOverviewTabProps> = (
             </div>
           ) : (
             cast.map((actor: SeriesCastMember) => (
-              <div key={actor.id} className="flex flex-col items-center gap-1 w-18 shrink-0">
+              <button
+                key={actor.id}
+                type="button"
+                onClick={() =>
+                  onPersonClick?.({
+                    id: actor.id,
+                    name: actor.name,
+                    profile_path: actor.profile_path,
+                  })
+                }
+                className="flex flex-col items-center gap-1 w-18 shrink-0 cursor-pointer active:scale-95 transition-transform focus:outline-none"
+                title={`Vedi filmografia di ${actor.name}`}
+              >
                 <div className="w-16 h-16 rounded-full overflow-hidden bg-gray-100 border border-gray-200 shadow-2xs shrink-0">
                   {actor.profile_path ? (
                     <img
@@ -168,7 +194,7 @@ export const MobileSeriesOverviewTab: React.FC<MobileSeriesOverviewTabProps> = (
                     {actor.character}
                   </p>
                 </div>
-              </div>
+              </button>
             ))
           )}
         </div>

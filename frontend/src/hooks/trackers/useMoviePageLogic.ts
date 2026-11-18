@@ -30,6 +30,9 @@ import { useFilteredMovies } from './useFilteredMovies';
 import { useMovieUrlParams, type MovieDetailTabType } from './useMovieUrlParams';
 import { buildTMDBGenreParams, mapSortByToTMDB } from '@/utils/trackerFilterUtils';
 import { buildTMDBWatchProvidersParam } from '@/utils/platformFilterUtils';
+import { useDebounce } from '@/hooks/useDebounce';
+import { parsePeopleTokens } from '@/utils/trackerPeopleUtils';
+import { useAutoSyncTrackerCredits } from './useAutoSyncTrackerCredits';
 
 export const useMoviePageLogic = () => {
   const { confirm } = useConfirm();
@@ -65,6 +68,12 @@ export const useMoviePageLogic = () => {
   };
 
   const { data: movies, isLoading, isError } = useMyMovies();
+  useAutoSyncTrackerCredits(
+    movies,
+    '/trackers/movies/sync-credits',
+    ['trackers', 'movies'],
+    Boolean(movies && movies.length > 0)
+  );
   const { data: statsData } = useMovieDashboardStats();
   const { data: myQuotes } = useMovieQuotes();
   const { data: myLists } = useMediaLists();
@@ -115,6 +124,17 @@ export const useMoviePageLogic = () => {
     return () => clearTimeout(timer);
   }, [searchQuery]);
 
+  const debouncedPeopleRaw = useDebounce(filters.people || '', 400);
+  const normalizedPeopleLive = useMemo(
+    () => parsePeopleTokens(filters.people).join(', '),
+    [filters.people]
+  );
+  const normalizedPeopleDebounced = useMemo(
+    () => parsePeopleTokens(debouncedPeopleRaw).join(', '),
+    [debouncedPeopleRaw]
+  );
+  const isPeoplePending = normalizedPeopleLive !== normalizedPeopleDebounced;
+
   const tmdbFilterParams = useMemo<TMDBMovieQueryFilterParams>(() => {
     const genreParams = buildTMDBGenreParams(filters.genres, tmdbGenres, 'movie');
     const providersParam = buildTMDBWatchProvidersParam(
@@ -132,9 +152,21 @@ export const useMoviePageLogic = () => {
       without_genres: genreParams.without_genres,
       with_watch_providers: providersParam,
       primary_release_year: yearParam,
+      with_people: normalizedPeopleDebounced || undefined,
+      people_mode: normalizedPeopleDebounced ? (filters.peopleMode || 'AND') : undefined,
       sort_by: mapSortByToTMDB(filters.sortBy, 'movie'),
     };
-  }, [filters.genres, filters.platforms, filters.years, filters.sortBy, tmdbGenres, tmdbProviders, user?.streaming_providers]);
+  }, [
+    filters.genres,
+    filters.platforms,
+    filters.years,
+    filters.peopleMode,
+    filters.sortBy,
+    normalizedPeopleDebounced,
+    tmdbGenres,
+    tmdbProviders,
+    user?.streaming_providers,
+  ]);
 
   const hasListFilter = (filters.listIds?.length ?? 0) > 0;
   const hasPersonalOnlyFilter =
@@ -144,9 +176,13 @@ export const useMoviePageLogic = () => {
         (filters.sagas?.length ?? 0) > 0 ||
         (Boolean(filters.obtainedFilter) && filters.obtainedFilter !== 'all')));
 
-  const shouldSearchTMDB = Boolean(debouncedQuery.trim()) && !hasPersonalOnlyFilter;
+  const shouldSearchTMDB =
+    Boolean(debouncedQuery.trim()) && !hasPersonalOnlyFilter && !isPeoplePending;
   const shouldDiscoverTMDB =
-    !shouldSearchTMDB && Boolean(filters.globalSearch) && !hasListFilter;
+    !shouldSearchTMDB &&
+    Boolean(filters.globalSearch) &&
+    !hasListFilter &&
+    !isPeoplePending;
 
   const searchInfinite = useInfiniteSearchTMDBMovies(
     debouncedQuery,
@@ -158,8 +194,12 @@ export const useMoviePageLogic = () => {
     shouldDiscoverTMDB
   );
 
-  const isSearchLoading = searchInfinite.isLoading;
-  const isDiscoverLoading = discoverInfinite.isLoading;
+  const isSearchLoading =
+    searchInfinite.isLoading ||
+    (Boolean(debouncedQuery.trim()) && !hasPersonalOnlyFilter && isPeoplePending);
+  const isDiscoverLoading =
+    discoverInfinite.isLoading ||
+    (!Boolean(debouncedQuery.trim()) && Boolean(filters.globalSearch) && !hasListFilter && isPeoplePending);
 
   const searchResults: TMDBPaginatedMovieSearch | null = useMemo(() => {
     if (!searchInfinite.data?.pages?.length) return null;

@@ -13,6 +13,7 @@ from backend.domains.users.models import User
 from backend.domains.trackers import movie_service as service
 from backend.domains.trackers import movie_repository as repo
 from backend.domains.trackers import cinema_service
+from backend.domains.trackers import people_service
 from backend.domains.trackers.cinema_schemas import (
     CinemaProvince,
     ProvinceCinemaData,
@@ -64,7 +65,7 @@ async def add_movie(
 
 @router.get("/search", response_model=TMDBPaginatedMovieSearch)
 async def search_movies(
-    query: str = Query(..., min_length=1, description="Termine di ricerca per il film"),
+    query: str = Query("", description="Termine di ricerca per il film (opzionale se si filtra per persona)"),
     page: int = Query(1, ge=1, description="Numero di pagina"),
     with_genres: Optional[str] = None,
     without_genres: Optional[str] = None,
@@ -73,10 +74,12 @@ async def search_movies(
     first_air_date_year: Optional[str] = None,
     primary_release_year: Optional[str] = None,
     sort_by: Optional[str] = None,
+    with_people: Optional[str] = None,
+    people_mode: str = Query("AND", description="Modalita filtro persone: AND o OR"),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_app_user),
 ):
-    """Cerca film su TMDB in italiano con supporto per filtri incrociati."""
+    """Cerca film su TMDB in italiano con supporto per filtri incrociati e attori/registi."""
     providers = with_watch_providers or with_networks
     year = primary_release_year or first_air_date_year
     return await service.search_tmdb_movies(
@@ -87,6 +90,8 @@ async def search_movies(
         with_watch_providers=providers,
         primary_release_year=year,
         sort_by=sort_by,
+        with_people=with_people,
+        people_mode=people_mode,
         db=db,
     )
 
@@ -100,10 +105,12 @@ async def discover_movies(
     first_air_date_year: Optional[str] = None,
     primary_release_year: Optional[str] = None,
     sort_by: Optional[str] = "popularity.desc",
+    with_people: Optional[str] = None,
+    people_mode: str = Query("AND", description="Modalita filtro persone: AND o OR"),
     page: int = Query(1, ge=1),
     current_user: User = Depends(get_current_app_user),
 ):
-    """Esplora film con filtri per genere (inclusione/esclusione), provider streaming e anno."""
+    """Esplora film con filtri per genere, provider streaming, anno e attori/registi."""
     providers = with_watch_providers or with_networks
     year = primary_release_year or first_air_date_year
     return await service.discover_tmdb_movies(
@@ -113,6 +120,8 @@ async def discover_movies(
         primary_release_year=year,
         sort_by=sort_by,
         page=page,
+        with_people=with_people,
+        people_mode=people_mode,
     )
 
 
@@ -139,6 +148,15 @@ async def sync_my_movie_providers(
 ):
     """Sincronizza in blocco i provider streaming IT mancanti o scaduti per il catalogo utente."""
     return await service.sync_missing_user_movie_providers(db, current_user)
+
+
+@router.post("/sync-credits")
+async def sync_my_movie_credits(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_app_user),
+):
+    """Sincronizza in blocco cast e registi (credits_summary) mancanti per il catalogo film utente."""
+    return await people_service.sync_missing_user_movie_credits(db, current_user)
 
 
 # --- Prossime Uscite & Statistiche ---

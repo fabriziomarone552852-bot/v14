@@ -6,6 +6,7 @@ import { TVSeriesCatalogSections } from './TVSeriesCatalogSections';
 import type { TVSeries, TMDBSeriesSearchResult, TMDBPaginatedSearch } from '@/types/trackers';
 import type { MediaFilterState as SeriesFilterState } from './SeriesFilterModal';
 import type { TabType } from './detail/SeriesDetailModal';
+import { formatPeopleFilterSummary } from '@/utils/trackerPeopleUtils';
 
 export interface TVSeriesLibraryProps {
   setIsFilterModalOpen: (b: boolean) => void;
@@ -99,6 +100,8 @@ export const TVSeriesLibrary: React.FC<TVSeriesLibraryProps> = ({
       emptySearchMessage={
         debouncedQuery.trim()
           ? `Nessun risultato trovato per "${debouncedQuery}" con i filtri attivi`
+          : filters.people?.trim()
+          ? `Nessun risultato trovato per "${formatPeopleFilterSummary(filters.people, filters.peopleMode)}" con i filtri attivi`
           : 'Nessun risultato trovato con i filtri attivi'
       }
       emptySearchIcon={<TvIcon className="w-12 h-12 opacity-20" />}

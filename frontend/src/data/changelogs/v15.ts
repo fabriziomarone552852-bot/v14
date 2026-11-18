@@ -3,11 +3,35 @@ import type { ChangelogItem } from './types';
 
 export const CHANGELOG_V15: ChangelogItem[] = [
   {
+    id: 'v15.4.0',
+    version: '15.4.0',
+    date: 'Novembre 2026',
+    title: 'Ricerca & Filtro Multi-Persona (Attori, Registi, Creatori) & Scheda Filmografia Persona',
+    isLatest: true,
+    published: false,
+    highlights: [
+      'Ricerca & Filtro per Attori, Registi e Creatori (Film & Serie TV, Web & Mobile): Nuovo campo dedicato con suggerimenti live da TMDB mentre si digita, ricerca multipla separata da virgole e selettore Tutti (AND) / Almeno uno (OR).',
+      'Scheda Filmografia Persona Cliccabile: Toccando qualsiasi attore, regista o creatore nel dettaglio Film/Serie TV si apre la scheda dedicata con biografia e filmografia completa navigabile con badge dei titoli già in libreria.',
+    ],
+    features: [
+      'Autocompletamento Live Persone & Multi-Ricerca AND/OR: Inserimento fluido di più nomi separati da virgola su Web Desktop e Mobile (Discover globale e filtro libreria locale), con rimozione rapida dei chip e risultati diretti per titolo.',
+      'Cast, Registi & Creatori Cliccabili con Filmografia Completa: Navigazione tra Film e Serie TV di qualsiasi interprete, regista o creatore con filtro interno per titolo/ruolo e idratazione automatica di tutti i dettagli dei film non ancora in libreria.',
+    ],
+    improvements: [
+      'Sincronizzazione Silenziosa Crediti & Tasto Indietro Android: Allineamento progressivo in background di cast e registi per il catalogo esistente e chiusura fluida tramite pulsante Indietro.',
+      'Scheda Persona & Modali Dettaglio Film: Biografia espandibile direttamente dalla testata in tendina overlay (senza comprimere i titoli sotto) con scrollbar a scomparsa automatica, scheda "Orari" su Desktop e Mobile visibile solo se il film è effettivamente al cinema e menu laterale centrato con proporzioni adattive.',
+    ],
+    fixes: [
+      'Hover Cast & Tooltip Piattaforme nei Modali Dettaglio: Risolto il taglio del bordo blu sul cast (incluso il primo elemento a sinistra) e la copertura/taglio dei tooltip delle piattaforme streaming.',
+      'Build & Upload Automatico APK su Google Drive: Ripristinata la sincronizzazione automatica in build_all.ps1 e build_apk.ps1 con selezione corretta dell\'ambiente Python, archiviazione affidabile delle vecchie build in "old versions/" e verifica reale dell\'esito.',
+    ],
+  },
+  {
     id: 'v15.3.0',
     version: '15.3.0',
     date: 'Novembre 2026',
     title: 'Orari Cinema Desktop, Analytics Mobile Film, Avvisi Broadcast, Piattaforme & Architettura Trackers',
-    isLatest: true,
+    isLatest: false,
     published: true,
     highlights: [
       'Cinema & Orari Desktop: Introdotti in Film Desktop il carosello continuo a scatto delle uscite in sala per provincia e la nuova scheda "Orari" nel dettaglio film.',

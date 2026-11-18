@@ -17,17 +17,14 @@ import { resolveImageUrl } from '@/utils/imageUtils';
 import { Info, Layers, Star } from 'lucide-react';
 import { LoadingIcon } from '@/components/shared/utils/Icons';
 import { MobileSeriesReviewTab } from './MobileSeriesReviewTab';
-import { MobileTrackerListManagerModal } from '../../shared/detail/MobileTrackerListManagerModal';
-import { TrackerListDetailModal } from '@/components/trackers/shared/detail/TrackerListDetailModal';
 import { MobileTrackerDetailBanner } from '../../shared/detail/MobileTrackerDetailBanner';
 import { MobileEpisodeDetailBanner } from './MobileEpisodeDetailBanner';
 import { MobileSeriesOverviewTab } from './MobileSeriesOverviewTab';
 import { MobileSeriesSeasonsTab } from './MobileSeriesSeasonsTab';
 import { MobileEpisodeDetailView } from './MobileEpisodeDetailView';
 import { MobileTrackerDetailBottomBar } from '../../shared/detail/MobileTrackerDetailBottomBar';
-import { MobileTrackerFriendsDrawer } from '../../shared/detail/MobileTrackerFriendsDrawer';
-import { MobileTrackerListsDrawer } from '../../shared/detail/MobileTrackerListsDrawer';
-import { MobileSeriesOptionsModal } from './MobileSeriesOptionsModal';
+import { MobileSeriesDetailDrawers } from './MobileSeriesDetailDrawers';
+import { useTrackerPersonNavigation } from '@/hooks/trackers/useTrackerPersonNavigation';
 
 export interface MobileTVSeriesDetailModalProps {
   isOpen: boolean;
@@ -95,6 +92,19 @@ export const MobileTVSeriesDetailModal: React.FC<MobileTVSeriesDetailModalProps>
     initialEpisode,
     initialReviewLogId,
     onToggleTrack,
+  });
+
+  const {
+    selectedPerson,
+    openPersonDetail,
+    closePersonDetail,
+    handleSelectMovie,
+    handleSelectSeries,
+  } = useTrackerPersonNavigation({
+    mediaType: 'tv',
+    onSelectSameMedia: (targetTmdbId) =>
+      onSelectRecommendation?.({ id: targetTmdbId, tmdb_id: targetTmdbId }),
+    onCloseParentModal: onClose,
   });
 
   // Dati dell'episodio correntemente selezionato (sempre allineati ai dati più recenti in memoria)
@@ -231,6 +241,7 @@ export const MobileTVSeriesDetailModal: React.FC<MobileTVSeriesDetailModalProps>
                 providersData={providersData}
                 onPlatformClick={onPlatformClick}
                 onSelectRecommendation={onSelectRecommendation}
+                onPersonClick={openPersonDetail}
                 isLoading={false}
               />
             )}
@@ -319,96 +330,36 @@ export const MobileTVSeriesDetailModal: React.FC<MobileTVSeriesDetailModalProps>
       )}
 
       {/* 5. DRAWERS DAL BASSO E MODALI SECONDARI */}
-      <MobileTrackerFriendsDrawer
-        isOpen={showFriendsDrawer}
-        onClose={() => setShowFriendsDrawer(false)}
+      <MobileSeriesDetailDrawers
+        tmdbSeries={tmdbSeries}
+        series={series}
+        userTracking={userTracking}
+        isUserTracked={isUserTracked}
+        showFriendsDrawer={showFriendsDrawer}
+        onCloseFriendsDrawer={() => setShowFriendsDrawer(false)}
         friends={SERIES_FRIENDS}
         getStatusBorderColor={getStatusBorderColor}
-        mediaType="series"
-      />
-
-      <MobileTrackerListsDrawer
-        isOpen={showListsDrawer}
-        onClose={() => setShowListsDrawer(false)}
-        lists={listsWithSeries}
+        showListsDrawer={showListsDrawer}
+        onCloseListsDrawer={() => setShowListsDrawer(false)}
+        listsWithSeries={listsWithSeries}
         onSelectList={(id) => setListDetailId(id)}
         onOpenManager={() => setIsListManagerOpen(true)}
-        emptyMessage="Questa serie non è ancora presente in nessuna lista."
-      />
-
-      <MobileSeriesOptionsModal
-        isOpen={showOptionsModal}
-        onClose={() => setShowOptionsModal(false)}
-        hasCustomPoster={Boolean(userTracking?.custom_poster_path)}
-        onPosterUpdated={(url) => {
-          const targetTmdbId = tmdbSeries.tmdb_id || userTracking?.series_tmdb_id;
-          if (targetTmdbId) {
-            updateSeries({
-              id: targetTmdbId,
-              updates: { custom_poster_path: url || undefined },
-            });
-          }
-        }}
-        isUserTracked={isUserTracked}
-        isRewatching={Boolean(
-          userTracking?.is_rewatching ||
-          ('is_rewatching' in series && (series as { is_rewatching?: boolean }).is_rewatching)
-        )}
-        onStopRewatch={() => {
-          const targetTmdbId = tmdbSeries.tmdb_id || userTracking?.series_tmdb_id;
-          if (targetTmdbId) {
-            updateSeries({
-              id: targetTmdbId,
-              updates: { is_rewatching: false },
-            });
-          }
-        }}
-        isAbandoned={userTracking?.status === 'dropped'}
-        onAbandonSeries={() => {
-          const targetTmdbId = tmdbSeries.tmdb_id || userTracking?.series_tmdb_id;
-          if (targetTmdbId) {
-            updateSeries({
-              id: targetTmdbId,
-              updates: { status: 'dropped', is_rewatching: false },
-            });
-          }
-        }}
-        onResumeSeries={() => {
-          const targetTmdbId = tmdbSeries.tmdb_id || userTracking?.series_tmdb_id;
-          const hasWatched = Boolean(
-            tmdbSeries.episodes?.some((ep) => ep.is_watched || (ep.watch_count ?? 0) > 0)
-          );
-          const targetStatus = hasWatched ? 'watching' : 'to_watch';
-          if (targetTmdbId) {
-            updateSeries({
-              id: targetTmdbId,
-              updates: { status: targetStatus },
-            });
-          }
-        }}
+        showOptionsModal={showOptionsModal}
+        onCloseOptionsModal={() => setShowOptionsModal(false)}
         isHistoricMode={isHistoricMode}
-        onEnableHistoricMode={() => {
-          setIsHistoricMode((prev) => !prev);
-          setActiveTab('seasons');
-          setInternalEpisode(null);
-        }}
+        onToggleHistoricMode={() => setIsHistoricMode((prev) => !prev)}
+        isListManagerOpen={isListManagerOpen}
+        onCloseListManager={() => setIsListManagerOpen(false)}
+        listDetailId={listDetailId}
+        onCloseListDetail={() => setListDetailId(null)}
+        selectedPerson={selectedPerson}
+        onClosePersonDetail={closePersonDetail}
+        onSelectMovieFromPerson={handleSelectMovie}
+        onSelectSeriesFromPerson={handleSelectSeries}
+        updateSeries={updateSeries}
+        onTabChange={setActiveTab}
+        onClearEpisode={() => setInternalEpisode(null)}
       />
-
-      {isListManagerOpen && (
-        <MobileTrackerListManagerModal
-          isOpen={isListManagerOpen}
-          onClose={() => setIsListManagerOpen(false)}
-          seriesId={tmdbSeries.tmdb_id}
-        />
-      )}
-
-      {listDetailId !== null && (
-        <TrackerListDetailModal
-          isOpen={listDetailId !== null}
-          onClose={() => setListDetailId(null)}
-          listId={listDetailId}
-        />
-      )}
     </div>
   );
 

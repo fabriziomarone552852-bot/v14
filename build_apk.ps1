@@ -1,4 +1,5 @@
-$rootDir = Get-Location
+$rootDir = if ($PSScriptRoot) { $PSScriptRoot } else { (Get-Location).Path }
+Set-Location $rootDir
 $frontendDir = Join-Path $rootDir "frontend"
 $androidDir = Join-Path $frontendDir "android"
 $libsDir = Join-Path $androidDir "app\libs"
@@ -135,22 +136,39 @@ $versionedApk = Join-Path $outputDir "vita-v$appVersion.apk"
 
 if (Test-Path $finalApk) {
     # Copia nella cartella apk/
-    try { Copy-Item $finalApk $versionedApk -Force } catch {}
-    try { Copy-Item $finalApk (Join-Path $outputDir "vita.apk") -Force } catch {}
+    Copy-Item $finalApk $versionedApk -Force
+    Copy-Item $finalApk (Join-Path $outputDir "vita.apk") -Force
 
-    # Upload su Google Drive (opzionale / automatico)
-    $uploadScript = Join-Path $rootDir "scripts\upload_to_drive.py"
-    if (Test-Path $uploadScript) {
+    # Upload su Google Drive
+    $syncDriveScript = Join-Path $rootDir "scripts\sync_apk_to_drive.ps1"
+    $driveExitCode = 1
+    if (Test-Path $syncDriveScript) {
         Write-Host "`nSincronizzazione automatica con Google Drive..." -ForegroundColor Cyan
-        python $uploadScript --file $versionedApk
+        & $syncDriveScript -ApkPath $versionedApk -RootDir $rootDir
+        $driveExitCode = $LASTEXITCODE
+    } else {
+        Write-Host "[ERRORE] Script sync_apk_to_drive.ps1 non trovato!" -ForegroundColor Red
     }
 
     Write-Host "`n=====================================================" -ForegroundColor Green
     Write-Host "  VITA APK COMPILATO CON SUCCESSO (v$appVersion)!" -ForegroundColor Green
-    Write-Host "  File caricato su Google Drive (App Mobile):" -ForegroundColor Cyan
-    Write-Host "    - vita-v$appVersion.apk" -ForegroundColor White
-    Write-Host "    -> APK sincronizzato! Versioni precedenti in 'old versions/'" -ForegroundColor Green
-    Write-Host "=====================================================" -ForegroundColor Green
+    Write-Host "  APK locale: $versionedApk" -ForegroundColor White
+
+    if ($driveExitCode -eq 0) {
+        Write-Host "  File caricato su Google Drive (App Mobile):" -ForegroundColor Cyan
+        Write-Host "    - vita-v$appVersion.apk" -ForegroundColor White
+        Write-Host "    -> APK sincronizzato! Versioni precedenti in 'old versions/'" -ForegroundColor Green
+        Write-Host "=====================================================" -ForegroundColor Green
+    } elseif ($driveExitCode -eq 3) {
+        Write-Host "  Google Drive: upload saltato ('credentials.json' assente su questo PC)." -ForegroundColor Yellow
+        Write-Host "=====================================================" -ForegroundColor Yellow
+    } else {
+        Write-Host "  [ERRORE] Upload su Google Drive FALLITO (Exit Code: $driveExitCode)!" -ForegroundColor Red
+        Write-Host "  Rilancia: .\scripts\sync_apk_to_drive.ps1 -ApkPath `"$versionedApk`"" -ForegroundColor Red
+        Write-Host "=====================================================" -ForegroundColor Red
+        exit 1
+    }
 } else {
     Write-Host "`nAPK non trovato nel percorso atteso. Controlla i log precedenti." -ForegroundColor Red
+    exit 1
 }

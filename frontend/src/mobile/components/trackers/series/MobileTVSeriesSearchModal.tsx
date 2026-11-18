@@ -21,6 +21,7 @@ import {
   isGenreFilterActive,
 } from '@/utils/trackerFilterUtils';
 import { useBackHandler } from '@/utils/backButtonManager';
+import { formatPeopleFilterSummary } from '@/utils/trackerPeopleUtils';
 import { MobileTVSeriesSearchResults } from './MobileTVSeriesSearchResults';
 import { MobileTVSeriesFilterOptions } from './MobileTVSeriesFilterOptions';
 import { filterSeriesListForSearchModal } from '../shared/mobileSearchListUtils';
@@ -93,6 +94,7 @@ export const MobileTVSeriesSearchModal: React.FC<MobileTVSeriesSearchModalProps>
 
       const hasInitialCategory =
         Boolean(debouncedQuery) ||
+        Boolean(filters.people?.trim()) ||
         isGenreFilterActive(filters.genres) ||
         (filters.networks?.length ?? 0) > 0 ||
         (filters.tmdbStatuses?.length ?? 0) > 0 ||
@@ -260,6 +262,13 @@ export const MobileTVSeriesSearchModal: React.FC<MobileTVSeriesSearchModalProps>
   const currentFilterSource = viewMode === 'filters' ? draftFilters : filters;
   const userProviders = user?.streaming_providers ?? [];
   const activeFilterLabel = useMemo(() => {
+    if (currentFilterSource.people?.trim()) {
+      const ppl = formatPeopleFilterSummary(
+        currentFilterSource.people,
+        currentFilterSource.peopleMode
+      );
+      if (ppl) return `Persone: ${ppl}`;
+    }
     if (isGenreFilterActive(currentFilterSource.genres)) {
       const label = formatGenreFilterSummary(
         currentFilterSource.genres,
@@ -283,6 +292,8 @@ export const MobileTVSeriesSearchModal: React.FC<MobileTVSeriesSearchModalProps>
     }
     return null;
   }, [
+    currentFilterSource.people,
+    currentFilterSource.peopleMode,
     currentFilterSource.genres,
     currentFilterSource.networks,
     availableGenres,

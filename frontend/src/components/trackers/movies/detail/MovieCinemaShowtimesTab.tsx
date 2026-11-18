@@ -4,6 +4,7 @@ import { useMovieShowtimes } from '@/hooks/queries/useCinemaQueries';
 import { useCinemaProvinceSelection } from '@/hooks/trackers/useCinemaProvinceSelection';
 import { MobileCinemaProvinceModal } from '@/mobile/components/trackers/movies/cinema/MobileCinemaProvinceModal';
 import { FilmIcon, LoadingIcon } from '@/components/shared/utils/Icons';
+import { findMatchingCinemaMovie } from '@/utils/cinemaUtils';
 
 export interface MovieCinemaShowtimesTabProps {
   tmdbId?: number;
@@ -27,29 +28,7 @@ export const MovieCinemaShowtimesTab: React.FC<MovieCinemaShowtimesTabProps> = (
 
   // Ricerca dell'identificativo ComingSoon (IDF) del film per la provincia
   const effectiveIdf = useMemo(() => {
-    if (!provinceData?.movies) return '';
-    const cleanTarget = (movieTitle || '').trim().toLowerCase();
-    const normTarget = cleanTarget
-      .normalize('NFD')
-      .replace(/[\u0300-\u036f]/g, '')
-      .replace(/[^\w\s]/g, ' ')
-      .replace(/\s+/g, ' ')
-      .trim();
-
-    const match = provinceData.movies.find((m) => {
-      if (tmdbId && m.tmdb_id && m.tmdb_id === tmdbId) return true;
-      const mClean = (m.title || '').trim().toLowerCase();
-      if (mClean === cleanTarget) return true;
-      const normM = mClean
-        .normalize('NFD')
-        .replace(/[\u0300-\u036f]/g, '')
-        .replace(/[^\w\s]/g, ' ')
-        .replace(/\s+/g, ' ')
-        .trim();
-      return normM === normTarget || normM.includes(normTarget) || normTarget.includes(normM);
-    });
-
-    return match?.idf || '';
+    return findMatchingCinemaMovie(provinceData?.movies, tmdbId, movieTitle)?.idf || '';
   }, [provinceData?.movies, tmdbId, movieTitle]);
 
   const { data: showtimes = [], isLoading: isLoadingShowtimes } = useMovieShowtimes(

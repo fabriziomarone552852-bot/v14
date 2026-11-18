@@ -8,6 +8,7 @@ import {
   matchesGenreFilterRule,
   matchesYearMultiFilter,
 } from '@/utils/trackerFilterUtils';
+import { matchesPeopleCreditsFilter } from '@/utils/trackerPeopleUtils';
 
 export type FilteredTVSeriesTab =
   | 'all'
@@ -51,6 +52,11 @@ export const useFilteredTVSeries = (
         const matchesTitle = s.title.toLowerCase().includes(kw);
         const matchesOriginal = Boolean(s.original_title?.toLowerCase().includes(kw));
         if (!matchesTitle && !matchesOriginal) return false;
+      }
+
+      // 2b. Attori / Registi / Creatori (AND / OR su credits_summary + creators)
+      if (!matchesPeopleCreditsFilter(s.credits_summary, s.creators, filters.people, filters.peopleMode)) {
+        return false;
       }
 
       // 3. Generi (Includi con E / O + Escludi NO)

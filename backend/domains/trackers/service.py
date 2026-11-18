@@ -149,11 +149,13 @@ def get_tmdb_headers() -> dict:
 
 
 
-async def get_tmdb_series_extras(tmdb_id: int) -> dict:
+async def get_tmdb_series_extras(tmdb_id: int, db: Optional[Session] = None) -> dict:
+    from backend.domains.trackers import people_service
+
     url = f"{TMDB_BASE_URL}/tv/{tmdb_id}"
     params = {
         "language": "it-IT",
-        "append_to_response": "credits,recommendations"
+        "append_to_response": "aggregate_credits,credits,recommendations"
     }
 
     async with httpx.AsyncClient(timeout=15.0) as client:
@@ -167,7 +169,25 @@ async def get_tmdb_series_extras(tmdb_id: int) -> dict:
     data = response.json()
     
     # Estrai il cast principale (primi 10 attori)
+    if db is not None:
+        existing_series = db.query(TMDBSeries).filter(TMDBSeries.tmdb_id == tmdb_id).first()
+        if existing_series is not None and not existing_series.credits_summary:
+            summary = people_service.extract_series_credits_summary(data)
+            if summary:
+                existing_series.credits_summary = summary
+                db.commit()
+
     cast_data = data.get("credits", {}).get("cast", [])
+    if not cast_data:
+        cast_data = [
+            {
+                "id": c.get("id"),
+                "name": c.get("name"),
+                "character": (c.get("roles") or [{}])[0].get("character"),
+                "profile_path": c.get("profile_path"),
+            }
+            for c in data.get("aggregate_credits", {}).get("cast", [])
+        ]
     cast = [
         {
             "id": c.get("id"),
@@ -237,11 +257,12 @@ async def get_tmdb_series_extras(tmdb_id: int) -> dict:
     return {
         "cast": cast,
         "recommendations": recommendations,
+        "creators": [c.model_dump() for c in people_service.extract_series_creators(data)],
         "seasons": seasons,
     }
 
 async def search_tmdb_series(
-    query: str,
+    query: str = "",
     page: int = 1,
     with_genres: Optional[str] = None,
     without_genres: Optional[str] = None,
@@ -249,8 +270,36 @@ async def search_tmdb_series(
     with_status: Optional[str] = None,
     first_air_date_year: Optional[str] = None,
     sort_by: Optional[str] = None,
+    with_people: Optional[str] = None,
+    people_mode: Optional[str] = "AND",
     db: Optional[Session] = None,
 ) -> TMDBPaginatedSearch:
+    from backend.domains.trackers import people_service
+
+    if people_service.parse_people_tokens(with_people):
+        items, virtual_pages, approx_total, resolved_people = await people_service.search_or_discover_media_by_people(
+            media_type="tv",
+            with_people=with_people or "",
+            people_mode=people_mode,
+            query=query.strip() or None,
+            page=page,
+            with_genres=with_genres,
+            without_genres=without_genres,
+            with_watch_providers=with_watch_providers,
+            with_status=with_status,
+            year=first_air_date_year,
+            sort_by=sort_by,
+            db=db,
+        )
+        results = [TMDBSeriesSearchResult(**item) for item in items]
+        return TMDBPaginatedSearch(
+            page=page,
+            results=results,
+            total_pages=virtual_pages,
+            total_results=approx_total,
+            resolved_people=resolved_people,
+        )
+
     if not query.strip():
         return TMDBPaginatedSearch(page=1, results=[], total_pages=0, total_results=0)
 
@@ -317,7 +366,7 @@ async def search_tmdb_series(
 
 async def fetch_tmdb_series_details(tmdb_id: int) -> dict:
     url = f"{TMDB_BASE_URL}/tv/{tmdb_id}"
-    params = {"language": "it-IT", "append_to_response": "watch/providers"}
+    params = {"language": "it-IT", "append_to_response": "watch/providers,aggregate_credits"}
 
     async with httpx.AsyncClient(timeout=15.0) as client:
         response = await client.get(url, headers=get_tmdb_headers(), params=params)
@@ -394,6 +443,10 @@ async def sync_tmdb_series_metadata_only(db: Session, tmdb_id: int):
     watch_providers_list = _extract_italy_watch_providers_from_it_dict(it_wp)
     now_utc = datetime.now(timezone.utc)
 
+    from backend.domains.trackers import people_service
+
+    credits_summary = people_service.extract_series_credits_summary(tmdb_data) or None
+
     series = TMDBSeries(
         tmdb_id=tmdb_data.get("id"),
         title=tmdb_data.get("name", "Titolo Sconosciuto"),
@@ -405,6 +458,7 @@ async def sync_tmdb_series_metadata_only(db: Session, tmdb_id: int):
         genres=genres_str,
         networks=networks_str,
         creators=creators_str,
+        credits_summary=credits_summary,
         total_seasons=tmdb_data.get("number_of_seasons"),
         total_episodes=tmdb_data.get("number_of_episodes"),
         first_air_date=safe_date(tmdb_data.get("first_air_date")),
@@ -703,6 +757,7 @@ def _build_series_response(tracking: UserSeriesTracking, db=None, current_user=N
         first_air_date=s.first_air_date,
         last_air_date=s.last_air_date,
         vote_average=s.vote_average,
+        credits_summary=s.credits_summary,
         watch_providers=s.watch_providers,
         providers_synced_at=s.providers_synced_at,
         last_sync_at=s.last_sync_at,
@@ -1799,7 +1854,36 @@ async def discover_tmdb_series(
     first_air_date_year: Optional[str] = None,
     sort_by: Optional[str] = None,
     page: int = 1,
+    with_people: Optional[str] = None,
+    people_mode: Optional[str] = "AND",
+    db: Optional[Session] = None,
 ) -> TMDBPaginatedSearch:
+    from backend.domains.trackers import people_service
+
+    if people_service.parse_people_tokens(with_people):
+        items, virtual_pages, approx_total, resolved_people = await people_service.search_or_discover_media_by_people(
+            media_type="tv",
+            with_people=with_people or "",
+            people_mode=people_mode,
+            query=None,
+            page=page,
+            with_genres=with_genres,
+            without_genres=without_genres,
+            with_watch_providers=with_networks,
+            with_status=with_status,
+            year=first_air_date_year,
+            sort_by=sort_by,
+            db=db,
+        )
+        results = [TMDBSeriesSearchResult(**item) for item in items]
+        return TMDBPaginatedSearch(
+            page=page,
+            results=results,
+            total_pages=virtual_pages,
+            total_results=approx_total,
+            resolved_people=resolved_people,
+        )
+
     from backend.domains.trackers.tmdb_filter_utils import (
         execute_tmdb_discover_variants,
         map_tv_statuses_for_discover,

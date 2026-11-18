@@ -182,6 +182,8 @@ def ensure_database_schema_compat() -> None:
             );
             """,
             "CREATE INDEX IF NOT EXISTS ix_system_broadcasts_is_active ON system_broadcasts(is_active);",
+            "ALTER TABLE tmdb_series ADD COLUMN IF NOT EXISTS credits_summary JSON;",
+            "ALTER TABLE tmdb_movies ADD COLUMN IF NOT EXISTS credits_summary JSON;",
         ]
 
         for stmt in statements:

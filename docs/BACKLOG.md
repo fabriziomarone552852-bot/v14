@@ -12,7 +12,6 @@ Questo documento traccia in modo strutturato, prioritizzato e costantemente aggi
 | **INFRA-001** | Migrazione Definitiva Infrastruttura: QNAP → Proxmox (Cutover Notturno) | `infra` / deploy | 🟡 Staging Pronto | 🟡 Staging Pronto | 🟡 **Pianificato** |
 | **FEAT-004 (Libri)** | Sezione Media: Estensione a Libri (Google Books, Pagine lette, Stati lettura) | `media` / books | 🔴 Da Strutturare | 🔴 Da Implementare | 🔴 **Massima (Passo Fondamentale)** |
 | **TRACKERS-019** | Giudizio & Voto alle singole Stagioni delle Serie TV (Valutazione per Stagione) | `media` / trackers | 🔴 Da Strutturare | 🔴 Da Implementare | 🟡 **Media** |
-| **TRACKERS-025** | Ricerca & Filtro per Attori / Regista (Film & Serie TV) | `media` / trackers | 🔴 Da Strutturare | 🔴 Da Implementare | 🟡 **Media** |
 | **FEAT-001** | Liste Spesa: Preferite & Pinnate (`pin_status` desktop & mobile) | `shopping` / lists | 🟢 Completato | 🔴 Da Implementare | 🟡 **Media-Alta** |
 | **SHOPPING-004** | Ricerca & Consultazione Prezzi nel Modale Dettaglio Prodotto (per Brand) | `shopping` / UI | 🔴 Da Iniziare | 🔴 Da Iniziare | 🟡 **Media-Alta** |
 | **SHOPPING-005** | Pannello Laterale Recensioni & Giudizio Marchi all'Aggiunta Prodotto | `shopping` / UI | 🔴 Da Strutturare | 🔴 Da Implementare | 🟡 **Media-Alta** |
@@ -27,7 +26,7 @@ Questo documento traccia in modo strutturato, prioritizzato e costantemente aggi
 | **FEAT-009** | Restyling & Rifinitura Grafica Schermate SuperUser (Admin Panel) | `admin` / UI | 🟢 Supportato | 🔴 Da Implementare | 🟡 **Media-Alta** |
 | **FEAT-010** | Database & Sincronizzazione Centralizzata Quotes (Citazioni del Giorno) | `core` / quotes | 🔴 Da Implementare | 🔴 Da Implementare | 🟡 **Media** |
 | **AI-001** | Studio & Integrazione Intelligenza Artificiale (Voice, Breakdown, Briefing) | `ai` / assistant | 🔴 Da Analizzare | 🔴 Da Analizzare | 🟡 **Media-Alta (Ricerca)** |
-| **FEAT-016** | Lettere al Futuro Me (Time Capsule stile FutureMe sigillate fino alla deadline) | `capsules` / personal | 🔴 Da Strutturare | 🔴 Da Implementare | 🟡 **Media** |
+| **FEAT-016** | Lettere al Futuro Me (Time Capsule nascoste fino allo scadere del countdown impostato) | `capsules` / personal | 🔴 Da Strutturare | 🔴 Da Implementare | 🟡 **Media** |
 | **HOME-001** | Widget Homepage Rotante (Citazione del Giorno, Oroscopo & Meteo) | `home` / UI | 🔴 Da Iniziare | 🔴 Da Iniziare | 🟡 **Media-Alta** |
 
 *Legenda Stati:*
@@ -58,7 +57,7 @@ Questo documento traccia in modo strutturato, prioritizzato e costantemente aggi
 
 ## 📺 1. Media & Trackers (Libri, Serie TV & Funzionalità Evolutive)
 
-> 🗄️ **Moduli Serie TV & Film Completati**: I moduli completi delle **Serie TV** e dei **Film** (inclusa la gestione Saghe TMDB, calendari visioni, statistiche di durata reale, liste miste, standardizzazione header/cards `TRACKERS-023`, modale statistiche unificata `TRACKERS-024`, standardizzazione modale dettaglio `TRACKERS-028`, armonizzazione recensioni/citazioni `TRACKERS-029`, social/commenti ottimistici `TRACKERS-030`, paginazione progressiva TMDB `TRACKERS-031`, standardizzazione catalogo `TRACKERS-032`, standardizzazione mobile trackers `TRACKERS-033`, il modulo Cinema & orari in sala `TRACKERS-034`, le piattaforme streaming utente con fallback home mobile `TRACKERS-037`, il motore di ricerca incrociata avanzata con generi 3 stati e reset rapido `TRACKERS-038`, il modale piattaforma universale con ordinamento alfabetico `TRACKERS-039`, la centratura geometrica dell'header e del catalogo mobile `TRACKERS-040`, il modale analytics mobile film con calendario unificato ed EmptyState universali `TRACKERS-041`, la riorganizzazione architetturale simmetrica `shared/`-`series/`-`movies/` con nomenclatura unificata `TRACKERS-042`, la rifinitura scheda dettaglio film e standardizzazione recensioni mobile `TRACKERS-043`, la suite liste personali mobile filtrata per tracker con slider header a doppio livello `TRACKERS-044`, il pulsante e modale piattaforme catalogo desktop `TRACKERS-036` e gli orari cinema e carosello "In sala" su Webpage Desktop `TRACKERS-035`) sono stati completati con successo e archiviati in dettaglio in [`docs/BACKLOG_ARCHIVE.md`](file:///c:/Users/Fabrizio/Desktop/app/smart/v14/docs/BACKLOG_ARCHIVE.md).
+> 🗄️ **Moduli Serie TV & Film Completati**: I moduli completi delle **Serie TV** e dei **Film** (inclusa la gestione Saghe TMDB, calendari visioni, statistiche di durata reale, liste miste, standardizzazione header/cards `TRACKERS-023`, modale statistiche unificata `TRACKERS-024`, ricerca e filtro multi-persona `AND`/`OR` con scheda filmografia `TRACKERS-025`, standardizzazione modale dettaglio `TRACKERS-028`, armonizzazione recensioni/citazioni `TRACKERS-029`, social/commenti ottimistici `TRACKERS-030`, paginazione progressiva TMDB `TRACKERS-031`, standardizzazione catalogo `TRACKERS-032`, standardizzazione mobile trackers `TRACKERS-033`, il modulo Cinema & orari in sala `TRACKERS-034`, le piattaforme streaming utente con fallback home mobile `TRACKERS-037`, il motore di ricerca incrociata avanzata con generi 3 stati e reset rapido `TRACKERS-038`, il modale piattaforma universale con ordinamento alfabetico `TRACKERS-039`, la centratura geometrica dell'header e del catalogo mobile `TRACKERS-040`, il modale analytics mobile film con calendario unificato ed EmptyState universali `TRACKERS-041`, la riorganizzazione architetturale simmetrica `shared/`-`series/`-`movies/` con nomenclatura unificata `TRACKERS-042`, la rifinitura scheda dettaglio film e standardizzazione recensioni mobile `TRACKERS-043`, la suite liste personali mobile filtrata per tracker con slider header a doppio livello `TRACKERS-044`, il pulsante e modale piattaforme catalogo desktop `TRACKERS-036` e gli orari cinema e carosello "In sala" su Webpage Desktop `TRACKERS-035`) sono stati completati con successo e archiviati in dettaglio in [`docs/BACKLOG_ARCHIVE.md`](file:///c:/Users/Fabrizio/Desktop/app/smart/v14/docs/BACKLOG_ARCHIVE.md).
 
 ### [FEAT-004 (Libri)] Estensione Sezione Media: Libri
 *(Attività futura pianificata per il completamento dell'hub Media).*
@@ -79,13 +78,6 @@ Questo documento traccia in modo strutturato, prioritizzato e costantemente aggi
 - **Obiettivo & Casi d'Uso**:
   - Consentire una valutazione granulare di serie televisive con qualità eterogenea tra una stagione e l'altra (es. stagioni capolavoro vs stagioni successive sottotono).
   - Visualizzare il voto/giudizio di ciascuna stagione nella scheda delle stagioni (`MobileSeriesSeasonsTab` e modale desktop), affiancandolo alle recensioni dei singoli episodi e alla valutazione complessiva della serie.
-- **Stato**: 🔴 Da Strutturare / Da Implementare *(Desktop & Mobile — Priorità: Media)*.
-
-### [TRACKERS-025] Ricerca & Filtro per Attori / Registi (Film & Serie TV)
-- **Descrizione**: Possibilità di cercare titoli per attore o regista (tramite TMDB People Search o credits), visualizzare la filmografia di un interprete/regista selezionato dal cast o dalla scheda panoramica, e filtrare la propria libreria personale per cast preferito.
-- **Obiettivo & Casi d'Uso**:
-  - Dalla scheda del film o serie tv, cliccando sulla foto/nome di un attore o sul nome del regista, aprire una vista con le loro opere o filtrare i film già salvati/visti nella propria collezione.
-  - Estendere la ricerca globale con supporto per persone (registi e attori).
 - **Stato**: 🔴 Da Strutturare / Da Implementare *(Desktop & Mobile — Priorità: Media)*.
 
 ---
@@ -214,11 +206,11 @@ Questo documento traccia in modo strutturato, prioritizzato e costantemente aggi
 ## ✉️ 8. Capsule Temporali & Messaggi al Futuro
 
 ### [FEAT-016] Lettere al Futuro Me (Time Capsule stile FutureMe)
-- **Descrizione**: Funzionalità di capsula temporale ispirata a **FutureMe** che permette all'utente di scrivere e inviare una lettera indirizzata a sé stesso nel futuro, scegliendo una data/ora di scadenza (deadline) per la consegna.
+- **Descrizione**: Funzionalità di capsula temporale ispirata a **FutureMe** che permette all'utente di scrivere e inviare una lettera indirizzata a sé stesso nel futuro, impostando un **countdown** (o data/ora di scadenza) per lo sblocco.
 - **Comportamento & Regole Chiave**:
-  - **Sigillo & Visibilità Zero fino alla Deadline**: Una volta inviata, la lettera **scompare dalla vista** e non è più consultabile, rileggibile né modificabile fino allo scadere della deadline impostata (il blocco deve valere sia lato UI che lato backend, evitando l'esposizione del contenuto prima della data di sblocco).
-  - **Scelta Scadenza Flessibile**: Possibilità di impostare una data precisa futura o preset rapidi (es. tra 3 mesi, 6 mesi, 1 anno, 5 anni).
-  - **Consegna & Storico Permanente**: Al raggiungimento della deadline, la lettera viene sbloccata e segnalata tramite notifica permanente nell'app, diventando leggibile nella propria raccolta di lettere ricevute.
+  - **Occultamento Totale fino allo Scadere del Countdown**: Una volta inviata, la lettera viene **nascosta e non è più visibile all'utente** (né consultabile, rileggibile o modificabile) fino allo scadere del countdown impostato (il blocco deve valere sia lato UI che lato backend, evitando l'esposizione del contenuto prima dello scadere del tempo).
+  - **Scelta Countdown / Scadenza Flessibile**: Possibilità di impostare un countdown/data precisa futura o preset rapidi (es. tra 3 mesi, 6 mesi, 1 anno, 5 anni).
+  - **Consegna & Storico Permanente**: Allo scadere del countdown impostato, la lettera torna visibile, viene sbloccata e segnalata tramite notifica permanente nell'app nella raccolta di lettere ricevute.
 - **Stato**: 🔴 Da Strutturare / Da Implementare *(Desktop & Mobile — Priorità: Media)*.
 
 ---

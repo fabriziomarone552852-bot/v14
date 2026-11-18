@@ -7,6 +7,10 @@ from typing import List, Optional, Dict
 from pydantic import Field, field_validator, BaseModel
 
 from backend.core.schemas import ORMBaseModel, StrictBaseModel
+from backend.domains.trackers.people_schemas import (
+    MediaCreditMember,
+    ResolvedPersonRef,
+)
 
 
 class TVSeriesCreate(StrictBaseModel):
@@ -157,6 +161,7 @@ class TVSeriesResponse(ORMBaseModel):
     vote_average: Optional[float] = None
     watch_providers: Optional[List[SeriesWatchProvider]] = None
     providers_synced_at: Optional[datetime] = None
+    credits_summary: Optional[List[MediaCreditMember]] = None
     last_sync_at: datetime
 
     # User Tracking fields
@@ -235,6 +240,7 @@ class TMDBPaginatedSearch(BaseModel):
     results: List[TMDBSeriesSearchResult]
     total_pages: int
     total_results: int
+    resolved_people: List[ResolvedPersonRef] = Field(default_factory=list)
 
 # --- Media Lists ---
 

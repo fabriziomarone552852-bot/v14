@@ -1,12 +1,27 @@
-# Script di build completo (NAS Docker + APK Android) per Vita (Eseguire su PC Windows)
+﻿# Script di build completo (NAS Docker + APK Android) per Vita (Eseguire su PC Windows)
 $ErrorActionPreference = "Stop"
 
-$rootDir = Get-Location
+$rootDir = if ($PSScriptRoot) { $PSScriptRoot } else { (Get-Location).Path }
+Set-Location $rootDir
 $frontendDir = Join-Path $rootDir "frontend"
 $androidDir = Join-Path $frontendDir "android"
 $libsDir = Join-Path $androidDir "app\libs"
 $tsnetDir = Join-Path $rootDir "android-tsnet"
 $outputDir = Join-Path $rootDir "apk"
+
+function Remove-DockerContainerSafe {
+    param([string]$ContainerName)
+    $prevPref = $ErrorActionPreference
+    $ErrorActionPreference = "Continue"
+    try {
+        $existingId = docker ps -aq --filter "name=^/${ContainerName}$" 2>$null
+        if ($existingId) {
+            docker rm -f $ContainerName 2>$null | Out-Null
+        }
+    } finally {
+        $ErrorActionPreference = $prevPref
+    }
+}
 
 Write-Host "===========================================================" -ForegroundColor Cyan
 Write-Host "  BUILD TOTALE VITA: DOCKER NAS + APK ANDROID              " -ForegroundColor Cyan
@@ -134,11 +149,11 @@ if ($LASTEXITCODE -ne 0) {
     exit 1
 }
 
-docker rm -f tsnet-worker-temp 2>$null
+Remove-DockerContainerSafe "tsnet-worker-temp"
 docker run --name tsnet-worker-temp tsnet-builder
 docker cp tsnet-worker-temp:/output/tsnetproxy.aar "$libsDir/tsnetproxy.aar"
 docker cp tsnet-worker-temp:/output/tsnetproxy-sources.jar "$libsDir/tsnetproxy-sources.jar"
-docker rm -f tsnet-worker-temp 2>$null
+Remove-DockerContainerSafe "tsnet-worker-temp"
 
 Write-Host "`n-----------------------------------------------------------" -ForegroundColor Yellow
 Write-Host " [6/6] Compilazione APK Android con Gradle..." -ForegroundColor Yellow
@@ -158,10 +173,10 @@ if (Test-Path $oldApk) {
 
 Write-Host "Esecuzione Gradle assembleDebug (versionName=$appVersion, versionCode=$versionCode)..." -ForegroundColor Cyan
 $frontendMount = $frontendDir -replace '\\', '/'
-docker rm -f apk-runner 2>$null
+Remove-DockerContainerSafe "apk-runner"
 docker run --name apk-runner -v "${frontendMount}:/app" -w /app/android apk-builder ./gradlew assembleDebug -PversionName="$appVersion" -PversionCode="$versionCode" --no-daemon
 $gradleExitCode = $LASTEXITCODE
-docker rm -f apk-runner 2>$null
+Remove-DockerContainerSafe "apk-runner"
 
 if ($gradleExitCode -ne 0) {
     Write-Host "`n[ERRORE] Errore durante la compilazione Gradle (Exit Code: $gradleExitCode)!" -ForegroundColor Red
@@ -171,35 +186,63 @@ if ($gradleExitCode -ne 0) {
 
 Set-Location $rootDir
 $finalApk = Join-Path $androidDir "app\build\outputs\apk\debug\app-debug.apk"
-$versionedApk = Join-Path $outputDir "vita-v$appVersion.apk"
-if (Test-Path $finalApk) {
-    try { Copy-Item $finalApk $versionedApk -Force } catch {}
-    try { Copy-Item $finalApk (Join-Path $outputDir "vita.apk") -Force } catch {}
+if (!(Test-Path $finalApk)) {
+    Write-Host "`n[ERRORE] APK non trovato nel percorso atteso: $finalApk" -ForegroundColor Red
+    exit 1
 }
 
+$versionedApk = Join-Path $outputDir "vita-v$appVersion.apk"
+Copy-Item $finalApk $versionedApk -Force
+Copy-Item $finalApk (Join-Path $outputDir "vita.apk") -Force
+
 # =====================================================================
-# UPLOAD SU GOOGLE DRIVE (OPZIONALE / AUTOMATICO)
+# UPLOAD SU GOOGLE DRIVE
 # =====================================================================
-$uploadScript = Join-Path $rootDir "scripts\upload_to_drive.py"
-if ((Test-Path $versionedApk) -and (Test-Path $uploadScript)) {
+$syncDriveScript = Join-Path $rootDir "scripts\sync_apk_to_drive.ps1"
+$driveExitCode = 1
+if (Test-Path $syncDriveScript) {
     Write-Host "`n-----------------------------------------------------------" -ForegroundColor Yellow
     Write-Host " Sincronizzazione automatica con Google Drive..." -ForegroundColor Yellow
     Write-Host "-----------------------------------------------------------" -ForegroundColor Yellow
-    python $uploadScript --file $versionedApk
+    $prevPref = $ErrorActionPreference
+    $ErrorActionPreference = "Continue"
+    try {
+        & $syncDriveScript -ApkPath $versionedApk -RootDir $rootDir
+        $driveExitCode = $LASTEXITCODE
+    } finally {
+        $ErrorActionPreference = $prevPref
+    }
+} else {
+    Write-Host "[ERRORE] Script sync_apk_to_drive.ps1 non trovato!" -ForegroundColor Red
 }
 
 # =====================================================================
 # RIEPILOGO FINALE
 # =====================================================================
 Write-Host "`n===========================================================" -ForegroundColor Green
-Write-Host "  BUILD TOTALE COMPLETATO CON SUCCESSO! (v$appVersion)" -ForegroundColor Green
+Write-Host "  BUILD TOTALE COMPLETATO (v$appVersion)" -ForegroundColor Green
 Write-Host "===========================================================" -ForegroundColor Green
 Write-Host " File generati per il NAS QNAP:" -ForegroundColor Cyan
 Write-Host "   - vxame14_backend.tar" -ForegroundColor White
 Write-Host "   - vxame14_frontend.tar" -ForegroundColor White
 Write-Host "   -> Copiali sul NAS ed esegui: sh deploy_nas.sh`n" -ForegroundColor DarkGray
 
-Write-Host " File caricato su Google Drive (App Mobile):" -ForegroundColor Cyan
-Write-Host "   - vita-v$appVersion.apk" -ForegroundColor White
-Write-Host "   -> APK sincronizzato! Le versioni precedenti sono archiviate in 'old versions/'" -ForegroundColor Green
-Write-Host "===========================================================`n" -ForegroundColor Green
+Write-Host " APK locale generato:" -ForegroundColor Cyan
+Write-Host "   - $versionedApk" -ForegroundColor White
+
+if ($driveExitCode -eq 0) {
+    Write-Host " File caricato su Google Drive (App Mobile):" -ForegroundColor Cyan
+    Write-Host "   - vita-v$appVersion.apk" -ForegroundColor White
+    Write-Host "   -> APK sincronizzato! Le versioni precedenti sono archiviate in 'old versions/'" -ForegroundColor Green
+    Write-Host "===========================================================`n" -ForegroundColor Green
+} elseif ($driveExitCode -eq 3) {
+    Write-Host " Google Drive:" -ForegroundColor Yellow
+    Write-Host "   -> Upload saltato: 'credentials.json' non configurato su questo PC (vedi docs/GOOGLE_DRIVE_SETUP.md)." -ForegroundColor Yellow
+    Write-Host "===========================================================`n" -ForegroundColor Yellow
+} else {
+    Write-Host " Google Drive:" -ForegroundColor Red
+    Write-Host "   -> [ERRORE] Upload su Google Drive FALLITO (Exit Code: $driveExitCode)!" -ForegroundColor Red
+    Write-Host "   -> Controlla i messaggi sopra e rilancia: .\scripts\sync_apk_to_drive.ps1 -ApkPath `"$versionedApk`"" -ForegroundColor Red
+    Write-Host "===========================================================`n" -ForegroundColor Red
+    exit 1
+}

@@ -8,9 +8,12 @@ import {
   isGenreFilterActive,
   type GenreFilterRule,
 } from '@/utils/trackerFilterUtils';
+import type { PeopleFilterMode } from '@/types/people';
 
 export interface MediaFilterState {
   keyword: string;
+  people?: string;
+  peopleMode?: PeopleFilterMode;
   genres: GenreFilterRule;
   networks: string[];
   ratings: string[];
@@ -23,6 +26,8 @@ export interface MediaFilterState {
 
 export const DEFAULT_SERIES_FILTERS: MediaFilterState = {
   keyword: '',
+  people: '',
+  peopleMode: 'AND',
   genres: EMPTY_GENRE_FILTER,
   networks: [],
   ratings: [],
@@ -39,6 +44,7 @@ export const hasActiveSeriesFilters = (
 ): boolean => {
   return (
     Boolean(filters.keyword?.trim()) ||
+    Boolean(filters.people?.trim()) ||
     isGenreFilterActive(filters.genres) ||
     (filters.networks?.length ?? 0) > 0 ||
     (filters.ratings?.length ?? 0) > 0 ||
@@ -52,6 +58,7 @@ export const hasActiveSeriesFilters = (
 
 export const hasSeriesTMDBFilterCriteria = (filters: MediaFilterState): boolean => {
   return (
+    Boolean(filters.people?.trim()) ||
     isGenreFilterActive(filters.genres) ||
     (filters.networks?.length ?? 0) > 0 ||
     (filters.tmdbStatuses?.length ?? 0) > 0 ||

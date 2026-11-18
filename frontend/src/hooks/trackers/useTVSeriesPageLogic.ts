@@ -34,6 +34,9 @@ import { useSeriesUrlParams } from './useSeriesUrlParams';
 import { useAutoSyncSeriesProviders } from './useAutoSyncSeriesProviders';
 import { buildTMDBGenreParams, mapSortByToTMDB } from '@/utils/trackerFilterUtils';
 import { buildTMDBWatchProvidersParam } from '@/utils/platformFilterUtils';
+import { useDebounce } from '@/hooks/useDebounce';
+import { parsePeopleTokens } from '@/utils/trackerPeopleUtils';
+import { useAutoSyncTrackerCredits } from './useAutoSyncTrackerCredits';
 
 export const useTVSeriesPageLogic = () => {
   const { confirm } = useConfirm();
@@ -83,6 +86,12 @@ export const useTVSeriesPageLogic = () => {
 
   const { data: series, isLoading, isError } = useMySeries();
   useAutoSyncSeriesProviders(series);
+  useAutoSyncTrackerCredits(
+    series,
+    '/trackers/series/sync-credits',
+    ['trackers', 'series'],
+    Boolean(series && series.length > 0)
+  );
   const { data: statsData } = useSeriesStats();
   const { data: myQuotes } = useMyQuotes();
   const { data: myLists } = useMediaLists();
@@ -133,6 +142,17 @@ export const useTVSeriesPageLogic = () => {
     return () => clearTimeout(timer);
   }, [searchQuery]);
 
+  const debouncedPeopleRaw = useDebounce(filters.people || '', 400);
+  const normalizedPeopleLive = useMemo(
+    () => parsePeopleTokens(filters.people).join(', '),
+    [filters.people]
+  );
+  const normalizedPeopleDebounced = useMemo(
+    () => parsePeopleTokens(debouncedPeopleRaw).join(', '),
+    [debouncedPeopleRaw]
+  );
+  const isPeoplePending = normalizedPeopleLive !== normalizedPeopleDebounced;
+
   const tmdbFilterParams = useMemo<TMDBSeriesQueryFilterParams>(() => {
     const genreParams = buildTMDBGenreParams(filters.genres, tmdbGenres, 'tv');
     const providersParam = buildTMDBWatchProvidersParam(
@@ -155,17 +175,34 @@ export const useTVSeriesPageLogic = () => {
       with_watch_providers: providersParam,
       with_status: statusParam,
       first_air_date_year: yearParam,
+      with_people: normalizedPeopleDebounced || undefined,
+      people_mode: normalizedPeopleDebounced ? (filters.peopleMode || 'AND') : undefined,
       sort_by: mapSortByToTMDB(filters.sortBy, 'tv'),
     };
-  }, [filters.genres, filters.networks, filters.tmdbStatuses, filters.years, filters.sortBy, tmdbGenres, tmdbProviders, user?.streaming_providers]);
+  }, [
+    filters.genres,
+    filters.networks,
+    filters.tmdbStatuses,
+    filters.years,
+    filters.peopleMode,
+    filters.sortBy,
+    normalizedPeopleDebounced,
+    tmdbGenres,
+    tmdbProviders,
+    user?.streaming_providers,
+  ]);
 
   const hasListFilter = (filters.listIds?.length ?? 0) > 0;
   const hasPersonalOnlyFilter =
     hasListFilter || (!filters.globalSearch && (filters.ratings?.length ?? 0) > 0);
 
-  const shouldSearchTMDB = Boolean(debouncedQuery.trim()) && !hasPersonalOnlyFilter;
+  const shouldSearchTMDB =
+    Boolean(debouncedQuery.trim()) && !hasPersonalOnlyFilter && !isPeoplePending;
   const shouldDiscoverTMDB =
-    !shouldSearchTMDB && Boolean(filters.globalSearch) && !hasListFilter;
+    !shouldSearchTMDB &&
+    Boolean(filters.globalSearch) &&
+    !hasListFilter &&
+    !isPeoplePending;
 
   const searchInfinite = useInfiniteSearchTMDBSeries(
     debouncedQuery,
@@ -177,8 +214,12 @@ export const useTVSeriesPageLogic = () => {
     shouldDiscoverTMDB
   );
 
-  const isSearchLoading = searchInfinite.isLoading;
-  const isDiscoverLoading = discoverInfinite.isLoading;
+  const isSearchLoading =
+    searchInfinite.isLoading ||
+    (Boolean(debouncedQuery.trim()) && !hasPersonalOnlyFilter && isPeoplePending);
+  const isDiscoverLoading =
+    discoverInfinite.isLoading ||
+    (!Boolean(debouncedQuery.trim()) && Boolean(filters.globalSearch) && !hasListFilter && isPeoplePending);
 
   const searchResults: TMDBPaginatedSearch | null = useMemo(() => {
     if (!searchInfinite.data?.pages?.length) return null;

@@ -11,10 +11,27 @@ import math
 from typing import Any, Dict, List, Optional, Set, Tuple
 
 import httpx
+from fastapi import HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from backend.core.settings import get_settings
 from backend.domains.trackers.models import TMDBMovie, TMDBSeries
+
+TMDB_BASE_URL = "https://api.themoviedb.org/3"
+
+
+def get_tmdb_headers() -> Dict[str, str]:
+    settings = get_settings()
+    if not settings.tmdb_read_access_token:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="TMDB API non configurata (Token mancante)",
+        )
+    return {
+        "Authorization": f"Bearer {settings.tmdb_read_access_token.get_secret_value()}",
+        "accept": "application/json",
+    }
 
 VALID_TMDB_TV_SORTS = {
     "popularity.desc",
@@ -221,12 +238,20 @@ def sort_raw_tmdb_items(
     sort_by: Optional[str],
     title_field: str,
     date_field: str,
+    *,
+    sort_popularity_explicitly: bool = False,
 ) -> List[Dict[str, Any]]:
     if not sort_by or sort_by in ("date_added_desc", "obtained_desc", "popularity.desc"):
+        if sort_popularity_explicitly:
+            return sorted(items, key=lambda x: float(x.get("popularity") or 0.0), reverse=True)
         return items
+    if sort_by == "popularity.asc":
+        return sorted(items, key=lambda x: float(x.get("popularity") or 0.0))
 
     if sort_by in ("rating_desc", "vote_average.desc"):
         return sorted(items, key=lambda x: float(x.get("vote_average") or 0.0), reverse=True)
+    if sort_by in ("vote_average.asc",):
+        return sorted(items, key=lambda x: float(x.get("vote_average") or 0.0))
     if sort_by in ("name_asc", "name.asc", "title.asc"):
         return sorted(items, key=lambda x: str(x.get(title_field) or "").lower())
     if sort_by in ("name_desc", "name.desc", "title.desc"):
@@ -236,6 +261,111 @@ def sort_raw_tmdb_items(
     if sort_by in ("release_date_asc", "first_air_date.asc", "primary_release_date.asc"):
         return sorted(items, key=lambda x: str(x.get(date_field) or "9999-99-99"))
     return items
+
+
+async def filter_candidates_by_providers_and_status(
+    *,
+    client: httpx.AsyncClient,
+    base_url: str,
+    headers: Dict[str, str],
+    media_type: str,
+    candidates: List[Dict[str, Any]],
+    provider_ids: Set[int],
+    tv_statuses: Set[str],
+    db: Optional[Session] = None,
+) -> List[Dict[str, Any]]:
+    """Filters raw TMDB items by IT watch providers and (for TV) production status."""
+    if not candidates or (not provider_ids and not tv_statuses):
+        return candidates
+
+    candidate_ids = [int(c["id"]) for c in candidates]
+    cached_providers: Dict[int, Set[int]] = {}
+    cached_statuses: Dict[int, str] = {}
+
+    if db is not None and candidate_ids:
+        if media_type == "tv":
+            rows = db.execute(
+                select(TMDBSeries).where(TMDBSeries.tmdb_id.in_(candidate_ids))
+            ).scalars().all()
+            for row in rows:
+                if row.watch_providers is not None:
+                    cached_providers[row.tmdb_id] = {
+                        int(wp["provider_id"])
+                        for wp in (row.watch_providers or [])
+                        if isinstance(wp, dict) and isinstance(wp.get("provider_id"), int)
+                    }
+                if row.tmdb_status:
+                    cached_statuses[row.tmdb_id] = row.tmdb_status
+        else:
+            rows = db.execute(
+                select(TMDBMovie).where(TMDBMovie.tmdb_id.in_(candidate_ids))
+            ).scalars().all()
+            for row in rows:
+                if row.watch_providers is not None:
+                    cached_providers[row.tmdb_id] = {
+                        int(wp["provider_id"])
+                        for wp in (row.watch_providers or [])
+                        if isinstance(wp, dict) and isinstance(wp.get("provider_id"), int)
+                    }
+
+    sem = asyncio.Semaphore(8)
+
+    async def check_candidate(item: Dict[str, Any]) -> bool:
+        tid = int(item["id"])
+        need_prov = bool(provider_ids) and tid not in cached_providers
+        need_stat = bool(tv_statuses) and tid not in cached_statuses
+
+        fetched_prov = cached_providers.get(tid)
+        fetched_stat = cached_statuses.get(tid)
+        fetched_type: Optional[str] = None
+
+        if need_prov or need_stat:
+            async with sem:
+                if media_type == "tv" and need_stat:
+                    detail_params: Dict[str, str] = {"language": "it-IT"}
+                    if need_prov:
+                        detail_params["append_to_response"] = "watch/providers"
+                    resp = await client.get(
+                        f"{base_url}/tv/{tid}",
+                        headers=headers,
+                        params=detail_params,
+                    )
+                    if resp.status_code == 200:
+                        payload = resp.json()
+                        fetched_stat = payload.get("status")
+                        fetched_type = payload.get("type")
+                        if need_prov:
+                            it_dict = (
+                                payload.get("watch/providers", {})
+                                .get("results", {})
+                                .get("IT", {})
+                            )
+                            fetched_prov = _extract_it_provider_ids_from_tmdb_dict(it_dict)
+                elif need_prov:
+                    resp = await client.get(
+                        f"{base_url}/{media_type}/{tid}/watch/providers",
+                        headers=headers,
+                    )
+                    if resp.status_code == 200:
+                        it_dict = resp.json().get("results", {}).get("IT", {})
+                        fetched_prov = _extract_it_provider_ids_from_tmdb_dict(it_dict)
+
+        if provider_ids:
+            if not fetched_prov or not (fetched_prov & provider_ids):
+                return False
+
+        if tv_statuses:
+            stat_ok = bool(fetched_stat and fetched_stat in tv_statuses)
+            mini_ok = "Miniseries" in tv_statuses and (
+                fetched_type == "Miniseries" or fetched_stat == "Miniseries"
+            )
+            if not (stat_ok or mini_ok):
+                return False
+
+        return True
+
+    verdicts = await asyncio.gather(*(check_candidate(c) for c in candidates))
+    return [c for c, ok in zip(candidates, verdicts) if ok]
 
 
 async def fetch_filtered_tmdb_search_pages(
@@ -319,94 +449,16 @@ async def fetch_filtered_tmdb_search_pages(
                 candidates.append(item)
 
         if provider_ids or tv_statuses:
-            candidate_ids = [int(c["id"]) for c in candidates]
-            cached_providers: Dict[int, Set[int]] = {}
-            cached_statuses: Dict[int, str] = {}
-
-            if db is not None and candidate_ids:
-                if media_type == "tv":
-                    rows = db.execute(
-                        select(TMDBSeries).where(TMDBSeries.tmdb_id.in_(candidate_ids))
-                    ).scalars().all()
-                    for row in rows:
-                        if row.watch_providers is not None:
-                            cached_providers[row.tmdb_id] = {
-                                int(wp["provider_id"])
-                                for wp in (row.watch_providers or [])
-                                if isinstance(wp, dict) and isinstance(wp.get("provider_id"), int)
-                            }
-                        if row.tmdb_status:
-                            cached_statuses[row.tmdb_id] = row.tmdb_status
-                else:
-                    rows = db.execute(
-                        select(TMDBMovie).where(TMDBMovie.tmdb_id.in_(candidate_ids))
-                    ).scalars().all()
-                    for row in rows:
-                        if row.watch_providers is not None:
-                            cached_providers[row.tmdb_id] = {
-                                int(wp["provider_id"])
-                                for wp in (row.watch_providers or [])
-                                if isinstance(wp, dict) and isinstance(wp.get("provider_id"), int)
-                            }
-
-            sem = asyncio.Semaphore(8)
-
-            async def check_candidate(item: Dict[str, Any]) -> bool:
-                tid = int(item["id"])
-                need_prov = bool(provider_ids) and tid not in cached_providers
-                need_stat = bool(tv_statuses) and tid not in cached_statuses
-
-                fetched_prov = cached_providers.get(tid)
-                fetched_stat = cached_statuses.get(tid)
-                fetched_type: Optional[str] = None
-
-                if need_prov or need_stat:
-                    async with sem:
-                        if media_type == "tv" and need_stat:
-                            detail_params: Dict[str, str] = {"language": "it-IT"}
-                            if need_prov:
-                                detail_params["append_to_response"] = "watch/providers"
-                            resp = await client.get(
-                                f"{base_url}/tv/{tid}",
-                                headers=headers,
-                                params=detail_params,
-                            )
-                            if resp.status_code == 200:
-                                payload = resp.json()
-                                fetched_stat = payload.get("status")
-                                fetched_type = payload.get("type")
-                                if need_prov:
-                                    it_dict = (
-                                        payload.get("watch/providers", {})
-                                        .get("results", {})
-                                        .get("IT", {})
-                                    )
-                                    fetched_prov = _extract_it_provider_ids_from_tmdb_dict(it_dict)
-                        elif need_prov:
-                            resp = await client.get(
-                                f"{base_url}/{media_type}/{tid}/watch/providers",
-                                headers=headers,
-                            )
-                            if resp.status_code == 200:
-                                it_dict = resp.json().get("results", {}).get("IT", {})
-                                fetched_prov = _extract_it_provider_ids_from_tmdb_dict(it_dict)
-
-                if provider_ids:
-                    if not fetched_prov or not (fetched_prov & provider_ids):
-                        return False
-
-                if tv_statuses:
-                    stat_ok = bool(fetched_stat and fetched_stat in tv_statuses)
-                    mini_ok = "Miniseries" in tv_statuses and (
-                        fetched_type == "Miniseries" or fetched_stat == "Miniseries"
-                    )
-                    if not (stat_ok or mini_ok):
-                        return False
-
-                return True
-
-            verdicts = await asyncio.gather(*(check_candidate(c) for c in candidates))
-            candidates = [c for c, ok in zip(candidates, verdicts) if ok]
+            candidates = await filter_candidates_by_providers_and_status(
+                client=client,
+                base_url=base_url,
+                headers=headers,
+                media_type=media_type,
+                candidates=candidates,
+                provider_ids=provider_ids,
+                tv_statuses=tv_statuses,
+                db=db,
+            )
 
     candidates = sort_raw_tmdb_items(candidates, sort_by, title_field, date_field)
     virtual_total_pages = math.ceil(raw_total_pages / pages_per_chunk) if raw_total_pages > 0 else 0

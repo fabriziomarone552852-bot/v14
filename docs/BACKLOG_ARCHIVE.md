@@ -9,6 +9,7 @@ Questo file contiene lo storico completo e strutturato di tutte le funzionalità
 | ID | Attività / Funzionalità | Ambito | Stato Backend | Stato Frontend | Data Completamento |
 | :--- | :--- | :---: | :---: | :---: | :---: |
 | **WEATHER-001** | Integrazione Previsioni Meteo MET Norway (Proxy Backend, Finestra Dinamica HomePage, Adesivi Desktop & Mobile con Long Press 600ms, Impostazioni GPS/Città) | `weather` / fullstack | 🟢 Completato | 🟢 Completato | Novembre 2026 |
+| **TRACKERS-025** | Ricerca & Filtro Multi-Persona (`AND`/`OR`) per Attori / Registi / Creatori (Film & Serie TV, Web & Mobile), Scheda Persona Cliccabile & Modali Dettaglio Film | `trackers` / fullstack | 🟢 Completato | 🟢 Completato | Novembre 2026 |
 | **SHOPPING-021** | Risoluzione Errore 500 Unione Prodotti Spesa (Admin Shopping) & Gestione `passive_deletes` Foreign Key | `shopping` / admin | 🟢 Completato | 🟢 Supportato | Novembre 2026 |
 | **TRACKERS-044** | Standardizzazione Suite Liste Personali Mobile (`shared/lists/`) Filtrata per Tracker & Slider Header a Doppio Livello | `trackers` / mobile | 🟢 Supportato | 🟢 Completato | Novembre 2026 |
 | **TRACKERS-043** | Rifinitura Scheda Dettaglio Film Mobile, Catalogo & Standardizzazione Recensioni (Film, Serie TV & Episodi) | `trackers` / mobile | 🟢 Supportato | 🟢 Completato | Novembre 2026 |
@@ -133,6 +134,20 @@ Integrazione completa del servizio di previsioni meteorologiche aperto e gratuit
 ---
 
 ## 📺 1. Media & Trackers (Serie TV & Film)
+
+### [TRACKERS-025] Ricerca & Filtro Multi-Persona (`AND`/`OR`) per Attori / Registi / Creatori (Film & Serie TV, Web & Mobile), Scheda Persona Cliccabile & Modali Dettaglio Film (🟢 Completato)
+
+#### 📋 Descrizione & Obiettivo
+Implementato il motore completo di ricerca e filtro per persone su Film e Serie TV (Web Desktop & Mobile), unito alla navigazione interattiva della filmografia dai modali di dettaglio e al perfezionamento dei modali Film:
+- **Backend & Database (`credits_summary`, `people_service.py`)**:
+  - Aggiunta la colonna JSON `credits_summary` su Film e Serie TV con migrazione Alembic idempotente (`j6d7e8f9a0b1`), allineata sia su ambiente di test sia sul DB di produzione (`alembic-prod.bat upgrade head`).
+  - Nuovi endpoint `GET /trackers/people/search`, `GET /trackers/people/{person_id}` (con fallback biografia IT → EN e crediti Movie/TV deduplicati), estensione `with_people` / `people_mode` (`AND`/`OR`) su ricerca e discover Film/Serie TV, ed endpoint batch `POST /trackers/movies/sync-credits` / `POST /trackers/series/sync-credits`.
+- **Autocompletamento Live Multi-Persona (`PeopleAutocompleteInput.tsx`)**:
+  - Campo dedicato `Attori / Registi` (e creatori nelle Serie TV) nei filtri Desktop e Mobile con suggerimenti live da TMDB mentre si digita, gestione multi-nome separata da virgole, chip rimovibili e selettore **`Tutti (AND)`** / **`Almeno uno (OR)`**, integrato sia con il filtro locale in RAM sia con la ricerca globale TMDB e il backfill silenzioso in background.
+- **Scheda Persona Cliccabile (`PersonDetailModal.tsx`, `PersonBioCurtainOverlay.tsx`, `PersonCreditCardGrid.tsx`)**:
+  - Cast, registi e creatori cliccabili nelle schede dettaglio Desktop & Mobile (`MovieOverviewTab`, `SeriesOverviewTab`, `MobileMovieOverviewTab`, `MobileSeriesOverviewTab`) con apertura della scheda persona dotata di espansione biografia a tendina direttamente dalla testata (singolo pulsante `Riduci` in basso a destra), filtro rapido per `Tutti`/`Film`/`Serie TV` + ricerca interna, scrollbar a scomparsa automatica (`useFadeScrollbar`), badge sui titoli già in libreria e idratazione automatica completa (`useMovieDetail`) quando si apre un film non tracciato o cross-media.
+- **Rifiniture Modali Dettaglio Film & Tooltip**:
+  - Tab **`Orari`** su Desktop e Mobile (`MovieDetailSidebar`, `MobileMovieDetailModal`) mostrata solo quando il film ha spettacoli effettivi nella provincia selezionata (`useMovieCinemaAvailability`), menu laterale Desktop centrato verticalmente con proporzioni compatte per 4 tasti, tooltip piattaforme streaming in Portal (`DetailHeaderPlatforms.tsx`) e cerchio blu hover cast senza tagli anche sul primo attore a sinistra.
 
 ### [TRACKERS-035] Estensione Sincronizzazione Orari Cinema & Sale su Webpage Desktop (`MoviePage` & `MovieDetailModal`) (🟢 Completato)
 

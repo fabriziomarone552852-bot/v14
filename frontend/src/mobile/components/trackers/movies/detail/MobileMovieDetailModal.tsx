@@ -1,7 +1,7 @@
 // src/mobile/components/trackers/detail/MobileMovieDetailModal.tsx
 import React, { useState, useMemo } from 'react';
 import { createPortal } from 'react-dom';
-import { Info, Layers, Star } from 'lucide-react';
+import { Clock, Info, Layers, Star } from 'lucide-react';
 import type { MovieDetailTarget } from '@/types/movies';
 import { useMovieDetailModalLogic } from '@/components/trackers/movies/detail/useMovieDetailModalLogic';
 import { useBackHandler } from '@/utils/backButtonManager';
@@ -10,14 +10,12 @@ import {
   MobileTrackerDetailBottomBar,
   type MobileTrackerBottomBarTab,
 } from '../../shared/detail/MobileTrackerDetailBottomBar';
-import { MobileTrackerFriendsDrawer } from '../../shared/detail/MobileTrackerFriendsDrawer';
-import { MobileTrackerListsDrawer } from '../../shared/detail/MobileTrackerListsDrawer';
-import { MobileMovieOptionsModal } from './MobileMovieOptionsModal';
-import { MobileTrackerListManagerModal } from '../../shared/detail/MobileTrackerListManagerModal';
-import { TrackerListDetailModal } from '@/components/trackers/shared/detail/TrackerListDetailModal';
+import { useTrackerPersonNavigation } from '@/hooks/trackers/useTrackerPersonNavigation';
 import { MobileMovieOverviewTab } from './MobileMovieOverviewTab';
 import { MobileMovieSagaTab } from './MobileMovieSagaTab';
 import { MobileMovieReviewTab } from './MobileMovieReviewTab';
+import { MobileCinemaShowtimesView } from '../cinema/MobileCinemaShowtimesView';
+import { MobileMovieDetailDrawers } from './MobileMovieDetailDrawers';
 import type { MovieDetailTabType } from '@/hooks/trackers/useMovieUrlParams';
 
 export interface MobileMovieDetailModalProps {
@@ -46,10 +44,13 @@ export const MobileMovieDetailModal: React.FC<MobileMovieDetailModalProps> = ({
   zIndexClass = 'z-[10030]',
 }) => {
   const [showOptionsModal, setShowOptionsModal] = useState(false);
+  const [isProvinceModalOpen, setIsProvinceModalOpen] = useState(false);
 
   const {
     tmdbId,
     userMovie,
+    resolvedMovie,
+    isMovieDetailLoading,
     extras,
     isExtrasLoading,
     providersData,
@@ -89,6 +90,12 @@ export const MobileMovieDetailModal: React.FC<MobileMovieDetailModalProps> = ({
     handleSaveCustomPoster,
     StatusIcon,
     statusColor,
+    hasCinemaShowtimes,
+    cinemaProvinces,
+    selectedProvinceSlug,
+    currentProvinceName,
+    matchedCinemaIdf,
+    handleSelectCinemaProvince,
   } = useMovieDetailModalLogic({
     isOpen,
     movie,
@@ -97,9 +104,22 @@ export const MobileMovieDetailModal: React.FC<MobileMovieDetailModalProps> = ({
     onToggleTrack,
   });
 
+  const {
+    selectedPerson,
+    openPersonDetail,
+    closePersonDetail,
+    handleSelectMovie,
+    handleSelectSeries,
+  } = useTrackerPersonNavigation({
+    mediaType: 'movie',
+    onSelectSameMedia: (targetTmdbId) => onSelectRecommendation?.({ tmdb_id: targetTmdbId }),
+    onCloseParentModal: onClose,
+  });
+
   const hasCollection = Boolean(
     extras?.collection?.parts && extras.collection.parts.length > 0
   );
+  const showCinemaTab = Boolean(hasCinemaShowtimes || activeTab === 'cinema');
 
   // Tasti Barra Inferiore dinamici
   const tabs = useMemo<MobileTrackerBottomBarTab<MovieDetailTabType>[]>(() => {
@@ -116,6 +136,20 @@ export const MobileMovieDetailModal: React.FC<MobileMovieDetailModalProps> = ({
         ),
       },
     ];
+
+    if (showCinemaTab) {
+      list.push({
+        id: 'cinema',
+        label: 'Orari',
+        icon: (
+          <Clock
+            className={`w-5 h-5 ${
+              activeTab === 'cinema' ? 'stroke-[2.5]' : 'stroke-2'
+            }`}
+          />
+        ),
+      });
+    }
 
     if (hasCollection) {
       list.push({
@@ -147,12 +181,16 @@ export const MobileMovieDetailModal: React.FC<MobileMovieDetailModalProps> = ({
     });
 
     return list;
-  }, [activeTab, hasCollection, logs.length]);
+  }, [activeTab, showCinemaTab, hasCollection, logs.length]);
 
   // Gestione Tasto Indietro Hardware Android
   useBackHandler(
     isOpen,
     () => {
+      if (isProvinceModalOpen) {
+        setIsProvinceModalOpen(false);
+        return true;
+      }
       if (isListManagerOpen) {
         setIsListManagerOpen(false);
         return true;
@@ -215,15 +253,28 @@ export const MobileMovieDetailModal: React.FC<MobileMovieDetailModalProps> = ({
             releaseYear={releaseDate ? releaseDate.substring(0, 4) : undefined}
             runtime={runtime}
             director={extras?.director}
+            directors={extras?.directors}
             overview={overview}
             cast={extras?.cast}
             recommendations={extras?.recommendations}
-            isLoadingExtras={isExtrasLoading}
+            isLoadingExtras={isExtrasLoading || (isMovieDetailLoading && !overview)}
             isUserTracked={isTracked}
             handleClickTrack={handleClickTrack}
             providersData={providersData}
             onPlatformClick={onPlatformClick}
             onSelectRecommendation={onSelectRecommendation}
+            onPersonClick={openPersonDetail}
+          />
+        )}
+
+        {activeTab === 'cinema' && (
+          <MobileCinemaShowtimesView
+            provinceSlug={selectedProvinceSlug}
+            provinceName={currentProvinceName}
+            idf={matchedCinemaIdf}
+            tmdbId={tmdbId}
+            movieTitle={title}
+            onChangeProvinceClick={() => setIsProvinceModalOpen(true)}
           />
         )}
 
@@ -242,7 +293,7 @@ export const MobileMovieDetailModal: React.FC<MobileMovieDetailModalProps> = ({
         {activeTab === 'review' && (
           <MobileMovieReviewTab
             movieTmdbId={tmdbId || 0}
-            movie={movie}
+            movie={resolvedMovie}
             userMovie={userMovie}
             initialReviewLogId={initialReviewLogId}
             onAddTracking={handleToggleLibrary}
@@ -258,35 +309,11 @@ export const MobileMovieDetailModal: React.FC<MobileMovieDetailModalProps> = ({
       />
 
       {/* 4. DRAWERS DAL BASSO E MODALI SECONDARI */}
-      <MobileTrackerFriendsDrawer
-        isOpen={showFriendsPanel}
-        onClose={() => setShowFriendsPanel(false)}
-        friends={MOVIE_FRIENDS}
-        getStatusBorderColor={getStatusBorderColor}
-        mediaType="movies"
-      />
-
-      <MobileTrackerListsDrawer
-        isOpen={showListsPanel}
-        onClose={() => setShowListsPanel(false)}
-        lists={listsWithMovie}
-        onSelectList={(id) => setListDetailId(id)}
-        onOpenManager={() => setIsListManagerOpen(true)}
-        emptyMessage="Questo film non è ancora presente in nessuna lista."
-      />
-
-      <MobileMovieOptionsModal
-        isOpen={showOptionsModal}
-        onClose={() => setShowOptionsModal(false)}
+      <MobileMovieDetailDrawers
+        tmdbId={tmdbId}
         hasCustomPoster={Boolean(userMovie?.custom_poster_path)}
-        onPosterUpdated={(url) => {
-          if (url) {
-            handleSaveCustomPoster(url);
-          } else {
-            handleSaveCustomPoster('');
-          }
-        }}
-        isUserTracked={isTracked}
+        onSaveCustomPoster={handleSaveCustomPoster}
+        isTracked={isTracked}
         isWatched={isWatched}
         watchCount={watchCount}
         onRewatch={handleRewatch}
@@ -295,23 +322,31 @@ export const MobileMovieDetailModal: React.FC<MobileMovieDetailModalProps> = ({
         onToggleObtained={handleToggleObtained}
         isHistoricMode={isHistoricMode}
         onToggleHistoricMode={() => setIsHistoricMode((prev) => !prev)}
+        showFriendsPanel={showFriendsPanel}
+        onCloseFriendsPanel={() => setShowFriendsPanel(false)}
+        friends={MOVIE_FRIENDS}
+        getStatusBorderColor={getStatusBorderColor}
+        showListsPanel={showListsPanel}
+        onCloseListsPanel={() => setShowListsPanel(false)}
+        listsWithMovie={listsWithMovie}
+        onSelectList={(id) => setListDetailId(id)}
+        showOptionsModal={showOptionsModal}
+        onCloseOptionsModal={() => setShowOptionsModal(false)}
+        isListManagerOpen={isListManagerOpen}
+        onOpenListManager={() => setIsListManagerOpen(true)}
+        onCloseListManager={() => setIsListManagerOpen(false)}
+        listDetailId={listDetailId}
+        onCloseListDetail={() => setListDetailId(null)}
+        selectedPerson={selectedPerson}
+        onClosePersonDetail={closePersonDetail}
+        onSelectMovie={handleSelectMovie}
+        onSelectSeries={handleSelectSeries}
+        isProvinceModalOpen={isProvinceModalOpen}
+        onCloseProvinceModal={() => setIsProvinceModalOpen(false)}
+        cinemaProvinces={cinemaProvinces}
+        selectedProvinceSlug={selectedProvinceSlug}
+        onSelectProvince={handleSelectCinemaProvince}
       />
-
-      {isListManagerOpen && (
-        <MobileTrackerListManagerModal
-          isOpen={isListManagerOpen}
-          onClose={() => setIsListManagerOpen(false)}
-          movieId={tmdbId}
-        />
-      )}
-
-      {listDetailId !== null && (
-        <TrackerListDetailModal
-          isOpen={listDetailId !== null}
-          onClose={() => setListDetailId(null)}
-          listId={listDetailId}
-        />
-      )}
     </div>
   );
 

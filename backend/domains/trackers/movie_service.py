@@ -73,8 +73,50 @@ async def search_tmdb_movies(
     with_watch_providers: Optional[str] = None,
     primary_release_year: Optional[str] = None,
     sort_by: Optional[str] = None,
+    with_people: Optional[str] = None,
+    people_mode: Optional[str] = "AND",
     db: Optional[Session] = None,
 ) -> TMDBPaginatedMovieSearch:
+    from backend.domains.trackers.people_service import (
+        parse_people_tokens,
+        search_or_discover_media_by_people,
+    )
+
+    if parse_people_tokens(with_people):
+        items, total_pages, total_results, resolved = await search_or_discover_media_by_people(
+            media_type="movie",
+            with_people=with_people or "",
+            people_mode=people_mode,
+            query=query,
+            page=page,
+            with_genres=with_genres,
+            without_genres=without_genres,
+            with_watch_providers=with_watch_providers,
+            year=primary_release_year,
+            sort_by=sort_by,
+            db=db,
+        )
+        results = [
+            TMDBMovieSearchResult(
+                id=item["id"],
+                title=item.get("title") or item.get("original_title") or "Senza Titolo",
+                original_title=item.get("original_title"),
+                overview=item.get("overview"),
+                poster_path=item.get("poster_path"),
+                backdrop_path=item.get("backdrop_path"),
+                release_date=item.get("release_date") or None,
+                vote_average=item.get("vote_average"),
+            )
+            for item in items
+        ]
+        return TMDBPaginatedMovieSearch(
+            page=page,
+            results=results,
+            total_pages=total_pages,
+            total_results=total_results,
+            resolved_people=resolved,
+        )
+
     if not query.strip():
         return TMDBPaginatedMovieSearch(page=1, results=[], total_pages=0, total_results=0)
 
@@ -171,13 +213,20 @@ async def discover_tmdb_movies(
     with_watch_providers: Optional[str] = None,
     primary_release_year: Optional[str] = None,
     sort_by: Optional[str] = "popularity.desc",
+    with_people: Optional[str] = None,
+    people_mode: Optional[str] = "AND",
     page: int = 1,
 ) -> TMDBPaginatedMovieSearch:
     from backend.domains.trackers.tmdb_filter_utils import (
         execute_tmdb_discover_variants,
         normalize_tmdb_sort_by,
     )
+    from backend.domains.trackers.people_service import (
+        parse_people_tokens,
+        resolve_people_input,
+    )
 
+    resolved_people = []
     url = f"{TMDB_BASE_URL}/discover/movie"
     tmdb_sort = normalize_tmdb_sort_by(sort_by, "movie")
     params: Dict[str, Any] = {
@@ -186,6 +235,21 @@ async def discover_tmdb_movies(
         "page": page,
         "sort_by": tmdb_sort,
     }
+    if parse_people_tokens(with_people):
+        resolved_people, mode, all_matched = await resolve_people_input(
+            with_people, people_mode
+        )
+        if not resolved_people or (mode == "AND" and not all_matched):
+            return TMDBPaginatedMovieSearch(
+                page=page,
+                results=[],
+                total_pages=0,
+                total_results=0,
+                resolved_people=resolved_people,
+            )
+        sep = "," if mode == "AND" else "|"
+        params["with_people"] = sep.join(str(p.id) for p in resolved_people)
+
     if with_genres and with_genres != "all":
         params["with_genres"] = with_genres
     if without_genres and without_genres != "all":
@@ -233,6 +297,7 @@ async def discover_tmdb_movies(
         results=results,
         total_pages=max_pages,
         total_results=total_res,
+        resolved_people=resolved_people,
     )
 
 
@@ -419,9 +484,12 @@ async def sync_tmdb_movie_metadata(db: Session, tmdb_id: int) -> TMDBMovie:
         movie.collection_poster_path = None
         movie.collection_backdrop_path = None
 
+    from backend.domains.trackers.people_service import extract_movie_credits_summary
+
     it_wp = raw.get("watch/providers", {}).get("results", {}).get("IT", {})
     movie.watch_providers = _extract_italy_watch_providers_from_it_dict(it_wp)
     movie.providers_synced_at = datetime.now(timezone.utc)
+    movie.credits_summary = extract_movie_credits_summary(raw)
     movie.last_sync_at = datetime.now(timezone.utc)
     return repo.save_tmdb_movie(db, movie)
 
@@ -519,8 +587,18 @@ async def get_tmdb_movie_extras(
     ]
 
     # 2. Regista
-    crew_data = raw.get("credits", {}).get("crew", [])
-    director = next((c.get("name") for c in crew_data if c.get("job") == "Director"), None)
+    from backend.domains.trackers.people_service import (
+        extract_movie_credits_summary,
+        extract_movie_directors,
+    )
+
+    directors = extract_movie_directors(raw)
+    director = ", ".join(d.name for d in directors) if directors else None
+
+    existing_movie = repo.get_tmdb_movie(db, tmdb_id)
+    if existing_movie is not None and existing_movie.credits_summary is None:
+        existing_movie.credits_summary = extract_movie_credits_summary(raw)
+        repo.save_tmdb_movie(db, existing_movie)
 
     # 3. Raccomandazioni
     recs_data = raw.get("recommendations", {}).get("results", [])
@@ -611,6 +689,7 @@ async def get_tmdb_movie_extras(
     return MovieExtrasResponse(
         cast=cast,
         director=director,
+        directors=directors,
         recommendations=recommendations,
         collection=collection_detail,
     )
@@ -716,6 +795,7 @@ def _build_movie_response(
         collection_backdrop_path=tmdb_movie.collection_backdrop_path,
         watch_providers=tmdb_movie.watch_providers,
         providers_synced_at=tmdb_movie.providers_synced_at,
+        credits_summary=tmdb_movie.credits_summary,
         last_sync_at=tmdb_movie.last_sync_at,
         status=tracking.status if tracking else "to_watch",
         is_rewatching=tracking.is_rewatching if tracking else False,

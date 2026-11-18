@@ -23,6 +23,7 @@ import {
   isGenreFilterActive,
 } from '@/utils/trackerFilterUtils';
 import { useBackHandler } from '@/utils/backButtonManager';
+import { formatPeopleFilterSummary } from '@/utils/trackerPeopleUtils';
 import { MobileMovieSearchResults } from './MobileMovieSearchResults';
 import { MobileMovieFilterOptions } from './MobileMovieFilterOptions';
 import { filterMoviesListForSearchModal } from '../shared/mobileSearchListUtils';
@@ -94,6 +95,7 @@ export const MobileMovieSearchModal: React.FC<MobileMovieSearchModalProps> = ({
 
       const hasInitialCategory =
         Boolean(debouncedQuery) ||
+        Boolean(filters.people?.trim()) ||
         isGenreFilterActive(filters.genres) ||
         (filters.platforms?.length ?? 0) > 0 ||
         (filters.sagas?.length ?? 0) > 0 ||
@@ -279,6 +281,13 @@ export const MobileMovieSearchModal: React.FC<MobileMovieSearchModalProps> = ({
   const currentFilterSource = viewMode === 'filters' ? draftFilters : filters;
   const userProviders = user?.streaming_providers ?? [];
   const activeFilterLabel = useMemo(() => {
+    if (currentFilterSource.people?.trim()) {
+      const ppl = formatPeopleFilterSummary(
+        currentFilterSource.people,
+        currentFilterSource.peopleMode
+      );
+      if (ppl) return `Persone: ${ppl}`;
+    }
     if (isGenreFilterActive(currentFilterSource.genres)) {
       const label = formatGenreFilterSummary(
         currentFilterSource.genres,
@@ -302,6 +311,8 @@ export const MobileMovieSearchModal: React.FC<MobileMovieSearchModalProps> = ({
     }
     return null;
   }, [
+    currentFilterSource.people,
+    currentFilterSource.peopleMode,
     currentFilterSource.genres,
     currentFilterSource.platforms,
     availableGenres,

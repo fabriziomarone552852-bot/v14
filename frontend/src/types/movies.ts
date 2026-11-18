@@ -1,6 +1,12 @@
 // src/types/movies.ts
 import type { ReviewComment } from './trackers';
 import type { GenreFilterRule } from '@/utils/trackerFilterUtils';
+import type {
+  MediaCreditMember,
+  MediaCreditPerson,
+  PeopleFilterMode,
+  ResolvedPersonRef,
+} from './people';
 
 export interface MovieWatchProvider {
   provider_id: number;
@@ -26,6 +32,7 @@ export interface TMDBMovie {
   collection_backdrop_path?: string | null;
   watch_providers?: MovieWatchProvider[] | null;
   providers_synced_at?: string | null;
+  credits_summary?: MediaCreditMember[] | null;
   last_sync_at?: string;
 }
 
@@ -116,6 +123,7 @@ export interface MovieCollectionDetail {
 export interface MovieExtras {
   cast: MovieCastMember[];
   director?: string | null;
+  directors?: MediaCreditPerson[];
   recommendations: MovieRecommendation[];
   collection?: MovieCollectionDetail | null;
 }
@@ -151,6 +159,7 @@ export interface TMDBPaginatedMovieSearch {
   results: TMDBMovieSearchResult[];
   total_pages: number;
   total_results: number;
+  resolved_people?: ResolvedPersonRef[];
 }
 
 export interface UpcomingMovie {
@@ -247,6 +256,8 @@ export function extractMovieTmdbId(item: MovieDetailTarget | null | undefined): 
 
 export interface MovieFilters {
   keyword: string;
+  people?: string;
+  peopleMode?: PeopleFilterMode;
   genres: GenreFilterRule;
   platforms: string[];
   years: string[];

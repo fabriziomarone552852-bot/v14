@@ -14,27 +14,37 @@ export const useSeriesUrlParams = (
     const tmdbIdParam = searchParams.get('tmdb_id');
     if (!tmdbIdParam) return;
 
-    if (series && series.length > 0) {
-      const targetSeries = series.find(s => String(s.tmdb_id) === tmdbIdParam);
-      if (targetSeries) {
-        const openReview = searchParams.get('open_review') === 'true';
-        const openEpisode = searchParams.get('open_episode');
-        const openReviewLogId = searchParams.get('open_review_log_id');
-        
-        if (!detailModalOpen) {
-          if (openEpisode) {
-            const epId = Number(openEpisode);
-            const foundEp = targetSeries.episodes?.find(e => e.id === epId);
-            openSeriesDetail(targetSeries, 'seasons', foundEp, openReviewLogId ? Number(openReviewLogId) : undefined);
-          } else if (openReview) {
-            openSeriesDetail(targetSeries, 'review', undefined, openReviewLogId ? Number(openReviewLogId) : undefined);
-          } else {
-            openSeriesDetail(targetSeries);
-          }
-        }
-        // Clean up URL params after consuming
-        setSearchParams({}, { replace: true });
+    if (series === undefined) return;
+
+    const openReview = searchParams.get('open_review') === 'true';
+    const openEpisode = searchParams.get('open_episode');
+    const openReviewLogId = searchParams.get('open_review_log_id');
+    const matchedSeries = series.find((s) => String(s.tmdb_id) === tmdbIdParam);
+    const targetSeries: TVSeries | Partial<TVSeries> =
+      matchedSeries || ({ tmdb_id: Number(tmdbIdParam) } as Partial<TVSeries>);
+
+    if (!detailModalOpen) {
+      if (openEpisode && matchedSeries) {
+        const epId = Number(openEpisode);
+        const foundEp = matchedSeries.episodes?.find((e) => e.id === epId);
+        openSeriesDetail(
+          targetSeries,
+          'seasons',
+          foundEp,
+          openReviewLogId ? Number(openReviewLogId) : undefined
+        );
+      } else if (openReview) {
+        openSeriesDetail(
+          targetSeries,
+          'review',
+          undefined,
+          openReviewLogId ? Number(openReviewLogId) : undefined
+        );
+      } else {
+        openSeriesDetail(targetSeries);
       }
     }
+    // Clean up URL params after consuming
+    setSearchParams({}, { replace: true });
   }, [series, searchParams, detailModalOpen, openSeriesDetail, setSearchParams]);
 };

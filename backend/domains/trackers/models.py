@@ -58,6 +58,7 @@ class TMDBSeries(Base):
     providers_synced_at: Mapped[Optional[datetime]] = mapped_column(
         DateTime(timezone=True), nullable=True
     )
+    credits_summary: Mapped[Optional[list]] = mapped_column(JSON, nullable=True)
     
     last_sync_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
@@ -487,6 +488,7 @@ class TMDBMovie(Base):
         DateTime(timezone=True),
         nullable=True,
     )
+    credits_summary: Mapped[Optional[list]] = mapped_column(JSON, nullable=True)
 
     last_sync_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),

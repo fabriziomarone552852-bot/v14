@@ -1,18 +1,27 @@
 import React from 'react';
 import type { TMDBSeries, SeriesCastMember, SeriesRecommendation } from '@/types/trackers';
+import type { MediaCreditPerson } from '@/types/people';
 import { useSeriesExtras } from '@/hooks/queries/useTrackersQueries';
+import { ClickableCreditsLine } from '@/components/trackers/shared/detail/ClickableCreditsLine';
 
 interface SeriesOverviewTabProps {
   tmdbSeries: TMDBSeries;
   onSelectRecommendation?: (series: SeriesRecommendation) => void;
+  onPersonClick?: (person: MediaCreditPerson) => void;
   isLoading?: boolean;
 }
 
-export const SeriesOverviewTab: React.FC<SeriesOverviewTabProps> = ({ tmdbSeries, onSelectRecommendation, isLoading }) => {
+export const SeriesOverviewTab: React.FC<SeriesOverviewTabProps> = ({
+  tmdbSeries,
+  onSelectRecommendation,
+  onPersonClick,
+  isLoading,
+}) => {
   const releaseYear = tmdbSeries.first_air_date ? tmdbSeries.first_air_date.substring(0, 4) : '';
   const { data: extras, isLoading: isExtrasLoading } = useSeriesExtras(tmdbSeries.tmdb_id);
 
   const cast = extras?.cast || [];
+  const creators = extras?.creators || [];
   const recommendations = extras?.recommendations || [];
 
   return (
@@ -21,10 +30,20 @@ export const SeriesOverviewTab: React.FC<SeriesOverviewTabProps> = ({ tmdbSeries
       <div className="flex-1 flex flex-col pr-6 min-w-0">
         {/* Title */}
         <div className="flex flex-col gap-1 shrink-0">
-          {releaseYear && (
-            <span className="text-gray-500 font-semibold tracking-wider text-xs">
-              {releaseYear}
-            </span>
+          {(releaseYear || creators.length > 0 || tmdbSeries.creators) && (
+            <div className="flex items-center gap-2 flex-wrap text-xs text-gray-500 font-semibold">
+              {releaseYear && <span className="tracking-wider">{releaseYear}</span>}
+              {(creators.length > 0 || tmdbSeries.creators) && (
+                <span className="inline-flex items-center gap-1">
+                  {releaseYear && <span>•</span>}
+                  <ClickableCreditsLine
+                    people={creators}
+                    fallbackText={tmdbSeries.creators}
+                    onPersonClick={onPersonClick}
+                  />
+                </span>
+              )}
+            </div>
           )}
           <h2 className="text-2xl font-extrabold text-gray-900 leading-tight">
             {tmdbSeries.title}
@@ -51,7 +70,7 @@ export const SeriesOverviewTab: React.FC<SeriesOverviewTabProps> = ({ tmdbSeries
           <h3 className="text-lg font-bold text-gray-800 border-b border-gray-200 pb-1">
             Cast Principale
           </h3>
-          <div className="flex gap-4 overflow-x-auto pb-2 modal-scrollbar">
+          <div className="flex gap-4 overflow-x-auto pt-1.5 px-2 pb-2 modal-scrollbar">
             {isExtrasLoading ? (
               <div className="w-full flex items-center justify-center p-4">
                 <span className="text-gray-400 italic text-sm">Caricamento cast...</span>
@@ -62,8 +81,20 @@ export const SeriesOverviewTab: React.FC<SeriesOverviewTabProps> = ({ tmdbSeries
               </div>
             ) : (
               cast.map((actor: SeriesCastMember) => (
-                <div key={actor.id} className="flex flex-col gap-1 w-[80px] shrink-0">
-                  <div className="w-[80px] h-[80px] rounded-full overflow-hidden bg-gray-200 shadow-inner shrink-0">
+                <button
+                  key={actor.id}
+                  type="button"
+                  onClick={() =>
+                    onPersonClick?.({
+                      id: actor.id,
+                      name: actor.name,
+                      profile_path: actor.profile_path,
+                    })
+                  }
+                  className="relative hover:z-10 flex flex-col gap-1 w-[80px] shrink-0 text-left group cursor-pointer focus:outline-none"
+                  title={`Vedi filmografia di ${actor.name}`}
+                >
+                  <div className="w-[80px] h-[80px] rounded-full overflow-hidden bg-gray-200 shadow-inner shrink-0 transition-all ring-2 ring-transparent group-hover:ring-blue-400">
                     {actor.profile_path ? (
                       <img src={`https://image.tmdb.org/t/p/w185${actor.profile_path}`} alt={actor.name} className="w-full h-full object-cover" />
                     ) : (
@@ -74,11 +105,11 @@ export const SeriesOverviewTab: React.FC<SeriesOverviewTabProps> = ({ tmdbSeries
                       </div>
                     )}
                   </div>
-                  <div className="text-center mt-1">
-                    <p className="font-bold text-gray-900 text-xs leading-tight line-clamp-2" title={actor.name}>{actor.name}</p>
+                  <div className="text-center mt-1 w-full">
+                    <p className="font-bold text-gray-900 group-hover:text-blue-600 text-xs leading-tight line-clamp-2 transition-colors" title={actor.name}>{actor.name}</p>
                     <p className="text-[10px] text-gray-500 mt-0.5 leading-tight line-clamp-2" title={actor.character}>{actor.character}</p>
                   </div>
-                </div>
+                </button>
               ))
             )}
           </div>

@@ -3,6 +3,7 @@ import { MoreVertical, History, PackageCheck, Package, RotateCw } from 'lucide-r
 import type { MediaList, SeriesFriendDisplayItem } from '@/types/trackers';
 import type { MovieProvidersResponse } from '@/hooks/queries/useMovieQueries';
 import { TrackerDetailListsBar } from '@/components/trackers/shared/detail/TrackerDetailListsBar';
+import { DetailHeaderPlatforms } from '@/components/trackers/shared/detail/DetailHeaderPlatforms';
 
 interface MovieDetailHeaderProps {
   backdropUrl?: string | null;
@@ -32,7 +33,6 @@ interface MovieDetailHeaderProps {
 export const MovieDetailHeader: React.FC<MovieDetailHeaderProps> = ({
   backdropUrl,
   onClose,
-  isUserTracked: _isUserTracked = false,
   isWatched = false,
   watchCount = 0,
   onRewatch,
@@ -212,28 +212,10 @@ export const MovieDetailHeader: React.FC<MovieDetailHeaderProps> = ({
         )}
 
         {/* Piattaforme Streaming (TMDB Providers Flatrate) */}
-        {Boolean(providersData?.flatrate && providersData.flatrate.length > 0) && (
-          <div className="flex flex-wrap gap-2 items-center">
-            {providersData!.flatrate!.map((provider) => (
-              <div
-                key={provider.provider_id}
-                className="relative group/provider flex items-center"
-                onClick={() => onPlatformClick && onPlatformClick(provider.provider_name)}
-              >
-                <img
-                  src={`https://image.tmdb.org/t/p/original${provider.logo_path}`}
-                  alt={provider.provider_name}
-                  className={`w-7 h-7 rounded-md shadow-md border border-white/20 bg-white ${
-                    onPlatformClick ? 'cursor-pointer hover:scale-110 transition-transform' : ''
-                  }`}
-                />
-                <div className="absolute top-full mt-1 left-1/2 -translate-x-1/2 bg-gray-900 text-white text-[10px] font-bold px-2 py-1 rounded opacity-0 group-hover/provider:opacity-100 transition-opacity whitespace-nowrap pointer-events-none shadow-lg z-30">
-                  {provider.provider_name}
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
+        <DetailHeaderPlatforms
+          providers={providersData?.flatrate}
+          onPlatformClick={onPlatformClick}
+        />
       </div>
 
       {/* AMICI E LISTE (In basso a destra) */}

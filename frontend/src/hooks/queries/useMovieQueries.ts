@@ -39,6 +39,8 @@ export interface TMDBMovieQueryFilterParams {
   without_genres?: string;
   with_watch_providers?: string;
   primary_release_year?: string;
+  with_people?: string;
+  people_mode?: 'AND' | 'OR';
   sort_by?: string;
 }
 
@@ -58,6 +60,8 @@ export const useInfiniteSearchTMDBMovies = (
       filterParams?.without_genres || '',
       filterParams?.with_watch_providers || '',
       filterParams?.primary_release_year || '',
+      filterParams?.with_people || '',
+      filterParams?.people_mode || 'AND',
       filterParams?.sort_by || '',
     ],
     queryFn: async ({ pageParam = 1 }) => {
@@ -73,6 +77,10 @@ export const useInfiniteSearchTMDBMovies = (
       if (filterParams?.primary_release_year) {
         params.primary_release_year = filterParams.primary_release_year;
       }
+      if (filterParams?.with_people) {
+        params.with_people = filterParams.with_people;
+        if (filterParams.people_mode) params.people_mode = filterParams.people_mode;
+      }
       if (filterParams?.sort_by) params.sort_by = filterParams.sort_by;
 
       const data = await api.get<TMDBPaginatedMovieSearch>('/trackers/movies/search', {
@@ -87,7 +95,8 @@ export const useInfiniteSearchTMDBMovies = (
       }
       return undefined;
     },
-    enabled: enabled && query.trim().length > 0,
+    enabled:
+      enabled && (query.trim().length > 0 || Boolean(filterParams?.with_people?.trim())),
   });
 };
 
@@ -105,6 +114,8 @@ export const useInfiniteDiscoverTMDBMovies = (
       filterParams.without_genres || '',
       filterParams.with_watch_providers || '',
       filterParams.primary_release_year || '',
+      filterParams.with_people || '',
+      filterParams.people_mode || 'AND',
       filterParams.sort_by || '',
     ],
     queryFn: async ({ pageParam = 1 }) => {
@@ -116,6 +127,10 @@ export const useInfiniteDiscoverTMDBMovies = (
       }
       if (filterParams.primary_release_year) {
         params.primary_release_year = filterParams.primary_release_year;
+      }
+      if (filterParams.with_people) {
+        params.with_people = filterParams.with_people;
+        if (filterParams.people_mode) params.people_mode = filterParams.people_mode;
       }
       if (filterParams.sort_by) params.sort_by = filterParams.sort_by;
 
@@ -232,6 +247,23 @@ export const useMovieExtras = (tmdbId?: number, enabled: boolean = true) => {
     },
     enabled: enabled && !!tmdbId,
     staleTime: 1000 * 60 * 60 * 12, // 12 ore
+  });
+};
+
+export const useMovieDetail = (tmdbId?: number, enabled: boolean = true) => {
+  return useQuery<Movie | null>({
+    queryKey: ['trackers', 'movies', tmdbId, 'detail'],
+    queryFn: async () => {
+      if (!tmdbId) return null;
+      try {
+        const data = await api.get<Movie>(`/trackers/movies/${tmdbId}`);
+        return data || null;
+      } catch {
+        return null;
+      }
+    },
+    enabled: enabled && !!tmdbId && tmdbId > 0,
+    staleTime: 1000 * 60 * 10, // 10 minuti
   });
 };
 

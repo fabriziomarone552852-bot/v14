@@ -1,6 +1,7 @@
 import React from 'react';
 import { RotateCcw } from 'lucide-react';
 import { ArchiveFilterSearchInput } from '@/components/archive/common';
+import { PeopleAutocompleteInput } from '@/components/trackers/shared/PeopleAutocompleteInput';
 import type { Movie, MovieFilters } from '@/types/movies';
 import type { MediaList } from '@/types/trackers';
 import { CheckCircleIcon } from '@/components/shared/utils/Icons';
@@ -178,6 +179,16 @@ export const MovieFilterModal: React.FC<MovieFilterModalProps> = ({
           value={filters.keyword || ''}
           onChange={(val) => handleFieldChange('keyword', val)}
           placeholder="Es. Inception, Interstellar..."
+        />
+
+        <PeopleAutocompleteInput
+          label="Attori / Registi"
+          value={filters.people || ''}
+          mode={filters.peopleMode || 'AND'}
+          onChange={(val) => handleFieldChange('people', val)}
+          onModeChange={(nextMode) => handleFieldChange('peopleMode', nextMode)}
+          showLocalHint={!filters.globalSearch}
+          placeholder="Es. Tarantino, DiCaprio..."
         />
 
         <div className="grid grid-cols-2 gap-4">

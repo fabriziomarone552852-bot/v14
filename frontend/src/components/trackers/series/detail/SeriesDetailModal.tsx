@@ -15,6 +15,8 @@ import { TrackerImageModal } from '@/components/trackers/shared/detail/TrackerIm
 import { TrackerDetailListsDrawer } from '@/components/trackers/shared/detail/TrackerDetailListsDrawer';
 import { TrackerDetailFriendsDrawer } from '@/components/trackers/shared/detail/TrackerDetailFriendsDrawer';
 import { TrackerListDetailModal } from '@/components/trackers/shared/detail/TrackerListDetailModal';
+import { PersonDetailModal } from '@/components/trackers/shared/detail/PersonDetailModal';
+import { useTrackerPersonNavigation } from '@/hooks/trackers/useTrackerPersonNavigation';
 import { SeriesDetailHeader } from './SeriesDetailHeader';
 import { SeriesDetailSidebar } from './SeriesDetailSidebar';
 import {
@@ -95,6 +97,19 @@ export const SeriesDetailModal: React.FC<SeriesDetailModalProps> = ({
     initialEpisode,
     initialReviewLogId,
     onToggleTrack,
+  });
+
+  const {
+    selectedPerson,
+    openPersonDetail,
+    closePersonDetail,
+    handleSelectMovie,
+    handleSelectSeries,
+  } = useTrackerPersonNavigation({
+    mediaType: 'tv',
+    onSelectSameMedia: (targetTmdbId) =>
+      onSelectRecommendation?.({ id: targetTmdbId, tmdb_id: targetTmdbId }),
+    onCloseParentModal: onClose,
   });
 
   const isUserTracked = Boolean(userTracking);
@@ -191,6 +206,7 @@ export const SeriesDetailModal: React.FC<SeriesDetailModalProps> = ({
               <SeriesOverviewTab
                 tmdbSeries={tmdbSeries}
                 onSelectRecommendation={onSelectRecommendation}
+                onPersonClick={openPersonDetail}
                 isLoading={false}
               />
             )}
@@ -268,6 +284,14 @@ export const SeriesDetailModal: React.FC<SeriesDetailModalProps> = ({
           zIndexClass="z-[10050]"
         />
       )}
+
+      <PersonDetailModal
+        isOpen={Boolean(selectedPerson)}
+        person={selectedPerson}
+        onClose={closePersonDetail}
+        onSelectMovie={handleSelectMovie}
+        onSelectSeries={handleSelectSeries}
+      />
     </BaseModal>
   );
 };

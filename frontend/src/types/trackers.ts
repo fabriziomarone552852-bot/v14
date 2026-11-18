@@ -1,4 +1,5 @@
 import type { UserMovieLog, FriendMovieLog } from './movies';
+import type { MediaCreditMember, ResolvedPersonRef } from './people';
 
 export interface TMDBEpisode {
   id: number;
@@ -87,6 +88,7 @@ export interface TMDBSeries {
   last_sync_at?: string;
   watch_providers?: SeriesWatchProvider[] | null;
   providers_synced_at?: string | null;
+  credits_summary?: MediaCreditMember[] | null;
   episodes?: TMDBEpisode[];
   cast?: SeriesCastMember[];
   recommendations?: SeriesRecommendation[];
@@ -171,6 +173,7 @@ export interface TMDBPaginatedSearch {
   results: TMDBSeriesSearchResult[];
   total_pages: number;
   total_results: number;
+  resolved_people?: ResolvedPersonRef[];
 }
 
 export interface FriendSeriesLog {

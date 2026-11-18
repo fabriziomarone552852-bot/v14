@@ -13,6 +13,8 @@ import { TrackerDetailFriendsDrawer } from '@/components/trackers/shared/detail/
 import { TrackerListManagerModal } from '@/components/trackers/shared/detail/TrackerListManagerModal';
 import { TrackerImageModal } from '@/components/trackers/shared/detail/TrackerImageModal';
 import { TrackerListDetailModal } from '@/components/trackers/shared/detail/TrackerListDetailModal';
+import { PersonDetailModal } from '@/components/trackers/shared/detail/PersonDetailModal';
+import { useTrackerPersonNavigation } from '@/hooks/trackers/useTrackerPersonNavigation';
 import type { MovieDetailTabType } from '@/hooks/trackers/useMovieUrlParams';
 
 export interface MovieDetailModalProps {
@@ -43,6 +45,8 @@ export const MovieDetailModal: React.FC<MovieDetailModalProps> = ({
   const {
     tmdbId,
     userMovie,
+    resolvedMovie,
+    isMovieDetailLoading,
     extras,
     isExtrasLoading,
     providersData,
@@ -88,12 +92,25 @@ export const MovieDetailModal: React.FC<MovieDetailModalProps> = ({
     handleRewatch,
     handleSaveCustomPoster,
     isFriendsLoading,
+    hasCinemaShowtimes,
   } = useMovieDetailModalLogic({
     isOpen,
     movie,
     initialTab,
     initialReviewLogId,
     onToggleTrack,
+  });
+
+  const {
+    selectedPerson,
+    openPersonDetail,
+    closePersonDetail,
+    handleSelectMovie,
+    handleSelectSeries,
+  } = useTrackerPersonNavigation({
+    mediaType: 'movie',
+    onSelectSameMedia: (targetTmdbId) => onSelectRecommendation?.({ tmdb_id: targetTmdbId }),
+    onCloseParentModal: onClose,
   });
 
   return (
@@ -158,6 +175,7 @@ export const MovieDetailModal: React.FC<MovieDetailModalProps> = ({
             handleTouchStart={handleTouchStart}
             handleTouchEnd={handleTouchEnd}
             handleClickTrack={handleClickTrack}
+            hasCinemaShowtimes={hasCinemaShowtimes}
             hasCollection={Boolean(extras?.collection?.parts && extras.collection.parts.length > 0)}
             reviewsCount={logs.length}
           />
@@ -171,11 +189,14 @@ export const MovieDetailModal: React.FC<MovieDetailModalProps> = ({
                 releaseYear={releaseDate ? releaseDate.substring(0, 4) : undefined}
                 runtime={runtime}
                 director={extras?.director}
+                directors={extras?.directors}
                 overview={overview}
                 cast={extras?.cast}
                 recommendations={extras?.recommendations}
                 isLoadingExtras={isExtrasLoading}
+                isLoadingDetails={isMovieDetailLoading}
                 onSelectRecommendation={onSelectRecommendation}
+                onPersonClick={openPersonDetail}
               />
             )}
 
@@ -194,7 +215,7 @@ export const MovieDetailModal: React.FC<MovieDetailModalProps> = ({
             {activeTab === 'review' && (
               <MovieReviewTab
                 movieTmdbId={tmdbId || 0}
-                movie={movie}
+                movie={resolvedMovie}
                 userMovie={userMovie}
                 initialReviewLogId={initialReviewLogId}
                 onAddTracking={handleToggleLibrary}
@@ -259,6 +280,15 @@ export const MovieDetailModal: React.FC<MovieDetailModalProps> = ({
           zIndexClass="z-[10050]"
         />
       )}
+
+      {/* MODALE FILMOGRAFIA PERSONA */}
+      <PersonDetailModal
+        isOpen={Boolean(selectedPerson)}
+        person={selectedPerson}
+        onClose={closePersonDetail}
+        onSelectMovie={handleSelectMovie}
+        onSelectSeries={handleSelectSeries}
+      />
     </BaseModal>
   );
 };

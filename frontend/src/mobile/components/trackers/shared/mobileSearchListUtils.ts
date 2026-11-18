@@ -20,6 +20,7 @@ import {
   matchesGenreFilterRule,
   matchesYearMultiFilter,
 } from '@/utils/trackerFilterUtils';
+import { matchesPeopleCreditsFilter } from '@/utils/trackerPeopleUtils';
 
 const matchesRatingBuckets = (rawRating: number, activeRatings: readonly string[]): boolean => {
   if (activeRatings.length === 0) return true;
@@ -89,6 +90,17 @@ export const filterSeriesListForSearchModal = (params: {
       ({ result }) =>
         result.name.toLowerCase().includes(query) ||
         Boolean(result.original_name?.toLowerCase().includes(query))
+    );
+  }
+
+  if (filters.people?.trim()) {
+    items = items.filter(({ existing }) =>
+      matchesPeopleCreditsFilter(
+        existing?.credits_summary,
+        existing?.creators,
+        filters.people,
+        filters.peopleMode
+      )
     );
   }
 
@@ -211,6 +223,17 @@ export const filterMoviesListForSearchModal = (params: {
       ({ result }) =>
         result.title.toLowerCase().includes(query) ||
         Boolean(result.original_title?.toLowerCase().includes(query))
+    );
+  }
+
+  if (filters.people?.trim()) {
+    items = items.filter(({ existing }) =>
+      matchesPeopleCreditsFilter(
+        existing?.credits_summary,
+        null,
+        filters.people,
+        filters.peopleMode
+      )
     );
   }
 
