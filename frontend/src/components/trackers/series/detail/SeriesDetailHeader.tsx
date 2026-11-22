@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useRef, useState, type RefObject } from 'react';
 import { Ban, RotateCcw, MoreVertical, History } from 'lucide-react';
 import type { MediaList, SeriesFriendDisplayItem } from '@/types/trackers';
 import type { TMDBProvidersResponse } from './useSeriesDetailModalLogic';
@@ -25,6 +25,7 @@ interface SeriesDetailHeaderProps {
   listsWithSeries: MediaList[];
   onOpenListManager: () => void;
   onOpenListDrawer: (listId?: number) => void;
+  posterRef?: RefObject<HTMLElement | null>;
 }
 
 export const SeriesDetailHeader: React.FC<SeriesDetailHeaderProps> = ({
@@ -47,10 +48,12 @@ export const SeriesDetailHeader: React.FC<SeriesDetailHeaderProps> = ({
   listsWithSeries,
   onOpenListManager,
   onOpenListDrawer,
+  posterRef,
 }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const headerRef = useRef<HTMLDivElement>(null);
   return (
-    <div className="relative h-48 shrink-0 bg-gray-900">
+    <div ref={headerRef} className="relative h-48 shrink-0 bg-gray-900">
       <img
         src={backdropUrl}
         alt="Backdrop"
@@ -187,7 +190,7 @@ export const SeriesDetailHeader: React.FC<SeriesDetailHeaderProps> = ({
       </div>
 
       {/* AMICI E LISTE (In basso a destra) */}
-      <div className="absolute bottom-4 right-6 flex flex-col items-end gap-2 z-10 max-w-[calc(100%-340px)] justify-start">
+      <div className="absolute bottom-4 right-6 flex flex-col items-end gap-2 z-10 justify-start">
         {(isFriendsLoading || friends.length > 0) && (
           <div className="flex items-center flex-row-reverse gap-1.5">
             {isFriendsLoading ? (
@@ -232,6 +235,8 @@ export const SeriesDetailHeader: React.FC<SeriesDetailHeaderProps> = ({
           lists={listsWithSeries}
           onOpenManager={onOpenListManager}
           onOpenDrawer={onOpenListDrawer}
+          posterRef={posterRef}
+          headerRef={headerRef}
         />
       </div>
     </div>

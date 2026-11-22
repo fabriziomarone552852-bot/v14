@@ -18,6 +18,7 @@ interface SeriesReviewTabProps {
   tmdbSeries: TMDBSeries;
   userTracking: UserSeriesTracking | null;
   onOpenEpisode?: (episode: TMDBEpisode) => void;
+  onOpenSeason?: (seasonNumber: number) => void;
   initialReviewLogId?: number;
 }
 
@@ -25,6 +26,7 @@ export const SeriesReviewTab: React.FC<SeriesReviewTabProps> = ({
   tmdbSeries,
   userTracking,
   onOpenEpisode,
+  onOpenSeason,
   initialReviewLogId,
 }) => {
   const {
@@ -210,6 +212,8 @@ export const SeriesReviewTab: React.FC<SeriesReviewTabProps> = ({
   // 6. Main Dashboard View
   return (
     <SeriesMainOverview
+      tmdbSeries={tmdbSeries}
+      userTracking={userTracking}
       tmdbValue={tmdbValue}
       friendsAverage={friendsAverage}
       myAverage={myAverage}
@@ -218,6 +222,7 @@ export const SeriesReviewTab: React.FC<SeriesReviewTabProps> = ({
       onOpenFriendsReviews={() => setView('friends_reviews')}
       onOpenMyReviews={() => setView('my_reviews')}
       onOpenEpisode={onOpenEpisode}
+      onOpenSeason={onOpenSeason}
     />
   );
 };

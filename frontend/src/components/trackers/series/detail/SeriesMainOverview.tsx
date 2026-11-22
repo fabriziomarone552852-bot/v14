@@ -1,8 +1,9 @@
 // src/components/trackers/SeriesDetailModal/SeriesMainOverview.tsx
 import React from 'react';
-import type { TMDBEpisode } from '@/types/trackers';
+import type { TMDBEpisode, TMDBSeries, UserSeriesTracking } from '@/types/trackers';
 import { StarRating } from '@/components/trackers/shared/detail/StarRating';
 import { EmptyState } from '@/components/shared/utils/EmptyState';
+import { SeasonRatingsSummarySection } from './SeasonRatingsSummarySection';
 
 interface SeriesQuoteItem {
   id: string | number;
@@ -12,6 +13,8 @@ interface SeriesQuoteItem {
 }
 
 interface SeriesMainOverviewProps {
+  tmdbSeries: TMDBSeries;
+  userTracking: UserSeriesTracking | null;
   tmdbValue: number | null;
   friendsAverage: number | null;
   myAverage: number | null;
@@ -20,9 +23,12 @@ interface SeriesMainOverviewProps {
   onOpenFriendsReviews: () => void;
   onOpenMyReviews: () => void;
   onOpenEpisode?: (episode: TMDBEpisode) => void;
+  onOpenSeason?: (seasonNumber: number) => void;
 }
 
 export const SeriesMainOverview: React.FC<SeriesMainOverviewProps> = ({
+  tmdbSeries,
+  userTracking,
   tmdbValue,
   friendsAverage,
   myAverage,
@@ -31,6 +37,7 @@ export const SeriesMainOverview: React.FC<SeriesMainOverviewProps> = ({
   onOpenFriendsReviews,
   onOpenMyReviews,
   onOpenEpisode,
+  onOpenSeason,
 }) => {
   return (
     <div className="flex flex-col gap-6 animate-fadeIn h-full">
@@ -86,6 +93,13 @@ export const SeriesMainOverview: React.FC<SeriesMainOverviewProps> = ({
           </div>
         </div>
       </div>
+
+      {/* Voti per Stagione */}
+      <SeasonRatingsSummarySection
+        tmdbSeries={tmdbSeries}
+        userTracking={userTracking}
+        onOpenSeason={onOpenSeason}
+      />
 
       {/* Citazioni (sola lettura) */}
       <div className="flex-1 flex flex-col min-h-0 bg-white p-6 rounded-2xl shadow-sm border border-gray-100">

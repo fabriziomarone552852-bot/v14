@@ -6,13 +6,11 @@ import type {
   TMDBSeries,
   UserSeriesTracking,
 } from '@/types/trackers';
-import type { MediaCreditPerson } from '@/types/people';
 import type { TabType } from '@/components/trackers/series/detail/useSeriesDetailModalLogic';
 import { MobileTrackerFriendsDrawer } from '../../shared/detail/MobileTrackerFriendsDrawer';
 import { MobileTrackerListsDrawer } from '../../shared/detail/MobileTrackerListsDrawer';
 import { MobileTrackerListManagerModal } from '../../shared/detail/MobileTrackerListManagerModal';
 import { TrackerListDetailModal } from '@/components/trackers/shared/detail/TrackerListDetailModal';
-import { PersonDetailModal } from '@/components/trackers/shared/detail/PersonDetailModal';
 import { MobileSeriesOptionsModal } from './MobileSeriesOptionsModal';
 
 export interface MobileSeriesDetailDrawersProps {
@@ -37,10 +35,6 @@ export interface MobileSeriesDetailDrawersProps {
   onCloseListManager: () => void;
   listDetailId: number | null;
   onCloseListDetail: () => void;
-  selectedPerson: MediaCreditPerson | null;
-  onClosePersonDetail: () => void;
-  onSelectMovieFromPerson: (movieTmdbId: number) => void;
-  onSelectSeriesFromPerson: (seriesTmdbId: number) => void;
   updateSeries: (payload: {
     id: number;
     updates: {
@@ -75,10 +69,6 @@ export const MobileSeriesDetailDrawers: React.FC<MobileSeriesDetailDrawersProps>
   onCloseListManager,
   listDetailId,
   onCloseListDetail,
-  selectedPerson,
-  onClosePersonDetail,
-  onSelectMovieFromPerson,
-  onSelectSeriesFromPerson,
   updateSeries,
   onTabChange,
   onClearEpisode,
@@ -173,14 +163,6 @@ export const MobileSeriesDetailDrawers: React.FC<MobileSeriesDetailDrawersProps>
           listId={listDetailId}
         />
       )}
-
-      <PersonDetailModal
-        isOpen={Boolean(selectedPerson)}
-        person={selectedPerson}
-        onClose={onClosePersonDetail}
-        onSelectMovie={onSelectMovieFromPerson}
-        onSelectSeries={onSelectSeriesFromPerson}
-      />
     </>
   );
 };

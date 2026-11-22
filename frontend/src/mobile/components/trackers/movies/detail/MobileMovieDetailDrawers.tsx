@@ -1,13 +1,11 @@
 import React from 'react';
 import type { MediaList, SeriesFriendDisplayItem } from '@/types/trackers';
-import type { MediaCreditPerson } from '@/types/people';
 import type { CinemaProvince } from '@/types/cinema';
 import { MobileTrackerFriendsDrawer } from '../../shared/detail/MobileTrackerFriendsDrawer';
 import { MobileTrackerListsDrawer } from '../../shared/detail/MobileTrackerListsDrawer';
 import { MobileMovieOptionsModal } from './MobileMovieOptionsModal';
 import { MobileTrackerListManagerModal } from '../../shared/detail/MobileTrackerListManagerModal';
 import { TrackerListDetailModal } from '@/components/trackers/shared/detail/TrackerListDetailModal';
-import { PersonDetailModal } from '@/components/trackers/shared/detail/PersonDetailModal';
 import { MobileCinemaProvinceModal } from '../cinema/MobileCinemaProvinceModal';
 
 export interface MobileMovieDetailDrawersProps {
@@ -38,10 +36,6 @@ export interface MobileMovieDetailDrawersProps {
   onCloseListManager: () => void;
   listDetailId: number | null;
   onCloseListDetail: () => void;
-  selectedPerson: MediaCreditPerson | null;
-  onClosePersonDetail: () => void;
-  onSelectMovie: (movieTmdbId: number) => void;
-  onSelectSeries: (seriesTmdbId: number) => void;
   isProvinceModalOpen: boolean;
   onCloseProvinceModal: () => void;
   cinemaProvinces: CinemaProvince[];
@@ -80,10 +74,6 @@ export const MobileMovieDetailDrawers: React.FC<MobileMovieDetailDrawersProps> =
   onCloseListManager,
   listDetailId,
   onCloseListDetail,
-  selectedPerson,
-  onClosePersonDetail,
-  onSelectMovie,
-  onSelectSeries,
   isProvinceModalOpen,
   onCloseProvinceModal,
   cinemaProvinces,
@@ -139,14 +129,6 @@ export const MobileMovieDetailDrawers: React.FC<MobileMovieDetailDrawersProps> =
         listId={listDetailId}
       />
     )}
-
-    <PersonDetailModal
-      isOpen={Boolean(selectedPerson)}
-      person={selectedPerson}
-      onClose={onClosePersonDetail}
-      onSelectMovie={onSelectMovie}
-      onSelectSeries={onSelectSeries}
-    />
 
     {isProvinceModalOpen && (
       <MobileCinemaProvinceModal

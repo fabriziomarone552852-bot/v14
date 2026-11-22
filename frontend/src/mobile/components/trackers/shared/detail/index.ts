@@ -4,3 +4,6 @@ export * from './MobileTrackerFriendsDrawer';
 export * from './MobileTrackerListsDrawer';
 export * from './MobileTrackerListManagerModal';
 export * from './MobileReviewDetailView';
+export * from './MobilePersonDetailModal';
+export * from './MobilePersonCreditsSection';
+export * from './MobileTrackerRatingsBar';

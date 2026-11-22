@@ -5,7 +5,6 @@ import { Trash2 } from 'lucide-react';
 import type { Movie, MovieDetailTarget, UserMovieLog } from '@/types/movies';
 import { useMovieReviewTabLogic } from '@/components/trackers/movies/detail/useMovieReviewTabLogic';
 import { aggregateFriendsReviews } from '@/utils/ratingUtils';
-import { StarRating } from '@/components/trackers/shared/detail/StarRating';
 import { EmptyState } from '@/components/shared/utils/EmptyState';
 import { AddButton } from '@/components/shared/utils/AddButton';
 import { CloseIcon } from '@/components/shared/utils/Icons';
@@ -13,6 +12,7 @@ import { useBackHandler } from '@/utils/backButtonManager';
 import { FriendsReviewsListView } from '@/components/trackers/shared/detail/FriendsReviewsListView';
 import { FriendDetailReviewsView } from '@/components/trackers/shared/detail/FriendDetailReviewsView';
 import { MobileReviewDetailView } from '../../shared/detail/MobileReviewDetailView';
+import { MobileTrackerRatingsBar } from '../../shared/detail/MobileTrackerRatingsBar';
 import { MobileMovieReviewForm } from './MobileMovieReviewForm';
 import { MobileMovieMyReviewsList } from './MobileMovieMyReviewsList';
 
@@ -141,7 +141,7 @@ export const MobileMovieReviewTab: React.FC<MobileMovieReviewTabProps> = ({
   if (view === 'friends_reviews') {
     const friendsList = aggregateFriendsReviews(friendsLogsData);
     return (
-      <div className="animate-fadeIn">
+      <div className="flex flex-col flex-1 min-h-0 overflow-hidden -mb-4 animate-fadeIn">
         <FriendsReviewsListView
           friendsList={friendsList}
           onBack={() => setView('main')}
@@ -151,6 +151,7 @@ export const MobileMovieReviewTab: React.FC<MobileMovieReviewTabProps> = ({
           }}
           title="Recensioni Amici"
           emptyMessage="Nessun amico ha ancora recensito questo film."
+          mobileFixedHeader
         />
       </div>
     );
@@ -168,11 +169,12 @@ export const MobileMovieReviewTab: React.FC<MobileMovieReviewTabProps> = ({
     const friendName = friendLogs[0]?.friend_name || '';
 
     return (
-      <div className="animate-fadeIn">
+      <div className="flex flex-col flex-1 min-h-0 overflow-hidden -mb-4 animate-fadeIn">
         <FriendDetailReviewsView
           friendName={friendName}
           onBack={() => setView('friends_reviews')}
           logs={friendLogs}
+          mobileFixedHeader
           getCardData={(log) => ({
             id: log.id,
             rating: log.rating,
@@ -250,81 +252,19 @@ export const MobileMovieReviewTab: React.FC<MobileMovieReviewTabProps> = ({
     );
   }
 
-  // 6. Main Dashboard View
+  // 6. Main Dashboard View (Barra voti unificata su riga singola)
   return (
-    <div className="flex flex-col gap-6 animate-fadeIn pb-6">
-      {/* SEZIONE VOTI: BOX UNICO ATTORNO A TUTTI E TRE I VOTI */}
-      <div className="w-full max-w-sm mx-auto bg-white border border-gray-200/90 rounded-2xl p-4 shadow-2xs flex flex-col items-center gap-3.5 shrink-0">
-        {/* Livello Superiore: TMDB e Amici */}
-        <div className="flex items-center justify-around w-full">
-          {/* TMDB */}
-          <div className="flex flex-col items-center gap-1 px-2">
-            <span className="text-[11px] font-bold text-gray-400 uppercase tracking-wider">
-              TMDB
-            </span>
-            <div className="flex items-center">
-              {tmdbValue !== null ? (
-                <StarRating value={tmdbValue} hideNumber readonly iconClassName="w-5 h-5" />
-              ) : (
-                <span className="text-gray-400 font-medium text-xs">--</span>
-              )}
-            </div>
-          </div>
-
-          <div className="w-px h-9 bg-gray-200" />
-
-          {/* Amici */}
-          <div
-            onClick={() => setView('friends_reviews')}
-            className="flex flex-col items-center gap-1 px-2 cursor-pointer hover:bg-gray-50 rounded-xl transition-colors p-1 -m-1 group"
-          >
-            <span className="text-[11px] font-bold text-gray-400 uppercase tracking-wider group-hover:text-blue-600 transition-colors">
-              Amici
-            </span>
-            <div className="flex items-center">
-              {friendsAverage !== null ? (
-                <StarRating value={friendsAverage} hideNumber readonly iconClassName="w-5 h-5" />
-              ) : (
-                <span className="text-gray-400 font-medium text-xs">--</span>
-              )}
-            </div>
-          </div>
-        </div>
-
-        {/* Separatore Orizzontale */}
-        <div className="w-full border-t border-gray-100" />
-
-        {/* Livello Inferiore: Il Tuo Voto */}
-        <div className="w-full flex flex-col items-center">
-          {myAverage !== null ? (
-            <div
-              onClick={() => setView('my_reviews')}
-              className="w-full flex flex-col items-center gap-1 cursor-pointer hover:bg-gray-50 rounded-xl p-1.5 transition-colors group"
-            >
-              <span className="text-[11px] font-bold text-gray-500 uppercase tracking-wider group-hover:text-blue-600 transition-colors">
-                Il Tuo Voto
-              </span>
-              <div
-                className="flex items-center"
-                title={`Media basata su ${logs.filter((l) => typeof l.rating === 'number').length} voti`}
-              >
-                <StarRating value={myAverage} hideNumber readonly iconClassName="w-6 h-6" />
-              </div>
-            </div>
-          ) : (
-            <button
-              type="button"
-              onClick={logs.length > 0 ? () => setView('my_reviews') : openNewReview}
-              className="w-full flex flex-col items-center justify-center gap-0.5 py-1.5 hover:bg-gray-50 rounded-xl transition-colors cursor-pointer active:scale-98"
-            >
-              <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">
-                Ancora nessun voto
-              </span>
-              <span className="text-xs font-black text-gray-900">Aggiungilo!</span>
-            </button>
-          )}
-        </div>
-      </div>
+    <div className="flex flex-col gap-5 animate-fadeIn pb-6">
+      {/* SEZIONE VOTI SU RIGA SINGOLA (TMDB | IL TUO VOTO | AMICI) */}
+      <MobileTrackerRatingsBar
+        tmdbValue={tmdbValue}
+        myAverage={myAverage}
+        friendsAverage={friendsAverage}
+        ratedLogsCount={logs.filter((l) => typeof l.rating === 'number' && l.rating > 0).length}
+        onOpenMyReviews={() => setView('my_reviews')}
+        onOpenAddOrMyReviews={logs.length > 0 ? () => setView('my_reviews') : openNewReview}
+        onOpenFriendsReviews={() => setView('friends_reviews')}
+      />
 
       {/* CITAZIONI DEL FILM */}
       <div className="w-full bg-white border border-gray-200/80 rounded-2xl p-4 shadow-2xs flex flex-col gap-3">

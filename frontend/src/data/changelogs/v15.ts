@@ -3,28 +3,32 @@ import type { ChangelogItem } from './types';
 
 export const CHANGELOG_V15: ChangelogItem[] = [
   {
-    id: 'v15.4.1',
-    version: '15.4.1',
+    id: 'v15.5.0',
+    version: '15.5.0',
     date: 'Novembre 2026',
-    title: 'Automazione Backup Proxmox 3-2-1 & Routing Mobile App su Rete Proxmox',
+    title: 'Valutazioni Stagioni Serie TV, Porting Mobile Trackers, Copia Eventi/Task & Proxmox',
     isLatest: true,
     published: false,
     highlights: [
-      'Strategia Backup 3-2-1 su Proxmox: Automazione notturna del dump DB locale persistente e replica in tempo reale sul NAS QNAP con retention FIFO rigorosa a 2 copie.',
-      'Routing & Port Forwarding Mobile App: Configurazione ponte TCP su container Tailscale Proxmox (192.168.11.16) per consentire al micro-proxy tsnet dell\'APK Android di raggiungere il container applicativo (192.168.11.14:8181).',
+      'Valutazioni & Recensioni Stagioni Serie TV (TRACKERS-019): Sistema multi-log a mezze stelle per votare e recensire ogni singola stagione su Desktop e Mobile, con scheda dettaglio "i" e notifiche/commenti social.',
+      'Porting Mobile Trackers & Navigazione a Stack (TRACKERS-045): Nuova scheda attori/registi mobile, navigazione cross-media a ritroso (Serie ↔ Persone ↔ Film) e barre voti compatte su riga singola.',
+      'Copia Rapida Eventi & Task su Desktop e Mobile (CAL-003): Nuovo tasto "Copia" nei modali di dettaglio per duplicare rapidamente eventi (senza data/orari/ricorrenza) e task indipendenti con scelta di clonazione dell\'albero sottotask figlie.',
+      'Migrazione Proxmox Operativa & Backup 3-2-1 (INFRA-001): Infrastruttura Proxmox attiva in produzione con backup notturni automatici replicati su NAS QNAP (retention a 2 copie) e accesso mobile via Tailscale.',
     ],
     features: [
-      'Script Unificato auto_backup.sh con sshpass: Dump giornaliero e settimanale con sincronizzazione incrementale uploads, retention automatica a 2 copie e autenticazione remota robusta verso il NAS.',
-      'Badge di Categoria in AdminPage: Visualizzazione visiva immediata dello stato dei backup (🗓️ Giornaliero, 📅 Settimanale, 🛡️ Manuale) nella plancia di ripristino.',
-      'Guida Operativa Cutover Notturno: Documentate in `docs/MIGRAZIONE_PROXMOX.md` le istruzioni operative passo-passo per il sync finale DB, switch hostname Tailscale e deployment Proxmox.',
+      'Scheda Stagione ("i") & Recensioni Multi-Log: Nuova vista con locandina, sinossi, range date di uscita e riepilogo voti; recensioni multi-log a mezze stelle con aggiornamenti a 0ms, commenti/menzioni social con apertura diretta da Inbox e riepilogo voti per stagione su Desktop.',
+      'Copia Eventi & Task Desktop & Mobile (CAL-003): Pulsante copia nei dettagli che precompila Nuovo Evento (azzerando date, orari e ricorrenza) o Nuova Task (task indipendente senza scadenza né livelli padre superiori, con scelta guidata per duplicare le sottotask figlie nel rispetto di maxDepth).',
+      'Backup Automatici 3-2-1 & Plancia Admin: Dump giornalieri/settimanali con replica incrementale su NAS QNAP, creazione difensiva delle cartelle e badge di categoria (🗓️ Giornaliero, 📅 Settimanale, 🛡️ Manuale) nella plancia di ripristino.',
     ],
     improvements: [
-      'Persistenza Volume Docker: Configurato il mount `./backups:/app/backups` in `docker-compose.proxmox.yml` per preservare l\'archivio a ogni aggiornamento dei container.',
-      'Creazione Preventiva e Difensiva: Riconoscimento e creazione automatica delle cartelle target su Proxmox e sul NAS con percorsi sicuri.',
+      'Scheda Attore/Regista & Navigazione a Stack Mobile: Biografia richiudibile, sezioni Film e Serie TV a 3 colonne con ricerca a tutta ampiezza e cronologia di ritorno su "X" e tasto Indietro.',
+      'Barra Voti Compatta & Intestazioni Fisse Mobile Trackers: Barra voti bilanciata su riga singola per Episodi, Stagioni, Serie TV e Film, locandina stagione integrata nel banner superiore e intestazioni bloccate in cima nelle liste recensioni e voti amici.',
+      'Sidebar Liste & Amici (Serie TV & Film): Animazione fluida a scorrimento laterale in apertura/chiusura con chiusura rapida al click esterno.',
+      'Pulizia Layout Mobile (Meteo): Rimosso l\'adesivo meteo fluttuante fisso in basso a destra dalle schermate mobile in attesa della revisione dedicata.',
     ],
     fixes: [
-      'Risolto il fallimento della sincronizzazione remota dovuto ai vincoli di autenticazione SSH non presidiata del NAS QNAP.',
-      'Risolto il mancato caricamento dati dell\'app mobile Android dovuto alla separazione di rete tra container Tailscale e container web su Proxmox.',
+      'Backup Remoto & Rete Mobile Proxmox: Risolti l\'autenticazione SSH verso NAS QNAP per la replica automatica dei backup e il ponte di rete Tailscale per il caricamento dati dell\'app Android su Proxmox.',
+      'Barra Liste Anti-Sovrapposizione (Serie TV & Film): Calcolo dinamico dello spazio rispetto alla locandina con raccolta automatica delle pillole nel pulsante compatto a tre linee quando lo spazio non basta.',
     ],
   },
   {

@@ -16,6 +16,7 @@ export type IconName =
   | 'check'
   | 'check-circle'
   | 'close'
+  | 'copy'
   | 'countdown'
   | 'dropdown'
   | 'dropdown-arrow'

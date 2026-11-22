@@ -213,11 +213,11 @@ async def get_tmdb_series_extras(tmdb_id: int, db: Optional[Session] = None) -> 
     # Estrai le stagioni con risoluzione del nome proprio (IT -> EN -> Stagione N, e 'Episodi Speciali' per stagione 0)
     it_seasons = data.get("seasons", [])
     needs_en = any(
-        is_generic_season_name(s.get("name"), s.get("season_number", 0))
+        is_generic_season_name(s.get("name"), s.get("season_number", 0)) or not (s.get("overview") or "").strip()
         for s in it_seasons
         if (s.get("season_number") or 0) > 0
     )
-    en_seasons_map: dict[int, str] = {}
+    en_seasons_map: dict[int, dict[str, Optional[str]]] = {}
     if needs_en:
         try:
             async with httpx.AsyncClient(timeout=15.0) as client_en:
@@ -230,8 +230,12 @@ async def get_tmdb_series_extras(tmdb_id: int, db: Optional[Session] = None) -> 
                     for s in resp_en.json().get("seasons", []):
                         sn = s.get("season_number")
                         sname = s.get("name")
-                        if sn is not None and sname and not is_generic_season_name(sname, sn):
-                            en_seasons_map[sn] = sname.strip()
+                        if sn is not None:
+                            en_seasons_map[sn] = {
+                                "name": sname.strip() if sname and not is_generic_season_name(sname, sn) else None,
+                                "overview": (s.get("overview") or "").strip() or None,
+                            }
+
         except Exception:
             pass
 
@@ -243,8 +247,8 @@ async def get_tmdb_series_extras(tmdb_id: int, db: Optional[Session] = None) -> 
             final_name = "Episodi Speciali"
         elif sname_it and not is_generic_season_name(sname_it, sn):
             final_name = sname_it
-        elif sn in en_seasons_map:
-            final_name = en_seasons_map[sn]
+        elif sn in en_seasons_map and en_seasons_map[sn].get("name"):
+            final_name = en_seasons_map[sn]["name"] or f"Stagione {sn}"
         else:
             final_name = f"Stagione {sn}"
 
@@ -252,6 +256,10 @@ async def get_tmdb_series_extras(tmdb_id: int, db: Optional[Session] = None) -> 
             "season_number": sn,
             "name": final_name,
             "poster_path": s.get("poster_path"),
+            "overview": (s.get("overview") or "").strip() or en_seasons_map.get(sn, {}).get("overview"),
+            "air_date": s.get("air_date"),
+            "episode_count": s.get("episode_count"),
+            "vote_average": s.get("vote_average"),
         })
 
     return {
@@ -651,13 +659,17 @@ async def add_series(db: Session, current_user: User, payload: TVSeriesCreate) -
 
 
 def list_user_series(db: Session, current_user: User) -> List[TVSeriesResponse]:
+    from backend.domains.trackers import season_service
     trackings = repository.list_user_series(db, current_user.id)
+    season_logs_map = season_service.get_user_season_logs_map(
+        db, current_user.id, [t.series_tmdb_id for t in trackings if t.tmdb_series]
+    )
     responses = []
     for t in trackings:
         if not t.tmdb_series:
             continue
         episodes_data = repository.get_series_episodes_with_user_tracking(db, t.series_tmdb_id, current_user.id)
-        responses.append(_build_series_response_with_next(db, current_user, t, episodes_data))
+        responses.append(_build_series_response_with_next(db, current_user, t, episodes_data, preloaded_season_logs=season_logs_map.get(t.series_tmdb_id, [])))
     return responses
 
 
@@ -689,10 +701,14 @@ def delete_series(db: Session, current_user: User, tmdb_id: int) -> None:
     repository.delete_user_series_tracking(db, tracking)
 
 
-def _build_series_response(tracking: UserSeriesTracking, db=None, current_user=None) -> TVSeriesResponse:
+def _build_series_response(tracking: UserSeriesTracking, db=None, current_user=None, preloaded_season_logs: Optional[List[dict]] = None) -> TVSeriesResponse:
     s = tracking.tmdb_series
     
     logs_data = []
+    season_logs_data = preloaded_season_logs if preloaded_season_logs is not None else []
+    if db and current_user and preloaded_season_logs is None:
+        from backend.domains.trackers import season_service
+        season_logs_data = season_service.get_user_season_logs(db, current_user.id, tracking.series_tmdb_id)
     if db and current_user:
         import sqlalchemy
         from backend.domains.trackers.models import UserSeriesLog
@@ -767,6 +783,7 @@ def _build_series_response(tracking: UserSeriesTracking, db=None, current_user=N
         custom_backdrop_path=tracking.custom_backdrop_path,
         added_at=tracking.added_at,
         logs=logs_data,
+        season_logs=season_logs_data,
         updated_at=tracking.updated_at,
         episodes=[]
     )
@@ -862,8 +879,8 @@ def watch_next_episode(db: Session, current_user: User, tmdb_id: int) -> TVSerie
     
     return _build_series_response_with_next(db, current_user, tracking, episodes_data)
 
-def _build_series_response_with_next(db, current_user, tracking, episodes_data) -> TVSeriesResponse:
-    response = _build_series_response(tracking, db, current_user)
+def _build_series_response_with_next(db, current_user, tracking, episodes_data, preloaded_season_logs: Optional[List[dict]] = None) -> TVSeriesResponse:
+    response = _build_series_response(tracking, db, current_user, preloaded_season_logs=preloaded_season_logs)
     
     # Reload episodes_data in case we modified it
     episodes_data = repository.get_series_episodes_with_user_tracking(db, tracking.series_tmdb_id, current_user.id)

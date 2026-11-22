@@ -33,6 +33,7 @@ interface UseSeriesDetailModalLogicProps {
   series: SeriesDetailTarget | UserSeriesTracking;
   initialTab?: TabType;
   initialEpisode?: TMDBEpisode | null;
+  initialSeasonNumber?: number | null;
   initialReviewLogId?: number;
   onToggleTrack?: (tmdbId: number, isTracked: boolean) => void;
 }
@@ -42,11 +43,13 @@ export const useSeriesDetailModalLogic = ({
   series,
   initialTab = 'overview',
   initialEpisode = null,
+  initialSeasonNumber = null,
   initialReviewLogId,
   onToggleTrack,
 }: UseSeriesDetailModalLogicProps) => {
   const [activeTab, setActiveTab] = useState<TabType>(initialTab);
   const [internalEpisode, setInternalEpisode] = useState<TMDBEpisode | null>(initialEpisode);
+  const [internalSeasonNumber, setInternalSeasonNumber] = useState<number | null>(initialSeasonNumber);
   const [internalReviewLogId, setInternalReviewLogId] = useState<number | undefined>(initialReviewLogId);
   const [showFriendsPanel, setShowFriendsPanel] = useState(false);
   const [showListsPanel, setShowListsPanel] = useState(false);
@@ -68,9 +71,10 @@ export const useSeriesDetailModalLogic = ({
     if (isOpen) {
       setActiveTab(initialTab);
       setInternalEpisode(initialEpisode);
+      setInternalSeasonNumber(initialSeasonNumber ?? null);
       setInternalReviewLogId(initialReviewLogId);
     }
-  }, [isOpen, initialTab, initialEpisode, initialReviewLogId, tmdbIdToFetch]);
+  }, [isOpen, initialTab, initialEpisode, initialSeasonNumber, initialReviewLogId, tmdbIdToFetch]);
 
   // Fetch sempre i dettagli aggiornati per avere la lista episodi completa (lazy sync dal backend)
   const { data: detailData } = useQuery<TMDBSeries | null>({
@@ -315,6 +319,8 @@ export const useSeriesDetailModalLogic = ({
     setActiveTab,
     internalEpisode,
     setInternalEpisode,
+    internalSeasonNumber,
+    setInternalSeasonNumber,
     internalReviewLogId,
     setInternalReviewLogId,
     showFriendsPanel,

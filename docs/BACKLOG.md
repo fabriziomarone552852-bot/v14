@@ -9,9 +9,7 @@ Questo documento traccia in modo strutturato, prioritizzato e costantemente aggi
 ## 📊 Matrice di Stato Rapida (Attività Aperte & Future)
 
 | ID | Attività / Funzionalità | Ambito | Stato Backend | Stato Frontend | Priorità |
-| **INFRA-001** | Migrazione Definitiva Infrastruttura: QNAP → Proxmox (Cutover Notturno) | `infra` / deploy | 🟡 Staging Pronto | 🟡 Staging Pronto | 🟡 **Pianificato** |
 | **FEAT-004 (Libri)** | Sezione Media: Estensione a Libri (Google Books, Pagine lette, Stati lettura) | `media` / books | 🔴 Da Strutturare | 🔴 Da Implementare | 🔴 **Massima (Passo Fondamentale)** |
-| **TRACKERS-019** | Giudizio & Voto alle singole Stagioni delle Serie TV (Valutazione per Stagione) | `media` / trackers | 🔴 Da Strutturare | 🔴 Da Implementare | 🟡 **Media** |
 | **FEAT-001** | Liste Spesa: Preferite & Pinnate (`pin_status` desktop & mobile) | `shopping` / lists | 🟢 Completato | 🔴 Da Implementare | 🟡 **Media-Alta** |
 | **SHOPPING-004** | Ricerca & Consultazione Prezzi nel Modale Dettaglio Prodotto (per Brand) | `shopping` / UI | 🔴 Da Iniziare | 🔴 Da Iniziare | 🟡 **Media-Alta** |
 | **SHOPPING-005** | Pannello Laterale Recensioni & Giudizio Marchi all'Aggiunta Prodotto | `shopping` / UI | 🔴 Da Strutturare | 🔴 Da Implementare | 🟡 **Media-Alta** |
@@ -19,11 +17,11 @@ Questo documento traccia in modo strutturato, prioritizzato e costantemente aggi
 | **FEAT-006** | Hub Spesa, Ricettario, Meal Prep & Wishlist Desideri | `shopping` / food | 🔴 Da Strutturare | 🔴 Da Implementare | 🔴 **Massima (Passo Fondamentale)** |
 | **FEAT-003** | Dashboard Analytics & Storico Prezzi Spesa | `analytics` / shopping | 🟢 Completato | 🔴 Da Implementare | 🟢 **Bassa** |
 | **CAL-002** | Filtro Categorie Eventi nel Calendario Homepage (Menu Ingranaggio ⚙️) | `calendar` / UI | 🔴 Da Iniziare | 🔴 Da Iniziare | 🟡 **Media-Alta** |
-| **CAL-003** | Copia & Duplicazione Rapida Eventi (Calendario & Agenda) | `calendar` / events | 🔴 Da Iniziare | 🔴 Da Iniziare | 🟡 **Media-Alta** |
 | **FEAT-011** | Sezione Lavoro & Gestione Turni di Lavoro (Punto da definire con Daniela) | `work` / shifts | 🔴 Da Definire | 🔴 Da Definire | 🟡 **Media-Alta** |
 | **FEAT-005** | Sezione Liste Tematiche & Personalizzate (Posti, Siti, Wishlist, Giochi) | `custom_lists` | 🟡 Parziale | 🟡 Parziale | 🔴 **Massima (Passo Fondamentale)** |
 | **FEAT-013** | Archivio Notifiche / Sezione Storico Notifiche Permanente | `notifications` / UI | 🟢 Completato | 🟡 Da Implementare | 🟡 **Media** |
 | **FEAT-010** | Database & Sincronizzazione Centralizzata Quotes (Citazioni del Giorno) | `core` / quotes | 🔴 Da Implementare | 🔴 Da Implementare | 🟡 **Media** |
+| **WEATHER-002** | Sistemazione Meteo & Elemento Meteo (Desktop & Mobile) | `weather` / UI | 🟡 Da Verificare | 🔴 Da Sistemare | 🟡 **Media-Alta** |
 | **AI-001** | Studio & Integrazione Intelligenza Artificiale (Voice, Breakdown, Briefing) | `ai` / assistant | 🔴 Da Analizzare | 🔴 Da Analizzare | 🟡 **Media-Alta (Ricerca)** |
 | **FEAT-016** | Lettere al Futuro Me (Time Capsule nascoste fino allo scadere del countdown impostato) | `capsules` / personal | 🔴 Da Strutturare | 🔴 Da Implementare | 🟡 **Media** |
 | **HOME-001** | Widget Homepage Rotante (Citazione del Giorno, Oroscopo & Meteo) | `home` / UI | 🔴 Da Iniziare | 🔴 Da Iniziare | 🟡 **Media-Alta** |
@@ -35,34 +33,9 @@ Questo documento traccia in modo strutturato, prioritizzato e costantemente aggi
 
 ---
 
-## 🏗️ 0. Infrastruttura & Migrazione Server
-
-### [INFRA-001] Migrazione Definitiva da NAS QNAP a Proxmox (Cutover Notturno)
-- **Stato Attuale**: 🟡 **Staging / Beta Testing Attivo su Proxmox**
-  - Host Proxmox: `192.168.11.19`
-  - LXC App Python / Docker: `192.168.11.14:8181`
-  - LXC PostgreSQL: `192.168.11.15:5432`
-  - LXC Tailscale Gateway: `192.168.11.16` (subnet routing `192.168.11.0/24`)
-- **Configurazione di Rete Cruciale per Mobile App (tsnet)**:
-  - L'APK mobile integra un micro-tunnel WireGuard autonomo (`tsnet`) che invia tutte le richieste HTTP verso `smartagenda.tailf3b58c.ts.net:8181`.
-  - Poiché su Proxmox il nodo Tailscale (`192.168.11.16`) è separato dal container web (`192.168.11.14`), sul container Tailscale `192.168.11.16` è obbligatorio il port-forwarding delle porte 8181 e 8000 verso `192.168.11.14` (tramite demone `rinetd` o `tailscale serve --bg --tcp 8181 192.168.11.14:8181`).
-- **Procedura Cutover Finale da Ricordare**:
-  1. **Avviso agli Utenti**: Trasmissione dell'avviso di sistema dal nuovo pannello Admin (`Avvisi & Broadcast` -> modello rapido *"🔄 Cambio Server"*) con pop-up immediato a tutti gli utenti e notifica Inbox prima di iniziare i lavori.
-  2. Esecuzione di `build_all.ps1` sul PC Windows per compilare simultaneamente la Web App (`.tar`) e la Mobile App (`.apk`).
-  3. Caricamento del nuovo APK su Google Drive per consentire l'auto-aggiornamento agli utenti.
-  4. Trasferimento dei `.tar` aggiornati su Proxmox (`192.168.11.14`).
-  5. Sospensione servizio QNAP (`docker stop backend vxame14_frontend`).
-  6. Esecuzione di `cutover_sync_finale.sh` e `deploy_proxmox.sh` su Proxmox (allineamento delta DB + uploads).
-  7. Switch hostname su Tailscale (`smartagenda` -> `smartagenda-old`, `tailproxfg` -> `smartagenda`).
-  8. Riapertura del servizio: revoca dell'avviso di trasmissione dal pannello Admin cliccando *"🛑 Termina / Rimuovi Avviso"*.
-  9. Sistema di Backup Automatico 3-2-1 (`auto_backup.sh` su cron Proxmox + replica NAS QNAP con retention max 2 copie) già collaudato ed operativo.
-  10. Dettagli e documentazione permanente in [`docs/MIGRAZIONE_PROXMOX.md`](file:///c:/Users/user/Documents/PYTHON/VxAme14/docs/MIGRAZIONE_PROXMOX.md).
-
----
-
 ## 📺 1. Media & Trackers (Libri, Serie TV & Funzionalità Evolutive)
 
-> 🗄️ **Moduli Serie TV & Film Completati**: I moduli completi delle **Serie TV** e dei **Film** (inclusa la gestione Saghe TMDB, calendari visioni, statistiche di durata reale, liste miste, standardizzazione header/cards `TRACKERS-023`, modale statistiche unificata `TRACKERS-024`, ricerca e filtro multi-persona `AND`/`OR` con scheda filmografia `TRACKERS-025`, standardizzazione modale dettaglio `TRACKERS-028`, armonizzazione recensioni/citazioni `TRACKERS-029`, social/commenti ottimistici `TRACKERS-030`, paginazione progressiva TMDB `TRACKERS-031`, standardizzazione catalogo `TRACKERS-032`, standardizzazione mobile trackers `TRACKERS-033`, il modulo Cinema & orari in sala `TRACKERS-034`, le piattaforme streaming utente con fallback home mobile `TRACKERS-037`, il motore di ricerca incrociata avanzata con generi 3 stati e reset rapido `TRACKERS-038`, il modale piattaforma universale con ordinamento alfabetico `TRACKERS-039`, la centratura geometrica dell'header e del catalogo mobile `TRACKERS-040`, il modale analytics mobile film con calendario unificato ed EmptyState universali `TRACKERS-041`, la riorganizzazione architetturale simmetrica `shared/`-`series/`-`movies/` con nomenclatura unificata `TRACKERS-042`, la rifinitura scheda dettaglio film e standardizzazione recensioni mobile `TRACKERS-043`, la suite liste personali mobile filtrata per tracker con slider header a doppio livello `TRACKERS-044`, il pulsante e modale piattaforme catalogo desktop `TRACKERS-036` e gli orari cinema e carosello "In sala" su Webpage Desktop `TRACKERS-035`) sono stati completati con successo e archiviati in dettaglio in [`docs/BACKLOG_ARCHIVE.md`](file:///c:/Users/Fabrizio/Desktop/app/smart/v14/docs/BACKLOG_ARCHIVE.md).
+> 🗄️ **Moduli Serie TV & Film Completati**: I moduli completi delle **Serie TV** e dei **Film** (inclusa la gestione Saghe TMDB, calendari visioni, statistiche di durata reale, liste miste, valutazione multi-log per singole stagioni `TRACKERS-019`, standardizzazione header/cards `TRACKERS-023`, modale statistiche unificata `TRACKERS-024`, ricerca e filtro multi-persona `AND`/`OR` con scheda filmografia `TRACKERS-025`, standardizzazione modale dettaglio `TRACKERS-028`, armonizzazione recensioni/citazioni `TRACKERS-029`, social/commenti ottimistici `TRACKERS-030`, paginazione progressiva TMDB `TRACKERS-031`, standardizzazione catalogo `TRACKERS-032`, standardizzazione mobile trackers `TRACKERS-033`, il modulo Cinema & orari in sala `TRACKERS-034`, le piattaforme streaming utente con fallback home mobile `TRACKERS-037`, il motore di ricerca incrociata avanzata con generi 3 stati e reset rapido `TRACKERS-038`, il modale piattaforma universale con ordinamento alfabetico `TRACKERS-039`, la centratura geometrica dell'header e del catalogo mobile `TRACKERS-040`, il modale analytics mobile film con calendario unificato ed EmptyState universali `TRACKERS-041`, la riorganizzazione architetturale simmetrica `shared/`-`series/`-`movies/` con nomenclatura unificata `TRACKERS-042`, la rifinitura scheda dettaglio film e standardizzazione recensioni mobile `TRACKERS-043`, la suite liste personali mobile filtrata per tracker con slider header a doppio livello `TRACKERS-044`, il porting mobile di scheda attori/registi, navigazione a stack cross-media e rating compatti per stagioni/episodi/serie/film `TRACKERS-045`, la barra liste adattiva anti-sovrapposizione locandina con sidebar scorrevoli Liste/Amici `TRACKERS-046`, il pulsante e modale piattaforme catalogo desktop `TRACKERS-036` e gli orari cinema e carosello "In sala" su Webpage Desktop `TRACKERS-035`) sono stati completati con successo e archiviati in dettaglio in [`docs/BACKLOG_ARCHIVE.md`](file:///c:/Users/Fabrizio/Desktop/app/smart/v14/docs/BACKLOG_ARCHIVE.md).
 
 ### [FEAT-004 (Libri)] Estensione Sezione Media: Libri
 *(Attività futura pianificata per il completamento dell'hub Media).*
@@ -77,13 +50,6 @@ Questo documento traccia in modo strutturato, prioritizzato e costantemente aggi
 - **Incrocio Liste Miste**: Trasferire il componente `SeriesMatchModal` in una futura Homepage Trackers unificata per supportare contenuti eterogenei.
 - **Voto Community**: Visualizzare il voto medio espresso dalla community dell'applicazione accanto o in alternativa al voto TMDB.
 - **Suggerimenti Homepage**: Sezione con raccomandazioni dinamiche basate sugli ultimi titoli completati o guardati di frequente.
-
-### [TRACKERS-019] Giudizio & Voto alle singole Stagioni delle Serie TV (Valutazione per Stagione)
-- **Descrizione**: Possibilità per l'utente di esprimere un voto (in scala stelle/decimi) e/o un giudizio testuale / recensione dedicato a ciascuna singola stagione completata o in corso d'opera.
-- **Obiettivo & Casi d'Uso**:
-  - Consentire una valutazione granulare di serie televisive con qualità eterogenea tra una stagione e l'altra (es. stagioni capolavoro vs stagioni successive sottotono).
-  - Visualizzare il voto/giudizio di ciascuna stagione nella scheda delle stagioni (`MobileSeriesSeasonsTab` e modale desktop), affiancandolo alle recensioni dei singoli episodi e alla valutazione complessiva della serie.
-- **Stato**: 🔴 Da Strutturare / Da Implementare *(Desktop & Mobile — Priorità: Media)*.
 
 ---
 
@@ -138,14 +104,6 @@ Questo documento traccia in modo strutturato, prioritizzato e costantemente aggi
 - **Persistenza**: Preferenze salvate in memoria locale dell'utente per mantenere attiva la configurazione scelta tra le sessioni.
 - **Stato**: 🔴 Da Iniziare *(Priorità: Media-Alta)*.
 
-### [CAL-003] Copia & Duplicazione Rapida Eventi (Calendario & Agenda)
-- **Descrizione**: Possibilità per l'utente di copiare e duplicare un evento esistente nel calendario o nell'agenda (sia da interfaccia Desktop che Mobile).
-- **Casi d'Uso & Funzionalità**:
-  - Pulsante dedicato "Copia Evento" / "Duplica" all'interno del modale di dettaglio evento o nel menu opzioni contestuale (tre puntini / tocco prolungato).
-  - Modalità di duplicazione rapida nello stesso giorno o selezione guidata di una data di destinazione differente, preservando orario di inizio/fine, categoria, descrizione, colore e promemoria preconfigurati.
-  - Salvataggio immediato ottimistico (0ms) con notifica toast leggera di conferma.
-- **Stato**: 🔴 Da Iniziare *(Desktop & Mobile — Priorità: Media-Alta)*.
-
 ### [FEAT-011] Sezione Lavoro & Gestione Turni di Lavoro
 - **Descrizione**: Modulo dedicato alla gestione delle attività lavorative, tracciamento orari e organizzazione turni.
 - **Punti da Definire con Daniela**:
@@ -178,7 +136,11 @@ Questo documento traccia in modo strutturato, prioritizzato e costantemente aggi
 
 ---
 
-## ⚙️ 6. Citazioni & Sistema
+## ⚙️ 6. Citazioni, Meteo & Sistema
+
+### [WEATHER-002] Sistemazione Meteo & Elemento Meteo (Desktop & Mobile)
+- **Descrizione**: Revisione e sistemazione del funzionamento del meteo e del relativo elemento/widget visivo sia nell'interfaccia Desktop che in quella Mobile.
+- **Stato**: 🔴 Da Sistemare *(Desktop & Mobile — Priorità: Media-Alta)*.
 
 ### [FEAT-010] Database & Sincronizzazione Centralizzata Citazioni Giornaliere (Quotes)
 - **Descrizione**: Centralizzare le citazioni giornaliere (Quotes) tramite tabella database dedicata nel backend, in modo che tutti gli utenti e dispositivi visualizzino la stessa identica citazione del giorno in modo sincronizzato e consistente.

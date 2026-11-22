@@ -62,6 +62,10 @@ export interface SeriesSeasonInfo {
   season_number: number;
   name: string;
   poster_path?: string | null;
+  overview?: string | null;
+  air_date?: string | null;
+  episode_count?: number | null;
+  vote_average?: number | null;
 }
 
 export interface SeriesWatchProvider {
@@ -95,6 +99,7 @@ export interface TMDBSeries {
   seasons?: SeriesSeasonInfo[];
   vote_average?: number | null;
   vote_count?: number | null;
+  season_logs?: UserSeasonLog[];
 }
 
 export interface UserSeriesLog {
@@ -109,6 +114,20 @@ export interface UserSeriesLog {
   comments: ReviewComment[];
 }
 
+export interface UserSeasonLog {
+  id: number;
+  user_id: number;
+  series_tmdb_id: number;
+  season_number: number;
+  rating?: number | null;
+  notes?: string | null;
+  review_visibility: string;
+  watched_at?: string | null;
+  created_at?: string;
+  updated_at?: string | null;
+  comments: ReviewComment[];
+}
+
 export interface UserSeriesTracking {
   id: number;
   series_tmdb_id: number;
@@ -119,6 +138,7 @@ export interface UserSeriesTracking {
   updated_at?: string | null;
   tmdb_series?: TMDBSeries;
   logs?: UserSeriesLog[];
+  season_logs?: UserSeasonLog[];
   notes?: string;
   review_visibility?: string;
   custom_poster_path?: string | null;
@@ -200,6 +220,20 @@ export interface FriendEpisodeLog {
   review_visibility: string;
   watched_at?: string | null;
   viewing_platform_name?: string | null;
+  comments: ReviewComment[];
+}
+
+export interface FriendSeasonLog {
+  id: number;
+  friend_id: number;
+  friend_name: string;
+  friend_avatar?: string | null;
+  season_number: number;
+  rating?: number | null;
+  notes?: string | null;
+  review_visibility: string;
+  watched_at?: string | null;
+  updated_at?: string | null;
   comments: ReviewComment[];
 }
 
@@ -378,10 +412,19 @@ export interface SeriesLogMutationPayload {
   watched_at?: string | null;
 }
 
+export interface SeasonLogMutationPayload {
+  rating?: number | null;
+  notes?: string | null;
+  review_visibility?: string;
+  watched_at?: string | null;
+}
+
 export type AnyReviewLog =
   | UserSeriesLog
+  | UserSeasonLog
   | UserEpisodeLog
   | FriendSeriesLog
+  | FriendSeasonLog
   | FriendEpisodeLog
   | UserMovieLog
   | FriendMovieLog;

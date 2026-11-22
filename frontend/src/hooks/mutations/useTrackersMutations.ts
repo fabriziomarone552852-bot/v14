@@ -2,6 +2,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/api/apiService';
 import { showTrackerToast } from '@/components/trackers/shared/TrackerToast';
+import { useSeasonLogMutations } from './useSeasonLogMutations';
 import type {
   TVSeries,
   TMDBSeries,
@@ -18,6 +19,7 @@ import type {
 
 export const useTrackersMutations = () => {
   const queryClient = useQueryClient();
+  const seasonLogMutations = useSeasonLogMutations();
 
   const addSeriesMutation = useMutation({
     mutationFn: async (tmdb_id: number) => {
@@ -641,6 +643,7 @@ export const useTrackersMutations = () => {
     addSeriesLog: addSeriesLogMutation.mutate,
     updateSeriesLog: updateSeriesLogMutation.mutate,
     deleteSeriesLog: deleteSeriesLogMutation.mutate,
+    ...seasonLogMutations,
     deleteSeries: deleteSeriesMutation.mutate,
     isDeletingSeries: deleteSeriesMutation.isPending,
     markAllEpisodesWatched: markAllEpisodesWatchedMutation.mutate,

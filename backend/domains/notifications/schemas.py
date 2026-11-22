@@ -38,6 +38,7 @@ class InteractionResponse(ORMBaseModel):
     author_avatar: Optional[str] = None
     context_title: Optional[str] = None
     series_tmdb_id: Optional[int] = None
+    season_number: Optional[int] = None
     episode_id: Optional[int] = None
     movie_tmdb_id: Optional[int] = None
 

@@ -24,7 +24,7 @@ export const MobileEventDateTimeSection: React.FC<MobileEventDateTimeSectionProp
       <div className="grid grid-cols-2 gap-3 items-end">
         <div className="w-full">
           <label className="block text-xs font-bold text-gray-500 uppercase mb-1">
-            Data Inizio
+            Data Inizio {!newEventForm.data_inizio && <span className="text-red-500">*</span>}
           </label>
           <DatePicker
             value={newEventForm.data_inizio}
@@ -36,6 +36,7 @@ export const MobileEventDateTimeSection: React.FC<MobileEventDateTimeSectionProp
               setActiveDatePicker(activeDatePicker === 'start' ? null : 'start')
             }
             onClose={() => setActiveDatePicker(null)}
+            placeholder="Scegli data..."
             overlay={true}
           />
         </div>

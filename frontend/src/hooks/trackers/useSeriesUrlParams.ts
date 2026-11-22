@@ -6,7 +6,13 @@ import type { TabType } from '@/components/trackers/series/detail';
 export const useSeriesUrlParams = (
   series: TVSeries[] | undefined,
   detailModalOpen: boolean,
-  openSeriesDetail: (series: TVSeries | Partial<TVSeries>, tab?: TabType, episode?: TMDBEpisode, reviewLogId?: number) => void
+  openSeriesDetail: (
+    series: TVSeries | Partial<TVSeries>,
+    tab?: TabType,
+    episode?: TMDBEpisode,
+    reviewLogId?: number,
+    seasonNumber?: number
+  ) => void
 ) => {
   const [searchParams, setSearchParams] = useSearchParams();
 
@@ -18,6 +24,7 @@ export const useSeriesUrlParams = (
 
     const openReview = searchParams.get('open_review') === 'true';
     const openEpisode = searchParams.get('open_episode');
+    const openSeason = searchParams.get('open_season');
     const openReviewLogId = searchParams.get('open_review_log_id');
     const matchedSeries = series.find((s) => String(s.tmdb_id) === tmdbIdParam);
     const targetSeries: TVSeries | Partial<TVSeries> =
@@ -32,6 +39,14 @@ export const useSeriesUrlParams = (
           'seasons',
           foundEp,
           openReviewLogId ? Number(openReviewLogId) : undefined
+        );
+      } else if (openSeason !== null) {
+        openSeriesDetail(
+          targetSeries,
+          'seasons',
+          undefined,
+          openReviewLogId ? Number(openReviewLogId) : undefined,
+          Number(openSeason)
         );
       } else if (openReview) {
         openSeriesDetail(

@@ -7,6 +7,10 @@ import { useQuery } from '@tanstack/react-query';
 import { api } from '@/api/apiService';
 import { useAuth } from '@/context/AuthContext';
 import { buildTaskTree } from '@/utils/taskUtils';
+import {
+  extractDescendantSubtree,
+  countSubtreeNodes,
+} from '@/utils/taskDuplicateUtils';
 
 export interface UseTaskDetailLogicProps {
   isOpen: boolean;
@@ -55,6 +59,14 @@ export const useTaskDetailLogic = ({
   };
 
   const rootUITask = selectedTask ? getRootUITask(selectedTask.id) : undefined;
+  const descendantSubtree = useMemo(
+    () => (selectedTask ? extractDescendantSubtree(tasks, selectedTask.id) : []),
+    [tasks, selectedTask]
+  );
+  const descendantCount = useMemo(
+    () => countSubtreeNodes(descendantSubtree),
+    [descendantSubtree]
+  );
   const liveTask = selectedTask
     ? tasks.find((t: DbTask) => t.id === selectedTask.id)
     : undefined;
@@ -111,6 +123,8 @@ export const useTaskDetailLogic = ({
     tasks,
     taskTree,
     rootUITask,
+    descendantSubtree,
+    descendantCount,
     liveTask,
     isTaskDone,
     taskCategoryName,

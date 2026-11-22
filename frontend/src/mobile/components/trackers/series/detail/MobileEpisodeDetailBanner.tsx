@@ -7,21 +7,24 @@ export interface MobileEpisodeDetailBannerProps {
   backdropUrl?: string | null;
   title: string;
   onClose: () => void;
+  /** Permette di calibrare il posizionamento del crop (es. locandina stagione ingrandita nel banner) */
+  imageClassName?: string;
 }
 
 export const MobileEpisodeDetailBanner: React.FC<MobileEpisodeDetailBannerProps> = ({
   backdropUrl,
   title,
   onClose,
+  imageClassName = 'object-cover',
 }) => {
   return (
     <div className="relative w-full h-56 shrink-0 bg-gray-900 select-none overflow-hidden">
-      {/* 1. IMMAGINE STILL / BACKDROP EPISODIO */}
+      {/* 1. IMMAGINE STILL / BACKDROP / LOCANDINA */}
       {backdropUrl ? (
         <img
           src={backdropUrl}
           alt={title}
-          className="w-full h-full object-cover"
+          className={`w-full h-full ${imageClassName}`}
         />
       ) : (
         <div className="w-full h-full flex items-center justify-center text-gray-600 bg-gray-950">

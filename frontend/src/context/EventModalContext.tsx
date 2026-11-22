@@ -27,6 +27,7 @@ const EventModalContext = createContext<EventModalContextType | undefined>(undef
 
 interface EventFormModalState {
   eventToEdit?: CalendarEvent | null;
+  eventToDuplicate?: CalendarEvent | null;
   initialDate?: string | null;
 }
 
@@ -39,7 +40,14 @@ export const EventModalProvider: React.FC<{ children: ReactNode }> = ({ children
 
   const handleEditEvent = () => {
     if (detailModal.data) {
-      formModal.open({ eventToEdit: detailModal.data, initialDate: null });
+      formModal.open({ eventToEdit: detailModal.data, eventToDuplicate: null, initialDate: null });
+      detailModal.close();
+    }
+  };
+
+  const handleDuplicateEvent = () => {
+    if (detailModal.data) {
+      formModal.open({ eventToEdit: null, eventToDuplicate: detailModal.data, initialDate: null });
       detailModal.close();
     }
   };
@@ -75,12 +83,14 @@ export const EventModalProvider: React.FC<{ children: ReactNode }> = ({ children
             selectedEvent={detailModal.data}
             onDeleteClick={handleDeleteEvent}
             onEditClick={handleEditEvent}
+            onDuplicateClick={handleDuplicateEvent}
           />
 
           <MobileEventNewModal
             isOpen={formModal.isOpen}
             onClose={formModal.close}
             eventToEdit={formModal.data?.eventToEdit || null}
+            eventToDuplicate={formModal.data?.eventToDuplicate || null}
             initialDate={formModal.data?.initialDate || null}
             onEventSaved={() => {}}
           />
@@ -92,13 +102,15 @@ export const EventModalProvider: React.FC<{ children: ReactNode }> = ({ children
             onClose={detailModal.close} 
             selectedEvent={detailModal.data} 
             onDeleteClick={handleDeleteEvent} 
-            onEditClick={handleEditEvent} 
+            onEditClick={handleEditEvent}
+            onDuplicateClick={handleDuplicateEvent}
           />
 
           <NewEventModal 
             isOpen={formModal.isOpen} 
             onClose={formModal.close} 
             eventToEdit={formModal.data?.eventToEdit || null} 
+            eventToDuplicate={formModal.data?.eventToDuplicate || null}
             initialDate={formModal.data?.initialDate || null}
             onEventSaved={() => {}}  
           />

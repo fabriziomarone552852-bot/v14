@@ -3,7 +3,7 @@ Schemas for Trackers domain (TV Series).
 """
 
 from datetime import date, datetime
-from typing import List, Optional, Dict
+from typing import List, Optional, Dict, Union
 from pydantic import Field, field_validator, BaseModel
 
 from backend.core.schemas import ORMBaseModel, StrictBaseModel
@@ -135,6 +135,54 @@ class UserSeriesLogResponse(ORMBaseModel):
     updated_at: Optional[datetime] = None
     comments: List[dict] = Field(default_factory=list)
 
+class UserSeasonLogCreate(BaseModel):
+    rating: Optional[float] = Field(None, ge=1, le=10)
+    notes: Optional[str] = None
+    review_visibility: Optional[str] = "friends_only"
+    watched_at: Optional[Union[datetime, date]] = None
+
+    @field_validator("review_visibility")
+    @classmethod
+    def validate_visibility(cls, value: Optional[str]) -> Optional[str]:
+        if value is None:
+            return value
+        valid = {"private", "friends_only", "group", "public"}
+        if value not in valid:
+            raise ValueError(f"Visibilità non valida. Valori ammessi: {valid}")
+        return value
+
+
+class UserSeasonLogUpdate(BaseModel):
+    rating: Optional[float] = Field(None, ge=1, le=10)
+    notes: Optional[str] = None
+    review_visibility: Optional[str] = None
+    watched_at: Optional[Union[datetime, date]] = None
+
+    @field_validator("review_visibility")
+    @classmethod
+    def validate_visibility(cls, value: Optional[str]) -> Optional[str]:
+        if value is None:
+            return value
+        valid = {"private", "friends_only", "group", "public"}
+        if value not in valid:
+            raise ValueError(f"Visibilità non valida. Valori ammessi: {valid}")
+        return value
+
+
+class UserSeasonLogResponse(ORMBaseModel):
+    id: int
+    user_id: int
+    series_tmdb_id: int
+    season_number: int
+    rating: Optional[float] = None
+    notes: Optional[str] = None
+    review_visibility: str
+    watched_at: Optional[datetime] = None
+    created_at: datetime
+    updated_at: datetime
+    comments: List[dict] = Field(default_factory=list)
+
+
 class SeriesWatchProvider(BaseModel):
     provider_id: int
     provider_name: str
@@ -172,6 +220,7 @@ class TVSeriesResponse(ORMBaseModel):
     custom_backdrop_path: Optional[str] = None
     added_at: datetime
     logs: List[UserSeriesLogResponse] = Field(default_factory=list)
+    season_logs: List[UserSeasonLogResponse] = Field(default_factory=list)
     updated_at: Optional[datetime] = None
     
     # Used for the quick "+1 episode" button and tracking display in the grid
@@ -324,6 +373,20 @@ class FriendEpisodeLogResponse(ORMBaseModel):
     review_visibility: str
     watched_at: Optional[datetime] = None
     comments: Optional[List[dict]] = Field(default_factory=list)
+
+class FriendSeasonLogResponse(ORMBaseModel):
+    id: int
+    friend_id: int
+    friend_name: str
+    friend_avatar: Optional[str] = None
+    season_number: int
+    rating: Optional[float] = None
+    notes: Optional[str] = None
+    review_visibility: str
+    watched_at: Optional[datetime] = None
+    updated_at: Optional[datetime] = None
+    comments: List[dict] = Field(default_factory=list)
+
 
 class GenreStat(BaseModel):
     genre: str

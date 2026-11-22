@@ -16,7 +16,7 @@ from backend.core.deps import get_db, get_current_app_user
 from backend.domains.trackers import repository
 from backend.domains.trackers.service import sync_tmdb_series_lazy, _build_series_response_with_next
 from backend.domains.trackers.models import UserSeriesTracking
-from backend.domains.trackers import service
+from backend.domains.trackers import service, season_service
 from backend.domains.trackers.schemas import (
     TMDBPaginatedSearch,
     TVSeriesCreate,
@@ -205,7 +205,7 @@ def watch_next_episode(
 
 
 
-from backend.domains.trackers.schemas import UserSeriesLogCreate, UserSeriesLogUpdate
+from backend.domains.trackers.schemas import UserSeriesLogCreate, UserSeriesLogUpdate, UserSeasonLogCreate, UserSeasonLogUpdate
 
 @router.post("/series/{tmdb_id}/logs", response_model=TVSeriesResponse)
 def add_series_log(
@@ -232,6 +232,38 @@ def delete_series_log(
     current_user: User = Depends(get_current_app_user),
 ):
     return service.delete_series_log(db, current_user, log_id)
+
+
+# --- Season Logs (Diary Pattern) ---
+
+@router.post("/series/{tmdb_id}/seasons/{season_number}/logs", response_model=TVSeriesResponse, status_code=status.HTTP_201_CREATED)
+async def add_season_log(
+    tmdb_id: int,
+    season_number: int,
+    payload: UserSeasonLogCreate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_app_user),
+):
+    return await season_service.add_season_log(db, current_user, tmdb_id, season_number, payload)
+
+
+@router.patch("/series/season-logs/{log_id}", response_model=TVSeriesResponse)
+def update_season_log(
+    log_id: int,
+    payload: UserSeasonLogUpdate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_app_user),
+):
+    return season_service.update_season_log(db, current_user, log_id, payload)
+
+
+@router.delete("/series/season-logs/{log_id}", response_model=TVSeriesResponse)
+def delete_season_log(
+    log_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_app_user),
+):
+    return season_service.delete_season_log(db, current_user, log_id)
 
 
 # --- Episodes ---
@@ -412,7 +444,7 @@ def remove_item_from_list(
 ):
     service.remove_item_from_media_list(db, current_user, list_id, item_id)
 
-from backend.domains.trackers.schemas import FriendSeriesLogResponse, FriendEpisodeLogResponse
+from backend.domains.trackers.schemas import FriendSeriesLogResponse, FriendEpisodeLogResponse, FriendSeasonLogResponse
 
 @router.get("/series/{tmdb_id}/friends-reviews", response_model=List[FriendSeriesLogResponse])
 def get_friends_series_reviews(
@@ -429,6 +461,16 @@ def get_friends_episode_reviews(
     current_user: User = Depends(get_current_app_user),
 ):
     return service.get_friends_episode_logs(db, current_user, episode_id)
+
+
+@router.get("/series/{tmdb_id}/seasons/{season_number}/friends-reviews", response_model=List[FriendSeasonLogResponse])
+def get_friends_season_reviews(
+    tmdb_id: int,
+    season_number: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_app_user),
+):
+    return season_service.get_friends_season_logs(db, current_user.id, tmdb_id, season_number)
 
 @router.get("/series/{tmdb_id}/providers")
 async def get_series_providers(

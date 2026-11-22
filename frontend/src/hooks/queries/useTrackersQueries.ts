@@ -1,6 +1,6 @@
 import { useQuery, useInfiniteQuery, keepPreviousData } from '@tanstack/react-query';
 import { api } from '@/api/apiService';
-import type { TVSeries, TMDBPaginatedSearch, FriendSeriesLog, FriendEpisodeLog, SeriesCastMember, SeriesRecommendation, SeriesSeasonInfo, MediaList, TVDashboardStats, TVFullStats, SeriesQuote, UpcomingEpisode } from '@/types/trackers';
+import type { TVSeries, TMDBPaginatedSearch, FriendSeriesLog, FriendSeasonLog, FriendEpisodeLog, SeriesCastMember, SeriesRecommendation, SeriesSeasonInfo, MediaList, TVDashboardStats, TVFullStats, SeriesQuote, UpcomingEpisode } from '@/types/trackers';
 
 export const useMySeries = () => {
   return useQuery<TVSeries[]>({
@@ -124,6 +124,24 @@ export const useFriendsEpisodeReviews = (episodeId: number, enabled: boolean = t
       return data as FriendEpisodeLog[];
     },
     enabled: enabled && !!episodeId,
+  });
+};
+
+export const useFriendsSeasonReviews = (
+  tmdbId?: number,
+  seasonNumber?: number | null,
+  enabled: boolean = true
+) => {
+  return useQuery<FriendSeasonLog[]>({
+    queryKey: ['trackers', 'series', tmdbId, 'seasons', seasonNumber, 'friends-reviews'],
+    queryFn: async () => {
+      if (!tmdbId || seasonNumber === undefined || seasonNumber === null) return [];
+      const data = await api.get<FriendSeasonLog[]>(
+        `/trackers/series/${tmdbId}/seasons/${seasonNumber}/friends-reviews`
+      );
+      return data || [];
+    },
+    enabled: enabled && !!tmdbId && seasonNumber !== undefined && seasonNumber !== null,
   });
 };
 

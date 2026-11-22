@@ -1,5 +1,5 @@
 // src/hooks/forms/useEventFormLogic.ts
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import type { CalendarEvent, Category, DbEvent } from '@/types';
 import { getLocalTodayStr, formatTimeToServer, combineDateAndTime } from '@/utils/dateUtils';
 import { parseRRule, buildRRule } from '@/utils/rruleUtils';
@@ -36,6 +36,7 @@ export interface UseEventFormLogicProps {
   isOpen: boolean;
   onClose: () => void;
   eventToEdit?: CalendarEvent | null;
+  eventToDuplicate?: CalendarEvent | null;
   initialDate?: string | null;
   onEventSaved?: (savedEvent?: DbEvent) => void;
 }
@@ -44,6 +45,7 @@ export const useEventFormLogic = ({
   isOpen,
   onClose,
   eventToEdit,
+  eventToDuplicate,
   initialDate,
   onEventSaved,
 }: UseEventFormLogicProps) => {
@@ -78,6 +80,8 @@ export const useEventFormLogic = ({
   const [rruleUntil, setRruleUntil] = useState('');
 
   const [isSaving, setIsSaving] = useState(false);
+  const categoriesRef = useRef<Category[]>(categories);
+  categoriesRef.current = categories;
 
   useEffect(() => {
     if (isOpen) {
@@ -105,6 +109,30 @@ export const useEventFormLogic = ({
         setRruleFreq(freq);
         setRruleInterval(interval);
         setRruleUntil(until);
+      } else if (eventToDuplicate) {
+        const hasGenericoCategory = categoriesRef.current.some(
+          (c: Category) => c.category_name === 'Generico'
+        );
+        const resolvedCategory =
+          eventToDuplicate.category === 'Generico' && !hasGenericoCategory
+            ? ''
+            : eventToDuplicate.category || '';
+
+        setNewEventForm({
+          titolo: eventToDuplicate.title || '',
+          descrizione: eventToDuplicate.description || '',
+          data_inizio: '',
+          data_fine: '',
+          ora_inizio: '',
+          ora_fine: '',
+          category: resolvedCategory,
+          luogo: eventToDuplicate.location || '',
+          tutto_il_giorno: false,
+        });
+        setIsRecurrent(false);
+        setRruleFreq('WEEKLY');
+        setRruleInterval('1');
+        setRruleUntil('');
       } else {
         setNewEventForm({
           titolo: '',
@@ -125,10 +153,21 @@ export const useEventFormLogic = ({
     } else {
       setActiveDatePicker(null);
     }
-  }, [isOpen, eventToEdit, initialDate]);
+  }, [isOpen, eventToEdit, eventToDuplicate, initialDate]);
 
   const handleSalvaNuovoEvento = async (e: React.FormEvent): Promise<void> => {
     e.preventDefault();
+
+    if (!newEventForm.data_inizio.trim()) {
+      confirm({
+        title: 'Data mancante',
+        message: 'Seleziona una data di inizio prima di salvare l\'evento.',
+        confirmText: 'Ho capito',
+        isDestructive: false,
+        onConfirm: () => {},
+      });
+      return;
+    }
 
     let fullStart = newEventForm.data_inizio;
     let fullEnd: string | null = newEventForm.data_fine || null;
@@ -226,7 +265,7 @@ export const useEventFormLogic = ({
     setRruleUntil,
     isSaving,
     handleSalvaNuovoEvento,
-    isConfirmDisabled: !newEventForm.titolo.trim(),
+    isConfirmDisabled: !newEventForm.titolo.trim() || !newEventForm.data_inizio.trim(),
   };
 };
 

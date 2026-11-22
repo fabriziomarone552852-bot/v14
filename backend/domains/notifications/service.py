@@ -47,6 +47,17 @@ def _hydrate_interaction(db: Session, int_obj: Interaction) -> schemas.Interacti
                     int_dict["series_tmdb_id"] = series.tmdb_id
                     int_dict["episode_id"] = log.episode_id
 
+    elif int_obj.interaction_type in ["SEASON_REVIEW_COMMENT", "SEASON_REVIEW_COMMENT_THREAD", "SEASON_REVIEW_MENTION"]:
+        from backend.domains.trackers.models import UserSeasonLog, TMDBSeries
+        log = db.query(UserSeasonLog).filter(UserSeasonLog.id == int_obj.reference_id).first()
+        if log:
+            series = db.query(TMDBSeries).filter(TMDBSeries.tmdb_id == log.series_tmdb_id).first()
+            if series:
+                season_label = "Episodi Speciali" if log.season_number == 0 else f"Stagione {log.season_number}"
+                int_dict["context_title"] = f"{season_label} di {series.title}"
+                int_dict["series_tmdb_id"] = series.tmdb_id
+                int_dict["season_number"] = log.season_number
+
     elif int_obj.interaction_type in ["MOVIE_REVIEW_COMMENT", "MOVIE_REVIEW_COMMENT_THREAD", "MOVIE_REVIEW_MENTION"]:
         from backend.domains.trackers.models import UserMovieLog, TMDBMovie
         log = db.query(UserMovieLog).filter(UserMovieLog.id == int_obj.reference_id).first()
@@ -91,7 +102,7 @@ def create_interaction(
     )
     result = repo.add(db, interaction)
 
-    if payload.interaction_type in ["SERIES_REVIEW_COMMENT", "EPISODE_REVIEW_COMMENT", "MOVIE_REVIEW_COMMENT"]:
+    if payload.interaction_type in ["SERIES_REVIEW_COMMENT", "EPISODE_REVIEW_COMMENT", "SEASON_REVIEW_COMMENT", "MOVIE_REVIEW_COMMENT"]:
         import re
         # Extract @username mentions
         mentioned_usernames = re.findall(r'@([\w.-]+)', payload.content)

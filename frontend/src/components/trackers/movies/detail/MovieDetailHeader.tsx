@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useRef, useState, type RefObject } from 'react';
 import { MoreVertical, History, PackageCheck, Package, RotateCw } from 'lucide-react';
 import type { MediaList, SeriesFriendDisplayItem } from '@/types/trackers';
 import type { MovieProvidersResponse } from '@/hooks/queries/useMovieQueries';
@@ -28,6 +28,7 @@ interface MovieDetailHeaderProps {
   listsWithMovie: MediaList[];
   onOpenListManager: () => void;
   onOpenListDrawer: (listId?: number) => void;
+  posterRef?: RefObject<HTMLElement | null>;
 }
 
 export const MovieDetailHeader: React.FC<MovieDetailHeaderProps> = ({
@@ -52,8 +53,10 @@ export const MovieDetailHeader: React.FC<MovieDetailHeaderProps> = ({
   listsWithMovie,
   onOpenListManager,
   onOpenListDrawer,
+  posterRef,
 }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const headerRef = useRef<HTMLDivElement>(null);
 
   const formattedObtainedDate = obtainedAt
     ? new Date(obtainedAt).toLocaleDateString('it-IT', {
@@ -64,7 +67,7 @@ export const MovieDetailHeader: React.FC<MovieDetailHeaderProps> = ({
     : null;
 
   return (
-    <div className="relative h-48 shrink-0 bg-gray-900 select-none">
+    <div ref={headerRef} className="relative h-48 shrink-0 bg-gray-900 select-none">
       {backdropUrl ? (
         <img
           src={backdropUrl}
@@ -219,7 +222,7 @@ export const MovieDetailHeader: React.FC<MovieDetailHeaderProps> = ({
       </div>
 
       {/* AMICI E LISTE (In basso a destra) */}
-      <div className="absolute bottom-4 right-6 flex flex-col items-end gap-2 z-10 max-w-[calc(100%-340px)] justify-start">
+      <div className="absolute bottom-4 right-6 flex flex-col items-end gap-2 z-10 justify-start">
         {(isFriendsLoading || friends.length > 0) && (
           <div className="flex items-center flex-row-reverse gap-1.5">
             {isFriendsLoading ? (
@@ -264,6 +267,8 @@ export const MovieDetailHeader: React.FC<MovieDetailHeaderProps> = ({
           lists={listsWithMovie}
           onOpenManager={onOpenListManager}
           onOpenDrawer={onOpenListDrawer}
+          posterRef={posterRef}
+          headerRef={headerRef}
         />
       </div>
     </div>

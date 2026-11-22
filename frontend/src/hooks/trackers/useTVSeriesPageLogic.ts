@@ -47,6 +47,7 @@ export const useTVSeriesPageLogic = () => {
   const tmdbIdParam = searchParams.get('tmdb_id');
   const openReviewParam = searchParams.get('open_review') === 'true';
   const openEpisodeParam = searchParams.get('open_episode');
+  const openSeasonParam = searchParams.get('open_season');
   const openReviewLogIdParam = searchParams.get('open_review_log_id');
 
   const [detailModalOpen, setDetailModalOpen] = useState(() => Boolean(tmdbIdParam));
@@ -55,7 +56,7 @@ export const useTVSeriesPageLogic = () => {
   });
   const [detailModalTab, setDetailModalTab] = useState<TabType>(() => {
     if (openReviewParam) return 'review';
-    if (openEpisodeParam) return 'seasons';
+    if (openEpisodeParam || openSeasonParam !== null) return 'seasons';
     return 'overview';
   });
   const [detailModalEpisode, setDetailModalEpisode] = useState<TMDBEpisode | undefined>(() => {
@@ -67,6 +68,9 @@ export const useTVSeriesPageLogic = () => {
       episode_number: 0,
     } as TMDBEpisode;
   });
+  const [detailModalSeasonNumber, setDetailModalSeasonNumber] = useState<number | undefined>(() => {
+    return openSeasonParam !== null ? Number(openSeasonParam) : undefined;
+  });
   const [detailModalReviewLogId, setDetailModalReviewLogId] = useState<number | undefined>(() => {
     return openReviewLogIdParam ? Number(openReviewLogIdParam) : undefined;
   });
@@ -75,11 +79,13 @@ export const useTVSeriesPageLogic = () => {
     seriesItem: SeriesDetailTarget,
     tab: TabType = 'overview',
     episode?: TMDBEpisode,
-    reviewLogId?: number
+    reviewLogId?: number,
+    seasonNumber?: number
   ) => {
     setDetailModalSeries(seriesItem);
     setDetailModalTab(tab);
     setDetailModalEpisode(episode);
+    setDetailModalSeasonNumber(seasonNumber);
     setDetailModalReviewLogId(reviewLogId);
     setDetailModalOpen(true);
   };
@@ -412,6 +418,7 @@ export const useTVSeriesPageLogic = () => {
     detailModalTab,
     setDetailModalTab,
     detailModalEpisode,
+    detailModalSeasonNumber,
     detailModalReviewLogId,
     displaySeries,
     myQuotes,

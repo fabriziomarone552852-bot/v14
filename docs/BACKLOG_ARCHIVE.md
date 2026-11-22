@@ -8,6 +8,11 @@ Questo file contiene lo storico completo e strutturato di tutte le funzionalità
 
 | ID | Attività / Funzionalità | Ambito | Stato Backend | Stato Frontend | Data Completamento |
 | :--- | :--- | :---: | :---: | :---: | :---: |
+| **CAL-003** | Copia & Duplicazione Rapida Eventi e Task (Desktop & Mobile, con Scelta Albero Sottotask) | `calendar` / events & tasks | 🟢 Supportato | 🟢 Completato | Novembre 2026 |
+| **INFRA-001** | Migrazione Definitiva Infrastruttura: QNAP → Proxmox (Cutover Completato & Proxmox Operativo in Produzione) | `infra` / deploy | 🟢 Completato | 🟢 Completato | Novembre 2026 |
+| **TRACKERS-045** | Porting Mobile: Scheda Attori/Registi, Navigazione a Stack Cross-Media & Rating Compatti/Intestazioni Fisse (Stagioni, Episodi, Serie TV & Film) | `trackers` / mobile | 🟢 Supportato | 🟢 Completato | Novembre 2026 |
+| **TRACKERS-046** | Barra Liste Adattiva Anti-Sovrapposizione Locandina & Animazione Scorrimento Laterale Sidebar Liste/Amici (Dettaglio Serie TV & Film) | `trackers` / UI | 🟢 Supportato | 🟢 Completato | Novembre 2026 |
+| **TRACKERS-019** | Giudizio & Voto Multi-Log alle Singole Stagioni delle Serie TV (Scheda Stagione `i`, Stelle Giallo/Ambra, Range Date, Griglia Voti 2×2, Social & Commenti) | `media` / trackers | 🟢 Completato | 🟢 Completato | Novembre 2026 |
 | **BROADCAST-001** | Servizio Messaggistica Broadcast & Avvisi di Sistema (Pop-up Istantaneo Globale, Scheda Admin Riservata `Avvisi & Broadcast`, Modelli Rapidi, Heartbeat Polling 15s & Notifiche Inbox Permanenti) | `admin` / notifications | 🟢 Completato | 🟢 Completato | Novembre 2026 |
 | **ADMIN-001** | Centro di Comando Admin / Zero-pgAdmin Console (Sanatoria & Editing Dati Multi-Dominio: Shopping Anagrafiche, Categorie & Tag, Abitudini & Traguardi, Media & Trackers) | `admin` / fullstack | 🟢 Completato | 🟢 Completato | Novembre 2026 |
 | **WEATHER-001** | Integrazione Previsioni Meteo MET Norway (Proxy Backend, Finestra Dinamica HomePage, Adesivi Desktop & Mobile con Long Press 600ms, Impostazioni GPS/Città) | `weather` / fullstack | 🟢 Completato | 🟢 Completato | Novembre 2026 |
@@ -105,7 +110,31 @@ Questo file contiene lo storico completo e strutturato di tutte le funzionalità
 
 ---
 
-## 🛡️ 0. Amministrazione, Sanatoria & Data Management
+## 🛡️ 0. Amministrazione, Infrastruttura, Sanatoria & Data Management
+
+### [CAL-003] Copia & Duplicazione Rapida Eventi e Task — Desktop & Mobile (🟢 Completato)
+
+#### 📋 Descrizione & Funzionalità Implementate
+Introduzione del pulsante **Copia** (`CopyIcon` a due rettangoli sovrapposti) nell'intestazione dei modali di dettaglio di Eventi e Task sia su **Mobile** sia su **Desktop** (`MobileEventDetailModal`, `EventDetailModal`, `MobileTaskDetailModal`, `TaskDetailModal`):
+- **Copia Eventi**: apre il modale di creazione *Nuovo Evento* (`MobileEventNewModal` / `EventNewModal`) copiando titolo, descrizione, categoria e luogo, e lasciando vuoti **Data Inizio** (obbligatoria prima del salvataggio), Data Fine, orari e ricorrenza.
+- **Copia Task & Albero Sottotask**:
+  - La copia nasce sempre come **task principale indipendente** (livello 1, senza scadenza e senza copiare eventuali livelli superiori) tramite `taskDuplicateUtils.ts` (`SubtaskTemplateNode`, `extractDescendantSubtree`, `countSubtreeNodes`, `getSubtreeMaxDepth`).
+  - Se la task possiede sottotask figlie sotto di sé, si apre il modale centrato condiviso `TaskCopySubtasksModal` per scegliere tra *"Sì, copia con sottotask"* e *"No, copia solo questa task"*.
+  - Nel modale di creazione (`MobileTaskNewModal` / `TaskNewModal`), il banner condiviso `TaskPendingSubtasksBanner` indica quante sottotask verranno clonate al salvataggio (con opzione *"Escludi"*), il selettore del padre rispetta automaticamente il limite `maxDepth` considerando i livelli figli inclusi, e al salvataggio `cloneSubtasksTree` ricrea ricorsivamente l'intero albero sottostante (tutte le figlie come *da fare* e senza scadenza).
+
+### [INFRA-001] Migrazione Definitiva da NAS QNAP a Proxmox (🟢 Completato)
+
+#### 📋 Descrizione & Stato Operativo
+Migrazione definitiva dell'infrastruttura di produzione di **Vita** dal NAS QNAP al server **Proxmox**, ora pienamente operativo in produzione:
+- **Architettura Proxmox Operativa**:
+  - Host Proxmox: `192.168.11.19`
+  - LXC App Python / Docker: `192.168.11.14:8181`
+  - LXC PostgreSQL: `192.168.11.15:5432`
+  - LXC Tailscale Gateway: `192.168.11.16` (subnet routing `192.168.11.0/24` + port-forwarding porte `8181`/`8000` verso `192.168.11.14` per il micro-tunnel `tsnet` dell'APK Android).
+- **Cutover & Continuità**:
+  - Switch hostname Tailscale completato (`smartagenda` puntato al nodo Proxmox), sincronizzazione finale database e `uploads/` eseguita, vecchi container QNAP dismessi dal servizio attivo.
+  - Sistema di Backup Automatico 3-2-1 (`auto_backup.sh` su cron Proxmox + replica sul NAS QNAP con retention max 2 copie) attivo.
+  - Riferimento operativo permanente in [`docs/MIGRAZIONE_PROXMOX.md`](file:///c:/Users/Fabrizio/Desktop/app/smart/v14/docs/MIGRAZIONE_PROXMOX.md).
 
 ### [BROADCAST-001] Servizio Messaggistica Broadcast & Avvisi di Sistema (🟢 Completato)
 
@@ -190,6 +219,52 @@ Integrazione completa del servizio di previsioni meteorologiche aperto e gratuit
 ---
 
 ## 📺 1. Media & Trackers (Serie TV & Film)
+
+### [TRACKERS-045] Porting Mobile: Scheda Attori/Registi, Navigazione a Stack Cross-Media & Rating Compatti (Stagioni, Episodi, Serie TV & Film) (🟢 Completato)
+
+#### 📋 Descrizione & Obiettivo
+Completato e rifinito il porting su vista Mobile delle funzionalità di esplorazione **attori/registi** e della gestione **voti/recensioni** su Episodi, Stagioni, Serie TV e Film (mantenendo intatto il layout Desktop):
+- **Scheda Attore/Regista Mobile (`MobilePersonDetailModal.tsx`, `MobilePersonCreditsSection.tsx`, `usePersonDetailData.ts`)**:
+  - Header condiviso con Desktop (`PersonDetailHeader.tsx`) e tendina biografia (`PersonBioCurtainOverlay.tsx`) richiudibile tramite la sola freccia verso l'alto (`iconOnlyReduce`) con rispetto safe-area top.
+  - Barra di ricerca a tutta ampiezza (rimosse le pillole superiori di filtro) e sezioni **"Film"** e **"Serie TV"** in stile catalogo mobile: pillola centrale grigia cliccabile per comprimere/espandere con animazione stile riduzione finestra e griglia locandine a 3 colonne con bordi colorati per stato di tracciamento.
+  - Cast cliccabile esteso anche alla vista cinema mobile (`MobileCinemaOverviewView.tsx`).
+- **Navigazione Cross-Media a Stack (`TrackerModalStackContext.tsx` & `TrackerModalStackHost.tsx`)**:
+  - Cronologia a pila per i modali Trackers (Serie TV ↔ Attore/Regista ↔ Film ↔ Correlati/Saghe): cliccando `X` o premendo il tasto Indietro Android si risale passo dopo passo al modale precedente (preservando ricerca, sezioni chiuse e posizione di scroll della scheda persona) invece di chiudere tutto e tornare alla home.
+  - Host unico a `z-[10038]` con `React.lazy` protetto da `!IS_MOBILE_BUILD` per tree-shaking pulito dell'APK Android.
+- **Barra Voti Mobile su Riga Singola & Dettaglio Stagioni (`MobileTrackerRatingsBar.tsx`, `MobileEpisodeMainOverview.tsx`, `MobileSeasonMainOverview.tsx`)**:
+  - Barra voti compatta e bilanciata su riga singola posizionata in alto nel dettaglio Episodio/Stagione e nelle schede **Recensioni & Citazioni** di Serie TV (rimossa la finestrella *"Voti per Stagione"* su Mobile) e Film: `TMDB` numerico arrotondato al 1° decimale (`1..9`) + stella a sinistra, voto personale a 5 stelle al centro, `Amici` numerico arrotondato a `0.5` + stella a destra (`formatRatingOneDecimal`, `formatRatingHalfStep`).
+  - **Dettaglio Stagione Mobile**: 4 colonne bilanciate su riga singola (`TMDB | Media Ep. | Stagione | Amici`) con 5 stelle gialle per media episodi e 5 stelle ambra per voto stagione (o `Aggiungilo!` in nero bold), titolo stagione lasciato esclusivamente sul banner superiore (rimosso il duplicato blu nella barra metadati), locandina della stagione (`w780`, fallback backdrop serie) ingrandita e inquadrata nel banner superiore (`object-cover object-[50%_30%]`) e **Sinossi Stagione** a tutta larghezza.
+- **Intestazioni Fisse Liste Recensioni & Voti Amici su Mobile**:
+  - Bloccata in cima la barra di intestazione (titolo + *"Nuova recensione"* / titolo amici) con scorrimento indipendente delle sole card sottostanti in `MobileEpisodeMyReviewsList.tsx`, `MobileSeriesMyReviewsList.tsx`, `MobileMovieMyReviewsList.tsx`, `FriendsReviewsListView.tsx` e `FriendDetailReviewsView.tsx` (tramite prop `mobileFixedHeader`, lasciando Desktop invariato).
+
+### [TRACKERS-046] Barra Liste Adattiva Anti-Sovrapposizione Locandina & Sidebar Laterali Scorrevoli (Serie TV & Film) (🟢 Completato)
+
+#### 📋 Descrizione & Obiettivo
+Risolta la collisione delle pillole liste con la locandina nei modali dettaglio desktop di Serie TV e Film e migliorata la transizione visiva delle sidebar interne Liste e Amici:
+- **Misurazione Reale Rispetto alla Locandina (`useListsBarOverflow.ts` & `TrackerDetailListsBar.tsx`)**:
+  - Nuovo custom hook dedicato (`useListsBarOverflow`) che misura in `useLayoutEffect` (zero sfarfallii) la distanza esatta in pixel tra il margine destro della barra liste e il bordo destro reale della locandina (`posterRef`), lasciando `20px` di margine di sicurezza.
+  - Aggiornamento live automatico tramite `ResizeObserver`, `window.resize`, cambio liste (`listsSignature`) e caricamento font; quando le pillole superano lo spazio disponibile vengono raccolte automaticamente nel pulsante circolare compatto a tre lineette (`≡`) che apre la sidebar delle liste.
+  - Collegamento `posterRef` e `headerRef` esteso in modo simmetrico a `SeriesDetailModal`/`SeriesDetailHeader`/`SeriesDetailSidebar` e `MovieDetailModal`/`MovieDetailHeader`/`MovieDetailSidebar`, con chiusura mutuamente esclusiva tra pannello Liste e pannello Amici.
+- **Animazione Scorrimento Laterale Sidebar Liste & Amici (`TrackerDetailSideDrawer.tsx`)**:
+  - Estratto contenitore DRY condiviso `TrackerDetailSideDrawer` utilizzato sia da `TrackerDetailListsDrawer` sia da `TrackerDetailFriendsDrawer`.
+  - Transizione fluida da destra verso sinistra in apertura (`translate-x-[102%]` → `translate-x-0` in `300ms`, curva `cubic-bezier(0.16, 1, 0.3, 1)`), rientro laterale in chiusura e backdrop leggero cliccabile per chiudere rapidamente il pannello.
+
+### [TRACKERS-019] Giudizio & Voto alle singole Stagioni delle Serie TV (Valutazione per Stagione) (🟢 Completato)
+
+#### 📋 Descrizione & Obiettivo
+Implementato il sistema completo multi-log di valutazione (5 stelle con mezze stelle, archiviate in DB 1–10) e recensioni dedicate per le singole stagioni delle Serie TV su Desktop e Mobile, mantenendole escluse dalle statistiche globali `TVFullStats`:
+- **Database & Migrazioni Alembic (`tv_user_season_logs`)**:
+  - Nuovo modello `UserSeasonLog` in `backend/domains/trackers/models.py` con `rating`, `notes`, `review_visibility`, `watched_at` e indice composto `(user_id, series_tmdb_id, season_number)`.
+  - Migrazioni Alembic idempotenti `k7e8f9a0b1c2` (creazione tabella e indici) e `l8f9a0b1c2d3` (rimozione definitiva della colonna `viewing_platform_id`), applicate e verificate sia su database di test (`test-smart`) che su produzione NAS (`family-smart`).
+- **Backend API, Metadati Stagione & Notifiche Social**:
+  - Nuovo servizio `season_service.py` ed endpoint `POST /series/{tmdb_id}/seasons/{season_number}/logs`, `PATCH /series/season-logs/{log_id}`, `DELETE /series/season-logs/{log_id}` e `GET /series/{tmdb_id}/seasons/{season_number}/friends-reviews`.
+  - Arricchimento di `/trackers/series/{tmdb_id}/extras` con `overview` (con fallback IT → EN), `air_date`, `episode_count` e `vote_average` per ciascuna stagione, e caricamento bulk `season_logs` in `TVSeriesResponse`.
+  - Supporto completo a commenti e menzioni `@username` (`SEASON_REVIEW_COMMENT`, `SEASON_REVIEW_COMMENT_THREAD`, `SEASON_REVIEW_MENTION`) con deep-link diretto `?open_season=` dall'Inbox notifiche.
+- **Interfaccia Desktop & Mobile, UX & Qualità Codice**:
+  - **Header Stagione Intelligente**: solo stelle (senza etichetta `"EP."`) differenziate per colore (**giallo** per media episodi in fallback, **ambra** per voto diretto alla stagione) + pulsantino **`i`** per aprire il dettaglio stagione.
+  - **Scheda Dettaglio Stagione (`SeasonMainOverview` / `MobileSeasonMainOverview`)**: intestazione a riga singola con nome stagione, episodi visti (`watched/total`), range date prima–ultima puntata (data singola se coincidono) e pallino vista a destra; locandina a sinistra, sola sinossi scorrevole a destra e griglia voti **2×2** ancorata in basso (**TMDB | Amici** sopra, **Media Episodi | Il Tuo Voto** sotto).
+  - **Form Snello & Optimistic UI 0ms**: riutilizzo di `SeriesReviewForm` / `MobileSeriesReviewForm` senza piattaforma (voto, testo, data, visibilità), aggiornamenti istantanei a 0ms (`useSeasonLogMutations.ts`) e sezione riepilogativa **"Voti per Stagione"** (`SeasonRatingsSummarySection.tsx`) nella scheda Recensioni della serie.
+  - Refactor modulare con estrazione di `seasonDetailUtils.ts` per mantenere `useSeasonDetailLogic.ts` snello e conforme allo standard TypeScript strict (zero `any`).
 
 ### [TRACKERS-025] Ricerca & Filtro Multi-Persona (`AND`/`OR`) per Attori / Registi / Creatori (Film & Serie TV, Web & Mobile), Scheda Persona Cliccabile & Modali Dettaglio Film (🟢 Completato)
 

@@ -4,7 +4,7 @@ import type { CalendarEvent } from '@/types';
 import { translateRRule } from '@/utils/rruleUtils';
 import BaseModal from '@/components/shared/dialog/BaseModal';
 import { Badge } from '@/components/shared/utils/Badges';
-import { EditIcon, TrashIcon, ArrowRightLongIcon } from '@/components/shared/utils/Icons';
+import { CopyIcon, EditIcon, TrashIcon, ArrowRightLongIcon } from '@/components/shared/utils/Icons';
 import { LocationPreview } from '@/components/shared/form';
 import { useEventDetailLogic } from '@/hooks/forms/useEventDetailLogic';
 
@@ -21,11 +21,12 @@ interface EventDetailModalProps {
   onClose: () => void;
   selectedEvent: CalendarEvent | null; 
   onEditClick: () => void;
+  onDuplicateClick?: () => void;
   onDeleteClick: (payload: EventDeletePayload) => void; 
 }
 
 const EventDetailModal: React.FC<EventDetailModalProps> = ({ 
-  isOpen, onClose, selectedEvent, onEditClick, onDeleteClick 
+  isOpen, onClose, selectedEvent, onEditClick, onDuplicateClick, onDeleteClick 
 }) => {
   const {
     dataInizio,
@@ -45,6 +46,17 @@ const EventDetailModal: React.FC<EventDetailModalProps> = ({
 
   const HeaderActions = showRecurringDeleteOptions ? null : (
     <>
+      {onDuplicateClick && (
+        <button
+          type="button"
+          title="Copia"
+          aria-label="Copia evento"
+          onClick={onDuplicateClick}
+          className="p-1.5 text-gray-400 hover:text-indigo-500 hover:bg-indigo-50 rounded-lg transition-colors cursor-pointer"
+        >
+          <CopyIcon className="h-5 w-5" />
+        </button>
+      )}
       <button title="Modifica" onClick={onEditClick} className="p-1.5 text-gray-400 hover:text-blue-500 hover:bg-blue-50 rounded-lg transition-colors cursor-pointer">
         <EditIcon className="h-5 w-5" />
       </button>

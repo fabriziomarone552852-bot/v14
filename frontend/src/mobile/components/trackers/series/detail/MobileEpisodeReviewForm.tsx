@@ -21,11 +21,13 @@ export interface MobileEpisodeReviewFormProps {
   setPlatform: (p: string) => void;
   allPlatforms: string[];
   onSave: () => void;
+  placeholder?: string;
 }
 
 export const MobileEpisodeReviewForm: React.FC<MobileEpisodeReviewFormProps> = ({
   editingLogId, onBack, reviewDate, setReviewDate, visibility, setVisibility,
   review, setReview, rating, setRating, platform, setPlatform, allPlatforms, onSave,
+  placeholder = "Cosa ne pensi di questo episodio?",
 }) => {
   const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
   const [isPrivacyModalOpen, setIsPrivacyModalOpen] = useState(false);
@@ -53,7 +55,7 @@ export const MobileEpisodeReviewForm: React.FC<MobileEpisodeReviewFormProps> = (
         <textarea
           value={review}
           onChange={(e) => setReview(e.target.value)}
-          placeholder="Cosa ne pensi di questo episodio?"
+          placeholder={placeholder}
           className="w-full flex-1 min-h-[40px] p-3 bg-white border border-gray-200/90 rounded-2xl outline-none resize-none text-xs sm:text-sm text-gray-800 placeholder-gray-400 focus:border-blue-400 focus:ring-2 focus:ring-blue-100 transition-all leading-relaxed shadow-2xs overflow-y-auto custom-scrollbar"
         />
       </div>

@@ -1,64 +1,46 @@
-import { useCallback, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useCallback } from 'react';
 import type { MediaCreditPerson } from '@/types/people';
+import {
+  useTrackerModalStack,
+  type TrackerModalSurface,
+} from '@/context/TrackerModalStackContext';
 
-interface UseTrackerPersonNavigationOptions {
-  mediaType: 'movie' | 'tv';
-  onSelectSameMedia: (tmdbId: number) => void;
-  onCloseParentModal: () => void;
+export interface UseTrackerPersonNavigationOptions {
+  surface: TrackerModalSurface;
 }
 
 /**
- * Gestisce apertura della scheda persona (attore/regista/creatore) dai modali dettaglio
- * e navigazione verso il film o la serie selezionati dalla sua filmografia.
+ * Hook leggero per aprire una scheda persona (o un titolo correlato/saga)
+ * impilandola nello stack di navigazione dei modali tracker, così che la chiusura ("X")
+ * torni passo dopo passo alla scheda precedente senza perdere il contesto.
  */
-export function useTrackerPersonNavigation({
-  mediaType,
-  onSelectSameMedia,
-  onCloseParentModal,
-}: UseTrackerPersonNavigationOptions) {
-  const navigate = useNavigate();
-  const [selectedPerson, setSelectedPerson] = useState<MediaCreditPerson | null>(null);
+export function useTrackerPersonNavigation({ surface }: UseTrackerPersonNavigationOptions) {
+  const { pushPerson, pushMovie, pushSeries } = useTrackerModalStack();
 
-  const openPersonDetail = useCallback((person: MediaCreditPerson) => {
-    setSelectedPerson(person);
-  }, []);
-
-  const closePersonDetail = useCallback(() => {
-    setSelectedPerson(null);
-  }, []);
-
-  const handleSelectMovie = useCallback(
-    (movieTmdbId: number) => {
-      setSelectedPerson(null);
-      if (mediaType === 'movie') {
-        onSelectSameMedia(movieTmdbId);
-      } else {
-        onCloseParentModal();
-        navigate(`/trackers/film?tmdb_id=${movieTmdbId}`);
-      }
+  const openPersonDetail = useCallback(
+    (person: MediaCreditPerson) => {
+      pushPerson(person, surface);
     },
-    [mediaType, navigate, onCloseParentModal, onSelectSameMedia]
+    [pushPerson, surface]
   );
 
-  const handleSelectSeries = useCallback(
-    (seriesTmdbId: number) => {
-      setSelectedPerson(null);
-      if (mediaType === 'tv') {
-        onSelectSameMedia(seriesTmdbId);
-      } else {
-        onCloseParentModal();
-        navigate(`/trackers/serie-tv?tmdb_id=${seriesTmdbId}`);
-      }
+  const openMovieInStack = useCallback(
+    (movieTmdbId: number) => {
+      pushMovie(movieTmdbId, surface);
     },
-    [mediaType, navigate, onCloseParentModal, onSelectSameMedia]
+    [pushMovie, surface]
+  );
+
+  const openSeriesInStack = useCallback(
+    (seriesTmdbId: number) => {
+      pushSeries(seriesTmdbId, surface);
+    },
+    [pushSeries, surface]
   );
 
   return {
-    selectedPerson,
     openPersonDetail,
-    closePersonDetail,
-    handleSelectMovie,
-    handleSelectSeries,
+    openMovieInStack,
+    openSeriesInStack,
   };
 }

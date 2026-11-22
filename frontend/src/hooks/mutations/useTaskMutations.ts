@@ -2,6 +2,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/api/apiService';
 import { updateAllSyncCaches, invalidateAllViews } from '@/utils/queryCacheUtils';
 import type { DbTask } from '@/types';
+import type { SubtaskTemplateNode } from '@/utils/taskDuplicateUtils';
 import { logger } from '@/utils/logger';
 
 // 🪄 1. Definiamo i contratti in modo rigoroso, zero unknown.
@@ -162,9 +163,76 @@ export function useTaskMutations(_queryKey?: unknown) {
     }
   });
 
+  // --- 4. CLONA ALBERO SOTTOTASK RICORSIVAMENTE (PER LIVELLI) ---
+  const cloneSubtasksTree = async (
+    rootTaskId: number,
+    nodes: SubtaskTemplateNode[],
+    startDateStr: string
+  ): Promise<DbTask[]> => {
+    if (nodes.length === 0) return [];
+    const createdAll: DbTask[] = [];
+
+    const createLevel = async (
+      parentId: number,
+      levelNodes: SubtaskTemplateNode[]
+    ): Promise<void> => {
+      if (levelNodes.length === 0) return;
+
+      const createdSiblings = await Promise.all(
+        levelNodes.map(async (node) => {
+          const created = await api.post<DbTask>('/tasks', {
+            titolo: node.titolo,
+            descrizione: node.descrizione,
+            data_start: startDateStr,
+            data_scadenza: null,
+            priorita: node.priorita,
+            user_category_id: node.user_category_id ?? undefined,
+            luogo: node.luogo,
+            parent_id: parentId,
+          });
+          if (!created) {
+            throw new Error(`Impossibile clonare la sottotask "${node.titolo}"`);
+          }
+          return { created, children: node.children };
+        })
+      );
+
+      for (const { created } of createdSiblings) {
+        createdAll.push(created);
+      }
+
+      await Promise.all(
+        createdSiblings
+          .filter(({ children }) => children.length > 0)
+          .map(({ created, children }) => createLevel(created.id, children))
+      );
+    };
+
+    try {
+      await createLevel(rootTaskId, nodes);
+    } finally {
+      if (createdAll.length > 0) {
+        updateAllSyncCaches<TaskCacheData>(
+          queryClient,
+          (old) =>
+            updateCacheSafely(old, (currentTasks) => {
+              const existingIds = new Set(currentTasks.map((t) => t.id));
+              const toAppend = createdAll.filter((t) => !existingIds.has(t.id));
+              return [...currentTasks, ...toAppend];
+            }),
+          ['tasks']
+        );
+        invalidateAllViews(queryClient);
+      }
+    }
+
+    return createdAll;
+  };
+
   return {
     toggleTask: toggleTaskMutation.mutate,
     saveTask: saveTaskMutation.mutateAsync,
     deleteTask: deleteTaskMutation.mutate,
+    cloneSubtasksTree,
   };
 }

@@ -8,6 +8,8 @@ import { EventModalProvider } from '@/context/EventModalContext';
 import { RoutineModalProvider } from '@/context/RoutineModalContext';
 import { ShoppingModalProvider } from '@/context/ShoppingModalContext';
 import { ArchiveHeaderProvider } from '@/context/ArchiveHeaderContext';
+import { TrackerModalStackProvider } from '@/context/TrackerModalStackContext';
+import { TrackerModalStackHost } from '@/components/trackers/shared/TrackerModalStackHost';
 import { TailscaleGate } from '@/components/TailscaleGate';
 import AppErrorBoundary from '@/components/AppErrorBoundary';
 import AppUpdateChecker from '@/components/AppUpdateChecker';
@@ -27,8 +29,11 @@ function App() {
                     <RoutineModalProvider>
                       <ShoppingModalProvider>
                         <ArchiveHeaderProvider>
-                          <SystemBroadcastModal />
-                          <AppRouter />
+                          <TrackerModalStackProvider>
+                            <SystemBroadcastModal />
+                            <TrackerModalStackHost />
+                            <AppRouter />
+                          </TrackerModalStackProvider>
                         </ArchiveHeaderProvider>
                       </ShoppingModalProvider>
                     </RoutineModalProvider>

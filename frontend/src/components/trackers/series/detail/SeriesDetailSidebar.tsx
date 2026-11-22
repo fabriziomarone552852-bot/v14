@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { type RefObject } from 'react';
 import type { UserSeriesTracking } from '@/types/trackers';
 import type { TabType } from './useSeriesDetailModalLogic';
 import { getMediaStatusConfig } from '@/utils/mediaStatusTheme';
@@ -18,6 +18,7 @@ interface SeriesDetailSidebarProps {
   activeTab: TabType;
   onTabChange: (tab: TabType) => void;
   onOpenImageModal: () => void;
+  posterRef?: RefObject<HTMLDivElement | null>;
 }
 
 export const SeriesDetailSidebar: React.FC<SeriesDetailSidebarProps> = ({
@@ -34,6 +35,7 @@ export const SeriesDetailSidebar: React.FC<SeriesDetailSidebarProps> = ({
   activeTab,
   onTabChange,
   onOpenImageModal,
+  posterRef,
 }) => {
   const statusConfig = getMediaStatusConfig(
     userTracking?.status,
@@ -45,6 +47,7 @@ export const SeriesDetailSidebar: React.FC<SeriesDetailSidebarProps> = ({
     <div className="w-1/3 min-w-[250px] max-w-[300px] p-6 flex flex-col gap-6 relative z-20">
       {/* LOCANDINA / POSTER */}
       <div
+        ref={posterRef}
         className={`group/poster -mt-32 w-full aspect-[2/3] rounded-xl overflow-hidden shadow-2xl border-4 ${borderClass} bg-gray-200 shrink-0 relative z-30 cursor-pointer`}
         onClick={onOpenImageModal}
       >

@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import BaseModal from '@/components/shared/dialog/BaseModal';
 import type { MovieDetailTarget } from '@/types/movies';
+import { extractMovieTmdbId } from '@/types/movies';
 import { useMovieDetailModalLogic } from './useMovieDetailModalLogic';
 import { MovieDetailHeader } from './MovieDetailHeader';
 import { MovieDetailSidebar } from './MovieDetailSidebar';
@@ -13,7 +14,6 @@ import { TrackerDetailFriendsDrawer } from '@/components/trackers/shared/detail/
 import { TrackerListManagerModal } from '@/components/trackers/shared/detail/TrackerListManagerModal';
 import { TrackerImageModal } from '@/components/trackers/shared/detail/TrackerImageModal';
 import { TrackerListDetailModal } from '@/components/trackers/shared/detail/TrackerListDetailModal';
-import { PersonDetailModal } from '@/components/trackers/shared/detail/PersonDetailModal';
 import { useTrackerPersonNavigation } from '@/hooks/trackers/useTrackerPersonNavigation';
 import type { MovieDetailTabType } from '@/hooks/trackers/useMovieUrlParams';
 
@@ -42,6 +42,8 @@ export const MovieDetailModal: React.FC<MovieDetailModalProps> = ({
   onPlatformClick,
   zIndexClass = 'z-[10020]',
 }) => {
+  const posterRef = useRef<HTMLDivElement>(null);
+
   const {
     tmdbId,
     userMovie,
@@ -101,17 +103,18 @@ export const MovieDetailModal: React.FC<MovieDetailModalProps> = ({
     onToggleTrack,
   });
 
-  const {
-    selectedPerson,
-    openPersonDetail,
-    closePersonDetail,
-    handleSelectMovie,
-    handleSelectSeries,
-  } = useTrackerPersonNavigation({
-    mediaType: 'movie',
-    onSelectSameMedia: (targetTmdbId) => onSelectRecommendation?.({ tmdb_id: targetTmdbId }),
-    onCloseParentModal: onClose,
+  const { openPersonDetail, openMovieInStack } = useTrackerPersonNavigation({
+    surface: 'desktop',
   });
+
+  const handleSelectRelatedMovie = (selected: MovieDetailTarget) => {
+    const targetTmdbId = extractMovieTmdbId(selected);
+    if (targetTmdbId && targetTmdbId !== tmdbId) {
+      openMovieInStack(targetTmdbId);
+      return;
+    }
+    onSelectRecommendation?.(selected);
+  };
 
   return (
     <BaseModal
@@ -144,7 +147,10 @@ export const MovieDetailModal: React.FC<MovieDetailModalProps> = ({
           onPlatformClick={onPlatformClick}
           isFriendsLoading={isFriendsLoading}
           friends={MOVIE_FRIENDS}
-          onOpenFriendsPanel={() => setShowFriendsPanel(true)}
+          onOpenFriendsPanel={() => {
+            setShowListsPanel(false);
+            setShowFriendsPanel(true);
+          }}
           getStatusBorderColor={getStatusBorderColor}
           listsWithMovie={listsWithMovie}
           onOpenListManager={() => setIsListManagerOpen(true)}
@@ -152,9 +158,11 @@ export const MovieDetailModal: React.FC<MovieDetailModalProps> = ({
             if (id) {
               setListDetailId(id);
             } else {
+              setShowFriendsPanel(false);
               setShowListsPanel(true);
             }
           }}
+          posterRef={posterRef}
         />
 
         {/* CONTENUTO PRINCIPALE */}
@@ -178,6 +186,7 @@ export const MovieDetailModal: React.FC<MovieDetailModalProps> = ({
             hasCinemaShowtimes={hasCinemaShowtimes}
             hasCollection={Boolean(extras?.collection?.parts && extras.collection.parts.length > 0)}
             reviewsCount={logs.length}
+            posterRef={posterRef}
           />
 
           {/* COLONNA DESTRA (Schede dinamiche con scrollbar personalizzata) */}
@@ -195,7 +204,7 @@ export const MovieDetailModal: React.FC<MovieDetailModalProps> = ({
                 recommendations={extras?.recommendations}
                 isLoadingExtras={isExtrasLoading}
                 isLoadingDetails={isMovieDetailLoading}
-                onSelectRecommendation={onSelectRecommendation}
+                onSelectRecommendation={handleSelectRelatedMovie}
                 onPersonClick={openPersonDetail}
               />
             )}
@@ -205,7 +214,7 @@ export const MovieDetailModal: React.FC<MovieDetailModalProps> = ({
                 collection={extras?.collection}
                 currentMovieId={tmdbId}
                 isLoading={isExtrasLoading}
-                onSelectMovie={(selected) => onSelectRecommendation?.(selected)}
+                onSelectMovie={handleSelectRelatedMovie}
                 onQuickAdd={(sagaTmdbId) => {
                   if (onToggleTrack) onToggleTrack(sagaTmdbId, false);
                 }}
@@ -280,15 +289,6 @@ export const MovieDetailModal: React.FC<MovieDetailModalProps> = ({
           zIndexClass="z-[10050]"
         />
       )}
-
-      {/* MODALE FILMOGRAFIA PERSONA */}
-      <PersonDetailModal
-        isOpen={Boolean(selectedPerson)}
-        person={selectedPerson}
-        onClose={closePersonDetail}
-        onSelectMovie={handleSelectMovie}
-        onSelectSeries={handleSelectSeries}
-      />
     </BaseModal>
   );
 };

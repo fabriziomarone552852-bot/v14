@@ -16,6 +16,7 @@ export interface NotificationResponse {
   author_avatar?: string | null;
   context_title?: string | null;
   series_tmdb_id?: number | null;
+  season_number?: number | null;
   episode_id?: number | null;
   movie_tmdb_id?: number | null;
 }

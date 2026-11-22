@@ -124,6 +124,12 @@ export const useNotificationsInbox = (options?: UseNotificationsInboxOptions) =>
     ) {
       navigate(`/trackers/serie-tv?tmdb_id=${interaction.series_tmdb_id}&open_episode=${interaction.episode_id}&open_review_log_id=${interaction.reference_id}`);
     } else if (
+      interaction.interaction_type === 'SEASON_REVIEW_COMMENT' ||
+      interaction.interaction_type === 'SEASON_REVIEW_COMMENT_THREAD' ||
+      interaction.interaction_type === 'SEASON_REVIEW_MENTION'
+    ) {
+      navigate(`/trackers/serie-tv?tmdb_id=${interaction.series_tmdb_id}&open_season=${interaction.season_number ?? 1}&open_review_log_id=${interaction.reference_id}`);
+    } else if (
       interaction.interaction_type === 'MOVIE_REVIEW_COMMENT' ||
       interaction.interaction_type === 'MOVIE_REVIEW_COMMENT_THREAD' ||
       interaction.interaction_type === 'MOVIE_REVIEW_MENTION'

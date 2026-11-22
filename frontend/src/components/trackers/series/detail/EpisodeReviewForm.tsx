@@ -18,6 +18,7 @@ interface EpisodeReviewFormProps {
   setPlatform: (p: string) => void;
   allPlatforms: string[];
   onSave: () => void;
+  placeholder?: string;
 }
 
 export const EpisodeReviewForm: React.FC<EpisodeReviewFormProps> = ({
@@ -35,6 +36,7 @@ export const EpisodeReviewForm: React.FC<EpisodeReviewFormProps> = ({
   setPlatform,
   allPlatforms,
   onSave,
+  placeholder = 'Cosa ne pensi di questo episodio?',
 }) => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
@@ -189,7 +191,7 @@ export const EpisodeReviewForm: React.FC<EpisodeReviewFormProps> = ({
       </div>
 
       <div className="flex flex-col flex-1 overflow-y-auto mb-4">
-        <textarea value={review} onChange={(e) => setReview(e.target.value)} className="w-full h-full p-4 bg-gray-50 border border-gray-200 rounded-xl focus:ring-0 focus:border-gray-300 outline-none resize-none text-base text-gray-800 transition-colors" placeholder="Cosa ne pensi di questo episodio?" />
+        <textarea value={review} onChange={(e) => setReview(e.target.value)} className="w-full h-full p-4 bg-gray-50 border border-gray-200 rounded-xl focus:ring-0 focus:border-gray-300 outline-none resize-none text-base text-gray-800 transition-colors" placeholder={placeholder} />
       </div>
 
       <div className="flex items-center justify-between pt-4 border-t border-gray-100 shrink-0">

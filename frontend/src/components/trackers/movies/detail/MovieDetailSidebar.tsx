@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { type RefObject } from 'react';
 import type { MovieDetailTabType } from '@/hooks/trackers/useMovieUrlParams';
 import { getMediaStatusConfig } from '@/utils/mediaStatusTheme';
 import { MediaPosterFolderTab } from '@/components/trackers/shared/MediaPosterFolderTab';
@@ -21,6 +21,7 @@ interface MovieDetailSidebarProps {
   hasCinemaShowtimes?: boolean;
   hasCollection?: boolean;
   reviewsCount?: number;
+  posterRef?: RefObject<HTMLDivElement | null>;
 }
 
 export const MovieDetailSidebar: React.FC<MovieDetailSidebarProps> = ({
@@ -41,6 +42,7 @@ export const MovieDetailSidebar: React.FC<MovieDetailSidebarProps> = ({
   hasCinemaShowtimes = false,
   hasCollection = false,
   reviewsCount = 0,
+  posterRef,
 }) => {
   const movieStatus = isTracked ? (isWatched ? 'watched' : 'to_watch') : null;
   const statusConfig = getMediaStatusConfig(movieStatus, 'Movie');
@@ -57,6 +59,7 @@ export const MovieDetailSidebar: React.FC<MovieDetailSidebarProps> = ({
     >
       {/* LOCANDINA / POSTER SOVRAPPOSTO ALL'HEADER */}
       <div
+        ref={posterRef}
         className={`group/poster mx-auto aspect-[2/3] rounded-xl overflow-hidden shadow-2xl border-4 ${borderClass} bg-gray-200 shrink-0 relative z-30 cursor-pointer transition-all ${
           isCompact ? 'w-[186px] -mt-28' : 'w-[214px] -mt-32'
         }`}

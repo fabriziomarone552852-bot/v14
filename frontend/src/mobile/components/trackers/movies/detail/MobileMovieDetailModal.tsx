@@ -3,6 +3,7 @@ import React, { useState, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { Clock, Info, Layers, Star } from 'lucide-react';
 import type { MovieDetailTarget } from '@/types/movies';
+import { extractMovieTmdbId } from '@/types/movies';
 import { useMovieDetailModalLogic } from '@/components/trackers/movies/detail/useMovieDetailModalLogic';
 import { useBackHandler } from '@/utils/backButtonManager';
 import { MobileTrackerDetailBanner } from '../../shared/detail/MobileTrackerDetailBanner';
@@ -29,6 +30,7 @@ export interface MobileMovieDetailModalProps {
   onGenreClick?: (genre: string) => void;
   onPlatformClick?: (platform: string) => void;
   zIndexClass?: string;
+  backHandlerPriority?: number;
 }
 
 export const MobileMovieDetailModal: React.FC<MobileMovieDetailModalProps> = ({
@@ -42,6 +44,7 @@ export const MobileMovieDetailModal: React.FC<MobileMovieDetailModalProps> = ({
   onGenreClick,
   onPlatformClick,
   zIndexClass = 'z-[10030]',
+  backHandlerPriority = 28,
 }) => {
   const [showOptionsModal, setShowOptionsModal] = useState(false);
   const [isProvinceModalOpen, setIsProvinceModalOpen] = useState(false);
@@ -104,17 +107,18 @@ export const MobileMovieDetailModal: React.FC<MobileMovieDetailModalProps> = ({
     onToggleTrack,
   });
 
-  const {
-    selectedPerson,
-    openPersonDetail,
-    closePersonDetail,
-    handleSelectMovie,
-    handleSelectSeries,
-  } = useTrackerPersonNavigation({
-    mediaType: 'movie',
-    onSelectSameMedia: (targetTmdbId) => onSelectRecommendation?.({ tmdb_id: targetTmdbId }),
-    onCloseParentModal: onClose,
+  const { openPersonDetail, openMovieInStack } = useTrackerPersonNavigation({
+    surface: 'mobile',
   });
+
+  const handleSelectRelatedMovie = (selected: MovieDetailTarget) => {
+    const targetTmdbId = extractMovieTmdbId(selected);
+    if (targetTmdbId && targetTmdbId !== tmdbId) {
+      openMovieInStack(targetTmdbId);
+      return;
+    }
+    onSelectRecommendation?.(selected);
+  };
 
   const hasCollection = Boolean(
     extras?.collection?.parts && extras.collection.parts.length > 0
@@ -214,7 +218,7 @@ export const MobileMovieDetailModal: React.FC<MobileMovieDetailModalProps> = ({
       onClose();
       return true;
     },
-    28
+    backHandlerPriority
   );
 
   if (!isOpen) return null;
@@ -262,7 +266,7 @@ export const MobileMovieDetailModal: React.FC<MobileMovieDetailModalProps> = ({
             handleClickTrack={handleClickTrack}
             providersData={providersData}
             onPlatformClick={onPlatformClick}
-            onSelectRecommendation={onSelectRecommendation}
+            onSelectRecommendation={handleSelectRelatedMovie}
             onPersonClick={openPersonDetail}
           />
         )}
@@ -283,7 +287,7 @@ export const MobileMovieDetailModal: React.FC<MobileMovieDetailModalProps> = ({
             collection={extras?.collection}
             currentMovieId={tmdbId}
             isLoading={isExtrasLoading}
-            onSelectMovie={(selected) => onSelectRecommendation?.(selected)}
+            onSelectMovie={handleSelectRelatedMovie}
             onQuickAdd={(sagaTmdbId) => {
               if (onToggleTrack) onToggleTrack(sagaTmdbId, false);
             }}
@@ -337,10 +341,6 @@ export const MobileMovieDetailModal: React.FC<MobileMovieDetailModalProps> = ({
         onCloseListManager={() => setIsListManagerOpen(false)}
         listDetailId={listDetailId}
         onCloseListDetail={() => setListDetailId(null)}
-        selectedPerson={selectedPerson}
-        onClosePersonDetail={closePersonDetail}
-        onSelectMovie={handleSelectMovie}
-        onSelectSeries={handleSelectSeries}
         isProvinceModalOpen={isProvinceModalOpen}
         onCloseProvinceModal={() => setIsProvinceModalOpen(false)}
         cinemaProvinces={cinemaProvinces}

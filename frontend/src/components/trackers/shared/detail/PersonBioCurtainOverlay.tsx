@@ -10,6 +10,10 @@ export interface PersonBioCurtainOverlayProps {
   biography: string;
   onReduce: () => void;
   onCloseModal: () => void;
+  /** Su mobile mostra solo la freccia verso l'alto senza la scritta "Riduci". */
+  iconOnlyReduce?: boolean;
+  /** Rispetta il padding superiore di sicurezza (notch / status bar su smartphone). */
+  respectSafeAreaTop?: boolean;
 }
 
 /**
@@ -24,6 +28,8 @@ export const PersonBioCurtainOverlay: React.FC<PersonBioCurtainOverlayProps> = (
   biography,
   onReduce,
   onCloseModal,
+  iconOnlyReduce = false,
+  respectSafeAreaTop = false,
 }) => {
   const { handleScroll, scrollbarClass } = useFadeScrollbar(800);
 
@@ -34,7 +40,9 @@ export const PersonBioCurtainOverlay: React.FC<PersonBioCurtainOverlayProps> = (
         onClick={onReduce}
       />
       <div
-        className="absolute inset-x-0 top-0 z-30 max-h-[88%] bg-gradient-to-br from-slate-900 via-slate-800 to-blue-950 text-white shadow-2xl border-b border-white/15 sm:rounded-t-2xl rounded-b-2xl flex flex-col animate-fadeIn"
+        className={`absolute inset-x-0 top-0 z-30 max-h-[88%] bg-gradient-to-br from-slate-900 via-slate-800 to-blue-950 text-white shadow-2xl border-b border-white/15 sm:rounded-t-2xl rounded-b-2xl flex flex-col animate-fadeIn ${
+          respectSafeAreaTop ? 'pt-[env(safe-area-inset-top,0px)]' : ''
+        }`}
         onClick={(e) => e.stopPropagation()}
       >
         <div className="p-4 sm:p-5 flex items-stretch gap-4 flex-1 min-h-0 relative">
@@ -90,15 +98,29 @@ export const PersonBioCurtainOverlay: React.FC<PersonBioCurtainOverlayProps> = (
           </button>
         </div>
 
-        <div className="shrink-0 px-5 py-2.5 border-t border-white/10 flex justify-end bg-slate-950/35 rounded-b-2xl">
-          <button
-            type="button"
-            onClick={onReduce}
-            className="inline-flex items-center gap-1 text-[11px] font-bold text-blue-300 hover:text-blue-200 cursor-pointer"
-          >
-            <span>Riduci</span>
-            <ChevronUp className="w-3.5 h-3.5" />
-          </button>
+        <div className="shrink-0 border-t border-white/10 bg-slate-950/35 rounded-b-2xl">
+          {iconOnlyReduce ? (
+            <button
+              type="button"
+              onClick={onReduce}
+              className="w-full py-2 flex items-center justify-center text-blue-300 hover:text-blue-200 active:bg-white/10 transition-colors cursor-pointer rounded-b-2xl"
+              aria-label="Riduci biografia"
+              title="Riduci biografia"
+            >
+              <ChevronUp className="w-5 h-5" />
+            </button>
+          ) : (
+            <div className="px-5 py-2.5 flex justify-end">
+              <button
+                type="button"
+                onClick={onReduce}
+                className="inline-flex items-center gap-1 text-[11px] font-bold text-blue-300 hover:text-blue-200 cursor-pointer"
+              >
+                <span>Riduci</span>
+                <ChevronUp className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </>

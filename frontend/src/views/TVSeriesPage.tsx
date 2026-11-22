@@ -39,6 +39,7 @@ const TVSeriesPage: React.FC = () => {
     detailModalTab,
     setDetailModalTab,
     detailModalEpisode,
+    detailModalSeasonNumber,
     detailModalReviewLogId,
     displaySeries,
     myQuotes,
@@ -183,6 +184,7 @@ const TVSeriesPage: React.FC = () => {
           }
           initialTab={detailModalTab}
           initialEpisode={detailModalEpisode}
+          initialSeasonNumber={detailModalSeasonNumber}
           initialReviewLogId={detailModalReviewLogId}
           onSelectRecommendation={(rec) => openSeriesDetail(rec)}
           onToggleTrack={handleToggleTrack}
