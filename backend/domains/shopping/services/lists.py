@@ -86,19 +86,32 @@ def create_list(
                         recipient_ids.add(m.user_id)
 
                 now_utc = datetime.now(timezone.utc)
+                list_notif_text = f"{current_user.username} ha creato una nuova lista '{db_list.name}' nel gruppo '{group.name}'."
                 for r_id in recipient_ids:
                     notification = Interaction(
                         interaction_type="SHOPPING_GROUP_NEW_LIST",
                         author_id=current_user.id,
                         recipient_id=r_id,
                         reference_id=db_list.id,
-                        content=f"{current_user.username} ha creato una nuova lista '{db_list.name}' nel gruppo '{group.name}'.",
+                        content=list_notif_text,
                         created_at=now_utc,
                         read_at=None,
                     )
                     db.add(notification)
                 if recipient_ids:
                     db.commit()
+                    from backend.domains.notifications import push_service
+                    push_service.notify_users_async(
+                        db,
+                        list(recipient_ids),
+                        title="🛒 Nuova lista spesa",
+                        body=list_notif_text,
+                        channel_id=push_service.CHANNEL_SHOPPING,
+                        data={
+                            "interaction_type": "SHOPPING_GROUP_NEW_LIST",
+                            "route": f"/shopping?listId={db_list.id}",
+                        },
+                    )
         except Exception as notif_err:
             import logging
             logging.getLogger(__name__).warning("Errore invio notifica SHOPPING_GROUP_NEW_LIST: %s", notif_err)

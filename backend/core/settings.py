@@ -68,6 +68,8 @@ class Settings(BaseSettings):
     tmdb_api_key: str | None = None
     tmdb_read_access_token: SecretStr | None = None
 
+    firebase_credentials_path: str = "firebase-service-account.json"
+
     @field_validator("database_url")
     @classmethod
     def validate_database_url(cls, value: str) -> str:

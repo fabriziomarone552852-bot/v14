@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "948133104741",
+    "project_id": "family-smart-app",
+    "storage_bucket": "family-smart-app.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:948133104741:android:ac46b5a3f16f1807b78a8c",
+        "android_client_info": {
+          "package_name": "com.smartagenda.app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "948133104741-hsv9jk7ujtsavhq315m6j0oklcabu995.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCgM4CBxnP-Gq3Ky6SeCckZxdRRHtGZ52M"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "948133104741-hsv9jk7ujtsavhq315m6j0oklcabu995.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -111,4 +111,55 @@ for folder, sw, sh in splash_folders:
     splash_bg.save(os.path.join(folder_path, 'splash.png'), 'PNG')
     print(f'Updated splash for {folder}')
 
-print('All Android icons and splash screens updated successfully!')
+# 4. Generate Android Notification Monochrome Status-Bar Icon (pure white silhouette + alpha)
+def make_notification_monochrome_icon(source_region, target_size, padding_ratio=0.08):
+    # Convert white background & inner leaf vein to transparent, dark green leaf to pure opaque white
+    src_rgba = source_region.convert('RGBA')
+    px = src_rgba.getdata()
+    mono_pixels = []
+    for r, g, b, a in px:
+        lum = 0.299 * r + 0.587 * g + 0.114 * b
+        if a == 0 or lum >= 242:
+            out_a = 0
+        elif lum <= 130:
+            out_a = 255
+        else:
+            out_a = int(round((242.0 - lum) / (242.0 - 130.0) * 255.0))
+        mono_pixels.append((255, 255, 255, out_a))
+
+    mono_img = Image.new('RGBA', src_rgba.size)
+    mono_img.putdata(mono_pixels)
+    mbbox = mono_img.getbbox()
+    if mbbox:
+        mono_img = mono_img.crop(mbbox)
+
+    canvas = Image.new('RGBA', (target_size, target_size), (0, 0, 0, 0))
+    max_sz = int(round(target_size * (1.0 - 2.0 * padding_ratio)))
+    mw, mh = mono_img.size
+    ratio = min(max_sz / mw, max_sz / mh)
+    nw = max(1, int(round(mw * ratio)))
+    nh = max(1, int(round(mh * ratio)))
+    resized = mono_img.resize((nw, nh), Image.Resampling.LANCZOS)
+    ox = (target_size - nw) // 2
+    oy = (target_size - nh) // 2
+    canvas.paste(resized, (ox, oy), resized)
+    return canvas
+
+
+notif_densities = [
+    ('drawable-mdpi', 24),
+    ('drawable-hdpi', 36),
+    ('drawable-xhdpi', 48),
+    ('drawable-xxhdpi', 72),
+    ('drawable-xxxhdpi', 96),
+    ('drawable', 96),
+]
+
+for folder, n_sz in notif_densities:
+    folder_path = os.path.join(android_res, folder)
+    os.makedirs(folder_path, exist_ok=True)
+    notif_icon = make_notification_monochrome_icon(icon_region, n_sz)
+    notif_icon.save(os.path.join(folder_path, 'ic_stat_vita.png'), 'PNG')
+    print(f'Updated monochrome notification icon for {folder} ({n_sz}x{n_sz})')
+
+print('All Android icons, monochrome notification icons and splash screens updated successfully!')

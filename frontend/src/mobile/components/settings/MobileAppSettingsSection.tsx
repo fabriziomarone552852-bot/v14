@@ -2,6 +2,7 @@
 import React from 'react';
 import { Layers, Database, RefreshCw, CheckCircle2, AlertCircle, Loader2 } from 'lucide-react';
 import type { SettingsNotification } from '@/mobile/hooks/useMobileSettingsLogic';
+import { MobilePushNotificationsCard } from './MobilePushNotificationsCard';
 
 export interface MobileAppSettingsSectionProps {
   maxDepth: number | '';
@@ -146,6 +147,9 @@ export const MobileAppSettingsSection: React.FC<MobileAppSettingsSectionProps> =
           </div>
         </div>
       </div>
+
+      {/* Card Notifiche Push Android */}
+      <MobilePushNotificationsCard />
 
       {/* Card Gestione Memoria / Cache */}
       <div className="w-full bg-white border border-gray-200 rounded-2xl p-4 shadow-xs space-y-3">

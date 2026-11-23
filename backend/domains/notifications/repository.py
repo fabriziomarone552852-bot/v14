@@ -5,7 +5,7 @@ from datetime import datetime, timezone
 from sqlalchemy.orm import Session
 from sqlalchemy import or_
 
-from backend.domains.notifications.models import Interaction, SystemBroadcast
+from backend.domains.notifications.models import DevicePushToken, Interaction, SystemBroadcast
 
 
 def list_for_user(
@@ -103,4 +103,93 @@ def add_broadcast(db: Session, obj: SystemBroadcast) -> SystemBroadcast:
     db.commit()
     db.refresh(obj)
     return obj
+
+
+def upsert_push_token(
+    db: Session,
+    user_id: int,
+    token: str,
+    platform: str = "android",
+    device_name: Optional[str] = None,
+) -> DevicePushToken:
+    """Registra o aggiorna un token FCM, riassegnandolo all'utente corrente in caso di cambio account."""
+    now_utc = datetime.now(timezone.utc)
+    existing = db.query(DevicePushToken).filter(DevicePushToken.token == token).first()
+    if existing:
+        existing.user_id = user_id
+        existing.platform = platform
+        if device_name is not None:
+            existing.device_name = device_name
+        existing.is_active = True
+        existing.updated_at = now_utc
+        existing.last_used_at = now_utc
+        db.commit()
+        db.refresh(existing)
+        return existing
+
+    obj = DevicePushToken(
+        user_id=user_id,
+        token=token,
+        platform=platform,
+        device_name=device_name,
+        is_active=True,
+        created_at=now_utc,
+        updated_at=now_utc,
+        last_used_at=now_utc,
+    )
+    db.add(obj)
+    db.commit()
+    db.refresh(obj)
+    return obj
+
+
+def deactivate_push_token(db: Session, token: str, user_id: Optional[int] = None) -> bool:
+    """Disattiva un token push (es. al logout). Ritorna True se trovato."""
+    query = db.query(DevicePushToken).filter(DevicePushToken.token == token)
+    if user_id is not None:
+        query = query.filter(DevicePushToken.user_id == user_id)
+    obj = query.first()
+    if not obj:
+        return False
+    obj.is_active = False
+    obj.updated_at = datetime.now(timezone.utc)
+    db.commit()
+    return True
+
+
+def deactivate_push_tokens_bulk(db: Session, tokens: List[str]) -> int:
+    """Disattiva in blocco token FCM non più validi o disinstallati."""
+    if not tokens:
+        return 0
+    now_utc = datetime.now(timezone.utc)
+    updated = (
+        db.query(DevicePushToken)
+        .filter(DevicePushToken.token.in_(tokens))
+        .update({"is_active": False, "updated_at": now_utc}, synchronize_session=False)
+    )
+    db.commit()
+    return int(updated)
+
+
+def list_user_push_tokens(db: Session, user_id: int, active_only: bool = True) -> List[DevicePushToken]:
+    query = db.query(DevicePushToken).filter(DevicePushToken.user_id == user_id)
+    if active_only:
+        query = query.filter(DevicePushToken.is_active == True)
+    return query.order_by(DevicePushToken.updated_at.desc()).all()
+
+
+def list_active_push_tokens_for_users(db: Session, user_ids: List[int]) -> List[str]:
+    """Restituisce la lista univoca dei token FCM attivi per uno o più utenti."""
+    if not user_ids:
+        return []
+    rows = (
+        db.query(DevicePushToken.token)
+        .filter(
+            DevicePushToken.user_id.in_(user_ids),
+            DevicePushToken.is_active == True,
+        )
+        .all()
+    )
+    return list({r[0] for r in rows if r[0]})
+
 

@@ -7,9 +7,10 @@ from typing import List
 from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
 
+from backend.domains.notifications import push_service
 from backend.domains.notifications import repository as repo
 from backend.domains.notifications import schemas
-from backend.domains.notifications.models import Interaction, SystemBroadcast
+from backend.domains.notifications.models import DevicePushToken, Interaction, SystemBroadcast
 from backend.domains.users.models import User
 
 _NOT_FOUND = "Elemento non trovato."
@@ -102,6 +103,12 @@ def create_interaction(
     )
     result = repo.add(db, interaction)
 
+    # Invio notifica push Android al destinatario principale
+    try:
+        push_service.notify_interaction_async(db, _hydrate_interaction(db, result))
+    except Exception:
+        pass
+
     if payload.interaction_type in ["SERIES_REVIEW_COMMENT", "EPISODE_REVIEW_COMMENT", "SEASON_REVIEW_COMMENT", "MOVIE_REVIEW_COMMENT"]:
         import re
         # Extract @username mentions
@@ -112,6 +119,7 @@ def create_interaction(
             mentioned_users = db.query(User).filter(User.username.in_(mentioned_usernames)).all()
             
             mention_type = payload.interaction_type.replace("_COMMENT", "_MENTION")
+            created_mentions: List[Interaction] = []
             
             for user in mentioned_users:
                 # Do not notify the author or the direct recipient (who gets the main notification)
@@ -126,7 +134,14 @@ def create_interaction(
                         read_at=None,
                     )
                     db.add(mention_int)
+                    created_mentions.append(mention_int)
             db.commit()
+            for mention_obj in created_mentions:
+                try:
+                    db.refresh(mention_obj)
+                    push_service.notify_interaction_async(db, _hydrate_interaction(db, mention_obj))
+                except Exception:
+                    pass
         
     return result
 
@@ -245,23 +260,46 @@ def create_broadcast(
     db.add(broadcast)
     db.flush()
 
-    if payload.send_inbox:
-        # Invia una notifica di sistema permanente a tutti gli utenti attivi
+    active_user_ids: List[int] = []
+    if payload.send_inbox or payload.show_popup:
         active_users = db.query(User).filter(User.deleted_at.is_(None)).all()
-        for u in active_users:
-            notif = Interaction(
-                interaction_type="SYSTEM_ALERT",
-                author_id=admin_user.id,
-                recipient_id=u.id,
-                reference_id=broadcast.id,
-                content=f"[{payload.title}] {payload.message}",
-                created_at=now_utc,
-                read_at=None,
-            )
-            db.add(notif)
+        active_user_ids = [u.id for u in active_users]
+        if payload.send_inbox:
+            # Invia una notifica di sistema permanente a tutti gli utenti attivi
+            for u in active_users:
+                notif = Interaction(
+                    interaction_type="SYSTEM_ALERT",
+                    author_id=admin_user.id,
+                    recipient_id=u.id,
+                    reference_id=broadcast.id,
+                    content=f"[{payload.title}] {payload.message}",
+                    created_at=now_utc,
+                    read_at=None,
+                )
+                db.add(notif)
 
     db.commit()
     db.refresh(broadcast)
+
+    # Invia push Android a tutti gli utenti attivi per l'avviso broadcast
+    if active_user_ids:
+        try:
+            push_service.notify_users_async(
+                db,
+                active_user_ids,
+                title=f"📢 {payload.title}",
+                body=payload.message[:200],
+                channel_id=push_service.CHANNEL_ALERTS,
+                data={
+                    "interaction_type": "SYSTEM_ALERT",
+                    "broadcast_id": str(broadcast.id),
+                    "open_notifications_sheet": "true",
+                    "notifications_tab": "notifiche",
+                },
+            )
+        except Exception:
+            pass
+
     return _hydrate_broadcast(db, broadcast)
 
 
@@ -283,4 +321,76 @@ def delete_broadcast(db: Session, broadcast_id: int) -> None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Avviso broadcast non trovato.")
     db.delete(broadcast)
     db.commit()
+
+
+def register_push_token(
+    db: Session,
+    current_user: User,
+    payload: schemas.PushTokenRegisterRequest,
+) -> DevicePushToken:
+    """Registra o aggiorna il token push FCM del dispositivo corrente."""
+    return repo.upsert_push_token(
+        db=db,
+        user_id=current_user.id,
+        token=payload.token.strip(),
+        platform=payload.platform,
+        device_name=payload.device_name,
+    )
+
+
+def unregister_push_token(
+    db: Session,
+    current_user: User,
+    token: str,
+) -> None:
+    """Disattiva un token push FCM dell'utente (es. al logout)."""
+    repo.deactivate_push_token(db=db, token=token.strip(), user_id=current_user.id)
+
+
+def get_push_status(db: Session, current_user: User) -> schemas.PushStatusResponse:
+    """Restituisce lo stato di configurazione Firebase e i dispositivi attivi dell'utente."""
+    active_devices = repo.list_user_push_tokens(db, current_user.id, active_only=True)
+    return schemas.PushStatusResponse(
+        firebase_configured=push_service.is_firebase_configured(),
+        registered_devices_count=len(active_devices),
+        devices=[schemas.PushTokenResponse.model_validate(d) for d in active_devices],
+    )
+
+
+def send_test_push(
+    db: Session,
+    current_user: User,
+    payload: Optional[schemas.PushTestRequest] = None,
+) -> schemas.PushTestResponse:
+    """Invia una notifica push di test sincrona ai dispositivi registrati dell'utente."""
+    title = (payload.title if payload and payload.title else None) or "🔔 Notifiche Vita attive!"
+    body = (
+        payload.body
+        if payload and payload.body
+        else "Perfetto! Le notifiche push Android arrivano correttamente nella barra di stato."
+    )
+
+    if payload and payload.token and payload.token.strip():
+        target_tokens = [payload.token.strip()]
+    else:
+        target_tokens = repo.list_active_push_tokens_for_users(db, [current_user.id])
+
+    result = push_service.send_push_to_tokens_sync(
+        tokens=target_tokens,
+        title=title,
+        body=body,
+        channel_id=push_service.CHANNEL_GENERAL,
+        data={
+            "interaction_type": "PUSH_TEST",
+            "route": "/settings/app",
+        },
+    )
+    return schemas.PushTestResponse(
+        ok=result.sent_count > 0,
+        firebase_configured=result.firebase_configured,
+        sent_count=result.sent_count,
+        failed_count=result.failed_count,
+        detail=result.detail,
+    )
+
 
