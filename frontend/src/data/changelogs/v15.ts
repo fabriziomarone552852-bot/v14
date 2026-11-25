@@ -13,7 +13,7 @@ export const CHANGELOG_V15: ChangelogItem[] = [
       'Notifiche Push Native Android nella Barra di Stato (FCM): Avvisi in tempo reale anche ad app chiusa per liste e inviti spesa, richieste amicizia, commenti/menzioni Serie TV & Film, messaggi effimeri e broadcast admin, con icona monocromatica Vita e apertura diretta della schermata.',
       'Valutazioni & Recensioni Stagioni Serie TV (TRACKERS-019): Sistema multi-log a mezze stelle per votare e recensire ogni singola stagione su Desktop e Mobile, con scheda dettaglio "i" e notifiche/commenti social.',
       'Porting Mobile Trackers & Navigazione a Stack (TRACKERS-045): Nuova scheda attori/registi mobile, navigazione cross-media a ritroso (Serie ↔ Persone ↔ Film) e barre voti compatte su riga singola.',
-      'Motore Meteo Open-Meteo, Archivio Storico & Agenda Desktop (WEATHER-002): Previsioni a 16 giorni, storico mensile on-demand per mesi/settimane passate, widget dedicati in Giorno, Settimana e Mese e nuovo modale con 6 riquadri illustrati e griglia 24h.',
+      'Motore Meteo Open-Meteo, Archivio Storico & Agenda Desktop (WEATHER-002): Previsioni a 16 giorni, storico mensile on-demand, widget in Giorno/Settimana/Mese, finestra Home interattiva con livelli opachi e fasi lunari reali, e nuovo modale a 6 riquadri.',
       'Copia Rapida Eventi & Task su Desktop e Mobile (CAL-003): Nuovo tasto "Copia" nei modali di dettaglio per duplicare rapidamente eventi (senza data/orari/ricorrenza) e task indipendenti con scelta di clonazione dell\'albero sottotask figlie.',
       'Migrazione Proxmox Operativa & Backup 3-2-1 (INFRA-001): Infrastruttura Proxmox attiva in produzione con backup notturni automatici replicati su NAS QNAP (retention a 2 copie) e accesso mobile via Tailscale.',
     ],
@@ -28,7 +28,7 @@ export const CHANGELOG_V15: ChangelogItem[] = [
       'Scheda Attore/Regista & Navigazione a Stack Mobile: Biografia richiudibile, sezioni Film e Serie TV a 3 colonne con ricerca a tutta ampiezza e cronologia di ritorno su "X" e tasto Indietro.',
       'Barra Voti Compatta & Intestazioni Fisse Mobile Trackers: Barra voti bilanciata su riga singola per Episodi, Stagioni, Serie TV e Film, locandina stagione integrata nel banner superiore e intestazioni bloccate in cima nelle liste recensioni e voti amici.',
       'Sidebar Liste & Amici (Serie TV & Film): Animazione fluida a scorrimento laterale in apertura/chiusura con chiusura rapida al click esterno.',
-      'Widget Meteo nelle Viste Agenda Desktop: Integrato il pill meteo nella testata "Eventi" di Giorno, nelle intestazioni giornaliere di Settimana e come icona centrata tra numero ed emoji umore in Mese, rimuovendo il vecchio adesivo fluttuante fisso.',
+      'Widget Meteo nelle Viste Agenda Desktop & Finestra Meteo Home: Integrato il pill meteo in Giorno, Settimana e Mese; nella finestra atmosferica della Home ridisegnati nuvole, colline, pioggia, neve e nebbia con livelli 100% opachi, introdotta la fase lunare astronomica reale nelle viste notturne e collegato il clic diretto all\'apertura del modale dettagli meteo.',
     ],
     fixes: [
       'Correzioni Meteo (Fuso Orario & Precipitazioni): Eliminato lo sfasamento orario UTC nelle previsioni orarie e corretto l\'accumulo pioggia giornaliero futuro grazie al passaggio a Open-Meteo.',
