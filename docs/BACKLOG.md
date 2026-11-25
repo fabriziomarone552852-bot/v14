@@ -21,7 +21,7 @@ Questo documento traccia in modo strutturato, prioritizzato e costantemente aggi
 | **FEAT-005** | Sezione Liste Tematiche & Personalizzate (Posti, Siti, Wishlist, Giochi) | `custom_lists` | 🟡 Parziale | 🟡 Parziale | 🔴 **Massima (Passo Fondamentale)** |
 | **FEAT-013** | Archivio Notifiche / Sezione Storico Notifiche Permanente | `notifications` / UI | 🟢 Completato | 🟡 Da Implementare | 🟡 **Media** |
 | **FEAT-010** | Database & Sincronizzazione Centralizzata Quotes (Citazioni del Giorno) | `core` / quotes | 🔴 Da Implementare | 🔴 Da Implementare | 🟡 **Media** |
-| **WEATHER-002** | Sistemazione Meteo & Elemento Meteo (Desktop & Mobile) | `weather` / UI | 🟡 Da Verificare | 🔴 Da Sistemare | 🟡 **Media-Alta** |
+| **WEATHER-002** | Sistemazione Meteo & Elemento Meteo (Desktop & Mobile) | `weather` / UI | 🟢 Completato | 🟡 Parziale | 🟡 **Media-Alta** |
 | **AI-001** | Studio & Integrazione Intelligenza Artificiale (Voice, Breakdown, Briefing) | `ai` / assistant | 🔴 Da Analizzare | 🔴 Da Analizzare | 🟡 **Media-Alta (Ricerca)** |
 | **FEAT-016** | Lettere al Futuro Me (Time Capsule nascoste fino allo scadere del countdown impostato) | `capsules` / personal | 🔴 Da Strutturare | 🔴 Da Implementare | 🟡 **Media** |
 | **HOME-001** | Widget Homepage Rotante (Citazione del Giorno, Oroscopo & Meteo) | `home` / UI | 🔴 Da Iniziare | 🔴 Da Iniziare | 🟡 **Media-Alta** |
@@ -140,7 +140,14 @@ Questo documento traccia in modo strutturato, prioritizzato e costantemente aggi
 
 ### [WEATHER-002] Sistemazione Meteo & Elemento Meteo (Desktop & Mobile)
 - **Descrizione**: Revisione e sistemazione del funzionamento del meteo e del relativo elemento/widget visivo sia nell'interfaccia Desktop che in quella Mobile.
-- **Stato**: 🔴 Da Sistemare *(Desktop & Mobile — Priorità: Media-Alta)*.
+- **Completato (🟢)**:
+  - Migrazione completa del backend e del layer dati a **Open-Meteo** (Forecast fino a **16 giorni** `timezone=auto`, ultimi 7 giorni in RAM, archivio storico on-demand `/weather/history` con cache 12h per mesi/settimane/giorni passati, moduli `parser.py` e `history.py`, vento/raffiche/direzione in `km/h`, temperatura percepita, probabilità pioggia, alba/tramonto, UV, medie giornaliere di pressione `hPa`, nuvolosità e umidità, Open-Meteo Geocoding e reverse geocoding GPS `/weather/reverse`).
+  - Ridisegno del modale dettagli (`WeatherDetailModal`) con barra laterale illustrata a 6 riquadri attivi sia su *Oggi* che su qualsiasi altro giorno passato/futuro, *Prossime Ore* + *Prossimi Giorni* per *Oggi* e griglia oraria completa `4×6` (`00:00–23:00` senza scrollbar) per gli altri giorni, con isolamento degli eventi `Portal`.
+  - **Integrazione Agenda Desktop (`/giorno`, `/settimana`, `/mese`)**: Rimosso il vecchio badge fluttuante da `AppShellLayout` e inseriti i widget meteo dedicati nella testata "Eventi" di `/giorno` (`minimal`), nelle intestazioni giornaliere di `/settimana` (`minimal` `xs`) e al centro della riga superiore di ogni cella in `/mese` (`iconOnly`), con deduplicazione automatica mensile TanStack Query per lo storico.
+- **Da Completare (🔴)**:
+  - Eventuale revisione/snellimento di `WeatherAtmosphereCard` in HomePage Desktop (es. apertura modale al click / riduzione dimensioni file).
+  - Ripristino/integrazione completa su Mobile (visualizzazione meteo nelle viste Agenda smartphone + scheda impostazioni meteo mobile).
+- **Stato**: Backend 🟢 Completato | Frontend 🟡 Parziale *(Agenda Desktop 🟢 Completata, resta Mobile / HomePage — Priorità: Media-Alta)*.
 
 ### [FEAT-010] Database & Sincronizzazione Centralizzata Citazioni Giornaliere (Quotes)
 - **Descrizione**: Centralizzare le citazioni giornaliere (Quotes) tramite tabella database dedicata nel backend, in modo che tutti gli utenti e dispositivi visualizzino la stessa identica citazione del giorno in modo sincronizzato e consistente.

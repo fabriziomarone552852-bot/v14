@@ -13,14 +13,21 @@ interface EventsColumnProps {
   events: CalendarEvent[];
   selectedDate: Date; 
   onSelectEvent?: (event: CalendarEvent) => void;
-  onAddEventClick?: () => void; 
+  onAddEventClick?: () => void;
+  headerRight?: React.ReactNode;
 }
 
 const getFormattedDateString = (date: Date) => {
   return formatDateString(date);
 };
 
-const EventsColumn: React.FC<EventsColumnProps> = ({ events, selectedDate, onSelectEvent, onAddEventClick }) => {
+const EventsColumn: React.FC<EventsColumnProps> = ({
+  events,
+  selectedDate,
+  onSelectEvent,
+  onAddEventClick,
+  headerRight,
+}) => {
   
   const listContainerRef = useRef<HTMLDivElement>(null);
 
@@ -40,8 +47,9 @@ const EventsColumn: React.FC<EventsColumnProps> = ({ events, selectedDate, onSel
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-5 h-full flex flex-col justify-between relative overflow-hidden">
       
-      <div className="text-lg font-bold text-gray-800 mb-4 uppercase tracking-wider border-b pb-2 flex justify-between items-center shrink-0">
-        <h3>Eventi</h3>
+      <div className="mb-4 border-b pb-2 flex justify-between items-center shrink-0 w-full gap-2">
+        <h3 className="text-lg font-bold text-gray-800 uppercase tracking-wider">Eventi</h3>
+        {headerRight && <div className="flex items-center shrink-0">{headerRight}</div>}
       </div>
         
       <div ref={listContainerRef} className="flex-1 min-h-0 overflow-hidden space-y-3">

@@ -29,7 +29,9 @@ export const WeatherAtmosphereCard: React.FC = () => {
 
   const symbolCode = current?.symbol_code;
   const temp = typeof current?.temperature === 'number' ? Math.round(current.temperature) : null;
-  const weatherDesc = isLoading && !current ? 'Caricamento...' : getWeatherDescription(symbolCode);
+  const weatherDesc = isLoading && !current
+    ? 'Caricamento...'
+    : getWeatherDescription(symbolCode, current?.weather_code);
 
   const atmosphere: AtmosphereConfig = useMemo(() => {
     if (!symbolCode) {

@@ -161,7 +161,7 @@ export const IntegrationsSection: React.FC = () => {
       {/* Card Bingers & Portabilità Trackers */}
       <BingersSyncCard />
 
-      {/* Card Previsioni Meteo MET Norway */}
+      {/* Card Previsioni Meteo Open-Meteo */}
       <WeatherSettingsCard />
     </div>
   );

@@ -79,7 +79,7 @@ export const WeatherSettingsCard: React.FC = () => {
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <h3 className="text-base font-bold text-slate-900">Previsioni Meteo (MET Norway)</h3>
+              <h3 className="text-base font-bold text-slate-900">Previsioni Meteo (Open-Meteo)</h3>
               <span className="px-2 py-0.5 text-[10px] font-bold rounded-full bg-emerald-100 text-emerald-700">
                 Gratuito & Open Data
               </span>
@@ -129,7 +129,7 @@ export const WeatherSettingsCard: React.FC = () => {
                   {isWeatherLoading ? (
                     'Caricamento meteo...'
                   ) : current ? (
-                    `${Math.round(current.temperature)}°C — ${getWeatherDescription(current.symbol_code)}`
+                    `${Math.round(current.temperature)}°C — ${getWeatherDescription(current.symbol_code, current.weather_code)}`
                   ) : (
                     'In attesa di dati...'
                   )}
