@@ -48,7 +48,7 @@ export const TaskStatsOverview: React.FC<TaskStatsOverviewProps> = ({
   return (
     <ArchiveHeader
       icon={<TaskListIcon className="w-5 h-5" />}
-      title="Gestione Task"
+      title="Task & To-Do"
       subtitle="Organizza e consulta le tue attività e gerarchie di sotto-task."
       extra={extraStats}
       className={panelClass}

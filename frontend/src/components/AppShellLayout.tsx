@@ -14,6 +14,7 @@ import { TrackerToast } from '@/components/trackers/shared/TrackerToast';
 import { SidebarItem } from './navigation/SidebarItem';
 import { AgendaNavSection } from './navigation/AgendaNavSection';
 import { TrackersNavSection } from './navigation/TrackersNavSection';
+import { isArchivePath } from '@/data/archiveModules';
 
 interface AppShellLayoutProps {
   onLogout?: () => void;
@@ -39,18 +40,7 @@ const AppShellLayout: React.FC<AppShellLayoutProps> = ({ onLogout }) => {
     return `${base} ${layout} ${colors}`;
   };
 
-  const isArchiveActive =
-    isActive('/archivio') ||
-    isActive('/tasks') ||
-    isActive('/events') ||
-    isActive('/categories') ||
-    location.pathname.startsWith('/categories/') ||
-    isActive('/countdowns') ||
-    isActive('/habits') ||
-    isActive('/notes') ||
-    isActive('/reviews') ||
-    isActive('/tags') ||
-    isActive('/fornitori');
+  const isArchiveActive = isArchivePath(location.pathname);
 
   const prefs = user?.module_preferences || {};
   const showAgenda = prefs.agenda !== false;

@@ -18,6 +18,7 @@ Fare sempre riferimento a:
    - Spostare i task completati in `docs/BACKLOG_ARCHIVE.md` e mantenere i futuri in `docs/BACKLOG.md`.
    - Aggiornare il Changelog con le novità della sessione.
    - **Check & Riassunto Changelog**: eseguire subito un check della voce bozza corrente (`published: false`), accorpando e sintetizzando le voci correlate per evitare elenchi troppo lunghi, dispersivi o prolissi.
+   - Aggiornare `"notes"` in `frontend/public/version.json` con un brevissimo riassunto (1 frase compatta) delle novità della versione corrente per il popup di aggiornamento all'apertura dell'app.
    - Eseguire `npm run build` e fornire il report finale.
 
 ### Regole di Sviluppo (Sintesi)

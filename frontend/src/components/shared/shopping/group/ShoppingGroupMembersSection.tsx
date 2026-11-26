@@ -2,6 +2,7 @@
 import React from 'react';
 import type { ShoppingGroupMember, ShoppingGroupSummary } from '@/types/shopping';
 import { PlusIcon, TrashIcon } from '@/components/shared/utils/Icons';
+import { useFadeScrollbar } from '@/hooks/ui/useFadeScrollbar';
 import ShoppingRoleSelect from '../ShoppingRoleSelect';
 
 export interface ShoppingGroupMembersSectionProps {
@@ -32,6 +33,8 @@ export const ShoppingGroupMembersSection: React.FC<ShoppingGroupMembersSectionPr
   onRoleChange,
   onRemoveMember,
 }) => {
+  const { isScrolling, handleScroll } = useFadeScrollbar();
+
   return (
     <div>
       <div className="flex items-center justify-between mb-2">
@@ -50,7 +53,12 @@ export const ShoppingGroupMembersSection: React.FC<ShoppingGroupMembersSectionPr
         )}
       </div>
 
-      <div className="space-y-2 max-h-[260px] overflow-y-auto pr-1 custom-scrollbar">
+      <div
+        onScroll={handleScroll}
+        className={`space-y-2 max-h-[260px] overflow-y-auto pr-1 modal-scrollbar ${
+          isScrolling ? 'is-scrolling' : ''
+        }`}
+      >
         {isLoadingMembers ? (
           <p className="py-6 text-center text-xs text-gray-400">Caricamento membri...</p>
         ) : members.length === 0 ? (

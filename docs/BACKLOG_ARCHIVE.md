@@ -8,6 +8,11 @@ Questo file contiene lo storico completo e strutturato di tutte le funzionalità
 
 | ID | Attività / Funzionalità | Ambito | Stato Backend | Stato Frontend | Data Completamento |
 | :--- | :--- | :---: | :---: | :---: | :---: |
+| **FEAT-013** | Archivio Notifiche & Avvisi Permanente (`/notifications` Desktop & Mobile, Filtri, Deep-Link & Lettura 0ms) | `notifications` / fullstack | 🟢 Completato | 🟢 Completato | Novembre 2026 |
+| **ARCHIVE-001** | Riallineamento Hub Archivio Desktop/Mobile, Scrollbar Reattive, Catalogo Prodotti in `Spesa & Liste` & Selettore Viste | `archive` / shopping | 🟢 Supportato | 🟢 Completato | Novembre 2026 |
+| **SHOPPING-023** | Restyling Mobile Shopping: Area Marca Unificata, Modale "Altri Marchi", Dettaglio Prodotto a 2 Tab (`Storico & Analisi Prezzi` / `Marche`) & Pulizia Catalogo Rapido | `shopping` / mobile | 🟢 Supportato | 🟢 Completato | Novembre 2026 |
+| **SHOPPING-022** | Inserimento Rapido Prezzi Multi-Scontrino a Cascata (Data & Negozio Desktop/Mobile) & Scrollbar a Scomparsa nelle Liste Spesa Aperte | `shopping` / UI | 🟢 Supportato | 🟢 Completato | Novembre 2026 |
+| **SHOPPING-005 / 020** | Finestre Laterali Marchi & Giudizi (Sola Consultazione in Nuovo Prodotto, Editing Inline 👍/👎 + Commento in Dettaglio Prodotto), Spesa Ottimistica a 0ms & Snellimento Catalogo Rapido | `shopping` / fullstack | 🟢 Completato | 🟢 Completato | Novembre 2026 |
 | **WEATHER-002** | Sistemazione & Integrazione Completa Meteo Open-Meteo (Desktop & Mobile: 16gg, Storico On-Demand, Striscia Rotante Home Mobile, Viste Agenda, Impostazioni & Modale Full-Page) | `weather` / fullstack | 🟢 Completato | 🟢 Completato | Novembre 2026 |
 | **CAL-003** | Copia & Duplicazione Rapida Eventi e Task (Desktop & Mobile, con Scelta Albero Sottotask) | `calendar` / events & tasks | 🟢 Supportato | 🟢 Completato | Novembre 2026 |
 | **INFRA-001** | Migrazione Definitiva Infrastruttura: QNAP → Proxmox (Cutover Completato & Proxmox Operativo in Produzione) | `infra` / deploy | 🟢 Completato | 🟢 Completato | Novembre 2026 |
@@ -112,6 +117,22 @@ Questo file contiene lo storico completo e strutturato di tutte le funzionalità
 ---
 
 ## 🛡️ 0. Amministrazione, Infrastruttura, Sanatoria & Data Management
+
+### [FEAT-013] Archivio Notifiche & Avvisi Permanente — Desktop & Mobile (🟢 Completato)
+
+#### 📋 Descrizione & Funzionalità Implementate
+Creata la sezione dedicata allo storico permanente delle notifiche (`/notifications`), integrata nell'Hub Archivio sotto la nuova sezione **Sistema & Notifiche**:
+- **Helper Condiviso (`notificationUtils.ts`) & Cache 0ms (`useNotifications.ts`)**: centralizzate classificazione (`shopping`, `media`, `system`), formattazione messaggi (inclusi commenti/menzioni alle stagioni `SEASON_REVIEW_*`), badge colorati e deep-link di navigazione; aggiunti aggiornamenti ottimistici a 0ms su lettura.
+- **Tabella Unificata (`NotificationsPage.tsx`, `useNotificationArchiveData.ts`)**: elenco unificato in RAM (escludendo `EPHEMERAL_MSG`) con statistiche nell'header (*Totali*, *Non lette*, *Spesa*, *Media*, *Sistema*), colonna tipologia con badge colorati, colonna data nel formato `DD/MM/YYYY HH:mm`, ordinamento per colonne e apertura diretta al tap.
+- **Ricerca & Filtri (`NotificationFilterModal.tsx`)**: ricerca testuale su messaggio/autore/contesto, filtro per tipologia, stato di lettura (`Tutte`, `Non lette`, `Lette`) e intervallo date (`ArchiveFilterDateRange`) allineato a `EventFilterModal`.
+
+### [ARCHIVE-001] Riallineamento Hub Archivio, Scrollbar Reattive & Catalogo Prodotti in `Spesa & Liste` (🟢 Completato)
+
+#### 📋 Descrizione & Funzionalità Implementate
+- **Unica Sorgente di Verità (`archiveModules.ts`)**: unificati ordine, titoli, descrizioni, icone e accent color tra Hub Desktop (`ArchivePage.tsx`), Hub Mobile (`MobileArchiveHubSection.tsx`), header mobile (`useMobileHeaderLogic.ts`) e sidebar Desktop (`AppShellLayout.tsx`, risolvendo l'evidenziazione su `/shopping-archive`), con raggruppamento in 4 sezioni (*Agenda & Attività*, *Organizzazione & Bilanci*, *Spesa & Acquisti*, *Sistema & Notifiche*) e griglia Desktop dinamica senza limite fisso a 10 slot.
+- **Scrollbar a Scomparsa Reattiva**: aggiornati Hub, `ArchiveTableContainer` e griglie di Countdown, Abitudini e Note con `modal-scrollbar` + `useFadeScrollbar` (visibile solo al passaggio del mouse o durante lo scorrimento).
+- **Vista Catalogo `Prodotti` in `Spesa & Liste` (`/shopping-archive`)**: aggiunta la vista `Prodotti` con selettore dedicato `ShoppingArchiveViewSelect` (modale centrato `SelectModalDialog` su Mobile e `PortalDropdownMenu` su Desktop), creazione nuovo prodotto (`POST /products`), filtri per marche/acquisti e scheda dettaglio (`ShoppingCatalogProductDetailModal`) con storico prezzi, gestione marchi/giudizi e rinomina Admin.
+- **Fix Mobile Header Anno**: stabilizzata l'altezza minima (`min-h-9`) di `MobileAgendaPeriodHeader.tsx` nella vista Anno per evitare sbalzi verticali cambiando anno.
 
 ### [WEATHER-002] Sistemazione & Integrazione Completa Meteo Open-Meteo — Desktop & Mobile (🟢 Completato)
 
@@ -973,6 +994,56 @@ Rilascio dell'intera infrastruttura del modulo Serie TV all'interno del macro-do
 ---
 
 ## 🛒 2. Spesa, Prodotti, Marchi & Amministrazione
+
+### [SHOPPING-023] Restyling Mobile Shopping: Area Marca Unificata, Dettaglio a 2 Tab & Pulizia Catalogo Rapido (🟢 Completato)
+
+#### 📋 Descrizione & Implementazione
+Ottimizzazione dell'esperienza d'uso su smartphone per la gestione dei marchi, dei dettagli prodotto e dell'aggiunta rapida da catalogo:
+- **Area Marca Unificata & Modale "Altri Marchi"** (`MobileShoppingBrandSection.tsx`, `MobileOtherTriedBrandsModal.tsx`, `MobileShoppingItemForm.tsx`, `BrandPreferenceRatingControl.tsx`):
+  - Raggruppati in un unico riquadro il campo **Marca** e il controllo **Marchio scelto** subito sotto, nascondendo il prezzo su mobile (`showPrice={false}`) per lasciare più spazio a nome e voto (`👍`/`👎` + nota).
+  - Inserito sulla stessa riga di *Marchio scelto* (o accanto a *Marca* se non ancora scelto) il pulsante **Altri marchi**, che apre un modale centrato (`createPortal` + `useBackHandler`) con gli altri marchi già provati, voti e commenti.
+- **Dettaglio Prodotto Mobile a 2 Tab & Rimozione Ombra** (`MobileShoppingItemInsightsTabs.tsx`, `MobileShoppingItemDetailModal.tsx`, `MobilePurchasedItemDetailModal.tsx`, `ShoppingItemPriceHistoryPanel.tsx`):
+  - Rimossa l'ombra superflua (`embedded={true}`) e raccolti in un unico pannello a due tab **Storico & Analisi Prezzi** e **Marche**, con modifica inline al tocco di voto (`👍`/`👎`) e commento a 0ms.
+  - Estratti l'hook condiviso `useItemRelatedBrands.ts` e il componente `ShoppingItemBrandsList.tsx`, riducendo `ShoppingItemDetailBrandsPanel.tsx` sotto le 80 righe.
+- **Catalogo Rapido & Righe Spesa Mobile** (`MobileShoppingQuickCatalog.tsx`, `MobileQuickCatalogBrandModal.tsx`, `MobileShoppingItemRows.tsx`):
+  - Portato il modale di scelta marca multi-brand in `createPortal(..., document.body)` con backdrop a tutto schermo e supporto al tasto Indietro Android.
+  - Rimossa l'unità di misura ripetitiva (`pz`) dal catalogo rapido mobile e reso dinamico il separatore `•` (sia nel catalogo rapido sia nelle righe lista) affinché nessuna riga inizi mai con `•` in assenza del primo elemento.
+
+---
+
+### [SHOPPING-022] Inserimento Rapido Prezzi Multi-Scontrino a Cascata & Scrollbar a Scomparsa nelle Liste Aperte (🟢 Completato)
+
+#### 📋 Descrizione & Implementazione
+Ottimizzazione del flusso di caricamento multi-scontrino nell'inserimento rapido prezzi e uniformazione estetica delle barre di scorrimento nelle liste della spesa su Desktop, Mobile e Archivio:
+- **Propagazione a Cascata di Data e Negozio ("da lì in giù")**:
+  - All'apertura di `ShoppingQuickPriceModal` (Desktop) e `MobileShoppingQuickPriceModal` (Mobile), tutte le righe/schede partono con la data odierna e nessun negozio selezionato.
+  - Modificando **Data** (`purchaseDate`) o **Negozio** (`supplierId`) su una riga/scheda, il nuovo valore viene applicato automaticamente a cascata da quella voce inclusa fino a fine elenco, lasciando intatte le voci precedenti (ideale per caricare più scontrini arretrati in un'unica sessione).
+  - Il pulsante **"Aggiungi riga"** / **"Aggiungi un altro prodotto al lotto"** (e il tasto `Tab` sull'ultimo campo Desktop) eredita automaticamente Data e Negozio dell'ultima voce presente; eliminando l'unica riga rimasta vengono preservati Data e Negozio correnti.
+- **Unificazione Architetturale DRY (`quickPriceUtils.ts`)**:
+  - Estratte in `frontend/src/utils/quickPriceUtils.ts` le interfacce condivise (`QuickPriceEntry`, `CreateQuickPriceEntryOptions`) e le logiche di ricalcolo prezzi/quantità, propagazione a cascata e gestione righe tra `useQuickPriceModalLogic.ts` e `useMobileQuickPriceLogic.ts`, con validazione universale di virgola e punto (`decimalUtils.ts`).
+- **Scrollbar a Scomparsa nelle Liste Spesa Aperte (`modal-scrollbar` + `useFadeScrollbar`)**:
+  - Sostituita la vecchia scrollbar scura sempre visibile (`custom-scrollbar`) con la scrollbar sottile a scomparsa nello stile dell'app (invisibile a riposo, visibile solo durante lo scorrimento o al passaggio del mouse) in tutte le viste lista aperta, catalogo rapido mobile, selettori lista e tabella prezzi rapidi (`ShoppingItemsList.tsx`, `MobileShoppingActiveListCard.tsx`, `ArchiveListDetailItemsSection.tsx`, `MobileShoppingQuickCatalog.tsx`, `MobileShoppingListPickerModal.tsx`, `MobileShoppingGroupListsSection.tsx`, `ShoppingMoveOrCopyModal.tsx`, `ShoppingListSelect.tsx`, `QuickPriceTable.tsx`).
+
+---
+
+### [SHOPPING-005 / SHOPPING-020] Finestre Marchi & Giudizi, Voti Prodotti ("Lista fatta da papà"), Spesa Ottimistica a 0ms & Snellimento UI (🟢 Completato)
+
+#### 📋 Descrizione & Implementazione
+Unificazione e completamento dei flussi di consultazione e valutazione dei marchi spesa su Desktop e Mobile (`SHOPPING-005` + `SHOPPING-020`):
+- **Finestra Laterale `Note e Marchi Provati` all'Aggiunta/Modifica Prodotto** (`ShoppingItemBrandSidePanel.tsx`, `ShoppingItemModal.tsx`, `MobileShoppingBrandSection.tsx`):
+  - Separata dal form principale come seconda finestra affiancata su Desktop (stile albero task) per mantenere il modale compatto; rimossi i giudizi ridondanti dal menu a tendina del campo `Marchio / Brand`.
+  - In modalità *Nuovo Prodotto* (`readOnly={true}`), mostra unicamente i marchi e i giudizi già dati in passato senza chiedere un voto preventivo; selezionando un brand, questo viene portato in cima in sola lettura.
+- **Finestra `Marchi & Giudizi` nel Modale Dettaglio Prodotto** (`ShoppingItemDetailBrandsPanel.tsx`, `useBrandRatingMutation.ts`):
+  - Compattata la finestra `Storico & Analisi Prezzi` per affiancare la finestra dedicata a tutti i brand correlati al prodotto selezionato (da catalogo e storico lotti), con evidenziazione a bordo blu per il marchio scelto.
+  - Cliccando su qualsiasi brand si apre l'editor inline per impostare/modificare i pollici (`👍`/`👎`) e il commento con aggiornamento ottimistico a 0ms in RAM.
+- **Spesa Ottimistica a 0ms (Aggiunta & Spunta Comprato)**:
+  - Chiusura istantanea dei modali e aggiornamento immediato a 0ms in cache TanStack Query sia per l'aggiunta articoli (`shoppingOptimisticUtils.ts`, `useShoppingItemMutations.ts`) sia per la spunta "comprato" (`useShoppingSupplierMutations.ts`, `useShoppingItemsPurchase.ts`), unificata in una singola chiamata server con rollback automatico e `TrackerToast`.
+- **Snellimento Catalogo Rapido & Pulizia Modali**:
+  - Rimossa la barra di aggiunta rapida interna alla lista aperta su Webpage (`ShoppingItemsColumn.tsx`).
+  - Nel Catalogo Rapido A-Z (`ShoppingQuickCatalogTable.tsx`, `ShoppingQuickCatalogBrandSubRow.tsx`), rimossa la colonna `"Unità"`, semplificate intestazioni/pulsanti (`MARCA`, badge lista sul secondo rigo, unico tasto `Fatto`) e adottata ovunque la scrollbar a scomparsa automatica `modal-scrollbar` con `useFadeScrollbar`.
+  - Rimossi divisori orfani vicino alla `"X"` nei modali gruppo/dettaglio in sola lettura e ripulite le diciture `"Opzionale"` nei modali di registrazione prezzo.
+
+---
 
 ### [SHOPPING-021] Risoluzione Errore 500 Unione Prodotti Spesa (Admin Shopping) & Gestione `passive_deletes` Foreign Key (🟢 Completato)
 

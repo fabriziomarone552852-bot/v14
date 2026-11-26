@@ -73,48 +73,44 @@ export const ShoppingGroupDetailModal: React.FC<ShoppingGroupDetailModalProps> =
   const isArchived = Boolean(group.isArchived || group.archivedAt);
   const groupIcon = group.icon?.trim() || '👥';
 
-  const headerActions = (
+  const headerActions = isOwner ? (
     <div className="flex items-center gap-1">
-      {isOwner && (
-        <>
-          <button
-            type="button"
-            onClick={() => {
-              if (isArchived) {
-                onUnarchiveClick?.(group);
-              } else {
-                onArchiveClick?.(group);
-              }
-              onClose();
-            }}
-            className="p-1.5 text-gray-400 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-colors cursor-pointer"
-            title={isArchived ? 'Ripristina Gruppo' : 'Archivia Gruppo'}
-          >
-            <ArchiveIcon className="w-5 h-5" />
-          </button>
-          <button
-            type="button"
-            onClick={() => {
-              onClose();
-              onEditClick?.(group);
-            }}
-            className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors cursor-pointer"
-            title="Modifica Gruppo"
-          >
-            <EditIcon className="w-5 h-5" />
-          </button>
-          <button
-            type="button"
-            onClick={() => setIsDeleteDialogOpen(true)}
-            className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors cursor-pointer"
-            title="Elimina Gruppo"
-          >
-            <TrashIcon className="w-5 h-5" />
-          </button>
-        </>
-      )}
+      <button
+        type="button"
+        onClick={() => {
+          if (isArchived) {
+            onUnarchiveClick?.(group);
+          } else {
+            onArchiveClick?.(group);
+          }
+          onClose();
+        }}
+        className="p-1.5 text-gray-400 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-colors cursor-pointer"
+        title={isArchived ? 'Ripristina Gruppo' : 'Archivia Gruppo'}
+      >
+        <ArchiveIcon className="w-5 h-5" />
+      </button>
+      <button
+        type="button"
+        onClick={() => {
+          onClose();
+          onEditClick?.(group);
+        }}
+        className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors cursor-pointer"
+        title="Modifica Gruppo"
+      >
+        <EditIcon className="w-5 h-5" />
+      </button>
+      <button
+        type="button"
+        onClick={() => setIsDeleteDialogOpen(true)}
+        className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors cursor-pointer"
+        title="Elimina Gruppo"
+      >
+        <TrashIcon className="w-5 h-5" />
+      </button>
     </div>
-  );
+  ) : null;
 
   const sidePanel = (
     <ShoppingGroupListsSection

@@ -11,4 +11,5 @@ export { default as ReviewsPage } from './ReviewsPage';
 export { default as TagsPage } from './TagsPage';
 export { default as SuppliersPage } from './SuppliersPage';
 export { default as ShoppingArchivePage } from './ShoppingArchivePage';
+export { default as NotificationsPage } from './NotificationsPage';
 

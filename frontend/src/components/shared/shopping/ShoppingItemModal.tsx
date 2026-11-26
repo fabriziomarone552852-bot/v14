@@ -6,11 +6,17 @@ import ShoppingQuantityInput from './ShoppingQuantityInput';
 import ShoppingProductAutocomplete from './ShoppingProductAutocomplete';
 import ShoppingBrandAutocomplete from './ShoppingBrandAutocomplete';
 import ShoppingListSelect from './ShoppingListSelect';
-import type { ConfigOption, ShoppingListSummary, ShoppingProductOption, ShoppingSupplierOption } from '@/types/shopping';
+import ShoppingItemBrandSidePanel, {
+  shouldShowBrandSidePanel,
+} from './ShoppingItemBrandSidePanel';
+import type {
+  ConfigOption,
+  ShoppingListSummary,
+  ShoppingProductOption,
+  ShoppingSupplierOption,
+} from '@/types/shopping';
 import type { ItemFormState } from './shoppingItems.utils';
 import { ShoppingIcon, EditIcon } from '@/components/shared/utils/Icons';
-import BrandPreferenceRatingControl from './BrandPreferenceRatingControl';
-import { parseBrandPreference } from '@/utils/shoppingBrandPreference';
 
 interface ShoppingItemModalProps {
   mode: 'create' | 'edit';
@@ -25,6 +31,42 @@ interface ShoppingItemModalProps {
   products?: ShoppingProductOption[];
   brands?: ShoppingSupplierOption[];
 }
+
+const findBrandNotesForPair = (
+  productName: string,
+  brandName: string,
+  products: ShoppingProductOption[],
+  brands: ShoppingSupplierOption[]
+): { brandId: string; notes: string } => {
+  const pName = productName.trim().toLowerCase();
+  const bName = brandName.trim().toLowerCase();
+  if (!pName || !bName) {
+    return { brandId: '', notes: '' };
+  }
+
+  const matchedProd = products.find(
+    (p) => (p?.displayName || p?.nameNormalized || '').trim().toLowerCase() === pName
+  );
+  const brandLink = matchedProd?.productBrands?.find((pb) => {
+    const linkName =
+      pb.brand?.nameNormalized ||
+      brands.find((b) => b.id === pb.brandId)?.name ||
+      '';
+    return linkName.trim().toLowerCase() === bName;
+  });
+  const matchedBrandOption = brands.find(
+    (b) => (b.name || '').trim().toLowerCase() === bName
+  );
+
+  return {
+    brandId: matchedBrandOption?.id
+      ? String(matchedBrandOption.id)
+      : brandLink?.brandId
+      ? String(brandLink.brandId)
+      : '',
+    notes: brandLink?.notes ?? '',
+  };
+};
 
 const ShoppingItemModal: React.FC<ShoppingItemModalProps> = ({
   mode,
@@ -44,7 +86,7 @@ const ShoppingItemModal: React.FC<ShoppingItemModalProps> = ({
   const isCreate = mode === 'create';
   const hasActiveList = activeListId != null || Boolean(itemForm.shoppingListId);
   const disabled = isCreate ? !hasActiveList : false;
-  
+
   const title = isCreate ? (
     <span className="flex items-center gap-2 text-base font-bold text-gray-800">
       <ShoppingIcon className="w-5 h-5 text-blue-600" />
@@ -57,16 +99,58 @@ const ShoppingItemModal: React.FC<ShoppingItemModalProps> = ({
     </span>
   );
 
-  const confirmText = isCreate ? "Aggiungi Prodotto" : "Salva Modifiche";
-  const formId = isCreate ? "create-item-form" : "edit-item-form";
-  
+  const confirmText = isCreate ? 'Aggiungi Prodotto' : 'Salva Modifiche';
+  const formId = isCreate ? 'create-item-form' : 'edit-item-form';
   const isConfirmDisabled = disabled || !itemForm.productName.trim();
+
+  const showSidePanel = shouldShowBrandSidePanel(
+    itemForm.productName,
+    itemForm.brandName,
+    products,
+    brands,
+    isCreate
+  );
+
+  const sidePanel = showSidePanel ? (
+    <ShoppingItemBrandSidePanel
+      productName={itemForm.productName}
+      brandName={itemForm.brandName}
+      brandNotes={itemForm.brandNotes}
+      products={products}
+      brands={brands}
+      disabled={disabled}
+      readOnly={isCreate}
+      onSelectBrand={(entry) =>
+        setItemForm((prev) => ({
+          ...prev,
+          brandName: entry.brandName,
+          brandId: String(entry.brandId),
+          brandNotes: entry.notes ?? '',
+        }))
+      }
+      onClearBrand={() =>
+        setItemForm((prev) => ({
+          ...prev,
+          brandName: '',
+          brandId: '',
+          brandNotes: '',
+        }))
+      }
+      onBrandNotesChange={(val) =>
+        setItemForm((prev) => ({
+          ...prev,
+          brandNotes: val ?? '',
+        }))
+      }
+    />
+  ) : undefined;
 
   return (
     <BaseModal
       isOpen={open}
       onClose={onClose}
       title={title}
+      sidePanel={sidePanel}
       formId={formId}
       confirmText={confirmText}
       cancelText="Annulla"
@@ -89,19 +173,31 @@ const ShoppingItemModal: React.FC<ShoppingItemModalProps> = ({
           <ShoppingProductAutocomplete
             value={itemForm.productName}
             onChange={(name, selectedProd) =>
-              setItemForm((prev) => ({
-                ...prev,
-                productName: name,
-                ...(selectedProd?.brandName && !prev.brandName
-                  ? {
-                      brandName: selectedProd.brandName,
-                      brandId: selectedProd.brandId ? String(selectedProd.brandId) : '',
-                    }
-                  : {}),
-                ...(isCreate && selectedProd?.defaultUnitId && !prev.unitId
-                  ? { unitId: String(selectedProd.defaultUnitId) }
-                  : {}),
-              }))
+              setItemForm((prev) => {
+                const nextBrandName =
+                  selectedProd?.brandName && !prev.brandName
+                    ? selectedProd.brandName
+                    : prev.brandName;
+                const pairInfo = findBrandNotesForPair(
+                  name,
+                  nextBrandName,
+                  products,
+                  brands
+                );
+                return {
+                  ...prev,
+                  productName: name,
+                  brandName: nextBrandName,
+                  brandId:
+                    selectedProd?.brandId && !prev.brandName
+                      ? String(selectedProd.brandId)
+                      : pairInfo.brandId || prev.brandId,
+                  brandNotes: nextBrandName ? pairInfo.notes : '',
+                  ...(isCreate && selectedProd?.defaultUnitId && !prev.unitId
+                    ? { unitId: String(selectedProd.defaultUnitId) }
+                    : {}),
+                };
+              })
             }
             products={products}
             autoFocus
@@ -112,23 +208,22 @@ const ShoppingItemModal: React.FC<ShoppingItemModalProps> = ({
         {/* Marchio / Brand */}
         <div>
           <label className="block text-xs font-bold text-gray-500 uppercase mb-1">
-            Marchio / Brand <span className="text-gray-400 font-normal lowercase">(opzionale)</span>
+            Marchio / Brand
           </label>
           <ShoppingBrandAutocomplete
             value={itemForm.brandName}
             onChange={(bName, brandObj) => {
-              const pName = (itemForm.productName || '').trim().toLowerCase();
-              const matchedProd = products.find(
-                (p) => (p?.displayName || p?.nameNormalized || '').toLowerCase() === pName
-              );
-              const brandLink = matchedProd?.productBrands?.find(
-                (pb) => (pb.brand?.nameNormalized || '').toLowerCase() === bName.trim().toLowerCase()
+              const pairInfo = findBrandNotesForPair(
+                itemForm.productName,
+                bName,
+                products,
+                brands
               );
               setItemForm((prev) => ({
                 ...prev,
                 brandName: bName,
-                brandId: brandObj?.id ? String(brandObj.id) : brandLink?.brandId ? String(brandLink.brandId) : '',
-                brandNotes: brandLink?.notes || prev.brandNotes || '',
+                brandId: brandObj?.id ? String(brandObj.id) : pairInfo.brandId,
+                brandNotes: pairInfo.notes,
               }));
             }}
             brands={brands}
@@ -136,102 +231,6 @@ const ShoppingItemModal: React.FC<ShoppingItemModalProps> = ({
             products={products}
             disabled={disabled}
           />
-          {/* Box preferenze e note sui brand già provati per questo prodotto */}
-          {(() => {
-            const pName = (itemForm.productName || '').trim().toLowerCase();
-            if (!pName) return null;
-            const matched = products.find(
-              (p) => (p?.displayName || p?.nameNormalized || '').toLowerCase() === pName
-            );
-            const brandsWithNotes = matched?.productBrands?.filter((pb) => pb.notes || pb.brand?.nameNormalized) || [];
-            if (brandsWithNotes.length === 0) return null;
-
-            return (
-              <div className="mt-2 p-2.5 bg-amber-50/70 border border-amber-200/70 rounded-xl text-xs space-y-1.5 animate-fadeIn">
-                <div className="font-bold text-amber-800 flex items-center gap-1 text-[11px] uppercase tracking-wide">
-                  <span>💡 Note e marchi già provati:</span>
-                </div>
-                <div className="flex flex-wrap gap-1.5">
-                  {brandsWithNotes.map((pb) => {
-                    const bName = pb.brand?.nameNormalized || brands.find((b) => b.id === pb.brandId)?.name || '';
-                    if (!bName) return null;
-                    const isSelected = (itemForm.brandName || '').trim().toLowerCase() === bName.toLowerCase();
-                    const pref = parseBrandPreference(pb.notes);
-                    const isPos = pref?.sentiment === 'positive';
-                    const isNeg = pref?.sentiment === 'negative';
-
-                    return (
-                      <button
-                        key={pb.id || pb.brandId}
-                        type="button"
-                        onClick={() =>
-                          setItemForm((prev) => ({
-                            ...prev,
-                            brandName: bName,
-                            brandId: String(pb.brandId),
-                            brandNotes: pb.notes || '',
-                          }))
-                        }
-                        className={`text-left px-2.5 py-1 rounded-lg border transition-all cursor-pointer flex flex-col ${
-                          isSelected
-                            ? isNeg
-                              ? 'bg-rose-100 border-rose-400 text-rose-950 shadow-2xs ring-1 ring-rose-400'
-                              : isPos
-                              ? 'bg-emerald-100 border-emerald-400 text-emerald-950 shadow-2xs ring-1 ring-emerald-400'
-                              : 'bg-amber-100 border-amber-400 text-amber-900 shadow-2xs ring-1 ring-amber-400'
-                            : isNeg
-                            ? 'bg-rose-50/80 border-rose-200 text-rose-800 hover:bg-rose-100/70'
-                            : isPos
-                            ? 'bg-emerald-50/80 border-emerald-200 text-emerald-800 hover:bg-emerald-100/70'
-                            : 'bg-white/80 border-amber-200 text-gray-700 hover:bg-amber-100/50'
-                        }`}
-                      >
-                        <span className="font-semibold capitalize flex items-center gap-1">
-                          {isNeg && <span>👎</span>}
-                          {isPos && <span>👍</span>}
-                          {!isNeg && !isPos && pb.notes && <span>📝</span>}
-                          <span>{bName}</span>
-                        </span>
-                        {pb.notes && (
-                          <span
-                            className={`text-[10px] italic max-w-[220px] truncate ${
-                              isNeg ? 'text-rose-700 font-medium' : isPos ? 'text-emerald-700 font-medium' : 'text-amber-700'
-                            }`}
-                          >
-                            «{pref?.comment || pb.notes}»
-                          </span>
-                        )}
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-            );
-          })()}
-
-          {/* Valutazione Rapida Marchio (Stelle / Pollice Su / Pollice Giù + Nota) */}
-          {itemForm.productName.trim() && itemForm.brandName.trim() && (() => {
-            const pName = itemForm.productName.trim().toLowerCase();
-            const matched = products.find(
-              (p) => (p?.displayName || p?.nameNormalized || '').toLowerCase() === pName
-            );
-            return (
-              <BrandPreferenceRatingControl
-                productName={itemForm.productName}
-                brandName={itemForm.brandName}
-                value={itemForm.brandNotes}
-                onChange={(val) =>
-                  setItemForm((prev) => ({
-                    ...prev,
-                    brandNotes: val ?? '',
-                  }))
-                }
-                productId={matched?.id}
-                brandId={itemForm.brandId ? Number(itemForm.brandId) : undefined}
-                disabled={disabled}
-              />
-            );
-          })()}
         </div>
 
         {/* Quantità & Unità di Misura */}
@@ -271,11 +270,11 @@ const ShoppingItemModal: React.FC<ShoppingItemModalProps> = ({
           </div>
         </div>
 
-        {/* Selettore Lista di Destinazione / Sposta Lista (Sotto quantità, prima delle note) */}
+        {/* Selettore Lista di Destinazione / Sposta Lista */}
         {lists.length > 0 && (
           <div>
             <label className="block text-xs font-bold text-gray-500 uppercase mb-1">
-              {isCreate ? 'Lista di destinazione' : 'Sposta in un\'altra lista'}
+              {isCreate ? 'Lista di destinazione' : "Sposta in un'altra lista"}
             </label>
             <ShoppingListSelect
               value={itemForm.shoppingListId}

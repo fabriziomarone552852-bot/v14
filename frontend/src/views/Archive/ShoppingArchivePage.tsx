@@ -3,16 +3,21 @@ import React, { useMemo } from 'react';
 import {
   UsersIcon,
   TaskListIcon,
+  ShoppingIcon,
   TagIcon,
 } from '@/components/shared/utils/Icons';
 import { ArchiveActionBar } from '@/components/shared/layout/ArchiveActionBar';
-import { SegmentedTabs, type TabItem } from '@/components/shared/layout/SegmentedTabs';
+import {
+  ShoppingArchiveViewSelect,
+  type ShoppingArchiveViewOption,
+} from '@/components/archive/shopping/ShoppingArchiveViewSelect';
 import { ShoppingStatsOverview } from '@/components/archive/shopping/ShoppingStatsOverview';
 import { ShoppingArchiveGroupsTab } from '@/components/archive/shopping/ShoppingArchiveGroupsTab';
 import { ShoppingArchiveListsTab } from '@/components/archive/shopping/ShoppingArchiveListsTab';
+import { ShoppingArchiveProductsTab } from '@/components/archive/shopping/ShoppingArchiveProductsTab';
 import { ShoppingArchivePricesTab } from '@/components/archive/shopping/ShoppingArchivePricesTab';
 import { ShoppingArchivePageModals } from '@/components/archive/shopping/ShoppingArchivePageModals';
-import { useShoppingArchivePageLogic, type ShoppingArchiveTab } from '@/components/archive/shopping/useShoppingArchivePageLogic';
+import { useShoppingArchivePageLogic } from '@/components/archive/shopping/useShoppingArchivePageLogic';
 import { ERROR_MESSAGES } from '@/data/loadingMessages';
 
 const PANEL_CLASS = 'rounded-2xl border border-slate-200/90 bg-white shadow-xs';
@@ -25,32 +30,43 @@ export const ShoppingArchivePage: React.FC = () => {
     [logic.allBatches]
   );
 
-  // Configurazione SegmentedTabs
-  const tabsConfig: TabItem<ShoppingArchiveTab>[] = useMemo(
+  // Configurazione Selettore Viste
+  const viewOptions: ShoppingArchiveViewOption[] = useMemo(
     () => [
       {
         id: 'gruppi',
         label: 'Gruppi',
-        icon: <UsersIcon className="w-3.5 h-3.5" />,
+        description: 'Gruppi spesa condivisi e membri',
+        icon: <UsersIcon className="w-4 h-4" />,
         count: logic.groups.length,
         badgeBg: 'bg-indigo-50 text-indigo-700 border-indigo-200/60',
       },
       {
         id: 'liste',
         label: 'Liste',
-        icon: <TaskListIcon className="w-3.5 h-3.5" />,
+        description: 'Liste attive, completate e archiviate',
+        icon: <TaskListIcon className="w-4 h-4" />,
         count: logic.lists.length,
         badgeBg: 'bg-blue-50 text-blue-700 border-blue-200/60',
       },
       {
+        id: 'prodotti',
+        label: 'Prodotti',
+        description: 'Catalogo articoli, marche e giudizi',
+        icon: <ShoppingIcon className="w-4 h-4" />,
+        count: logic.products.length,
+        badgeBg: 'bg-lime-50 text-lime-700 border-lime-200/60',
+      },
+      {
         id: 'prezzi',
         label: 'Storico',
-        icon: <TagIcon className="w-3.5 h-3.5" />,
+        description: 'Andamento prezzi e rilevazioni',
+        icon: <TagIcon className="w-4 h-4" />,
         count: productsWithPricesCount,
         badgeBg: 'bg-emerald-50 text-emerald-700 border-emerald-200/60',
       },
     ],
-    [logic.groups.length, logic.lists.length, productsWithPricesCount]
+    [logic.groups.length, logic.lists.length, logic.products.length, productsWithPricesCount]
   );
 
   return (
@@ -58,15 +74,16 @@ export const ShoppingArchivePage: React.FC = () => {
       {/* 1. HEADER COMPATTO CON STATS OVERVIEW */}
       <ShoppingStatsOverview panelClass={PANEL_CLASS} />
 
-      {/* 2. RIGA AZIONI: ADDBUTTON, SEGMENTED TABS E LENTE RICERCA */}
+      {/* 2. RIGA AZIONI: ADDBUTTON, SELETTORE VISTA E LENTE RICERCA */}
       <ArchiveActionBar
         addLabel={logic.primaryAddLabel}
         onAdd={logic.handlePrimaryAddAction}
         centerContent={
-          <SegmentedTabs
-            tabs={tabsConfig}
+          <ShoppingArchiveViewSelect
+            options={viewOptions}
             activeTab={logic.activeTab}
             onChange={logic.setActiveTab}
+            isMobile={logic.isMobile}
           />
         }
         onOpenSearch={logic.handleOpenSearchModal}
@@ -115,6 +132,18 @@ export const ShoppingArchivePage: React.FC = () => {
           onResetFilters={() => logic.setListFilters(logic.initialListFilters)}
           className={PANEL_CLASS}
         />
+      ) : logic.activeTab === 'prodotti' ? (
+        <ShoppingArchiveProductsTab
+          products={logic.products}
+          batches={logic.allBatches}
+          loading={logic.productsLoading}
+          isFilterModalOpen={logic.isProductFilterModalOpen}
+          onCloseFilterModal={() => logic.setIsProductFilterModalOpen(false)}
+          filterState={logic.productFilters}
+          onFilterChange={logic.setProductFilters}
+          onResetFilters={() => logic.setProductFilters(logic.initialProductFilters)}
+          className={PANEL_CLASS}
+        />
       ) : (
         <ShoppingArchivePricesTab
           batches={logic.allBatches}
@@ -134,6 +163,7 @@ export const ShoppingArchivePage: React.FC = () => {
         isMobile={logic.isMobile}
         groupCreateModal={logic.groupCreateModal}
         listCreateModal={logic.listCreateModal}
+        productCreateModal={logic.productCreateModal}
         quickPriceModal={logic.quickPriceModal}
         groups={logic.groups}
         lists={logic.lists}

@@ -2,6 +2,7 @@
 import React from 'react';
 import type { ShoppingGroupSummary, ShoppingListSummary } from '@/types/shopping';
 import { ShoppingIcon, CloseIcon } from '@/components/shared/utils/Icons';
+import { useFadeScrollbar } from '@/hooks/ui/useFadeScrollbar';
 import {
   ListItemRow,
   GroupCardHeader,
@@ -59,6 +60,8 @@ export const MobileShoppingListPickerModal: React.FC<MobileShoppingListPickerMod
     onArchiveList,
   });
 
+  const { isScrolling, handleScroll } = useFadeScrollbar();
+
   if (!isOpen) return null;
 
   return (
@@ -91,7 +94,12 @@ export const MobileShoppingListPickerModal: React.FC<MobileShoppingListPickerMod
       </div>
 
       {/* Contenuto scorrevole con tutti i gruppi e liste */}
-      <div className="flex-1 min-h-0 overflow-y-auto custom-scrollbar space-y-3 pt-3 px-2 pb-3">
+      <div
+        onScroll={handleScroll}
+        className={`flex-1 min-h-0 overflow-y-auto modal-scrollbar space-y-3 pt-3 px-2 pb-3 ${
+          isScrolling ? 'is-scrolling' : ''
+        }`}
+      >
         {/* 1. SEZIONE PRIVATE */}
         <div className="bg-white border border-gray-200/90 rounded-2xl shadow-2xs overflow-hidden">
           <PersonalSectionHeader

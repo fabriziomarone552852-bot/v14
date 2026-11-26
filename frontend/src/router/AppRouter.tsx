@@ -39,6 +39,7 @@ const ReviewsPage = !IS_MOBILE_BUILD ? React.lazy(() => import('@/views/Archive/
 const TagsPage = !IS_MOBILE_BUILD ? React.lazy(() => import('@/views/Archive/TagsPage')) : () => null;
 const SuppliersPage = !IS_MOBILE_BUILD ? React.lazy(() => import('@/views/Archive/SuppliersPage')) : () => null;
 const ShoppingArchivePage = !IS_MOBILE_BUILD ? React.lazy(() => import('@/views/Archive/ShoppingArchivePage')) : () => null;
+const NotificationsPage = !IS_MOBILE_BUILD ? React.lazy(() => import('@/views/Archive/NotificationsPage')) : () => null;
 
 const RouteLoader: React.FC = () => (
   <div className="flex h-screen w-full items-center justify-center bg-gray-50 dark:bg-slate-900">
@@ -121,6 +122,7 @@ const AppRouter: React.FC = () => {
           <Route path="/tags" element={<TagsPage />} />
           <Route path="/fornitori" element={<SuppliersPage />} />
           <Route path="/shopping-archive" element={<ShoppingArchivePage />} />
+          <Route path="/notifications" element={<NotificationsPage />} />
           <Route path="/shopping" element={<ShoppingPage />} />
 
           

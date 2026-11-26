@@ -1,5 +1,6 @@
 // src/mobile/components/shopping/MobileQuickCatalogBrandModal.tsx
 import React from 'react';
+import { createPortal } from 'react-dom';
 import {
   TagIcon,
   CloseIcon,
@@ -11,6 +12,7 @@ import type {
   ShoppingListItem,
 } from '@/types/shopping';
 import { parseBrandPreference } from '@/utils/shoppingBrandPreference';
+import { useBackHandler } from '@/utils/backButtonManager';
 
 interface MobileQuickCatalogBrandModalProps {
   product: ShoppingProductOption | null;
@@ -35,6 +37,8 @@ export const MobileQuickCatalogBrandModal: React.FC<MobileQuickCatalogBrandModal
   getExistingItemForBrand,
   onToggleItem,
 }) => {
+  useBackHandler(Boolean(isOpen && product), onClose, 15);
+
   if (!isOpen || !product) return null;
 
   const displayName = product.displayName || product.nameNormalized || 'Articolo';
@@ -53,9 +57,9 @@ export const MobileQuickCatalogBrandModal: React.FC<MobileQuickCatalogBrandModal
   const genericItem = getExistingItemForBrand(product, null);
   const isGenericChecked = Boolean(genericItem);
 
-  return (
+  const modalContent = (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-fadeIn"
+      className="fixed inset-0 z-[10010] flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-fadeIn pointer-events-auto"
       onClick={onClose}
     >
       <div
@@ -251,6 +255,8 @@ export const MobileQuickCatalogBrandModal: React.FC<MobileQuickCatalogBrandModal
       </div>
     </div>
   );
+
+  return createPortal(modalContent, document.body);
 };
 
 export default MobileQuickCatalogBrandModal;

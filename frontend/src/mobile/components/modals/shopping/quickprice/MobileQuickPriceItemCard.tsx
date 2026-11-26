@@ -1,6 +1,7 @@
 // src/mobile/components/modals/shopping/quickprice/MobileQuickPriceItemCard.tsx
 import React from 'react';
 import { TrashIcon } from '@/components/shared/utils/Icons';
+import { sanitizeDecimalString } from '@/utils/decimalUtils';
 import ShoppingProductAutocomplete from '@/components/shared/shopping/ShoppingProductAutocomplete';
 import ShoppingBrandAutocomplete from '@/components/shared/shopping/ShoppingBrandAutocomplete';
 import ShoppingSupplierSelect from '@/components/shared/shopping/ShoppingSupplierSelect';
@@ -92,7 +93,7 @@ export const MobileQuickPriceItemCard: React.FC<MobileQuickPriceItemCardProps> =
             placeholder="0,00"
             value={item.priceUnit}
             onChange={(e) => {
-              onUpdateItem(item.id, 'priceUnit', e.target.value.replace(/[^0-9.,]/g, '').replace(/,/g, '.'));
+              onUpdateItem(item.id, 'priceUnit', sanitizeDecimalString(e.target.value));
             }}
             className="w-full px-2.5 py-2 border border-gray-200 rounded-xl text-xs font-bold focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
           />
@@ -108,7 +109,7 @@ export const MobileQuickPriceItemCard: React.FC<MobileQuickPriceItemCardProps> =
             placeholder="0,00"
             value={item.priceTotal}
             onChange={(e) => {
-              onUpdateItem(item.id, 'priceTotal', e.target.value.replace(/[^0-9.,]/g, '').replace(/,/g, '.'));
+              onUpdateItem(item.id, 'priceTotal', sanitizeDecimalString(e.target.value));
             }}
             className="w-full px-2.5 py-2 border border-blue-200/80 rounded-xl text-xs font-bold text-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-blue-50/30"
           />

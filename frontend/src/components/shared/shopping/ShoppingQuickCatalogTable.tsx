@@ -14,6 +14,7 @@ import type {
   ShoppingListSummary,
   ConfigOption,
 } from '@/types/shopping';
+import { useFadeScrollbar } from '@/hooks/ui/useFadeScrollbar';
 import { useShoppingQuickCatalogLogic } from './useShoppingQuickCatalogLogic';
 import { ShoppingQuickCatalogBrandSubRow } from './ShoppingQuickCatalogBrandSubRow';
 
@@ -55,39 +56,26 @@ export const ShoppingQuickCatalogTable: React.FC<ShoppingQuickCatalogTableProps>
     items,
   });
 
+  const { isScrolling, handleScroll } = useFadeScrollbar();
+
   return (
     <div className="flex h-full min-h-0 flex-col justify-between select-none">
       {/* 1. HEADER DELLA VISTA INSERIMENTO RAPIDO */}
       <div className="flex flex-col gap-3 pb-3 border-b border-slate-200 shrink-0">
-        <div className="flex items-center justify-between gap-2">
-          <div className="flex items-center gap-2 min-w-0">
-            <div className="w-8 h-8 rounded-xl bg-blue-50 border border-blue-200 text-blue-600 flex items-center justify-center shrink-0">
-              <ShoppingIcon className="w-4 h-4" />
-            </div>
-            <div className="min-w-0">
-              <div className="flex items-center gap-2 flex-wrap">
-                <h2 className="text-sm font-bold text-gray-800 truncate">
-                  Inserimento Rapido Catalogo
-                </h2>
-                <span className="inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-full bg-blue-100/80 text-blue-700 border border-blue-200/80">
-                  Lista: {activeList?.name || 'Senza lista'}
-                </span>
-              </div>
-              <p className="text-[11px] text-gray-500 truncate mt-0.5">
-                Spunta gli articoli o espandi per scegliere la marca con l&apos;ultimo prezzo migliore
-              </p>
+        <div className="flex items-center gap-2.5 min-w-0">
+          <div className="w-9 h-9 rounded-xl bg-blue-50 border border-blue-200 text-blue-600 flex items-center justify-center shrink-0">
+            <ShoppingIcon className="w-4 h-4" />
+          </div>
+          <div className="min-w-0">
+            <h2 className="text-sm font-bold text-gray-800 truncate">
+              Inserimento Rapido Catalogo
+            </h2>
+            <div className="mt-1">
+              <span className="inline-flex items-center text-[11px] font-semibold px-2 py-0.5 rounded-full bg-blue-100/80 text-blue-700 border border-blue-200/80 max-w-full truncate">
+                {activeList?.name || 'Senza lista'}
+              </span>
             </div>
           </div>
-
-          <button
-            type="button"
-            onClick={onClose}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold shadow-xs transition-colors cursor-pointer shrink-0"
-            title="Termina e torna alla lista della spesa"
-          >
-            <CheckIcon className="w-4 h-4" />
-            <span>Fatto</span>
-          </button>
         </div>
 
         {/* Barra Ricerca + Contatore Badge */}
@@ -124,7 +112,7 @@ export const ShoppingQuickCatalogTable: React.FC<ShoppingQuickCatalogTableProps>
       {/* 2. TABELLA ARTICOLI CATALOGO */}
       <div className="flex-1 min-h-0 flex flex-col overflow-hidden mt-3 rounded-xl border border-slate-200/90 bg-white">
         {/* Intestazione Colonne Tabella */}
-        <div className="grid grid-cols-[38px_1fr_120px_90px_110px] items-center gap-2 px-3 py-2 bg-slate-50/90 border-b border-slate-200 text-[11px] font-bold text-slate-600 uppercase tracking-wider shrink-0">
+        <div className="grid grid-cols-[38px_1fr_140px_115px] items-center gap-2 px-3 py-2 bg-slate-50/90 border-b border-slate-200 text-[11px] font-bold text-slate-600 uppercase tracking-wider shrink-0">
           <div className="text-center">#</div>
           <button
             type="button"
@@ -136,13 +124,17 @@ export const ShoppingQuickCatalogTable: React.FC<ShoppingQuickCatalogTableProps>
               ▼
             </span>
           </button>
-          <div>Marca / Varianti</div>
-          <div>Unità</div>
+          <div>Marca</div>
           <div className="text-right">Ultimo Prezzo</div>
         </div>
 
         {/* Corpo Scrollabile Tabella */}
-        <div className="flex-1 min-h-0 overflow-y-auto custom-scrollbar divide-y divide-slate-100">
+        <div
+          onScroll={handleScroll}
+          className={`flex-1 min-h-0 overflow-y-auto modal-scrollbar divide-y divide-slate-100 ${
+            isScrolling ? 'is-scrolling' : ''
+          }`}
+        >
           {filteredProducts.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-16 px-4 text-center">
               <div className="w-12 h-12 rounded-2xl bg-slate-50 border border-slate-200 flex items-center justify-center text-slate-400 mb-2">
@@ -160,7 +152,6 @@ export const ShoppingQuickCatalogTable: React.FC<ShoppingQuickCatalogTableProps>
               const existingItem = getExistingItem(product);
               const isChecked = Boolean(existingItem);
               const displayName = product.displayName || product.nameNormalized || 'Articolo';
-              const unitName = product.defaultUnitCodeName || 'pz';
               const brandsCount = product.productBrands?.length ?? 0;
               const hasMultipleBrands = brandsCount > 1;
               const isExpanded = isProductExpanded(product.id);
@@ -222,7 +213,7 @@ export const ShoppingQuickCatalogTable: React.FC<ShoppingQuickCatalogTableProps>
                   {/* Riga Principale Prodotto */}
                   <div
                     onClick={handleMainRowClick}
-                    className={`grid grid-cols-[38px_1fr_120px_90px_110px] items-center gap-2 px-3 py-2 transition-colors cursor-pointer text-xs ${
+                    className={`grid grid-cols-[38px_1fr_140px_115px] items-center gap-2 px-3 py-2 transition-colors cursor-pointer text-xs ${
                       isChecked
                         ? 'bg-blue-50/60 hover:bg-blue-50/90 font-medium'
                         : isExpanded
@@ -285,13 +276,6 @@ export const ShoppingQuickCatalogTable: React.FC<ShoppingQuickCatalogTableProps>
                       )}
                     </div>
 
-                    {/* Unità di misura */}
-                    <div className="truncate text-[11px] text-gray-500">
-                      <span className="px-1.5 py-0.5 rounded bg-slate-100 border border-slate-200/80 text-slate-600 text-[10px] font-medium">
-                        {unitName}
-                      </span>
-                    </div>
-
                     {/* Ultimo Prezzo */}
                     <div className="text-right text-[11px] text-gray-600 truncate">
                       {hasMultipleBrands && minPriceFormatted ? (
@@ -309,13 +293,6 @@ export const ShoppingQuickCatalogTable: React.FC<ShoppingQuickCatalogTableProps>
                   {/* 3. Sezione Espansa a Fisarmonica (Accordion Sub-Rows) */}
                   {hasMultipleBrands && isExpanded && (
                     <div className="bg-slate-50/70 border-y border-slate-200/80 divide-y divide-slate-100/90 animate-fadeIn">
-                      <div className="px-4 py-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-400 bg-slate-100/70 flex items-center justify-between">
-                        <span>Scegli il marchio con lo storico prezzi:</span>
-                        <span className="normal-case font-normal text-slate-500">
-                          {isChecked ? 'Articolo già presente in lista' : 'Seleziona per inserire in lista'}
-                        </span>
-                      </div>
-
                       {/* Opzione 1: Generico senza marchio */}
                       {(() => {
                         const genericItem = getExistingItemForBrand(product, null);
@@ -324,7 +301,6 @@ export const ShoppingQuickCatalogTable: React.FC<ShoppingQuickCatalogTableProps>
                             key="generic"
                             product={product}
                             brandLink={null}
-                            unitName={unitName}
                             existingItem={genericItem}
                             onToggle={() => onToggleItem(product, genericItem, null)}
                           />
@@ -343,7 +319,6 @@ export const ShoppingQuickCatalogTable: React.FC<ShoppingQuickCatalogTableProps>
                             key={pb.id || pb.brandId}
                             product={product}
                             brandLink={pb}
-                            unitName={unitName}
                             existingItem={brandItem}
                             onToggle={() => onToggleItem(product, brandItem, pb)}
                           />
@@ -370,7 +345,7 @@ export const ShoppingQuickCatalogTable: React.FC<ShoppingQuickCatalogTableProps>
           className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold shadow-xs transition-colors cursor-pointer"
         >
           <CheckIcon className="w-4 h-4" />
-          <span>Fatto / Torna alla lista</span>
+          <span>Fatto</span>
         </button>
       </div>
     </div>

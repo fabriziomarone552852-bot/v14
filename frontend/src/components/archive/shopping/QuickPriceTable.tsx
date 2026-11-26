@@ -1,5 +1,6 @@
 import React from 'react';
 import { PlusIcon } from '@/components/shared/utils/Icons';
+import { useFadeScrollbar } from '@/hooks/ui/useFadeScrollbar';
 import { QuickPriceRowItem } from './QuickPriceRowItem';
 import type { QuickPriceRow, DropdownOption } from './QuickPriceTypes';
 import type { ShoppingProductOption, ShoppingSupplierOption } from '@/types/shopping';
@@ -37,9 +38,16 @@ export const QuickPriceTable: React.FC<QuickPriceTableProps> = ({
   onAddRow,
   onOpenSupplierCreateModal,
 }) => {
+  const { isScrolling, handleScroll } = useFadeScrollbar();
+
   return (
     <div className="border border-slate-200/90 rounded-2xl overflow-hidden bg-white shadow-2xs">
-      <div className="overflow-x-auto max-h-[55vh] custom-scrollbar">
+      <div
+        onScroll={handleScroll}
+        className={`overflow-x-auto max-h-[55vh] modal-scrollbar ${
+          isScrolling ? 'is-scrolling' : ''
+        }`}
+      >
         <table className="w-full text-left text-xs border-collapse">
           <thead className="bg-slate-50 border-b border-slate-200 text-[11px] font-bold uppercase tracking-wider text-slate-500 sticky top-0 z-20">
             <tr>

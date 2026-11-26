@@ -12,14 +12,11 @@ Questo documento traccia in modo strutturato, prioritizzato e costantemente aggi
 | **FEAT-004 (Libri)** | Sezione Media: Estensione a Libri (Google Books, Pagine lette, Stati lettura) | `media` / books | 🔴 Da Strutturare | 🔴 Da Implementare | 🔴 **Massima (Passo Fondamentale)** |
 | **FEAT-001** | Liste Spesa: Preferite & Pinnate (`pin_status` desktop & mobile) | `shopping` / lists | 🟢 Completato | 🔴 Da Implementare | 🟡 **Media-Alta** |
 | **SHOPPING-004** | Ricerca & Consultazione Prezzi nel Modale Dettaglio Prodotto (per Brand) | `shopping` / UI | 🔴 Da Iniziare | 🔴 Da Iniziare | 🟡 **Media-Alta** |
-| **SHOPPING-005** | Pannello Laterale Recensioni & Giudizio Marchi all'Aggiunta Prodotto | `shopping` / UI | 🔴 Da Strutturare | 🔴 Da Implementare | 🟡 **Media-Alta** |
-| **SHOPPING-020** | Sistema Shopping Page: Voti Prodotti & Flusso "Lista fatta da papà" | `shopping` / UX | 🔴 Da Iniziare | 🔴 Da Iniziare | 🟡 **Media-Alta** |
 | **FEAT-006** | Hub Spesa, Ricettario, Meal Prep & Wishlist Desideri | `shopping` / food | 🔴 Da Strutturare | 🔴 Da Implementare | 🔴 **Massima (Passo Fondamentale)** |
 | **FEAT-003** | Dashboard Analytics & Storico Prezzi Spesa | `analytics` / shopping | 🟢 Completato | 🔴 Da Implementare | 🟢 **Bassa** |
 | **CAL-002** | Filtro Categorie Eventi nel Calendario Homepage (Menu Ingranaggio ⚙️) | `calendar` / UI | 🔴 Da Iniziare | 🔴 Da Iniziare | 🟡 **Media-Alta** |
 | **FEAT-011** | Sezione Lavoro & Gestione Turni di Lavoro (Punto da definire con Daniela) | `work` / shifts | 🔴 Da Definire | 🔴 Da Definire | 🟡 **Media-Alta** |
 | **FEAT-005** | Sezione Liste Tematiche & Personalizzate (Posti, Siti, Wishlist, Giochi) | `custom_lists` | 🟡 Parziale | 🟡 Parziale | 🔴 **Massima (Passo Fondamentale)** |
-| **FEAT-013** | Archivio Notifiche / Sezione Storico Notifiche Permanente | `notifications` / UI | 🟢 Completato | 🟡 Da Implementare | 🟡 **Media** |
 | **FEAT-010** | Database & Sincronizzazione Centralizzata Quotes (Citazioni del Giorno) | `core` / quotes | 🔴 Da Implementare | 🔴 Da Implementare | 🟡 **Media** |
 | **AI-001** | Studio & Integrazione Intelligenza Artificiale (Voice, Breakdown, Briefing) | `ai` / assistant | 🔴 Da Analizzare | 🔴 Da Analizzare | 🟡 **Media-Alta (Ricerca)** |
 | **FEAT-016** | Lettere al Futuro Me (Time Capsule nascoste fino allo scadere del countdown impostato) | `capsules` / personal | 🔴 Da Strutturare | 🔴 Da Implementare | 🟡 **Media** |
@@ -68,15 +65,9 @@ Questo documento traccia in modo strutturato, prioritizzato e costantemente aggi
 - **Descrizione**: Aggiunta della barra di ricerca e della griglia/lista di consultazione prezzi all'interno del modale di dettaglio di ciascun prodotto nell'archivio spesa, includendo il raggruppamento dei prezzi registrati suddivisi per Brand/Marca.
 - **Stato**: 🔴 Da Iniziare *(Desktop & Mobile — Priorità: Media-Alta)*.
 
-### [SHOPPING-005] Pannello Laterale Recensioni & Giudizio Marchi all'Aggiunta Prodotto
-- **Descrizione**: Durante l'inserimento o aggiunta rapida di un nuovo prodotto a una lista della spesa, integrare un pannello laterale a comparsa (o drawer su smartphone) che mostri le recensioni, le valutazioni qualitative (👍/👎) e i giudizi precedentemente espressi per i diversi marchi di quello specifico articolo, con indicazione dell'ultimo prezzo registrato e del negozio abituale.
-- **Stato**: 🔴 Da Strutturare / Implementare *(Priorità: Media-Alta)*.
-
-### [SHOPPING-020] Sistema Shopping Page: Voti dei Prodotti & "Lista fatta da papà"
-- **Descrizione**: Evoluzione dell'esperienza d'uso della pagina Shopping per ottimizzare la gestione quotidiana della spesa familiare:
-  1. **Voti & Valutazioni dei Prodotti**: Visualizzazione e gestione rapida dei voti e delle note qualitative dei prodotti direttamente all'interno delle liste della spesa e nei selettori di aggiunta, rendendo immediata la scelta del marchio migliore.
-  2. **Flusso "Lista fatta da papà"**: Integrazione di una vista, filtro o flusso dedicato per importare e visualizzare agilmente appunti o liste esterne (visualizzazione semplificata per consultazione in mobilità, e selezione prioritaria dei prodotti abituali).
-- **Stato**: 🔴 Da Iniziare *(Desktop & Mobile — Priorità: Media-Alta)*.
+> [!NOTE]
+> **📝 Note per Sviluppatori — `note per papà` (Spunti & Decisioni Aperte da Affrontare):**
+> 1. **Pulizia Nomi Prodotti vs Brand (`"ace candeggina"`)**: Nella lista dei prodotti compare ad esempio *"ace candeggina"*, ma il marchio (*"Ace"*) non dovrebbe stare esclusivamente tra i **Brand** lasciando solo *"candeggina"* tra i prodotti canonici? *(I pannelli laterali Marchi & Giudizi, la sola consultazione in creazione prodotto, lo snellimento del catalogo rapido, l'inserimento rapido prezzi multi-scontrino a cascata e le scrollbar a scomparsa nelle liste aperte `SHOPPING-005` + `SHOPPING-020` + `SHOPPING-022` sono stati completati e archiviati in [`docs/BACKLOG_ARCHIVE.md`](file:///c:/Users/Fabrizio/Desktop/app/smart/v14/docs/BACKLOG_ARCHIVE.md)).*
 
 ### [FEAT-006] Hub Spesa, Ricettario, Meal Prep & Wishlist Oggetti
 - **Descrizione**: Evoluzione della sezione Spesa in un ecosistema integrato per la pianificazione alimentare, ricette e acquisti:
@@ -128,10 +119,7 @@ Questo documento traccia in modo strutturato, prioritizzato e costantemente aggi
 
 ## 🔔 5. Notifiche, Social & Condivisione
 
-### [FEAT-013] Archivio Notifiche / Sezione Storico Notifiche Permanente
-- **Descrizione**: Creare una schermata dedicata (in Impostazioni o in pagina apposita) per consultare lo storico completo di tutte le notifiche di sistema, inviti e alert, conformemente alla regola per cui le notifiche non sono effimere ma permanenti.
-- **UI/UX**: Lista a scorrimento, filtri per tipologia (Social, Spesa, Sistema) e raggruppamento per data (Oggi, Ieri, Questa Settimana, Mese).
-- **Stato**: Backend 🟢 Supportato | Frontend 🟡 Da Implementare *(Priorità: Media)*.
+> 🗄️ **Archivio Notifiche Permanente Completato (`FEAT-013`)**: La pagina dedicata allo storico permanente delle notifiche (`/notifications` su Desktop & Mobile, con filtri per tipologia, stato lettura, intervallo date e deep-link diretto a 0ms) è stata completata e archiviata in [`docs/BACKLOG_ARCHIVE.md`](file:///c:/Users/Fabrizio/Desktop/app/smart/v14/docs/BACKLOG_ARCHIVE.md).
 
 ---
 

@@ -1,18 +1,7 @@
-export interface QuickPriceRow {
-  id: string;
-  productName: string;
-  brandName: string;
-  brandId: string;
-  price: string;
-  priceUnit: string;
-  priceTotal: string;
-  lastPriceEdited?: 'unit' | 'total';
-  quantity: string;
-  unitId: string;
-  purchaseDate: string;
-  supplierId: string;
-  isOnSale: boolean;
-}
+// src/components/archive/shopping/QuickPriceTypes.ts
+import type { QuickPriceEntry } from '@/utils/quickPriceUtils';
+
+export type QuickPriceRow = QuickPriceEntry;
 
 export interface DropdownOption {
   value: string;

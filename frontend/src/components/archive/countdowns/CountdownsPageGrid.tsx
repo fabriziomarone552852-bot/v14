@@ -5,6 +5,7 @@ import { Pagination } from '@/components/shared/utils/Pagination';
 import { CountdownCard } from './CountdownCard';
 import { ERROR_MESSAGES } from '@/data/loadingMessages';
 import type { CountdownItem } from '@/components/day/CountdownWidget';
+import { useFadeScrollbar } from '@/hooks/ui/useFadeScrollbar';
 
 interface CountdownsPageGridProps {
   loading: boolean;
@@ -37,9 +38,15 @@ export const CountdownsPageGrid: React.FC<CountdownsPageGridProps> = ({
   onPageChange,
   panelClass,
 }) => {
+  const { handleScroll, modalScrollbarClass } = useFadeScrollbar();
+
   return (
     <div className={`${panelClass} flex flex-col flex-1 min-h-0 overflow-hidden`}>
-      <div ref={containerRef} className="flex-1 min-h-0 overflow-y-auto p-4 sm:p-5 custom-scrollbar">
+      <div
+        ref={containerRef}
+        onScroll={handleScroll}
+        className={`flex-1 min-h-0 overflow-y-auto p-4 sm:p-5 ${modalScrollbarClass}`}
+      >
         {isError ? (
           <div className="flex flex-col items-center justify-center h-64 text-slate-400 gap-3">
             <div className="text-3xl">⚠️</div>

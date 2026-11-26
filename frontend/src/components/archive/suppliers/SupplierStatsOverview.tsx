@@ -12,11 +12,7 @@ export const SupplierStatsOverview: React.FC<SupplierStatsOverviewProps> = ({
 }) => {
   return (
     <ArchiveHeader
-      icon={
-        <div className="w-10 h-10 rounded-xl bg-slate-900 flex items-center justify-center text-white shadow-xs [&>svg]:w-5 [&>svg]:h-5">
-          <StoreIcon />
-        </div>
-      }
+      icon={<StoreIcon className="w-5 h-5 text-white" />}
       title="Negozi & Brand"
       subtitle="Anagrafica dei punti vendita, negozi di fiducia e dei marchi per monitorare i prezzi e la spesa."
       className={panelClass}

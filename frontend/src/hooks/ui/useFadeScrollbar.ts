@@ -28,8 +28,9 @@ export function useFadeScrollbar(timeoutMs: number = 800) {
   }, [timeoutMs]);
 
   const scrollbarClass = `fade-scrollbar ${isScrolling ? 'is-scrolling' : ''}`;
+  const modalScrollbarClass = `modal-scrollbar ${isScrolling ? 'is-scrolling' : ''}`;
 
-  return { isScrolling, handleScroll, scrollbarClass };
+  return { isScrolling, handleScroll, scrollbarClass, modalScrollbarClass };
 }
 
 export default useFadeScrollbar;

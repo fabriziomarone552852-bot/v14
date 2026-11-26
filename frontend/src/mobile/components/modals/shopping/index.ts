@@ -6,6 +6,7 @@ export * from './MobilePurchasedItemEditModal';
 export * from './MobileShoppingProductPriceModal';
 export * from './MobileShoppingQuickPriceModal';
 export * from './MobileShoppingItemDetailModal';
+export * from './MobileShoppingItemInsightsTabs';
 export * from './MobileShoppingPurchaseModal';
 export * from './MobileShoppingGroupCreateModal';
 export * from './MobileShoppingGroupInviteModal';

@@ -12,6 +12,7 @@ import ShoppingSupplierSelect from './ShoppingSupplierSelect';
 import ShoppingBrandAutocomplete from './ShoppingBrandAutocomplete';
 import DatePicker from '@/components/shared/utils/DatePicker/DatePicker';
 import { ShoppingIcon } from '@/components/shared/utils/Icons';
+import { sanitizeDecimalString } from '@/utils/decimalUtils';
 
 import { formatUnitForQuantity } from './ShoppingUnitSelect';
 
@@ -80,7 +81,7 @@ const ShoppingPurchaseModal: React.FC<ShoppingPurchaseModalProps> = ({
     >
       <form id="purchase-form" onSubmit={onSubmit} className="space-y-4">
         {/* Riga 1: Quantità acquistata & Prezzo con Valuta incorporata */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 items-end">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 items-start">
 
           {/* Quantità acquistata */}
           <div>
@@ -107,7 +108,7 @@ const ShoppingPurchaseModal: React.FC<ShoppingPurchaseModalProps> = ({
           {/* Prezzo & Valuta accostata */}
           <div>
             <label className="block text-xs font-bold text-gray-500 uppercase mb-1">
-              Prezzo Pagato <span className="font-normal text-[10px] text-gray-400 lowercase">(opzionale)</span>
+              Prezzo Pagato
             </label>
 
             <div className="flex items-center gap-1.5">
@@ -118,7 +119,7 @@ const ShoppingPurchaseModal: React.FC<ShoppingPurchaseModalProps> = ({
                 placeholder="0,00"
                 value={purchaseForm.price}
                 onChange={(e) => {
-                  const val = e.target.value.replace(/[^0-9.,]/g, '');
+                  const val = sanitizeDecimalString(e.target.value);
                   setPurchaseForm((prev) => ({
                     ...prev,
                     price: val,
@@ -132,9 +133,6 @@ const ShoppingPurchaseModal: React.FC<ShoppingPurchaseModalProps> = ({
                 currencyOptions={currencyOptions}
               />
             </div>
-            <p className="text-[11px] text-gray-400 mt-1">
-              Opzionale. Lascia vuoto se non vuoi tracciare il prezzo.
-            </p>
           </div>
         </div>
 
@@ -152,7 +150,7 @@ const ShoppingPurchaseModal: React.FC<ShoppingPurchaseModalProps> = ({
         {/* Riga 2: Marchio / Brand */}
         <div>
           <label className="block text-xs font-bold text-gray-500 uppercase mb-1">
-            Marchio / Brand <span className="text-gray-400 font-normal lowercase">(opzionale)</span>
+            Marchio / Brand
           </label>
           <ShoppingBrandAutocomplete
             value={purchaseForm.brandName}

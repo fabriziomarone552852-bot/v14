@@ -13,7 +13,7 @@ export const ShoppingStatsOverview: React.FC<ShoppingStatsOverviewProps> = ({
   return (
     <ArchiveHeader
       icon={<ShoppingIcon className="w-5 h-5 text-white" />}
-      title="Gestione Spesa & Liste"
+      title="Spesa & Liste"
       subtitle="Organizza e consulta gruppi, liste della spesa e lo storico prezzi nel tempo."
       className={panelClass}
     />

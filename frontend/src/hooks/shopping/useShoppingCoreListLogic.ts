@@ -213,14 +213,14 @@ export function useShoppingCoreListLogic() {
   }, [lists, activeListId, setActiveListId]);
 
   const handleToggleCatalogItem = useCallback(
-    async (
+    (
       product: ShoppingProductOption,
       existingItem: ShoppingListItem | null,
       targetBrand?: ShoppingProductBrandLink | null
     ) => {
       if (!activeListId) return;
       if (existingItem) {
-        await mutations.deleteItem({ id: existingItem.id, listId: activeListId });
+        void mutations.deleteItem({ id: existingItem.id, listId: activeListId });
       } else {
         const displayName = (product.displayName || product.nameNormalized || '').trim();
         if (!displayName) return;
@@ -228,7 +228,7 @@ export function useShoppingCoreListLogic() {
         const brandName = targetBrand?.brand?.nameNormalized ?? product.brandName ?? undefined;
         const brandNotes = targetBrand?.notes ?? undefined;
 
-        await mutations.createItem({
+        void mutations.createItem({
           shoppingListId: activeListId,
           productName: displayName,
           brandId: brandId ?? undefined,

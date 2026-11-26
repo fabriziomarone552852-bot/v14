@@ -12,6 +12,7 @@ import ShoppingBrandAutocomplete from '@/components/shared/shopping/ShoppingBran
 import DatePicker from '@/components/shared/utils/DatePicker/DatePicker';
 import { TagIcon } from '@/components/shared/utils/Icons';
 import { formatUnitForQuantity } from '@/components/shared/shopping/ShoppingUnitSelect';
+import { sanitizeDecimalString } from '@/utils/decimalUtils';
 
 export interface MobileShoppingPurchaseFormProps {
   itemTotalQuantity?: number | null;
@@ -82,7 +83,7 @@ export const MobileShoppingPurchaseForm: React.FC<MobileShoppingPurchaseFormProp
         {/* Prezzo Pagato */}
         <div>
           <label className="block text-xs font-bold text-gray-600 uppercase mb-1">
-            Prezzo <span className="font-normal text-[10px] text-gray-400 lowercase">(opzionale)</span>
+            Prezzo
           </label>
           <div className="flex items-center gap-1.5">
             <input
@@ -92,7 +93,7 @@ export const MobileShoppingPurchaseForm: React.FC<MobileShoppingPurchaseFormProp
               placeholder="0,00"
               value={purchaseForm.price}
               onChange={(e) => {
-                const val = e.target.value.replace(/[^0-9.,]/g, '');
+                const val = sanitizeDecimalString(e.target.value);
                 setPurchaseForm((prev) => ({
                   ...prev,
                   price: val,
@@ -106,7 +107,6 @@ export const MobileShoppingPurchaseForm: React.FC<MobileShoppingPurchaseFormProp
               currencyOptions={currencyOptions}
             />
           </div>
-          <p className="text-[11px] text-gray-400 mt-1">Opzionale</p>
         </div>
       </div>
 

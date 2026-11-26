@@ -13,7 +13,7 @@ export const EventStatsOverview: React.FC<EventStatsOverviewProps> = ({
   return (
     <ArchiveHeader
       icon={<CalendarIcon className="w-5 h-5" />}
-      title="Gestione Eventi"
+      title="Eventi & Calendario"
       subtitle="Organizza e consulta i tuoi appuntamenti e impegni in programma."
       className={panelClass}
     />

@@ -5,6 +5,7 @@ import { useShoppingMutations } from '@/hooks/shopping/useShoppingMutations';
 import { useModal } from '@/hooks/useModals';
 import { AddButton } from '@/components/shared/utils/AddButton';
 import { UsersIcon } from '@/components/shared/utils/Icons';
+import { useFadeScrollbar } from '@/hooks/ui/useFadeScrollbar';
 import { ShoppingListModal, makeEmptyForm, type ListFormState } from './ShoppingListModal';
 import { ShoppingPersonalListsSection } from './ShoppingPersonalListsSection';
 import { ShoppingGroupAccordionSection } from './ShoppingGroupAccordionSection';
@@ -51,6 +52,7 @@ const ShoppingGroupsAndListsColumn: React.FC<ShoppingGroupsAndListsColumnProps> 
 }) => {
   const mutations = useShoppingMutations();
   const createModal = useModal<null>();
+  const { isScrolling, handleScroll } = useFadeScrollbar();
 
   const [form, setForm] = useState<ListFormState>(() => makeEmptyForm(''));
   const [isPersonalExpanded, setIsPersonalExpanded] = useState<boolean>(false);
@@ -188,7 +190,12 @@ const ShoppingGroupsAndListsColumn: React.FC<ShoppingGroupsAndListsColumnProps> 
         </div>
 
         {/* Lista Fisarmonica Gruppi e Liste Spesa */}
-        <div className="flex-1 min-h-0 overflow-y-auto space-y-3 w-full min-w-0 p-1 pr-1.5 custom-scrollbar">
+        <div
+          onScroll={handleScroll}
+          className={`flex-1 min-h-0 overflow-y-auto space-y-3 w-full min-w-0 p-1 pr-1.5 modal-scrollbar ${
+            isScrolling ? 'is-scrolling' : ''
+          }`}
+        >
           {/* Sezione Personale (Private) */}
           <ShoppingPersonalListsSection
             lists={personalLists}

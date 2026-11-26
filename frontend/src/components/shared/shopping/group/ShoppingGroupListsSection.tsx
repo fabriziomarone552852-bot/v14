@@ -3,6 +3,7 @@ import React from 'react';
 import type { ShoppingListSummary } from '@/types/shopping';
 import { ShoppingIcon, CheckCircleIcon } from '@/components/shared/utils/Icons';
 import { AddButton } from '@/components/shared/utils/AddButton';
+import { useFadeScrollbar } from '@/hooks/ui/useFadeScrollbar';
 import type { ListFilterStatus } from './useShoppingGroupDetailLogic';
 
 export interface ShoppingGroupListsSectionProps {
@@ -30,6 +31,8 @@ export const ShoppingGroupListsSection: React.FC<ShoppingGroupListsSectionProps>
   onCreateListInGroup,
   onClose,
 }) => {
+  const { isScrolling, handleScroll } = useFadeScrollbar();
+
   return (
     <div className="bg-white rounded-2xl shadow-2xl p-5 border border-gray-200 flex flex-col h-full max-h-[85vh] w-full">
       <div className="flex items-center justify-between pb-3 mb-3 border-b border-gray-100">
@@ -80,7 +83,12 @@ export const ShoppingGroupListsSection: React.FC<ShoppingGroupListsSectionProps>
       </div>
 
       {/* Elenco Liste con click di selezione */}
-      <div className="flex-1 overflow-y-auto space-y-2 pr-1 custom-scrollbar min-h-[220px]">
+      <div
+        onScroll={handleScroll}
+        className={`flex-1 overflow-y-auto space-y-2 pr-1 modal-scrollbar min-h-[220px] ${
+          isScrolling ? 'is-scrolling' : ''
+        }`}
+      >
         {filteredGroupLists.length === 0 ? (
           <p className="py-8 text-center text-xs text-gray-400">
             Nessuna lista trovata per questo filtro.

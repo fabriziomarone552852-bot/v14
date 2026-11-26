@@ -91,7 +91,7 @@ export function useMobileShoppingListDetailLogic({
         });
       } else {
         const boughtQuantity = item.quantity != null ? item.quantity : 1;
-        await mutations.addInventoryBatch({
+        void mutations.addInventoryBatch({
           itemId: item.id,
           listId: item.shoppingListId,
           data: {
@@ -104,11 +104,6 @@ export function useMobileShoppingListDetailLogic({
             currencyId: item.lastCurrencyId ? Number(item.lastCurrencyId) : (Number(eurCurrencyId) || undefined),
             isOnSale: false,
           },
-        });
-        await mutations.togglePurchased({
-          id: item.id,
-          listId: item.shoppingListId,
-          data: { isPurchased: true },
         });
       }
     },
@@ -125,6 +120,8 @@ export function useMobileShoppingListDetailLogic({
       const originalQuantity = targetItem.quantity != null ? targetItem.quantity : 1;
       const parsedPrice = purchaseForm.price.trim() ? Number(purchaseForm.price.replace(',', '.')) : 0;
       const purchasePrice = isNaN(parsedPrice) ? 0 : parsedPrice;
+
+      purchaseModal.close();
 
       try {
         await mutations.addInventoryBatch({
@@ -151,15 +148,12 @@ export function useMobileShoppingListDetailLogic({
             listId: list.id,
             data: { quantity: remainingQuantity },
           });
-        } else {
           await mutations.togglePurchased({
             id: targetItem.id,
             listId: list.id,
-            data: { isPurchased: true },
+            data: { isPurchased: false },
           });
         }
-
-        purchaseModal.close();
       } catch {
         // Error handled by mutation toast
       }

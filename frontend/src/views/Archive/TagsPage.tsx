@@ -18,7 +18,7 @@ export const TagsPage: React.FC = () => {
     <div className="h-full flex flex-col gap-2 sm:gap-3.5 w-full max-w-[1600px] mx-auto relative z-10 pb-1">
       {/* 1. HEADER STANDARD */}
       <ArchiveHeader
-        title="TAG & ETICHETTE"
+        title="Tag & Etichette"
         subtitle="Bacheca di frequenza ed elenco alfabetico dei tag associati alle tue revisioni periodiche."
         icon={<TagIcon className="w-5 h-5 text-white" />}
         className={PANEL_CLASS}

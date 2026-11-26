@@ -82,7 +82,7 @@ export const MobileShoppingQuickPriceModal: React.FC<MobileShoppingQuickPriceMod
         <div className="p-3 bg-blue-50/60 border border-blue-100 rounded-2xl space-y-1.5">
           <label className="text-[11px] font-bold text-gray-700 flex items-center gap-1.5 uppercase tracking-wider">
             <TaskListIcon className="w-3.5 h-3.5 text-blue-600" />
-            <span>Associa a Lista Spesa (Opzionale)</span>
+            <span>Associa a Lista Spesa</span>
           </label>
           <ShoppingListSelect
             value={selectedListId}

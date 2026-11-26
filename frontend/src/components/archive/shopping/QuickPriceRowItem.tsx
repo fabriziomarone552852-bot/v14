@@ -3,6 +3,7 @@ import ShoppingProductAutocomplete from '@/components/shared/shopping/ShoppingPr
 import ShoppingBrandAutocomplete from '@/components/shared/shopping/ShoppingBrandAutocomplete';
 import DatePicker from '@/components/shared/utils/DatePicker/DatePicker';
 import { TrashIcon } from '@/components/shared/utils/Icons';
+import { sanitizeDecimalString } from '@/utils/decimalUtils';
 import { InlineDropdownSelect } from './InlineDropdownSelect';
 import type { QuickPriceRow, DropdownOption } from './QuickPriceTypes';
 import type { ShoppingProductOption, ShoppingSupplierOption } from '@/types/shopping';
@@ -73,7 +74,7 @@ export const QuickPriceRowItem: React.FC<QuickPriceRowItemProps> = ({
           type="text"
           inputMode="decimal"
           value={row.priceUnit}
-          onChange={(e) => onUpdateRow(row.id, 'priceUnit', e.target.value.replace(/[^0-9.,]/g, '').replace(/,/g, '.'))}
+          onChange={(e) => onUpdateRow(row.id, 'priceUnit', sanitizeDecimalString(e.target.value))}
           placeholder="0.00"
           className="w-full px-2 py-2 border border-gray-200 rounded-xl text-xs font-bold text-slate-800 focus:outline-none focus:border-blue-500 bg-white"
         />
@@ -85,7 +86,7 @@ export const QuickPriceRowItem: React.FC<QuickPriceRowItemProps> = ({
           type="text"
           inputMode="decimal"
           value={row.priceTotal}
-          onChange={(e) => onUpdateRow(row.id, 'priceTotal', e.target.value.replace(/[^0-9.,]/g, '').replace(/,/g, '.'))}
+          onChange={(e) => onUpdateRow(row.id, 'priceTotal', sanitizeDecimalString(e.target.value))}
           placeholder="0.00"
           className="w-full px-2 py-2 border border-blue-200/60 rounded-xl text-xs font-bold text-blue-700 focus:outline-none focus:border-blue-500 bg-blue-50/20"
         />
@@ -97,7 +98,7 @@ export const QuickPriceRowItem: React.FC<QuickPriceRowItemProps> = ({
           type="text"
           inputMode="decimal"
           value={row.quantity}
-          onChange={(e) => onUpdateRow(row.id, 'quantity', e.target.value)}
+          onChange={(e) => onUpdateRow(row.id, 'quantity', sanitizeDecimalString(e.target.value))}
           placeholder="1"
           className="w-full px-2 py-2 border border-gray-200 rounded-xl text-xs text-center text-slate-700 focus:outline-none focus:border-blue-500 bg-white"
         />

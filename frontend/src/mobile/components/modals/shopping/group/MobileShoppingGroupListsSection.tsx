@@ -1,6 +1,7 @@
 // src/mobile/components/modals/shopping/group/MobileShoppingGroupListsSection.tsx
 import React from 'react';
 import { ShoppingIcon } from '@/components/shared/utils/Icons';
+import { useFadeScrollbar } from '@/hooks/ui/useFadeScrollbar';
 import type { ShoppingGroupSummary, ShoppingListSummary } from '@/types/shopping';
 
 export interface MobileShoppingGroupListsSectionProps {
@@ -24,6 +25,7 @@ export const MobileShoppingGroupListsSection: React.FC<MobileShoppingGroupListsS
   onSelectList,
   onClose,
 }) => {
+  const { isScrolling, handleScroll } = useFadeScrollbar();
   const openListsCount = groupLists.filter((l) => !l.isCompleted).length;
   const completedListsCount = groupLists.filter((l) => l.isCompleted).length;
 
@@ -121,7 +123,12 @@ export const MobileShoppingGroupListsSection: React.FC<MobileShoppingGroupListsS
       )}
 
       {/* Elenco Liste */}
-      <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden custom-scrollbar space-y-1.5 pr-0.5">
+      <div
+        onScroll={handleScroll}
+        className={`flex-1 min-h-0 overflow-y-auto overflow-x-hidden modal-scrollbar space-y-1.5 pr-0.5 ${
+          isScrolling ? 'is-scrolling' : ''
+        }`}
+      >
         {filteredGroupLists.length === 0 ? (
           <p className="text-xs text-gray-400 italic py-4 text-center">
             Nessuna lista trovata per questo filtro.

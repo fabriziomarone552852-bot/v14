@@ -88,13 +88,16 @@ Quando l'utente scrive **"fine"** (o frasi equivalenti come *"abbiamo finito"*, 
      - Se il numero di punti in `highlights`, `improvements` o `fixes` sta crescendo eccessivamente o include micro-interventi correlati/ripetitivi, l'assistente deve **accorparli e riassumerli in punti chiari, compatti e significativi**.
      - Eliminare dettagli tecnici ridondanti, unire modifiche affini (es. più ritocchi alla stessa schermata raggruppati in una sola voce) e mantenere il changelog pulito, leggibile e orientato al valore reale per l'utente, evitando categoricamente elenchi dispersivi o troppo prolissi.
 
-3. **🧪 Verifica Compilazione & Type-Check**:
+3. **📲 Aggiornamento Note Popup Avvio ([`frontend/public/version.json`](file:///c:/Users/Fabrizio/Desktop/app/smart/v14/frontend/public/version.json))**:
+   - Aggiornare il campo `"notes"` di `frontend/public/version.json` con un **brevissimo riassunto discorsivo** (1 frase compatta, orientata all'utente) delle novità della versione corrente in cima al changelog, così che compaia nel riquadro *"Note di rilascio"* del popup di aggiornamento all'apertura dell'app Android (`AppUpdateModal`).
+
+4. **🧪 Verifica Compilazione & Type-Check**:
    - Eseguire `npm run build` all'interno di `frontend/` per verificare che non vi siano errori di compilazione TypeScript o problemi di bundling.
 
-4. **📊 Report Finale di Chiusura per l'Utente**:
+5. **📊 Report Finale di Chiusura per l'Utente**:
    - Fornire un riassunto finale conciso che elenca:
      - Le modifiche registrate nel Backlog.
-     - Le voci aggiunte al Changelog.
+     - Le voci aggiunte al Changelog e la sintesi salvata in `version.json`.
      - L'esito del controllo di compilazione.
 
 ---
