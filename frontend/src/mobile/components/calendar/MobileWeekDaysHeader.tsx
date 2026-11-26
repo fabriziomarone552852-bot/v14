@@ -1,5 +1,6 @@
 // src/mobile/components/calendar/MobileWeekDaysHeader.tsx
 import React from 'react';
+import { WeatherBadge } from '@/components/weather/WeatherBadge';
 import type { ComputedDayData } from '@/utils/calendarLayoutUtils';
 
 interface MobileWeekDaysHeaderProps {
@@ -46,6 +47,15 @@ export const MobileWeekDaysHeader: React.FC<MobileWeekDaysHeaderProps> = ({
             >
               {day.dayNum}
             </span>
+            <div className="pointer-events-none mt-0.5 flex items-center justify-center">
+              <WeatherBadge
+                targetDateStr={day.dateStr}
+                isToday={isToday}
+                iconOnly={true}
+                readOnly={true}
+                className="scale-90 !p-0"
+              />
+            </div>
           </button>
         );
       })}

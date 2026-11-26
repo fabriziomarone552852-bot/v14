@@ -10,6 +10,7 @@ import { WeatherIcon } from './WeatherIcon';
 import { WeatherMetricsSidebar } from './WeatherMetricsSidebar';
 import { WeatherHourlyStrip } from './WeatherHourlyStrip';
 import { WeatherDailyList } from './WeatherDailyList';
+import { useBackHandler } from '@/utils/backButtonManager';
 import {
   formatItalianDayHeader,
   formatUpdatedAtHHMM,
@@ -46,6 +47,8 @@ export const WeatherDetailModal: React.FC<WeatherDetailModalProps> = ({
 }) => {
   const bodyScrollRef = useRef<HTMLDivElement | null>(null);
   const [showBottomFade, setShowBottomFade] = useState(true);
+
+  useBackHandler(isOpen, onClose, 20);
 
   const updateBodyFade = useCallback(() => {
     const el = bodyScrollRef.current;
@@ -112,7 +115,7 @@ export const WeatherDetailModal: React.FC<WeatherDetailModalProps> = ({
 
   const modalContent = (
     <div
-      className="fixed inset-0 z-[10000] flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-xs animate-fadeIn select-none"
+      className="fixed inset-0 z-[10000] flex items-center justify-center p-0 sm:p-4 bg-white sm:bg-slate-900/50 sm:backdrop-blur-xs animate-fadeIn select-none"
       onClick={(e) => {
         e.stopPropagation();
         onClose();
@@ -126,27 +129,22 @@ export const WeatherDetailModal: React.FC<WeatherDetailModalProps> = ({
       role="dialog"
     >
       <div
-        className="relative w-full max-w-2xl max-h-[90dvh] grid grid-cols-1 sm:grid-cols-[minmax(0,1fr)_148px] grid-rows-[auto_minmax(0,1fr)_auto_auto] sm:grid-rows-[auto_minmax(0,1fr)_auto] rounded-3xl border border-white/80 bg-white/95 shadow-2xl backdrop-blur pointer-events-auto overflow-hidden"
+        className="relative w-full h-[100dvh] sm:h-auto sm:max-w-2xl sm:max-h-[90dvh] grid grid-cols-1 sm:grid-cols-[minmax(0,1fr)_148px] grid-rows-[auto_minmax(0,1fr)_auto] rounded-none sm:rounded-3xl border-0 sm:border border-white/80 bg-white sm:bg-white/95 sm:shadow-2xl sm:backdrop-blur pointer-events-auto overflow-hidden"
         onClick={(e) => e.stopPropagation()}
         onDoubleClick={(e) => e.stopPropagation()}
       >
-        {/* Header Fisso */}
-        <div className="flex items-start justify-between px-6 pt-5 pb-3 sm:col-start-1 sm:row-start-1">
-          <div>
-            <span className="text-xs font-bold uppercase tracking-wider text-blue-600">
-              Open-Meteo Weather
-            </span>
-            <h3 className="text-xl font-extrabold text-slate-900 mt-0.5">
-              {cityName || 'Previsioni Meteo'}
-            </h3>
-          </div>
+        {/* Header Fisso: Solo Nome Città + Chiudi */}
+        <div className="flex items-center justify-between px-4 sm:px-6 pt-[max(env(safe-area-inset-top,0px),14px)] sm:pt-5 pb-3 border-b border-slate-100 sm:border-b-0 bg-gray-50/95 sm:bg-transparent sm:col-start-1 sm:row-start-1">
+          <h3 className="text-xl font-extrabold text-slate-900 truncate pr-2">
+            {cityName || 'Previsioni Meteo'}
+          </h3>
           <button
             type="button"
             onClick={(e) => {
               e.stopPropagation();
               onClose();
             }}
-            className="rounded-full p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700 transition cursor-pointer"
+            className="rounded-xl sm:rounded-full p-2 sm:p-1.5 text-slate-500 sm:text-slate-400 hover:bg-slate-200/70 sm:hover:bg-slate-100 hover:text-slate-800 transition cursor-pointer shrink-0"
             aria-label="Chiudi"
           >
             ✕
@@ -158,7 +156,7 @@ export const WeatherDetailModal: React.FC<WeatherDetailModalProps> = ({
           <div
             ref={bodyScrollRef}
             onScroll={updateBodyFade}
-            className="flex-1 min-h-0 overflow-y-auto px-6 pb-6 space-y-4 modal-scrollbar"
+            className="flex-1 min-h-0 overflow-y-auto px-4 sm:px-6 pt-3 sm:pt-0 pb-5 sm:pb-6 space-y-4 modal-scrollbar"
           >
             {/* 1. Card Principale (Hero — senza vento) */}
             <div className="flex items-center justify-between gap-3 rounded-2xl bg-gradient-to-br from-blue-50/80 to-indigo-50/50 p-4 border border-blue-100/60">
@@ -222,12 +220,32 @@ export const WeatherDetailModal: React.FC<WeatherDetailModalProps> = ({
               )}
             </div>
 
-            {/* 2. Prossime Ore (striscia per Oggi, griglia 4x6 completa 00-23 per altri giorni) */}
+            {/* 2a. Giorni passati o futuri su Mobile (< sm): i 6 riquadri metriche precedono il dettaglio orario */}
+            {!isToday && (
+              <WeatherMetricsSidebar
+                isToday={false}
+                current={current}
+                activeDaily={activeDaily}
+                className="sm:hidden !p-0 !bg-transparent !border-0"
+              />
+            )}
+
+            {/* 2b. Prossime Ore (striscia per Oggi, griglia 4x6 completa 00-23 per altri giorni) */}
             <WeatherHourlyStrip
               hourly={relevantHourly}
               isToday={isToday}
               layout={isToday ? 'strip' : 'grid'}
             />
+
+            {/* 2c. Oggi su Mobile (< sm): i 6 riquadri metriche seguono la striscia oraria */}
+            {isToday && (
+              <WeatherMetricsSidebar
+                isToday={true}
+                current={current}
+                activeDaily={activeDaily}
+                className="sm:hidden !p-0 !bg-transparent !border-0"
+              />
+            )}
 
             {/* 3. Prossimi Giorni (mostrato solo aprendo il meteo di Oggi) */}
             {isToday && (
@@ -247,16 +265,16 @@ export const WeatherDetailModal: React.FC<WeatherDetailModalProps> = ({
           />
         </div>
 
-        {/* Barra Laterale a Tutta Altezza con i 6 Riquadri Illustrati */}
+        {/* Barra Laterale a Tutta Altezza con i 6 Riquadri Illustrati (solo Desktop/Tablet >= sm) */}
         <WeatherMetricsSidebar
           isToday={isToday}
           current={current}
           activeDaily={activeDaily}
-          className="sm:col-start-2 sm:row-start-1 sm:row-span-3"
+          className="hidden sm:flex sm:col-start-2 sm:row-start-1 sm:row-span-3"
         />
 
         {/* Footer Fisso (senza pulsante Chiudi) */}
-        <div className="px-6 py-3 border-t border-slate-100 bg-white/90 flex items-center justify-between text-[11px] text-slate-400 sm:col-start-1 sm:row-start-3">
+        <div className="px-4 sm:px-6 py-2.5 sm:py-3 pb-[max(env(safe-area-inset-bottom,0px),12px)] sm:pb-3 border-t border-slate-100 bg-gray-50/95 sm:bg-white/90 flex items-center justify-between text-[11px] text-slate-400 sm:col-start-1 sm:row-start-3">
           <span>
             Dati forniti da <strong>Open-Meteo</strong>
             {updatedLabel ? ` · Agg. ${updatedLabel}` : ''}

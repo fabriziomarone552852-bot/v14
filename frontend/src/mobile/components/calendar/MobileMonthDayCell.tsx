@@ -2,6 +2,7 @@ import React from 'react';
 import type { CalendarEvent, DbTask, Category } from '@/types';
 import { getHexColor, getDynamicStyles } from '@/utils/uiUtils';
 import { CheckIcon } from '@/components/shared/utils/Icons';
+import { WeatherBadge } from '@/components/weather/WeatherBadge';
 import { useLongPress } from '@/mobile/hooks/useLongPress';
 
 interface MobileMonthDayCellProps {
@@ -58,10 +59,10 @@ export const MobileMonthDayCell: React.FC<MobileMonthDayCellProps> = ({
       }
       title="Tocca per aprire anteprima • Tieni premuto per aprire il giorno"
     >
-      {/* RIGA SUPERIORE: NUMERO DEL GIORNO + PALLINO MOOD SE PRESENTE */}
-      <div className="flex items-center justify-between w-full leading-none shrink-0 pointer-events-none">
+      {/* RIGA SUPERIORE: NUMERO DEL GIORNO + ICONA METEO + PALLINO MOOD SE PRESENTE */}
+      <div className="flex items-center justify-between w-full leading-none shrink-0 pointer-events-none gap-0.5">
         <span
-          className={`text-[10px] w-4 h-4 flex items-center justify-center rounded-full transition-all ${
+          className={`text-[10px] w-4 h-4 flex items-center justify-center rounded-full shrink-0 transition-all ${
             isToday
               ? 'bg-amber-500 text-white font-black shadow-xs'
               : 'text-gray-700 font-extrabold'
@@ -70,12 +71,24 @@ export const MobileMonthDayCell: React.FC<MobileMonthDayCellProps> = ({
           {dayNum}
         </span>
 
-        {mood && (
+        <div className="flex-1 flex items-center justify-center min-w-0 pointer-events-none">
+          <WeatherBadge
+            targetDateStr={dateKey}
+            isToday={isToday}
+            iconOnly={true}
+            readOnly={true}
+            className="scale-75 !p-0"
+          />
+        </div>
+
+        {mood ? (
           <div
             className="w-2 h-2 rounded-full shrink-0 shadow-2xs"
             style={{ backgroundColor: moodColorHex || '#9ca3af' }}
             title={`Umore: ${mood.category_name}`}
           />
+        ) : (
+          <div className="w-2 shrink-0" />
         )}
       </div>
 

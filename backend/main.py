@@ -41,6 +41,7 @@ from backend.domains.trackers.movie_router import router as movies_router
 from backend.domains.users.router import router as users_router
 from backend.domains.social.router import router as social_router
 from backend.domains.weather.router import router as weather_router
+from backend.domains.horoscope.router import router as horoscope_router
 
 
 def ensure_shopping_seed_data() -> None:
@@ -134,6 +135,7 @@ app.include_router(trackers_router)
 app.include_router(movies_router)
 app.include_router(social_router)
 app.include_router(weather_router)
+app.include_router(horoscope_router)
 
 from fastapi import Request
 from fastapi.responses import JSONResponse

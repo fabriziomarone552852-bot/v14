@@ -3,6 +3,7 @@ import React from 'react';
 import { CalendarIcon, ArrowDownIcon } from '@/components/shared/utils/Icons';
 import { TruncatedTitle } from '@/components/shared/utils/TruncatedTitle';
 import { EmptyState } from '@/components/shared/utils/EmptyState';
+import { WeatherBadge } from '@/components/weather/WeatherBadge';
 import type { CalendarEvent } from '@/types';
 
 export interface MobileDayEventsCompactProps {
@@ -10,6 +11,8 @@ export interface MobileDayEventsCompactProps {
   visibleEvents: CalendarEvent[];
   hasMoreEvents: boolean;
   eventsListRef: React.RefObject<HTMLDivElement | null>;
+  targetDateStr?: string;
+  isToday?: boolean;
   onExpandEvents: () => void;
   onOpenEventDetail: (event: CalendarEvent) => void;
 }
@@ -19,6 +22,8 @@ export const MobileDayEventsCompact: React.FC<MobileDayEventsCompactProps> = ({
   visibleEvents,
   hasMoreEvents,
   eventsListRef,
+  targetDateStr,
+  isToday = true,
   onExpandEvents,
   onOpenEventDetail,
 }) => {
@@ -40,6 +45,12 @@ export const MobileDayEventsCompact: React.FC<MobileDayEventsCompactProps> = ({
             {events.length}
           </span>
         </div>
+
+        <WeatherBadge
+          targetDateStr={targetDateStr}
+          isToday={isToday}
+          minimal={true}
+        />
       </div>
 
       <div

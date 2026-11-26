@@ -2,12 +2,15 @@
 import React from 'react';
 import { CalendarIcon, CloseIcon } from '@/components/shared/utils/Icons';
 import { EmptyState } from '@/components/shared/utils/EmptyState';
+import { WeatherBadge } from '@/components/weather/WeatherBadge';
 import { ExpandedEventRow } from '../rows/ExpandedEventRow';
 import type { CalendarEvent } from '@/types';
 
 export interface MobileDayEventsExpandedProps {
   events: CalendarEvent[];
   formattedDateStr: string;
+  targetDateStr?: string;
+  isToday?: boolean;
   isEventsSelection: boolean;
   selectedIds: (number | string)[];
   onToggleSelectEvent: (id: number) => void;
@@ -18,6 +21,8 @@ export interface MobileDayEventsExpandedProps {
 export const MobileDayEventsExpanded: React.FC<MobileDayEventsExpandedProps> = ({
   events,
   formattedDateStr,
+  targetDateStr,
+  isToday = true,
   isEventsSelection,
   selectedIds,
   onToggleSelectEvent,
@@ -39,14 +44,21 @@ export const MobileDayEventsExpanded: React.FC<MobileDayEventsExpandedProps> = (
           </div>
         </div>
 
-        <button
-          type="button"
-          onClick={onCloseExpanded}
-          className="p-1.5 rounded-lg text-gray-400 hover:bg-gray-200 hover:text-red-500 transition-colors cursor-pointer"
-          title="Chiudi visualizzazione estesa"
-        >
-          <CloseIcon className="w-5 h-5" />
-        </button>
+        <div className="flex items-center gap-2 shrink-0">
+          <WeatherBadge
+            targetDateStr={targetDateStr}
+            isToday={isToday}
+            minimal={true}
+          />
+          <button
+            type="button"
+            onClick={onCloseExpanded}
+            className="p-1.5 rounded-lg text-gray-400 hover:bg-gray-200 hover:text-red-500 transition-colors cursor-pointer"
+            title="Chiudi visualizzazione estesa"
+          >
+            <CloseIcon className="w-5 h-5" />
+          </button>
+        </div>
       </div>
 
       <div className="flex-1 min-h-0 overflow-y-auto custom-scrollbar space-y-2.5 pt-3 px-2 pb-3">

@@ -11,6 +11,8 @@ export interface MobileDayExpandedViewsProps {
   expandedView: ExpandedViewType;
   onCloseExpanded: () => void;
   formattedDateStr: string;
+  targetDateStr?: string;
+  isToday?: boolean;
 
   // Events
   mappedEvents: CalendarEvent[];
@@ -45,6 +47,8 @@ export const MobileDayExpandedViews: React.FC<MobileDayExpandedViewsProps> = ({
   expandedView,
   onCloseExpanded,
   formattedDateStr,
+  targetDateStr,
+  isToday = true,
   mappedEvents,
   isEventsSelection,
   onToggleSelectEvent,
@@ -74,6 +78,8 @@ export const MobileDayExpandedViews: React.FC<MobileDayExpandedViewsProps> = ({
         <MobileDayEventsExpanded
           events={mappedEvents}
           formattedDateStr={formattedDateStr}
+          targetDateStr={targetDateStr}
+          isToday={isToday}
           isEventsSelection={isEventsSelection}
           selectedIds={selectedIds}
           onToggleSelectEvent={onToggleSelectEvent}

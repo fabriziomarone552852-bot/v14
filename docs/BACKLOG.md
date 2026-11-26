@@ -21,10 +21,9 @@ Questo documento traccia in modo strutturato, prioritizzato e costantemente aggi
 | **FEAT-005** | Sezione Liste Tematiche & Personalizzate (Posti, Siti, Wishlist, Giochi) | `custom_lists` | 🟡 Parziale | 🟡 Parziale | 🔴 **Massima (Passo Fondamentale)** |
 | **FEAT-013** | Archivio Notifiche / Sezione Storico Notifiche Permanente | `notifications` / UI | 🟢 Completato | 🟡 Da Implementare | 🟡 **Media** |
 | **FEAT-010** | Database & Sincronizzazione Centralizzata Quotes (Citazioni del Giorno) | `core` / quotes | 🔴 Da Implementare | 🔴 Da Implementare | 🟡 **Media** |
-| **WEATHER-002** | Sistemazione Meteo & Elemento Meteo (Desktop & Mobile) | `weather` / UI | 🟢 Completato | 🟡 Parziale | 🟡 **Media-Alta** |
 | **AI-001** | Studio & Integrazione Intelligenza Artificiale (Voice, Breakdown, Briefing) | `ai` / assistant | 🔴 Da Analizzare | 🔴 Da Analizzare | 🟡 **Media-Alta (Ricerca)** |
 | **FEAT-016** | Lettere al Futuro Me (Time Capsule nascoste fino allo scadere del countdown impostato) | `capsules` / personal | 🔴 Da Strutturare | 🔴 Da Implementare | 🟡 **Media** |
-| **HOME-001** | Widget Homepage Rotante (Citazione del Giorno, Oroscopo & Meteo) | `home` / UI | 🔴 Da Iniziare | 🔴 Da Iniziare | 🟡 **Media-Alta** |
+| **HOME-001** | Widget Homepage con Oroscopo & Modale "Oggi in pillole" (Backend & UI pronti nel cassetto) | `home` / UI | 🟢 Pronto (in pausa) | 🟡 In Pausa (nel cassetto) | 🟢 **Bassa** |
 
 *Legenda Stati:*
 - 🟢 **Completato / Supportato**: Già sviluppato, presente nel DB o API pronta.
@@ -136,18 +135,9 @@ Questo documento traccia in modo strutturato, prioritizzato e costantemente aggi
 
 ---
 
-## ⚙️ 6. Citazioni, Meteo & Sistema
+## ⚙️ 6. Citazioni & Sistema
 
-### [WEATHER-002] Sistemazione Meteo & Elemento Meteo (Desktop & Mobile)
-- **Descrizione**: Revisione e sistemazione del funzionamento del meteo e del relativo elemento/widget visivo sia nell'interfaccia Desktop che in quella Mobile.
-- **Completato (🟢)**:
-  - Migrazione completa del backend e del layer dati a **Open-Meteo** (Forecast fino a **16 giorni** `timezone=auto`, ultimi 7 giorni in RAM, archivio storico on-demand `/weather/history` con cache 12h per mesi/settimane/giorni passati, moduli `parser.py` e `history.py`, vento/raffiche/direzione in `km/h`, temperatura percepita, probabilità pioggia, alba/tramonto, UV, medie giornaliere di pressione `hPa`, nuvolosità e umidità, Open-Meteo Geocoding e reverse geocoding GPS `/weather/reverse`).
-  - Ridisegno del modale dettagli (`WeatherDetailModal`) con barra laterale illustrata a 6 riquadri attivi sia su *Oggi* che su qualsiasi altro giorno passato/futuro, *Prossime Ore* + *Prossimi Giorni* per *Oggi* e griglia oraria completa `4×6` (`00:00–23:00` senza scrollbar) per gli altri giorni, con isolamento degli eventi `Portal`.
-  - **Integrazione Agenda Desktop (`/giorno`, `/settimana`, `/mese`)**: Rimosso il vecchio badge fluttuante da `AppShellLayout` e inseriti i widget meteo dedicati nella testata "Eventi" di `/giorno` (`minimal`), nelle intestazioni giornaliere di `/settimana` (`minimal` `xs`) e al centro della riga superiore di ogni cella in `/mese` (`iconOnly`), con deduplicazione automatica mensile TanStack Query per lo storico.
-  - **Finestra Atmosferica HomePage Desktop (`WeatherAtmosphereCard`)**: Snellito il componente monolitico (da >500 righe a moduli dedicati `<300` righe), ridisegnati tutti gli scenari paesaggistici con livelli vettoriali 100% opachi (senza trasparenze in sovrapposizione), precipitazioni naturali che emergono direttamente da sotto le nuvole, calcolo astronomico in RAM della fase lunare reale nelle viste notturne (`moonPhaseUtils.ts`) e apertura di `WeatherDetailModal` al clic.
-- **Da Completare (🔴)**:
-  - Ripristino/integrazione completa su Mobile (visualizzazione meteo nelle viste Agenda smartphone + scheda impostazioni meteo mobile).
-- **Stato**: Backend 🟢 Completato | Frontend 🟡 Parziale *(Desktop & HomePage 🟢 Completati, resta Mobile — Priorità: Media-Alta)*.
+> 🗄️ **Modulo Meteo Open-Meteo Desktop & Mobile Completato**: L'intera revisione e integrazione del sistema meteo (`WEATHER-002`, inclusi Open-Meteo 16gg, storico mensile on-demand, finestra atmosferica Desktop con fasi lunari reali, striscia rotante Citazione ↔ Meteo in Home Mobile, widget in Giorno/Settimana/Mese, ricerca città in modale centrato e modale dettagli a tutta pagina su smartphone) è stata completata e archiviata in [`docs/BACKLOG_ARCHIVE.md`](file:///c:/Users/Fabrizio/Desktop/app/smart/v14/docs/BACKLOG_ARCHIVE.md).
 
 ### [FEAT-010] Database & Sincronizzazione Centralizzata Citazioni Giornaliere (Quotes)
 - **Descrizione**: Centralizzare le citazioni giornaliere (Quotes) tramite tabella database dedicata nel backend, in modo che tutti gli utenti e dispositivi visualizzino la stessa identica citazione del giorno in modo sincronizzato e consistente.
@@ -184,14 +174,12 @@ Questo documento traccia in modo strutturato, prioritizzato e costantemente aggi
 ## 🚀 9. Progetti Futuri & Idee di Roadmap
 
 ### 9.1 Mobile & Esperienza Utente
-- [ ] **[HOME-001] Widget Homepage Rotante (Citazione, Oroscopo & Meteo)**: Widget rotante in homepage che alterna citazione, oroscopo del giorno e meteo locale, con apertura espansa al click che mostra tutte e tre le informazioni.
-- [ ] **Notifiche Push Native Android (FCM / Local Notifications)**: Avvisi automatici per scadenze di task, eventi di calendario, promemoria serie ed episodi in uscita.
+- [ ] **[HOME-001] Riattivazione Oroscopo & Modale "Oggi in pillole" (Già sviluppati e messi nel cassetto)**: La striscia rotante Citazione ↔ Meteo è già attiva in Home Mobile (`MobileRotatingBriefingStrip`). Il parser Python self-hosted per l'oroscopo italiano (`backend/domains/horoscope/`), gli hook 0ms (`useHoroscope`, `useHoroscopePreference`), la card impostazioni (`MobileHoroscopeSettingsCard`) e il modale a tutt'altezza con barra inferiore a icone (`MobileDailyBriefingModal`) sono già codificati e conservati nel codebase per un eventuale utilizzo futuro.
 - [ ] **Scansione Codici a Barre (Barcode Scanner)**: Utilizzo fotocamera smartphone per aggiungere al volo prodotti alla lista spesa o libri tramite ISBN.
 - [ ] **Widget Android**: Widget per la schermata home dello smartphone per spuntare i task rapidi del giorno, la lista spesa e visualizzare la puntata in corso.
 
 ### 9.2 Agenda, Task & Pianificazione
 - [ ] **Visualizzazione Vista Gantt / Timeline**: Per progetti complessi con sotto-task gerarchici e scadenze concatenate.
-- [ ] **Integrazione Meteo nella DayPage**: Previsioni meteo contestuali nella vista Giorno basate su coordinate o città configurata.
 - [ ] **Report Settimanale / Mensile PDF**: Esportazione automatica di un documento riassuntivo con impegni svolti, abitudini rispettate, statistiche media consumati e bilancio dell'umore (*Mood Entries*).
 
 ### 9.3 Spesa & Dispensa

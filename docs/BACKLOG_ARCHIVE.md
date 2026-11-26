@@ -8,6 +8,7 @@ Questo file contiene lo storico completo e strutturato di tutte le funzionalità
 
 | ID | Attività / Funzionalità | Ambito | Stato Backend | Stato Frontend | Data Completamento |
 | :--- | :--- | :---: | :---: | :---: | :---: |
+| **WEATHER-002** | Sistemazione & Integrazione Completa Meteo Open-Meteo (Desktop & Mobile: 16gg, Storico On-Demand, Striscia Rotante Home Mobile, Viste Agenda, Impostazioni & Modale Full-Page) | `weather` / fullstack | 🟢 Completato | 🟢 Completato | Novembre 2026 |
 | **CAL-003** | Copia & Duplicazione Rapida Eventi e Task (Desktop & Mobile, con Scelta Albero Sottotask) | `calendar` / events & tasks | 🟢 Supportato | 🟢 Completato | Novembre 2026 |
 | **INFRA-001** | Migrazione Definitiva Infrastruttura: QNAP → Proxmox (Cutover Completato & Proxmox Operativo in Produzione) | `infra` / deploy | 🟢 Completato | 🟢 Completato | Novembre 2026 |
 | **TRACKERS-045** | Porting Mobile: Scheda Attori/Registi, Navigazione a Stack Cross-Media & Rating Compatti/Intestazioni Fisse (Stagioni, Episodi, Serie TV & Film) | `trackers` / mobile | 🟢 Supportato | 🟢 Completato | Novembre 2026 |
@@ -111,6 +112,19 @@ Questo file contiene lo storico completo e strutturato di tutte le funzionalità
 ---
 
 ## 🛡️ 0. Amministrazione, Infrastruttura, Sanatoria & Data Management
+
+### [WEATHER-002] Sistemazione & Integrazione Completa Meteo Open-Meteo — Desktop & Mobile (🟢 Completato)
+
+#### 📋 Descrizione & Funzionalità Implementate
+Revisione completa del motore meteo e integrazione simmetrica su tutta l'interfaccia **Desktop** e **Mobile**:
+- **Backend & Layer Dati Open-Meteo**: Previsioni fino a **16 giorni** (`timezone=auto`), ultimi 7 giorni in RAM, archivio storico mensile on-demand (`/weather/history`, cache 12h), geocoding città e reverse geocoding GPS (`/weather/reverse`), con vento/raffiche/direzione (`km/h`), temperatura percepita, probabilità e accumulo pioggia, alba/tramonto, UV e medie giornaliere di pressione (`hPa`), nuvolosità e umidità.
+- **HomePage Desktop & Home Mobile**:
+  - Su Desktop, finestra atmosferica interattiva (`WeatherAtmosphereCard`) scomposta in moduli snelli con paesaggi vettoriali 100% opachi, precipitazioni naturali e calcolo astronomico reale della fase lunare (`moonPhaseUtils.ts`).
+  - Su Mobile, nuova **striscia superiore rotante Citazione ↔ Meteo** (`MobileRotatingBriefingStrip` + `useMobileRotatingBriefing`) con ciclo automatico a 8s, swipe orizzontale col dito, espansione inline delle citazioni lunghe con pausa intelligente della rotazione e apertura diretta del modale meteo al tocco.
+- **Viste Agenda Desktop & Mobile (`/giorno`, `/settimana`, `/mese`)**: Badge meteo dedicati nella testata *Eventi* di `/giorno` (compatta ed espansa), nelle intestazioni giornaliere di `/settimana` e nelle celle + popup di anteprima giorno di `/mese`, con deduplicazione mensile TanStack Query per lo storico.
+- **Modale Dettagli Meteo (`WeatherDetailModal`) & Impostazioni Mobile**:
+  - Intestazione pulita con il solo nome della località; apertura **a tutta pagina (`100dvh`)** su smartphone con supporto al tasto Indietro Android; i 6 riquadri illustrati (`WeatherMetricsSidebar`) scorrono fluidamente nel corpo mobile posizionandosi dopo la striscia oraria su *Oggi* e **sopra la griglia oraria compatta `6×4`** nei giorni passati o futuri.
+  - Nuova scheda `MobileWeatherSettingsCard` in *Impostazioni → Sincronizzazione & Servizi* con toggle rapido, rilevamento GPS automatico e ricerca località in modale centrato (`MobileWeatherCityModal`).
 
 ### [CAL-003] Copia & Duplicazione Rapida Eventi e Task — Desktop & Mobile (🟢 Completato)
 

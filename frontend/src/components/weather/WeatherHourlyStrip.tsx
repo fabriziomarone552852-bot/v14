@@ -59,7 +59,7 @@ export const WeatherHourlyStrip: React.FC<WeatherHourlyStripProps> = ({
       <div
         key={hour.time}
         className={`flex flex-col items-center justify-center rounded-xl border text-center transition ${
-          isGrid ? 'w-full py-2 px-1.5' : 'p-2 shrink-0 w-16'
+          isGrid ? 'w-full py-1.5 px-1 sm:py-2 sm:px-1.5' : 'p-2 shrink-0 w-16'
         } ${
           isNowCard
             ? 'bg-blue-50/80 border-blue-300/80 shadow-2xs'
@@ -74,16 +74,16 @@ export const WeatherHourlyStrip: React.FC<WeatherHourlyStripProps> = ({
           {isNowCard ? 'Ora' : dayTag ? `${dayTag} ${hhmm.slice(0, 2)}` : hhmm}
         </span>
 
-        <div className={isGrid ? 'my-1' : 'my-1.5'}>
-          <WeatherIcon symbolCode={hour.symbol_code} size={22} />
+        <div className={isGrid ? 'my-0.5 sm:my-1' : 'my-1.5'}>
+          <WeatherIcon symbolCode={hour.symbol_code} size={isGrid ? 20 : 22} />
         </div>
 
-        <span className="text-xs font-extrabold text-slate-800">
+        <span className="text-xs font-extrabold text-slate-800 leading-tight">
           {Math.round(hour.temperature)}°
         </span>
 
         {(hasRainProb || hasRainMm) && (
-          <span className="text-[10px] text-blue-600 font-semibold mt-0.5 leading-tight">
+          <span className="text-[9.5px] sm:text-[10px] text-blue-600 font-semibold mt-0.5 leading-tight whitespace-nowrap">
             {hasRainProb ? `💧${hour.precipitation_probability}%` : `${hour.precipitation_amount}mm`}
           </span>
         )}
@@ -97,7 +97,7 @@ export const WeatherHourlyStrip: React.FC<WeatherHourlyStripProps> = ({
         <h4 className="text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
           Dettaglio Orario
         </h4>
-        <div className="grid grid-cols-4 sm:grid-cols-6 gap-2">
+        <div className="grid grid-cols-6 gap-1.5 sm:gap-2">
           {displayedHours.map((hour, idx) => renderHourCard(hour, idx))}
         </div>
       </div>

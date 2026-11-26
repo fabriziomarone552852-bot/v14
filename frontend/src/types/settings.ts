@@ -2,6 +2,7 @@
 
 import type { UserStreamingProvider } from './auth';
 import type { WeatherLocationPreference } from '@/types/weather';
+import type { HoroscopePreference } from '@/types/horoscope';
 
 export type SettingsTabId = 'profile' | 'preferences' | 'tasks' | 'integrations' | 'memory' | 'danger';
 
@@ -10,6 +11,7 @@ export interface UserModulePreferences {
   shopping?: boolean;
   trackers?: boolean;
   weather?: WeatherLocationPreference;
+  horoscope?: HoroscopePreference;
   [key: string]: unknown;
 }
 

@@ -3,6 +3,7 @@ import React from 'react';
 import { Calendar, RefreshCw, CheckCircle2, AlertCircle, Loader2 } from 'lucide-react';
 import type { useGoogleCalendarIntegration } from '@/hooks/useGoogleCalendarIntegration';
 import { MobileBingersSyncCard } from './MobileBingersSyncCard';
+import { MobileWeatherSettingsCard } from './MobileWeatherSettingsCard';
 
 export interface MobileSyncSettingsSectionProps {
   googleSync: ReturnType<typeof useGoogleCalendarIntegration>;
@@ -12,8 +13,8 @@ export const MobileSyncSettingsSection: React.FC<MobileSyncSettingsSectionProps>
   return (
     <div className="w-full space-y-4 animate-fadeIn pb-12">
       <div className="border-b border-gray-200 pb-3">
-        <h1 className="text-xl font-extrabold text-gray-900 tracking-tight">Sincronizzazione</h1>
-        <p className="text-xs text-gray-500 mt-0.5">Collega e sincronizza i tuoi calendari esterni</p>
+        <h1 className="text-xl font-extrabold text-gray-900 tracking-tight">Sincronizzazione & Servizi</h1>
+        <p className="text-xs text-gray-500 mt-0.5">Google Calendar, previsioni meteo e tracker esterni</p>
       </div>
 
       {/* Notifica Google Sync */}
@@ -139,6 +140,9 @@ export const MobileSyncSettingsSection: React.FC<MobileSyncSettingsSectionProps>
           </div>
         )}
       </div>
+
+      {/* Card Previsioni Meteo Open-Meteo */}
+      <MobileWeatherSettingsCard />
 
       {/* Card Bingers & Trackers */}
       <MobileBingersSyncCard />
