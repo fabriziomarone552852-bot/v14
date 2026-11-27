@@ -4,7 +4,7 @@ import tailwindcss from '@tailwindcss/vite'
 import path from 'path'
 import type { IncomingMessage } from 'http'
 
-const apiProxyTarget = 'http://127.0.0.1:8000';
+const apiProxyTarget = process.env.VITE_API_BASE_URL || 'http://127.0.0.1:8014';
 
 const apiProxyConfig = {
   target: apiProxyTarget,

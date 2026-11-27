@@ -25,6 +25,9 @@ export const CHANGELOG_V15: ChangelogItem[] = [
     fixes: [
       'Risolto il fallimento della sincronizzazione remota dovuto ai vincoli di autenticazione SSH non presidiata del NAS QNAP.',
       'Risolto il mancato caricamento dati dell\'app mobile Android dovuto alla separazione di rete tra container Tailscale e container web su Proxmox.',
+      'Shopping — Selettori filtro Negozio e Brand nel Data Grid Revisione Lotti: sostituiti i <select> nativi con il nuovo SearchableSelect custom; risolto il bug che chiudeva il menu alla rotella del mouse e aggiunta ricerca testuale integrata.',
+      'Shopping — Fusione Prodotti Duplicati (admin): selettori Prodotto Duplicato e Prodotto Master sostituiti con SearchableSelect per gestire cataloghi lunghi con ricerca rapida.',
+      'Shopping — Registrazione Acquisto in Blocco: selettore Fornitore sostituito con SearchableSelect per scorrimento e ricerca corretti.',
     ],
   },
   {

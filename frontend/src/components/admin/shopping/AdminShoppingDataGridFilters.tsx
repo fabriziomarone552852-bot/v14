@@ -1,8 +1,9 @@
 // src/components/admin/shopping/AdminShoppingDataGridFilters.tsx
-import React from 'react';
+import React, { useMemo } from 'react';
 import type {
   ShoppingSupplierOption,
 } from '@/types/shopping';
+import { SearchableSelect } from '@/components/shared/form/SearchableSelect';
 import type { DataGridDatePreset } from './useAdminShoppingDataGridLogic';
 
 interface AdminShoppingDataGridFiltersProps {
@@ -66,6 +67,17 @@ export const AdminShoppingDataGridFilters: React.FC<AdminShoppingDataGridFilters
     { id: 'all', label: 'Tutto' },
     { id: 'custom', label: 'Periodo...' },
   ];
+
+  // Opzioni per SearchableSelect
+  const supplierOptions = useMemo(() => [
+    { value: 'all', label: `Tutti i Negozi (${suppliers.length})` },
+    ...suppliers.map((s) => ({ value: s.id, label: s.name })),
+  ], [suppliers]);
+
+  const brandOptions = useMemo(() => [
+    { value: 'all', label: `Tutti i Brand (${brands.length})` },
+    ...brands.map((b) => ({ value: b.id, label: b.name })),
+  ], [brands]);
 
   return (
     <div className="rounded-3xl border border-slate-200 bg-white p-4 shadow-xs space-y-3.5">
@@ -167,18 +179,15 @@ export const AdminShoppingDataGridFilters: React.FC<AdminShoppingDataGridFilters
           <label className="block text-[11px] font-bold text-slate-600 mb-1">
             🏪 Filtra per Punto Vendita / Negozio
           </label>
-          <select
+          <SearchableSelect
             value={selectedSupplierId}
-            onChange={(e) => onSupplierChange(e.target.value === 'all' ? 'all' : Number(e.target.value))}
-            className="w-full px-3 py-1.5 text-xs rounded-xl border border-slate-200 bg-slate-50 outline-none focus:border-sky-500 focus:bg-white transition cursor-pointer"
-          >
-            <option value="all">Tutti i Negozi ({suppliers.length})</option>
-            {suppliers.map((s) => (
-              <option key={s.id} value={s.id}>
-                {s.name}
-              </option>
-            ))}
-          </select>
+            onChange={(v) => onSupplierChange(v === 'all' ? 'all' : Number(v))}
+            options={supplierOptions}
+            placeholder="Tutti i Negozi"
+            mobileTitle="Filtra per Negozio"
+            searchPlaceholder="Cerca negozio..."
+            maxListHeight={280}
+          />
         </div>
 
         {/* Selettore Brand */}
@@ -186,18 +195,15 @@ export const AdminShoppingDataGridFilters: React.FC<AdminShoppingDataGridFilters
           <label className="block text-[11px] font-bold text-slate-600 mb-1">
             🏷️ Filtra per Brand / Produttore
           </label>
-          <select
+          <SearchableSelect
             value={selectedBrandId}
-            onChange={(e) => onBrandChange(e.target.value === 'all' ? 'all' : Number(e.target.value))}
-            className="w-full px-3 py-1.5 text-xs rounded-xl border border-slate-200 bg-slate-50 outline-none focus:border-sky-500 focus:bg-white transition cursor-pointer"
-          >
-            <option value="all">Tutti i Brand ({brands.length})</option>
-            {brands.map((b) => (
-              <option key={b.id} value={b.id}>
-                {b.name}
-              </option>
-            ))}
-          </select>
+            onChange={(v) => onBrandChange(v === 'all' ? 'all' : Number(v))}
+            options={brandOptions}
+            placeholder="Tutti i Brand"
+            mobileTitle="Filtra per Brand"
+            searchPlaceholder="Cerca brand..."
+            maxListHeight={280}
+          />
         </div>
 
         {/* Toggles Rapidi: Anomalie e Offerte */}
