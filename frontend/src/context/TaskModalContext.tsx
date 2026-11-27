@@ -9,6 +9,7 @@ import type { TaskSummary } from '@/types';
 import type { SubtaskTemplateNode } from '@/utils/taskDuplicateUtils';
 import { useTaskMutations } from '@/hooks/mutations/useTaskMutations';
 import { useIsMobile } from '@/mobile/hooks/useIsMobile';
+import { useAuth } from '@/context/AuthContext';
 
 interface TaskFormModalState {
   taskToEdit?: TaskSummary | null;
@@ -35,6 +36,7 @@ export const TaskModalProvider: React.FC<{ children: ReactNode }> = ({ children 
   const detailModal = useModal<TaskSummary>();
   const formModal = useModal<TaskFormModalState>();
   const isMobile = useIsMobile();
+  const { isAuthenticated } = useAuth();
   
   const { toggleTask } = useTaskMutations(['tasks']);
 
@@ -92,60 +94,62 @@ export const TaskModalProvider: React.FC<{ children: ReactNode }> = ({ children 
     }}>
       {children}
 
-      {isMobile ? (
-        <>
-          <MobileTaskDetailModal
-            isOpen={detailModal.isOpen}
-            onClose={detailModal.close}
-            selectedTask={detailModal.data}
-            onToggleTask={handleToggleTask}
-            onSelectTask={(task) => detailModal.open(task)}
-            tasks={[]}
-            onEditClick={() => {
-              formModal.open({ taskToEdit: detailModal.data, taskToDuplicate: null, subtasksToClone: [], initialParentId: null });
-              detailModal.close();
-            }}
-            onDuplicateClick={handleDuplicateTask}
-            onAddSubtask={handleAddSubtaskTransition}
-          />
+      {isAuthenticated && (
+        isMobile ? (
+          <>
+            <MobileTaskDetailModal
+              isOpen={detailModal.isOpen}
+              onClose={detailModal.close}
+              selectedTask={detailModal.data}
+              onToggleTask={handleToggleTask}
+              onSelectTask={(task) => detailModal.open(task)}
+              tasks={[]}
+              onEditClick={() => {
+                formModal.open({ taskToEdit: detailModal.data, taskToDuplicate: null, subtasksToClone: [], initialParentId: null });
+                detailModal.close();
+              }}
+              onDuplicateClick={handleDuplicateTask}
+              onAddSubtask={handleAddSubtaskTransition}
+            />
 
-          <MobileTaskNewModal
-            isOpen={formModal.isOpen}
-            onClose={formModal.close}
-            taskToEdit={formModal.data?.taskToEdit}
-            taskToDuplicate={formModal.data?.taskToDuplicate}
-            subtasksToClone={formModal.data?.subtasksToClone}
-            initialParentId={formModal.data?.initialParentId}
-            initialDate={formModal.data?.initialDate}
-          />
-        </>
-      ) : (
-        <>
-          <TaskDetailModal
-            isOpen={detailModal.isOpen}
-            onClose={detailModal.close}
-            selectedTask={detailModal.data}
-            onToggleTask={handleToggleTask}
-            onSelectTask={(task) => detailModal.open(task)}
-            tasks={[]}
-            onEditClick={() => {
-              formModal.open({ taskToEdit: detailModal.data, taskToDuplicate: null, subtasksToClone: [], initialParentId: null });
-              detailModal.close();
-            }}
-            onDuplicateClick={handleDuplicateTask}
-            onAddSubtask={handleAddSubtaskTransition}
-          />
+            <MobileTaskNewModal
+              isOpen={formModal.isOpen}
+              onClose={formModal.close}
+              taskToEdit={formModal.data?.taskToEdit}
+              taskToDuplicate={formModal.data?.taskToDuplicate}
+              subtasksToClone={formModal.data?.subtasksToClone}
+              initialParentId={formModal.data?.initialParentId}
+              initialDate={formModal.data?.initialDate}
+            />
+          </>
+        ) : (
+          <>
+            <TaskDetailModal
+              isOpen={detailModal.isOpen}
+              onClose={detailModal.close}
+              selectedTask={detailModal.data}
+              onToggleTask={handleToggleTask}
+              onSelectTask={(task) => detailModal.open(task)}
+              tasks={[]}
+              onEditClick={() => {
+                formModal.open({ taskToEdit: detailModal.data, taskToDuplicate: null, subtasksToClone: [], initialParentId: null });
+                detailModal.close();
+              }}
+              onDuplicateClick={handleDuplicateTask}
+              onAddSubtask={handleAddSubtaskTransition}
+            />
 
-          <TaskNewModal
-            isOpen={formModal.isOpen}
-            onClose={formModal.close}
-            taskToEdit={formModal.data?.taskToEdit}
-            taskToDuplicate={formModal.data?.taskToDuplicate}
-            subtasksToClone={formModal.data?.subtasksToClone}
-            initialParentId={formModal.data?.initialParentId}
-            initialDate={formModal.data?.initialDate}
-          />
-        </>
+            <TaskNewModal
+              isOpen={formModal.isOpen}
+              onClose={formModal.close}
+              taskToEdit={formModal.data?.taskToEdit}
+              taskToDuplicate={formModal.data?.taskToDuplicate}
+              subtasksToClone={formModal.data?.subtasksToClone}
+              initialParentId={formModal.data?.initialParentId}
+              initialDate={formModal.data?.initialDate}
+            />
+          </>
+        )
       )}
     </TaskModalContext.Provider>
   );

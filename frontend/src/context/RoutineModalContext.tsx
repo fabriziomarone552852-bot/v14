@@ -20,6 +20,7 @@ import { formatDateString } from '@/utils/dateUtils';
 import { calculateSafeSuspendDate, getActivePeriodToSuspend } from '@/utils/habitUtils';
 import { invalidateAllViews } from '@/utils/queryCacheUtils';
 import { useDay } from './DayContext';
+import { useAuth } from './AuthContext';
 
 interface RoutineModalContextType {
   isDetailOpen: boolean;
@@ -38,6 +39,7 @@ export const RoutineModalProvider: React.FC<{ children: ReactNode }> = ({ childr
   const detailModal = useModal<RoutineItem>();
   const formModal = useModal<RoutineItem | null>();
   const isMobile = useIsMobile();
+  const { isAuthenticated } = useAuth();
   const queryClient = useQueryClient();
   const { dataRiferimento: targetDate } = useDay();
   const targetDateStr = formatDateString(targetDate);
@@ -200,56 +202,58 @@ export const RoutineModalProvider: React.FC<{ children: ReactNode }> = ({ childr
     >
       {children}
 
-      {isMobile ? (
-        <>
-          <MobileRoutineDetailModal
-            isOpen={detailModal.isOpen}
-            onClose={detailModal.close}
-            selectedRoutine={detailModal.data}
-            onEditClick={handleEditRoutine}
-            onDeleteClick={(id) => deleteRoutineMutation.mutate(id)}
-            isAttiva={isAttiva}
-            onSuspendClick={() => {
-              if (selectedRoutine) handleSuspend(selectedRoutine);
-            }}
-            onResumeClick={handleResumeRoutine}
-          />
+      {isAuthenticated && (
+        isMobile ? (
+          <>
+            <MobileRoutineDetailModal
+              isOpen={detailModal.isOpen}
+              onClose={detailModal.close}
+              selectedRoutine={detailModal.data}
+              onEditClick={handleEditRoutine}
+              onDeleteClick={(id) => deleteRoutineMutation.mutate(id)}
+              isAttiva={isAttiva}
+              onSuspendClick={() => {
+                if (selectedRoutine) handleSuspend(selectedRoutine);
+              }}
+              onResumeClick={handleResumeRoutine}
+            />
 
-          <MobileRoutineNewModal
-            isOpen={formModal.isOpen}
-            onClose={() => {
-              setIsResuming(false);
-              formModal.close();
-            }}
-            routineToEdit={formModal.data}
-            onSave={handleSaveRoutine}
-          />
-        </>
-      ) : (
-        <>
-          <RoutineDetailModal
-            isOpen={detailModal.isOpen}
-            onClose={detailModal.close}
-            selectedRoutine={detailModal.data}
-            onEditClick={handleEditRoutine}
-            onDeleteClick={(id) => deleteRoutineMutation.mutate(id)}
-            isAttiva={isAttiva}
-            onSuspendClick={() => {
-              if (selectedRoutine) handleSuspend(selectedRoutine);
-            }}
-            onResumeClick={handleResumeRoutine}
-          />
+            <MobileRoutineNewModal
+              isOpen={formModal.isOpen}
+              onClose={() => {
+                setIsResuming(false);
+                formModal.close();
+              }}
+              routineToEdit={formModal.data}
+              onSave={handleSaveRoutine}
+            />
+          </>
+        ) : (
+          <>
+            <RoutineDetailModal
+              isOpen={detailModal.isOpen}
+              onClose={detailModal.close}
+              selectedRoutine={detailModal.data}
+              onEditClick={handleEditRoutine}
+              onDeleteClick={(id) => deleteRoutineMutation.mutate(id)}
+              isAttiva={isAttiva}
+              onSuspendClick={() => {
+                if (selectedRoutine) handleSuspend(selectedRoutine);
+              }}
+              onResumeClick={handleResumeRoutine}
+            />
 
-          <RoutineNewModal
-            isOpen={formModal.isOpen}
-            onClose={() => {
-              setIsResuming(false);
-              formModal.close();
-            }}
-            routineToEdit={formModal.data}
-            onSave={handleSaveRoutine}
-          />
-        </>
+            <RoutineNewModal
+              isOpen={formModal.isOpen}
+              onClose={() => {
+                setIsResuming(false);
+                formModal.close();
+              }}
+              routineToEdit={formModal.data}
+              onSave={handleSaveRoutine}
+            />
+          </>
+        )
       )}
     </RoutineModalContext.Provider>
   );

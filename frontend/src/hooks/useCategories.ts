@@ -6,6 +6,7 @@ import {
   getCategory,
   updateCategory,
 } from '@/api/categoriesApi';
+import { useAuth } from '@/context/AuthContext';
 import { invalidateAllViews } from '@/utils/queryCacheUtils';
 import type {
   CategoryCreatePayload,
@@ -14,18 +15,21 @@ import type {
 
 export const categoriesQueryKey = ['categories'] as const;
 
-export function useCategories() {
+export function useCategories(enabled = true) {
+  const { isAuthenticated } = useAuth();
   return useQuery({
     queryKey: categoriesQueryKey,
     queryFn: getCategories,
+    enabled: isAuthenticated && enabled,
   });
 }
 
 export function useCategory(categoryId?: number) {
+  const { isAuthenticated } = useAuth();
   return useQuery({
     queryKey: ['categories', categoryId],
     queryFn: () => getCategory(categoryId!),
-    enabled: Boolean(categoryId),
+    enabled: isAuthenticated && Boolean(categoryId),
   });
 }
 

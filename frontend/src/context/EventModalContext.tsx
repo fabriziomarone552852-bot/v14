@@ -8,6 +8,7 @@ import MobileEventNewModal from '@/mobile/components/modals/MobileEventNewModal'
 import { useEventMutations } from '@/hooks/mutations/useEventMutations';
 import { useModal } from '@/hooks/useModals';
 import { useIsMobile } from '@/mobile/hooks/useIsMobile';
+import { useAuth } from '@/context/AuthContext';
 
 // 1. Definiamo l'interfaccia del Context con tipi stringenti (Zero any!)
 interface EventModalContextType {
@@ -35,6 +36,7 @@ export const EventModalProvider: React.FC<{ children: ReactNode }> = ({ children
   const detailModal = useModal<CalendarEvent>();
   const formModal = useModal<EventFormModalState>();
   const isMobile = useIsMobile();
+  const { isAuthenticated } = useAuth();
 
   const { deleteRecurringEvent } = useEventMutations(['events']);
 
@@ -75,46 +77,48 @@ export const EventModalProvider: React.FC<{ children: ReactNode }> = ({ children
     >
       {children}
 
-      {isMobile ? (
-        <>
-          <MobileEventDetailModal
-            isOpen={detailModal.isOpen}
-            onClose={detailModal.close}
-            selectedEvent={detailModal.data}
-            onDeleteClick={handleDeleteEvent}
-            onEditClick={handleEditEvent}
-            onDuplicateClick={handleDuplicateEvent}
-          />
+      {isAuthenticated && (
+        isMobile ? (
+          <>
+            <MobileEventDetailModal
+              isOpen={detailModal.isOpen}
+              onClose={detailModal.close}
+              selectedEvent={detailModal.data}
+              onDeleteClick={handleDeleteEvent}
+              onEditClick={handleEditEvent}
+              onDuplicateClick={handleDuplicateEvent}
+            />
 
-          <MobileEventNewModal
-            isOpen={formModal.isOpen}
-            onClose={formModal.close}
-            eventToEdit={formModal.data?.eventToEdit || null}
-            eventToDuplicate={formModal.data?.eventToDuplicate || null}
-            initialDate={formModal.data?.initialDate || null}
-            onEventSaved={() => {}}
-          />
-        </>
-      ) : (
-        <>
-          <EventDetailModal 
-            isOpen={detailModal.isOpen} 
-            onClose={detailModal.close} 
-            selectedEvent={detailModal.data} 
-            onDeleteClick={handleDeleteEvent} 
-            onEditClick={handleEditEvent}
-            onDuplicateClick={handleDuplicateEvent}
-          />
+            <MobileEventNewModal
+              isOpen={formModal.isOpen}
+              onClose={formModal.close}
+              eventToEdit={formModal.data?.eventToEdit || null}
+              eventToDuplicate={formModal.data?.eventToDuplicate || null}
+              initialDate={formModal.data?.initialDate || null}
+              onEventSaved={() => {}}
+            />
+          </>
+        ) : (
+          <>
+            <EventDetailModal 
+              isOpen={detailModal.isOpen} 
+              onClose={detailModal.close} 
+              selectedEvent={detailModal.data} 
+              onDeleteClick={handleDeleteEvent} 
+              onEditClick={handleEditEvent}
+              onDuplicateClick={handleDuplicateEvent}
+            />
 
-          <NewEventModal 
-            isOpen={formModal.isOpen} 
-            onClose={formModal.close} 
-            eventToEdit={formModal.data?.eventToEdit || null} 
-            eventToDuplicate={formModal.data?.eventToDuplicate || null}
-            initialDate={formModal.data?.initialDate || null}
-            onEventSaved={() => {}}  
-          />
-        </>
+            <NewEventModal 
+              isOpen={formModal.isOpen} 
+              onClose={formModal.close} 
+              eventToEdit={formModal.data?.eventToEdit || null} 
+              eventToDuplicate={formModal.data?.eventToDuplicate || null}
+              initialDate={formModal.data?.initialDate || null}
+              onEventSaved={() => {}}  
+            />
+          </>
+        )
       )}
     </EventModalContext.Provider>
   );
