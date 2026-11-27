@@ -162,6 +162,7 @@ Questo documento traccia in modo strutturato, prioritizzato e costantemente aggi
 ## 🚀 9. Progetti Futuri & Idee di Roadmap
 
 ### 9.1 Mobile & Esperienza Utente
+- [ ] **[ADMIN-MOBILE-001] Pannello Admin Mobile per Interventi Rapidi di Emergenza**: Mini-console SU ottimizzata per smartphone (attualmente coperta dal placeholder *In Sviluppo* su `/admin`) per eseguire interventi amministrativi urgenti senza PC (es. ripristino password/utenti, codici invito, stato sistema, avvisi broadcast o manutenzione rapida).
 - [ ] **[HOME-001] Riattivazione Oroscopo & Modale "Oggi in pillole" (Già sviluppati e messi nel cassetto)**: La striscia rotante Citazione ↔ Meteo è già attiva in Home Mobile (`MobileRotatingBriefingStrip`). Il parser Python self-hosted per l'oroscopo italiano (`backend/domains/horoscope/`), gli hook 0ms (`useHoroscope`, `useHoroscopePreference`), la card impostazioni (`MobileHoroscopeSettingsCard`) e il modale a tutt'altezza con barra inferiore a icone (`MobileDailyBriefingModal`) sono già codificati e conservati nel codebase per un eventuale utilizzo futuro.
 - [ ] **Scansione Codici a Barre (Barcode Scanner)**: Utilizzo fotocamera smartphone per aggiungere al volo prodotti alla lista spesa o libri tramite ISBN.
 - [ ] **Widget Android**: Widget per la schermata home dello smartphone per spuntare i task rapidi del giorno, la lista spesa e visualizzare la puntata in corso.

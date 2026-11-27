@@ -13,6 +13,7 @@ import MobileShoppingView from '../views/MobileShoppingView';
 import MobileTVSeriesView from '../views/MobileTVSeriesView';
 import MobileMovieView from '../views/MobileMovieView';
 import MobileTrackersPlaceholderView from '../views/MobileTrackersPlaceholderView';
+import MobileAdminPlaceholderView from '../views/MobileAdminPlaceholderView';
 
 const NotFoundPage = React.lazy(() => import('@/views/NotFoundPage'));
 
@@ -70,7 +71,7 @@ export const MobileRoutes: React.FC = () => {
         <Route path="/settings/social" element={<MobileSettingsView subview="social" />} />
 
         {/* Sezioni di approfondimento accessibili dall'Hub Impostazioni */}
-        <Route path="/admin" element={<Navigate to="/settings" replace />} />
+        <Route path="/admin" element={<MobileAdminPlaceholderView />} />
         <Route path="/archivio" element={<MobileSettingsView subview="archive" />} />
         <Route path="/tasks" element={<TasksPage />} />
         <Route path="/events" element={<EventsPage />} />
