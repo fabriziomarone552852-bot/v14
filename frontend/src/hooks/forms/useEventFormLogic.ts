@@ -50,7 +50,7 @@ export const useEventFormLogic = ({
   onEventSaved,
 }: UseEventFormLogicProps) => {
   const { saveEvent } = useEventMutations<{ events: DbEvent[] }>(['events']);
-  const { data: categories = [] } = useCategories();
+  const { data: categories = [] } = useCategories(isOpen);
   const { confirm } = useConfirm();
 
   const dynamicFormId = useMemo(

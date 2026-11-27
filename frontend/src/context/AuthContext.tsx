@@ -61,6 +61,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   // L'utente è "autenticato" solo se ha un token con scope normale (non password_change)
   const isAuthenticated = !!token && !mustChangePassword;
+  const hasActiveSessionRef = useRef(false);
+  hasActiveSessionRef.current = Boolean(token || user || mustChangePassword);
 
   const persistTokens = (accessToken: string | null, refToken: string | null) => {
     setToken(accessToken);
@@ -94,13 +96,26 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const clearError = () => setError(null);
 
   const logout = useCallback(() => {
-    void unregisterStoredPushTokenFromServer();
+    const hadSession = Boolean(
+      hasActiveSessionRef.current ||
+        localStorage.getItem('token') ||
+        localStorage.getItem('refreshToken') ||
+        localStorage.getItem('user')
+    );
+
+    if (hadSession) {
+      void unregisterStoredPushTokenFromServer();
+    }
     lastSyncedTokenRef.current = null;
-    queryClient.clear();
     persistTokens(null, null);
     persistUser(null);
     persistMustChangePassword(false);
     clearError();
+
+    if (hadSession) {
+      void queryClient.cancelQueries();
+      queryClient.clear();
+    }
 
     if (window.location.pathname !== '/login') {
       navigateRef.current('/login');

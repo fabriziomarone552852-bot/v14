@@ -29,7 +29,7 @@ export const useTaskDetailLogic = ({
 }: UseTaskDetailLogicProps) => {
   const { toggleTask, deleteTask } = useTaskMutations(['tasks']);
   const { confirm } = useConfirm();
-  const { user } = useAuth();
+  const { user, isAuthenticated } = useAuth();
 
   const maxSubtaskDepth = user?.max_subtask_depth_user ?? 3;
 
@@ -39,7 +39,7 @@ export const useTaskDetailLogic = ({
       const data = await api.get<DbTask[] | { items: DbTask[] }>('/tasks');
       return Array.isArray(data) ? data : data?.items || [];
     },
-    enabled: isOpen,
+    enabled: isAuthenticated && isOpen,
   });
 
   const taskTree: UITask[] = useMemo(() => {

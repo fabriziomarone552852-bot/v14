@@ -3,12 +3,29 @@ import type { ChangelogItem } from './types';
 
 export const CHANGELOG_V15: ChangelogItem[] = [
   {
+    id: 'v15.5.1',
+    version: '15.5.1',
+    date: 'Novembre 2026',
+    title: 'Fix Loop 401 al Login e Blocco Schermata di Accesso',
+    isLatest: true,
+    published: false,
+    highlights: [
+      'Risolto il blocco sulla pagina di login dovuto a un loop infinito di chiamate `/categories` con errore 401.',
+    ],
+    features: [],
+    improvements: [],
+    fixes: [
+      'Bloccate le query delle categorie e i modali globali di Eventi, Task e Routine quando l\'utente non è ancora autenticato.',
+      'Protetti `AuthContext` e l\'interceptor 401 di `apiClient` per evitare loop di `force-logout` e `queryClient.clear()` in assenza di sessione attiva.',
+    ],
+  },
+  {
     id: 'v15.5.0',
     version: '15.5.0',
     date: 'Novembre 2026',
     title: 'Notifiche Push Android, Stagioni Serie TV, Meteo Open-Meteo, Copia Eventi/Task, Marchi Spesa & Proxmox',
-    isLatest: true,
-    published: false,
+    isLatest: false,
+    published: true,
     highlights: [
       'Notifiche Push Native Android nella Barra di Stato (FCM): Avvisi in tempo reale anche ad app chiusa per liste e inviti spesa, richieste amicizia, commenti/menzioni Serie TV & Film, messaggi effimeri e broadcast admin, con icona monocromatica Vita e apertura diretta della schermata.',
       'Valutazioni & Recensioni Stagioni Serie TV (TRACKERS-019): Sistema multi-log a mezze stelle per votare e recensire ogni singola stagione su Desktop e Mobile, con scheda dettaglio "i" e notifiche/commenti social.',
@@ -79,7 +96,7 @@ export const CHANGELOG_V15: ChangelogItem[] = [
     date: 'Novembre 2026',
     title: 'Ricerca & Filtro Multi-Persona (Attori, Registi, Creatori) & Scheda Filmografia Persona',
     isLatest: true,
-    published: false,
+    published: true,
     highlights: [
       'Ricerca & Filtro per Attori, Registi e Creatori (Film & Serie TV, Web & Mobile): Nuovo campo dedicato con suggerimenti live da TMDB mentre si digita, ricerca multipla separata da virgole e selettore Tutti (AND) / Almeno uno (OR).',
       'Scheda Filmografia Persona Cliccabile: Toccando qualsiasi attore, regista o creatore nel dettaglio Film/Serie TV si apre la scheda dedicata con biografia e filmografia completa navigabile con badge dei titoli già in libreria.',

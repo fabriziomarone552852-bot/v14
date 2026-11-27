@@ -46,10 +46,10 @@ export const useTaskFormLogic = ({
   initialDate,
   onTaskSaved,
 }: UseTaskFormLogicProps) => {
-  const { data: dbCategories = [] } = useCategories();
+  const { data: dbCategories = [] } = useCategories(isOpen);
   const { saveTask, cloneSubtasksTree } = useTaskMutations(['tasks']);
   const { confirm } = useConfirm();
-  const { user } = useAuth();
+  const { user, isAuthenticated } = useAuth();
   const maxDepth = user?.max_subtask_depth_user ?? 3;
 
   const [newTaskForm, setNewTaskForm] = useState<TaskFormState>({
@@ -76,7 +76,7 @@ export const useTaskFormLogic = ({
       const data = await api.get<DbTask[] | { items: DbTask[] }>('/tasks');
       return Array.isArray(data) ? data : (data?.items || []);
     },
-    enabled: isOpen,
+    enabled: isAuthenticated && isOpen,
   });
 
   const pendingSubtaskCount = useMemo(

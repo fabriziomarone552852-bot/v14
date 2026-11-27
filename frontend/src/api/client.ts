@@ -186,6 +186,25 @@ apiClient.interceptors.response.use(
     if (error.response?.status === 401 && originalRequest && !originalRequest._retry && !originalRequest.url?.includes('/auth/')) {
       originalRequest._retry = true;
 
+      const hadAuthHeader = Boolean(originalRequest.headers?.Authorization);
+      const currentToken = localStorage.getItem('token');
+      const hasRefreshToken = Boolean(localStorage.getItem('refreshToken'));
+
+      // Se la richiesta è partita senza token e non esiste alcuna sessione salvata,
+      // l'utente è già sloggato (es. su /login): non scateniamo force-logout in loop.
+      if (!hadAuthHeader && !currentToken && !hasRefreshToken) {
+        return Promise.reject(error);
+      }
+
+      // Se la richiesta era partita senza token ma nel frattempo l'utente ha appena effettuato il login,
+      // riproviamo una volta con il nuovo access token anziché forzare il logout.
+      if (!hadAuthHeader && currentToken) {
+        if (originalRequest.headers) {
+          originalRequest.headers.Authorization = `Bearer ${currentToken.trim().replace(/[\r\n]/g, '')}`;
+        }
+        return apiClient(originalRequest);
+      }
+
       try {
         const newAccessToken = await refreshAccessToken();
         if (originalRequest.headers) {
