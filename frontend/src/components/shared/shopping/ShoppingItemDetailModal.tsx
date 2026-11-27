@@ -11,8 +11,8 @@ import {
 } from '@/components/shared/utils/Icons';
 import { formatUnitForQuantity } from './ShoppingUnitSelect';
 import { ShoppingItemPriceHistoryPanel } from './ShoppingItemPriceHistoryPanel';
+import { ShoppingItemDetailBrandsPanel } from './ShoppingItemDetailBrandsPanel';
 import { ShoppingItemNoteEditor } from './ShoppingItemNoteEditor';
-import { ShoppingItemPriceAnalysisCard } from './ShoppingItemPriceAnalysisCard';
 import { useShoppingItemDetailStats } from './item';
 
 export interface ShoppingItemDetailModalProps {
@@ -74,10 +74,18 @@ export const ShoppingItemDetailModal: React.FC<ShoppingItemDetailModalProps> = (
       onClick={onClose}
     >
       <div
-        className="flex flex-col md:flex-row gap-4 items-stretch w-full max-w-5xl justify-center pointer-events-none"
+        className="flex flex-col lg:flex-row gap-4 items-stretch w-full max-w-6xl max-h-[85vh] justify-center pointer-events-none"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Pannello Sinistro: Storico Prezzi & Analisi Integrata */}
+        {/* Finestra 1: Marchi Correlati & Giudizi */}
+        <ShoppingItemDetailBrandsPanel
+          item={item}
+          personalBatches={personalBatches}
+          communityPrices={communityPrices}
+          className="w-full lg:w-76 shrink-0"
+        />
+
+        {/* Finestra 2: Storico & Analisi Prezzi (Ridotta) */}
         <ShoppingItemPriceHistoryPanel
           view={view}
           onViewChange={setView}
@@ -85,11 +93,12 @@ export const ShoppingItemDetailModal: React.FC<ShoppingItemDetailModalProps> = (
           communityPrices={communityPrices}
           isLoading={isLoadingHistory}
           currentStats={currentStats}
+          className="w-full lg:w-[390px] shrink-0"
         />
 
-        {/* Pannello Destro: Scheda Articolo & Dettagli */}
-        <div className="pointer-events-auto flex-shrink-0 w-full md:w-96 flex flex-col justify-between gap-4">
-          <div className="bg-white rounded-2xl shadow-2xl border border-gray-200 p-5 flex flex-col justify-between flex-1">
+        {/* Finestra 3: Scheda Articolo & Dettagli */}
+        <div className="pointer-events-auto flex-shrink-0 w-full lg:w-[350px] flex flex-col justify-between gap-4">
+          <div className="bg-white rounded-2xl shadow-2xl border border-gray-200 p-5 flex flex-col justify-between flex-1 overflow-y-auto no-scrollbar">
             <div className="space-y-4">
               
               {/* Header con Badge da Comprare ed Azioni */}
@@ -180,10 +189,6 @@ export const ShoppingItemDetailModal: React.FC<ShoppingItemDetailModalProps> = (
                   />
                 </div>
               </div>
-
-              {/* Scheda Analisi Prezzo Compatta */}
-              <ShoppingItemPriceAnalysisCard currentStats={currentStats} view={view} />
-
             </div>
           </div>
         </div>

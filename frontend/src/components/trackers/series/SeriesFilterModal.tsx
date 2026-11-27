@@ -1,6 +1,7 @@
 import React from 'react';
 import { RotateCcw } from 'lucide-react';
 import { ArchiveFilterSearchInput } from '@/components/archive/common';
+import { PeopleAutocompleteInput } from '@/components/trackers/shared/PeopleAutocompleteInput';
 import type { TVSeries, MediaList } from '@/types/trackers';
 import { CheckCircleIcon } from '@/components/shared/utils/Icons';
 import BaseModal from '@/components/shared/dialog/BaseModal';
@@ -183,6 +184,16 @@ export const SeriesFilterModal: React.FC<SeriesFilterModalProps> = ({
           value={filters.keyword || ''}
           onChange={(val) => handleFieldChange('keyword', val)}
           placeholder="Es. Breaking Bad..."
+        />
+
+        <PeopleAutocompleteInput
+          label="Attori / Creatori / Registi"
+          value={filters.people || ''}
+          mode={filters.peopleMode || 'AND'}
+          onChange={(val) => handleFieldChange('people', val)}
+          onModeChange={(nextMode) => handleFieldChange('peopleMode', nextMode)}
+          showLocalHint={!filters.globalSearch}
+          placeholder="Es. Vince Gilligan, Bryan Cranston..."
         />
 
         <div className="grid grid-cols-2 gap-4">

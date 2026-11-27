@@ -3,6 +3,7 @@ import React from 'react';
 import type { MediaList } from '@/types/trackers';
 import { SearchIcon } from '@/components/shared/utils/Icons';
 import { TrackerMultiYearSelect } from '@/components/trackers/shared/TrackerMultiYearSelect';
+import { PeopleAutocompleteInput } from '@/components/trackers/shared/PeopleAutocompleteInput';
 import { MobileModalSelect } from '../../common/MobileModalSelect';
 import { MobileMultiModalSelect } from '../../common/MobileMultiModalSelect';
 import { MobileGenreTriStateModalSelect } from '../../common/MobileGenreTriStateModalSelect';
@@ -82,6 +83,16 @@ export const MobileTVSeriesFilterOptions: React.FC<MobileTVSeriesFilterOptionsPr
           <h4 className="text-[11px] font-extrabold uppercase tracking-wider text-gray-400">
             {sectionTitle}
           </h4>
+
+          <PeopleAutocompleteInput
+            label="Attori / Creatori / Registi"
+            value={filters.people || ''}
+            mode={filters.peopleMode || 'AND'}
+            onChange={(val) => handleFieldChange('people', val)}
+            onModeChange={(nextMode) => handleFieldChange('peopleMode', nextMode)}
+            onSubmitSearch={onExecuteSearch}
+            placeholder="Es. Vince Gilligan, Bryan Cranston..."
+          />
 
           {/* Griglia Genere (+ / - + Includi tutti) & Piattaforme (Multi O) */}
           <div className="grid grid-cols-2 gap-3">

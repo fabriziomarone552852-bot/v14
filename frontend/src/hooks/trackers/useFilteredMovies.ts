@@ -6,6 +6,7 @@ import {
   matchesGenreFilterRule,
   matchesYearMultiFilter,
 } from '@/utils/trackerFilterUtils';
+import { matchesPeopleCreditsFilter } from '@/utils/trackerPeopleUtils';
 
 export const useFilteredMovies = (
   movies: Movie[] | undefined,
@@ -27,6 +28,11 @@ export const useFilteredMovies = (
         const matchesTitle = m.title.toLowerCase().includes(kw);
         const matchesOriginal = Boolean(m.original_title?.toLowerCase().includes(kw));
         if (!matchesTitle && !matchesOriginal) return false;
+      }
+
+      // 2b. Attori / Registi (AND / OR su credits_summary)
+      if (!matchesPeopleCreditsFilter(m.credits_summary, null, filters.people, filters.peopleMode)) {
+        return false;
       }
 
       // 3. Generi (Includi con E / O + Escludi NO)

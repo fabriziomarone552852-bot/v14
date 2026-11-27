@@ -9,11 +9,13 @@ import { useBackHandler } from '@/utils/backButtonManager';
 export interface MobileNotificationsSheetProps {
   isOpen: boolean;
   onClose: () => void;
+  initialTab?: 'notifiche' | 'messaggi';
 }
 
 export const MobileNotificationsSheet: React.FC<MobileNotificationsSheetProps> = ({
   isOpen,
   onClose,
+  initialTab = 'notifiche',
 }) => {
   // Integrazione tasto Indietro Android (priorità 9 per chiudere il cassetto notifiche)
   useBackHandler(isOpen, onClose, 9);
@@ -63,6 +65,12 @@ export const MobileNotificationsSheet: React.FC<MobileNotificationsSheetProps> =
     isOpen,
     onClose,
   });
+
+  useEffect(() => {
+    if (isOpen) {
+      setActiveTab(initialTab);
+    }
+  }, [isOpen, initialTab, setActiveTab]);
 
   if (!isOpen) return null;
 

@@ -87,7 +87,7 @@ export const TasksPage: React.FC = () => {
 
   // 5. REGISTRAZIONE HEADER ARCHIVIO PER MOBILE
   useArchiveHeader({
-    title: 'Gestione Task',
+    title: 'Task & To-Do',
     onOpenSearch: () => setIsFilterModalOpen(true),
     onOpenNew: () => openTaskForm(),
     activeFiltersCount,

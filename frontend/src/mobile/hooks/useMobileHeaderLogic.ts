@@ -9,20 +9,10 @@ import { useArchiveHeader } from '@/context/ArchiveHeaderContext';
 import { useDayOptional } from '@/context/DayContext';
 import { formatDateString, getLocalTodayStr } from '@/utils/dateUtils';
 import { useBackHandler } from '@/utils/backButtonManager';
+import { ARCHIVE_ROUTE_TITLES } from '@/data/archiveModules';
 import { useMobileSelection } from '../context/MobileSelectionContext';
 
-export const DEFAULT_ARCHIVE_TITLES: Record<string, string> = {
-  '/tasks': 'Gestione Task',
-  '/events': 'Gestione Eventi',
-  '/categories': 'Categorie & Ambiti',
-  '/countdowns': 'Obiettivi & Countdown',
-  '/habits': 'Abitudini & Routine',
-  '/notes': 'Note & Appunti',
-  '/reviews': 'Review Mesi & Anni',
-  '/tags': 'Tag & Etichette',
-  '/fornitori': 'Negozi & Brand',
-  '/shopping-archive': 'Spesa & Liste',
-};
+export const DEFAULT_ARCHIVE_TITLES: Record<string, string> = ARCHIVE_ROUTE_TITLES;
 
 export const useMobileHeaderLogic = () => {
   const navigate = useNavigate();

@@ -61,6 +61,7 @@ export default defineConfig({
       '/trackers': apiProxyConfig,
       '/feedback': apiProxyConfig,
       '/weather': apiProxyConfig,
+      '/horoscope': apiProxyConfig,
       '/api': apiProxyConfig,
     },
   },

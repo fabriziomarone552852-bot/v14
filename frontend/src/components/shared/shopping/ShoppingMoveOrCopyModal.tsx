@@ -8,6 +8,7 @@ import {
   UsersIcon,
   ForwardIcon,
 } from '@/components/shared/utils/Icons';
+import { useFadeScrollbar } from '@/hooks/ui/useFadeScrollbar';
 import type { ShoppingListSummary, ShoppingGroupSummary } from '@/types/shopping';
 
 export interface ShoppingMoveOrCopyModalProps {
@@ -34,6 +35,7 @@ export const ShoppingMoveOrCopyModal: React.FC<ShoppingMoveOrCopyModalProps> = (
   const [selectedTargetListId, setSelectedTargetListId] = useState<number | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const { isScrolling, handleScroll } = useFadeScrollbar();
 
   // Mappa dei nomi dei gruppi
   const groupNameMap = useMemo(() => {
@@ -155,7 +157,12 @@ export const ShoppingMoveOrCopyModal: React.FC<ShoppingMoveOrCopyModalProps> = (
         </div>
 
         {/* ELENCO LISTE SELEZIONABILI */}
-        <div className="flex-1 min-h-0 overflow-y-auto p-3 custom-scrollbar space-y-3">
+        <div
+          onScroll={handleScroll}
+          className={`flex-1 min-h-0 overflow-y-auto p-3 modal-scrollbar space-y-3 ${
+            isScrolling ? 'is-scrolling' : ''
+          }`}
+        >
           {availableLists.length === 0 ? (
             <div className="py-10 text-center text-gray-400 text-xs">
               Nessuna lista aperta disponibile come destinazione.

@@ -4,6 +4,7 @@ import type { CalendarState } from '@/hooks/useCalendarState';
 import type { CalendarEvent, DbTask } from '@/types';
 import { pad } from '@/utils/dateUtils';
 import { computeWeekLayout } from '@/utils/calendarLayoutUtils';
+import { WeatherBadge } from '@/components/weather/WeatherBadge';
 import { WeekDayColumn } from './WeekGridParts/WeekDayColumn';
 
 interface WeekGridDetailedProps {
@@ -91,15 +92,21 @@ const WeekGridDetailed: React.FC<WeekGridDetailedProps> = ({
                 key={day.dateStr}
                 onClick={(e) => handleHeaderClick(e, day.dateStr)}
                 onDoubleClick={(e) => handleHeaderDoubleClick(e, day.dateStr)}
-                className={`bg-gray-50 px-1 border-l border-gray-200 flex items-center justify-center cursor-pointer hover:bg-gray-100 transition-colors flex-row py-1.5 gap-1.5 select-none
+                className={`bg-gray-50 px-1.5 border-l border-gray-200 flex items-center justify-center cursor-pointer hover:bg-gray-100 transition-colors flex-row py-1.5 gap-1.5 select-none min-w-0
                   ${isToday ? 'border-b-2 border-b-amber-400 bg-amber-50/20 hover:bg-amber-100' : ''}`}
               >
-                <span className={isToday ? 'text-amber-500 font-extrabold' : ''}>
+                <span className={`shrink-0 ${isToday ? 'text-amber-500 font-extrabold' : ''}`}>
                   {day.nameShort}
                 </span>
-                <span className={`text-[10px] mt-0 ${isToday ? 'bg-amber-500 text-white shadow-sm font-bold px-1.5 py-0.5 rounded' : 'text-gray-400'}`}>
+                <span className={`text-[10px] mt-0 shrink-0 ${isToday ? 'bg-amber-500 text-white shadow-sm font-bold px-1.5 py-0.5 rounded' : 'text-gray-400'}`}>
                   {pad(day.dayNum)}/{pad(day.monthNum)}
                 </span>
+                <WeatherBadge
+                  targetDateStr={day.dateStr}
+                  isToday={isToday}
+                  minimal={true}
+                  size="xs"
+                />
               </div>
             );
           })}

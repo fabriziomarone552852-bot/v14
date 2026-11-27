@@ -59,6 +59,26 @@ def send_friend_request(db: Session, requester_id: int, addressee_id: int) -> Fr
     db.add(new_friendship)
     db.commit()
     db.refresh(new_friendship)
+
+    try:
+        from backend.domains.notifications import push_service
+        requester = db.query(User).filter(User.id == requester_id).first()
+        requester_name = requester.username if requester else "Un utente"
+        push_service.notify_users_async(
+            db,
+            [addressee_id],
+            title="🤝 Nuova richiesta di amicizia",
+            body=f"{requester_name} vuole aggiungerti agli amici su Vita.",
+            channel_id=push_service.CHANNEL_SOCIAL,
+            data={
+                "interaction_type": "FRIEND_REQUEST",
+                "open_notifications_sheet": "true",
+                "notifications_tab": "notifiche",
+            },
+        )
+    except Exception:
+        pass
+
     return new_friendship
 
 def accept_friend_request(db: Session, user_id: int, requester_id: int) -> Friendship:
@@ -77,6 +97,25 @@ def accept_friend_request(db: Session, user_id: int, requester_id: int) -> Frien
     friendship.status = "accepted"
     db.commit()
     db.refresh(friendship)
+
+    try:
+        from backend.domains.notifications import push_service
+        accepter = db.query(User).filter(User.id == user_id).first()
+        accepter_name = accepter.username if accepter else "Un utente"
+        push_service.notify_users_async(
+            db,
+            [requester_id],
+            title="🤝 Richiesta di amicizia accettata",
+            body=f"{accepter_name} ha accettato la tua richiesta di amicizia!",
+            channel_id=push_service.CHANNEL_SOCIAL,
+            data={
+                "interaction_type": "FRIEND_ACCEPTED",
+                "route": "/settings/social",
+            },
+        )
+    except Exception:
+        pass
+
     return friendship
 
 def remove_friendship(db: Session, user_id: int, other_user_id: int) -> None:

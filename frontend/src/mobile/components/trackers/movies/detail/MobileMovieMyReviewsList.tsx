@@ -110,11 +110,9 @@ export const MobileMovieMyReviewsList: React.FC<MobileMovieMyReviewsListProps> =
   };
 
   return (
-    <div className="flex flex-col flex-1 min-h-[calc(100dvh-18.5rem)] justify-between select-none animate-fadeIn">
-      {/* 1. SEZIONE SUPERIORE: INTESTAZIONE E LISTA RECENSIONI */}
-      <div className="flex flex-col flex-1">
-        {/* INTESTAZIONE */}
-        <div className="flex items-center justify-between border-b border-gray-200/80 pb-3 pt-1 mb-3 shrink-0">
+    <div className="flex flex-col flex-1 min-h-0 overflow-hidden -mb-4 select-none animate-fadeIn">
+      {/* INTESTAZIONE FISSA IN ALTO */}
+      <div className="flex items-center justify-between border-b border-gray-200/80 pb-3 pt-1 shrink-0">
           <div className="flex items-center gap-2 min-w-0">
             <button
               type="button"
@@ -179,78 +177,77 @@ export const MobileMovieMyReviewsList: React.FC<MobileMovieMyReviewsListProps> =
           )}
         </div>
 
-        {/* LISTA RECENSIONI SCROLLABILE */}
-        <div className="flex-1 overflow-y-auto space-y-3 pb-3">
-          {sortedLogs.length === 0 ? (
-            <div className="py-12 flex flex-col items-center justify-center text-center px-4">
-              <p className="text-sm font-bold text-gray-700 mb-1">Nessuna recensione scritta</p>
-              <p className="text-xs text-gray-400 max-w-xs">
-                Non hai ancora registrato una recensione per questo film. Clicca su &quot;Nuova Recensione&quot; in alto per iniziare.
-              </p>
-            </div>
-          ) : (
-            sortedLogs.map((log) => {
-              const isSelected = selectedLogIds.includes(log.id);
-              const formattedDate = log.watched_at
-                ? new Date(log.watched_at).toLocaleDateString('it-IT', {
-                    day: 'numeric',
-                    month: 'short',
-                    year: 'numeric',
-                  })
-                : 'Visto nel passato';
+      {/* LISTA RECENSIONI SCROLLABILE (intestazione sopra resta fissa) */}
+      <div className="flex-1 min-h-0 overflow-y-auto no-scrollbar space-y-3 pt-3 pb-6">
+        {sortedLogs.length === 0 ? (
+          <div className="py-12 flex flex-col items-center justify-center text-center px-4">
+            <p className="text-sm font-bold text-gray-700 mb-1">Nessuna recensione scritta</p>
+            <p className="text-xs text-gray-400 max-w-xs">
+              Non hai ancora registrato una recensione per questo film. Clicca su &quot;Nuova Recensione&quot; in alto per iniziare.
+            </p>
+          </div>
+        ) : (
+          sortedLogs.map((log) => {
+            const isSelected = selectedLogIds.includes(log.id);
+            const formattedDate = log.watched_at
+              ? new Date(log.watched_at).toLocaleDateString('it-IT', {
+                  day: 'numeric',
+                  month: 'short',
+                  year: 'numeric',
+                })
+              : 'Visto nel passato';
 
-              return (
-                <div
-                  key={log.id}
-                  onClick={() => handleCardClick(log)}
-                  onTouchStart={() => handleTouchStart(log.id)}
-                  onTouchEnd={handleTouchEnd}
-                  onTouchMove={handleTouchMove}
-                  className={`bg-white border rounded-2xl p-3.5 shadow-2xs transition-all cursor-pointer relative flex flex-col gap-2 select-none ${
-                    isSelected
-                      ? 'border-2 border-blue-400 bg-blue-50/20 ring-2 ring-blue-100'
-                      : 'border-gray-200/90 active:bg-gray-50/70'
-                  }`}
-                >
-                  {/* Riga 1: Rating, Pallino, Data, eventuale Piattaforma | Destra: Privacy & Commenti */}
-                  <div className="flex items-center justify-between gap-2">
-                    <div className="flex items-center gap-2 flex-wrap min-w-0">
-                      {log.rating ? (
-                        <StarRating value={(log.rating || 0) / 2} readonly hideNumber iconClassName="w-4 h-4" />
-                      ) : (
-                        <span className="text-gray-400 text-xs font-semibold">Nessun voto</span>
-                      )}
-                      <span className="text-[11px] font-bold text-gray-400">•</span>
-                      <span className="text-[11px] font-semibold text-gray-500">{formattedDate}</span>
-                      {log.viewing_platform_name && (
-                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-gray-100 text-gray-600 border border-gray-200/70">
-                          {log.viewing_platform_name}
-                        </span>
-                      )}
-                    </div>
-
-                    <div className="flex items-center gap-1.5 shrink-0">
-                      {Boolean(log.comments?.length) && (
-                        <span className="flex items-center gap-0.5 text-[10px] font-black text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded-full border border-blue-100">
-                          <MessageCircle className="w-3 h-3" />
-                          {log.comments.length}
-                        </span>
-                      )}
-                      <ReviewVisibilityIcon visibility={log.review_visibility} className="w-3.5 h-3.5 text-gray-400" />
-                    </div>
+            return (
+              <div
+                key={log.id}
+                onClick={() => handleCardClick(log)}
+                onTouchStart={() => handleTouchStart(log.id)}
+                onTouchEnd={handleTouchEnd}
+                onTouchMove={handleTouchMove}
+                className={`bg-white border rounded-2xl p-3.5 shadow-2xs transition-all cursor-pointer relative flex flex-col gap-2 select-none ${
+                  isSelected
+                    ? 'border-2 border-blue-400 bg-blue-50/20 ring-2 ring-blue-100'
+                    : 'border-gray-200/90 active:bg-gray-50/70'
+                }`}
+              >
+                {/* Riga 1: Rating, Pallino, Data, eventuale Piattaforma | Destra: Privacy & Commenti */}
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-2 flex-wrap min-w-0">
+                    {log.rating ? (
+                      <StarRating value={(log.rating || 0) / 2} readonly hideNumber iconClassName="w-4 h-4" />
+                    ) : (
+                      <span className="text-gray-400 text-xs font-semibold">Nessun voto</span>
+                    )}
+                    <span className="text-[11px] font-bold text-gray-400">•</span>
+                    <span className="text-[11px] font-semibold text-gray-500">{formattedDate}</span>
+                    {log.viewing_platform_name && (
+                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-gray-100 text-gray-600 border border-gray-200/70">
+                        {log.viewing_platform_name}
+                      </span>
+                    )}
                   </div>
 
-                  {/* Riga 2: Testo recensione (solo se presente, max 2 righe) */}
-                  {log.notes && log.notes.trim() ? (
-                    <p className="text-xs text-gray-700 leading-relaxed line-clamp-2 break-words">
-                      {log.notes}
-                    </p>
-                  ) : null}
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    {Boolean(log.comments?.length) && (
+                      <span className="flex items-center gap-0.5 text-[10px] font-black text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded-full border border-blue-100">
+                        <MessageCircle className="w-3 h-3" />
+                        {log.comments.length}
+                      </span>
+                    )}
+                    <ReviewVisibilityIcon visibility={log.review_visibility} className="w-3.5 h-3.5 text-gray-400" />
+                  </div>
                 </div>
-              );
-            })
-          )}
-        </div>
+
+                {/* Riga 2: Testo recensione (solo se presente, max 2 righe) */}
+                {log.notes && log.notes.trim() ? (
+                  <p className="text-xs text-gray-700 leading-relaxed line-clamp-2 break-words">
+                    {log.notes}
+                  </p>
+                ) : null}
+              </div>
+            );
+          })
+        )}
       </div>
     </div>
   );

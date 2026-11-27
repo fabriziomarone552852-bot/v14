@@ -18,6 +18,8 @@ export interface MobileSeriesReviewFormProps {
   rating: number;
   setRating: (n: number) => void;
   onSave: () => void;
+  title?: string;
+  placeholder?: string;
 }
 
 export const MobileSeriesReviewForm: React.FC<MobileSeriesReviewFormProps> = ({
@@ -32,6 +34,8 @@ export const MobileSeriesReviewForm: React.FC<MobileSeriesReviewFormProps> = ({
   rating,
   setRating,
   onSave,
+  title,
+  placeholder = 'Cosa ne pensi di questa serie?',
 }) => {
   const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
   const [isPrivacyModalOpen, setIsPrivacyModalOpen] = useState(false);
@@ -46,7 +50,7 @@ export const MobileSeriesReviewForm: React.FC<MobileSeriesReviewFormProps> = ({
             <ArrowLeft className="w-4 h-4" />
           </button>
           <h2 className="text-sm font-extrabold text-gray-900">
-            {editingLogId ? 'Modifica Recensione Serie' : 'Nuova Recensione Serie'}
+            {title ?? (editingLogId ? 'Modifica Recensione Serie' : 'Nuova Recensione Serie')}
           </h2>
         </div>
 
@@ -62,7 +66,7 @@ export const MobileSeriesReviewForm: React.FC<MobileSeriesReviewFormProps> = ({
         <textarea
           value={review}
           onChange={(e) => setReview(e.target.value)}
-          placeholder="Cosa ne pensi di questa serie?"
+          placeholder={placeholder}
           className="w-full flex-1 min-h-[40px] p-3 bg-white border border-gray-200/90 rounded-2xl outline-none resize-none text-xs sm:text-sm text-gray-800 placeholder-gray-400 focus:border-blue-400 focus:ring-2 focus:ring-blue-100 transition-all leading-relaxed shadow-2xs overflow-y-auto custom-scrollbar"
         />
       </div>

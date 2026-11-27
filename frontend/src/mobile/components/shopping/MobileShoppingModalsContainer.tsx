@@ -134,7 +134,7 @@ export const MobileShoppingModalsContainer: React.FC<MobileShoppingModalsContain
         activeListId={activeListId}
         onSelectList={(id) => setActiveListId(id)}
         onOpenGroupDetail={(group) => groupActions.setDetailGroup(group)}
-        onQuickAddProduct={async (prodName) => {
+        onQuickAddProduct={(prodName) => {
           let targetListId = activeListId;
           if (!targetListId && lists.length > 0) {
             const defaultList = lists.find((l) => l.isDefault) || lists[0];
@@ -142,7 +142,7 @@ export const MobileShoppingModalsContainer: React.FC<MobileShoppingModalsContain
             setActiveListId(defaultList.id);
           }
           if (!targetListId) return;
-          await mutations.createItem({
+          void mutations.createItem({
             shoppingListId: targetListId,
             productName: prodName,
           });

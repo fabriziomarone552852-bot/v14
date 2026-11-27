@@ -7,6 +7,7 @@ import { useCategories } from '@/hooks/useCategories';
 import { MonthDayTasksPopover } from './MonthDayParts/MonthDayTasksPopover';
 import { MonthDayMoodSelector } from './MonthDayParts/MonthDayMoodSelector';
 import { MonthDayEventsList } from './MonthDayParts/MonthDayEventsList';
+import { WeatherBadge } from '@/components/weather/WeatherBadge';
 
 export interface MonthPageDayCellProps {
   dateKey: string;
@@ -95,9 +96,9 @@ export const MonthPageDayCell: React.FC<MonthPageDayCellProps> = ({
         activeMood ? 'border-2' : 'border-gray-200 bg-gray-50 hover:bg-blue-100/50 hover:border-blue-400'
       } ${isHovered || isMenuOpen ? 'z-[1000]' : 'z-10'}`}
     >
-      <div className="flex justify-between items-start w-full">
+      <div className="flex justify-between items-center w-full h-6 gap-0.5">
         <span
-          className={`text-xs w-6 h-6 flex items-center justify-center rounded-full ${
+          className={`text-xs w-6 h-6 shrink-0 flex items-center justify-center rounded-full ${
             isToday
               ? 'bg-amber-500 text-white shadow-md ring-4 ring-amber-100 font-extrabold'
               : 'text-gray-600 font-bold group-hover:text-blue-700'
@@ -106,7 +107,17 @@ export const MonthPageDayCell: React.FC<MonthPageDayCellProps> = ({
           {dayNum}
         </span>
 
-        <div className="flex items-center gap-1">
+        {showMoodSelector && (
+          <div className="flex-1 flex items-center justify-center min-w-0">
+            <WeatherBadge
+              targetDateStr={dateKey}
+              isToday={isToday}
+              iconOnly={true}
+            />
+          </div>
+        )}
+
+        <div className="flex items-center gap-1 shrink-0">
           {/* PULSANTE FRECCIA ROTANTE TASK */}
           <MonthDayTasksPopover
             dateKey={dateKey}

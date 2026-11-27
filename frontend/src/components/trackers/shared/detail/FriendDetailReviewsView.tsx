@@ -18,6 +18,8 @@ export interface FriendDetailReviewsViewProps<T> {
   logs: T[];
   getCardData: (log: T) => FriendReviewCardItem;
   onSelectReview: (log: T) => void;
+  /** Su mobile mantiene l'intestazione fissa in alto facendo scorrere solo le recensioni sottostanti */
+  mobileFixedHeader?: boolean;
 }
 
 /**
@@ -30,10 +32,23 @@ export const FriendDetailReviewsView = <T,>({
   logs,
   getCardData,
   onSelectReview,
+  mobileFixedHeader = false,
 }: FriendDetailReviewsViewProps<T>): React.ReactElement => {
   return (
-    <div className="flex flex-col h-full animate-fadeIn">
-      <div className="flex items-center justify-between pb-4 border-b border-gray-100 shrink-0">
+    <div
+      className={
+        mobileFixedHeader
+          ? 'flex flex-col flex-1 min-h-0 h-full overflow-hidden animate-fadeIn'
+          : 'flex flex-col h-full animate-fadeIn'
+      }
+    >
+      <div
+        className={
+          mobileFixedHeader
+            ? 'flex items-center justify-between pb-3 border-b border-gray-200/80 shrink-0'
+            : 'flex items-center justify-between pb-4 border-b border-gray-100 shrink-0'
+        }
+      >
         <div className="flex items-center gap-3">
           <button
             onClick={onBack}
@@ -44,11 +59,19 @@ export const FriendDetailReviewsView = <T,>({
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
             </svg>
           </button>
-          <h2 className="text-xl font-bold text-gray-900">I voti di {friendName}</h2>
+          <h2 className={`${mobileFixedHeader ? 'text-base' : 'text-xl'} font-bold text-gray-900`}>
+            I voti di {friendName}
+          </h2>
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto custom-scrollbar flex flex-col gap-4 pt-4 pr-2">
+      <div
+        className={
+          mobileFixedHeader
+            ? 'flex-1 min-h-0 overflow-y-auto no-scrollbar flex flex-col gap-3 pt-3 pb-6'
+            : 'flex-1 overflow-y-auto custom-scrollbar flex flex-col gap-4 pt-4 pr-2'
+        }
+      >
         {logs.map((log) => {
           const card = getCardData(log);
           const formattedDate = card.dateStr

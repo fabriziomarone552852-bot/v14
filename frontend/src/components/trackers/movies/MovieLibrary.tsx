@@ -11,6 +11,7 @@ import type {
   MovieDetailTarget,
 } from '@/types/movies';
 import type { MovieDetailTabType } from '@/hooks/trackers/useMovieUrlParams';
+import { formatPeopleFilterSummary } from '@/utils/trackerPeopleUtils';
 
 export interface MovieLibraryProps {
   setIsFilterModalOpen: (b: boolean) => void;
@@ -116,6 +117,8 @@ export const MovieLibrary: React.FC<MovieLibraryProps> = ({
       emptySearchMessage={
         debouncedQuery.trim()
           ? `Nessun risultato trovato per "${debouncedQuery}" con i filtri attivi`
+          : filters.people?.trim()
+          ? `Nessun risultato trovato per "${formatPeopleFilterSummary(filters.people, filters.peopleMode)}" con i filtri attivi`
           : 'Nessun risultato trovato con i filtri attivi'
       }
       emptySearchIcon={<FilmIcon className="w-12 h-12 opacity-20" />}

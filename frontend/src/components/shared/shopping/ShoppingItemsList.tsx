@@ -3,6 +3,7 @@ import React from 'react';
 import type { ShoppingListItem } from '@/types/shopping';
 import ShoppingItemRow from './ShoppingItemRow';
 import { EmptyState } from '@/components/shared/utils/EmptyState';
+import { useFadeScrollbar } from '@/hooks/ui/useFadeScrollbar';
 
 interface ShoppingItemsListProps {
   loading: boolean;
@@ -29,12 +30,19 @@ const ShoppingItemsList: React.FC<ShoppingItemsListProps> = ({
   selectedItemIds = [],
   onToggleSelect,
 }) => {
+  const { isScrolling, handleScroll } = useFadeScrollbar();
+
   return (
     <div
       ref={containerRef as React.RefObject<HTMLDivElement>}
       className="flex h-full min-h-0 flex-col overflow-hidden"
     >
-      <div className="flex-1 overflow-y-auto overflow-x-hidden p-2 custom-scrollbar">
+      <div
+        onScroll={handleScroll}
+        className={`flex-1 overflow-y-auto overflow-x-hidden p-2 modal-scrollbar ${
+          isScrolling ? 'is-scrolling' : ''
+        }`}
+      >
         {loading ? (
           <p
             className="py-6 text-center text-xs text-gray-400 animate-pulse"

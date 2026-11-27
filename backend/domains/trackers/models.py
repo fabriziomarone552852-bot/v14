@@ -11,6 +11,7 @@ from sqlalchemy import (
     DateTime,
     Float,
     ForeignKey,
+    Index,
     Integer,
     String,
     Text,
@@ -58,6 +59,7 @@ class TMDBSeries(Base):
     providers_synced_at: Mapped[Optional[datetime]] = mapped_column(
         DateTime(timezone=True), nullable=True
     )
+    credits_summary: Mapped[Optional[list]] = mapped_column(JSON, nullable=True)
     
     last_sync_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
@@ -219,6 +221,68 @@ class UserSeriesLog(Base):
 
     def __repr__(self) -> str:
         return f"<UserSeriesLog id={self.id} user={self.user_id} series={self.series_tmdb_id}>"
+
+
+class UserSeasonLog(Base):
+    """
+    User viewing logs and reviews for specific TV seasons (Diary pattern).
+    Each row represents a rating/review or viewing session for a single season.
+    """
+    __tablename__ = "tv_user_season_logs"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True, index=True)
+    user_id: Mapped[int] = mapped_column(
+        Integer,
+        ForeignKey("users.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    series_tmdb_id: Mapped[int] = mapped_column(
+        Integer,
+        ForeignKey("tmdb_series.tmdb_id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    season_number: Mapped[int] = mapped_column(Integer, nullable=False, index=True)
+
+    rating: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
+    notes: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+
+    review_visibility: Mapped[str] = mapped_column(String(50), nullable=False, default="friends_only")
+
+    watched_at: Mapped[Optional[datetime]] = mapped_column(
+        DateTime(timezone=True),
+        nullable=True,
+    )
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        nullable=False,
+        default=lambda: datetime.now(timezone.utc),
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        nullable=False,
+        default=lambda: datetime.now(timezone.utc),
+        onupdate=lambda: datetime.now(timezone.utc),
+    )
+
+    user: Mapped["User"] = relationship("User")
+    tmdb_series: Mapped["TMDBSeries"] = relationship("TMDBSeries")
+
+    __table_args__ = (
+        Index(
+            "ix_tv_user_season_logs_user_series_season",
+            "user_id",
+            "series_tmdb_id",
+            "season_number",
+        ),
+    )
+
+    def __repr__(self) -> str:
+        return (
+            f"<UserSeasonLog id={self.id} user={self.user_id} "
+            f"series={self.series_tmdb_id} S{self.season_number}>"
+        )
 
 class UserEpisodeLog(Base):
     """
@@ -487,6 +551,7 @@ class TMDBMovie(Base):
         DateTime(timezone=True),
         nullable=True,
     )
+    credits_summary: Mapped[Optional[list]] = mapped_column(JSON, nullable=True)
 
     last_sync_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),

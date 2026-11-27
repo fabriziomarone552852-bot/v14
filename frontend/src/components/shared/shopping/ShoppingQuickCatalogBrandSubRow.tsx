@@ -10,7 +10,6 @@ import { parseBrandPreference } from '@/utils/shoppingBrandPreference';
 interface ShoppingQuickCatalogBrandSubRowProps {
   product: ShoppingProductOption;
   brandLink: ShoppingProductBrandLink | null;
-  unitName: string;
   existingItem: ShoppingListItem | null;
   onToggle: (brandLink: ShoppingProductBrandLink | null) => void;
 }
@@ -18,7 +17,6 @@ interface ShoppingQuickCatalogBrandSubRowProps {
 export const ShoppingQuickCatalogBrandSubRow: React.FC<ShoppingQuickCatalogBrandSubRowProps> = ({
   product,
   brandLink,
-  unitName: _unitName,
   existingItem,
   onToggle,
 }) => {
@@ -41,18 +39,11 @@ export const ShoppingQuickCatalogBrandSubRow: React.FC<ShoppingQuickCatalogBrand
       : null;
 
   const lastSupplier = isGeneric ? product.lastSupplierName : brandLink?.lastSupplierName;
-  const rawDate = isGeneric ? product.lastPurchaseDate : brandLink?.lastPurchaseDate;
-  const lastDateFormatted = rawDate
-    ? new Date(rawDate).toLocaleDateString('it-IT', {
-        day: '2-digit',
-        month: 'short',
-      })
-    : null;
 
   return (
     <div
       onClick={() => onToggle(brandLink)}
-      className={`grid grid-cols-[38px_1fr_120px_90px_110px] items-center gap-2 px-3 py-1.5 transition-colors cursor-pointer text-xs border-l-2 pl-4 ${
+      className={`grid grid-cols-[38px_1fr_140px_115px] items-center gap-2 px-3 py-1.5 transition-colors cursor-pointer text-xs border-l-2 pl-4 ${
         isChecked
           ? 'bg-blue-50/80 hover:bg-blue-100/70 border-blue-600 font-medium text-blue-950'
           : 'bg-slate-50/60 hover:bg-slate-100/80 border-slate-300 text-gray-700'
@@ -117,16 +108,7 @@ export const ShoppingQuickCatalogBrandSubRow: React.FC<ShoppingQuickCatalogBrand
         )}
       </div>
 
-      {/* 4. Data ultimo acquisto */}
-      <div className="truncate text-[11px] text-gray-500">
-        {lastDateFormatted ? (
-          <span className="text-slate-500 text-[10px]">{lastDateFormatted}</span>
-        ) : (
-          <span className="text-gray-400">-</span>
-        )}
-      </div>
-
-      {/* 5. Prezzo Ultimo Acquisto */}
+      {/* 4. Prezzo Ultimo Acquisto */}
       <div className="text-right text-[11px] text-gray-600 truncate">
         {lastPrice ? (
           <span className="font-semibold text-emerald-700">{lastPrice}</span>

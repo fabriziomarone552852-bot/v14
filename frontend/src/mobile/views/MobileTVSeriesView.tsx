@@ -47,6 +47,7 @@ export const MobileTVSeriesView: React.FC = () => {
     detailModalTab,
     setDetailModalTab,
     detailModalEpisode,
+    detailModalSeasonNumber,
     detailModalReviewLogId,
     myQuotes,
     filters,
@@ -302,6 +303,7 @@ export const MobileTVSeriesView: React.FC = () => {
           }
           initialTab={detailModalTab}
           initialEpisode={detailModalEpisode}
+          initialSeasonNumber={detailModalSeasonNumber}
           initialReviewLogId={detailModalReviewLogId}
           isStandaloneEpisode={isStandaloneEpisode}
           onSelectRecommendation={(rec) => {

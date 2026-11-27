@@ -2,6 +2,15 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useShoppingMutations } from '@/hooks/shopping/useShoppingMutations';
 import { getLocalTodayStr } from '@/utils/dateUtils';
+import { parseDecimalValue } from '@/utils/decimalUtils';
+import {
+  createEmptyQuickPriceEntry,
+  generateQuickPriceEntryId,
+  syncQuickPriceEntryAmounts,
+  updateQuickPriceEntriesWithCascade,
+  appendQuickPriceEntryFromLast,
+  removeQuickPriceEntrySafely,
+} from '@/utils/quickPriceUtils';
 import type {
   ConfigOption,
   ShoppingProductOption,
@@ -20,82 +29,17 @@ export interface UseQuickPriceModalLogicProps {
   onClose: () => void;
 }
 
-export const createEmptyRow = (): QuickPriceRow => ({
-  id: `row-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
-  productName: '',
-  brandName: '',
-  brandId: '',
-  price: '',
-  priceUnit: '',
-  priceTotal: '',
-  lastPriceEdited: 'unit',
-  quantity: '1',
-  unitId: '',
-  purchaseDate: getLocalTodayStr(),
-  supplierId: '',
-  isOnSale: false,
-});
+export const createEmptyRow = (
+  purchaseDate?: string,
+  supplierId?: string
+): QuickPriceRow =>
+  createEmptyQuickPriceEntry({
+    idPrefix: 'row',
+    purchaseDate,
+    supplierId,
+  });
 
-export function syncRowPrices(
-  row: QuickPriceRow,
-  field: 'priceUnit' | 'priceTotal' | 'quantity',
-  value: string
-): QuickPriceRow {
-  const cleanVal = value.replace(/[^0-9.,]/g, '').replace(',', '.');
-  const qty = Math.max(0.001, Number(row.quantity.replace(',', '.')) || 1);
-
-  if (field === 'priceUnit') {
-    const unitNum = Number(cleanVal);
-    const totalCalc = !Number.isNaN(unitNum) && cleanVal !== '' ? (unitNum * qty).toFixed(2) : '';
-    return {
-      ...row,
-      priceUnit: value,
-      priceTotal: totalCalc,
-      price: cleanVal,
-      lastPriceEdited: 'unit',
-    };
-  }
-
-  if (field === 'priceTotal') {
-    const totalNum = Number(cleanVal);
-    const unitCalc = !Number.isNaN(totalNum) && cleanVal !== '' && qty > 0 ? (totalNum / qty).toFixed(2) : '';
-    return {
-      ...row,
-      priceTotal: value,
-      priceUnit: unitCalc,
-      price: unitCalc,
-      lastPriceEdited: 'total',
-    };
-  }
-
-  if (field === 'quantity') {
-    const newQty = Math.max(0.001, Number(cleanVal) || 1);
-    let newPriceTotal = row.priceTotal;
-    let newPriceUnit = row.priceUnit;
-
-    if (row.lastPriceEdited === 'total' && row.priceTotal.trim() !== '') {
-      const tot = Number(row.priceTotal.replace(',', '.'));
-      if (!Number.isNaN(tot)) {
-        newPriceUnit = (tot / newQty).toFixed(2);
-      }
-    } else if (row.priceUnit.trim() !== '') {
-      const unit = Number(row.priceUnit.replace(',', '.'));
-      if (!Number.isNaN(unit)) {
-        newPriceTotal = (unit * newQty).toFixed(2);
-      }
-    }
-
-    return {
-      ...row,
-      quantity: value,
-      priceUnit: newPriceUnit,
-      priceTotal: newPriceTotal,
-      price: newPriceUnit,
-    };
-  }
-
-  return { ...row, [field]: value };
-}
+export const syncRowPrices = syncQuickPriceEntryAmounts;
 
 export const useQuickPriceModalLogic = ({
   isOpen,
@@ -114,6 +58,18 @@ export const useQuickPriceModalLogic = ({
   const [focusTargetId, setFocusTargetId] = useState<string | null>(null);
   const [openDatePickerRowId, setOpenDatePickerRowId] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [prevIsOpen, setPrevIsOpen] = useState<boolean>(isOpen);
+
+  if (isOpen !== prevIsOpen) {
+    setPrevIsOpen(isOpen);
+    if (isOpen) {
+      setRows([createEmptyRow(), createEmptyRow(), createEmptyRow()]);
+      setSelectedListId('');
+      setErrorMessage(null);
+      setFocusTargetId(null);
+      setOpenDatePickerRowId(null);
+    }
+  }
 
   const supplierDropdownOptions: DropdownOption[] = useMemo(() => {
     return [
@@ -139,16 +95,6 @@ export const useQuickPriceModalLogic = ({
   }, [unitOptions]);
 
   useEffect(() => {
-    if (isOpen) {
-      setRows([createEmptyRow(), createEmptyRow(), createEmptyRow()]);
-      setSelectedListId('');
-      setErrorMessage(null);
-      setFocusTargetId(null);
-      setOpenDatePickerRowId(null);
-    }
-  }, [isOpen]);
-
-  useEffect(() => {
     if (!focusTargetId) return;
     const timer = setTimeout(() => {
       const el = document.getElementById(focusTargetId);
@@ -161,18 +107,13 @@ export const useQuickPriceModalLogic = ({
   }, [focusTargetId, rows]);
 
   const handleAddRow = useCallback(() => {
-    const newRow = createEmptyRow();
-    setRows((prev) => [...prev, newRow]);
-    setFocusTargetId(`prod-${newRow.id}`);
+    const newRowId = generateQuickPriceEntryId('row');
+    setRows((prev) => appendQuickPriceEntryFromLast(prev, { id: newRowId, idPrefix: 'row' }));
+    setFocusTargetId(`prod-${newRowId}`);
   }, []);
 
   const handleRemoveRow = useCallback((id: string) => {
-    setRows((prev) => {
-      if (prev.length === 1) {
-        return [createEmptyRow()];
-      }
-      return prev.filter((r) => r.id !== id);
-    });
+    setRows((prev) => removeQuickPriceEntrySafely(prev, id, 'row'));
   }, []);
 
   const updateRow = useCallback(<K extends keyof QuickPriceRow>(
@@ -180,15 +121,7 @@ export const useQuickPriceModalLogic = ({
     field: K,
     value: QuickPriceRow[K]
   ) => {
-    setRows((prev) =>
-      prev.map((row) => {
-        if (row.id !== id) return row;
-        if (field === 'priceUnit' || field === 'priceTotal' || field === 'quantity') {
-          return syncRowPrices(row, field as 'priceUnit' | 'priceTotal' | 'quantity', String(value));
-        }
-        return { ...row, [field]: value };
-      })
-    );
+    setRows((prev) => updateQuickPriceEntriesWithCascade(prev, id, field, value));
   }, []);
 
   const handleProductSelect = useCallback((
@@ -204,6 +137,9 @@ export const useQuickPriceModalLogic = ({
           if (product.brandName && !row.brandName) {
             updated.brandName = product.brandName;
             updated.brandId = product.brandId ? String(product.brandId) : '';
+          }
+          if (product.defaultUnitId && !row.unitId) {
+            updated.unitId = String(product.defaultUnitId);
           }
         }
         return updated;
@@ -256,14 +192,14 @@ export const useQuickPriceModalLogic = ({
     }
 
     for (const r of validRows) {
-      const p = Number(r.price.replace(',', '.'));
+      const p = parseDecimalValue(r.price, NaN);
       if (Number.isNaN(p) || p < 0) {
         setErrorMessage(
           `Prezzo non valido per il prodotto "${r.productName}".`
         );
         return;
       }
-      const q = Number(r.quantity.replace(',', '.'));
+      const q = parseDecimalValue(r.quantity, NaN);
       if (Number.isNaN(q) || q <= 0) {
         setErrorMessage(
           `Quantità non valida per il prodotto "${r.productName}".`
@@ -283,8 +219,8 @@ export const useQuickPriceModalLogic = ({
           supplierId: r.supplierId ? Number(r.supplierId) : undefined,
           unitId: r.unitId ? Number(r.unitId) : undefined,
           purchaseDate: r.purchaseDate || getLocalTodayStr(),
-          quantityPurchased: Number(r.quantity.replace(',', '.')) || 1,
-          purchasePrice: Number(r.price.replace(',', '.')),
+          quantityPurchased: parseDecimalValue(r.quantity, 1) || 1,
+          purchasePrice: parseDecimalValue(r.price, 0),
           isOnSale: r.isOnSale,
         })),
       });

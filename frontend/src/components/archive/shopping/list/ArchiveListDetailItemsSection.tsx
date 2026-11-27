@@ -2,6 +2,7 @@
 import React from 'react';
 import type { ShoppingListItem } from '@/types/shopping';
 import { SearchIcon, CheckCircleIcon, TrashIcon } from '@/components/shared/utils/Icons';
+import { useFadeScrollbar } from '@/hooks/ui/useFadeScrollbar';
 import type { ItemFilterStatus } from './useArchiveListDetailLogic';
 
 export interface ArchiveListDetailItemsSectionProps {
@@ -29,6 +30,8 @@ export const ArchiveListDetailItemsSection: React.FC<ArchiveListDetailItemsSecti
   onTogglePurchased,
   onDeleteItem,
 }) => {
+  const { isScrolling, handleScroll } = useFadeScrollbar();
+
   return (
     <div className="space-y-3">
       {/* Filtri e Ricerca */}
@@ -83,7 +86,12 @@ export const ArchiveListDetailItemsSection: React.FC<ArchiveListDetailItemsSecti
       </div>
 
       {/* Lista Articoli */}
-      <div className="space-y-2 max-h-[300px] overflow-y-auto pr-1 custom-scrollbar">
+      <div
+        onScroll={handleScroll}
+        className={`space-y-2 max-h-[300px] overflow-y-auto pr-1 modal-scrollbar ${
+          isScrolling ? 'is-scrolling' : ''
+        }`}
+      >
         {filteredItems.length === 0 ? (
           <p className="py-8 text-center text-xs text-gray-400">
             Nessun articolo trovato in questa lista.

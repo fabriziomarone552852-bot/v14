@@ -9,25 +9,18 @@ Questo documento traccia in modo strutturato, prioritizzato e costantemente aggi
 ## 📊 Matrice di Stato Rapida (Attività Aperte & Future)
 
 | ID | Attività / Funzionalità | Ambito | Stato Backend | Stato Frontend | Priorità |
-| **INFRA-001** | Migrazione Definitiva Infrastruttura: QNAP → Proxmox (Cutover Notturno) | `infra` / deploy | 🟡 Staging Pronto | 🟡 Staging Pronto | 🟡 **Pianificato** |
 | **FEAT-004 (Libri)** | Sezione Media: Estensione a Libri (Google Books, Pagine lette, Stati lettura) | `media` / books | 🔴 Da Strutturare | 🔴 Da Implementare | 🔴 **Massima (Passo Fondamentale)** |
-| **TRACKERS-019** | Giudizio & Voto alle singole Stagioni delle Serie TV (Valutazione per Stagione) | `media` / trackers | 🔴 Da Strutturare | 🔴 Da Implementare | 🟡 **Media** |
-| **TRACKERS-025** | Ricerca & Filtro per Attori / Regista (Film & Serie TV) | `media` / trackers | 🔴 Da Strutturare | 🔴 Da Implementare | 🟡 **Media** |
 | **FEAT-001** | Liste Spesa: Preferite & Pinnate (`pin_status` desktop & mobile) | `shopping` / lists | 🟢 Completato | 🔴 Da Implementare | 🟡 **Media-Alta** |
 | **SHOPPING-004** | Ricerca & Consultazione Prezzi nel Modale Dettaglio Prodotto (per Brand) | `shopping` / UI | 🔴 Da Iniziare | 🔴 Da Iniziare | 🟡 **Media-Alta** |
-| **SHOPPING-005** | Pannello Laterale Recensioni & Giudizio Marchi all'Aggiunta Prodotto | `shopping` / UI | 🔴 Da Strutturare | 🔴 Da Implementare | 🟡 **Media-Alta** |
-| **SHOPPING-020** | Sistema Shopping Page: Voti Prodotti & Flusso "Lista fatta da papà" | `shopping` / UX | 🔴 Da Iniziare | 🔴 Da Iniziare | 🟡 **Media-Alta** |
 | **FEAT-006** | Hub Spesa, Ricettario, Meal Prep & Wishlist Desideri | `shopping` / food | 🔴 Da Strutturare | 🔴 Da Implementare | 🔴 **Massima (Passo Fondamentale)** |
 | **FEAT-003** | Dashboard Analytics & Storico Prezzi Spesa | `analytics` / shopping | 🟢 Completato | 🔴 Da Implementare | 🟢 **Bassa** |
 | **CAL-002** | Filtro Categorie Eventi nel Calendario Homepage (Menu Ingranaggio ⚙️) | `calendar` / UI | 🔴 Da Iniziare | 🔴 Da Iniziare | 🟡 **Media-Alta** |
-| **CAL-003** | Copia & Duplicazione Rapida Eventi (Calendario & Agenda) | `calendar` / events | 🔴 Da Iniziare | 🔴 Da Iniziare | 🟡 **Media-Alta** |
 | **FEAT-011** | Sezione Lavoro & Gestione Turni di Lavoro (Punto da definire con Daniela) | `work` / shifts | 🔴 Da Definire | 🔴 Da Definire | 🟡 **Media-Alta** |
 | **FEAT-005** | Sezione Liste Tematiche & Personalizzate (Posti, Siti, Wishlist, Giochi) | `custom_lists` | 🟡 Parziale | 🟡 Parziale | 🔴 **Massima (Passo Fondamentale)** |
-| **FEAT-013** | Archivio Notifiche / Sezione Storico Notifiche Permanente | `notifications` / UI | 🟢 Completato | 🟡 Da Implementare | 🟡 **Media** |
 | **FEAT-010** | Database & Sincronizzazione Centralizzata Quotes (Citazioni del Giorno) | `core` / quotes | 🔴 Da Implementare | 🔴 Da Implementare | 🟡 **Media** |
 | **AI-001** | Studio & Integrazione Intelligenza Artificiale (Voice, Breakdown, Briefing) | `ai` / assistant | 🔴 Da Analizzare | 🔴 Da Analizzare | 🟡 **Media-Alta (Ricerca)** |
-| **FEAT-016** | Lettere al Futuro Me (Time Capsule stile FutureMe sigillate fino alla deadline) | `capsules` / personal | 🔴 Da Strutturare | 🔴 Da Implementare | 🟡 **Media** |
-| **HOME-001** | Widget Homepage Rotante (Citazione del Giorno, Oroscopo & Meteo) | `home` / UI | 🔴 Da Iniziare | 🔴 Da Iniziare | 🟡 **Media-Alta** |
+| **FEAT-016** | Lettere al Futuro Me (Time Capsule nascoste fino allo scadere del countdown impostato) | `capsules` / personal | 🔴 Da Strutturare | 🔴 Da Implementare | 🟡 **Media** |
+| **HOME-001** | Widget Homepage con Oroscopo & Modale "Oggi in pillole" (Backend & UI pronti nel cassetto) | `home` / UI | 🟢 Pronto (in pausa) | 🟡 In Pausa (nel cassetto) | 🟢 **Bassa** |
 
 *Legenda Stati:*
 - 🟢 **Completato / Supportato**: Già sviluppato, presente nel DB o API pronta.
@@ -36,34 +29,9 @@ Questo documento traccia in modo strutturato, prioritizzato e costantemente aggi
 
 ---
 
-## 🏗️ 0. Infrastruttura & Migrazione Server
-
-### [INFRA-001] Migrazione Definitiva da NAS QNAP a Proxmox (Cutover Notturno)
-- **Stato Attuale**: 🟡 **Staging / Beta Testing Attivo su Proxmox**
-  - Host Proxmox: `192.168.11.19`
-  - LXC App Python / Docker: `192.168.11.14:8181`
-  - LXC PostgreSQL: `192.168.11.15:5432`
-  - LXC Tailscale Gateway: `192.168.11.16` (subnet routing `192.168.11.0/24`)
-- **Configurazione di Rete Cruciale per Mobile App (tsnet)**:
-  - L'APK mobile integra un micro-tunnel WireGuard autonomo (`tsnet`) che invia tutte le richieste HTTP verso `smartagenda.tailf3b58c.ts.net:8181`.
-  - Poiché su Proxmox il nodo Tailscale (`192.168.11.16`) è separato dal container web (`192.168.11.14`), sul container Tailscale `192.168.11.16` è obbligatorio il port-forwarding delle porte 8181 e 8000 verso `192.168.11.14` (tramite demone `rinetd` o `tailscale serve --bg --tcp 8181 192.168.11.14:8181`).
-- **Procedura Cutover Finale da Ricordare**:
-  1. **Avviso agli Utenti**: Trasmissione dell'avviso di sistema dal nuovo pannello Admin (`Avvisi & Broadcast` -> modello rapido *"🔄 Cambio Server"*) con pop-up immediato a tutti gli utenti e notifica Inbox prima di iniziare i lavori.
-  2. Esecuzione di `build_all.ps1` sul PC Windows per compilare simultaneamente la Web App (`.tar`) e la Mobile App (`.apk`).
-  3. Caricamento del nuovo APK su Google Drive per consentire l'auto-aggiornamento agli utenti.
-  4. Trasferimento dei `.tar` aggiornati su Proxmox (`192.168.11.14`).
-  5. Sospensione servizio QNAP (`docker stop backend vxame14_frontend`).
-  6. Esecuzione di `cutover_sync_finale.sh` e `deploy_proxmox.sh` su Proxmox (allineamento delta DB + uploads).
-  7. Switch hostname su Tailscale (`smartagenda` -> `smartagenda-old`, `tailproxfg` -> `smartagenda`).
-  8. Riapertura del servizio: revoca dell'avviso di trasmissione dal pannello Admin cliccando *"🛑 Termina / Rimuovi Avviso"*.
-  9. Sistema di Backup Automatico 3-2-1 (`auto_backup.sh` su cron Proxmox + replica NAS QNAP con retention max 2 copie) già collaudato ed operativo.
-  10. Dettagli e documentazione permanente in [`docs/MIGRAZIONE_PROXMOX.md`](file:///c:/Users/user/Documents/PYTHON/VxAme14/docs/MIGRAZIONE_PROXMOX.md).
-
----
-
 ## 📺 1. Media & Trackers (Libri, Serie TV & Funzionalità Evolutive)
 
-> 🗄️ **Moduli Serie TV & Film Completati**: I moduli completi delle **Serie TV** e dei **Film** (inclusa la gestione Saghe TMDB, calendari visioni, statistiche di durata reale, liste miste, standardizzazione header/cards `TRACKERS-023`, modale statistiche unificata `TRACKERS-024`, standardizzazione modale dettaglio `TRACKERS-028`, armonizzazione recensioni/citazioni `TRACKERS-029`, social/commenti ottimistici `TRACKERS-030`, paginazione progressiva TMDB `TRACKERS-031`, standardizzazione catalogo `TRACKERS-032`, standardizzazione mobile trackers `TRACKERS-033`, il modulo Cinema & orari in sala `TRACKERS-034`, le piattaforme streaming utente con fallback home mobile `TRACKERS-037`, il motore di ricerca incrociata avanzata con generi 3 stati e reset rapido `TRACKERS-038`, il modale piattaforma universale con ordinamento alfabetico `TRACKERS-039`, la centratura geometrica dell'header e del catalogo mobile `TRACKERS-040`, il modale analytics mobile film con calendario unificato ed EmptyState universali `TRACKERS-041`, la riorganizzazione architetturale simmetrica `shared/`-`series/`-`movies/` con nomenclatura unificata `TRACKERS-042`, la rifinitura scheda dettaglio film e standardizzazione recensioni mobile `TRACKERS-043`, la suite liste personali mobile filtrata per tracker con slider header a doppio livello `TRACKERS-044`, il pulsante e modale piattaforme catalogo desktop `TRACKERS-036` e gli orari cinema e carosello "In sala" su Webpage Desktop `TRACKERS-035`) sono stati completati con successo e archiviati in dettaglio in [`docs/BACKLOG_ARCHIVE.md`](file:///c:/Users/Fabrizio/Desktop/app/smart/v14/docs/BACKLOG_ARCHIVE.md).
+> 🗄️ **Moduli Serie TV & Film Completati**: I moduli completi delle **Serie TV** e dei **Film** (inclusa la gestione Saghe TMDB, calendari visioni, statistiche di durata reale, liste miste, valutazione multi-log per singole stagioni `TRACKERS-019`, standardizzazione header/cards `TRACKERS-023`, modale statistiche unificata `TRACKERS-024`, ricerca e filtro multi-persona `AND`/`OR` con scheda filmografia `TRACKERS-025`, standardizzazione modale dettaglio `TRACKERS-028`, armonizzazione recensioni/citazioni `TRACKERS-029`, social/commenti ottimistici `TRACKERS-030`, paginazione progressiva TMDB `TRACKERS-031`, standardizzazione catalogo `TRACKERS-032`, standardizzazione mobile trackers `TRACKERS-033`, il modulo Cinema & orari in sala `TRACKERS-034`, le piattaforme streaming utente con fallback home mobile `TRACKERS-037`, il motore di ricerca incrociata avanzata con generi 3 stati e reset rapido `TRACKERS-038`, il modale piattaforma universale con ordinamento alfabetico `TRACKERS-039`, la centratura geometrica dell'header e del catalogo mobile `TRACKERS-040`, il modale analytics mobile film con calendario unificato ed EmptyState universali `TRACKERS-041`, la riorganizzazione architetturale simmetrica `shared/`-`series/`-`movies/` con nomenclatura unificata `TRACKERS-042`, la rifinitura scheda dettaglio film e standardizzazione recensioni mobile `TRACKERS-043`, la suite liste personali mobile filtrata per tracker con slider header a doppio livello `TRACKERS-044`, il porting mobile di scheda attori/registi, navigazione a stack cross-media e rating compatti per stagioni/episodi/serie/film `TRACKERS-045`, la barra liste adattiva anti-sovrapposizione locandina con sidebar scorrevoli Liste/Amici `TRACKERS-046`, il pulsante e modale piattaforme catalogo desktop `TRACKERS-036` e gli orari cinema e carosello "In sala" su Webpage Desktop `TRACKERS-035`) sono stati completati con successo e archiviati in dettaglio in [`docs/BACKLOG_ARCHIVE.md`](file:///c:/Users/Fabrizio/Desktop/app/smart/v14/docs/BACKLOG_ARCHIVE.md).
 
 ### [FEAT-004 (Libri)] Estensione Sezione Media: Libri
 *(Attività futura pianificata per il completamento dell'hub Media).*
@@ -78,20 +46,6 @@ Questo documento traccia in modo strutturato, prioritizzato e costantemente aggi
 - **Incrocio Liste Miste**: Trasferire il componente `SeriesMatchModal` in una futura Homepage Trackers unificata per supportare contenuti eterogenei.
 - **Voto Community**: Visualizzare il voto medio espresso dalla community dell'applicazione accanto o in alternativa al voto TMDB.
 - **Suggerimenti Homepage**: Sezione con raccomandazioni dinamiche basate sugli ultimi titoli completati o guardati di frequente.
-
-### [TRACKERS-019] Giudizio & Voto alle singole Stagioni delle Serie TV (Valutazione per Stagione)
-- **Descrizione**: Possibilità per l'utente di esprimere un voto (in scala stelle/decimi) e/o un giudizio testuale / recensione dedicato a ciascuna singola stagione completata o in corso d'opera.
-- **Obiettivo & Casi d'Uso**:
-  - Consentire una valutazione granulare di serie televisive con qualità eterogenea tra una stagione e l'altra (es. stagioni capolavoro vs stagioni successive sottotono).
-  - Visualizzare il voto/giudizio di ciascuna stagione nella scheda delle stagioni (`MobileSeriesSeasonsTab` e modale desktop), affiancandolo alle recensioni dei singoli episodi e alla valutazione complessiva della serie.
-- **Stato**: 🔴 Da Strutturare / Da Implementare *(Desktop & Mobile — Priorità: Media)*.
-
-### [TRACKERS-025] Ricerca & Filtro per Attori / Registi (Film & Serie TV)
-- **Descrizione**: Possibilità di cercare titoli per attore o regista (tramite TMDB People Search o credits), visualizzare la filmografia di un interprete/regista selezionato dal cast o dalla scheda panoramica, e filtrare la propria libreria personale per cast preferito.
-- **Obiettivo & Casi d'Uso**:
-  - Dalla scheda del film o serie tv, cliccando sulla foto/nome di un attore o sul nome del regista, aprire una vista con le loro opere o filtrare i film già salvati/visti nella propria collezione.
-  - Estendere la ricerca globale con supporto per persone (registi e attori).
-- **Stato**: 🔴 Da Strutturare / Da Implementare *(Desktop & Mobile — Priorità: Media)*.
 
 ---
 
@@ -111,15 +65,9 @@ Questo documento traccia in modo strutturato, prioritizzato e costantemente aggi
 - **Descrizione**: Aggiunta della barra di ricerca e della griglia/lista di consultazione prezzi all'interno del modale di dettaglio di ciascun prodotto nell'archivio spesa, includendo il raggruppamento dei prezzi registrati suddivisi per Brand/Marca.
 - **Stato**: 🔴 Da Iniziare *(Desktop & Mobile — Priorità: Media-Alta)*.
 
-### [SHOPPING-005] Pannello Laterale Recensioni & Giudizio Marchi all'Aggiunta Prodotto
-- **Descrizione**: Durante l'inserimento o aggiunta rapida di un nuovo prodotto a una lista della spesa, integrare un pannello laterale a comparsa (o drawer su smartphone) che mostri le recensioni, le valutazioni qualitative (👍/👎) e i giudizi precedentemente espressi per i diversi marchi di quello specifico articolo, con indicazione dell'ultimo prezzo registrato e del negozio abituale.
-- **Stato**: 🔴 Da Strutturare / Implementare *(Priorità: Media-Alta)*.
-
-### [SHOPPING-020] Sistema Shopping Page: Voti dei Prodotti & "Lista fatta da papà"
-- **Descrizione**: Evoluzione dell'esperienza d'uso della pagina Shopping per ottimizzare la gestione quotidiana della spesa familiare:
-  1. **Voti & Valutazioni dei Prodotti**: Visualizzazione e gestione rapida dei voti e delle note qualitative dei prodotti direttamente all'interno delle liste della spesa e nei selettori di aggiunta, rendendo immediata la scelta del marchio migliore.
-  2. **Flusso "Lista fatta da papà"**: Integrazione di una vista, filtro o flusso dedicato per importare e visualizzare agilmente appunti o liste esterne (visualizzazione semplificata per consultazione in mobilità, e selezione prioritaria dei prodotti abituali).
-- **Stato**: 🔴 Da Iniziare *(Desktop & Mobile — Priorità: Media-Alta)*.
+> [!NOTE]
+> **📝 Note per Sviluppatori — `note per papà` (Spunti & Decisioni Aperte da Affrontare):**
+> 1. **Pulizia Nomi Prodotti vs Brand (`"ace candeggina"`)**: Nella lista dei prodotti compare ad esempio *"ace candeggina"*, ma il marchio (*"Ace"*) non dovrebbe stare esclusivamente tra i **Brand** lasciando solo *"candeggina"* tra i prodotti canonici? *(I pannelli laterali Marchi & Giudizi, la sola consultazione in creazione prodotto, lo snellimento del catalogo rapido, l'inserimento rapido prezzi multi-scontrino a cascata e le scrollbar a scomparsa nelle liste aperte `SHOPPING-005` + `SHOPPING-020` + `SHOPPING-022` sono stati completati e archiviati in [`docs/BACKLOG_ARCHIVE.md`](file:///c:/Users/Fabrizio/Desktop/app/smart/v14/docs/BACKLOG_ARCHIVE.md)).*
 
 ### [FEAT-006] Hub Spesa, Ricettario, Meal Prep & Wishlist Oggetti
 - **Descrizione**: Evoluzione della sezione Spesa in un ecosistema integrato per la pianificazione alimentare, ricette e acquisti:
@@ -146,14 +94,6 @@ Questo documento traccia in modo strutturato, prioritizzato e costantemente aggi
 - **Persistenza**: Preferenze salvate in memoria locale dell'utente per mantenere attiva la configurazione scelta tra le sessioni.
 - **Stato**: 🔴 Da Iniziare *(Priorità: Media-Alta)*.
 
-### [CAL-003] Copia & Duplicazione Rapida Eventi (Calendario & Agenda)
-- **Descrizione**: Possibilità per l'utente di copiare e duplicare un evento esistente nel calendario o nell'agenda (sia da interfaccia Desktop che Mobile).
-- **Casi d'Uso & Funzionalità**:
-  - Pulsante dedicato "Copia Evento" / "Duplica" all'interno del modale di dettaglio evento o nel menu opzioni contestuale (tre puntini / tocco prolungato).
-  - Modalità di duplicazione rapida nello stesso giorno o selezione guidata di una data di destinazione differente, preservando orario di inizio/fine, categoria, descrizione, colore e promemoria preconfigurati.
-  - Salvataggio immediato ottimistico (0ms) con notifica toast leggera di conferma.
-- **Stato**: 🔴 Da Iniziare *(Desktop & Mobile — Priorità: Media-Alta)*.
-
 ### [FEAT-011] Sezione Lavoro & Gestione Turni di Lavoro
 - **Descrizione**: Modulo dedicato alla gestione delle attività lavorative, tracciamento orari e organizzazione turni.
 - **Punti da Definire con Daniela**:
@@ -179,14 +119,13 @@ Questo documento traccia in modo strutturato, prioritizzato e costantemente aggi
 
 ## 🔔 5. Notifiche, Social & Condivisione
 
-### [FEAT-013] Archivio Notifiche / Sezione Storico Notifiche Permanente
-- **Descrizione**: Creare una schermata dedicata (in Impostazioni o in pagina apposita) per consultare lo storico completo di tutte le notifiche di sistema, inviti e alert, conformemente alla regola per cui le notifiche non sono effimere ma permanenti.
-- **UI/UX**: Lista a scorrimento, filtri per tipologia (Social, Spesa, Sistema) e raggruppamento per data (Oggi, Ieri, Questa Settimana, Mese).
-- **Stato**: Backend 🟢 Supportato | Frontend 🟡 Da Implementare *(Priorità: Media)*.
+> 🗄️ **Archivio Notifiche Permanente Completato (`FEAT-013`)**: La pagina dedicata allo storico permanente delle notifiche (`/notifications` su Desktop & Mobile, con filtri per tipologia, stato lettura, intervallo date e deep-link diretto a 0ms) è stata completata e archiviata in [`docs/BACKLOG_ARCHIVE.md`](file:///c:/Users/Fabrizio/Desktop/app/smart/v14/docs/BACKLOG_ARCHIVE.md).
 
 ---
 
 ## ⚙️ 6. Citazioni & Sistema
+
+> 🗄️ **Modulo Meteo Open-Meteo Desktop & Mobile Completato**: L'intera revisione e integrazione del sistema meteo (`WEATHER-002`, inclusi Open-Meteo 16gg, storico mensile on-demand, finestra atmosferica Desktop con fasi lunari reali, striscia rotante Citazione ↔ Meteo in Home Mobile, widget in Giorno/Settimana/Mese, ricerca città in modale centrato e modale dettagli a tutta pagina su smartphone) è stata completata e archiviata in [`docs/BACKLOG_ARCHIVE.md`](file:///c:/Users/Fabrizio/Desktop/app/smart/v14/docs/BACKLOG_ARCHIVE.md).
 
 ### [FEAT-010] Database & Sincronizzazione Centralizzata Citazioni Giornaliere (Quotes)
 - **Descrizione**: Centralizzare le citazioni giornaliere (Quotes) tramite tabella database dedicata nel backend, in modo che tutti gli utenti e dispositivi visualizzino la stessa identica citazione del giorno in modo sincronizzato e consistente.
@@ -211,11 +150,11 @@ Questo documento traccia in modo strutturato, prioritizzato e costantemente aggi
 ## ✉️ 8. Capsule Temporali & Messaggi al Futuro
 
 ### [FEAT-016] Lettere al Futuro Me (Time Capsule stile FutureMe)
-- **Descrizione**: Funzionalità di capsula temporale ispirata a **FutureMe** che permette all'utente di scrivere e inviare una lettera indirizzata a sé stesso nel futuro, scegliendo una data/ora di scadenza (deadline) per la consegna.
+- **Descrizione**: Funzionalità di capsula temporale ispirata a **FutureMe** che permette all'utente di scrivere e inviare una lettera indirizzata a sé stesso nel futuro, impostando un **countdown** (o data/ora di scadenza) per lo sblocco.
 - **Comportamento & Regole Chiave**:
-  - **Sigillo & Visibilità Zero fino alla Deadline**: Una volta inviata, la lettera **scompare dalla vista** e non è più consultabile, rileggibile né modificabile fino allo scadere della deadline impostata (il blocco deve valere sia lato UI che lato backend, evitando l'esposizione del contenuto prima della data di sblocco).
-  - **Scelta Scadenza Flessibile**: Possibilità di impostare una data precisa futura o preset rapidi (es. tra 3 mesi, 6 mesi, 1 anno, 5 anni).
-  - **Consegna & Storico Permanente**: Al raggiungimento della deadline, la lettera viene sbloccata e segnalata tramite notifica permanente nell'app, diventando leggibile nella propria raccolta di lettere ricevute.
+  - **Occultamento Totale fino allo Scadere del Countdown**: Una volta inviata, la lettera viene **nascosta e non è più visibile all'utente** (né consultabile, rileggibile o modificabile) fino allo scadere del countdown impostato (il blocco deve valere sia lato UI che lato backend, evitando l'esposizione del contenuto prima dello scadere del tempo).
+  - **Scelta Countdown / Scadenza Flessibile**: Possibilità di impostare un countdown/data precisa futura o preset rapidi (es. tra 3 mesi, 6 mesi, 1 anno, 5 anni).
+  - **Consegna & Storico Permanente**: Allo scadere del countdown impostato, la lettera torna visibile, viene sbloccata e segnalata tramite notifica permanente nell'app nella raccolta di lettere ricevute.
 - **Stato**: 🔴 Da Strutturare / Da Implementare *(Desktop & Mobile — Priorità: Media)*.
 
 ---
@@ -223,14 +162,12 @@ Questo documento traccia in modo strutturato, prioritizzato e costantemente aggi
 ## 🚀 9. Progetti Futuri & Idee di Roadmap
 
 ### 9.1 Mobile & Esperienza Utente
-- [ ] **[HOME-001] Widget Homepage Rotante (Citazione, Oroscopo & Meteo)**: Widget rotante in homepage che alterna citazione, oroscopo del giorno e meteo locale, con apertura espansa al click che mostra tutte e tre le informazioni.
-- [ ] **Notifiche Push Native Android (FCM / Local Notifications)**: Avvisi automatici per scadenze di task, eventi di calendario, promemoria serie ed episodi in uscita.
+- [ ] **[HOME-001] Riattivazione Oroscopo & Modale "Oggi in pillole" (Già sviluppati e messi nel cassetto)**: La striscia rotante Citazione ↔ Meteo è già attiva in Home Mobile (`MobileRotatingBriefingStrip`). Il parser Python self-hosted per l'oroscopo italiano (`backend/domains/horoscope/`), gli hook 0ms (`useHoroscope`, `useHoroscopePreference`), la card impostazioni (`MobileHoroscopeSettingsCard`) e il modale a tutt'altezza con barra inferiore a icone (`MobileDailyBriefingModal`) sono già codificati e conservati nel codebase per un eventuale utilizzo futuro.
 - [ ] **Scansione Codici a Barre (Barcode Scanner)**: Utilizzo fotocamera smartphone per aggiungere al volo prodotti alla lista spesa o libri tramite ISBN.
 - [ ] **Widget Android**: Widget per la schermata home dello smartphone per spuntare i task rapidi del giorno, la lista spesa e visualizzare la puntata in corso.
 
 ### 9.2 Agenda, Task & Pianificazione
 - [ ] **Visualizzazione Vista Gantt / Timeline**: Per progetti complessi con sotto-task gerarchici e scadenze concatenate.
-- [ ] **Integrazione Meteo nella DayPage**: Previsioni meteo contestuali nella vista Giorno basate su coordinate o città configurata.
 - [ ] **Report Settimanale / Mensile PDF**: Esportazione automatica di un documento riassuntivo con impegni svolti, abitudini rispettate, statistiche media consumati e bilancio dell'umore (*Mood Entries*).
 
 ### 9.3 Spesa & Dispensa

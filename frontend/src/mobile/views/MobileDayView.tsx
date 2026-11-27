@@ -24,6 +24,7 @@ export const MobileDayView: React.FC = () => {
     isToday,
     weekdayName,
     formattedDateStr,
+    targetDateStr,
     handleResetToday,
 
     // Stato Query
@@ -163,6 +164,8 @@ export const MobileDayView: React.FC = () => {
             visibleEvents={visibleCompactEvents}
             hasMoreEvents={hasMoreEvents}
             eventsListRef={eventsListRef}
+            targetDateStr={targetDateStr}
+            isToday={isToday}
             onExpandEvents={() => handleSetExpandedView('events')}
             onOpenEventDetail={openEventDetail}
           />
@@ -218,6 +221,8 @@ export const MobileDayView: React.FC = () => {
         expandedView={expandedView}
         onCloseExpanded={() => handleSetExpandedView('none')}
         formattedDateStr={formattedDateStr}
+        targetDateStr={targetDateStr}
+        isToday={isToday}
         mappedEvents={mappedEvents}
         isEventsSelection={isEventsSelection}
         onToggleSelectEvent={handleToggleSelectEvent}

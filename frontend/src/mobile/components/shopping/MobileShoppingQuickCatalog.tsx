@@ -15,6 +15,7 @@ import type {
   ConfigOption,
 } from '@/types/shopping';
 import { useShoppingQuickCatalogLogic } from '@/components/shared/shopping/useShoppingQuickCatalogLogic';
+import { useFadeScrollbar } from '@/hooks/ui/useFadeScrollbar';
 import { MobileQuickCatalogBrandModal } from './MobileQuickCatalogBrandModal';
 
 interface MobileShoppingQuickCatalogProps {
@@ -34,7 +35,6 @@ export const MobileShoppingQuickCatalog: React.FC<MobileShoppingQuickCatalogProp
   products,
   items,
   activeList,
-  unitOptions: _unitOptions,
   onToggleItem,
   onClose,
 }) => {
@@ -52,6 +52,8 @@ export const MobileShoppingQuickCatalog: React.FC<MobileShoppingQuickCatalogProp
     products,
     items,
   });
+
+  const { isScrolling, handleScroll } = useFadeScrollbar();
 
   return (
     <div className="flex-1 min-h-0 w-full bg-white border border-gray-200/90 rounded-2xl shadow-2xs p-2.5 flex flex-col justify-between overflow-hidden animate-fadeIn select-none">
@@ -119,7 +121,12 @@ export const MobileShoppingQuickCatalog: React.FC<MobileShoppingQuickCatalogProp
       </div>
 
       {/* 2. LISTA ARTICOLI CATALOGO A-Z */}
-      <div className="flex-1 min-h-0 overflow-y-auto custom-scrollbar pt-2 space-y-1.5">
+      <div
+        onScroll={handleScroll}
+        className={`flex-1 min-h-0 overflow-y-auto modal-scrollbar pt-2 space-y-1.5 ${
+          isScrolling ? 'is-scrolling' : ''
+        }`}
+      >
         {filteredProducts.length === 0 ? (
           <div className="py-12 px-4 text-center">
             <div className="w-10 h-10 rounded-2xl bg-slate-50 border border-slate-200 flex items-center justify-center text-slate-400 mx-auto mb-2">
@@ -137,7 +144,6 @@ export const MobileShoppingQuickCatalog: React.FC<MobileShoppingQuickCatalogProp
             const existingItem = getExistingItem(product);
             const isChecked = Boolean(existingItem);
             const displayName = product.displayName || product.nameNormalized || 'Articolo';
-            const unitName = product.defaultUnitCodeName || 'pz';
             const brandsCount = product.productBrands?.length ?? 0;
             const hasMultipleBrands = brandsCount > 1;
             const singleBrand = brandsCount === 1 ? product.productBrands![0] : null;
@@ -186,6 +192,60 @@ export const MobileShoppingQuickCatalog: React.FC<MobileShoppingQuickCatalogProp
               }
             };
 
+            const detailItems: Array<{ key: string; node: React.ReactNode }> = [];
+
+            if (hasMultipleBrands) {
+              detailItems.push({
+                key: 'brands',
+                node: (
+                  <span className="font-semibold text-blue-700 bg-blue-50 px-1.5 py-0.2 rounded border border-blue-200/80">
+                    🏷️ {brandsCount} marche ▾
+                  </span>
+                ),
+              });
+            } else if (singleBrand?.brand?.nameNormalized) {
+              detailItems.push({
+                key: 'brand',
+                node: (
+                  <span className="truncate font-medium text-gray-600">
+                    {singleBrand.brand.nameNormalized}
+                  </span>
+                ),
+              });
+            } else if (product.brandName) {
+              detailItems.push({
+                key: 'brand',
+                node: (
+                  <span className="truncate font-medium text-gray-600">
+                    {product.brandName}
+                  </span>
+                ),
+              });
+            }
+
+            const displayPrice = hasMultipleBrands ? minPriceFormatted : lastPrice;
+            if (displayPrice) {
+              detailItems.push({
+                key: 'price',
+                node: (
+                  <span className="font-bold text-emerald-700">
+                    {displayPrice}
+                  </span>
+                ),
+              });
+            }
+
+            if (singleBrand?.lastSupplierName) {
+              detailItems.push({
+                key: 'supplier',
+                node: (
+                  <span className="truncate text-slate-500">
+                    🏪 {singleBrand.lastSupplierName}
+                  </span>
+                ),
+              });
+            }
+
             return (
               <div
                 key={product.id || product.nameNormalized}
@@ -226,45 +286,17 @@ export const MobileShoppingQuickCatalog: React.FC<MobileShoppingQuickCatalogProp
                     )}
                   </div>
 
-                  {/* Dettagli secondari (Marca / Badge Opzioni • Unità • Ultimo Prezzo) */}
-                  <div className="flex items-center gap-1.5 text-[10px] text-gray-500 mt-0.5 truncate">
-                    {hasMultipleBrands ? (
-                      <span className="font-semibold text-blue-700 bg-blue-50 px-1.5 py-0.2 rounded border border-blue-200/80">
-                        🏷️ {brandsCount} marche ▾
-                      </span>
-                    ) : singleBrand?.brand?.nameNormalized ? (
-                      <span className="truncate font-medium text-gray-600">
-                        {singleBrand.brand.nameNormalized}
-                      </span>
-                    ) : product.brandName ? (
-                      <span className="truncate font-medium text-gray-600">
-                        {product.brandName}
-                      </span>
-                    ) : null}
-
-                    <span>•</span>
-                    <span className="px-1 py-0.2 rounded bg-slate-100 text-slate-600 font-medium">
-                      {unitName}
-                    </span>
-
-                    {(minPriceFormatted || lastPrice) && (
-                      <>
-                        <span>•</span>
-                        <span className="font-bold text-emerald-700">
-                          {hasMultipleBrands ? minPriceFormatted : lastPrice}
-                        </span>
-                      </>
-                    )}
-
-                    {singleBrand?.lastSupplierName && (
-                      <>
-                        <span>•</span>
-                        <span className="truncate text-slate-500">
-                          🏪 {singleBrand.lastSupplierName}
-                        </span>
-                      </>
-                    )}
-                  </div>
+                  {/* Dettagli secondari (Marca / Badge Opzioni • Ultimo Prezzo • Fornitore) */}
+                  {detailItems.length > 0 && (
+                    <div className="flex items-center gap-1.5 text-[10px] text-gray-500 mt-0.5 truncate">
+                      {detailItems.map((detail, idx) => (
+                        <React.Fragment key={detail.key}>
+                          {idx > 0 && <span>•</span>}
+                          {detail.node}
+                        </React.Fragment>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
             );

@@ -8,15 +8,20 @@ import {
 const PROVINCE_STORAGE_KEY = 'vita_cinema_province';
 const PROVINCE_CHANGE_EVENT = 'vita-cinema-province-changed';
 
-export const useCinemaProvinceSelection = (onProvinceChanged?: () => void) => {
+export const useCinemaProvinceSelection = (
+  onProvinceChanged?: () => void,
+  enabled: boolean = true
+) => {
   const [selectedProvinceSlug, setSelectedProvinceSlug] = useState<string>(() => {
     return localStorage.getItem(PROVINCE_STORAGE_KEY) || 'milano';
   });
   const [isProvinceModalOpen, setIsProvinceModalOpen] = useState(false);
 
-  const { data: provinces = [] } = useCinemaProvinces();
-  const { data: provinceData, isLoading: isLoadingCinema } =
-    useProvinceCinemaData(selectedProvinceSlug);
+  const { data: provinces = [] } = useCinemaProvinces(enabled);
+  const { data: provinceData, isLoading: isLoadingCinema } = useProvinceCinemaData(
+    selectedProvinceSlug,
+    enabled
+  );
 
   const currentProvince = useMemo(() => {
     return (

@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useOutsideClick } from '@/hooks/useOutsideClick';
 import { useDropdownPosition } from '@/hooks/useDropdownPosition';
+import { useFadeScrollbar } from '@/hooks/ui/useFadeScrollbar';
 import { DropdownIcon, ShoppingIcon, UsersIcon, CloseIcon } from '@/components/shared/utils/Icons';
 import type { ShoppingListSummary } from '@/types/shopping';
 
@@ -28,6 +29,7 @@ export const ShoppingListSelect: React.FC<ShoppingListSelectProps> = ({
   noneLabel = 'Nessuna Lista (Solo Personale / Privato)',
 }) => {
   const [isOpen, setIsOpen] = useState(false);
+  const { isScrolling, handleScroll } = useFadeScrollbar();
   const ref = useOutsideClick<HTMLDivElement>(() => {
     if (!asModal) setIsOpen(false);
   });
@@ -104,7 +106,10 @@ export const ShoppingListSelect: React.FC<ShoppingListSelectProps> = ({
         {/* Modalità Dropdown Classica */}
         {!asModal && isOpen && !disabled && (
           <div
-            className={`absolute z-[100] w-full min-w-[220px] bg-white border border-gray-100 rounded-xl shadow-xl py-1 animate-fadeIn max-h-56 overflow-y-auto custom-scrollbar ${
+            onScroll={handleScroll}
+            className={`absolute z-[100] w-full min-w-[220px] bg-white border border-gray-100 rounded-xl shadow-xl py-1 animate-fadeIn max-h-56 overflow-y-auto modal-scrollbar ${
+              isScrolling ? 'is-scrolling ' : ''
+            }${
               openUpwards ? 'bottom-full mb-1' : 'top-full mt-1'
             }`}
           >
@@ -173,7 +178,12 @@ export const ShoppingListSelect: React.FC<ShoppingListSelectProps> = ({
               </div>
 
               {/* Elenco Liste */}
-              <div className="flex-1 min-h-0 overflow-y-auto custom-scrollbar space-y-1.5 pr-0.5">
+              <div
+                onScroll={handleScroll}
+                className={`flex-1 min-h-0 overflow-y-auto modal-scrollbar space-y-1.5 pr-0.5 ${
+                  isScrolling ? 'is-scrolling' : ''
+                }`}
+              >
                 {allowNone && (
                   <button
                     type="button"

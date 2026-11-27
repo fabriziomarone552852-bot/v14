@@ -73,3 +73,35 @@ class Interaction(Base):
 
     author: Mapped[Optional["User"]] = relationship("User", foreign_keys=[author_id], back_populates="authored_interactions")
     recipient: Mapped[Optional["User"]] = relationship("User", foreign_keys=[recipient_id], back_populates="received_interactions")
+
+
+class DevicePushToken(Base):
+    """Token FCM dei dispositivi registrati per le notifiche push native (Android/iOS)."""
+
+    __tablename__ = "device_push_tokens"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    user_id: Mapped[int] = mapped_column(
+        Integer,
+        ForeignKey("users.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    token: Mapped[str] = mapped_column(String(512), nullable=False, unique=True, index=True)
+    platform: Mapped[str] = mapped_column(String(20), nullable=False, default="android")
+    device_name: Mapped[Optional[str]] = mapped_column(String(120), nullable=True)
+    is_active: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True, index=True)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        nullable=False,
+        default=lambda: datetime.now(timezone.utc),
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        nullable=False,
+        default=lambda: datetime.now(timezone.utc),
+        onupdate=lambda: datetime.now(timezone.utc),
+    )
+    last_used_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
+
+    user: Mapped["User"] = relationship("User")

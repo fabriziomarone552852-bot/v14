@@ -2,6 +2,7 @@ import React, { useMemo } from 'react';
 import type { MovieCastMember } from '@/types/movies';
 import type { MovieProvidersResponse } from '@/hooks/queries/useMovieQueries';
 import { TvIcon } from '@/components/shared/utils/Icons';
+import { useTrackerPersonNavigation } from '@/hooks/trackers/useTrackerPersonNavigation';
 
 export interface MobileCinemaOverviewViewProps {
   title: string;
@@ -28,6 +29,8 @@ export const MobileCinemaOverviewView: React.FC<MobileCinemaOverviewViewProps> =
   providersData,
   onPlatformClick,
 }) => {
+  const { openPersonDetail } = useTrackerPersonNavigation({ surface: 'mobile' });
+
   // Formattazione data italiana "dal DD/MM/YYYY"
   const formattedCinemaDate = useMemo(() => {
     if (!releaseDateStr) return null;
@@ -129,7 +132,19 @@ export const MobileCinemaOverviewView: React.FC<MobileCinemaOverviewViewProps> =
             </div>
           ) : (
             cast.map((actor) => (
-              <div key={actor.id} className="flex flex-col items-center gap-1 w-18 shrink-0">
+              <button
+                key={actor.id}
+                type="button"
+                onClick={() =>
+                  openPersonDetail({
+                    id: actor.id,
+                    name: actor.name,
+                    profile_path: actor.profile_path,
+                  })
+                }
+                className="flex flex-col items-center gap-1 w-18 shrink-0 cursor-pointer active:scale-95 transition-transform focus:outline-none"
+                title={`Vedi filmografia di ${actor.name}`}
+              >
                 <div className="w-16 h-16 rounded-full overflow-hidden bg-gray-100 border border-gray-200 shadow-2xs shrink-0">
                   {actor.profile_path ? (
                     <img
@@ -158,7 +173,7 @@ export const MobileCinemaOverviewView: React.FC<MobileCinemaOverviewViewProps> =
                     {actor.character}
                   </p>
                 </div>
-              </div>
+              </button>
             ))
           )}
         </div>

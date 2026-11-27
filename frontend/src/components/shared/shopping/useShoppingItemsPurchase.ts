@@ -52,16 +52,18 @@ export function useShoppingItemsPurchase({
     purchaseModal.close();
   };
 
-  const handleTogglePurchased = async (item: ShoppingListItem) => {
+  const handleTogglePurchased = (item: ShoppingListItem) => {
+    if (item.id <= 0) return;
+
     if (item.isPurchased) {
-      await mutations.togglePurchased({
+      void mutations.togglePurchased({
         id: item.id,
         listId: item.shoppingListId,
         data: { isPurchased: false },
       });
     } else {
       const boughtQuantity = item.quantity != null ? item.quantity : 1;
-      await mutations.addInventoryBatch({
+      void mutations.addInventoryBatch({
         itemId: item.id,
         listId: item.shoppingListId,
         data: {
@@ -72,14 +74,11 @@ export function useShoppingItemsPurchase({
           brandId: item.brandId ?? undefined,
           brandName: item.brandName ?? undefined,
           supplierId: item.lastSupplierId ?? undefined,
-          currencyId: item.lastCurrencyId ? Number(item.lastCurrencyId) : (Number(eurCurrencyId) || undefined),
+          currencyId: item.lastCurrencyId
+            ? Number(item.lastCurrencyId)
+            : Number(eurCurrencyId) || undefined,
           isOnSale: false,
         },
-      });
-      await mutations.togglePurchased({
-        id: item.id,
-        listId: item.shoppingListId,
-        data: { isPurchased: true },
       });
     }
   };
@@ -106,6 +105,8 @@ export function useShoppingItemsPurchase({
       offerFlagId: purchaseForm.isOnSale ? (Number(purchaseForm.offerFlagId) || 1) : undefined,
     };
 
+    handleClosePurchase();
+
     if (!targetItem.isPurchased) {
       await mutations.addInventoryBatch({
         itemId: targetItem.id,
@@ -123,12 +124,6 @@ export function useShoppingItemsPurchase({
           id: targetItem.id,
           listId: activeListId,
           data: { isPurchased: false },
-        });
-      } else {
-        await mutations.togglePurchased({
-          id: targetItem.id,
-          listId: activeListId,
-          data: { isPurchased: true },
         });
       }
     } else {
@@ -170,8 +165,6 @@ export function useShoppingItemsPurchase({
         },
       });
     }
-
-    handleClosePurchase();
   };
 
   const handlePurchasedEdit = async (formData: PurchasedItemEditFormData) => {

@@ -1,6 +1,6 @@
 // src/components/trackers/SeriesDetailModal/EpisodeMyReviewsList.tsx
 import React from 'react';
-import type { UserEpisodeLog } from '@/types/trackers';
+import type { ReviewComment, UserEpisodeLog } from '@/types/trackers';
 import { StarRating } from '@/components/trackers/shared/detail/StarRating';
 import { EmptyState } from '@/components/shared/utils/EmptyState';
 import { AddButton } from '@/components/shared/utils/AddButton';
@@ -8,23 +8,38 @@ import { ReviewVisibilityIcon } from '@/components/trackers/shared/detail/Review
 import { TrashIcon } from '@/components/shared/utils/Icons';
 import { useConfirm } from '@/context/ConfirmContext';
 
-interface EpisodeMyReviewsListProps {
-  logs: UserEpisodeLog[];
-  onBack: () => void;
-  onOpenNewReview: () => void;
-  onOpenEditReview: (log: UserEpisodeLog) => void;
-  onSelectReview: (log: UserEpisodeLog) => void;
-  onDeleteReview: (logId: number) => void;
+export interface BaseMediaReviewLog {
+  id: number;
+  user_id: number;
+  rating?: number | null;
+  notes?: string | null;
+  review_visibility?: string;
+  viewing_platform_name?: string | null;
+  watched_at?: string | null;
+  comments?: ReviewComment[];
 }
 
-export const EpisodeMyReviewsList: React.FC<EpisodeMyReviewsListProps> = ({
+interface EpisodeMyReviewsListProps<TLog extends BaseMediaReviewLog = UserEpisodeLog> {
+  logs: TLog[];
+  onBack: () => void;
+  onOpenNewReview: () => void;
+  onOpenEditReview: (log: TLog) => void;
+  onSelectReview: (log: TLog) => void;
+  onDeleteReview: (logId: number) => void;
+  backTitle?: string;
+  emptyMessage?: string;
+}
+
+export const EpisodeMyReviewsList = <TLog extends BaseMediaReviewLog = UserEpisodeLog>({
   logs,
   onBack,
   onOpenNewReview,
   onOpenEditReview,
   onSelectReview,
   onDeleteReview,
-}) => {
+  backTitle = 'Torna ai Dettagli Episodio',
+  emptyMessage = 'Nessuna recensione registrata per questo episodio.',
+}: EpisodeMyReviewsListProps<TLog>) => {
   const sortedLogs = [...logs].sort((a, b) => {
     const timeA = a.watched_at ? new Date(a.watched_at).getTime() : 0;
     const timeB = b.watched_at ? new Date(b.watched_at).getTime() : 0;
@@ -38,7 +53,7 @@ export const EpisodeMyReviewsList: React.FC<EpisodeMyReviewsListProps> = ({
           <button
             onClick={onBack}
             className="p-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-full transition-colors cursor-pointer"
-            title="Torna ai Dettagli Episodio"
+            title={backTitle}
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
@@ -62,7 +77,7 @@ export const EpisodeMyReviewsList: React.FC<EpisodeMyReviewsListProps> = ({
       <div className="flex-1 overflow-y-auto custom-scrollbar flex flex-col gap-4 pr-2">
         {sortedLogs.length === 0 ? (
           <div className="flex-1 flex flex-col items-center justify-center -mt-8">
-            <EmptyState message="Nessuna recensione registrata per questo episodio." />
+            <EmptyState message={emptyMessage} />
           </div>
         ) : (
           sortedLogs.map((log) => (
@@ -81,7 +96,7 @@ export const EpisodeMyReviewsList: React.FC<EpisodeMyReviewsListProps> = ({
 };
 
 const EpisodeReviewRow: React.FC<{
-  log: UserEpisodeLog;
+  log: BaseMediaReviewLog;
   onEdit: () => void;
   onDelete: () => void;
   onSelectReview: () => void;

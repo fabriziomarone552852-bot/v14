@@ -1,19 +1,20 @@
-# 🚀 Migrazione Vita — QNAP → Proxmox & Procedura di Cutover
+# 🚀 Infrastruttura Vita su Proxmox (Migrazione Completata)
 
-Questo documento descrive lo stato attuale della nuova infrastruttura su **Proxmox**, la modalità di funzionamento attuale come **ambiente di staging / beta testing**, e la **checklist operativa per il cutover definitivo**.
-
----
-
-## 📌 Modalità Attuale: Proxmox come Staging / Beta Tester
-
-Fino al momento del passaggio definitivo:
-1. **Ambiente di Produzione Attivo**: Il vecchio **NAS QNAP** (`192.168.11.20`) rimane il server di produzione primario a cui si collegano tutti gli utenti via Web e tramite l'APK mobile (via Tailscale `smartagenda.tailf3b58c.ts.net`).
-2. **Ambiente di Beta Testing / Staging**: Il nuovo **server Proxmox** (`192.168.11.14` per le app, `192.168.11.15` per PostgreSQL, `192.168.11.16` per Tailscale) ospita la copia speculare e aggiornata di Vita, accessibile localmente su:
-   👉 `http://192.168.11.14:8181`
+Questo documento traccia l'architettura attiva di **Vita** su **Proxmox** (migrazione dal NAS QNAP completata a **Novembre 2026**), lo storico della procedura di cutover eseguita e la configurazione dei backup automatici.
 
 ---
 
-## 🌟 Procedura per il Cutover Definitivo (Promemoria Operativo)
+## ✅ Stato Attuale: Proxmox Operativo in Produzione
+
+1. **Ambiente di Produzione Attivo**: Il nuovo **server Proxmox** (`192.168.11.19`) è il server di produzione primario operativo per Web e App Android (via Tailscale `smartagenda.tailf3b58c.ts.net`):
+   - LXC App Python / Docker: `192.168.11.14:8181` (`http://192.168.11.14:8181`)
+   - LXC PostgreSQL: `192.168.11.15:5432`
+   - LXC Tailscale Gateway: `192.168.11.16` (con inoltro porte `8181`/`8000` verso `192.168.11.14`)
+2. **Ruolo NAS QNAP (`192.168.11.20`)**: Vecchio server dismesso dalla produzione e mantenuto come nodo di **replica esterna per i backup automatici** (strategia 3-2-1).
+
+---
+
+## 🌟 Storico Procedura di Cutover (Riferimento)
 
 Al momento stabilito per la messa in servizio definitiva (orario notturno a minimo disservizio):
 

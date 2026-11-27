@@ -6,6 +6,7 @@ import { useAuth } from '@/context/AuthContext';
 import type { NotificationResponse } from '@/types/notifications';
 import type { FriendshipResponse } from '@/types/social';
 import type { MessageFriend } from '@/components/shared/notifications/MessagesTab';
+import { getNotificationNavigationTarget } from '@/utils/notificationUtils';
 
 export interface UseNotificationsInboxOptions {
   isOpen?: boolean;
@@ -87,49 +88,14 @@ export const useNotificationsInbox = (options?: UseNotificationsInboxOptions) =>
       readInteraction.mutate(interaction.id);
     }
 
-    if (interaction.interaction_type === 'SYSTEM_ALERT') {
+    const target = getNotificationNavigationTarget(interaction);
+    if (!target) {
       return;
     }
 
-    let message = 'Caricamento in corso...';
-    if (interaction.interaction_type === 'SHOPPING_GROUP_INVITE') {
-      message = 'Apertura gruppo spesa...';
-    } else if (interaction.interaction_type === 'SHOPPING_GROUP_NEW_LIST') {
-      message = 'Apertura lista della spesa...';
-    } else if (
-      interaction.interaction_type.includes('REVIEW') ||
-      interaction.interaction_type.includes('COMMENT') ||
-      interaction.interaction_type.includes('MENTION')
-    ) {
-      message = 'Apertura recensione...';
-    }
-
     setIsNavigating(true);
-    setNavigatingMessage(message);
-
-    if (interaction.interaction_type === 'SHOPPING_GROUP_INVITE') {
-      navigate(`/shopping?openGroup=${interaction.reference_id}`);
-    } else if (interaction.interaction_type === 'SHOPPING_GROUP_NEW_LIST') {
-      navigate(`/shopping?listId=${interaction.reference_id}`);
-    } else if (
-      interaction.interaction_type === 'SERIES_REVIEW_COMMENT' ||
-      interaction.interaction_type === 'SERIES_REVIEW_COMMENT_THREAD' ||
-      interaction.interaction_type === 'SERIES_REVIEW_MENTION'
-    ) {
-      navigate(`/trackers/serie-tv?tmdb_id=${interaction.series_tmdb_id}&open_review=true&open_review_log_id=${interaction.reference_id}`);
-    } else if (
-      interaction.interaction_type === 'EPISODE_REVIEW_COMMENT' ||
-      interaction.interaction_type === 'EPISODE_REVIEW_COMMENT_THREAD' ||
-      interaction.interaction_type === 'EPISODE_REVIEW_MENTION'
-    ) {
-      navigate(`/trackers/serie-tv?tmdb_id=${interaction.series_tmdb_id}&open_episode=${interaction.episode_id}&open_review_log_id=${interaction.reference_id}`);
-    } else if (
-      interaction.interaction_type === 'MOVIE_REVIEW_COMMENT' ||
-      interaction.interaction_type === 'MOVIE_REVIEW_COMMENT_THREAD' ||
-      interaction.interaction_type === 'MOVIE_REVIEW_MENTION'
-    ) {
-      navigate(`/trackers/film?tmdb_id=${interaction.movie_tmdb_id}&open_review=true&open_review_log_id=${interaction.reference_id}`);
-    }
+    setNavigatingMessage(target.loadingMessage);
+    navigate(target.route);
 
     setTimeout(() => {
       handleClose();

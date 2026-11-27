@@ -90,3 +90,9 @@ token.json
 scripts/credentials.json
 scripts/token.json
 client_secret*.json
+
+# =========================
+# Firebase / Push Secrets
+# =========================
+firebase-service-account.json
+*firebase-adminsdk*.json

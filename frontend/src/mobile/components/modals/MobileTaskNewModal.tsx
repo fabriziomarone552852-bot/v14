@@ -1,10 +1,12 @@
 // src/mobile/components/modals/MobileTaskNewModal.tsx
 import React, { useState } from 'react';
 import { type DbTask, type TaskSummary, CategoryGenre } from '@/types';
+import type { SubtaskTemplateNode } from '@/utils/taskDuplicateUtils';
 import DatePicker from '@/components/shared/utils/DatePicker/DatePicker';
 import CategorySelect from '@/components/shared/utils/CategorySelect';
 import MobileBaseModal from './MobileBaseModal';
 import PrioritySelect from '@/components/shared/utils/PrioritySelect';
+import { TaskPendingSubtasksBanner } from '@/components/shared/tasks/TaskPendingSubtasksBanner';
 import { FormInput, FormTextarea, LocationAutocompleteInput } from '@/components/shared/form';
 import { useTaskFormLogic } from '@/hooks/forms/useTaskFormLogic';
 import { MobileTaskSubtaskSection } from './task/MobileTaskSubtaskSection';
@@ -14,6 +16,8 @@ interface MobileTaskNewModalProps {
   isOpen: boolean;
   onClose: () => void;
   taskToEdit?: TaskSummary | null;
+  taskToDuplicate?: TaskSummary | null;
+  subtasksToClone?: SubtaskTemplateNode[];
   onTaskSaved?: (savedTask?: DbTask) => void;
   initialParentId?: number | null;
   initialDate?: string | null;
@@ -23,6 +27,8 @@ export const MobileTaskNewModal: React.FC<MobileTaskNewModalProps> = ({
   isOpen,
   onClose,
   taskToEdit,
+  taskToDuplicate,
+  subtasksToClone,
   onTaskSaved,
   initialParentId,
   initialDate,
@@ -32,6 +38,10 @@ export const MobileTaskNewModal: React.FC<MobileTaskNewModalProps> = ({
     setNewTaskForm,
     tasks,
     maxDepth,
+    effectiveMaxDepth,
+    subtreeExtraDepth,
+    pendingSubtaskCount,
+    clearPendingSubtasks,
     isDatePickerOpen,
     setIsDatePickerOpen,
     isSubtaskPanelOpen,
@@ -44,6 +54,8 @@ export const MobileTaskNewModal: React.FC<MobileTaskNewModalProps> = ({
     isOpen,
     onClose,
     taskToEdit,
+    taskToDuplicate,
+    subtasksToClone,
     initialParentId,
     initialDate,
     onTaskSaved,
@@ -100,6 +112,12 @@ export const MobileTaskNewModal: React.FC<MobileTaskNewModalProps> = ({
               className="h-20"
             />
           </div>
+
+          {/* Avviso Sottotask da clonare al salvataggio */}
+          <TaskPendingSubtasksBanner
+            subtaskCount={pendingSubtaskCount}
+            onClear={clearPendingSubtasks}
+          />
 
           {/* Rigo 3: Sottotask con selezione in Overlay */}
           <MobileTaskSubtaskSection
@@ -161,12 +179,17 @@ export const MobileTaskNewModal: React.FC<MobileTaskNewModalProps> = ({
         onClose={() => setIsSubtaskOverlayOpen(false)}
         tasks={tasks}
         selectedParentId={newTaskForm.parent_id}
-        maxDepth={maxDepth}
+        maxDepth={effectiveMaxDepth}
         onSelectParent={(id) => setNewTaskForm((prev) => ({ ...prev, parent_id: String(id) }))}
         onMaxDepthReached={() =>
           confirm({
             title: 'Attenzione',
-            message: `Limite di ${maxDepth} livelli raggiunto.`,
+            message:
+              subtreeExtraDepth > 0
+                ? `Limite di ${maxDepth} livelli raggiunto (questa copia include già ${subtreeExtraDepth} ${
+                    subtreeExtraDepth === 1 ? 'livello' : 'livelli'
+                  } di sottotask).`
+                : `Limite di ${maxDepth} livelli raggiunto.`,
             isDestructive: false,
             onConfirm: () => {},
           })

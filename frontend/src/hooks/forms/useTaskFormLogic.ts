@@ -1,5 +1,5 @@
 // src/hooks/forms/useTaskFormLogic.ts
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import type { DbTask, TaskSummary } from '@/types';
 import { getLocalTodayStr } from '@/utils/dateUtils';
 import { useCategories } from '@/hooks/useCategories';
@@ -8,6 +8,11 @@ import { useQuery } from '@tanstack/react-query';
 import { api } from '@/api/apiService';
 import { useConfirm } from '@/context/ConfirmContext';
 import { useAuth } from '@/context/AuthContext';
+import {
+  type SubtaskTemplateNode,
+  countSubtreeNodes,
+  getSubtreeMaxDepth,
+} from '@/utils/taskDuplicateUtils';
 
 export interface TaskFormState {
   titolo: string;
@@ -24,6 +29,8 @@ export interface UseTaskFormLogicProps {
   isOpen: boolean;
   onClose: () => void;
   taskToEdit?: TaskSummary | null;
+  taskToDuplicate?: TaskSummary | null;
+  subtasksToClone?: SubtaskTemplateNode[];
   initialParentId?: number | null;
   initialDate?: string | null;
   onTaskSaved?: (savedTask?: DbTask) => void;
@@ -33,12 +40,14 @@ export const useTaskFormLogic = ({
   isOpen,
   onClose,
   taskToEdit,
+  taskToDuplicate,
+  subtasksToClone,
   initialParentId,
   initialDate,
   onTaskSaved,
 }: UseTaskFormLogicProps) => {
   const { data: dbCategories = [] } = useCategories();
-  const { saveTask } = useTaskMutations(['tasks']);
+  const { saveTask, cloneSubtasksTree } = useTaskMutations(['tasks']);
   const { confirm } = useConfirm();
   const { user } = useAuth();
   const maxDepth = user?.max_subtask_depth_user ?? 3;
@@ -54,10 +63,12 @@ export const useTaskFormLogic = ({
     parent_id: '',
   });
 
+  const [pendingSubtasksToClone, setPendingSubtasksToClone] = useState<SubtaskTemplateNode[]>([]);
   const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
   const [isStartDatePickerOpen, setIsStartDatePickerOpen] = useState(false);
   const [isSubtaskPanelOpen, setIsSubtaskPanelOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const initializedCreateRef = useRef(false);
 
   const { data: tasks = [] } = useQuery<DbTask[]>({
     queryKey: ['tasks'],
@@ -68,29 +79,72 @@ export const useTaskFormLogic = ({
     enabled: isOpen,
   });
 
+  const pendingSubtaskCount = useMemo(
+    () => countSubtreeNodes(pendingSubtasksToClone),
+    [pendingSubtasksToClone]
+  );
+
+  const subtreeExtraDepth = useMemo(
+    () => getSubtreeMaxDepth(pendingSubtasksToClone),
+    [pendingSubtasksToClone]
+  );
+
+  const effectiveMaxDepth = Math.max(1, maxDepth - subtreeExtraDepth);
+
   useEffect(() => {
-    if (isOpen) {
-      if (taskToEdit) {
-        const rawTask = tasks.find((t) => t.id === taskToEdit.id);
-        const isIsoDate = (d?: string) => d && /^\d{4}-\d{2}-\d{2}/.test(d);
+    if (!isOpen) {
+      initializedCreateRef.current = false;
+      setPendingSubtasksToClone([]);
+      setIsDatePickerOpen(false);
+      setIsStartDatePickerOpen(false);
+      return;
+    }
+
+    if (taskToEdit) {
+      const rawTask = tasks.find((t) => t.id === taskToEdit.id);
+      const isIsoDate = (d?: string) => d && /^\d{4}-\d{2}-\d{2}/.test(d);
+
+      setNewTaskForm({
+        titolo: taskToEdit.title || '',
+        descrizione: taskToEdit.description || '',
+        data_start:
+          rawTask?.data_start ||
+          (isIsoDate(taskToEdit.dateStr)
+            ? taskToEdit.dateStr
+            : getLocalTodayStr()),
+        data_scadenza:
+          rawTask?.data_scadenza ||
+          (isIsoDate(taskToEdit.deadline) ? taskToEdit.deadline : ''),
+        priorita: taskToEdit.priority || 'Bassa',
+        category: taskToEdit.category || '',
+        luogo: taskToEdit.location || '',
+        parent_id: taskToEdit.parent_id ? String(taskToEdit.parent_id) : '',
+      });
+      setIsSubtaskPanelOpen(!!taskToEdit.parent_id);
+      setPendingSubtasksToClone([]);
+    } else if (!initializedCreateRef.current) {
+      initializedCreateRef.current = true;
+      if (taskToDuplicate) {
+        const hasGenericoCategory = dbCategories.some(
+          (c) => c.category_name === 'Generico'
+        );
+        const resolvedCategory =
+          taskToDuplicate.category === 'Generico' && !hasGenericoCategory
+            ? ''
+            : taskToDuplicate.category || '';
 
         setNewTaskForm({
-          titolo: taskToEdit.title || '',
-          descrizione: taskToEdit.description || '',
-          data_start:
-            rawTask?.data_start ||
-            (isIsoDate(taskToEdit.dateStr)
-              ? taskToEdit.dateStr
-              : getLocalTodayStr()),
-          data_scadenza:
-            rawTask?.data_scadenza ||
-            (isIsoDate(taskToEdit.deadline) ? taskToEdit.deadline : ''),
-          priorita: taskToEdit.priority || 'Bassa',
-          category: taskToEdit.category || '',
-          luogo: taskToEdit.location || '',
-          parent_id: taskToEdit.parent_id ? String(taskToEdit.parent_id) : '',
+          titolo: taskToDuplicate.title || '',
+          descrizione: taskToDuplicate.description || '',
+          data_start: getLocalTodayStr(),
+          data_scadenza: '',
+          priorita: taskToDuplicate.priority || 'Bassa',
+          category: resolvedCategory,
+          luogo: taskToDuplicate.location || '',
+          parent_id: '',
         });
-        setIsSubtaskPanelOpen(!!taskToEdit.parent_id);
+        setIsSubtaskPanelOpen(false);
+        setPendingSubtasksToClone(subtasksToClone ?? []);
       } else {
         const defaultDate = initialDate || getLocalTodayStr();
         setNewTaskForm({
@@ -104,12 +158,23 @@ export const useTaskFormLogic = ({
           parent_id: initialParentId ? String(initialParentId) : '',
         });
         setIsSubtaskPanelOpen(!!initialParentId);
+        setPendingSubtasksToClone([]);
       }
-    } else {
-      setIsDatePickerOpen(false);
-      setIsStartDatePickerOpen(false);
     }
-  }, [isOpen, taskToEdit, initialParentId, initialDate, tasks]);
+  }, [
+    isOpen,
+    taskToEdit,
+    taskToDuplicate,
+    subtasksToClone,
+    initialParentId,
+    initialDate,
+    tasks,
+    dbCategories,
+  ]);
+
+  const clearPendingSubtasks = () => {
+    setPendingSubtasksToClone([]);
+  };
 
   const handleSalvaNuovaTask = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -159,6 +224,14 @@ export const useTaskFormLogic = ({
         });
       } else {
         savedTask = await saveTask(pacchettoPerIlServer);
+
+        if (savedTask && pendingSubtasksToClone.length > 0) {
+          await cloneSubtasksTree(
+            savedTask.id,
+            pendingSubtasksToClone,
+            newTaskForm.data_start || getLocalTodayStr()
+          );
+        }
       }
 
       if (onTaskSaved && savedTask) {
@@ -185,6 +258,11 @@ export const useTaskFormLogic = ({
     dbCategories,
     tasks,
     maxDepth,
+    effectiveMaxDepth,
+    subtreeExtraDepth,
+    pendingSubtasksToClone,
+    pendingSubtaskCount,
+    clearPendingSubtasks,
     isDatePickerOpen,
     setIsDatePickerOpen,
     isStartDatePickerOpen,

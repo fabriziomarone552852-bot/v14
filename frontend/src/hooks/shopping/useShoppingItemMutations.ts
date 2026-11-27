@@ -6,6 +6,7 @@ import {
   toggleShoppingListItemPurchased,
   shoppingQueryKeys,
 } from '@/api/shoppingApi';
+import { showTrackerToast } from '@/components/trackers/shared/TrackerToast';
 import type {
   ShoppingListItemCreatePayload,
   UpdateShoppingListItemArgs,
@@ -14,6 +15,10 @@ import type {
   ShoppingListItem,
   ShoppingListSummary,
 } from '@/types/shopping';
+import {
+  buildOptimisticShoppingItem,
+  replaceOptimisticShoppingItem,
+} from './shoppingOptimisticUtils';
 
 export const useShoppingItemMutations = () => {
   const queryClient = useQueryClient();
@@ -24,7 +29,7 @@ export const useShoppingItemMutations = () => {
   const invalidateItems = (listId: number) =>
     queryClient.invalidateQueries({ queryKey: shoppingQueryKeys.items(listId) });
 
-  // 4. CREA ARTICOLO (OTTIMISTICO ISTANTANEO)
+  // 4. CREA ARTICOLO (OTTIMISTICO ISTANTANEO A 0MS)
   const createItemMutation = useMutation({
     mutationFn: (payload: ShoppingListItemCreatePayload) => createShoppingListItem(payload),
     onMutate: async (payload) => {
@@ -41,22 +46,9 @@ export const useShoppingItemMutations = () => {
       });
 
       const tempId = -Date.now();
-      const optimisticItem: ShoppingListItem = {
-        id: tempId,
-        shoppingListId: payload.shoppingListId,
-        productId: 0,
-        productName: payload.productName,
-        nameNormalized: payload.productName.toLowerCase(),
-        quantity: payload.quantity ?? 1,
-        unitId: payload.unitId ?? null,
-        notes: payload.notes ?? null,
-        isPurchased: false,
-        inventoryBatches: [],
-        canEdit: true,
-        canDelete: true,
-      };
+      const optimisticItem = buildOptimisticShoppingItem(queryClient, payload, tempId);
 
-      // Inserimento istantaneo in cima alla lista
+      // Inserimento istantaneo in cima alla lista attiva
       queryClient.setQueriesData<ShoppingListItem[]>(
         { queryKey: shoppingQueryKeys.items(payload.shoppingListId) },
         (old) => {
@@ -65,7 +57,7 @@ export const useShoppingItemMutations = () => {
         }
       );
 
-      // Aggiornamento istantaneo dei conteggi della lista
+      // Aggiornamento istantaneo dei conteggi e dell'array items della lista
       queryClient.setQueriesData<ShoppingListSummary[]>(
         { queryKey: shoppingQueryKeys.lists() },
         (old) => {
@@ -76,23 +68,32 @@ export const useShoppingItemMutations = () => {
               ...list,
               openItemsCount: (list.openItemsCount ?? 0) + 1,
               totalItemsCount: (list.totalItemsCount ?? 0) + 1,
+              items: list.items ? [optimisticItem, ...list.items] : list.items,
             };
           });
         }
       );
 
-      return { prevItems, prevLists, shoppingListId: payload.shoppingListId };
+      return { tempId, prevItems, prevLists, shoppingListId: payload.shoppingListId };
     },
-    onError: (_err, _vars, context) => {
+    onSuccess: (createdItem, vars, context) => {
+      if (!context?.tempId) return;
+      replaceOptimisticShoppingItem(queryClient, vars.shoppingListId, context.tempId, createdItem);
+    },
+    onError: (err, _vars, context) => {
       if (context?.prevItems) {
         context.prevItems.forEach(([key, val]) => queryClient.setQueryData(key, val));
       }
       if (context?.prevLists) {
         context.prevLists.forEach(([key, val]) => queryClient.setQueryData(key, val));
       }
+      showTrackerToast(
+        err instanceof Error ? err.message : 'Impossibile aggiungere il prodotto. Riprova.',
+        'warning'
+      );
     },
-    onSettled: async (_created, _err, vars) => {
-      await Promise.all([
+    onSettled: (_created, _err, vars) => {
+      void Promise.all([
         invalidateLists(),
         invalidateItems(vars.shoppingListId),
         queryClient.invalidateQueries({ queryKey: shoppingQueryKeys.products() }),
@@ -265,7 +266,7 @@ export const useShoppingItemMutations = () => {
         }
       );
 
-      // Aggiornamento immediato dei contatori di lista
+      // Aggiornamento immediato dei contatori di lista e degli articoli annidati
       queryClient.setQueriesData<ShoppingListSummary[]>(
         { queryKey: shoppingQueryKeys.lists() },
         (old) => {
@@ -277,6 +278,17 @@ export const useShoppingItemMutations = () => {
               ...list,
               purchasedItemsCount: Math.max(0, (list.purchasedItemsCount ?? 0) + delta),
               openItemsCount: Math.max(0, (list.openItemsCount ?? 0) - delta),
+              items: list.items
+                ? list.items.map((item) =>
+                    item.id === id
+                      ? {
+                          ...item,
+                          isPurchased: data.isPurchased,
+                          inventoryBatches: data.isPurchased ? item.inventoryBatches : [],
+                        }
+                      : item
+                  )
+                : list.items,
             };
           });
         }
@@ -291,9 +303,10 @@ export const useShoppingItemMutations = () => {
       if (context?.prevLists) {
         context.prevLists.forEach(([key, val]) => queryClient.setQueryData(key, val));
       }
+      showTrackerToast('Impossibile aggiornare lo stato di acquisto. Riprova.', 'warning');
     },
-    onSettled: async (_item, _err, vars) => {
-      await Promise.all([
+    onSettled: (_item, _err, vars) => {
+      void Promise.all([
         invalidateLists(),
         invalidateItems(vars.listId),
         queryClient.invalidateQueries({ queryKey: shoppingQueryKeys.products() }),

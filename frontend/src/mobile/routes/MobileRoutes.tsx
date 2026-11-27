@@ -28,6 +28,7 @@ const ReviewsPage = React.lazy(() => import('@/views/Archive/ReviewsPage'));
 const TagsPage = React.lazy(() => import('@/views/Archive/TagsPage'));
 const SuppliersPage = React.lazy(() => import('@/views/Archive/SuppliersPage'));
 const ShoppingArchivePage = React.lazy(() => import('@/views/Archive/ShoppingArchivePage'));
+const NotificationsPage = React.lazy(() => import('@/views/Archive/NotificationsPage'));
 
 export const MobileRoutes: React.FC = () => {
   return (
@@ -81,6 +82,7 @@ export const MobileRoutes: React.FC = () => {
         <Route path="/reviews" element={<ReviewsPage />} />
         <Route path="/tags" element={<TagsPage />} />
         <Route path="/fornitori" element={<SuppliersPage />} />
+        <Route path="/notifications" element={<NotificationsPage />} />
 
         <Route path="*" element={<NotFoundPage />} />
       </Route>

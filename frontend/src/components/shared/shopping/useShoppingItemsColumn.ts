@@ -89,11 +89,11 @@ export function useShoppingItemsColumn({
     setIsCreateOpen(false);
   };
 
-  const handleCreate = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleCreate = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!itemForm.productName.trim() || !itemForm.shoppingListId) return;
 
-    await mutations.createItem({
+    const payload = {
       shoppingListId: Number(itemForm.shoppingListId),
       productName: itemForm.productName.trim(),
       brandName: itemForm.brandName.trim() || undefined,
@@ -101,26 +101,26 @@ export function useShoppingItemsColumn({
       quantity: itemForm.quantity ? Number(itemForm.quantity) : undefined,
       unitId: itemForm.unitId ? Number(itemForm.unitId) : undefined,
       notes: itemForm.notes?.trim() || undefined,
-      brandNotes: itemForm.brandNotes?.trim() || undefined,
-    });
+      brandNotes: itemForm.brandName.trim() ? (itemForm.brandNotes ?? '').trim() : undefined,
+    };
+
     handleCloseCreate();
+    void mutations.createItem(payload);
   };
 
-  const handleQuickAdd = async (e: React.FormEvent) => {
+  const handleQuickAdd = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!activeListId || !filterLogic.quickName.trim() || filterLogic.quickAdding) return;
-    filterLogic.setQuickAdding(true);
-    try {
-      await mutations.createItem({
-        shoppingListId: activeListId,
-        productName: filterLogic.quickName.trim(),
-        quantity: filterLogic.quickQuantity ? Number(filterLogic.quickQuantity) : undefined,
-        unitId: filterLogic.quickUnitId ? Number(filterLogic.quickUnitId) : undefined,
-      });
-      filterLogic.resetQuickAdd();
-    } finally {
-      filterLogic.setQuickAdding(false);
-    }
+    if (!activeListId || !filterLogic.quickName.trim()) return;
+
+    const payload = {
+      shoppingListId: activeListId,
+      productName: filterLogic.quickName.trim(),
+      quantity: filterLogic.quickQuantity ? Number(filterLogic.quickQuantity) : undefined,
+      unitId: filterLogic.quickUnitId ? Number(filterLogic.quickUnitId) : undefined,
+    };
+
+    filterLogic.resetQuickAdd();
+    void mutations.createItem(payload);
   };
 
   const handleOpenEdit = (item: ShoppingListItem) => {
@@ -142,24 +142,29 @@ export function useShoppingItemsColumn({
     editModal.close();
   };
 
-  const handleEdit = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleEdit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!editModal.data) return;
-    await mutations.updateItem({
-      id: editModal.data.id,
-      listId: editModal.data.shoppingListId,
-      data: {
-        shoppingListId: editForm.shoppingListId ? Number(editForm.shoppingListId) : undefined,
-        productName: editForm.productName.trim() || undefined,
-        brandName: editForm.brandName.trim() || undefined,
-        brandId: editForm.brandId ? Number(editForm.brandId) : undefined,
-        quantity: editForm.quantity ? Number(editForm.quantity) : undefined,
-        unitId: editForm.unitId ? Number(editForm.unitId) : undefined,
-        notes: editForm.notes?.trim() || undefined,
-        brandNotes: editForm.brandNotes?.trim() || undefined,
-      },
-    });
+
+    const targetId = editModal.data.id;
+    const sourceListId = editModal.data.shoppingListId;
+    const updateData = {
+      shoppingListId: editForm.shoppingListId ? Number(editForm.shoppingListId) : undefined,
+      productName: editForm.productName.trim() || undefined,
+      brandName: editForm.brandName.trim() || undefined,
+      brandId: editForm.brandId ? Number(editForm.brandId) : undefined,
+      quantity: editForm.quantity ? Number(editForm.quantity) : undefined,
+      unitId: editForm.unitId ? Number(editForm.unitId) : undefined,
+      notes: editForm.notes?.trim() || undefined,
+      brandNotes: editForm.brandName.trim() ? (editForm.brandNotes ?? '').trim() : undefined,
+    };
+
     handleCloseEdit();
+    void mutations.updateItem({
+      id: targetId,
+      listId: sourceListId,
+      data: updateData,
+    });
   };
 
   const handleDelete = async (item: ShoppingListItem) => {

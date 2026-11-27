@@ -17,17 +17,16 @@ import { resolveImageUrl } from '@/utils/imageUtils';
 import { Info, Layers, Star } from 'lucide-react';
 import { LoadingIcon } from '@/components/shared/utils/Icons';
 import { MobileSeriesReviewTab } from './MobileSeriesReviewTab';
-import { MobileTrackerListManagerModal } from '../../shared/detail/MobileTrackerListManagerModal';
-import { TrackerListDetailModal } from '@/components/trackers/shared/detail/TrackerListDetailModal';
 import { MobileTrackerDetailBanner } from '../../shared/detail/MobileTrackerDetailBanner';
 import { MobileEpisodeDetailBanner } from './MobileEpisodeDetailBanner';
 import { MobileSeriesOverviewTab } from './MobileSeriesOverviewTab';
 import { MobileSeriesSeasonsTab } from './MobileSeriesSeasonsTab';
 import { MobileEpisodeDetailView } from './MobileEpisodeDetailView';
+import { MobileSeasonDetailView } from './MobileSeasonDetailView';
+import { useSeriesExtras } from '@/hooks/queries/useTrackersQueries';
 import { MobileTrackerDetailBottomBar } from '../../shared/detail/MobileTrackerDetailBottomBar';
-import { MobileTrackerFriendsDrawer } from '../../shared/detail/MobileTrackerFriendsDrawer';
-import { MobileTrackerListsDrawer } from '../../shared/detail/MobileTrackerListsDrawer';
-import { MobileSeriesOptionsModal } from './MobileSeriesOptionsModal';
+import { MobileSeriesDetailDrawers } from './MobileSeriesDetailDrawers';
+import { useTrackerPersonNavigation } from '@/hooks/trackers/useTrackerPersonNavigation';
 
 export interface MobileTVSeriesDetailModalProps {
   isOpen: boolean;
@@ -35,6 +34,7 @@ export interface MobileTVSeriesDetailModalProps {
   series: SeriesDetailTarget | UserSeriesTracking;
   initialTab?: TabType;
   initialEpisode?: TMDBEpisode | null;
+  initialSeasonNumber?: number | null;
   initialReviewLogId?: number;
   isStandaloneEpisode?: boolean;
   onToggleTrack?: (tmdbId: number, isTracked: boolean) => void;
@@ -42,6 +42,7 @@ export interface MobileTVSeriesDetailModalProps {
   onGenreClick?: (genre: string) => void;
   onPlatformClick?: (platform: string, providerId?: number) => void;
   zIndexClass?: string;
+  backHandlerPriority?: number;
 }
 
 export const MobileTVSeriesDetailModal: React.FC<MobileTVSeriesDetailModalProps> = ({
@@ -50,6 +51,7 @@ export const MobileTVSeriesDetailModal: React.FC<MobileTVSeriesDetailModalProps>
   series,
   initialTab = 'overview',
   initialEpisode = null,
+  initialSeasonNumber = null,
   initialReviewLogId,
   isStandaloneEpisode = false,
   onToggleTrack,
@@ -57,6 +59,7 @@ export const MobileTVSeriesDetailModal: React.FC<MobileTVSeriesDetailModalProps>
   onGenreClick,
   onPlatformClick,
   zIndexClass,
+  backHandlerPriority = 28,
 }) => {
   const [showFriendsDrawer, setShowFriendsDrawer] = useState(false);
   const [showListsDrawer, setShowListsDrawer] = useState(false);
@@ -70,6 +73,8 @@ export const MobileTVSeriesDetailModal: React.FC<MobileTVSeriesDetailModalProps>
     setActiveTab,
     internalEpisode,
     setInternalEpisode,
+    internalSeasonNumber,
+    setInternalSeasonNumber,
     internalReviewLogId,
     isListManagerOpen,
     setIsListManagerOpen,
@@ -93,9 +98,25 @@ export const MobileTVSeriesDetailModal: React.FC<MobileTVSeriesDetailModalProps>
     series,
     initialTab,
     initialEpisode,
+    initialSeasonNumber,
     initialReviewLogId,
     onToggleTrack,
   });
+
+  const { data: extras } = useSeriesExtras(tmdbSeries.tmdb_id, isOpen);
+
+  const { openPersonDetail, openSeriesInStack } = useTrackerPersonNavigation({
+    surface: 'mobile',
+  });
+
+  const handleSelectRelatedSeries = (rec: SeriesRecommendation) => {
+    const targetTmdbId = rec.tmdb_id ?? rec.id;
+    if (targetTmdbId && targetTmdbId !== tmdbSeries.tmdb_id) {
+      openSeriesInStack(targetTmdbId);
+      return;
+    }
+    onSelectRecommendation?.(rec);
+  };
 
   // Dati dell'episodio correntemente selezionato (sempre allineati ai dati più recenti in memoria)
   const currentEpisode = internalEpisode
@@ -114,6 +135,22 @@ export const MobileTVSeriesDetailModal: React.FC<MobileTVSeriesDetailModalProps>
   const episodeTitle = currentEpisode
     ? currentEpisode.title || `Episodio ${currentEpisode.episode_number}`
     : '';
+
+  const currentSeasonNumber = !currentEpisode ? internalSeasonNumber : null;
+  const currentSeasonInfo =
+    currentSeasonNumber !== null
+      ? extras?.seasons?.find((s) => s.season_number === currentSeasonNumber)
+      : undefined;
+  const currentSeasonTitle =
+    currentSeasonNumber === null
+      ? ''
+      : currentSeasonNumber === 0
+      ? 'Episodi Speciali'
+      : currentSeasonInfo?.name || `Stagione ${currentSeasonNumber}`;
+  const hasSeasonPoster = Boolean(currentSeasonInfo?.poster_path);
+  const seasonBannerUrl = currentSeasonInfo?.poster_path
+    ? `https://image.tmdb.org/t/p/w780${currentSeasonInfo.poster_path}`
+    : backdropUrl;
 
   // Gestione tasto Indietro hardware Android
   useBackHandler(
@@ -139,7 +176,6 @@ export const MobileTVSeriesDetailModal: React.FC<MobileTVSeriesDetailModalProps>
         setIsHistoricMode(false);
         return true;
       }
-      // Se c'è un episodio aperto, chiude il modale se standalone o torna alla lista delle stagioni
       if (currentEpisode) {
         if (isStandaloneEpisode) {
           onClose();
@@ -148,10 +184,14 @@ export const MobileTVSeriesDetailModal: React.FC<MobileTVSeriesDetailModalProps>
         setInternalEpisode(null);
         return true;
       }
+      if (currentSeasonNumber !== null) {
+        setInternalSeasonNumber(null);
+        return true;
+      }
       onClose();
       return true;
     },
-    28
+    backHandlerPriority
   );
 
   if (!isOpen) return null;
@@ -172,13 +212,16 @@ export const MobileTVSeriesDetailModal: React.FC<MobileTVSeriesDetailModalProps>
     );
   }
 
+  const bottomBarTab: TabType =
+    currentEpisode || currentSeasonNumber !== null ? 'seasons' : activeTab;
+
   const content = (
     <div
       className={`fixed inset-0 ${
         zIndexClass || 'z-[10020]'
       } bg-gray-50 flex flex-col h-[100dvh] w-full overflow-hidden pointer-events-auto animate-fadeIn select-none`}
     >
-      {/* 1. BANNER FOTOGRAFICO SUPERIORE (Episodio a tutto schermo o Serie) */}
+      {/* 1. BANNER FOTOGRAFICO SUPERIORE (Episodio, Stagione o Serie) */}
       {currentEpisode ? (
         <MobileEpisodeDetailBanner
           backdropUrl={episodeBackdropUrl}
@@ -190,6 +233,13 @@ export const MobileTVSeriesDetailModal: React.FC<MobileTVSeriesDetailModalProps>
               setInternalEpisode(null);
             }
           }}
+        />
+      ) : currentSeasonNumber !== null ? (
+        <MobileEpisodeDetailBanner
+          backdropUrl={seasonBannerUrl}
+          title={currentSeasonTitle}
+          imageClassName={hasSeasonPoster ? 'object-cover object-[50%_30%]' : 'object-cover'}
+          onClose={() => setInternalSeasonNumber(null)}
         />
       ) : (
         <MobileTrackerDetailBanner
@@ -210,7 +260,7 @@ export const MobileTVSeriesDetailModal: React.FC<MobileTVSeriesDetailModalProps>
         />
       )}
 
-      {/* 2. CONTENUTO SCROLLABILE (Episodio a tutto schermo o Schede Serie) */}
+      {/* 2. CONTENUTO SCROLLABILE (Episodio, Stagione o Schede Serie) */}
       <div className="flex-1 min-h-0 overflow-y-auto p-4 scrollbar-none [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] flex flex-col relative">
         {currentEpisode ? (
           <MobileEpisodeDetailView
@@ -221,6 +271,21 @@ export const MobileTVSeriesDetailModal: React.FC<MobileTVSeriesDetailModalProps>
             initialView={internalReviewLogId ? 'review_detail' : 'main'}
             initialReviewLogId={internalReviewLogId}
           />
+        ) : currentSeasonNumber !== null ? (
+          <MobileSeasonDetailView
+            seasonNumber={currentSeasonNumber}
+            tmdbSeries={tmdbSeries}
+            userTracking={userTracking}
+            isHistoricMode={isHistoricMode}
+            initialView={
+              internalReviewLogId && initialSeasonNumber === currentSeasonNumber
+                ? 'review_detail'
+                : 'main'
+            }
+            initialReviewLogId={
+              initialSeasonNumber === currentSeasonNumber ? internalReviewLogId : undefined
+            }
+          />
         ) : (
           <>
             {activeTab === 'overview' && (
@@ -230,7 +295,8 @@ export const MobileTVSeriesDetailModal: React.FC<MobileTVSeriesDetailModalProps>
                 handleClickTrack={handleClickTrack}
                 providersData={providersData}
                 onPlatformClick={onPlatformClick}
-                onSelectRecommendation={onSelectRecommendation}
+                onSelectRecommendation={handleSelectRelatedSeries}
+                onPersonClick={openPersonDetail}
                 isLoading={false}
               />
             )}
@@ -241,6 +307,7 @@ export const MobileTVSeriesDetailModal: React.FC<MobileTVSeriesDetailModalProps>
                 initialEpisode={null}
                 initialReviewLogId={internalReviewLogId}
                 onSelectEpisode={(ep) => setInternalEpisode(ep)}
+                onSelectSeason={(sn) => setInternalSeasonNumber(sn)}
                 isLoading={false}
                 isHistoricMode={isHistoricMode}
                 onDisableHistoricMode={() => setIsHistoricMode(false)}
@@ -252,6 +319,7 @@ export const MobileTVSeriesDetailModal: React.FC<MobileTVSeriesDetailModalProps>
                 userTracking={userTracking}
                 initialReviewLogId={internalReviewLogId}
                 onOpenEpisode={(ep) => {
+                  setInternalSeasonNumber(null);
                   setInternalEpisode(ep);
                   setActiveTab('seasons');
                 }}
@@ -264,7 +332,7 @@ export const MobileTVSeriesDetailModal: React.FC<MobileTVSeriesDetailModalProps>
       {/* 3. BARRA DI NAVIGAZIONE INFERIORE (Nascosta in modalità solo episodio standalone) */}
       {!isStandaloneEpisode && (
         <MobileTrackerDetailBottomBar<TabType>
-          activeTab={currentEpisode ? 'seasons' : activeTab}
+          activeTab={bottomBarTab}
           tabs={[
             {
               id: 'overview',
@@ -272,9 +340,7 @@ export const MobileTVSeriesDetailModal: React.FC<MobileTVSeriesDetailModalProps>
               icon: (
                 <Info
                   className={`w-5 h-5 ${
-                    (currentEpisode ? 'seasons' : activeTab) === 'overview'
-                      ? 'stroke-[2.5]'
-                      : 'stroke-2'
+                    bottomBarTab === 'overview' ? 'stroke-[2.5]' : 'stroke-2'
                   }`}
                 />
               ),
@@ -285,9 +351,7 @@ export const MobileTVSeriesDetailModal: React.FC<MobileTVSeriesDetailModalProps>
               icon: (
                 <Layers
                   className={`w-5 h-5 ${
-                    (currentEpisode ? 'seasons' : activeTab) === 'seasons'
-                      ? 'stroke-[2.5]'
-                      : 'stroke-2'
+                    bottomBarTab === 'seasons' ? 'stroke-[2.5]' : 'stroke-2'
                   }`}
                 />
               ),
@@ -298,7 +362,7 @@ export const MobileTVSeriesDetailModal: React.FC<MobileTVSeriesDetailModalProps>
               icon: (
                 <Star
                   className={`w-5 h-5 ${
-                    (currentEpisode ? 'seasons' : activeTab) === 'review'
+                    bottomBarTab === 'review'
                       ? 'fill-blue-500 text-blue-600 stroke-[2.5]'
                       : 'stroke-2'
                   }`}
@@ -307,108 +371,40 @@ export const MobileTVSeriesDetailModal: React.FC<MobileTVSeriesDetailModalProps>
             },
           ]}
           onTabChange={(tab) => {
-            if (tab === 'seasons') {
-              setInternalEpisode(null);
-              setActiveTab('seasons');
-            } else {
-              setInternalEpisode(null);
-              setActiveTab(tab);
-            }
+            setInternalEpisode(null);
+            setInternalSeasonNumber(null);
+            setActiveTab(tab);
           }}
         />
       )}
 
       {/* 5. DRAWERS DAL BASSO E MODALI SECONDARI */}
-      <MobileTrackerFriendsDrawer
-        isOpen={showFriendsDrawer}
-        onClose={() => setShowFriendsDrawer(false)}
+      <MobileSeriesDetailDrawers
+        tmdbSeries={tmdbSeries}
+        series={series}
+        userTracking={userTracking}
+        isUserTracked={isUserTracked}
+        showFriendsDrawer={showFriendsDrawer}
+        onCloseFriendsDrawer={() => setShowFriendsDrawer(false)}
         friends={SERIES_FRIENDS}
         getStatusBorderColor={getStatusBorderColor}
-        mediaType="series"
-      />
-
-      <MobileTrackerListsDrawer
-        isOpen={showListsDrawer}
-        onClose={() => setShowListsDrawer(false)}
-        lists={listsWithSeries}
+        showListsDrawer={showListsDrawer}
+        onCloseListsDrawer={() => setShowListsDrawer(false)}
+        listsWithSeries={listsWithSeries}
         onSelectList={(id) => setListDetailId(id)}
         onOpenManager={() => setIsListManagerOpen(true)}
-        emptyMessage="Questa serie non è ancora presente in nessuna lista."
-      />
-
-      <MobileSeriesOptionsModal
-        isOpen={showOptionsModal}
-        onClose={() => setShowOptionsModal(false)}
-        hasCustomPoster={Boolean(userTracking?.custom_poster_path)}
-        onPosterUpdated={(url) => {
-          const targetTmdbId = tmdbSeries.tmdb_id || userTracking?.series_tmdb_id;
-          if (targetTmdbId) {
-            updateSeries({
-              id: targetTmdbId,
-              updates: { custom_poster_path: url || undefined },
-            });
-          }
-        }}
-        isUserTracked={isUserTracked}
-        isRewatching={Boolean(
-          userTracking?.is_rewatching ||
-          ('is_rewatching' in series && (series as { is_rewatching?: boolean }).is_rewatching)
-        )}
-        onStopRewatch={() => {
-          const targetTmdbId = tmdbSeries.tmdb_id || userTracking?.series_tmdb_id;
-          if (targetTmdbId) {
-            updateSeries({
-              id: targetTmdbId,
-              updates: { is_rewatching: false },
-            });
-          }
-        }}
-        isAbandoned={userTracking?.status === 'dropped'}
-        onAbandonSeries={() => {
-          const targetTmdbId = tmdbSeries.tmdb_id || userTracking?.series_tmdb_id;
-          if (targetTmdbId) {
-            updateSeries({
-              id: targetTmdbId,
-              updates: { status: 'dropped', is_rewatching: false },
-            });
-          }
-        }}
-        onResumeSeries={() => {
-          const targetTmdbId = tmdbSeries.tmdb_id || userTracking?.series_tmdb_id;
-          const hasWatched = Boolean(
-            tmdbSeries.episodes?.some((ep) => ep.is_watched || (ep.watch_count ?? 0) > 0)
-          );
-          const targetStatus = hasWatched ? 'watching' : 'to_watch';
-          if (targetTmdbId) {
-            updateSeries({
-              id: targetTmdbId,
-              updates: { status: targetStatus },
-            });
-          }
-        }}
+        showOptionsModal={showOptionsModal}
+        onCloseOptionsModal={() => setShowOptionsModal(false)}
         isHistoricMode={isHistoricMode}
-        onEnableHistoricMode={() => {
-          setIsHistoricMode((prev) => !prev);
-          setActiveTab('seasons');
-          setInternalEpisode(null);
-        }}
+        onToggleHistoricMode={() => setIsHistoricMode((prev) => !prev)}
+        isListManagerOpen={isListManagerOpen}
+        onCloseListManager={() => setIsListManagerOpen(false)}
+        listDetailId={listDetailId}
+        onCloseListDetail={() => setListDetailId(null)}
+        updateSeries={updateSeries}
+        onTabChange={setActiveTab}
+        onClearEpisode={() => setInternalEpisode(null)}
       />
-
-      {isListManagerOpen && (
-        <MobileTrackerListManagerModal
-          isOpen={isListManagerOpen}
-          onClose={() => setIsListManagerOpen(false)}
-          seriesId={tmdbSeries.tmdb_id}
-        />
-      )}
-
-      {listDetailId !== null && (
-        <TrackerListDetailModal
-          isOpen={listDetailId !== null}
-          onClose={() => setListDetailId(null)}
-          listId={listDetailId}
-        />
-      )}
     </div>
   );
 

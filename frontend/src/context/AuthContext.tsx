@@ -7,6 +7,7 @@ import { apiUrl, apiClient } from '@/api/client';
 import type { TokenResponse, UserResponse } from '@/types/auth';
 import { logger } from '@/utils/logger';
 import { formatAuthErrorMessage } from '@/utils/authErrorUtils';
+import { unregisterStoredPushTokenFromServer } from '@/services/pushNotificationsService';
 
 interface AuthContextValue {
   token: string | null;
@@ -93,6 +94,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const clearError = () => setError(null);
 
   const logout = useCallback(() => {
+    void unregisterStoredPushTokenFromServer();
     lastSyncedTokenRef.current = null;
     queryClient.clear();
     persistTokens(null, null);

@@ -92,7 +92,7 @@ export const MobileSettingsNavList: React.FC<MobileSettingsNavListProps> = ({
                 )}
               </div>
               <div className="text-xs text-gray-500 truncate mt-0.5">
-                Collegamento a Google Calendar
+                Google Calendar, Meteo e Trackers
               </div>
             </div>
           </div>

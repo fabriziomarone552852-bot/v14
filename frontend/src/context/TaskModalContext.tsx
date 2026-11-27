@@ -6,11 +6,14 @@ import TaskNewModal from '@/components/shared/tasks/TaskNewModal';
 import MobileTaskDetailModal from '@/mobile/components/modals/MobileTaskDetailModal';
 import MobileTaskNewModal from '@/mobile/components/modals/MobileTaskNewModal';
 import type { TaskSummary } from '@/types';
+import type { SubtaskTemplateNode } from '@/utils/taskDuplicateUtils';
 import { useTaskMutations } from '@/hooks/mutations/useTaskMutations';
 import { useIsMobile } from '@/mobile/hooks/useIsMobile';
 
 interface TaskFormModalState {
   taskToEdit?: TaskSummary | null;
+  taskToDuplicate?: TaskSummary | null;
+  subtasksToClone?: SubtaskTemplateNode[];
   initialParentId?: number | null;
   initialDate?: string | null;
 }
@@ -38,7 +41,19 @@ export const TaskModalProvider: React.FC<{ children: ReactNode }> = ({ children 
   // Transizione per aggiungere sottotask
   const handleAddSubtaskTransition = (parentId: number) => {
     detailModal.close();
-    formModal.open({ taskToEdit: null, initialParentId: parentId });
+    formModal.open({ taskToEdit: null, taskToDuplicate: null, subtasksToClone: [], initialParentId: parentId });
+  };
+
+  // Transizione per duplicare task (con o senza albero sottotask figlie)
+  const handleDuplicateTask = (task: TaskSummary, subtasksToClone: SubtaskTemplateNode[]) => {
+    detailModal.close();
+    formModal.open({
+      taskToEdit: null,
+      taskToDuplicate: task,
+      subtasksToClone,
+      initialParentId: null,
+      initialDate: null,
+    });
   };
 
   // Il toggle del dettaglio gestito centralmente
@@ -87,9 +102,10 @@ export const TaskModalProvider: React.FC<{ children: ReactNode }> = ({ children 
             onSelectTask={(task) => detailModal.open(task)}
             tasks={[]}
             onEditClick={() => {
-              formModal.open({ taskToEdit: detailModal.data, initialParentId: null });
+              formModal.open({ taskToEdit: detailModal.data, taskToDuplicate: null, subtasksToClone: [], initialParentId: null });
               detailModal.close();
             }}
+            onDuplicateClick={handleDuplicateTask}
             onAddSubtask={handleAddSubtaskTransition}
           />
 
@@ -97,6 +113,8 @@ export const TaskModalProvider: React.FC<{ children: ReactNode }> = ({ children 
             isOpen={formModal.isOpen}
             onClose={formModal.close}
             taskToEdit={formModal.data?.taskToEdit}
+            taskToDuplicate={formModal.data?.taskToDuplicate}
+            subtasksToClone={formModal.data?.subtasksToClone}
             initialParentId={formModal.data?.initialParentId}
             initialDate={formModal.data?.initialDate}
           />
@@ -111,9 +129,10 @@ export const TaskModalProvider: React.FC<{ children: ReactNode }> = ({ children 
             onSelectTask={(task) => detailModal.open(task)}
             tasks={[]}
             onEditClick={() => {
-              formModal.open({ taskToEdit: detailModal.data, initialParentId: null });
+              formModal.open({ taskToEdit: detailModal.data, taskToDuplicate: null, subtasksToClone: [], initialParentId: null });
               detailModal.close();
             }}
+            onDuplicateClick={handleDuplicateTask}
             onAddSubtask={handleAddSubtaskTransition}
           />
 
@@ -121,6 +140,8 @@ export const TaskModalProvider: React.FC<{ children: ReactNode }> = ({ children 
             isOpen={formModal.isOpen}
             onClose={formModal.close}
             taskToEdit={formModal.data?.taskToEdit}
+            taskToDuplicate={formModal.data?.taskToDuplicate}
+            subtasksToClone={formModal.data?.subtasksToClone}
             initialParentId={formModal.data?.initialParentId}
             initialDate={formModal.data?.initialDate}
           />

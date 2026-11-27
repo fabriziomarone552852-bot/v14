@@ -7,6 +7,7 @@ import { HabitCard } from './HabitCard';
 import { ERROR_MESSAGES } from '@/data/loadingMessages';
 import type { HabitTabType } from './ArchiveTabs';
 import type { EnrichedRoutineItem, EnrichedHabitItem } from '@/hooks/useHabitArchiveData';
+import { useFadeScrollbar } from '@/hooks/ui/useFadeScrollbar';
 
 interface HabitsPageGridProps {
   activeTab: HabitTabType;
@@ -43,9 +44,15 @@ export const HabitsPageGrid: React.FC<HabitsPageGridProps> = ({
   onPageChange,
   panelClass,
 }) => {
+  const { handleScroll, modalScrollbarClass } = useFadeScrollbar();
+
   return (
     <div className={`${panelClass} flex flex-col flex-1 min-h-0 overflow-hidden`}>
-      <div ref={containerRef} className="flex-1 min-h-0 overflow-y-auto p-4 sm:p-5 custom-scrollbar">
+      <div
+        ref={containerRef}
+        onScroll={handleScroll}
+        className={`flex-1 min-h-0 overflow-y-auto p-4 sm:p-5 ${modalScrollbarClass}`}
+      >
         {isError ? (
           <div className="flex flex-col items-center justify-center h-64 text-slate-400 gap-3">
             <div className="text-3xl">⚠️</div>

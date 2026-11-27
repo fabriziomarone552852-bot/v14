@@ -15,7 +15,7 @@ export const CountdownsPage: React.FC = () => {
     <div className="h-full flex flex-col gap-2 sm:gap-3.5 w-full max-w-[1600px] mx-auto relative z-10 pb-1">
       {/* 1. HEADER STANDARD */}
       <ArchiveHeader
-        title="GESTIONE COUNTDOWN"
+        title="Obiettivi & Countdown"
         subtitle="Tieni traccia dei giorni mancanti alle tue date più importanti."
         icon={<CountdownIcon className="w-5 h-5 text-white" />}
         className={ARCHIVE_PANEL_CLASS}

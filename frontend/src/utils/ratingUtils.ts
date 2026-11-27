@@ -33,6 +33,26 @@ export const roundRatingToHalfStar = (val: number): number => {
   return intPart + 0.5;
 };
 
+/**
+ * Formatta un punteggio arrotondato al primo decimale (0..1 cifra dopo la virgola, es. "4", "4.2", "4.9").
+ * Restituisce null se il valore non è valido o <= 0.
+ */
+export const formatRatingOneDecimal = (val: number | null | undefined): string | null => {
+  if (typeof val !== 'number' || !Number.isFinite(val) || val <= 0) return null;
+  const rounded = Math.round(val * 10) / 10;
+  return rounded % 1 === 0 ? rounded.toFixed(0) : rounded.toFixed(1);
+};
+
+/**
+ * Formatta un punteggio arrotondato per step di 0.5 (es. "4", "4.5", "5").
+ * Restituisce null se il valore non è valido o <= 0.
+ */
+export const formatRatingHalfStep = (val: number | null | undefined): string | null => {
+  if (typeof val !== 'number' || !Number.isFinite(val) || val <= 0) return null;
+  const rounded = roundRatingToHalfStar(val);
+  return rounded % 1 === 0 ? rounded.toFixed(0) : rounded.toFixed(1);
+};
+
 export interface EpisodePersonalRating {
   rating: number; // Valore in scala 0.5 - 5.0
   count: number;  // Numero di log/visioni con voto
@@ -61,6 +81,41 @@ export const getEpisodePersonalRating = (ep: { logs?: { rating?: number | null }
  */
 export const getEpisodeAverageRating = (ep: { logs?: { rating?: number | null }[] }): number | null => {
   const res = getEpisodePersonalRating(ep);
+  return res ? res.rating : null;
+};
+
+export interface SeasonPersonalRating {
+  rating: number; // Valore in scala 0.5 - 5.0
+  count: number;  // Numero di recensioni della stagione con voto
+}
+
+/**
+ * Calcola la media dei voti personali dell'utente per una singola stagione (scala 0.5 - 5.0)
+ * a partire dai season_logs della serie. Nel DB i rating sono memorizzati su scala 1-10.
+ */
+export const getSeasonPersonalRating = (
+  seasonLogs: { season_number: number; rating?: number | null }[] | undefined,
+  seasonNumber: number
+): SeasonPersonalRating | null => {
+  if (!seasonLogs || seasonLogs.length === 0) return null;
+  const ratedLogs = seasonLogs.filter(
+    (l): l is typeof l & { rating: number } =>
+      l.season_number === seasonNumber && typeof l.rating === 'number' && l.rating > 0
+  );
+  if (ratedLogs.length === 0) return null;
+  const sumStars = ratedLogs.reduce((acc, l) => acc + l.rating / 2, 0);
+  const avgStars = sumStars / ratedLogs.length;
+  return {
+    rating: roundRatingToHalfStar(avgStars),
+    count: ratedLogs.length,
+  };
+};
+
+export const getSeasonAverageRating = (
+  seasonLogs: { season_number: number; rating?: number | null }[] | undefined,
+  seasonNumber: number
+): number | null => {
+  const res = getSeasonPersonalRating(seasonLogs, seasonNumber);
   return res ? res.rating : null;
 };
 

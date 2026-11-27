@@ -10,6 +10,8 @@ import {
 
 export const DEFAULT_MOVIE_FILTERS: MovieFilters = {
   keyword: '',
+  people: '',
+  peopleMode: 'AND',
   genres: EMPTY_GENRE_FILTER,
   platforms: [],
   years: [],
@@ -27,6 +29,7 @@ export const hasActiveMovieFilters = (
 ): boolean => {
   return (
     Boolean(filters.keyword?.trim()) ||
+    Boolean(filters.people?.trim()) ||
     isGenreFilterActive(filters.genres) ||
     (filters.platforms?.length ?? 0) > 0 ||
     (filters.years?.length ?? 0) > 0 ||
@@ -41,6 +44,7 @@ export const hasActiveMovieFilters = (
 
 export const hasMovieTMDBFilterCriteria = (filters: MovieFilters): boolean => {
   return (
+    Boolean(filters.people?.trim()) ||
     isGenreFilterActive(filters.genres) ||
     (filters.platforms?.length ?? 0) > 0 ||
     (filters.years?.length ?? 0) > 0

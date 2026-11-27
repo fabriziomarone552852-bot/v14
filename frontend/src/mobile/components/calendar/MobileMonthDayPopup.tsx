@@ -10,10 +10,12 @@ import {
   CheckIcon,
 } from '@/components/shared/utils/Icons';
 import { MobileMonthMoodPickerModal } from './MobileMonthMoodPickerModal';
+import { WeatherBadge } from '@/components/weather/WeatherBadge';
 
 interface MobileMonthDayPopupProps {
   isOpen: boolean;
   dateStr: string;
+  isToday?: boolean;
   formattedDate: string;
   mood?: Category;
   events: CalendarEvent[];
@@ -29,6 +31,7 @@ interface MobileMonthDayPopupProps {
 export const MobileMonthDayPopup: React.FC<MobileMonthDayPopupProps> = ({
   isOpen,
   dateStr,
+  isToday = false,
   formattedDate,
   mood,
   events,
@@ -97,14 +100,22 @@ export const MobileMonthDayPopup: React.FC<MobileMonthDayPopupProps> = ({
               )}
             </div>
 
-            <button
-              type="button"
-              onClick={onClose}
-              className="p-1 rounded-lg text-gray-400 hover:bg-gray-100 hover:text-red-500 transition-colors cursor-pointer shrink-0"
-              title="Chiudi"
-            >
-              <CloseIcon className="w-3.5 h-3.5" />
-            </button>
+            <div className="flex items-center gap-1 shrink-0">
+              <WeatherBadge
+                targetDateStr={dateStr}
+                isToday={isToday}
+                minimal={true}
+                size="xs"
+              />
+              <button
+                type="button"
+                onClick={onClose}
+                className="p-1 rounded-lg text-gray-400 hover:bg-gray-100 hover:text-red-500 transition-colors cursor-pointer shrink-0"
+                title="Chiudi"
+              >
+                <CloseIcon className="w-3.5 h-3.5" />
+              </button>
+            </div>
           </div>
 
           {/* 2. Corpo Nuvoletta: Lista Eventi & Task Cliccabili */}

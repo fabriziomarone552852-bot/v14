@@ -6,7 +6,7 @@ import { useMobileHomeLogic } from '../hooks/useMobileHomeLogic';
 
 // Components
 import MobileYearProgress from '../components/MobileYearProgress';
-import MobileQuoteCard from '../components/MobileQuoteCard';
+import { MobileRotatingBriefingStrip } from '../components/home/briefing';
 import { MobileHomeEventsSection } from '../components/home/MobileHomeEventsSection';
 import { MobileHomeTasksSection } from '../components/home/MobileHomeTasksSection';
 import { MobileSyncFeedbackModal } from '../components/home/MobileSyncFeedbackModal';
@@ -62,10 +62,10 @@ export const MobileHomeView: React.FC = () => {
 
   return (
     <div className="flex flex-col h-full overflow-hidden bg-[#fafafa] p-3 gap-3 relative select-none">
-      {/* 1. Sezione Superiore: Progress Bar Anno & Citazione del Giorno */}
+      {/* 1. Sezione Superiore: Progress Bar Anno & Striscia Rotante (Citazione, Meteo, Oroscopo) */}
       <div className="shrink-0 flex flex-col gap-2">
         <MobileYearProgress progress={yearProgress} />
-        <MobileQuoteCard />
+        <MobileRotatingBriefingStrip />
       </div>
 
       {/* 2. Sezione Eventi di Oggi (Compatto & Fullscreen) */}

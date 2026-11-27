@@ -11,8 +11,9 @@ import { makeEmptyForm, type ListFormState } from '@/components/shared/shopping/
 import type { ShoppingGroupFilterState } from '@/components/archive/shopping/ShoppingGroupFilterModal';
 import type { ShoppingListFilterState } from '@/components/archive/shopping/ShoppingListFilterModal';
 import type { ShoppingPriceFilterState } from '@/components/archive/shopping/ShoppingPriceFilterModal';
+import type { ShoppingCatalogProductFilterState } from '@/components/archive/shopping/products/useShoppingArchiveProductsLogic';
 
-export type ShoppingArchiveTab = 'gruppi' | 'liste' | 'prezzi';
+export type ShoppingArchiveTab = 'gruppi' | 'liste' | 'prodotti' | 'prezzi';
 
 const initialGroupFilters: ShoppingGroupFilterState = {
   keyword: '',
@@ -32,6 +33,12 @@ const initialPriceFilters: ShoppingPriceFilterState = {
   lookbackUnit: 'years',
 };
 
+const initialProductFilters: ShoppingCatalogProductFilterState = {
+  keyword: '',
+  brandStatus: 'all',
+  purchaseStatus: 'all',
+};
+
 export const useShoppingArchivePageLogic = () => {
   const isMobile = useIsMobile();
   const queryClient = useQueryClient();
@@ -48,6 +55,7 @@ export const useShoppingArchivePageLogic = () => {
     config,
     groupsLoading,
     listsLoading,
+    productsLoading,
     isError: shoppingError,
   } = useShoppingData();
 
@@ -64,6 +72,7 @@ export const useShoppingArchivePageLogic = () => {
   const groupCreateModal = useModal<null>();
   const quickPriceModal = useModal<null>();
   const listCreateModal = useModal<null>();
+  const productCreateModal = useModal<null>();
   const [listForm, setListForm] = useState<ListFormState>(() => makeEmptyForm(''));
 
   // Stati dei Filtri per ciascuna Tab
@@ -75,6 +84,10 @@ export const useShoppingArchivePageLogic = () => {
 
   const [priceFilters, setPriceFilters] = useState<ShoppingPriceFilterState>(initialPriceFilters);
   const [isPriceFilterModalOpen, setIsPriceFilterModalOpen] = useState(false);
+
+  const [productFilters, setProductFilters] =
+    useState<ShoppingCatalogProductFilterState>(initialProductFilters);
+  const [isProductFilterModalOpen, setIsProductFilterModalOpen] = useState(false);
 
   // Conteggio filtri attivi
   const activeFiltersCount = useMemo(() => {
@@ -92,6 +105,13 @@ export const useShoppingArchivePageLogic = () => {
       if (listFilters.products.length > 0) c += listFilters.products.length;
       return c;
     }
+    if (activeTab === 'prodotti') {
+      let c = 0;
+      if (productFilters.keyword.trim()) c++;
+      if (productFilters.brandStatus !== 'all') c++;
+      if (productFilters.purchaseStatus !== 'all') c++;
+      return c;
+    }
     if (activeTab === 'prezzi') {
       let c = 0;
       if (priceFilters.keyword.trim()) c++;
@@ -99,11 +119,12 @@ export const useShoppingArchivePageLogic = () => {
       return c;
     }
     return 0;
-  }, [activeTab, groupFilters, listFilters, priceFilters]);
+  }, [activeTab, groupFilters, listFilters, productFilters, priceFilters]);
 
   const handleOpenSearchModal = () => {
     if (activeTab === 'gruppi') setIsGroupFilterModalOpen(true);
     else if (activeTab === 'liste') setIsListFilterModalOpen(true);
+    else if (activeTab === 'prodotti') setIsProductFilterModalOpen(true);
     else if (activeTab === 'prezzi') setIsPriceFilterModalOpen(true);
   };
 
@@ -113,6 +134,8 @@ export const useShoppingArchivePageLogic = () => {
     } else if (activeTab === 'liste') {
       setListForm(makeEmptyForm(''));
       listCreateModal.open(null);
+    } else if (activeTab === 'prodotti') {
+      productCreateModal.open(null);
     } else if (activeTab === 'prezzi') {
       quickPriceModal.open(null);
     }
@@ -141,6 +164,8 @@ export const useShoppingArchivePageLogic = () => {
       ? 'Nuovo Gruppo'
       : activeTab === 'liste'
       ? 'Nuova Lista'
+      : activeTab === 'prodotti'
+      ? 'Nuovo Prodotto'
       : 'Aggiunta Rapida';
 
   // Registrazione header archivio mobile
@@ -164,6 +189,7 @@ export const useShoppingArchivePageLogic = () => {
     config,
     allBatches,
     batchesLoading,
+    productsLoading,
     isOverallLoading,
     isError,
     activeFiltersCount,
@@ -171,6 +197,7 @@ export const useShoppingArchivePageLogic = () => {
     groupCreateModal,
     quickPriceModal,
     listCreateModal,
+    productCreateModal,
     listForm,
     setListForm,
     groupFilters,
@@ -181,12 +208,17 @@ export const useShoppingArchivePageLogic = () => {
     setListFilters,
     isListFilterModalOpen,
     setIsListFilterModalOpen,
+    productFilters,
+    setProductFilters,
+    isProductFilterModalOpen,
+    setIsProductFilterModalOpen,
     priceFilters,
     setPriceFilters,
     isPriceFilterModalOpen,
     setIsPriceFilterModalOpen,
     initialGroupFilters,
     initialListFilters,
+    initialProductFilters,
     initialPriceFilters,
     handleOpenSearchModal,
     handlePrimaryAddAction,

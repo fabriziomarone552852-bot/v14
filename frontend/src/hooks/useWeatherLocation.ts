@@ -3,6 +3,7 @@ import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import type { WeatherLocationPreference } from '@/types/weather';
 import { useAuth } from '@/context/AuthContext';
 import { apiClient } from '@/api/client';
+import { weatherApi } from '@/api/weatherApi';
 import type { UserResponse } from '@/types/auth';
 
 const STORAGE_KEY = 'vita_weather_preference';
@@ -133,15 +134,25 @@ export const useWeatherLocation = () => {
     setGeoError(null);
 
     navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        setIsDetecting(false);
+      async (pos) => {
         const { latitude, longitude } = pos.coords;
+        let resolvedCityName = 'Posizione attuale';
+        try {
+          const reverse = await weatherApi.reverseGeocode(latitude, longitude);
+          if (reverse?.name) {
+            resolvedCityName = reverse.name;
+          }
+        } catch {
+          // Fallback silenzioso a 'Posizione attuale'
+        }
+
+        setIsDetecting(false);
         const prev = preferenceRef.current;
         const nextPref: WeatherLocationPreference = {
           ...prev,
           latitude,
           longitude,
-          cityName: prev.isAutoGeolocation ? prev.cityName : 'Posizione attuale',
+          cityName: resolvedCityName,
           isAutoGeolocation: true,
         };
         preferenceRef.current = nextPref;

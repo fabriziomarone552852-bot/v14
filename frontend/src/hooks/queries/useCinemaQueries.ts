@@ -8,18 +8,19 @@ import type {
   CinemaSchedule,
 } from '@/types/cinema';
 
-export const useCinemaProvinces = () => {
+export const useCinemaProvinces = (enabled: boolean = true) => {
   return useQuery<CinemaProvince[]>({
     queryKey: ['trackers', 'movies', 'cinema', 'provinces'],
     queryFn: async () => {
       const data = await api.get<CinemaProvince[]>('/trackers/movies/cinema/provinces');
       return (data || []) as CinemaProvince[];
     },
+    enabled,
     staleTime: 1000 * 60 * 60 * 24, // 24 ore
   });
 };
 
-export const useProvinceCinemaData = (provinceSlug: string) => {
+export const useProvinceCinemaData = (provinceSlug: string, enabled: boolean = true) => {
   return useQuery<ProvinceCinemaData>({
     queryKey: ['trackers', 'movies', 'cinema', 'province', provinceSlug],
     queryFn: async () => {
@@ -28,7 +29,7 @@ export const useProvinceCinemaData = (provinceSlug: string) => {
       );
       return data as ProvinceCinemaData;
     },
-    enabled: Boolean(provinceSlug),
+    enabled: enabled && Boolean(provinceSlug),
     staleTime: 1000 * 60 * 30, // 30 minuti
   });
 };

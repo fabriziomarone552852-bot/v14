@@ -216,6 +216,20 @@ export async function deleteProductBrandPreference(
   });
 }
 
+export interface CreateShoppingProductPayload {
+  name: string;
+}
+
+export async function createShoppingProduct(
+  payload: CreateShoppingProductPayload
+): Promise<ShoppingProductOption> {
+  const data = await apiRequest<ShoppingProductOptionApi>('/products', {
+    method: 'POST',
+    body: { name: payload.name },
+  });
+  return normalizeShoppingProductOption(data);
+}
+
 export interface UpdateShoppingProductPayload {
   name: string;
 }

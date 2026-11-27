@@ -13,6 +13,7 @@ interface MobileEventNewModalProps {
   isOpen: boolean;
   onClose: () => void;
   eventToEdit?: CalendarEvent | null;
+  eventToDuplicate?: CalendarEvent | null;
   onEventSaved?: (savedEvent?: DbEvent) => void;
   initialDate?: string | null;
 }
@@ -21,6 +22,7 @@ export const MobileEventNewModal: React.FC<MobileEventNewModalProps> = ({
   isOpen,
   onClose,
   eventToEdit,
+  eventToDuplicate,
   initialDate,
   onEventSaved,
 }) => {
@@ -45,6 +47,7 @@ export const MobileEventNewModal: React.FC<MobileEventNewModalProps> = ({
     isOpen,
     onClose,
     eventToEdit,
+    eventToDuplicate,
     initialDate,
     onEventSaved,
   });

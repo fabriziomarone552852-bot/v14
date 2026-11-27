@@ -4,7 +4,6 @@ import { createPortal } from 'react-dom';
 import type { ShoppingProductOption, ShoppingSupplierOption } from '@/types/shopping';
 import { useDropdownPosition } from '@/hooks/useDropdownPosition';
 import { useAutocompleteKeyboard } from '@/hooks/useAutocompleteKeyboard';
-import { parseBrandPreference } from '@/utils/shoppingBrandPreference';
 
 interface ShoppingBrandAutocompleteProps {
   value: string;
@@ -188,13 +187,6 @@ export const ShoppingBrandAutocomplete: React.FC<ShoppingBrandAutocompleteProps>
       {suggestions.map((b, idx) => {
         const isHighlighted = idx === highlightedIndex;
         const brandName = b?.name || '';
-        const assocInfo = brandName ? productAssociatedBrands.get(brandName.toLowerCase()) : undefined;
-        const isAssociated = assocInfo !== undefined;
-        const notes = assocInfo?.notes;
-
-        const pref = parseBrandPreference(notes);
-        const isPos = pref?.sentiment === 'positive';
-        const isNeg = pref?.sentiment === 'negative';
 
         return (
           <button
@@ -209,33 +201,7 @@ export const ShoppingBrandAutocomplete: React.FC<ShoppingBrandAutocompleteProps>
                 : 'text-gray-700 hover:bg-blue-50/70 hover:text-blue-700'
             }`}
           >
-            <div className="flex flex-col min-w-0 pr-1">
-              <div className="flex items-center gap-1.5 truncate">
-                <span className="truncate">{brandName}</span>
-                {isNeg ? (
-                  <span className="px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-rose-100 text-rose-800 shrink-0">
-                    👎 Da evitare
-                  </span>
-                ) : isPos ? (
-                  <span className="px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 shrink-0">
-                    👍 Consigliato
-                  </span>
-                ) : isAssociated ? (
-                  <span className="px-1.5 py-0.5 rounded-full text-[10px] font-medium bg-blue-100 text-blue-700 shrink-0">
-                    Già provato
-                  </span>
-                ) : null}
-              </div>
-              {notes && (
-                <span
-                  className={`text-[10px] italic truncate mt-0.5 ${
-                    isNeg ? 'text-rose-700 font-medium' : isPos ? 'text-emerald-700 font-medium' : 'text-amber-700'
-                  }`}
-                >
-                  {isNeg ? '⚠️ ' : isPos ? '✓ ' : '📝 '}«{pref?.comment || notes}»
-                </span>
-              )}
-            </div>
+            <span className="truncate">{brandName}</span>
             <span className="text-[10px] text-gray-400 font-normal shrink-0">
               Brand
             </span>

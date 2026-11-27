@@ -4,7 +4,7 @@ import type { CalendarEvent } from '@/types';
 import { translateRRule } from '@/utils/rruleUtils';
 import MobileBaseModal from './MobileBaseModal';
 import { Badge } from '@/components/shared/utils/Badges';
-import { EditIcon, TrashIcon, ArrowRightLongIcon } from '@/components/shared/utils/Icons';
+import { CopyIcon, EditIcon, TrashIcon, ArrowRightLongIcon } from '@/components/shared/utils/Icons';
 import { LocationPreview } from '@/components/shared/form';
 import { useEventDetailLogic } from '@/hooks/forms/useEventDetailLogic';
 import type { EventDeletePayload } from '@/components/shared/events/EventDetailModal';
@@ -15,11 +15,12 @@ export interface MobileEventDetailModalProps {
   onClose: () => void;
   selectedEvent: CalendarEvent | null; 
   onEditClick: () => void;
+  onDuplicateClick?: () => void;
   onDeleteClick: (payload: EventDeletePayload) => void; 
 }
 
 export const MobileEventDetailModal: React.FC<MobileEventDetailModalProps> = ({ 
-  isOpen, onClose, selectedEvent, onEditClick, onDeleteClick 
+  isOpen, onClose, selectedEvent, onEditClick, onDuplicateClick, onDeleteClick 
 }) => {
   const {
     dataInizio,
@@ -39,6 +40,17 @@ export const MobileEventDetailModal: React.FC<MobileEventDetailModalProps> = ({
 
   const HeaderActions = showRecurringDeleteOptions ? null : (
     <div className="flex items-center gap-1">
+      {onDuplicateClick && (
+        <button
+          type="button"
+          title="Copia"
+          aria-label="Copia evento"
+          onClick={onDuplicateClick}
+          className="p-2 text-gray-500 hover:text-indigo-600 hover:bg-indigo-50 rounded-xl transition-colors cursor-pointer"
+        >
+          <CopyIcon className="h-5 w-5" />
+        </button>
+      )}
       <button 
         type="button"
         title="Modifica" 

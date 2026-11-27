@@ -78,7 +78,7 @@ export const useArchiveListDetailLogic = ({
       });
     } else {
       const boughtQuantity = item.quantity != null ? item.quantity : 1;
-      await mutations.addInventoryBatch({
+      void mutations.addInventoryBatch({
         itemId: item.id,
         listId: item.shoppingListId,
         data: {
@@ -92,11 +92,6 @@ export const useArchiveListDetailLogic = ({
           isOnSale: false,
         },
       });
-      await mutations.togglePurchased({
-        id: item.id,
-        listId: item.shoppingListId,
-        data: { isPurchased: true },
-      });
     }
   };
 
@@ -106,6 +101,8 @@ export const useArchiveListDetailLogic = ({
     const it = purchaseModal.data;
     const parsedPrice = purchaseForm.price.trim() ? Number(purchaseForm.price.replace(',', '.')) : 0;
     const purchasePrice = isNaN(parsedPrice) ? 0 : parsedPrice;
+
+    purchaseModal.close();
 
     await mutations.addInventoryBatch({
       itemId: it.id,
@@ -120,14 +117,6 @@ export const useArchiveListDetailLogic = ({
         isOnSale: purchaseForm.isOnSale,
       },
     });
-
-    await mutations.togglePurchased({
-      id: it.id,
-      listId: it.shoppingListId,
-      data: { isPurchased: true },
-    });
-
-    purchaseModal.close();
   };
 
   const handleDeleteItem = (item: ShoppingListItem, e: React.MouseEvent) => {

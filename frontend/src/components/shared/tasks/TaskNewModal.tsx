@@ -1,10 +1,12 @@
 // src/components/shared/tasks/TaskNewModal.tsx
 import React from 'react';
 import { type DbTask, type TaskSummary, CategoryGenre } from '@/types';
+import type { SubtaskTemplateNode } from '@/utils/taskDuplicateUtils';
 import DatePicker from '@/components/shared/utils/DatePicker/DatePicker';
 import CategorySelect from '@/components/shared/utils/CategorySelect';
 import BaseModal from '@/components/shared/dialog/BaseModal';
 import TaskTreeSelector from '@/components/shared/utils/TaskTreeSelector';
+import { TaskPendingSubtasksBanner } from '@/components/shared/tasks/TaskPendingSubtasksBanner';
 import { CloseIcon, CheckCircleIcon } from '@/components/shared/utils/Icons';
 import PrioritySelect from '@/components/shared/utils/PrioritySelect';
 import { FormInput, FormTextarea, LocationAutocompleteInput } from '@/components/shared/form';
@@ -14,6 +16,8 @@ interface TaskNewModalProps {
   isOpen: boolean;
   onClose: () => void;
   taskToEdit?: TaskSummary | null;
+  taskToDuplicate?: TaskSummary | null;
+  subtasksToClone?: SubtaskTemplateNode[];
   onTaskSaved?: (savedTask?: DbTask) => void;
   initialParentId?: number | null;
   initialDate?: string | null;
@@ -22,7 +26,9 @@ interface TaskNewModalProps {
 const TaskNewModal: React.FC<TaskNewModalProps> = ({ 
   isOpen, 
   onClose, 
-  taskToEdit, 
+  taskToEdit,
+  taskToDuplicate,
+  subtasksToClone,
   onTaskSaved,
   initialParentId,
   initialDate
@@ -32,6 +38,10 @@ const TaskNewModal: React.FC<TaskNewModalProps> = ({
     setNewTaskForm,
     tasks,
     maxDepth,
+    effectiveMaxDepth,
+    subtreeExtraDepth,
+    pendingSubtaskCount,
+    clearPendingSubtasks,
     isDatePickerOpen,
     setIsDatePickerOpen,
     isSubtaskPanelOpen,
@@ -44,6 +54,8 @@ const TaskNewModal: React.FC<TaskNewModalProps> = ({
     isOpen,
     onClose,
     taskToEdit,
+    taskToDuplicate,
+    subtasksToClone,
     initialParentId,
     initialDate,
     onTaskSaved,
@@ -64,9 +76,21 @@ const TaskNewModal: React.FC<TaskNewModalProps> = ({
         <TaskTreeSelector 
           tasks={tasks} 
           selectedParentId={newTaskForm.parent_id} 
-          maxDepth={maxDepth}
+          maxDepth={effectiveMaxDepth}
           onSelect={(id) => setNewTaskForm(prev => ({ ...prev, parent_id: id }))}
-          onMaxDepthReached={() => confirm({ title: "Attenzione", message: `Limite di ${maxDepth} livelli raggiunto.`, isDestructive: false, onConfirm: () => {} })}
+          onMaxDepthReached={() =>
+            confirm({
+              title: 'Attenzione',
+              message:
+                subtreeExtraDepth > 0
+                  ? `Limite di ${maxDepth} livelli raggiunto (questa copia include già ${subtreeExtraDepth} ${
+                      subtreeExtraDepth === 1 ? 'livello' : 'livelli'
+                    } di sottotask).`
+                  : `Limite di ${maxDepth} livelli raggiunto.`,
+              isDestructive: false,
+              onConfirm: () => {},
+            })
+          }
         />
       </div>
     </div>
@@ -101,6 +125,11 @@ const TaskNewModal: React.FC<TaskNewModalProps> = ({
           value={newTaskForm.descrizione}
           onChange={(e) => setNewTaskForm({...newTaskForm, descrizione: e.target.value})}
           className="h-20"
+        />
+
+        <TaskPendingSubtasksBanner
+          subtaskCount={pendingSubtaskCount}
+          onClear={clearPendingSubtasks}
         />
 
         <div className="bg-gray-50 p-3 rounded-xl border border-gray-100">

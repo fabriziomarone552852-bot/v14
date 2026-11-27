@@ -7,6 +7,11 @@ from typing import List, Optional, Dict, Any
 from pydantic import Field, field_validator, BaseModel
 
 from backend.core.schemas import ORMBaseModel, StrictBaseModel
+from backend.domains.trackers.people_schemas import (
+    MediaCreditMember,
+    MediaCreditPerson,
+    ResolvedPersonRef,
+)
 
 
 class MovieCreate(StrictBaseModel):
@@ -165,6 +170,7 @@ class MovieCollectionDetail(BaseModel):
 class MovieExtrasResponse(BaseModel):
     cast: List[MovieCastMember] = Field(default_factory=list)
     director: Optional[str] = None
+    directors: List[MediaCreditPerson] = Field(default_factory=list)
     recommendations: List[MovieRecommendation] = Field(default_factory=list)
     collection: Optional[MovieCollectionDetail] = None
 
@@ -197,6 +203,7 @@ class MovieResponse(ORMBaseModel):
     collection_backdrop_path: Optional[str] = None
     watch_providers: Optional[List[MovieWatchProvider]] = None
     providers_synced_at: Optional[datetime] = None
+    credits_summary: Optional[List[MediaCreditMember]] = None
     last_sync_at: Optional[datetime] = None
 
     # Campi utente
@@ -230,6 +237,7 @@ class TMDBPaginatedMovieSearch(BaseModel):
     results: List[TMDBMovieSearchResult]
     total_pages: int
     total_results: int
+    resolved_people: List[ResolvedPersonRef] = Field(default_factory=list)
 
 
 class UpcomingMovieResponse(BaseModel):

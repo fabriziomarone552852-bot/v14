@@ -75,8 +75,8 @@ export const ShoppingPurchasedItemInfoSection: React.FC<ShoppingPurchasedItemInf
   const isOnSale = latestBatch?.isOnSale ?? false;
 
   return (
-    <div className="pointer-events-auto flex-shrink-0 w-full md:w-96 flex flex-col justify-between gap-4">
-      <div className="bg-white rounded-2xl shadow-2xl border border-gray-200 p-5 flex flex-col justify-between flex-1">
+    <div className="pointer-events-auto flex-shrink-0 w-full lg:w-[350px] flex flex-col justify-between gap-4">
+      <div className="bg-white rounded-2xl shadow-2xl border border-gray-200 p-5 flex flex-col justify-between flex-1 overflow-y-auto no-scrollbar">
         <div className="space-y-4">
           {/* Header con Badge Acquistato ed Azioni */}
           <div className="flex items-center justify-between pb-3 border-b border-gray-100">

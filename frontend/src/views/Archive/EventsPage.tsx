@@ -84,7 +84,7 @@ export const EventsPage: React.FC = () => {
 
   // 5. REGISTRAZIONE HEADER ARCHIVIO PER MOBILE
   useArchiveHeader({
-    title: 'Gestione Eventi',
+    title: 'Eventi & Calendario',
     onOpenSearch: () => setIsFilterModalOpen(true),
     onOpenNew: () => openEventForm(null, formatDateString(new Date())),
     activeFiltersCount,

@@ -15,6 +15,8 @@ interface SeriesReviewFormProps {
   rating: number;
   setRating: (n: number) => void;
   onSave: () => void;
+  title?: string;
+  placeholder?: string;
 }
 
 export const SeriesReviewForm: React.FC<SeriesReviewFormProps> = ({
@@ -29,6 +31,8 @@ export const SeriesReviewForm: React.FC<SeriesReviewFormProps> = ({
   rating,
   setRating,
   onSave,
+  title,
+  placeholder = 'Cosa ne pensi di questa serie?',
 }) => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
@@ -47,7 +51,7 @@ export const SeriesReviewForm: React.FC<SeriesReviewFormProps> = ({
             </svg>
           </button>
           <h2 className="text-xl font-bold text-gray-900">
-            {editingLogId ? 'Modifica Recensione' : 'Nuova Recensione'}
+            {title ?? (editingLogId ? 'Modifica Recensione' : 'Nuova Recensione')}
           </h2>
         </div>
 
@@ -171,7 +175,7 @@ export const SeriesReviewForm: React.FC<SeriesReviewFormProps> = ({
           value={review}
           onChange={(e) => setReview(e.target.value)}
           className="w-full h-full p-4 bg-gray-50 border border-gray-200 rounded-xl focus:ring-0 focus:border-gray-300 outline-none resize-none text-base text-gray-800 transition-colors"
-          placeholder="Cosa ne pensi di questa serie?"
+          placeholder={placeholder}
         />
       </div>
 

@@ -1,6 +1,6 @@
 // src/mobile/components/trackers/detail/MobileSeriesSeasonsTab.tsx
 import React from 'react';
-import { Check, ChevronDown, Film, Star, History } from 'lucide-react';
+import { Check, ChevronDown, Film, Info, Star, History } from 'lucide-react';
 import type { TMDBSeries, UserSeriesTracking, TMDBEpisode } from '@/types/trackers';
 import { EpisodeDetailView } from '@/components/trackers/series/detail/EpisodeDetailView';
 import { MobileWatchActionDrawer } from './MobileWatchActionDrawer';
@@ -9,6 +9,7 @@ import {
   useMobileSeriesSeasonsLogic,
   getEpisodeAverageRating,
 } from './hooks/useMobileSeriesSeasonsLogic';
+import { getSeasonPersonalRating } from '@/utils/ratingUtils';
 import { MobileEpisodeItem } from './components/MobileEpisodeItem';
 
 export interface MobileSeriesSeasonsTabProps {
@@ -18,6 +19,7 @@ export interface MobileSeriesSeasonsTabProps {
   initialReviewLogId?: number;
   isLoading?: boolean;
   onSelectEpisode?: (ep: TMDBEpisode) => void;
+  onSelectSeason?: (seasonNumber: number) => void;
   isHistoricMode?: boolean;
   onDisableHistoricMode?: () => void;
 }
@@ -29,6 +31,7 @@ export const MobileSeriesSeasonsTab: React.FC<MobileSeriesSeasonsTabProps> = ({
   initialReviewLogId,
   isLoading = false,
   onSelectEpisode,
+  onSelectSeason,
   isHistoricMode = false,
   onDisableHistoricMode,
 }) => {
@@ -145,7 +148,13 @@ export const MobileSeriesSeasonsTab: React.FC<MobileSeriesSeasonsTabProps> = ({
           seasonMinWatchCount = 0;
         }
 
-        const seasonAverageRating = getSeasonAverageRating(seasonEpisodes);
+        const episodesAvgRating = getSeasonAverageRating(seasonEpisodes);
+        const seasonPersonal = getSeasonPersonalRating(
+          tmdbSeries.season_logs || userTracking?.season_logs,
+          seasonNumber
+        );
+        const hasSeasonVote = seasonPersonal !== null;
+        const displaySeasonRating = hasSeasonVote ? seasonPersonal.rating : episodesAvgRating;
         const seasonTitle = getSeasonTitle(seasonNumber);
 
         return (
@@ -173,21 +182,48 @@ export const MobileSeriesSeasonsTab: React.FC<MobileSeriesSeasonsTabProps> = ({
                 </span>
               </div>
 
-              {/* Destra: Media voti stagione + pallino/spunta */}
-              <div className="flex items-center gap-2.5 shrink-0" onClick={(e) => e.stopPropagation()}>
-                {seasonAverageRating !== null && (
-                  <div
-                    className="flex items-center gap-1 text-[11px] font-bold text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded-md border border-amber-200/60"
-                    title={`Media voti stagione: ${seasonAverageRating.toFixed(1)}`}
+              {/* Destra: Media voti stagione/episodi + pulsante Info + pallino/spunta */}
+              <div className="flex items-center gap-2 shrink-0" onClick={(e) => e.stopPropagation()}>
+                {displaySeasonRating !== null && (
+                  <button
+                    type="button"
+                    onClick={() => onSelectSeason?.(seasonNumber)}
+                    className={`flex items-center gap-1 text-[11px] font-bold px-1.5 py-0.5 rounded-md border cursor-pointer active:scale-95 transition-all ${
+                      hasSeasonVote
+                        ? 'text-amber-700 bg-amber-100/80 border-amber-300/80'
+                        : 'text-yellow-700 bg-yellow-50 border-yellow-200/80'
+                    }`}
+                    title={
+                      hasSeasonVote
+                        ? `Voto stagione: ${displaySeasonRating.toFixed(1)}`
+                        : `Media voti episodi: ${displaySeasonRating.toFixed(1)}`
+                    }
                   >
-                    <Star className="w-3 h-3 fill-amber-400 text-amber-500 shrink-0" />
+                    <Star
+                      className={`w-3 h-3 shrink-0 ${
+                        hasSeasonVote
+                          ? 'fill-amber-600 text-amber-600'
+                          : 'fill-yellow-400 text-yellow-400'
+                      }`}
+                    />
                     <span>
-                      {seasonAverageRating % 1 === 0
-                        ? seasonAverageRating.toFixed(0)
-                        : seasonAverageRating.toFixed(1)}
+                      {displaySeasonRating % 1 === 0
+                        ? displaySeasonRating.toFixed(0)
+                        : displaySeasonRating.toFixed(1)}
                     </span>
-                  </div>
+                  </button>
                 )}
+
+                {/* Pulsante Info & Voti Stagione */}
+                <button
+                  type="button"
+                  onClick={() => onSelectSeason?.(seasonNumber)}
+                  className="w-7 h-7 rounded-full bg-gray-100 hover:bg-blue-50 text-gray-500 hover:text-blue-600 flex items-center justify-center transition-all cursor-pointer active:scale-90"
+                  title="Informazioni e voti stagione"
+                  aria-label={`Informazioni ${seasonTitle}`}
+                >
+                  <Info className="w-3.5 h-3.5" />
+                </button>
 
                 {/* Pallino / Spunta Stagione */}
                 <button

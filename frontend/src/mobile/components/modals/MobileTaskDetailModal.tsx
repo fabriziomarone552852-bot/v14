@@ -1,10 +1,12 @@
 // src/mobile/components/modals/MobileTaskDetailModal.tsx
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import type { TaskSummary } from '@/types';
+import type { SubtaskTemplateNode } from '@/utils/taskDuplicateUtils';
 import MobileBaseModal from './MobileBaseModal'; 
 import { Badge } from '@/components/shared/utils/Badges';
-import { TrashIcon, EditIcon } from '@/components/shared/utils/Icons';
+import { CopyIcon, TrashIcon, EditIcon } from '@/components/shared/utils/Icons';
 import { TaskTreeNode } from '@/components/shared/utils/TaskTreeNode';
+import { TaskCopySubtasksModal } from '@/components/shared/tasks/TaskCopySubtasksModal';
 import { formatToItalianShortDate } from '@/utils/dateUtils';
 import { LocationPreview } from '@/components/shared/form';
 import { useTaskDetailLogic } from '@/hooks/forms/useTaskDetailLogic';
@@ -16,16 +18,19 @@ interface MobileTaskDetailModalProps {
   onToggleTask: (id: number) => void;
   onSelectTask: (task: TaskSummary) => void;
   tasks: TaskSummary[]; 
-  onEditClick: () => void; 
+  onEditClick: () => void;
+  onDuplicateClick?: (task: TaskSummary, subtasks: SubtaskTemplateNode[]) => void;
   onAddSubtask?: (parentId: number) => void;
   onTaskDeleted?: () => void;
 }
 
 export const MobileTaskDetailModal: React.FC<MobileTaskDetailModalProps> = ({ 
-  isOpen, onClose, selectedTask, onToggleTask, onSelectTask, onEditClick, onAddSubtask, onTaskDeleted
+  isOpen, onClose, selectedTask, onToggleTask, onSelectTask, onEditClick, onDuplicateClick, onAddSubtask, onTaskDeleted
 }) => {
   const {
     rootUITask,
+    descendantSubtree,
+    descendantCount,
     isTaskDone,
     taskCategoryName,
     taskCategoryColor,
@@ -41,7 +46,22 @@ export const MobileTaskDetailModal: React.FC<MobileTaskDetailModalProps> = ({
     onTaskDeleted,
   });
 
+  const [isCopyChoiceOpen, setIsCopyChoiceOpen] = useState(false);
+
+  useEffect(() => {
+    if (!isOpen) setIsCopyChoiceOpen(false);
+  }, [isOpen, selectedTask?.id]);
+
   if (!isOpen || !selectedTask) return null;
+
+  const handleCopyClick = () => {
+    if (!onDuplicateClick) return;
+    if (descendantCount > 0) {
+      setIsCopyChoiceOpen(true);
+    } else {
+      onDuplicateClick(selectedTask, []);
+    }
+  };
 
   const HeaderTags = (
     <div className="flex items-center gap-2">
@@ -56,6 +76,17 @@ export const MobileTaskDetailModal: React.FC<MobileTaskDetailModalProps> = ({
 
   const HeaderActions = (
     <div className="flex items-center gap-1">
+      {onDuplicateClick && (
+        <button
+          type="button"
+          title="Copia"
+          aria-label="Copia task"
+          onClick={handleCopyClick}
+          className="p-2 text-gray-500 hover:text-indigo-600 hover:bg-indigo-50 rounded-xl transition-colors cursor-pointer"
+        >
+          <CopyIcon className="h-5 w-5" />
+        </button>
+      )}
       <button 
         type="button"
         title="Modifica" 
@@ -88,64 +119,80 @@ export const MobileTaskDetailModal: React.FC<MobileTaskDetailModalProps> = ({
   );
 
   return (
-    <MobileBaseModal
-      isOpen={isOpen}
-      onClose={onClose}
-      title={HeaderTags}
-      headerActions={HeaderActions}
-      footer={ModalFooter}
-    >
-      <div className="space-y-4 animate-fadeIn">
-        {/* Titolo e Scadenza */}
-        <div>
-          <h2 className={`text-2xl font-extrabold text-gray-900 leading-snug ${isTaskDone ? 'line-through text-gray-400' : ''}`}>
-            {selectedTask.title}
-          </h2>
-          <div className="flex items-center gap-2 mt-2">
-            <span className={`text-sm font-bold ${isTaskDone ? 'text-gray-400' : 'text-red-500'}`}>
-              Scadenza: {selectedTask.deadline ? formatToItalianShortDate(selectedTask.deadline) : 'Nessuna'}
-            </span>
-          </div>
-        </div>
-
-        {/* Luogo (se presente) */}
-        {selectedTask.location && (
-          <LocationPreview location={selectedTask.location} />
-        )}
-        
-        {/* Descrizione (se presente) */}
-        {selectedTask.description && (
-          <div className="bg-gray-50 p-4 rounded-xl border border-gray-100">
-            <h4 className="text-xs font-bold text-gray-500 uppercase mb-2 tracking-wider">
-              Descrizione
-            </h4>
-            <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap">
-              {selectedTask.description}
-            </p>
-          </div>
-        )}
-
-        {/* Albero Sottotask (se presente) */}
-        {rootUITask && (
-          <div className="w-full pt-2 border-t border-gray-200">
-            <h4 className="text-xs font-extrabold text-gray-700 uppercase tracking-wider mb-2">
-              Albero Sottotask
-            </h4>
-            <div className="bg-gray-50 rounded-xl p-3 border border-gray-200">
-              <TaskTreeNode 
-                task={rootUITask}
-                depth={0}
-                selectedTaskId={selectedTask.id}
-                maxSubtaskDepth={maxSubtaskDepth}
-                onToggleTask={handleTaskToggle}
-                onSelectTask={onSelectTask}
-                onAddSubtask={onAddSubtask}
-              />
+    <>
+      <MobileBaseModal
+        isOpen={isOpen}
+        onClose={onClose}
+        title={HeaderTags}
+        headerActions={HeaderActions}
+        footer={ModalFooter}
+      >
+        <div className="space-y-4 animate-fadeIn">
+          {/* Titolo e Scadenza */}
+          <div>
+            <h2 className={`text-2xl font-extrabold text-gray-900 leading-snug ${isTaskDone ? 'line-through text-gray-400' : ''}`}>
+              {selectedTask.title}
+            </h2>
+            <div className="flex items-center gap-2 mt-2">
+              <span className={`text-sm font-bold ${isTaskDone ? 'text-gray-400' : 'text-red-500'}`}>
+                Scadenza: {selectedTask.deadline ? formatToItalianShortDate(selectedTask.deadline) : 'Nessuna'}
+              </span>
             </div>
           </div>
-        )}
-      </div>
-    </MobileBaseModal>
+
+          {/* Luogo (se presente) */}
+          {selectedTask.location && (
+            <LocationPreview location={selectedTask.location} />
+          )}
+          
+          {/* Descrizione (se presente) */}
+          {selectedTask.description && (
+            <div className="bg-gray-50 p-4 rounded-xl border border-gray-100">
+              <h4 className="text-xs font-bold text-gray-500 uppercase mb-2 tracking-wider">
+                Descrizione
+              </h4>
+              <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap">
+                {selectedTask.description}
+              </p>
+            </div>
+          )}
+
+          {/* Albero Sottotask (se presente) */}
+          {rootUITask && (
+            <div className="w-full pt-2 border-t border-gray-200">
+              <h4 className="text-xs font-extrabold text-gray-700 uppercase tracking-wider mb-2">
+                Albero Sottotask
+              </h4>
+              <div className="bg-gray-50 rounded-xl p-3 border border-gray-200">
+                <TaskTreeNode 
+                  task={rootUITask}
+                  depth={0}
+                  selectedTaskId={selectedTask.id}
+                  maxSubtaskDepth={maxSubtaskDepth}
+                  onToggleTask={handleTaskToggle}
+                  onSelectTask={onSelectTask}
+                  onAddSubtask={onAddSubtask}
+                />
+              </div>
+            </div>
+          )}
+        </div>
+      </MobileBaseModal>
+
+      <TaskCopySubtasksModal
+        isOpen={isCopyChoiceOpen}
+        subtaskCount={descendantCount}
+        onCopyWithSubtasks={() => {
+          setIsCopyChoiceOpen(false);
+          onDuplicateClick?.(selectedTask, descendantSubtree);
+        }}
+        onCopySingleOnly={() => {
+          setIsCopyChoiceOpen(false);
+          onDuplicateClick?.(selectedTask, []);
+        }}
+        onClose={() => setIsCopyChoiceOpen(false)}
+      />
+    </>
   );
 };
 

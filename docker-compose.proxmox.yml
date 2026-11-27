@@ -35,6 +35,7 @@ services:
       - GOOGLE_REDIRECT_URI=https://tailproxfg.tailf3b58c.ts.net/api/v1/google-calendar/callback
       - TMDB_API_KEY=843439e230288335ea2d15119f8a6c27
       - TMDB_READ_ACCESS_TOKEN=eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiI4NDM0MzllMjMwMjg4MzM1ZWEyZDE1MTE5ZjhhNmMyNyIsIm5iZiI6MTc4OTY2ODE3OS4xMTksInN1YiI6IjZhYWMyYjUzNDFmNjMwYmFlM2I0NDE1OSIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.UqqP0lMzZDRLgUOld7QAgjZJhfqg0FPECXnsIUG34xA
+      - FIREBASE_CREDENTIALS_PATH=/app/firebase-service-account.json
     volumes:
       # Volume persistente per le immagini e allegati caricati
       - ./uploads:/app/uploads

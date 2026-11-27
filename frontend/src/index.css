@@ -208,8 +208,9 @@
   transition: scrollbar-color 0.3s ease;
 }
 
-.modal-scrollbar:hover {
-  scrollbar-color: #cbd5e1 transparent; /* Appare quando il mouse è sopra (slate-300) */
+.modal-scrollbar:hover,
+.modal-scrollbar.is-scrolling {
+  scrollbar-color: #cbd5e1 transparent; /* Appare quando il mouse è sopra o durante lo scorrimento (slate-300) */
 }
 
 /* Per Chrome, Edge e Safari */
@@ -230,8 +231,9 @@
   border-radius: 10px; /* Perfettamente arrotondata */
 }
 
-.modal-scrollbar:hover::-webkit-scrollbar-thumb {
-  background-color: #cbd5e1; /* Grigio tenue (slate-300) al passaggio del mouse sull'elemento */
+.modal-scrollbar:hover::-webkit-scrollbar-thumb,
+.modal-scrollbar.is-scrolling::-webkit-scrollbar-thumb {
+  background-color: #cbd5e1; /* Grigio tenue (slate-300) al passaggio del mouse o durante lo scorrimento */
 }
 
 .modal-scrollbar::-webkit-scrollbar-thumb:hover {

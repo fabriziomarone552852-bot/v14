@@ -4,6 +4,7 @@ import type { MediaList } from '@/types/trackers';
 import type { MovieFilters } from '@/types/movies';
 import { SearchIcon } from '@/components/shared/utils/Icons';
 import { TrackerMultiYearSelect } from '@/components/trackers/shared/TrackerMultiYearSelect';
+import { PeopleAutocompleteInput } from '@/components/trackers/shared/PeopleAutocompleteInput';
 import { MobileModalSelect } from '@/mobile/components/common/MobileModalSelect';
 import { MobileMultiModalSelect } from '@/mobile/components/common/MobileMultiModalSelect';
 import { MobileGenreTriStateModalSelect } from '@/mobile/components/common/MobileGenreTriStateModalSelect';
@@ -85,6 +86,16 @@ export const MobileMovieFilterOptions: React.FC<MobileMovieFilterOptionsProps> =
           <h4 className="text-[11px] font-extrabold uppercase tracking-wider text-gray-400">
             {sectionTitle}
           </h4>
+
+          <PeopleAutocompleteInput
+            label="Attori / Registi"
+            value={filters.people || ''}
+            mode={filters.peopleMode || 'AND'}
+            onChange={(val) => handleFieldChange('people', val)}
+            onModeChange={(nextMode) => handleFieldChange('peopleMode', nextMode)}
+            onSubmitSearch={onExecuteSearch}
+            placeholder="Es. Tarantino, DiCaprio..."
+          />
 
           {/* Griglia Genere (+ / - + Includi tutti) & Piattaforme (Multi O) */}
           <div className="grid grid-cols-2 gap-3">

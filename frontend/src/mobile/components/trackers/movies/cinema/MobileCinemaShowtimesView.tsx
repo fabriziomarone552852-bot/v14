@@ -5,6 +5,7 @@ import {
   useProvinceCinemaData,
 } from '@/hooks/queries/useCinemaQueries';
 import { FilmIcon, LoadingIcon } from '@/components/shared/utils/Icons';
+import { findMatchingCinemaMovie } from '@/utils/cinemaUtils';
 
 export interface MobileCinemaShowtimesViewProps {
   provinceSlug: string;
@@ -28,29 +29,8 @@ export const MobileCinemaShowtimesView: React.FC<MobileCinemaShowtimesViewProps>
 
   const effectiveIdf = useMemo(() => {
     if (idf) return idf;
-    if (!provinceData?.movies) return '';
-    const cleanTargetTitle = (movieTitle || '').trim().toLowerCase();
-    const normTarget = cleanTargetTitle
-      .normalize('NFD')
-      .replace(/[\u0300-\u036f]/g, '')
-      .replace(/[^\w\s]/g, ' ')
-      .replace(/\s+/g, ' ')
-      .trim();
-
-    const match = provinceData.movies.find((m) => {
-      if (tmdbId && m.tmdb_id && m.tmdb_id === tmdbId) return true;
-      const mClean = (m.title || '').trim().toLowerCase();
-      if (mClean === cleanTargetTitle) return true;
-      const normM = mClean
-        .normalize('NFD')
-        .replace(/[\u0300-\u036f]/g, '')
-        .replace(/[^\w\s]/g, ' ')
-        .replace(/\s+/g, ' ')
-        .trim();
-      return normM === normTarget || normM.includes(normTarget) || normTarget.includes(normM);
-    });
-    return match?.idf || '';
-  }, [idf, provinceData, tmdbId, movieTitle]);
+    return findMatchingCinemaMovie(provinceData?.movies, tmdbId, movieTitle)?.idf || '';
+  }, [idf, provinceData?.movies, tmdbId, movieTitle]);
 
   const { data: showtimes = [], isLoading: isLoadingShowtimes } = useMovieShowtimes(
     provinceSlug,

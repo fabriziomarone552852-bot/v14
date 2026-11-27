@@ -8,9 +8,21 @@ Questo file contiene lo storico completo e strutturato di tutte le funzionalità
 
 | ID | Attività / Funzionalità | Ambito | Stato Backend | Stato Frontend | Data Completamento |
 | :--- | :--- | :---: | :---: | :---: | :---: |
+| **FEAT-013** | Archivio Notifiche & Avvisi Permanente (`/notifications` Desktop & Mobile, Filtri, Deep-Link & Lettura 0ms) | `notifications` / fullstack | 🟢 Completato | 🟢 Completato | Novembre 2026 |
+| **ARCHIVE-001** | Riallineamento Hub Archivio Desktop/Mobile, Scrollbar Reattive, Catalogo Prodotti in `Spesa & Liste` & Selettore Viste | `archive` / shopping | 🟢 Supportato | 🟢 Completato | Novembre 2026 |
+| **SHOPPING-023** | Restyling Mobile Shopping: Area Marca Unificata, Modale "Altri Marchi", Dettaglio Prodotto a 2 Tab (`Storico & Analisi Prezzi` / `Marche`) & Pulizia Catalogo Rapido | `shopping` / mobile | 🟢 Supportato | 🟢 Completato | Novembre 2026 |
+| **SHOPPING-022** | Inserimento Rapido Prezzi Multi-Scontrino a Cascata (Data & Negozio Desktop/Mobile) & Scrollbar a Scomparsa nelle Liste Spesa Aperte | `shopping` / UI | 🟢 Supportato | 🟢 Completato | Novembre 2026 |
+| **SHOPPING-005 / 020** | Finestre Laterali Marchi & Giudizi (Sola Consultazione in Nuovo Prodotto, Editing Inline 👍/👎 + Commento in Dettaglio Prodotto), Spesa Ottimistica a 0ms & Snellimento Catalogo Rapido | `shopping` / fullstack | 🟢 Completato | 🟢 Completato | Novembre 2026 |
+| **WEATHER-002** | Sistemazione & Integrazione Completa Meteo Open-Meteo (Desktop & Mobile: 16gg, Storico On-Demand, Striscia Rotante Home Mobile, Viste Agenda, Impostazioni & Modale Full-Page) | `weather` / fullstack | 🟢 Completato | 🟢 Completato | Novembre 2026 |
+| **CAL-003** | Copia & Duplicazione Rapida Eventi e Task (Desktop & Mobile, con Scelta Albero Sottotask) | `calendar` / events & tasks | 🟢 Supportato | 🟢 Completato | Novembre 2026 |
+| **INFRA-001** | Migrazione Definitiva Infrastruttura: QNAP → Proxmox (Cutover Completato & Proxmox Operativo in Produzione) | `infra` / deploy | 🟢 Completato | 🟢 Completato | Novembre 2026 |
+| **TRACKERS-045** | Porting Mobile: Scheda Attori/Registi, Navigazione a Stack Cross-Media & Rating Compatti/Intestazioni Fisse (Stagioni, Episodi, Serie TV & Film) | `trackers` / mobile | 🟢 Supportato | 🟢 Completato | Novembre 2026 |
+| **TRACKERS-046** | Barra Liste Adattiva Anti-Sovrapposizione Locandina & Animazione Scorrimento Laterale Sidebar Liste/Amici (Dettaglio Serie TV & Film) | `trackers` / UI | 🟢 Supportato | 🟢 Completato | Novembre 2026 |
+| **TRACKERS-019** | Giudizio & Voto Multi-Log alle Singole Stagioni delle Serie TV (Scheda Stagione `i`, Stelle Giallo/Ambra, Range Date, Griglia Voti 2×2, Social & Commenti) | `media` / trackers | 🟢 Completato | 🟢 Completato | Novembre 2026 |
 | **BROADCAST-001** | Servizio Messaggistica Broadcast & Avvisi di Sistema (Pop-up Istantaneo Globale, Scheda Admin Riservata `Avvisi & Broadcast`, Modelli Rapidi, Heartbeat Polling 15s & Notifiche Inbox Permanenti) | `admin` / notifications | 🟢 Completato | 🟢 Completato | Novembre 2026 |
 | **ADMIN-001** | Centro di Comando Admin / Zero-pgAdmin Console (Sanatoria & Editing Dati Multi-Dominio: Shopping Anagrafiche, Categorie & Tag, Abitudini & Traguardi, Media & Trackers) | `admin` / fullstack | 🟢 Completato | 🟢 Completato | Novembre 2026 |
 | **WEATHER-001** | Integrazione Previsioni Meteo MET Norway (Proxy Backend, Finestra Dinamica HomePage, Adesivi Desktop & Mobile con Long Press 600ms, Impostazioni GPS/Città) | `weather` / fullstack | 🟢 Completato | 🟢 Completato | Novembre 2026 |
+| **TRACKERS-025** | Ricerca & Filtro Multi-Persona (`AND`/`OR`) per Attori / Registi / Creatori (Film & Serie TV, Web & Mobile), Scheda Persona Cliccabile & Modali Dettaglio Film | `trackers` / fullstack | 🟢 Completato | 🟢 Completato | Novembre 2026 |
 | **SHOPPING-021** | Risoluzione Errore 500 Unione Prodotti Spesa (Admin Shopping) & Gestione `passive_deletes` Foreign Key | `shopping` / admin | 🟢 Completato | 🟢 Supportato | Novembre 2026 |
 | **TRACKERS-044** | Standardizzazione Suite Liste Personali Mobile (`shared/lists/`) Filtrata per Tracker & Slider Header a Doppio Livello | `trackers` / mobile | 🟢 Supportato | 🟢 Completato | Novembre 2026 |
 | **TRACKERS-043** | Rifinitura Scheda Dettaglio Film Mobile, Catalogo & Standardizzazione Recensioni (Film, Serie TV & Episodi) | `trackers` / mobile | 🟢 Supportato | 🟢 Completato | Novembre 2026 |
@@ -104,7 +116,60 @@ Questo file contiene lo storico completo e strutturato di tutte le funzionalità
 
 ---
 
-## 🛡️ 0. Amministrazione, Sanatoria & Data Management
+## 🛡️ 0. Amministrazione, Infrastruttura, Sanatoria & Data Management
+
+### [FEAT-013] Archivio Notifiche & Avvisi Permanente — Desktop & Mobile (🟢 Completato)
+
+#### 📋 Descrizione & Funzionalità Implementate
+Creata la sezione dedicata allo storico permanente delle notifiche (`/notifications`), integrata nell'Hub Archivio sotto la nuova sezione **Sistema & Notifiche**:
+- **Helper Condiviso (`notificationUtils.ts`) & Cache 0ms (`useNotifications.ts`)**: centralizzate classificazione (`shopping`, `media`, `system`), formattazione messaggi (inclusi commenti/menzioni alle stagioni `SEASON_REVIEW_*`), badge colorati e deep-link di navigazione; aggiunti aggiornamenti ottimistici a 0ms su lettura.
+- **Tabella Unificata (`NotificationsPage.tsx`, `useNotificationArchiveData.ts`)**: elenco unificato in RAM (escludendo `EPHEMERAL_MSG`) con statistiche nell'header (*Totali*, *Non lette*, *Spesa*, *Media*, *Sistema*), colonna tipologia con badge colorati, colonna data nel formato `DD/MM/YYYY HH:mm`, ordinamento per colonne e apertura diretta al tap.
+- **Ricerca & Filtri (`NotificationFilterModal.tsx`)**: ricerca testuale su messaggio/autore/contesto, filtro per tipologia, stato di lettura (`Tutte`, `Non lette`, `Lette`) e intervallo date (`ArchiveFilterDateRange`) allineato a `EventFilterModal`.
+
+### [ARCHIVE-001] Riallineamento Hub Archivio, Scrollbar Reattive & Catalogo Prodotti in `Spesa & Liste` (🟢 Completato)
+
+#### 📋 Descrizione & Funzionalità Implementate
+- **Unica Sorgente di Verità (`archiveModules.ts`)**: unificati ordine, titoli, descrizioni, icone e accent color tra Hub Desktop (`ArchivePage.tsx`), Hub Mobile (`MobileArchiveHubSection.tsx`), header mobile (`useMobileHeaderLogic.ts`) e sidebar Desktop (`AppShellLayout.tsx`, risolvendo l'evidenziazione su `/shopping-archive`), con raggruppamento in 4 sezioni (*Agenda & Attività*, *Organizzazione & Bilanci*, *Spesa & Acquisti*, *Sistema & Notifiche*) e griglia Desktop dinamica senza limite fisso a 10 slot.
+- **Scrollbar a Scomparsa Reattiva**: aggiornati Hub, `ArchiveTableContainer` e griglie di Countdown, Abitudini e Note con `modal-scrollbar` + `useFadeScrollbar` (visibile solo al passaggio del mouse o durante lo scorrimento).
+- **Vista Catalogo `Prodotti` in `Spesa & Liste` (`/shopping-archive`)**: aggiunta la vista `Prodotti` con selettore dedicato `ShoppingArchiveViewSelect` (modale centrato `SelectModalDialog` su Mobile e `PortalDropdownMenu` su Desktop), creazione nuovo prodotto (`POST /products`), filtri per marche/acquisti e scheda dettaglio (`ShoppingCatalogProductDetailModal`) con storico prezzi, gestione marchi/giudizi e rinomina Admin.
+- **Fix Mobile Header Anno**: stabilizzata l'altezza minima (`min-h-9`) di `MobileAgendaPeriodHeader.tsx` nella vista Anno per evitare sbalzi verticali cambiando anno.
+
+### [WEATHER-002] Sistemazione & Integrazione Completa Meteo Open-Meteo — Desktop & Mobile (🟢 Completato)
+
+#### 📋 Descrizione & Funzionalità Implementate
+Revisione completa del motore meteo e integrazione simmetrica su tutta l'interfaccia **Desktop** e **Mobile**:
+- **Backend & Layer Dati Open-Meteo**: Previsioni fino a **16 giorni** (`timezone=auto`), ultimi 7 giorni in RAM, archivio storico mensile on-demand (`/weather/history`, cache 12h), geocoding città e reverse geocoding GPS (`/weather/reverse`), con vento/raffiche/direzione (`km/h`), temperatura percepita, probabilità e accumulo pioggia, alba/tramonto, UV e medie giornaliere di pressione (`hPa`), nuvolosità e umidità.
+- **HomePage Desktop & Home Mobile**:
+  - Su Desktop, finestra atmosferica interattiva (`WeatherAtmosphereCard`) scomposta in moduli snelli con paesaggi vettoriali 100% opachi, precipitazioni naturali e calcolo astronomico reale della fase lunare (`moonPhaseUtils.ts`).
+  - Su Mobile, nuova **striscia superiore rotante Citazione ↔ Meteo** (`MobileRotatingBriefingStrip` + `useMobileRotatingBriefing`) con ciclo automatico a 8s, swipe orizzontale col dito, espansione inline delle citazioni lunghe con pausa intelligente della rotazione e apertura diretta del modale meteo al tocco.
+- **Viste Agenda Desktop & Mobile (`/giorno`, `/settimana`, `/mese`)**: Badge meteo dedicati nella testata *Eventi* di `/giorno` (compatta ed espansa), nelle intestazioni giornaliere di `/settimana` e nelle celle + popup di anteprima giorno di `/mese`, con deduplicazione mensile TanStack Query per lo storico.
+- **Modale Dettagli Meteo (`WeatherDetailModal`) & Impostazioni Mobile**:
+  - Intestazione pulita con il solo nome della località; apertura **a tutta pagina (`100dvh`)** su smartphone con supporto al tasto Indietro Android; i 6 riquadri illustrati (`WeatherMetricsSidebar`) scorrono fluidamente nel corpo mobile posizionandosi dopo la striscia oraria su *Oggi* e **sopra la griglia oraria compatta `6×4`** nei giorni passati o futuri.
+  - Nuova scheda `MobileWeatherSettingsCard` in *Impostazioni → Sincronizzazione & Servizi* con toggle rapido, rilevamento GPS automatico e ricerca località in modale centrato (`MobileWeatherCityModal`).
+
+### [CAL-003] Copia & Duplicazione Rapida Eventi e Task — Desktop & Mobile (🟢 Completato)
+
+#### 📋 Descrizione & Funzionalità Implementate
+Introduzione del pulsante **Copia** (`CopyIcon` a due rettangoli sovrapposti) nell'intestazione dei modali di dettaglio di Eventi e Task sia su **Mobile** sia su **Desktop** (`MobileEventDetailModal`, `EventDetailModal`, `MobileTaskDetailModal`, `TaskDetailModal`):
+- **Copia Eventi**: apre il modale di creazione *Nuovo Evento* (`MobileEventNewModal` / `EventNewModal`) copiando titolo, descrizione, categoria e luogo, e lasciando vuoti **Data Inizio** (obbligatoria prima del salvataggio), Data Fine, orari e ricorrenza.
+- **Copia Task & Albero Sottotask**:
+  - La copia nasce sempre come **task principale indipendente** (livello 1, senza scadenza e senza copiare eventuali livelli superiori) tramite `taskDuplicateUtils.ts` (`SubtaskTemplateNode`, `extractDescendantSubtree`, `countSubtreeNodes`, `getSubtreeMaxDepth`).
+  - Se la task possiede sottotask figlie sotto di sé, si apre il modale centrato condiviso `TaskCopySubtasksModal` per scegliere tra *"Sì, copia con sottotask"* e *"No, copia solo questa task"*.
+  - Nel modale di creazione (`MobileTaskNewModal` / `TaskNewModal`), il banner condiviso `TaskPendingSubtasksBanner` indica quante sottotask verranno clonate al salvataggio (con opzione *"Escludi"*), il selettore del padre rispetta automaticamente il limite `maxDepth` considerando i livelli figli inclusi, e al salvataggio `cloneSubtasksTree` ricrea ricorsivamente l'intero albero sottostante (tutte le figlie come *da fare* e senza scadenza).
+
+### [INFRA-001] Migrazione Definitiva da NAS QNAP a Proxmox (🟢 Completato)
+
+#### 📋 Descrizione & Stato Operativo
+Migrazione definitiva dell'infrastruttura di produzione di **Vita** dal NAS QNAP al server **Proxmox**, ora pienamente operativo in produzione:
+- **Architettura Proxmox Operativa**:
+  - Host Proxmox: `192.168.11.19`
+  - LXC App Python / Docker: `192.168.11.14:8181`
+  - LXC PostgreSQL: `192.168.11.15:5432`
+  - LXC Tailscale Gateway: `192.168.11.16` (subnet routing `192.168.11.0/24` + port-forwarding porte `8181`/`8000` verso `192.168.11.14` per il micro-tunnel `tsnet` dell'APK Android).
+- **Cutover & Continuità**:
+  - Switch hostname Tailscale completato (`smartagenda` puntato al nodo Proxmox), sincronizzazione finale database e `uploads/` eseguita, vecchi container QNAP dismessi dal servizio attivo.
+  - Sistema di Backup Automatico 3-2-1 (`auto_backup.sh` su cron Proxmox + replica sul NAS QNAP con retention max 2 copie) attivo.
+  - Riferimento operativo permanente in [`docs/MIGRAZIONE_PROXMOX.md`](file:///c:/Users/Fabrizio/Desktop/app/smart/v14/docs/MIGRAZIONE_PROXMOX.md).
 
 ### [BROADCAST-001] Servizio Messaggistica Broadcast & Avvisi di Sistema (🟢 Completato)
 
@@ -189,6 +254,66 @@ Integrazione completa del servizio di previsioni meteorologiche aperto e gratuit
 ---
 
 ## 📺 1. Media & Trackers (Serie TV & Film)
+
+### [TRACKERS-045] Porting Mobile: Scheda Attori/Registi, Navigazione a Stack Cross-Media & Rating Compatti (Stagioni, Episodi, Serie TV & Film) (🟢 Completato)
+
+#### 📋 Descrizione & Obiettivo
+Completato e rifinito il porting su vista Mobile delle funzionalità di esplorazione **attori/registi** e della gestione **voti/recensioni** su Episodi, Stagioni, Serie TV e Film (mantenendo intatto il layout Desktop):
+- **Scheda Attore/Regista Mobile (`MobilePersonDetailModal.tsx`, `MobilePersonCreditsSection.tsx`, `usePersonDetailData.ts`)**:
+  - Header condiviso con Desktop (`PersonDetailHeader.tsx`) e tendina biografia (`PersonBioCurtainOverlay.tsx`) richiudibile tramite la sola freccia verso l'alto (`iconOnlyReduce`) con rispetto safe-area top.
+  - Barra di ricerca a tutta ampiezza (rimosse le pillole superiori di filtro) e sezioni **"Film"** e **"Serie TV"** in stile catalogo mobile: pillola centrale grigia cliccabile per comprimere/espandere con animazione stile riduzione finestra e griglia locandine a 3 colonne con bordi colorati per stato di tracciamento.
+  - Cast cliccabile esteso anche alla vista cinema mobile (`MobileCinemaOverviewView.tsx`).
+- **Navigazione Cross-Media a Stack (`TrackerModalStackContext.tsx` & `TrackerModalStackHost.tsx`)**:
+  - Cronologia a pila per i modali Trackers (Serie TV ↔ Attore/Regista ↔ Film ↔ Correlati/Saghe): cliccando `X` o premendo il tasto Indietro Android si risale passo dopo passo al modale precedente (preservando ricerca, sezioni chiuse e posizione di scroll della scheda persona) invece di chiudere tutto e tornare alla home.
+  - Host unico a `z-[10038]` con `React.lazy` protetto da `!IS_MOBILE_BUILD` per tree-shaking pulito dell'APK Android.
+- **Barra Voti Mobile su Riga Singola & Dettaglio Stagioni (`MobileTrackerRatingsBar.tsx`, `MobileEpisodeMainOverview.tsx`, `MobileSeasonMainOverview.tsx`)**:
+  - Barra voti compatta e bilanciata su riga singola posizionata in alto nel dettaglio Episodio/Stagione e nelle schede **Recensioni & Citazioni** di Serie TV (rimossa la finestrella *"Voti per Stagione"* su Mobile) e Film: `TMDB` numerico arrotondato al 1° decimale (`1..9`) + stella a sinistra, voto personale a 5 stelle al centro, `Amici` numerico arrotondato a `0.5` + stella a destra (`formatRatingOneDecimal`, `formatRatingHalfStep`).
+  - **Dettaglio Stagione Mobile**: 4 colonne bilanciate su riga singola (`TMDB | Media Ep. | Stagione | Amici`) con 5 stelle gialle per media episodi e 5 stelle ambra per voto stagione (o `Aggiungilo!` in nero bold), titolo stagione lasciato esclusivamente sul banner superiore (rimosso il duplicato blu nella barra metadati), locandina della stagione (`w780`, fallback backdrop serie) ingrandita e inquadrata nel banner superiore (`object-cover object-[50%_30%]`) e **Sinossi Stagione** a tutta larghezza.
+- **Intestazioni Fisse Liste Recensioni & Voti Amici su Mobile**:
+  - Bloccata in cima la barra di intestazione (titolo + *"Nuova recensione"* / titolo amici) con scorrimento indipendente delle sole card sottostanti in `MobileEpisodeMyReviewsList.tsx`, `MobileSeriesMyReviewsList.tsx`, `MobileMovieMyReviewsList.tsx`, `FriendsReviewsListView.tsx` e `FriendDetailReviewsView.tsx` (tramite prop `mobileFixedHeader`, lasciando Desktop invariato).
+
+### [TRACKERS-046] Barra Liste Adattiva Anti-Sovrapposizione Locandina & Sidebar Laterali Scorrevoli (Serie TV & Film) (🟢 Completato)
+
+#### 📋 Descrizione & Obiettivo
+Risolta la collisione delle pillole liste con la locandina nei modali dettaglio desktop di Serie TV e Film e migliorata la transizione visiva delle sidebar interne Liste e Amici:
+- **Misurazione Reale Rispetto alla Locandina (`useListsBarOverflow.ts` & `TrackerDetailListsBar.tsx`)**:
+  - Nuovo custom hook dedicato (`useListsBarOverflow`) che misura in `useLayoutEffect` (zero sfarfallii) la distanza esatta in pixel tra il margine destro della barra liste e il bordo destro reale della locandina (`posterRef`), lasciando `20px` di margine di sicurezza.
+  - Aggiornamento live automatico tramite `ResizeObserver`, `window.resize`, cambio liste (`listsSignature`) e caricamento font; quando le pillole superano lo spazio disponibile vengono raccolte automaticamente nel pulsante circolare compatto a tre lineette (`≡`) che apre la sidebar delle liste.
+  - Collegamento `posterRef` e `headerRef` esteso in modo simmetrico a `SeriesDetailModal`/`SeriesDetailHeader`/`SeriesDetailSidebar` e `MovieDetailModal`/`MovieDetailHeader`/`MovieDetailSidebar`, con chiusura mutuamente esclusiva tra pannello Liste e pannello Amici.
+- **Animazione Scorrimento Laterale Sidebar Liste & Amici (`TrackerDetailSideDrawer.tsx`)**:
+  - Estratto contenitore DRY condiviso `TrackerDetailSideDrawer` utilizzato sia da `TrackerDetailListsDrawer` sia da `TrackerDetailFriendsDrawer`.
+  - Transizione fluida da destra verso sinistra in apertura (`translate-x-[102%]` → `translate-x-0` in `300ms`, curva `cubic-bezier(0.16, 1, 0.3, 1)`), rientro laterale in chiusura e backdrop leggero cliccabile per chiudere rapidamente il pannello.
+
+### [TRACKERS-019] Giudizio & Voto alle singole Stagioni delle Serie TV (Valutazione per Stagione) (🟢 Completato)
+
+#### 📋 Descrizione & Obiettivo
+Implementato il sistema completo multi-log di valutazione (5 stelle con mezze stelle, archiviate in DB 1–10) e recensioni dedicate per le singole stagioni delle Serie TV su Desktop e Mobile, mantenendole escluse dalle statistiche globali `TVFullStats`:
+- **Database & Migrazioni Alembic (`tv_user_season_logs`)**:
+  - Nuovo modello `UserSeasonLog` in `backend/domains/trackers/models.py` con `rating`, `notes`, `review_visibility`, `watched_at` e indice composto `(user_id, series_tmdb_id, season_number)`.
+  - Migrazioni Alembic idempotenti `k7e8f9a0b1c2` (creazione tabella e indici) e `l8f9a0b1c2d3` (rimozione definitiva della colonna `viewing_platform_id`), applicate e verificate sia su database di test (`test-smart`) che su produzione NAS (`family-smart`).
+- **Backend API, Metadati Stagione & Notifiche Social**:
+  - Nuovo servizio `season_service.py` ed endpoint `POST /series/{tmdb_id}/seasons/{season_number}/logs`, `PATCH /series/season-logs/{log_id}`, `DELETE /series/season-logs/{log_id}` e `GET /series/{tmdb_id}/seasons/{season_number}/friends-reviews`.
+  - Arricchimento di `/trackers/series/{tmdb_id}/extras` con `overview` (con fallback IT → EN), `air_date`, `episode_count` e `vote_average` per ciascuna stagione, e caricamento bulk `season_logs` in `TVSeriesResponse`.
+  - Supporto completo a commenti e menzioni `@username` (`SEASON_REVIEW_COMMENT`, `SEASON_REVIEW_COMMENT_THREAD`, `SEASON_REVIEW_MENTION`) con deep-link diretto `?open_season=` dall'Inbox notifiche.
+- **Interfaccia Desktop & Mobile, UX & Qualità Codice**:
+  - **Header Stagione Intelligente**: solo stelle (senza etichetta `"EP."`) differenziate per colore (**giallo** per media episodi in fallback, **ambra** per voto diretto alla stagione) + pulsantino **`i`** per aprire il dettaglio stagione.
+  - **Scheda Dettaglio Stagione (`SeasonMainOverview` / `MobileSeasonMainOverview`)**: intestazione a riga singola con nome stagione, episodi visti (`watched/total`), range date prima–ultima puntata (data singola se coincidono) e pallino vista a destra; locandina a sinistra, sola sinossi scorrevole a destra e griglia voti **2×2** ancorata in basso (**TMDB | Amici** sopra, **Media Episodi | Il Tuo Voto** sotto).
+  - **Form Snello & Optimistic UI 0ms**: riutilizzo di `SeriesReviewForm` / `MobileSeriesReviewForm` senza piattaforma (voto, testo, data, visibilità), aggiornamenti istantanei a 0ms (`useSeasonLogMutations.ts`) e sezione riepilogativa **"Voti per Stagione"** (`SeasonRatingsSummarySection.tsx`) nella scheda Recensioni della serie.
+  - Refactor modulare con estrazione di `seasonDetailUtils.ts` per mantenere `useSeasonDetailLogic.ts` snello e conforme allo standard TypeScript strict (zero `any`).
+
+### [TRACKERS-025] Ricerca & Filtro Multi-Persona (`AND`/`OR`) per Attori / Registi / Creatori (Film & Serie TV, Web & Mobile), Scheda Persona Cliccabile & Modali Dettaglio Film (🟢 Completato)
+
+#### 📋 Descrizione & Obiettivo
+Implementato il motore completo di ricerca e filtro per persone su Film e Serie TV (Web Desktop & Mobile), unito alla navigazione interattiva della filmografia dai modali di dettaglio e al perfezionamento dei modali Film:
+- **Backend & Database (`credits_summary`, `people_service.py`)**:
+  - Aggiunta la colonna JSON `credits_summary` su Film e Serie TV con migrazione Alembic idempotente (`j6d7e8f9a0b1`), allineata sia su ambiente di test sia sul DB di produzione (`alembic-prod.bat upgrade head`).
+  - Nuovi endpoint `GET /trackers/people/search`, `GET /trackers/people/{person_id}` (con fallback biografia IT → EN e crediti Movie/TV deduplicati), estensione `with_people` / `people_mode` (`AND`/`OR`) su ricerca e discover Film/Serie TV, ed endpoint batch `POST /trackers/movies/sync-credits` / `POST /trackers/series/sync-credits`.
+- **Autocompletamento Live Multi-Persona (`PeopleAutocompleteInput.tsx`)**:
+  - Campo dedicato `Attori / Registi` (e creatori nelle Serie TV) nei filtri Desktop e Mobile con suggerimenti live da TMDB mentre si digita, gestione multi-nome separata da virgole, chip rimovibili e selettore **`Tutti (AND)`** / **`Almeno uno (OR)`**, integrato sia con il filtro locale in RAM sia con la ricerca globale TMDB e il backfill silenzioso in background.
+- **Scheda Persona Cliccabile (`PersonDetailModal.tsx`, `PersonBioCurtainOverlay.tsx`, `PersonCreditCardGrid.tsx`)**:
+  - Cast, registi e creatori cliccabili nelle schede dettaglio Desktop & Mobile (`MovieOverviewTab`, `SeriesOverviewTab`, `MobileMovieOverviewTab`, `MobileSeriesOverviewTab`) con apertura della scheda persona dotata di espansione biografia a tendina direttamente dalla testata (singolo pulsante `Riduci` in basso a destra), filtro rapido per `Tutti`/`Film`/`Serie TV` + ricerca interna, scrollbar a scomparsa automatica (`useFadeScrollbar`), badge sui titoli già in libreria e idratazione automatica completa (`useMovieDetail`) quando si apre un film non tracciato o cross-media.
+- **Rifiniture Modali Dettaglio Film & Tooltip**:
+  - Tab **`Orari`** su Desktop e Mobile (`MovieDetailSidebar`, `MobileMovieDetailModal`) mostrata solo quando il film ha spettacoli effettivi nella provincia selezionata (`useMovieCinemaAvailability`), menu laterale Desktop centrato verticalmente con proporzioni compatte per 4 tasti, tooltip piattaforme streaming in Portal (`DetailHeaderPlatforms.tsx`) e cerchio blu hover cast senza tagli anche sul primo attore a sinistra.
 
 ### [TRACKERS-035] Estensione Sincronizzazione Orari Cinema & Sale su Webpage Desktop (`MoviePage` & `MovieDetailModal`) (🟢 Completato)
 
@@ -869,6 +994,56 @@ Rilascio dell'intera infrastruttura del modulo Serie TV all'interno del macro-do
 ---
 
 ## 🛒 2. Spesa, Prodotti, Marchi & Amministrazione
+
+### [SHOPPING-023] Restyling Mobile Shopping: Area Marca Unificata, Dettaglio a 2 Tab & Pulizia Catalogo Rapido (🟢 Completato)
+
+#### 📋 Descrizione & Implementazione
+Ottimizzazione dell'esperienza d'uso su smartphone per la gestione dei marchi, dei dettagli prodotto e dell'aggiunta rapida da catalogo:
+- **Area Marca Unificata & Modale "Altri Marchi"** (`MobileShoppingBrandSection.tsx`, `MobileOtherTriedBrandsModal.tsx`, `MobileShoppingItemForm.tsx`, `BrandPreferenceRatingControl.tsx`):
+  - Raggruppati in un unico riquadro il campo **Marca** e il controllo **Marchio scelto** subito sotto, nascondendo il prezzo su mobile (`showPrice={false}`) per lasciare più spazio a nome e voto (`👍`/`👎` + nota).
+  - Inserito sulla stessa riga di *Marchio scelto* (o accanto a *Marca* se non ancora scelto) il pulsante **Altri marchi**, che apre un modale centrato (`createPortal` + `useBackHandler`) con gli altri marchi già provati, voti e commenti.
+- **Dettaglio Prodotto Mobile a 2 Tab & Rimozione Ombra** (`MobileShoppingItemInsightsTabs.tsx`, `MobileShoppingItemDetailModal.tsx`, `MobilePurchasedItemDetailModal.tsx`, `ShoppingItemPriceHistoryPanel.tsx`):
+  - Rimossa l'ombra superflua (`embedded={true}`) e raccolti in un unico pannello a due tab **Storico & Analisi Prezzi** e **Marche**, con modifica inline al tocco di voto (`👍`/`👎`) e commento a 0ms.
+  - Estratti l'hook condiviso `useItemRelatedBrands.ts` e il componente `ShoppingItemBrandsList.tsx`, riducendo `ShoppingItemDetailBrandsPanel.tsx` sotto le 80 righe.
+- **Catalogo Rapido & Righe Spesa Mobile** (`MobileShoppingQuickCatalog.tsx`, `MobileQuickCatalogBrandModal.tsx`, `MobileShoppingItemRows.tsx`):
+  - Portato il modale di scelta marca multi-brand in `createPortal(..., document.body)` con backdrop a tutto schermo e supporto al tasto Indietro Android.
+  - Rimossa l'unità di misura ripetitiva (`pz`) dal catalogo rapido mobile e reso dinamico il separatore `•` (sia nel catalogo rapido sia nelle righe lista) affinché nessuna riga inizi mai con `•` in assenza del primo elemento.
+
+---
+
+### [SHOPPING-022] Inserimento Rapido Prezzi Multi-Scontrino a Cascata & Scrollbar a Scomparsa nelle Liste Aperte (🟢 Completato)
+
+#### 📋 Descrizione & Implementazione
+Ottimizzazione del flusso di caricamento multi-scontrino nell'inserimento rapido prezzi e uniformazione estetica delle barre di scorrimento nelle liste della spesa su Desktop, Mobile e Archivio:
+- **Propagazione a Cascata di Data e Negozio ("da lì in giù")**:
+  - All'apertura di `ShoppingQuickPriceModal` (Desktop) e `MobileShoppingQuickPriceModal` (Mobile), tutte le righe/schede partono con la data odierna e nessun negozio selezionato.
+  - Modificando **Data** (`purchaseDate`) o **Negozio** (`supplierId`) su una riga/scheda, il nuovo valore viene applicato automaticamente a cascata da quella voce inclusa fino a fine elenco, lasciando intatte le voci precedenti (ideale per caricare più scontrini arretrati in un'unica sessione).
+  - Il pulsante **"Aggiungi riga"** / **"Aggiungi un altro prodotto al lotto"** (e il tasto `Tab` sull'ultimo campo Desktop) eredita automaticamente Data e Negozio dell'ultima voce presente; eliminando l'unica riga rimasta vengono preservati Data e Negozio correnti.
+- **Unificazione Architetturale DRY (`quickPriceUtils.ts`)**:
+  - Estratte in `frontend/src/utils/quickPriceUtils.ts` le interfacce condivise (`QuickPriceEntry`, `CreateQuickPriceEntryOptions`) e le logiche di ricalcolo prezzi/quantità, propagazione a cascata e gestione righe tra `useQuickPriceModalLogic.ts` e `useMobileQuickPriceLogic.ts`, con validazione universale di virgola e punto (`decimalUtils.ts`).
+- **Scrollbar a Scomparsa nelle Liste Spesa Aperte (`modal-scrollbar` + `useFadeScrollbar`)**:
+  - Sostituita la vecchia scrollbar scura sempre visibile (`custom-scrollbar`) con la scrollbar sottile a scomparsa nello stile dell'app (invisibile a riposo, visibile solo durante lo scorrimento o al passaggio del mouse) in tutte le viste lista aperta, catalogo rapido mobile, selettori lista e tabella prezzi rapidi (`ShoppingItemsList.tsx`, `MobileShoppingActiveListCard.tsx`, `ArchiveListDetailItemsSection.tsx`, `MobileShoppingQuickCatalog.tsx`, `MobileShoppingListPickerModal.tsx`, `MobileShoppingGroupListsSection.tsx`, `ShoppingMoveOrCopyModal.tsx`, `ShoppingListSelect.tsx`, `QuickPriceTable.tsx`).
+
+---
+
+### [SHOPPING-005 / SHOPPING-020] Finestre Marchi & Giudizi, Voti Prodotti ("Lista fatta da papà"), Spesa Ottimistica a 0ms & Snellimento UI (🟢 Completato)
+
+#### 📋 Descrizione & Implementazione
+Unificazione e completamento dei flussi di consultazione e valutazione dei marchi spesa su Desktop e Mobile (`SHOPPING-005` + `SHOPPING-020`):
+- **Finestra Laterale `Note e Marchi Provati` all'Aggiunta/Modifica Prodotto** (`ShoppingItemBrandSidePanel.tsx`, `ShoppingItemModal.tsx`, `MobileShoppingBrandSection.tsx`):
+  - Separata dal form principale come seconda finestra affiancata su Desktop (stile albero task) per mantenere il modale compatto; rimossi i giudizi ridondanti dal menu a tendina del campo `Marchio / Brand`.
+  - In modalità *Nuovo Prodotto* (`readOnly={true}`), mostra unicamente i marchi e i giudizi già dati in passato senza chiedere un voto preventivo; selezionando un brand, questo viene portato in cima in sola lettura.
+- **Finestra `Marchi & Giudizi` nel Modale Dettaglio Prodotto** (`ShoppingItemDetailBrandsPanel.tsx`, `useBrandRatingMutation.ts`):
+  - Compattata la finestra `Storico & Analisi Prezzi` per affiancare la finestra dedicata a tutti i brand correlati al prodotto selezionato (da catalogo e storico lotti), con evidenziazione a bordo blu per il marchio scelto.
+  - Cliccando su qualsiasi brand si apre l'editor inline per impostare/modificare i pollici (`👍`/`👎`) e il commento con aggiornamento ottimistico a 0ms in RAM.
+- **Spesa Ottimistica a 0ms (Aggiunta & Spunta Comprato)**:
+  - Chiusura istantanea dei modali e aggiornamento immediato a 0ms in cache TanStack Query sia per l'aggiunta articoli (`shoppingOptimisticUtils.ts`, `useShoppingItemMutations.ts`) sia per la spunta "comprato" (`useShoppingSupplierMutations.ts`, `useShoppingItemsPurchase.ts`), unificata in una singola chiamata server con rollback automatico e `TrackerToast`.
+- **Snellimento Catalogo Rapido & Pulizia Modali**:
+  - Rimossa la barra di aggiunta rapida interna alla lista aperta su Webpage (`ShoppingItemsColumn.tsx`).
+  - Nel Catalogo Rapido A-Z (`ShoppingQuickCatalogTable.tsx`, `ShoppingQuickCatalogBrandSubRow.tsx`), rimossa la colonna `"Unità"`, semplificate intestazioni/pulsanti (`MARCA`, badge lista sul secondo rigo, unico tasto `Fatto`) e adottata ovunque la scrollbar a scomparsa automatica `modal-scrollbar` con `useFadeScrollbar`.
+  - Rimossi divisori orfani vicino alla `"X"` nei modali gruppo/dettaglio in sola lettura e ripulite le diciture `"Opzionale"` nei modali di registrazione prezzo.
+
+---
 
 ### [SHOPPING-021] Risoluzione Errore 500 Unione Prodotti Spesa (Admin Shopping) & Gestione `passive_deletes` Foreign Key (🟢 Completato)
 

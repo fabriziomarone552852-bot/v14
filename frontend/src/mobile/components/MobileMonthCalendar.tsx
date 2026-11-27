@@ -121,6 +121,7 @@ export const MobileMonthCalendar: React.FC<MobileMonthCalendarProps> = ({
       <MobileMonthDayPopup
         isOpen={Boolean(selectedDateForPopup)}
         dateStr={selectedDateForPopup || ''}
+        isToday={selectedDateForPopup === todayStr}
         formattedDate={formattedPopupDate}
         mood={popupDayMood}
         events={popupDayEvents}

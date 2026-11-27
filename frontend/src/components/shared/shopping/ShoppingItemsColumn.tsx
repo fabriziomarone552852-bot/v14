@@ -10,7 +10,6 @@ import type {
 } from '@/types/shopping';
 
 import ShoppingItemsList from './ShoppingItemsList';
-import ShoppingQuickAddBar from './ShoppingQuickAddBar';
 import { ShoppingItemsEmptyState } from './ShoppingItemsEmptyState';
 import { ShoppingActiveListHeader } from './ShoppingActiveListHeader';
 import { ShoppingListSearchInput } from './ShoppingListSearchInput';
@@ -158,28 +157,10 @@ const ShoppingItemsColumn = forwardRef<
               onExitSelection={columnLogic.exitSelectionMode}
             />
           ) : (
-            <>
-              <ShoppingListSearchInput
-                value={columnLogic.filterQuery}
-                onChange={columnLogic.setFilterQuery}
-              />
-
-              {canCreateItem && !activeList.isCompleted && (
-                <ShoppingQuickAddBar
-                  activeListId={activeListId}
-                  unitOptions={unitOptions}
-                  quickName={columnLogic.quickName}
-                  quickQuantity={columnLogic.quickQuantity}
-                  quickUnitId={columnLogic.quickUnitId}
-                  products={products}
-                  onQuickNameChange={columnLogic.setQuickName}
-                  onQuickQuantityChange={columnLogic.setQuickQuantity}
-                  onQuickUnitChange={columnLogic.setQuickUnitId}
-                  onSubmit={columnLogic.handleQuickAdd}
-                  loading={columnLogic.quickAdding}
-                />
-              )}
-            </>
+            <ShoppingListSearchInput
+              value={columnLogic.filterQuery}
+              onChange={columnLogic.setFilterQuery}
+            />
           )}
 
           <div className="min-h-0 flex-1 overflow-hidden">

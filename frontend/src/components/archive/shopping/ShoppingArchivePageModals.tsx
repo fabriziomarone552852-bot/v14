@@ -15,11 +15,13 @@ import { ShoppingListModal } from '@/components/shared/shopping/ShoppingListModa
 import MobileShoppingGroupCreateModal from '@/mobile/components/modals/shopping/MobileShoppingGroupCreateModal';
 import MobileShoppingQuickPriceModal from '@/mobile/components/modals/shopping/MobileShoppingQuickPriceModal';
 import { MobileShoppingListModal } from '@/mobile/components/modals/shopping/MobileShoppingListModal';
+import { ShoppingCatalogProductCreateModal } from '@/components/archive/shopping/products/ShoppingCatalogProductCreateModal';
 
 interface ShoppingArchivePageModalsProps {
   isMobile: boolean;
   groupCreateModal: UseModalResult<null>;
   listCreateModal: UseModalResult<null>;
+  productCreateModal: UseModalResult<null>;
   quickPriceModal: UseModalResult<null>;
   groups: ShoppingGroupSummary[];
   lists?: ShoppingListSummary[];
@@ -37,6 +39,7 @@ export const ShoppingArchivePageModals: React.FC<ShoppingArchivePageModalsProps>
   isMobile,
   groupCreateModal,
   listCreateModal,
+  productCreateModal,
   quickPriceModal,
   groups,
   lists,
@@ -98,6 +101,13 @@ export const ShoppingArchivePageModals: React.FC<ShoppingArchivePageModalsProps>
           />
         )
       )}
+
+      {/* Modal Creazione Prodotto Catalogo */}
+      <ShoppingCatalogProductCreateModal
+        isOpen={productCreateModal.isOpen}
+        isMobile={isMobile}
+        onClose={productCreateModal.close}
+      />
 
       {/* Modal Aggiunta Rapida Prezzi */}
       {quickPriceModal.isOpen && (

@@ -1,6 +1,7 @@
 // src/components/shared/layout/ArchiveTableContainer.tsx
 import React from 'react';
 import { Pagination } from '@/components/shared/utils/Pagination';
+import { useFadeScrollbar } from '@/hooks/ui/useFadeScrollbar';
 
 interface ArchiveTableContainerProps {
   // Intestazione Tabella
@@ -55,6 +56,7 @@ export const ArchiveTableContainer: React.FC<ArchiveTableContainerProps> = ({
   className = '',
   bodyRef,
 }) => {
+  const { handleScroll, modalScrollbarClass } = useFadeScrollbar();
   const basePanelClass =
     'rounded-2xl border border-slate-200/90 bg-white shadow-xs flex-1 min-h-0 flex flex-col justify-between overflow-hidden relative z-10';
 
@@ -65,7 +67,11 @@ export const ArchiveTableContainer: React.FC<ArchiveTableContainerProps> = ({
         {header}
 
         {/* Corpo Scrollabile / Adattivo */}
-        <div ref={bodyRef} className="flex-1 min-h-0 overflow-y-auto custom-scrollbar">
+        <div
+          ref={bodyRef}
+          onScroll={handleScroll}
+          className={`flex-1 min-h-0 overflow-y-auto ${modalScrollbarClass}`}
+        >
           {isError ? (
             <div className="flex flex-col items-center justify-center py-20 text-slate-400">
               <div className="text-3xl mb-3">⚠️</div>

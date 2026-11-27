@@ -1,16 +1,22 @@
-import React, { useState, useMemo, useEffect, useRef } from 'react';
+import React, { useState, useMemo, useRef, useCallback } from 'react';
 import {
   useMyMovies,
+  useMovieDetail,
   useMovieExtras,
   useFriendsMovieReviews,
   useMovieProviders,
   type MovieProvidersResponse,
 } from '@/hooks/queries/useMovieQueries';
+import { useMovieCinemaAvailability } from '@/hooks/trackers/useMovieCinemaAvailability';
 import { useMediaLists } from '@/hooks/queries/useTrackersQueries';
 import { useMovieMutations } from '@/hooks/mutations/useMovieMutations';
 import { useConfirm } from '@/context/ConfirmContext';
 import { resolveImageUrl } from '@/utils/imageUtils';
 import { getMediaBorderClass } from '@/utils/mediaStatusTheme';
+import {
+  hasCompleteMovieDetailMetadata,
+  resolveMovieDetailMetadata,
+} from './movieDetailMetadataUtils';
 import type {
   Movie,
   MovieDetailTarget,
@@ -37,7 +43,19 @@ export const useMovieDetailModalLogic = ({
   onToggleTrack,
 }: UseMovieDetailModalLogicProps) => {
   const { confirm } = useConfirm();
-  const [activeTab, setActiveTab] = useState<MovieDetailTabType>(initialTab);
+  const tmdbId = extractMovieTmdbId(movie);
+  const movieKey = `${isOpen ? 'open' : 'closed'}-${tmdbId ?? 0}-${initialTab}`;
+  const [tabSelection, setTabSelection] = useState<{
+    key: string;
+    tab: MovieDetailTabType;
+  }>({ key: movieKey, tab: initialTab });
+  const setActiveTab = useCallback(
+    (nextTab: MovieDetailTabType) => {
+      setTabSelection({ key: movieKey, tab: nextTab });
+    },
+    [movieKey]
+  );
+
   const [showFriendsPanel, setShowFriendsPanel] = useState(false);
   const [showListsPanel, setShowListsPanel] = useState(false);
   const [isListManagerOpen, setIsListManagerOpen] = useState(false);
@@ -50,32 +68,20 @@ export const useMovieDetailModalLogic = ({
   const longPressTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isLongPressRef = useRef(false);
 
-  useEffect(() => {
-    if (isOpen) {
-      setActiveTab(initialTab);
-    }
-  }, [isOpen, initialTab]);
-
-  const tmdbId = extractMovieTmdbId(movie);
-
   const { data: myMovies } = useMyMovies();
   const userMovie: Movie | undefined = useMemo(() => {
     if (!tmdbId || !myMovies) return undefined;
     return myMovies.find((m) => m.tmdb_id === tmdbId);
   }, [myMovies, tmdbId]);
 
-  const { data: extras, isLoading: isExtrasLoading } = useMovieExtras(tmdbId, isOpen);
+  const hasCompleteMetadataInProp = hasCompleteMovieDetailMetadata(movie);
 
-  // Fallback se la scheda attiva è 'saga' ma il film non ha una collezione/saga
-  useEffect(() => {
-    if (
-      activeTab === 'saga' &&
-      extras &&
-      (!extras.collection?.parts || extras.collection.parts.length === 0)
-    ) {
-      setActiveTab('overview');
-    }
-  }, [activeTab, extras]);
+  const { data: movieDetail, isLoading: isMovieDetailLoading } = useMovieDetail(
+    tmdbId,
+    isOpen && Boolean(tmdbId) && !userMovie && !hasCompleteMetadataInProp
+  );
+
+  const { data: extras, isLoading: isExtrasLoading } = useMovieExtras(tmdbId, isOpen);
   const { data: friendsReviews = [], isLoading: isFriendsLoading } = useFriendsMovieReviews(
     tmdbId,
     isOpen
@@ -122,40 +128,49 @@ export const useMovieDetailModalLogic = ({
     return getMediaBorderClass(status);
   };
 
-  // Titolo, Locandina, Backdrop
-  const title = ('title' in movie && movie.title) || userMovie?.title || 'Film';
-  const originalTitle =
-    ('original_title' in movie && movie.original_title) || userMovie?.original_title || '';
-  const overview = ('overview' in movie && movie.overview) || userMovie?.overview || '';
-  const runtime = ('runtime' in movie && movie.runtime) || userMovie?.runtime || null;
-  const releaseDate =
-    ('release_date' in movie && movie.release_date) ||
-    ('italy_release_date' in movie && movie.italy_release_date) ||
-    userMovie?.release_date ||
-    userMovie?.italy_release_date ||
-    null;
+  // Metadati unificati (prop + tracking utente + /trackers/movies/:id se mancante)
+  const {
+    title,
+    originalTitle,
+    overview,
+    runtime,
+    releaseDate,
+    posterUrl,
+    backdropUrl,
+    genres,
+  } = useMemo(
+    () => resolveMovieDetailMetadata(movie, userMovie, movieDetail),
+    [movie, userMovie, movieDetail]
+  );
 
-  const posterUrl = userMovie?.custom_poster_path
-    ? resolveImageUrl(userMovie.custom_poster_path)
-    : ('poster_path' in movie && movie.poster_path)
-    ? `https://image.tmdb.org/t/p/w500${movie.poster_path}`
-    : userMovie?.poster_path
-    ? `https://image.tmdb.org/t/p/w500${userMovie.poster_path}`
-    : '/no-poster.png';
+  // Verifica se il film ha spettacoli attivi nelle sale della provincia selezionata
+  const {
+    cinemaProvinces,
+    selectedProvinceSlug,
+    currentProvinceName,
+    matchedCinemaIdf,
+    hasCinemaShowtimes,
+    isCinemaCheckSettled,
+    handleSelectCinemaProvince,
+  } = useMovieCinemaAvailability(tmdbId, title, isOpen);
 
-  const backdropUrl = userMovie?.custom_backdrop_path
-    ? resolveImageUrl(userMovie.custom_backdrop_path)
-    : ('backdrop_path' in movie && movie.backdrop_path)
-    ? `https://image.tmdb.org/t/p/original${movie.backdrop_path}`
-    : userMovie?.backdrop_path
-    ? `https://image.tmdb.org/t/p/original${userMovie.backdrop_path}`
-    : null;
+  const rawSelectedTab = tabSelection.key === movieKey ? tabSelection.tab : initialTab;
+  const activeTab: MovieDetailTabType =
+    rawSelectedTab === 'saga' &&
+    extras &&
+    (!extras.collection?.parts || extras.collection.parts.length === 0)
+      ? 'overview'
+      : rawSelectedTab === 'cinema' &&
+        isCinemaCheckSettled &&
+        !hasCinemaShowtimes &&
+        tabSelection.key !== movieKey
+      ? 'overview'
+      : rawSelectedTab;
 
-  const genres = useMemo(() => {
-    const raw = ('genres' in movie && movie.genres) || userMovie?.genres;
-    if (!raw) return [];
-    return raw.split(',').map((g) => g.trim()).filter(Boolean);
-  }, [movie, userMovie]);
+  const resolvedMovie = useMemo<MovieDetailTarget>(
+    () => userMovie || movieDetail || movie,
+    [userMovie, movieDetail, movie]
+  );
 
   // Click per aggiungere o rimuovere dalla libreria
   const handleToggleLibrary = () => {
@@ -291,32 +306,26 @@ export const useMovieDetailModalLogic = ({
   };
 
   // Status icon, colore e testo per il badge circolare dello stato visto (nel banner accanto al titolo)
-  let StatusIcon: React.ReactNode = null;
-  let statusColor = 'bg-black/40 text-gray-300 border-white/60';
-  let statusText = 'Non visto (Tocca per segnare come visto)';
-
-  if (isWatched) {
-    statusColor = 'bg-blue-600 text-white border-white shadow-md';
-    statusText = 'Visto (Tocca per segnare come da vedere)';
-    StatusIcon = (
-      <svg className="w-3.5 h-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-      </svg>
-    );
-  } else {
-    statusColor = 'bg-black/40 text-gray-300 border-white/60 backdrop-blur-xs hover:border-white hover:text-white';
-    statusText = 'Non visto (Tocca per segnare come visto)';
-    StatusIcon = (
-      <svg className="w-3.5 h-3.5 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          strokeWidth={2}
-          d="M15 12a3 3 0 11-6 0 3 3 0 016 0z M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-        />
-      </svg>
-    );
-  }
+  const statusColor = isWatched
+    ? 'bg-blue-600 text-white border-white shadow-md'
+    : 'bg-black/40 text-gray-300 border-white/60 backdrop-blur-xs hover:border-white hover:text-white';
+  const statusText = isWatched
+    ? 'Visto (Tocca per segnare come da vedere)'
+    : 'Non visto (Tocca per segnare come visto)';
+  const StatusIcon: React.ReactNode = isWatched ? (
+    <svg className="w-3.5 h-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+    </svg>
+  ) : (
+    <svg className="w-3.5 h-3.5 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth={2}
+        d="M15 12a3 3 0 11-6 0 3 3 0 016 0z M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+      />
+    </svg>
+  );
 
   const logs: UserMovieLog[] = userMovie?.logs || [];
   const quotes: MovieQuote[] = userMovie?.quotes || [];
@@ -324,6 +333,8 @@ export const useMovieDetailModalLogic = ({
   return {
     tmdbId,
     userMovie,
+    resolvedMovie,
+    isMovieDetailLoading,
     extras,
     isExtrasLoading,
     friendsReviews,
@@ -376,5 +387,11 @@ export const useMovieDetailModalLogic = ({
     statusColor,
     statusText,
     initialReviewLogId,
+    hasCinemaShowtimes,
+    cinemaProvinces,
+    selectedProvinceSlug,
+    currentProvinceName,
+    matchedCinemaIdf,
+    handleSelectCinemaProvince,
   };
 };

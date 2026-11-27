@@ -1,5 +1,5 @@
 // src/components/trackers/SeriesDetailModal/SeriesDetailModal.tsx
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import BaseModal from '@/components/shared/dialog/BaseModal';
 import {
   type TMDBEpisode,
@@ -15,6 +15,7 @@ import { TrackerImageModal } from '@/components/trackers/shared/detail/TrackerIm
 import { TrackerDetailListsDrawer } from '@/components/trackers/shared/detail/TrackerDetailListsDrawer';
 import { TrackerDetailFriendsDrawer } from '@/components/trackers/shared/detail/TrackerDetailFriendsDrawer';
 import { TrackerListDetailModal } from '@/components/trackers/shared/detail/TrackerListDetailModal';
+import { useTrackerPersonNavigation } from '@/hooks/trackers/useTrackerPersonNavigation';
 import { SeriesDetailHeader } from './SeriesDetailHeader';
 import { SeriesDetailSidebar } from './SeriesDetailSidebar';
 import {
@@ -31,6 +32,7 @@ interface SeriesDetailModalProps {
   series: SeriesDetailTarget | UserSeriesTracking;
   initialTab?: TabType;
   initialEpisode?: TMDBEpisode | null;
+  initialSeasonNumber?: number | null;
   initialReviewLogId?: number;
   onToggleTrack?: (tmdbId: number, isTracked: boolean) => void;
   onSelectRecommendation?: (series: SeriesRecommendation) => void;
@@ -45,6 +47,7 @@ export const SeriesDetailModal: React.FC<SeriesDetailModalProps> = ({
   series,
   initialTab = 'overview',
   initialEpisode = null,
+  initialSeasonNumber = null,
   initialReviewLogId,
   onToggleTrack,
   onSelectRecommendation,
@@ -53,6 +56,7 @@ export const SeriesDetailModal: React.FC<SeriesDetailModalProps> = ({
   zIndexClass,
 }) => {
   const [isHistoricMode, setIsHistoricMode] = useState(false);
+  const posterRef = useRef<HTMLDivElement>(null);
   const { updateSeries } = useTrackersMutations();
 
   const {
@@ -60,6 +64,8 @@ export const SeriesDetailModal: React.FC<SeriesDetailModalProps> = ({
     setActiveTab,
     internalEpisode,
     setInternalEpisode,
+    internalSeasonNumber,
+    setInternalSeasonNumber,
     internalReviewLogId,
     showFriendsPanel,
     setShowFriendsPanel,
@@ -93,9 +99,23 @@ export const SeriesDetailModal: React.FC<SeriesDetailModalProps> = ({
     series,
     initialTab,
     initialEpisode,
+    initialSeasonNumber,
     initialReviewLogId,
     onToggleTrack,
   });
+
+  const { openPersonDetail, openSeriesInStack } = useTrackerPersonNavigation({
+    surface: 'desktop',
+  });
+
+  const handleSelectRelatedSeries = (rec: SeriesRecommendation) => {
+    const targetTmdbId = rec.tmdb_id ?? rec.id;
+    if (targetTmdbId && targetTmdbId !== tmdbSeries.tmdb_id) {
+      openSeriesInStack(targetTmdbId);
+      return;
+    }
+    onSelectRecommendation?.(rec);
+  };
 
   const isUserTracked = Boolean(userTracking);
   const isAbandoned = userTracking?.status === 'dropped';
@@ -153,7 +173,10 @@ export const SeriesDetailModal: React.FC<SeriesDetailModalProps> = ({
           onPlatformClick={onPlatformClick}
           isFriendsLoading={isFriendsLoading}
           friends={SERIES_FRIENDS}
-          onOpenFriendsPanel={() => setShowFriendsPanel(true)}
+          onOpenFriendsPanel={() => {
+            setShowListsPanel(false);
+            setShowFriendsPanel(true);
+          }}
           getStatusBorderColor={getStatusBorderColor}
           listsWithSeries={listsWithSeries}
           onOpenListManager={() => setIsListManagerOpen(true)}
@@ -161,9 +184,11 @@ export const SeriesDetailModal: React.FC<SeriesDetailModalProps> = ({
             if (id) {
               setListDetailId(id);
             } else {
+              setShowFriendsPanel(false);
               setShowListsPanel(true);
             }
           }}
+          posterRef={posterRef}
         />
 
         {/* CONTENUTO PRINCIPALE */}
@@ -183,6 +208,7 @@ export const SeriesDetailModal: React.FC<SeriesDetailModalProps> = ({
             activeTab={activeTab}
             onTabChange={setActiveTab}
             onOpenImageModal={() => setIsImageModalOpen(true)}
+            posterRef={posterRef}
           />
 
           {/* COLONNA DESTRA (Schede dinamiche) */}
@@ -190,7 +216,8 @@ export const SeriesDetailModal: React.FC<SeriesDetailModalProps> = ({
             {activeTab === 'overview' && (
               <SeriesOverviewTab
                 tmdbSeries={tmdbSeries}
-                onSelectRecommendation={onSelectRecommendation}
+                onSelectRecommendation={handleSelectRelatedSeries}
+                onPersonClick={openPersonDetail}
                 isLoading={false}
               />
             )}
@@ -199,10 +226,12 @@ export const SeriesDetailModal: React.FC<SeriesDetailModalProps> = ({
                 tmdbSeries={tmdbSeries}
                 userTracking={userTracking}
                 initialEpisode={internalEpisode}
+                initialSeasonNumber={internalSeasonNumber}
                 initialReviewLogId={internalReviewLogId}
                 isLoading={false}
                 isHistoricMode={isHistoricMode}
                 onDisableHistoricMode={() => setIsHistoricMode(false)}
+                onClearInitialSeason={() => setInternalSeasonNumber(null)}
               />
             )}
             {activeTab === 'review' && (
@@ -211,7 +240,13 @@ export const SeriesDetailModal: React.FC<SeriesDetailModalProps> = ({
                 userTracking={userTracking}
                 initialReviewLogId={internalReviewLogId}
                 onOpenEpisode={(ep) => {
+                  setInternalSeasonNumber(null);
                   setInternalEpisode(ep);
+                  setActiveTab('seasons');
+                }}
+                onOpenSeason={(sn) => {
+                  setInternalEpisode(null);
+                  setInternalSeasonNumber(sn);
                   setActiveTab('seasons');
                 }}
               />

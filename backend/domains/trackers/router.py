@@ -16,7 +16,7 @@ from backend.core.deps import get_db, get_current_app_user
 from backend.domains.trackers import repository
 from backend.domains.trackers.service import sync_tmdb_series_lazy, _build_series_response_with_next
 from backend.domains.trackers.models import UserSeriesTracking
-from backend.domains.trackers import service
+from backend.domains.trackers import service, season_service
 from backend.domains.trackers.schemas import (
     TMDBPaginatedSearch,
     TVSeriesCreate,
@@ -28,6 +28,11 @@ from backend.domains.trackers.schemas import (
     TVDashboardStats,
     TVQuoteExtendedResponse
 )
+from backend.domains.trackers import people_service
+from backend.domains.trackers.people_schemas import (
+    TMDBPaginatedPersonSearch,
+    PersonDetailResponse,
+)
 from backend.domains.users.models import User
 
 router = APIRouter(prefix="/trackers", tags=["Trackers - Series"])
@@ -38,13 +43,14 @@ router = APIRouter(prefix="/trackers", tags=["Trackers - Series"])
 @router.get("/series/{tmdb_id}/extras")
 async def get_series_extras(
     tmdb_id: int,
+    db: Session = Depends(get_db),
     current_user: User = Depends(get_current_app_user),
 ):
-    return await service.get_tmdb_series_extras(tmdb_id)
+    return await service.get_tmdb_series_extras(tmdb_id, db=db)
 
 @router.get("/series/search", response_model=TMDBPaginatedSearch)
 async def search_series(
-    query: str = Query(..., min_length=1, description="Termine di ricerca per la serie TV (su TMDB)"),
+    query: str = Query("", description="Termine di ricerca per la serie TV (opzionale se si filtra per persona)"),
     page: int = Query(1, ge=1, description="Numero di pagina per la paginazione"),
     with_genres: Optional[str] = None,
     without_genres: Optional[str] = None,
@@ -53,6 +59,8 @@ async def search_series(
     with_status: Optional[str] = None,
     first_air_date_year: Optional[str] = None,
     sort_by: Optional[str] = None,
+    with_people: Optional[str] = None,
+    people_mode: str = Query("AND", description="Modalita filtro persone: AND o OR"),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_app_user),
 ):
@@ -66,6 +74,8 @@ async def search_series(
         with_status=with_status,
         first_air_date_year=first_air_date_year,
         sort_by=sort_by,
+        with_people=with_people,
+        people_mode=people_mode,
         db=db,
     )
 
@@ -140,6 +150,14 @@ async def sync_series_providers(
 ):
     return await service.sync_missing_user_series_providers(db, current_user)
 
+
+@router.post("/series/sync-credits")
+async def sync_series_credits(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_app_user),
+):
+    return await people_service.sync_missing_user_series_credits(db, current_user)
+
 @router.get("/series/{tmdb_id}", response_model=TVSeriesResponse)
 async def get_series_detail(
     tmdb_id: int,
@@ -187,7 +205,7 @@ def watch_next_episode(
 
 
 
-from backend.domains.trackers.schemas import UserSeriesLogCreate, UserSeriesLogUpdate
+from backend.domains.trackers.schemas import UserSeriesLogCreate, UserSeriesLogUpdate, UserSeasonLogCreate, UserSeasonLogUpdate
 
 @router.post("/series/{tmdb_id}/logs", response_model=TVSeriesResponse)
 def add_series_log(
@@ -214,6 +232,38 @@ def delete_series_log(
     current_user: User = Depends(get_current_app_user),
 ):
     return service.delete_series_log(db, current_user, log_id)
+
+
+# --- Season Logs (Diary Pattern) ---
+
+@router.post("/series/{tmdb_id}/seasons/{season_number}/logs", response_model=TVSeriesResponse, status_code=status.HTTP_201_CREATED)
+async def add_season_log(
+    tmdb_id: int,
+    season_number: int,
+    payload: UserSeasonLogCreate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_app_user),
+):
+    return await season_service.add_season_log(db, current_user, tmdb_id, season_number, payload)
+
+
+@router.patch("/series/season-logs/{log_id}", response_model=TVSeriesResponse)
+def update_season_log(
+    log_id: int,
+    payload: UserSeasonLogUpdate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_app_user),
+):
+    return season_service.update_season_log(db, current_user, log_id, payload)
+
+
+@router.delete("/series/season-logs/{log_id}", response_model=TVSeriesResponse)
+def delete_season_log(
+    log_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_app_user),
+):
+    return season_service.delete_season_log(db, current_user, log_id)
 
 
 # --- Episodes ---
@@ -394,7 +444,7 @@ def remove_item_from_list(
 ):
     service.remove_item_from_media_list(db, current_user, list_id, item_id)
 
-from backend.domains.trackers.schemas import FriendSeriesLogResponse, FriendEpisodeLogResponse
+from backend.domains.trackers.schemas import FriendSeriesLogResponse, FriendEpisodeLogResponse, FriendSeasonLogResponse
 
 @router.get("/series/{tmdb_id}/friends-reviews", response_model=List[FriendSeriesLogResponse])
 def get_friends_series_reviews(
@@ -411,6 +461,16 @@ def get_friends_episode_reviews(
     current_user: User = Depends(get_current_app_user),
 ):
     return service.get_friends_episode_logs(db, current_user, episode_id)
+
+
+@router.get("/series/{tmdb_id}/seasons/{season_number}/friends-reviews", response_model=List[FriendSeasonLogResponse])
+def get_friends_season_reviews(
+    tmdb_id: int,
+    season_number: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_app_user),
+):
+    return season_service.get_friends_season_logs(db, current_user.id, tmdb_id, season_number)
 
 @router.get("/series/{tmdb_id}/providers")
 async def get_series_providers(
@@ -491,7 +551,10 @@ async def discover_tmdb_series(
     with_status: Optional[str] = None,
     first_air_date_year: Optional[str] = None,
     sort_by: Optional[str] = None,
+    with_people: Optional[str] = None,
+    people_mode: str = Query("AND", description="Modalita filtro persone: AND o OR"),
     page: int = Query(1, ge=1),
+    db: Session = Depends(get_db),
     current_user: User = Depends(get_current_app_user),
 ):
     providers = with_watch_providers or with_networks
@@ -503,7 +566,29 @@ async def discover_tmdb_series(
         first_air_date_year=first_air_date_year,
         sort_by=sort_by,
         page=page,
+        with_people=with_people,
+        people_mode=people_mode,
+        db=db,
     )
+
+
+# --- People (Attori, Registi, Creatori) ---
+
+@router.get("/people/search", response_model=TMDBPaginatedPersonSearch)
+async def search_people(
+    query: str = Query("", description="Nome attore, regista o creatore"),
+    page: int = Query(1, ge=1, description="Numero di pagina"),
+    current_user: User = Depends(get_current_app_user),
+):
+    return await people_service.search_tmdb_people(query=query, page=page)
+
+
+@router.get("/people/{person_id}", response_model=PersonDetailResponse)
+async def get_person_detail(
+    person_id: int,
+    current_user: User = Depends(get_current_app_user),
+):
+    return await people_service.get_person_detail(person_id)
 
 # --- TV Platforms ---
 

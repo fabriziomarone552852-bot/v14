@@ -14,6 +14,7 @@ interface NewEventModalProps {
   isOpen: boolean;
   onClose: () => void;
   eventToEdit?: CalendarEvent | null;
+  eventToDuplicate?: CalendarEvent | null;
   onEventSaved?: (savedEvent?: DbEvent) => void;
   initialDate?: string | null;
 }
@@ -22,6 +23,7 @@ const NewEventModal: React.FC<NewEventModalProps> = ({
   isOpen,
   onClose,
   eventToEdit,
+  eventToDuplicate,
   initialDate,
   onEventSaved,
 }) => {
@@ -46,6 +48,7 @@ const NewEventModal: React.FC<NewEventModalProps> = ({
     isOpen,
     onClose,
     eventToEdit,
+    eventToDuplicate,
     initialDate,
     onEventSaved,
   });
@@ -118,7 +121,7 @@ const NewEventModal: React.FC<NewEventModalProps> = ({
         <div className="grid grid-cols-2 gap-4 items-end">
           <div>
             <label className="block text-xs font-bold text-gray-500 uppercase mb-1">
-              Data Inizio
+              Data Inizio {!newEventForm.data_inizio}
             </label>
             <DatePicker
               value={newEventForm.data_inizio}
@@ -130,6 +133,7 @@ const NewEventModal: React.FC<NewEventModalProps> = ({
                 setActiveDatePicker(activeDatePicker === 'start' ? null : 'start')
               }
               onClose={() => setActiveDatePicker(null)}
+              placeholder="Scegli data..."
             />
           </div>
 

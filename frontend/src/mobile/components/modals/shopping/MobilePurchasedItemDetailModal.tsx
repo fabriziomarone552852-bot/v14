@@ -9,8 +9,8 @@ import {
   CheckCircleIcon,
 } from '@/components/shared/utils/Icons';
 import { formatUnitForQuantity } from '@/components/shared/shopping/ShoppingUnitSelect';
-import { ShoppingItemPriceHistoryPanel } from '@/components/shared/shopping/ShoppingItemPriceHistoryPanel';
 import { ShoppingItemNoteEditor } from '@/components/shared/shopping/ShoppingItemNoteEditor';
+import { MobileShoppingItemInsightsTabs } from './MobileShoppingItemInsightsTabs';
 import {
   useMobilePurchasedItemDetailLogic,
   MobilePurchasedItemPurchaseInfoCard,
@@ -81,33 +81,34 @@ export const MobilePurchasedItemDetailModal: React.FC<MobilePurchasedItemDetailM
     </span>
   );
 
-  const headerActions = (
-    <div className="flex items-center gap-1">
-      {canEdit && (
-        <button
-          type="button"
-          onClick={() => {
-            onClose();
-            onEditPurchase(item);
-          }}
-          className="p-1.5 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors cursor-pointer"
-          title="Modifica Acquisto"
-        >
-          <EditIcon className="w-5 h-5" />
-        </button>
-      )}
-      {canDelete && (
-        <button
-          type="button"
-          onClick={() => setIsDeleteDialogOpen(true)}
-          className="p-1.5 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors cursor-pointer"
-          title="Elimina"
-        >
-          <TrashIcon className="w-5 h-5" />
-        </button>
-      )}
-    </div>
-  );
+  const headerActions =
+    canEdit || canDelete ? (
+      <div className="flex items-center gap-1">
+        {canEdit && (
+          <button
+            type="button"
+            onClick={() => {
+              onClose();
+              onEditPurchase(item);
+            }}
+            className="p-1.5 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors cursor-pointer"
+            title="Modifica Acquisto"
+          >
+            <EditIcon className="w-5 h-5" />
+          </button>
+        )}
+        {canDelete && (
+          <button
+            type="button"
+            onClick={() => setIsDeleteDialogOpen(true)}
+            className="p-1.5 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors cursor-pointer"
+            title="Elimina"
+          >
+            <TrashIcon className="w-5 h-5" />
+          </button>
+        )}
+      </div>
+    ) : null;
 
   return (
     <>
@@ -168,13 +169,14 @@ export const MobilePurchasedItemDetailModal: React.FC<MobilePurchasedItemDetailM
             isLoadingHistory={isLoadingHistory}
           />
 
-          {/* 3. Storico & Analisi Prezzi in un unico riquadro */}
-          <ShoppingItemPriceHistoryPanel
+          {/* 3. Tab Storico & Analisi Prezzi / Marche */}
+          <MobileShoppingItemInsightsTabs
+            item={item}
             view={view}
             onViewChange={setView}
             personalBatches={personalBatches}
             communityPrices={communityPrices}
-            isLoading={isLoadingHistory}
+            isLoadingHistory={isLoadingHistory}
             currentStats={currentStats}
           />
         </div>

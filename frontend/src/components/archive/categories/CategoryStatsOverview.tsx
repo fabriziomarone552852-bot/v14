@@ -15,7 +15,7 @@ export const CategoryStatsOverview: React.FC<CategoryStatsOverviewProps> = ({
 }) => {
   return (
     <ArchiveHeader
-      title="GESTIONE CATEGORIE"
+      title="Categorie & Ambiti"
       subtitle="Organizza e gestisci le categorie per attività, eventi e stati d'animo."
       icon={<CategoryIcon className="w-5 h-5 text-white" />}
       className={panelClass}

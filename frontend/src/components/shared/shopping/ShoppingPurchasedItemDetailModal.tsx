@@ -4,6 +4,7 @@ import { createPortal } from 'react-dom';
 import type { ShoppingListItem } from '@/types/shopping';
 import ConfirmDialog from '@/components/shared/dialog/ConfirmDialog';
 import { ShoppingItemPriceHistoryPanel } from './ShoppingItemPriceHistoryPanel';
+import { ShoppingItemDetailBrandsPanel } from './ShoppingItemDetailBrandsPanel';
 import {
   usePurchasedItemDetailLogic,
   ShoppingPurchasedItemInfoSection,
@@ -61,10 +62,18 @@ export const ShoppingPurchasedItemDetailModal: React.FC<ShoppingPurchasedItemDet
       onClick={onClose}
     >
       <div
-        className="flex flex-col md:flex-row gap-4 items-stretch w-full max-w-5xl justify-center pointer-events-none"
+        className="flex flex-col lg:flex-row gap-4 items-stretch w-full max-w-6xl max-h-[85vh] justify-center pointer-events-none"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Pannello Sinistro: Storico Prezzi & Analisi Integrata */}
+        {/* Finestra 1: Marchi Correlati & Giudizi */}
+        <ShoppingItemDetailBrandsPanel
+          item={item}
+          personalBatches={personalBatches}
+          communityPrices={communityPrices}
+          className="w-full lg:w-76 shrink-0"
+        />
+
+        {/* Finestra 2: Storico & Analisi Prezzi (Ridotta) */}
         <ShoppingItemPriceHistoryPanel
           view={view}
           onViewChange={setView}
@@ -72,9 +81,10 @@ export const ShoppingPurchasedItemDetailModal: React.FC<ShoppingPurchasedItemDet
           communityPrices={communityPrices}
           isLoading={isLoadingHistory}
           currentStats={currentStats}
+          className="w-full lg:w-[390px] shrink-0"
         />
 
-        {/* Pannello Destro: Scheda Articolo Acquistato */}
+        {/* Finestra 3: Scheda Articolo Acquistato */}
         <ShoppingPurchasedItemInfoSection
           item={item}
           latestBatch={latestBatch}

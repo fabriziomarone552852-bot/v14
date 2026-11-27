@@ -15,6 +15,8 @@ export interface FriendsReviewsListViewProps {
   title?: string;
   /** Messaggio mostrato quando non ci sono recensioni di amici */
   emptyMessage?: string;
+  /** Su mobile mantiene l'intestazione fissa in alto facendo scorrere solo le card sottostanti */
+  mobileFixedHeader?: boolean;
 }
 
 /**
@@ -27,10 +29,23 @@ export const FriendsReviewsListView: React.FC<FriendsReviewsListViewProps> = ({
   onSelectFriend,
   title = 'Recensioni Amici',
   emptyMessage = 'Nessun amico ha recensito questo elemento.',
+  mobileFixedHeader = false,
 }) => {
   return (
-    <div className="flex flex-col h-full animate-fadeIn">
-      <div className="flex items-center justify-between pb-4 border-b border-gray-100 shrink-0">
+    <div
+      className={
+        mobileFixedHeader
+          ? 'flex flex-col flex-1 min-h-0 h-full overflow-hidden animate-fadeIn'
+          : 'flex flex-col h-full animate-fadeIn'
+      }
+    >
+      <div
+        className={
+          mobileFixedHeader
+            ? 'flex items-center justify-between pb-3 border-b border-gray-200/80 shrink-0'
+            : 'flex items-center justify-between pb-4 border-b border-gray-100 shrink-0'
+        }
+      >
         <div className="flex items-center gap-3">
           <button
             onClick={onBack}
@@ -41,7 +56,11 @@ export const FriendsReviewsListView: React.FC<FriendsReviewsListViewProps> = ({
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
             </svg>
           </button>
-          <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
+          <h2
+            className={`${
+              mobileFixedHeader ? 'text-base' : 'text-xl'
+            } font-bold text-gray-900 flex items-center gap-2`}
+          >
             {title}
             {friendsList.length > 0 && (
               <span className="bg-blue-100 text-blue-700 text-xs font-bold px-2 py-0.5 rounded-full">
@@ -52,7 +71,13 @@ export const FriendsReviewsListView: React.FC<FriendsReviewsListViewProps> = ({
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto custom-scrollbar flex flex-col gap-4 pt-4 pr-2">
+      <div
+        className={
+          mobileFixedHeader
+            ? 'flex-1 min-h-0 overflow-y-auto no-scrollbar flex flex-col gap-3 pt-3 pb-6'
+            : 'flex-1 overflow-y-auto custom-scrollbar flex flex-col gap-4 pt-4 pr-2'
+        }
+      >
         {friendsList.length === 0 ? (
           <div className="flex-1 flex flex-col items-center justify-center h-full">
             <EmptyState message={emptyMessage} />

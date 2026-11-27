@@ -51,7 +51,7 @@ export const MobileAgendaPeriodHeader: React.FC<MobileAgendaPeriodHeaderProps> =
   const hasActions = !isCurrent || (reviewStatus !== 'none' && onOpenReview) || onOpenNotes;
 
   return (
-    <div className="shrink-0 w-full flex items-center justify-between px-1 py-1 select-none">
+    <div className="shrink-0 w-full min-h-9 flex items-center justify-between px-1 py-1 select-none">
       {/* 1. SINISTRA: DATA PRINCIPALE + ETICHETTA PERIODO (Apre DatePicker al tocco) */}
       <div className="flex-1 min-w-0 pr-2">
         <DatePicker

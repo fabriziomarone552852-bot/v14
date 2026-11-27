@@ -7,6 +7,7 @@ import { formatDistanceToNow } from 'date-fns';
 import { it } from 'date-fns/locale';
 import type { NotificationResponse } from '@/types/notifications';
 import type { FriendshipResponse } from '@/types/social';
+import { formatNotificationMessage, getNotificationTypeBadge } from '@/utils/notificationUtils';
 
 interface Props {
   regularNotifications: NotificationResponse[];
@@ -64,55 +65,43 @@ export const NotificationsTab: React.FC<Props> = ({
                   ))}
 
                   {/* Interazioni normali (NO messaggi effimeri) */}
-                  {regularNotifications.map((notif) => (
-                    <li 
-                      key={notif.id} 
-                      className={`p-3 rounded-xl border transition-colors cursor-pointer ${!notif.read_at ? 'bg-blue-50 border-blue-100' : 'bg-white border-gray-100 hover:bg-gray-50'}`}
-                      onClick={() => handleNotificationClick(notif)}
-                    >
-                      <div className="flex gap-3">
-                        <div className="mt-1">
-                          {!notif.read_at ? (
-                            <div className="w-2 h-2 rounded-full bg-blue-500"></div>
-                          ) : (
-                            <div className="w-2 h-2 rounded-full bg-gray-300"></div>
-                          )}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className={`text-sm text-gray-800 ${!notif.read_at ? 'font-bold' : 'font-medium'}`}>
-                            {notif.interaction_type === 'SERIES_REVIEW_COMMENT' ? `${notif.author_name || 'Qualcuno'} ha commentato la tua recensione di ${notif.context_title || 'una serie'}` : 
-                             notif.interaction_type === 'SERIES_REVIEW_COMMENT_THREAD' ? `${notif.author_name || 'Qualcuno'} ha partecipato alla discussione sulla recensione di ${notif.context_title || 'una serie'}` : 
-                             notif.interaction_type === 'SERIES_REVIEW_MENTION' ? `${notif.author_name || 'Qualcuno'} ti ha menzionato nella recensione di ${notif.context_title || 'una serie'}` :
-                             notif.interaction_type === 'EPISODE_REVIEW_COMMENT' ? `${notif.author_name || 'Qualcuno'} ha commentato la tua recensione dell'episodio ${notif.context_title || ''}` : 
-                             notif.interaction_type === 'EPISODE_REVIEW_COMMENT_THREAD' ? `${notif.author_name || 'Qualcuno'} ha partecipato alla discussione sulla recensione dell'episodio ${notif.context_title || ''}` : 
-                             notif.interaction_type === 'EPISODE_REVIEW_MENTION' ? `${notif.author_name || 'Qualcuno'} ti ha menzionato nella recensione dell'episodio ${notif.context_title || ''}` :
-                             notif.interaction_type === 'MOVIE_REVIEW_COMMENT' ? `${notif.author_name || 'Qualcuno'} ha commentato la tua recensione di ${notif.context_title || 'un film'}` : 
-                             notif.interaction_type === 'MOVIE_REVIEW_COMMENT_THREAD' ? `${notif.author_name || 'Qualcuno'} ha partecipato alla discussione sulla recensione di ${notif.context_title || 'un film'}` : 
-                             notif.interaction_type === 'MOVIE_REVIEW_MENTION' ? `${notif.author_name || 'Qualcuno'} ti ha menzionato nella recensione di ${notif.context_title || 'un film'}` :
-                             notif.content}
-                          </p>
-                          <div className="flex justify-between items-center mt-2">
-                            <span className={`text-[10px] uppercase font-bold ${
-                              notif.interaction_type === 'SYSTEM_ALERT'
-                                ? 'text-amber-600 bg-amber-50 px-2 py-0.5 rounded-md border border-amber-200'
-                                : 'text-gray-400'
-                            }`}>
-                              {notif.interaction_type === 'SHOPPING_GROUP_INVITE' 
-                                ? 'Invito Gruppo Spesa' 
-                                : notif.interaction_type === 'SHOPPING_GROUP_NEW_LIST'
-                                ? 'Nuova Lista Spesa'
-                                : notif.interaction_type === 'SYSTEM_ALERT'
-                                ? '📢 Avviso di Sistema'
-                                : notif.interaction_type.replace(/_/g, ' ')}
-                            </span>
-                            <span className="text-[10px] text-gray-400">
-                              {formatDistanceToNow(new Date(notif.created_at), { addSuffix: true, locale: it })}
-                            </span>
+                  {regularNotifications.map((notif) => {
+                    const badge = getNotificationTypeBadge(notif.interaction_type);
+                    return (
+                      <li
+                        key={notif.id}
+                        className={`p-3 rounded-xl border transition-colors cursor-pointer ${!notif.read_at ? 'bg-blue-50 border-blue-100' : 'bg-white border-gray-100 hover:bg-gray-50'}`}
+                        onClick={() => handleNotificationClick(notif)}
+                      >
+                        <div className="flex gap-3">
+                          <div className="mt-1">
+                            {!notif.read_at ? (
+                              <div className="w-2 h-2 rounded-full bg-blue-500"></div>
+                            ) : (
+                              <div className="w-2 h-2 rounded-full bg-gray-300"></div>
+                            )}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className={`text-sm text-gray-800 ${!notif.read_at ? 'font-bold' : 'font-medium'}`}>
+                              {formatNotificationMessage(notif)}
+                            </p>
+                            <div className="flex justify-between items-center mt-2">
+                              <span className={`text-[10px] uppercase font-bold ${
+                                notif.interaction_type === 'SYSTEM_ALERT'
+                                  ? 'text-amber-600 bg-amber-50 px-2 py-0.5 rounded-md border border-amber-200'
+                                  : 'text-gray-400'
+                              }`}>
+                                {notif.interaction_type === 'SYSTEM_ALERT' ? '📢 Avviso di Sistema' : badge.label}
+                              </span>
+                              <span className="text-[10px] text-gray-400">
+                                {formatDistanceToNow(new Date(notif.created_at), { addSuffix: true, locale: it })}
+                              </span>
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    </li>
-                  ))}
+                      </li>
+                    );
+                  })}
                 </ul>
               )}
             </div>

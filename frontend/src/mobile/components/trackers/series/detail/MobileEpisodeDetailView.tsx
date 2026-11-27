@@ -1,15 +1,14 @@
 import React, { useState } from 'react';
-import { Check, Quote } from 'lucide-react';
 import type {
   TMDBEpisode,
   TMDBSeries,
   UserEpisodeLog,
   UserSeriesTracking,
 } from '@/types/trackers';
-import { StarRating } from '@/components/trackers/shared/detail/StarRating';
 import { MobileEpisodeQuotesSection } from './MobileEpisodeQuotesSection';
 import { MobileEpisodeReviewForm } from './MobileEpisodeReviewForm';
 import { MobileEpisodeMyReviewsList } from './MobileEpisodeMyReviewsList';
+import { MobileEpisodeMainOverview } from './MobileEpisodeMainOverview';
 import { MobileReviewDetailView } from '../../shared/detail/MobileReviewDetailView';
 import { aggregateFriendsReviews } from '@/utils/ratingUtils';
 import { FriendsReviewsListView } from '@/components/trackers/shared/detail/FriendsReviewsListView';
@@ -19,10 +18,7 @@ import {
   type EpisodeViewState,
 } from '@/components/trackers/series/detail/useEpisodeDetailLogic';
 import { useTrackersMutations } from '@/hooks/mutations/useTrackersMutations';
-import {
-  MobileWatchActionDrawer,
-  type MobileWatchActionTarget,
-} from './MobileWatchActionDrawer';
+import type { MobileWatchActionTarget } from './MobileWatchActionDrawer';
 import { showTrackerToast } from '@/components/trackers/shared/TrackerToast';
 
 export interface MobileEpisodeDetailViewProps {
@@ -149,43 +145,41 @@ export const MobileEpisodeDetailView: React.FC<MobileEpisodeDetailViewProps> = (
     );
   }
 
-  // 2. Reviews List View (Le mie recensioni dell'episodio)
+  // 2. Reviews List View (Le mie recensioni dell'episodio - intestazione fissa)
   if (view === 'reviews') {
     return (
-      <div className="animate-fadeIn">
-        <MobileEpisodeMyReviewsList
-          logs={logs}
-          onBack={() => setView('main')}
-          onOpenNewReview={openNewReview}
-          onOpenEditReview={openEditReview}
-          onDeleteReview={(id) => deleteEpisodeLog(id)}
-          onDeleteReviews={(ids) => ids.forEach((id) => deleteEpisodeLog(id))}
-          onSelectReview={(log) => {
-            setSelectedReview({
-              id: log.id,
-              author_id: String(log.user_id),
-              author_name: 'Tu',
-              rating: (log.rating || 0) / 2,
-              notes: log.notes || '',
-              updated_at: log.watched_at,
-              comments: log.comments || [],
-              is_mine: true,
-              review_visibility: log.review_visibility,
-              viewing_platform_name: log.viewing_platform_name ?? null,
-              original_log: log,
-            });
-            setView('review_detail');
-          }}
-        />
-      </div>
+      <MobileEpisodeMyReviewsList
+        logs={logs}
+        onBack={() => setView('main')}
+        onOpenNewReview={openNewReview}
+        onOpenEditReview={openEditReview}
+        onDeleteReview={(id) => deleteEpisodeLog(id)}
+        onDeleteReviews={(ids) => ids.forEach((id) => deleteEpisodeLog(id))}
+        onSelectReview={(log) => {
+          setSelectedReview({
+            id: log.id,
+            author_id: String(log.user_id),
+            author_name: 'Tu',
+            rating: (log.rating || 0) / 2,
+            notes: log.notes || '',
+            updated_at: log.watched_at,
+            comments: log.comments || [],
+            is_mine: true,
+            review_visibility: log.review_visibility,
+            viewing_platform_name: log.viewing_platform_name ?? null,
+            original_log: log,
+          });
+          setView('review_detail');
+        }}
+      />
     );
   }
 
-  // 3. Friends Reviews Overview
+  // 3. Friends Reviews Overview (intestazione fissa)
   if (view === 'friends_reviews') {
     const friendsList = aggregateFriendsReviews(friendsLogsData);
     return (
-      <div className="animate-fadeIn">
+      <div className="flex flex-col flex-1 min-h-0 overflow-hidden -mb-4 animate-fadeIn">
         <FriendsReviewsListView
           friendsList={friendsList}
           onBack={() => setView('main')}
@@ -195,12 +189,13 @@ export const MobileEpisodeDetailView: React.FC<MobileEpisodeDetailViewProps> = (
           }}
           title="Recensioni Amici"
           emptyMessage="Nessun amico ha recensito questo episodio."
+          mobileFixedHeader
         />
       </div>
     );
   }
 
-  // 4. Friend Detail View
+  // 4. Friend Detail View (intestazione fissa)
   if (view === 'friend_detail' && selectedFriendId) {
     const friendLogs = friendsLogsData.filter(
       (l) => String(l.friend_id) === String(selectedFriendId)
@@ -208,11 +203,12 @@ export const MobileEpisodeDetailView: React.FC<MobileEpisodeDetailViewProps> = (
     const friendName = friendLogs[0]?.friend_name || '';
 
     return (
-      <div className="animate-fadeIn">
+      <div className="flex flex-col flex-1 min-h-0 overflow-hidden -mb-4 animate-fadeIn">
         <FriendDetailReviewsView
           friendName={friendName}
           onBack={() => setView('friends_reviews')}
           logs={friendLogs}
+          mobileFixedHeader
           getCardData={(log) => ({
             id: log.id,
             rating: log.rating,
@@ -305,183 +301,28 @@ export const MobileEpisodeDetailView: React.FC<MobileEpisodeDetailViewProps> = (
     );
   }
 
-  // Formattazione data di trasmissione
-  const formattedDate = episode.air_date
-    ? new Date(`${episode.air_date}T00:00:00`).toLocaleDateString('it-IT', {
-        day: 'numeric',
-        month: 'long',
-        year: 'numeric',
-      })
-    : null;
-
-  const seasonTitle = episode.season_number === 0
-    ? 'Episodi Speciali'
-    : `Stagione ${episode.season_number}`;
-  const seasonEpCode = `${seasonTitle} - Episodio ${episode.episode_number}`;
-
-  // 7. Schermata Principale Episodio Mobile (Richiesta dall'utente)
+  // 7. Schermata Principale Episodio Mobile
   return (
-    <div className="flex flex-col gap-4 pb-8 select-none animate-fadeIn">
-      {/* RIGA INTESTAZIONE SUPERIORE: STAGIONE X - EPISODIO X | DATA & PALLINO VISTO */}
-      <div className="flex items-center justify-between gap-3 border-b border-gray-200/80 pb-3 pt-1">
-        <div className="flex items-center gap-2 flex-wrap min-w-0">
-          <span className="text-blue-600 font-black text-xs uppercase tracking-wider">
-            {seasonEpCode}
-          </span>
-          {formattedDate && (
-            <>
-              <span className="text-gray-300">|</span>
-              <span className="text-gray-500 font-medium text-xs capitalize">
-                {formattedDate}
-              </span>
-            </>
-          )}
-        </div>
-
-        {/* Pallino visto interattivo (con X1, X2... e cassetto rewatch) */}
-        <button
-          type="button"
-          onClick={handleCircleClick}
-          className={`w-7.5 h-7.5 rounded-full flex items-center justify-center transition-all cursor-pointer shadow-2xs active:scale-90 shrink-0 ${
-            isWatched
-              ? 'bg-blue-600 border border-blue-600 text-white'
-              : 'border-2 border-gray-300 hover:border-blue-400 bg-white text-transparent'
-          }`}
-          title={
-            isWatched
-              ? `Visto ${watchCount}x (tocca per opzioni)`
-              : 'Segna come visto'
-          }
-          aria-label={isWatched ? 'Visto' : 'Non visto'}
-        >
-          {watchCount > 1 ? (
-            <span className="text-[10px] font-black leading-none">
-              X{watchCount}
-            </span>
-          ) : (
-            <Check className="w-4 h-4 stroke-[3]" />
-          )}
-        </button>
-      </div>
-
-      {/* TRAMA DELL'EPISODIO */}
-      <div>
-        <div className="flex items-center justify-between mb-1.5">
-          <h4 className="text-[11px] font-extrabold uppercase tracking-wider text-gray-400">
-            Trama
-          </h4>
-
-          {/* Pulsante Citazioni con pallino per il conteggio */}
-          <button
-            type="button"
-            onClick={() => setView('quotes')}
-            className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold transition-all cursor-pointer ${
-              quotes.length > 0
-                ? 'bg-amber-50 text-amber-800 border border-amber-200/80 shadow-2xs'
-                : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'
-            }`}
-            title="Citazioni episodio"
-          >
-            <Quote className="w-3 h-3" />
-            <span>Citazioni</span>
-            {quotes.length > 0 && (
-              <span className="min-w-4 h-4 px-1 rounded-full bg-amber-200 text-amber-950 text-[10px] font-black flex items-center justify-center -mr-0.5">
-                {quotes.length}
-              </span>
-            )}
-          </button>
-        </div>
-
-        <p className="text-xs sm:text-sm text-gray-600 leading-relaxed whitespace-pre-line bg-white p-3.5 rounded-2xl border border-gray-200/80 shadow-2xs">
-          {episode.overview && episode.overview.trim().length > 0
-            ? episode.overview
-            : 'Nessuna descrizione o trama disponibile per questo episodio.'}
-        </p>
-      </div>
-
-      {/* SEZIONE VOTI: BOX UNICO ATTORNO A TUTTI E TRE I VOTI */}
-      <div className="w-full max-w-sm mx-auto bg-white border border-gray-200/90 rounded-2xl p-4 shadow-2xs flex flex-col items-center gap-3.5 shrink-0 my-1">
-        {/* Livello Superiore: TMDB e Amici */}
-        <div className="flex items-center justify-around w-full">
-          {/* TMDB */}
-          <div className="flex flex-col items-center gap-1 px-2">
-            <span className="text-[11px] font-bold text-gray-400 uppercase tracking-wider">
-              TMDB
-            </span>
-            <div className="flex items-center">
-              {tmdbValue !== null ? (
-                <StarRating value={tmdbValue} hideNumber readonly iconClassName="w-5 h-5" />
-              ) : (
-                <span className="text-gray-400 font-medium text-xs">--</span>
-              )}
-            </div>
-          </div>
-
-          <div className="w-px h-9 bg-gray-200" />
-
-          {/* Amici */}
-          <div
-            onClick={() => setView('friends_reviews')}
-            className="flex flex-col items-center gap-1 px-2 cursor-pointer hover:bg-gray-50 rounded-xl transition-colors p-1 -m-1 group"
-          >
-            <span className="text-[11px] font-bold text-gray-400 uppercase tracking-wider group-hover:text-blue-600 transition-colors">
-              Amici
-            </span>
-            <div className="flex items-center">
-              {friendsAverage !== null ? (
-                <StarRating value={friendsAverage} hideNumber readonly iconClassName="w-5 h-5" />
-              ) : (
-                <span className="text-gray-400 font-medium text-xs">--</span>
-              )}
-            </div>
-          </div>
-        </div>
-
-        {/* Separatore Orizzontale */}
-        <div className="w-full border-t border-gray-100" />
-
-        {/* Livello Inferiore: Il Tuo Voto */}
-        <div className="w-full flex flex-col items-center">
-          {myAverage !== null ? (
-            <div
-              onClick={() => setView('reviews')}
-              className="w-full flex flex-col items-center gap-1 cursor-pointer hover:bg-gray-50 rounded-xl p-1.5 transition-colors group"
-            >
-              <span className="text-[11px] font-bold text-gray-500 uppercase tracking-wider group-hover:text-blue-600 transition-colors">
-                Il Tuo Voto
-              </span>
-              <div
-                className="flex items-center"
-                title={`Media basata su ${logs.filter((l) => typeof l.rating === 'number').length} voti`}
-              >
-                <StarRating value={myAverage} hideNumber readonly iconClassName="w-6 h-6" />
-              </div>
-            </div>
-          ) : (
-            <button
-              type="button"
-              onClick={logs.length > 0 ? () => setView('reviews') : openNewReview}
-              className="w-full flex flex-col items-center justify-center gap-0.5 py-1.5 hover:bg-gray-50 rounded-xl transition-colors cursor-pointer active:scale-98"
-            >
-              <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">
-                Ancora nessun voto
-              </span>
-              <span className="text-xs font-black text-gray-900">Aggiungilo!</span>
-            </button>
-          )}
-        </div>
-      </div>
-
-      {/* Drawer azioni rewatch per l'episodio */}
-      <MobileWatchActionDrawer
-        isOpen={drawerTarget !== null}
-        onClose={() => setDrawerTarget(null)}
-        target={drawerTarget}
-        onAddWatch={handleDrawerAddWatch}
-        onResetWatch={handleDrawerResetWatch}
-        onSubWatch={handleDrawerSubWatch}
-      />
-    </div>
+    <MobileEpisodeMainOverview
+      episode={episode}
+      logs={logs}
+      isWatched={isWatched}
+      watchCount={watchCount}
+      quotesCount={quotes.length}
+      tmdbValue={tmdbValue}
+      myAverage={myAverage}
+      friendsAverage={friendsAverage}
+      onCircleClick={handleCircleClick}
+      onOpenQuotes={() => setView('quotes')}
+      onOpenMyReviews={() => setView('reviews')}
+      onOpenNewReview={openNewReview}
+      onOpenFriendsReviews={() => setView('friends_reviews')}
+      drawerTarget={drawerTarget}
+      onCloseDrawer={() => setDrawerTarget(null)}
+      onDrawerAddWatch={handleDrawerAddWatch}
+      onDrawerResetWatch={handleDrawerResetWatch}
+      onDrawerSubWatch={handleDrawerSubWatch}
+    />
   );
 };
 

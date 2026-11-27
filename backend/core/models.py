@@ -182,6 +182,23 @@ def ensure_database_schema_compat() -> None:
             );
             """,
             "CREATE INDEX IF NOT EXISTS ix_system_broadcasts_is_active ON system_broadcasts(is_active);",
+            "ALTER TABLE tmdb_series ADD COLUMN IF NOT EXISTS credits_summary JSON;",
+            "ALTER TABLE tmdb_movies ADD COLUMN IF NOT EXISTS credits_summary JSON;",
+            """
+            CREATE TABLE IF NOT EXISTS device_push_tokens (
+                id SERIAL PRIMARY KEY,
+                user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+                token VARCHAR(512) NOT NULL UNIQUE,
+                platform VARCHAR(20) NOT NULL DEFAULT 'android',
+                device_name VARCHAR(120),
+                is_active BOOLEAN NOT NULL DEFAULT TRUE,
+                created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+                updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+                last_used_at TIMESTAMP WITH TIME ZONE
+            );
+            """,
+            "CREATE INDEX IF NOT EXISTS ix_device_push_tokens_user_id ON device_push_tokens(user_id);",
+            "CREATE INDEX IF NOT EXISTS ix_device_push_tokens_is_active ON device_push_tokens(is_active);",
         ]
 
         for stmt in statements:

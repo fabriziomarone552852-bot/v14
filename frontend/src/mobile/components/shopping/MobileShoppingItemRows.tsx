@@ -108,7 +108,7 @@ export const ShoppingItemRow: React.FC<ShoppingItemRowProps> = ({
           })()}
           {item.notes && (
             <span className="italic text-gray-400 truncate">
-              • {item.notes}
+              {item.brandName ? '• ' : ''}{item.notes}
             </span>
           )}
           {item.lastPrice != null && item.lastPrice > 0 && (
@@ -190,7 +190,11 @@ export const PurchasedShoppingItemRow: React.FC<PurchasedShoppingItemRowProps> =
               Q.tà: {item.quantity} {item.unitCodeName || ''}
             </span>
           )}
-          {item.lastSupplierName && <span>• {item.lastSupplierName}</span>}
+          {item.lastSupplierName && (
+            <span>
+              {item.quantity != null ? '• ' : ''}{item.lastSupplierName}
+            </span>
+          )}
         </div>
       </div>
     </div>

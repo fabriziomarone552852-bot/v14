@@ -35,7 +35,7 @@ export const NotesPage: React.FC = () => {
     <div className="h-full flex flex-col gap-2 sm:gap-3.5 w-full max-w-[1600px] mx-auto relative z-10 pb-1">
       {/* 1. HEADER STANDARD */}
       <ArchiveHeader
-        title="NOTE & RIFLESSIONI"
+        title="Note & Appunti"
         subtitle="Bacheca completa delle tue note, memo veloci e riflessioni giornaliere."
         icon={<NoteIcon className="w-5 h-5 text-white" />}
         className={ARCHIVE_PANEL_CLASS}

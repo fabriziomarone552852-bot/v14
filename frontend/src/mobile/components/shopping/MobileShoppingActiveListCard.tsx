@@ -3,6 +3,7 @@ import React from 'react';
 import { ShoppingItemRow, PurchasedShoppingItemRow } from './MobileShoppingItemRows';
 import { MobileShoppingQuickAddBar } from './MobileShoppingQuickAddBar';
 import { MobileShoppingNoListEmptyState } from './MobileShoppingNoListEmptyState';
+import { useFadeScrollbar } from '@/hooks/ui/useFadeScrollbar';
 import type { ConfigOption, ShoppingListItem, ShoppingListSummary, ShoppingProductOption } from '@/types/shopping';
 import type { useShoppingItemsColumn } from '@/components/shared/shopping/useShoppingItemsColumn';
 
@@ -37,6 +38,8 @@ export const MobileShoppingActiveListCard: React.FC<MobileShoppingActiveListCard
   onOpenQuickPrice,
   onToggleSelectShoppingItem,
 }) => {
+  const { isScrolling, handleScroll } = useFadeScrollbar();
+
   return (
     <div className="flex-1 min-h-0 w-full bg-white border border-gray-200/90 rounded-2xl shadow-2xs p-2.5 flex flex-col justify-between overflow-hidden">
       {!activeListId || !activeList ? (
@@ -56,7 +59,12 @@ export const MobileShoppingActiveListCard: React.FC<MobileShoppingActiveListCard
           )}
 
           {/* AREA ARTICOLI CON SCROLL INTERNO FLUIDO */}
-          <div className="flex-1 min-h-0 overflow-y-auto custom-scrollbar pt-2 space-y-2">
+          <div
+            onScroll={handleScroll}
+            className={`flex-1 min-h-0 overflow-y-auto modal-scrollbar pt-2 space-y-2 ${
+              isScrolling ? 'is-scrolling' : ''
+            }`}
+          >
             {/* Stato Vuoto se 0 articoli totali */}
             {openItems.length === 0 && purchasedItems.length === 0 && (
               <div className="py-8 px-4 bg-gray-50/70 border border-dashed border-gray-200 rounded-2xl text-center my-2">

@@ -1,6 +1,6 @@
 import { useQuery, useInfiniteQuery, keepPreviousData } from '@tanstack/react-query';
 import { api } from '@/api/apiService';
-import type { TVSeries, TMDBPaginatedSearch, FriendSeriesLog, FriendEpisodeLog, SeriesCastMember, SeriesRecommendation, SeriesSeasonInfo, MediaList, TVDashboardStats, TVFullStats, SeriesQuote, UpcomingEpisode } from '@/types/trackers';
+import type { TVSeries, TMDBPaginatedSearch, FriendSeriesLog, FriendSeasonLog, FriendEpisodeLog, SeriesCastMember, SeriesRecommendation, SeriesSeasonInfo, MediaList, TVDashboardStats, TVFullStats, SeriesQuote, UpcomingEpisode } from '@/types/trackers';
 
 export const useMySeries = () => {
   return useQuery<TVSeries[]>({
@@ -39,6 +39,8 @@ export interface TMDBSeriesQueryFilterParams {
   with_watch_providers?: string;
   with_status?: string;
   first_air_date_year?: string;
+  with_people?: string;
+  people_mode?: 'AND' | 'OR';
   sort_by?: string;
 }
 
@@ -59,6 +61,8 @@ export const useInfiniteSearchTMDBSeries = (
       filterParams?.with_watch_providers || '',
       filterParams?.with_status || '',
       filterParams?.first_air_date_year || '',
+      filterParams?.with_people || '',
+      filterParams?.people_mode || 'AND',
       filterParams?.sort_by || '',
     ],
     queryFn: async ({ pageParam = 1 }) => {
@@ -75,6 +79,10 @@ export const useInfiniteSearchTMDBSeries = (
       if (filterParams?.first_air_date_year) {
         params.first_air_date_year = filterParams.first_air_date_year;
       }
+      if (filterParams?.with_people) {
+        params.with_people = filterParams.with_people;
+        if (filterParams.people_mode) params.people_mode = filterParams.people_mode;
+      }
       if (filterParams?.sort_by) params.sort_by = filterParams.sort_by;
 
       const data = await api.get<TMDBPaginatedSearch>(`/trackers/series/search`, {
@@ -89,7 +97,8 @@ export const useInfiniteSearchTMDBSeries = (
       }
       return undefined;
     },
-    enabled: enabled && query.trim().length > 0,
+    enabled:
+      enabled && (query.trim().length > 0 || Boolean(filterParams?.with_people?.trim())),
   });
 };
 
@@ -118,11 +127,30 @@ export const useFriendsEpisodeReviews = (episodeId: number, enabled: boolean = t
   });
 };
 
+export const useFriendsSeasonReviews = (
+  tmdbId?: number,
+  seasonNumber?: number | null,
+  enabled: boolean = true
+) => {
+  return useQuery<FriendSeasonLog[]>({
+    queryKey: ['trackers', 'series', tmdbId, 'seasons', seasonNumber, 'friends-reviews'],
+    queryFn: async () => {
+      if (!tmdbId || seasonNumber === undefined || seasonNumber === null) return [];
+      const data = await api.get<FriendSeasonLog[]>(
+        `/trackers/series/${tmdbId}/seasons/${seasonNumber}/friends-reviews`
+      );
+      return data || [];
+    },
+    enabled: enabled && !!tmdbId && seasonNumber !== undefined && seasonNumber !== null,
+  });
+};
+
 
 
 export const useSeriesExtras = (tmdbId: number, enabled: boolean = true) => {
   return useQuery<{
     cast: SeriesCastMember[];
+    creators?: Array<{ id: number; name: string; profile_path?: string | null }>;
     recommendations: SeriesRecommendation[];
     seasons?: SeriesSeasonInfo[];
   }>({
@@ -130,11 +158,13 @@ export const useSeriesExtras = (tmdbId: number, enabled: boolean = true) => {
     queryFn: async () => {
       const data = await api.get<{
         cast: SeriesCastMember[];
+        creators?: Array<{ id: number; name: string; profile_path?: string | null }>;
         recommendations: SeriesRecommendation[];
         seasons?: SeriesSeasonInfo[];
       }>(`/trackers/series/${tmdbId}/extras`);
       return data as {
         cast: SeriesCastMember[];
+        creators?: Array<{ id: number; name: string; profile_path?: string | null }>;
         recommendations: SeriesRecommendation[];
         seasons?: SeriesSeasonInfo[];
       };
@@ -266,6 +296,8 @@ export const useInfiniteDiscoverTMDBSeries = (
       filterParams.with_watch_providers || '',
       filterParams.with_status || '',
       filterParams.first_air_date_year || '',
+      filterParams.with_people || '',
+      filterParams.people_mode || 'AND',
       filterParams.sort_by || '',
     ],
     queryFn: async ({ pageParam = 1 }) => {
@@ -278,6 +310,10 @@ export const useInfiniteDiscoverTMDBSeries = (
       if (filterParams.with_status) params.with_status = filterParams.with_status;
       if (filterParams.first_air_date_year) {
         params.first_air_date_year = filterParams.first_air_date_year;
+      }
+      if (filterParams.with_people) {
+        params.with_people = filterParams.with_people;
+        if (filterParams.people_mode) params.people_mode = filterParams.people_mode;
       }
       if (filterParams.sort_by) params.sort_by = filterParams.sort_by;
 

@@ -48,6 +48,45 @@ def get_active_system_broadcast(
     return service.get_active_broadcast(db)
 
 
+@router.get("/push-tokens/status", response_model=schemas.PushStatusResponse)
+def get_push_status(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Restituisce lo stato di configurazione Firebase e i dispositivi Android registrati."""
+    return service.get_push_status(db, current_user)
+
+
+@router.post("/push-tokens", response_model=schemas.PushTokenResponse, status_code=status.HTTP_201_CREATED)
+def register_push_token(
+    payload: schemas.PushTokenRegisterRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Registra o aggiorna il token FCM del dispositivo corrente per le notifiche push."""
+    return service.register_push_token(db, current_user, payload)
+
+
+@router.delete("/push-tokens", status_code=status.HTTP_204_NO_CONTENT)
+def unregister_push_token(
+    token: str = Query(..., min_length=10, max_length=512),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Disattiva un token push FCM (tipicamente al logout)."""
+    service.unregister_push_token(db, current_user, token)
+
+
+@router.post("/push-tokens/test", response_model=schemas.PushTestResponse)
+def send_test_push_notification(
+    payload: Optional[schemas.PushTestRequest] = None,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Invia una notifica push di test immediata ai dispositivi dell'utente."""
+    return service.send_test_push(db, current_user, payload)
+
+
 @router.get("/{interaction_id}", response_model=schemas.InteractionResponse)
 def read_interaction(
     interaction_id: int,
