@@ -1,6 +1,6 @@
 // src/hooks/forms/useTaskFormLogic.ts
 import { useState, useEffect, useMemo, useRef } from 'react';
-import type { DbTask, TaskSummary } from '@/types';
+import type { Category, DbTask, TaskSummary } from '@/types';
 import { getLocalTodayStr } from '@/utils/dateUtils';
 import { useCategories } from '@/hooks/useCategories';
 import { useTaskMutations } from '@/hooks/mutations/useTaskMutations';
@@ -13,6 +13,9 @@ import {
   countSubtreeNodes,
   getSubtreeMaxDepth,
 } from '@/utils/taskDuplicateUtils';
+
+const EMPTY_CATEGORIES: Category[] = [];
+const EMPTY_TASKS: DbTask[] = [];
 
 export interface TaskFormState {
   titolo: string;
@@ -46,11 +49,13 @@ export const useTaskFormLogic = ({
   initialDate,
   onTaskSaved,
 }: UseTaskFormLogicProps) => {
-  const { data: dbCategories = [] } = useCategories(isOpen);
+  const { data: dbCategories = EMPTY_CATEGORIES } = useCategories(isOpen);
   const { saveTask, cloneSubtasksTree } = useTaskMutations(['tasks']);
   const { confirm } = useConfirm();
   const { user, isAuthenticated } = useAuth();
   const maxDepth = user?.max_subtask_depth_user ?? 3;
+  const dbCategoriesRef = useRef<Category[]>(dbCategories);
+  dbCategoriesRef.current = dbCategories;
 
   const [newTaskForm, setNewTaskForm] = useState<TaskFormState>({
     titolo: '',
@@ -70,7 +75,7 @@ export const useTaskFormLogic = ({
   const [isSaving, setIsSaving] = useState(false);
   const initializedCreateRef = useRef(false);
 
-  const { data: tasks = [] } = useQuery<DbTask[]>({
+  const { data: tasks = EMPTY_TASKS } = useQuery<DbTask[]>({
     queryKey: ['tasks'],
     queryFn: async () => {
       const data = await api.get<DbTask[] | { items: DbTask[] }>('/tasks');
@@ -94,7 +99,7 @@ export const useTaskFormLogic = ({
   useEffect(() => {
     if (!isOpen) {
       initializedCreateRef.current = false;
-      setPendingSubtasksToClone([]);
+      setPendingSubtasksToClone((prev) => (prev.length === 0 ? prev : []));
       setIsDatePickerOpen(false);
       setIsStartDatePickerOpen(false);
       return;
@@ -121,11 +126,11 @@ export const useTaskFormLogic = ({
         parent_id: taskToEdit.parent_id ? String(taskToEdit.parent_id) : '',
       });
       setIsSubtaskPanelOpen(!!taskToEdit.parent_id);
-      setPendingSubtasksToClone([]);
+      setPendingSubtasksToClone((prev) => (prev.length === 0 ? prev : []));
     } else if (!initializedCreateRef.current) {
       initializedCreateRef.current = true;
       if (taskToDuplicate) {
-        const hasGenericoCategory = dbCategories.some(
+        const hasGenericoCategory = dbCategoriesRef.current.some(
           (c) => c.category_name === 'Generico'
         );
         const resolvedCategory =
@@ -158,7 +163,7 @@ export const useTaskFormLogic = ({
           parent_id: initialParentId ? String(initialParentId) : '',
         });
         setIsSubtaskPanelOpen(!!initialParentId);
-        setPendingSubtasksToClone([]);
+        setPendingSubtasksToClone((prev) => (prev.length === 0 ? prev : []));
       }
     }
   }, [
@@ -169,7 +174,6 @@ export const useTaskFormLogic = ({
     initialParentId,
     initialDate,
     tasks,
-    dbCategories,
   ]);
 
   const clearPendingSubtasks = () => {

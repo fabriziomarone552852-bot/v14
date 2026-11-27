@@ -3,12 +3,28 @@ import type { ChangelogItem } from './types';
 
 export const CHANGELOG_V15: ChangelogItem[] = [
   {
+    id: 'v15.5.2',
+    version: '15.5.2',
+    date: 'Novembre 2026',
+    title: 'Fix Schermata Bianca e Blocco Post-Login (useTaskFormLogic)',
+    isLatest: true,
+    published: true,
+    highlights: [
+      'Risolto il loop infinito di rendering dopo il login che causava schermata bianca o blocco sul caricamento.',
+    ],
+    features: [],
+    improvements: [],
+    fixes: [
+      'Stabilizzati i riferimenti di fallback vuoti (`EMPTY_TASKS`, `EMPTY_CATEGORIES`) e l\'aggiornamento di `pendingSubtasksToClone` in `useTaskFormLogic` per evitare cicli infiniti in `useEffect` a modale chiuso.',
+    ],
+  },
+  {
     id: 'v15.5.1',
     version: '15.5.1',
     date: 'Novembre 2026',
     title: 'Fix Loop 401 al Login e Blocco Schermata di Accesso',
-    isLatest: true,
-    published: false,
+    isLatest: false,
+    published: true,
     highlights: [
       'Risolto il blocco sulla pagina di login dovuto a un loop infinito di chiamate `/categories` con errore 401.',
     ],
