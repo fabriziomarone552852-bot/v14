@@ -1,5 +1,5 @@
 // src/components/shared/shopping/bulk/ShoppingBulkPurchaseRow.tsx
-import React, { useId } from 'react';
+import React, { useId, useMemo } from 'react';
 import type {
   ConfigOption,
   ShoppingListItem,
@@ -11,6 +11,7 @@ import {
   shoppingInputClass,
 } from '../shoppingUi';
 import { getConfigOptionLabel, type PurchaseFormState } from '../shoppingItems.utils';
+import { SearchableSelect } from '@/components/shared/form/SearchableSelect';
 
 export interface ShoppingBulkPurchaseRowProps {
   item: ShoppingListItem;
@@ -50,6 +51,11 @@ export const ShoppingBulkPurchaseRow: React.FC<ShoppingBulkPurchaseRowProps> = (
   const offerFlagId = useId();
   const itemLabel = item.productName || 'articolo';
 
+  const supplierOptions = useMemo(() => [
+    { value: '', label: 'Seleziona fornitore' },
+    ...suppliers.map((s) => ({ value: String(s.id), label: s.name })),
+  ], [suppliers]);
+
   return (
     <div className={`${shoppingCardClass} flex flex-col gap-3 p-4`}>
       <div className="min-w-0">
@@ -66,24 +72,22 @@ export const ShoppingBulkPurchaseRow: React.FC<ShoppingBulkPurchaseRowProps> = (
           <label htmlFor={supplierId} className="sr-only">
             Fornitore per {itemLabel}
           </label>
-          <select
+          <SearchableSelect
             id={supplierId}
-            className={shoppingInputClass}
             value={form.supplierId}
-            onChange={(e) =>
+            onChange={(v) =>
               onChangeForm(item.id, (prev) => ({
                 ...prev,
-                supplierId: e.target.value,
+                supplierId: String(v),
               }))
             }
-          >
-            <option value="">Seleziona fornitore</option>
-            {suppliers.map((s) => (
-              <option key={s.id} value={String(s.id)}>
-                {s.name}
-              </option>
-            ))}
-          </select>
+            options={supplierOptions}
+            placeholder="Seleziona fornitore"
+            mobileTitle="Seleziona Fornitore"
+            searchPlaceholder="Cerca negozio..."
+            maxListHeight={260}
+            className={shoppingInputClass}
+          />
         </div>
 
         <div>

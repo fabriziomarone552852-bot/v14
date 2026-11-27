@@ -55,6 +55,7 @@ export const CHANGELOG_V15: ChangelogItem[] = [
       'Backup Remoto & Rete Mobile Proxmox: Risolti l\'autenticazione SSH verso NAS QNAP per la replica automatica dei backup e il ponte di rete Tailscale per il caricamento dati dell\'app Android su Proxmox.',
       'Barra Liste Anti-Sovrapposizione (Serie TV & Film): Calcolo dinamico dello spazio rispetto alla locandina con raccolta automatica delle pillole nel pulsante compatto a tre linee quando lo spazio non basta.',
       'Header Anno Mobile (Agenda): Stabilizzata l\'altezza minima dell\'intestazione nella vista Anno per evitare sbalzi verticali quando compaiono o scompaiono i tasti di ritorno e review cambiando anno.',
+      'Selettori Ricercabili Spesa (Desktop & Mobile): Sostituiti i <select> nativi con `SearchableSelect` in Data Grid Revisione Lotti (Negozio/Brand), Fusione Prodotti (Admin) e Acquisto in Blocco (Fornitore), risolvendo la chiusura con rotella del mouse e aggiungendo ricerca testuale integrata.',
     ],
   },
   {

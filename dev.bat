@@ -3,13 +3,13 @@ setlocal
 
 echo === Smart Agenda - DEV (DB locale) ===
 set "APP_ENV=dev"
-set "VITE_API_BASE_URL=http://localhost:8000"
+set "VITE_API_BASE_URL=http://localhost:8014"
 
 echo Backend: APP_ENV=%APP_ENV%
 echo Frontend: VITE_API_BASE_URL=%VITE_API_BASE_URL%
 echo.
 
-start "Backend (dev)" cmd /c "set APP_ENV=dev && uv run uvicorn backend.main:app --reload"
+start "Backend (dev)" cmd /c "set APP_ENV=dev && uv run uvicorn backend.main:app --reload --port 8014"
 
 pushd frontend
 call npm run dev

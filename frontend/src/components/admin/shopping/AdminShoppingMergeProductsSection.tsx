@@ -1,6 +1,7 @@
 // src/components/admin/shopping/AdminShoppingMergeProductsSection.tsx
-import React from 'react';
+import React, { useMemo } from 'react';
 import { useAdminShoppingMergeLogic } from './useAdminShoppingMergeLogic';
+import { SearchableSelect } from '@/components/shared/form/SearchableSelect';
 
 export const AdminShoppingMergeProductsSection: React.FC = () => {
   const {
@@ -19,6 +20,19 @@ export const AdminShoppingMergeProductsSection: React.FC = () => {
     handleMerge,
     loadData,
   } = useAdminShoppingMergeLogic();
+
+  // Opzioni per SearchableSelect — include conteggio registrazioni nel label
+  const productOptions = useMemo(() =>
+    products.map((p) => {
+      const count = productBatchCounts[p.id] || 0;
+      const name = p.displayName || p.nameNormalized;
+      return {
+        value: p.id,
+        label: `${name} (${count} ${count === 1 ? 'registrazione' : 'registrazioni'})`,
+      };
+    }),
+    [products, productBatchCounts]
+  );
 
   return (
     <div className="space-y-6">
@@ -74,23 +88,17 @@ export const AdminShoppingMergeProductsSection: React.FC = () => {
               Seleziona la dicitura anomala o il duplicato che desideri rimuovere dal catalogo:
             </p>
 
-            <select
-              value={sourceProductId}
-              onChange={(e) => setSourceProductId(e.target.value ? Number(e.target.value) : '')}
+            <SearchableSelect
+              value={sourceProductId === '' ? '' : sourceProductId}
+              onChange={(v) => setSourceProductId(v === '' ? '' : Number(v))}
+              options={productOptions.filter((o) => o.value !== targetProductId)}
+              placeholder="— Seleziona Prodotto Duplicato —"
+              mobileTitle="Prodotto Duplicato da eliminare"
+              searchPlaceholder="Cerca prodotto..."
+              maxListHeight={300}
               disabled={loading || merging}
-              className="w-full px-3 py-2 text-xs font-bold rounded-xl border border-rose-200 bg-white text-slate-800 outline-none focus:border-rose-500 cursor-pointer"
-            >
-              <option value="">- Seleziona Prodotto Duplicato -</option>
-              {products.map((p) => {
-                const count = productBatchCounts[p.id] || 0;
-                const name = p.displayName || p.nameNormalized;
-                return (
-                  <option key={p.id} value={p.id} disabled={p.id === targetProductId}>
-                    {name} ({count} {count === 1 ? 'registrazione' : 'registrazioni'})
-                  </option>
-                );
-              })}
-            </select>
+              className="border-rose-200 focus:border-rose-500"
+            />
 
             {sourceProduct && (
               <div className="p-3 bg-white/80 rounded-xl border border-rose-100 text-xs space-y-1">
@@ -114,23 +122,17 @@ export const AdminShoppingMergeProductsSection: React.FC = () => {
               Seleziona la voce corretta e definitiva verso cui far confluire tutte le registrazioni:
             </p>
 
-            <select
-              value={targetProductId}
-              onChange={(e) => setTargetProductId(e.target.value ? Number(e.target.value) : '')}
+            <SearchableSelect
+              value={targetProductId === '' ? '' : targetProductId}
+              onChange={(v) => setTargetProductId(v === '' ? '' : Number(v))}
+              options={productOptions.filter((o) => o.value !== sourceProductId)}
+              placeholder="— Seleziona Prodotto Principale —"
+              mobileTitle="Prodotto Principale da mantenere"
+              searchPlaceholder="Cerca prodotto..."
+              maxListHeight={300}
               disabled={loading || merging}
-              className="w-full px-3 py-2 text-xs font-bold rounded-xl border border-emerald-200 bg-white text-slate-800 outline-none focus:border-emerald-500 cursor-pointer"
-            >
-              <option value="">- Seleziona Prodotto Principale -</option>
-              {products.map((p) => {
-                const count = productBatchCounts[p.id] || 0;
-                const name = p.displayName || p.nameNormalized;
-                return (
-                  <option key={p.id} value={p.id} disabled={p.id === sourceProductId}>
-                    {name} ({count} {count === 1 ? 'registrazione' : 'registrazioni'})
-                  </option>
-                );
-              })}
-            </select>
+              className="border-emerald-200 focus:border-emerald-500"
+            />
 
             {targetProduct && (
               <div className="p-3 bg-white/80 rounded-xl border border-emerald-100 text-xs space-y-1">
